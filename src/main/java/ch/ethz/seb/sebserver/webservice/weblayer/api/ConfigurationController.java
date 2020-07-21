@@ -114,6 +114,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
     public Collection<EntityDependency> getDependencies(
             final String modelId,
             final BulkActionType bulkActionType,
+            final boolean addIncludes,
             final List<String> includes) {
         throw new UnsupportedOperationException();
     }

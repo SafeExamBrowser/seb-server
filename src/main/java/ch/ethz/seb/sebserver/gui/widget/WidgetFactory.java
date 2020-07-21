@@ -302,7 +302,25 @@ public class WidgetFactory {
                     g.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
                     return g;
                 },
+                false,
                 false);
+    }
+
+    /** Use this to create a scrolled Composite for usual popup forms
+     *
+     * @param parent The parent Composite
+     * @return the scrolled Composite to add the form content */
+    public Composite createPopupScrollCompositeFilled(final Composite parent) {
+        return PageService.createManagedVScrolledComposite(
+                parent,
+                scrolledComposite -> {
+                    final Composite g = new Composite(scrolledComposite, SWT.NONE);
+                    g.setLayout(new GridLayout());
+                    g.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+                    return g;
+                },
+                false,
+                true);
     }
 
     public Composite createWarningPanel(final Composite parent) {

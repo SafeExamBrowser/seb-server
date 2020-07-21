@@ -22,7 +22,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -30,11 +30,13 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
-public class TableBuilder<ROW extends Entity> {
+public class TableBuilder<ROW> {
 
     private final String name;
     private final PageService pageService;
     final RestCall<Page<ROW>> restCall;
+    final List<ROW> staticList;
+    final EntityType entityType;
     private final MultiValueMap<String, String> staticQueryParams;
     final List<ColumnDefinition<ROW>> columns = new ArrayList<>();
     LocTextKey emptyMessage;
@@ -55,6 +57,22 @@ public class TableBuilder<ROW extends Entity> {
         this.name = name;
         this.pageService = pageService;
         this.restCall = restCall;
+        this.staticList = null;
+        this.entityType = null;
+        this.staticQueryParams = new LinkedMultiValueMap<>();
+    }
+
+    public TableBuilder(
+            final String name,
+            final PageService pageService,
+            final List<ROW> staticList,
+            final EntityType entityType) {
+
+        this.name = name;
+        this.pageService = pageService;
+        this.restCall = null;
+        this.staticList = staticList;
+        this.entityType = entityType;
         this.staticQueryParams = new LinkedMultiValueMap<>();
     }
 
@@ -153,12 +171,14 @@ public class TableBuilder<ROW extends Entity> {
     }
 
     public EntityTable<ROW> compose(final PageContext pageContext) {
-        return new EntityTable<>(
+        return new EntityTable<ROW>(
                 this.name,
                 this.markupEnabled,
                 this.type,
                 pageContext,
-                this.restCall,
+                (this.restCall != null)
+                        ? new RestCallPageSupplier<>(this.restCall)
+                        : new StaticListPageSupplier<>(this.staticList, this.entityType),
                 this.restCallAdapter,
                 this.pageService,
                 this.columns,

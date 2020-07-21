@@ -25,6 +25,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Shell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -33,6 +35,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public class ModelInputWizard<T> extends Dialog {
+
+    private static final Logger log = LoggerFactory.getLogger(ModelInputWizard.class);
 
     private static final long serialVersionUID = -3314062148477979319L;
 
@@ -81,33 +85,92 @@ public class ModelInputWizard<T> extends Dialog {
             final WizardPage<T>... pages) {
 
         // Create the selection dialog window
-        final Shell shell = new Shell(getParent(), getStyle());
-        shell.setText(getText());
-        shell.setData(RWT.CUSTOM_VARIANT, CustomVariant.MESSAGE.key);
-        shell.setText(this.widgetFactory.getI18nSupport().getText(title));
-        shell.setLayout(new GridLayout(1, true));
-        final GridData gridData2 = new GridData(SWT.FILL, SWT.TOP, false, false);
-        shell.setLayoutData(gridData2);
+        this.shell = new Shell(getParent(), getStyle());
+        this.shell.setText(getText());
+        this.shell.setData(RWT.CUSTOM_VARIANT, CustomVariant.MESSAGE.key);
+        this.shell.setText(this.widgetFactory.getI18nSupport().getText(title));
+        this.shell.setLayout(new GridLayout());
+        final GridData gridData2 = new GridData(SWT.FILL, SWT.FILL, true, true);
+        this.shell.setLayoutData(gridData2);
 
         // the content composite
-        final Composite main = new Composite(shell, SWT.NONE);
+        final Composite main = new Composite(this.shell, SWT.NONE);
         main.setLayout(new GridLayout());
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         gridData.widthHint = this.dialogWidth;
         main.setLayoutData(gridData);
 
-        final Composite actionComp = new Composite(shell, SWT.NONE);
+        final Composite content = new Composite(main, SWT.NONE);
+        content.setLayout(new GridLayout());
+        final GridData gridDataContent = new GridData(SWT.FILL, SWT.FILL, true, true);
+        content.setLayoutData(gridDataContent);
+        content.setData(RWT.CUSTOM_VARIANT, CustomVariant.MESSAGE.key);
+
+        final Composite actionComp = new Composite(main, SWT.NONE);
         actionComp.setLayout(new GridLayout());
-        actionComp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        final GridData gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true);
+        actionComp.setLayoutData(gridData3);
 
         final Composite actionsComp = new Composite(actionComp, SWT.NONE);
         actionsComp.setLayout(new RowLayout(SWT.HORIZONTAL));
-        actionComp.setLayoutData(new GridData(SWT.TRAIL, SWT.FILL, true, true));
+        final GridData gridData4 = new GridData(SWT.CENTER, SWT.FILL, true, true);
+        actionComp.setLayoutData(gridData4);
 
         final List<WizardPage<T>> pageList = Utils.immutableListOf(pages);
-        createPage(null, pageList, null, main, actionsComp);
+        createPage(null, pageList, null, content, actionsComp, cancelCallback);
+        finishUp(this.shell);
+    }
 
-        if (cancelCallback != null) {
+    private void createPage(
+            final String pageId,
+            final List<WizardPage<T>> pages,
+            final T valueFromPrevPage,
+            final Composite contentComp,
+            final Composite actionsComp,
+            final Runnable cancelCallback) {
+
+        try {
+
+            final Optional<WizardPage<T>> newPage = (pageId != null)
+                    ? pages.stream()
+                            .filter(p -> pageId.equals(p.id))
+                            .findFirst()
+                    : pages.stream()
+                            .filter(page -> page.isStart)
+                            .findFirst();
+
+            if (!newPage.isPresent()) {
+                return;
+            }
+
+            final WizardPage<T> page = newPage.get();
+            final Supplier<T> valueSupplier = page.contentCompose.apply(valueFromPrevPage, contentComp);
+
+            if (page.actions != null) {
+                for (final WizardAction<T> action : page.actions) {
+                    final Button actionButton = this.widgetFactory.buttonLocalized(actionsComp, action.name);
+                    final RowData data = new RowData();
+                    data.width = this.buttonWidth;
+                    actionButton.setLayoutData(data);
+
+                    actionButton.addListener(SWT.Selection, event -> {
+                        if (valueSupplier != null) {
+                            final T result = valueSupplier.get();
+                            if (action.toPage != null) {
+                                PageService.clearComposite(contentComp);
+                                PageService.clearComposite(actionsComp);
+                                createPage(action.toPage, pages, result, contentComp, actionsComp, cancelCallback);
+                            } else {
+                                action.callback.test(result);
+                                this.shell.close();
+                            }
+                        } else {
+                            this.shell.close();
+                        }
+                    });
+                }
+            }
+
             final Button cancel = this.widgetFactory.buttonLocalized(actionsComp, ModalInputDialog.CANCEL_TEXT_KEY);
             final RowData data = new RowData();
             data.width = this.buttonWidth;
@@ -116,60 +179,24 @@ public class ModelInputWizard<T> extends Dialog {
                 if (cancelCallback != null) {
                     cancelCallback.run();
                 }
-                shell.close();
+                this.shell.close();
             });
-        }
 
-        gridData.heightHint = calcDialogHeight(main);
-        finishUp(shell);
-    }
+            try {
+                final Composite parent = contentComp.getParent();
+                final int dialogHeight = calcDialogHeight(parent);
+                ((GridData) parent.getLayoutData()).heightHint = dialogHeight;
+                ((GridData) contentComp.getLayoutData()).heightHint = dialogHeight - 55;
+                ((GridData) actionsComp.getLayoutData()).heightHint = 45;
 
-    private void createPage(
-            final String pageId,
-            final List<WizardPage<T>> pages,
-            final T valueFromPrevPage,
-            final Composite contentComp,
-            final Composite actionsComp) {
-
-        final Optional<WizardPage<T>> newPage = (pageId != null)
-                ? pages.stream()
-                        .filter(p -> pageId.equals(p.id))
-                        .findFirst()
-                : pages.stream()
-                        .filter(page -> page.isStart)
-                        .findFirst();
-
-        if (!newPage.isPresent()) {
-            return;
-        }
-
-        final WizardPage<T> page = newPage.get();
-        PageService.clearComposite(contentComp);
-        PageService.clearComposite(actionsComp);
-
-        final Supplier<T> valueSupplier = page.contentCompose.apply(valueFromPrevPage, contentComp);
-
-        if (page.actions != null) {
-            for (final WizardAction<T> action : page.actions) {
-                final Button actionButton = this.widgetFactory.buttonLocalized(actionsComp, action.name);
-                final RowData data = new RowData();
-                data.width = this.buttonWidth;
-                actionButton.setLayoutData(data);
-
-                actionButton.addListener(SWT.Selection, event -> {
-                    if (valueSupplier != null) {
-                        final T result = valueSupplier.get();
-                        if (action.toPage != null) {
-                            createPage(action.toPage, pages, result, contentComp, actionsComp);
-                        } else {
-                            action.callback.test(result);
-                            this.shell.close();
-                        }
-                    } else {
-                        this.shell.close();
-                    }
-                });
+                contentComp.getShell().layout(true, true);
+            } catch (final Exception e) {
+                log.warn("Failed to calculate dialog height: {}", e.getMessage());
             }
+
+        } catch (final Exception e) {
+            log.error("Unexpected error: ", e);
+            this.shell.close();
         }
     }
 

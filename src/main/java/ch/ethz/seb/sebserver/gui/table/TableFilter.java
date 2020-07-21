@@ -31,7 +31,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -41,7 +40,7 @@ import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
-public class TableFilter<ROW extends Entity> {
+public class TableFilter<ROW> {
 
     private static final Logger log = LoggerFactory.getLogger(TableFilter.class);
 
@@ -365,8 +364,8 @@ public class TableFilter<ROW extends Entity> {
 
             final Supplier<List<Tuple<String>>> _resourceSupplier = resourceSupplier;
             resourceSupplier = () -> {
-                List<Tuple<String>> list = _resourceSupplier.get();
-                list.add(new Tuple<>(StringUtils.EMPTY, entityTable.i18nSupport.getText(ALL_TEXT)));
+                final List<Tuple<String>> list = _resourceSupplier.get();
+                list.add(new Tuple<>(StringUtils.EMPTY, TableFilter.this.entityTable.i18nSupport.getText(ALL_TEXT)));
                 return list;
             };
 

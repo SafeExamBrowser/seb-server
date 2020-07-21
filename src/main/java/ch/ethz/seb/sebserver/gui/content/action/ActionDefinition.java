@@ -133,8 +133,8 @@ public enum ActionDefinition {
     USER_ACCOUNT_DELETE(
             new LocTextKey("sebserver.useraccount.action.delete"),
             ImageIcon.DELETE,
-            PageStateDefinitionImpl.USER_ACCOUNT_LIST,
-            ActionCategory.USER_ACCOUNT_LIST),
+            PageStateDefinitionImpl.USER_ACCOUNT_VIEW,
+            ActionCategory.FORM),
 
     USER_ACCOUNT_CHANGE_PASSWORD(
             new LocTextKey("sebserver.useraccount.action.change.password"),

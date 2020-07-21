@@ -56,6 +56,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
     public Collection<EntityDependency> getDependencies(
             final String modelId,
             final BulkActionType bulkActionType,
+            final boolean addIncludes,
             final List<String> includes) {
         throw new UnsupportedOperationException();
     }

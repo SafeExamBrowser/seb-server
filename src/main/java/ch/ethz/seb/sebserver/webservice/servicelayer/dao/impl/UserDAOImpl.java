@@ -335,6 +335,12 @@ public class UserDAOImpl implements UserDAO {
 
             final List<Long> ids = extractListOfPKs(all);
 
+            // get all user records for later processing
+            final List<UserRecord> users = this.userRecordMapper.selectByExample()
+                    .where(UserRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
             // first delete assigned user roles
             this.roleRecordMapper.deleteByExample()
                     .where(RoleRecordDynamicSqlSupport.userId, isIn(ids))
@@ -347,8 +353,8 @@ public class UserDAOImpl implements UserDAO {
                     .build()
                     .execute();
 
-            return ids.stream()
-                    .map(id -> new EntityKey(id, EntityType.USER))
+            return users.stream()
+                    .map(rec -> new EntityKey(rec.getUuid(), EntityType.USER))
                     .collect(Collectors.toList());
         });
     }

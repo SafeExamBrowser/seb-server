@@ -12,12 +12,11 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 
-public final class ColumnDefinition<ROW extends Entity> {
+public final class ColumnDefinition<ROW> {
 
     private static final String TOOLTIP_TEXT_KEY_SUFFIX = ".tooltip";
 

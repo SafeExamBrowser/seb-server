@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.page;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -294,7 +295,7 @@ public interface PageService {
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
      * @return TableBuilder of specified type */
-    default <T extends Entity> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
+    default <T> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
         return entityTableBuilder(apiCall.getClass().getSimpleName(), apiCall);
     }
 
@@ -304,9 +305,11 @@ public interface PageService {
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
      * @return TableBuilder of specified type */
-    <T extends Entity> TableBuilder<T> entityTableBuilder(
+    <T> TableBuilder<T> entityTableBuilder(
             String name,
             RestCall<Page<T>> apiCall);
+
+    <T> TableBuilder<T> staticListTableBuilder(final List<T> staticList, EntityType entityType);
 
     /** Get a new PageActionBuilder for a given PageContext.
      *
@@ -347,9 +350,29 @@ public interface PageService {
             final Composite parent,
             final Function<ScrolledComposite, Composite> contentFunction,
             final boolean showScrollbars) {
+        return createManagedVScrolledComposite(parent, contentFunction, showScrollbars, false);
+    }
+
+    /** Creates a ScrolledComposite with content supplied the given content creation function.
+     * The content creation function is used to create the content Composite as a child of the
+     * newly created ScrolledComposite.
+     * Also adds an update function within the ScrolledComposite Data mapping. If a child inside
+     * the ScrolledComposite changes its dimensions the method updateScrolledComposite must be
+     * called to update the ScrolledComposite scrolled content.
+     *
+     * @param parent the parent Composite of the ScrolledComposite
+     * @param contentFunction the content creation function
+     * @param showScrollbars indicates whether the scrollbar shall always be shown
+     * @param fill indicates if the content shall be vertically filled
+     * @return the child composite that is scrolled by the newly created ScrolledComposite */
+    static Composite createManagedVScrolledComposite(
+            final Composite parent,
+            final Function<ScrolledComposite, Composite> contentFunction,
+            final boolean showScrollbars,
+            final boolean fill) {
 
         final ScrolledComposite scrolledComposite = new ScrolledComposite(parent, SWT.BORDER | SWT.V_SCROLL);
-        scrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
+        scrolledComposite.setLayoutData(new GridData(SWT.FILL, (fill) ? SWT.FILL : SWT.TOP, true, true));
 
         final Composite content = contentFunction.apply(scrolledComposite);
         scrolledComposite.setContent(content);

@@ -90,6 +90,7 @@ public class ConfigurationValueController extends EntityController<Configuration
     @Override
     public EntityProcessingReport hardDelete(
             final String modelId,
+            final boolean addIncludes,
             final List<String> includes) {
         throw new UnsupportedOperationException();
     }

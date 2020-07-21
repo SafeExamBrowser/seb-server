@@ -54,13 +54,12 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 import io.micrometer.core.instrument.util.StringUtils;
 
-public class EntityTable<ROW extends Entity> {
+public class EntityTable<ROW> {
 
     private static final Logger log = LoggerFactory.getLogger(EntityTable.class);
 
@@ -108,7 +107,7 @@ public class EntityTable<ROW extends Entity> {
             final boolean markupEnabled,
             final int type,
             final PageContext pageContext,
-            final RestCall<Page<ROW>> restCall,
+            final PageSupplier<ROW> pageSupplier,
             final Function<PageSupplier.Builder<ROW>, PageSupplier.Builder<ROW>> pageSupplierAdapter,
             final PageService pageService,
             final List<ColumnDefinition<ROW>> columns,
@@ -132,7 +131,7 @@ public class EntityTable<ROW extends Entity> {
         this.i18nSupport = pageService.getI18nSupport();
         this.pageContext = pageContext;
         this.widgetFactory = pageService.getWidgetFactory();
-        this.pageSupplier = new RestCallPageSupplier<>(restCall);
+        this.pageSupplier = pageSupplier;
         this.pageSupplierAdapter = (pageSupplierAdapter != null) ? pageSupplierAdapter : Function.identity();
         this.columns = Utils.immutableListOf(columns);
         this.emptyMessage = emptyMessage;
@@ -581,7 +580,11 @@ public class EntityTable<ROW extends Entity> {
     }
 
     private EntityKey getRowDataId(final TableItem item) {
-        return getRowData(item).getEntityKey();
+        final ROW rowData = getRowData(item);
+        if (rowData instanceof Entity) {
+            return ((Entity) rowData).getEntityKey();
+        }
+        return null;
     }
 
     private void updateValues(final EntityTable<ROW> table) {

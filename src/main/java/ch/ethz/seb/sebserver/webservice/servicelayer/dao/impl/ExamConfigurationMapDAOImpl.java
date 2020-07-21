@@ -449,6 +449,10 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     .build()
                     .execute();
 
+            if (examsIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+
             return toDependencies(
                     this.examConfigurationMapRecordMapper.selectByExample()
                             .where(

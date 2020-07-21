@@ -63,6 +63,7 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
     @Override
     public EntityProcessingReport hardDelete(
             final String modelId,
+            final boolean addIncludes,
             final List<String> includes) {
         throw new UnsupportedOperationException(ONLY_READ_ACCESS);
     }

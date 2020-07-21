@@ -166,13 +166,14 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public EntityProcessingReport hardDelete(
             @PathVariable final String modelId,
+            @RequestParam(name = API.PARAM_BULK_ACTION_ADD_INCLUDES, defaultValue = "false") final boolean addIncludes,
             @RequestParam(name = API.PARAM_BULK_ACTION_INCLUDES, required = false) final List<String> includes) {
 
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkWriteAccess)
                 .flatMap(entity -> this.examConfigUpdateService.processExamConfigurationMappingChange(
                         entity,
-                        e -> bulkDelete(e, convertToEntityType(includes))))
+                        e -> bulkDelete(e, convertToEntityType(addIncludes, includes))))
                 .flatMap(this::notifyDeleted)
                 .flatMap(pair -> this.logBulkAction(pair.b))
                 .getOrThrow();

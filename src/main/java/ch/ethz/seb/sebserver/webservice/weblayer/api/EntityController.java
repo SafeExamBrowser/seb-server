@@ -213,6 +213,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     public Collection<EntityDependency> getDependencies(
             @PathVariable final String modelId,
             @RequestParam(name = API.PARAM_BULK_ACTION_TYPE, required = true) final BulkActionType bulkActionType,
+            @RequestParam(name = API.PARAM_BULK_ACTION_ADD_INCLUDES, defaultValue = "false") final boolean addIncludes,
             @RequestParam(name = API.PARAM_BULK_ACTION_INCLUDES, required = false) final List<String> includes) {
 
         this.entityDAO
@@ -223,7 +224,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 bulkActionType,
                 this.entityDAO.entityType(),
                 Arrays.asList(new EntityKey(modelId, this.entityDAO.entityType())),
-                convertToEntityType(includes));
+                convertToEntityType(addIncludes, includes));
 
         this.bulkActionService.collectDependencies(bulkAction);
         return bulkAction.getDependencies();
@@ -326,29 +327,32 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public EntityProcessingReport hardDelete(
             @PathVariable final String modelId,
+            @RequestParam(name = API.PARAM_BULK_ACTION_ADD_INCLUDES, defaultValue = "false") final boolean addIncludes,
             @RequestParam(name = API.PARAM_BULK_ACTION_INCLUDES, required = false) final List<String> includes) {
 
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkWriteAccess)
                 .flatMap(this::validForDelete)
-                .flatMap(entity -> bulkDelete(entity, convertToEntityType(includes)))
+                .flatMap(entity -> bulkDelete(entity, convertToEntityType(addIncludes, includes)))
                 .flatMap(this::notifyDeleted)
                 .flatMap(pair -> this.logBulkAction(pair.b))
                 .getOrThrow();
     }
 
-    protected EnumSet<EntityType> convertToEntityType(final List<String> includes) {
+    protected EnumSet<EntityType> convertToEntityType(final boolean addIncludes, final List<String> includes) {
         final EnumSet<EntityType> includeDependencies = (includes != null)
-                ? EnumSet.copyOf(includes.stream().map(name -> {
-                    try {
-                        return EntityType.valueOf(name);
-                    } catch (final Exception e) {
-                        return null;
-                    }
-                })
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet()))
-                : null;
+                ? (includes.isEmpty())
+                        ? EnumSet.noneOf(EntityType.class)
+                        : EnumSet.copyOf(includes.stream().map(name -> {
+                            try {
+                                return EntityType.valueOf(name);
+                            } catch (final Exception e) {
+                                return null;
+                            }
+                        })
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toSet()))
+                : (addIncludes) ? EnumSet.noneOf(EntityType.class) : null;
         return includeDependencies;
     }
 

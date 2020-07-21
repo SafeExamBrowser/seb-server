@@ -358,11 +358,23 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public <T extends Entity> TableBuilder<T> entityTableBuilder(
+    public <T> TableBuilder<T> entityTableBuilder(
             final String name,
             final RestCall<Page<T>> apiCall) {
 
         return new TableBuilder<>(name, this, apiCall);
+    }
+
+    @Override
+    public <T> TableBuilder<T> staticListTableBuilder(
+            final List<T> staticList,
+            final EntityType entityType) {
+
+        return new TableBuilder<>(
+                (entityType != null)
+                        ? entityType.name()
+                        : "",
+                this, staticList, entityType);
     }
 
     @Override
