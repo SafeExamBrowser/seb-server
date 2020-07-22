@@ -73,8 +73,6 @@ public class ExamDeletePopup {
 
     private final static LocTextKey ACTION_DELETE =
             new LocTextKey("sebserver.exam.delete.action.delete");
-    private final static LocTextKey ACTION_REPORT =
-            new LocTextKey("sebserver.exam.delete.action.report");
 
     private final static LocTextKey DELETE_CONFIRM_TITLE =
             new LocTextKey("sebserver.exam.delete.confirm.title");
@@ -95,29 +93,18 @@ public class ExamDeletePopup {
                                     .setVeryLargeDialogWidth();
 
             final String page1Id = "DELETE_PAGE";
-            final String page2Id = "REPORT_PAGE";
             final Predicate<PageContext> callback = pc -> doDelete(this.pageService, pc);
             final BiFunction<PageContext, Composite, Supplier<PageContext>> composePage1 =
                     (prefPageContext, content) -> composeDeleteDialog(content,
-                            (prefPageContext != null) ? prefPageContext : pageContext);
-            final BiFunction<PageContext, Composite, Supplier<PageContext>> composePage2 =
-                    (prefPageContext, content) -> composeReportDialog(content,
                             (prefPageContext != null) ? prefPageContext : pageContext);
 
             final WizardPage<PageContext> page1 = new WizardPage<>(
                     page1Id,
                     true,
                     composePage1,
-                    new WizardAction<>(ACTION_DELETE, callback),
-                    new WizardAction<>(ACTION_REPORT, page2Id));
-
-            final WizardPage<PageContext> page2 = new WizardPage<>(
-                    page2Id,
-                    false,
-                    composePage2,
                     new WizardAction<>(ACTION_DELETE, callback));
 
-            wizard.open(FORM_TITLE, Utils.EMPTY_EXECUTION, page1, page2);
+            wizard.open(FORM_TITLE, Utils.EMPTY_EXECUTION, page1);
 
             return action;
         };
@@ -172,6 +159,7 @@ public class ExamDeletePopup {
             final Composite parent,
             final PageContext pageContext) {
 
+        final I18nSupport i18nSupport = this.pageService.getI18nSupport();
         final Composite grid = this.pageService.getWidgetFactory()
                 .createPopupScrollComposite(parent);
 
@@ -182,23 +170,12 @@ public class ExamDeletePopup {
         gridData.verticalIndent = 10;
         title.setLayoutData(gridData);
 
-        return () -> pageContext;
-    }
-
-    private Supplier<PageContext> composeReportDialog(
-            final Composite parent,
-            final PageContext pageContext) {
-
-        final Composite grid = this.pageService.getWidgetFactory()
-                .createPopupScrollCompositeFilled(parent);
-        final I18nSupport i18nSupport = this.pageService.getI18nSupport();
-
-        final Label title = this.pageService.getWidgetFactory()
+        final Label titleReport = this.pageService.getWidgetFactory()
                 .labelLocalized(grid, CustomVariant.TEXT_H3, FORM_REPORT_INFO);
-        final GridData gridData = new GridData();
-        gridData.horizontalIndent = 10;
-        gridData.verticalIndent = 10;
-        title.setLayoutData(gridData);
+        final GridData gridDataReport = new GridData();
+        gridDataReport.horizontalIndent = 10;
+        gridDataReport.verticalIndent = 10;
+        titleReport.setLayoutData(gridDataReport);
 
         try {
 
