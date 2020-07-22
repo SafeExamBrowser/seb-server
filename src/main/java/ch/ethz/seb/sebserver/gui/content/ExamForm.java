@@ -168,12 +168,14 @@ public class ExamForm implements TemplateComposer {
     private final String downloadFileName;
     private final WidgetFactory widgetFactory;
     private final RestService restService;
+    private final ExamDeletePopup examDeletePopup;
 
     protected ExamForm(
             final PageService pageService,
             final ExamSEBRestrictionSettings examSEBRestrictionSettings,
             final ExamToConfigBindingForm examToConfigBindingForm,
             final DownloadService downloadService,
+            final ExamDeletePopup examDeletePopup,
             @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
@@ -184,6 +186,7 @@ public class ExamForm implements TemplateComposer {
         this.downloadFileName = downloadFileName;
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = this.resourceService.getRestService();
+        this.examDeletePopup = examDeletePopup;
 
         this.consistencyMessageMapping = new HashMap<>();
         this.consistencyMessageMapping.put(
@@ -248,6 +251,7 @@ public class ExamForm implements TemplateComposer {
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(exam);
         final boolean modifyGrant = userGrantCheck.m();
+        final boolean writeGrant = userGrantCheck.w();
         final ExamStatus examStatus = exam.getStatus();
         final boolean isExamRunning = examStatus == ExamStatus.RUNNING;
         final boolean editable = examStatus == ExamStatus.UP_COMING
@@ -395,6 +399,11 @@ public class ExamForm implements TemplateComposer {
                 .withAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA, String.valueOf(importFromQuizData))
                 .withExec(this.cancelModifyFunction())
                 .publishIf(() -> !readonly)
+
+                .newAction(ActionDefinition.EXAM_DELETE)
+                .withEntityKey(entityKey)
+                .withExec(this.examDeletePopup.deleteWizardFunction(pageContext))
+                .publishIf(() -> writeGrant && readonly)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
                 .withEntityKey(entityKey)

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -268,10 +269,22 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
             final List<Long> ids = extractListOfPKs(all);
 
+            // get all involved configurations
+            final List<Long> configIds = this.examConfigurationMapRecordMapper.selectByExample()
+                    .where(ExamConfigurationMapRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(rec -> rec.getConfigurationNodeId())
+                    .collect(Collectors.toList());
+
             this.examConfigurationMapRecordMapper.deleteByExample()
                     .where(ExamConfigurationMapRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
                     .execute();
+
+            updateConfigurationStates(configIds)
+                    .onError(error -> log.error("Unexpected error while update exam configuration state: ", error));
 
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
@@ -532,6 +545,36 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 ? this.clientCredentialService.encrypt(examConfigurationMap.encryptSecret)
                 : null;
         return (encrypted_encrypt_secret != null) ? encrypted_encrypt_secret.toString() : null;
+    }
+
+    private Result<Set<Long>> updateConfigurationStates(final Collection<Long> configIds) {
+        return Result.tryCatch(() -> {
+            return configIds
+                    .stream()
+                    .map(id -> {
+                        final long assignments = this.examConfigurationMapRecordMapper.countByExample()
+                                .where(ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId, isEqualTo(id))
+                                .build()
+                                .execute();
+                        if (assignments <= 0) {
+                            final ConfigurationNodeRecord newRecord = new ConfigurationNodeRecord(
+                                    id,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    ConfigurationStatus.READY_TO_USE.name());
+                            this.configurationNodeRecordMapper.updateByPrimaryKeySelective(newRecord);
+                            return id;
+                        } else {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+        });
     }
 
 }

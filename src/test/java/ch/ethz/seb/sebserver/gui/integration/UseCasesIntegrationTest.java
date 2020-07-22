@@ -173,7 +173,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.Chang
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.DeleteUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserDependency;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserDependencies;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
@@ -2205,7 +2205,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "examAdmin2",
                 "examAdmin2",
                 new GetUserAccountNames(),
-                new GetUserDependency(),
+                new GetUserDependencies(),
                 new GetExam(),
                 new GetExamConfigNode());
 
@@ -2217,7 +2217,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .findFirst()
                 .get();
 
-        List<EntityDependency> dependencies = restService.getBuilder(GetUserDependency.class)
+        List<EntityDependency> dependencies = restService.getBuilder(GetUserDependencies.class)
                 .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
                 .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
                 .call()
@@ -2265,7 +2265,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 });
 
         // only with exam dependencies
-        dependencies = restService.getBuilder(GetUserDependency.class)
+        dependencies = restService.getBuilder(GetUserDependencies.class)
                 .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
                 .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
                 .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.EXAM.name())
@@ -2287,7 +2287,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // only with configuration dependencies
-        dependencies = restService.getBuilder(GetUserDependency.class)
+        dependencies = restService.getBuilder(GetUserDependencies.class)
                 .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
                 .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
                 .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.CONFIGURATION_NODE.name())
@@ -2305,7 +2305,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // only with exam and configuration dependencies
-        dependencies = restService.getBuilder(GetUserDependency.class)
+        dependencies = restService.getBuilder(GetUserDependencies.class)
                 .withURIVariable(API.PARAM_MODEL_ID, user.getModelId())
                 .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
                 .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.CONFIGURATION_NODE.name())

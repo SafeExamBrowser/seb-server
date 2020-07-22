@@ -16,7 +16,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -25,20 +24,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-import ch.ethz.seb.sebserver.gui.form.Form;
-import ch.ethz.seb.sebserver.gui.form.FormBuilder;
-import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -49,54 +43,45 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.ModelInputWizard.WizardAction
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModelInputWizard.WizardPage;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.DeleteUserAccount;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserDependencies;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamDependencies;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
 @GuiProfile
-public class UserAccountDeletePopup {
+public class ExamDeletePopup {
 
-    private static final Logger log = LoggerFactory.getLogger(UserAccountDeletePopup.class);
-
-    private final static String ARG_WITH_CONFIGS = "WITH_CONFIGS";
-    private final static String ARG_WITH_EXAMS = "WITH_EXAMS";
+    private static final Logger log = LoggerFactory.getLogger(ExamDeletePopup.class);
 
     private final static LocTextKey FORM_TITLE =
-            new LocTextKey("sebserver.useraccount.delete.form.title");
+            new LocTextKey("sebserver.exam.delete.form.title");
     private final static LocTextKey FORM_INFO =
-            new LocTextKey("sebserver.useraccount.delete.form.info");
+            new LocTextKey("sebserver.exam.delete.form.info");
     private final static LocTextKey FORM_REPORT_INFO =
-            new LocTextKey("sebserver.useraccount.delete.form.report.info");
+            new LocTextKey("sebserver.exam.delete.report.info");
     private final static LocTextKey FORM_REPORT_LIST_TYPE =
-            new LocTextKey("sebserver.useraccount.delete.form.report.list.type");
+            new LocTextKey("sebserver.exam.delete.report.list.type");
     private final static LocTextKey FORM_REPORT_LIST_NAME =
-            new LocTextKey("sebserver.useraccount.delete.form.report.list.name");
+            new LocTextKey("sebserver.exam.delete.report.list.name");
     private final static LocTextKey FORM_REPORT_LIST_DESC =
-            new LocTextKey("sebserver.useraccount.delete.form.report.list.description");
-
+            new LocTextKey("sebserver.exam.delete.report.list.description");
     private final static LocTextKey FORM_REPORT_NONE =
-            new LocTextKey("sebserver.useraccount.delete.form.report.empty");
-    private final static LocTextKey FORM_NAME =
-            new LocTextKey("sebserver.useraccount.delete.form.accountName");
-    private final static LocTextKey FORM_CONFIGS =
-            new LocTextKey("sebserver.useraccount.delete.form.deleteAlsoConfigs");
-    private final static LocTextKey FORM_EXAMS =
-            new LocTextKey("sebserver.useraccount.delete.form.deleteAlsoExams");
+            new LocTextKey("sebserver.exam.delete.report.list.empty");
+
     private final static LocTextKey ACTION_DELETE =
-            new LocTextKey("sebserver.useraccount.delete.form.action.delete");
+            new LocTextKey("sebserver.exam.delete.action.delete");
     private final static LocTextKey ACTION_REPORT =
-            new LocTextKey("sebserver.useraccount.delete.form.action.report");
+            new LocTextKey("sebserver.exam.delete.action.report");
 
     private final static LocTextKey DELETE_CONFIRM_TITLE =
-            new LocTextKey("sebserver.useraccount.delete.confirm.title");
+            new LocTextKey("sebserver.exam.delete.confirm.title");
 
     private final PageService pageService;
 
-    protected UserAccountDeletePopup(final PageService pageService) {
+    protected ExamDeletePopup(final PageService pageService) {
         this.pageService = pageService;
     }
 
@@ -143,61 +128,41 @@ public class UserAccountDeletePopup {
             final PageContext pageContext) {
 
         try {
-            final boolean withConfigs = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_WITH_CONFIGS));
-            final boolean withExams = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_WITH_EXAMS));
             final EntityKey entityKey = pageContext.getEntityKey();
-            final UserInfo currentUser = pageService.getCurrentUser().get();
-            final boolean ownAccount = currentUser.getModelId().equals(entityKey.modelId);
-            final UserInfo userToDelete = this.pageService.getRestService().getBuilder(GetUserAccount.class)
+            final Exam examToDelete = this.pageService.getRestService().getBuilder(GetExam.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .call()
                     .getOrThrow();
 
             final RestCall<EntityProcessingReport>.RestCallBuilder restCallBuilder = this.pageService.getRestService()
-                    .getBuilder(DeleteUserAccount.class)
+                    .getBuilder(DeleteExam.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                    .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
-                    .withQueryParam(API.PARAM_BULK_ACTION_ADD_INCLUDES, Constants.TRUE_STRING);
-
-            if (withConfigs) {
-                restCallBuilder.withQueryParam(
-                        API.PARAM_BULK_ACTION_INCLUDES,
-                        EntityType.CONFIGURATION_NODE.name());
-            }
-            if (withExams) {
-                restCallBuilder.withQueryParam(
-                        API.PARAM_BULK_ACTION_INCLUDES,
-                        EntityType.EXAM.name());
-            }
+                    .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name());
 
             final EntityProcessingReport report = restCallBuilder.call().getOrThrow();
 
-            if (ownAccount) {
-                pageService.logout(pageContext);
-            } else {
-                final PageAction action = this.pageService.pageActionBuilder(pageContext)
-                        .newAction(ActionDefinition.USER_ACCOUNT_VIEW_LIST)
-                        .create();
+            final PageAction action = this.pageService.pageActionBuilder(pageContext)
+                    .newAction(ActionDefinition.EXAM_VIEW_LIST)
+                    .create();
 
-                this.pageService.firePageEvent(
-                        new ActionEvent(action),
-                        action.pageContext());
-            }
+            this.pageService.firePageEvent(
+                    new ActionEvent(action),
+                    action.pageContext());
 
-            final String userName = userToDelete.toName().name;
+            final String examName = examToDelete.toName().name;
             final List<EntityKey> dependencies = report.results.stream()
                     .filter(key -> !key.equals(entityKey))
                     .collect(Collectors.toList());
             pageContext.publishPageMessage(
                     DELETE_CONFIRM_TITLE,
                     new LocTextKey(
-                            "sebserver.useraccount.delete.confirm.message",
-                            userName,
+                            "sebserver.exam.delete.confirm.message",
+                            examName,
                             dependencies.size(),
                             (report.errors.isEmpty()) ? "no" : String.valueOf((report.errors.size()))));
             return true;
         } catch (final Exception e) {
-            log.error("Unexpected error while trying to delete User Account:", e);
+            log.error("Unexpected error while trying to delete Exam:", e);
             pageContext.notifyUnexpectedError(e);
             return false;
         }
@@ -217,37 +182,7 @@ public class UserAccountDeletePopup {
         gridData.verticalIndent = 10;
         title.setLayoutData(gridData);
 
-        final EntityKey entityKey = pageContext.getEntityKey();
-        final UserInfo userInfo = this.pageService.getRestService()
-                .getBuilder(GetUserAccount.class)
-                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                .call()
-                .get();
-
-        final FormHandle<?> formHandle = this.pageService.formBuilder(
-                pageContext.copyOf(grid))
-                .readonly(false)
-                .withDefaultSpanLabel(3)
-                .withDefaultSpanInput(4)
-                .addField(FormBuilder.text(
-                        "USE_NAME",
-                        FORM_NAME,
-                        userInfo.toName().name)
-                        .readonly(true))
-
-                .addField(FormBuilder.checkbox(
-                        ARG_WITH_CONFIGS,
-                        FORM_CONFIGS))
-
-                .addField(FormBuilder.checkbox(
-                        ARG_WITH_EXAMS,
-                        FORM_EXAMS))
-                .build();
-
-        final Form form = formHandle.getForm();
-        return () -> pageContext
-                .withAttribute(ARG_WITH_CONFIGS, form.getFieldValue(ARG_WITH_CONFIGS))
-                .withAttribute(ARG_WITH_EXAMS, form.getFieldValue(ARG_WITH_EXAMS));
+        return () -> pageContext;
     }
 
     private Supplier<PageContext> composeReportDialog(
@@ -266,28 +201,13 @@ public class UserAccountDeletePopup {
         title.setLayoutData(gridData);
 
         try {
-            // get selection
-            final boolean withConfigs = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_WITH_CONFIGS));
-            final boolean withExams = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_WITH_EXAMS));
 
             // get dependencies
             final EntityKey entityKey = pageContext.getEntityKey();
             final RestCall<Set<EntityDependency>>.RestCallBuilder restCallBuilder = this.pageService.getRestService()
-                    .getBuilder(GetUserDependencies.class)
+                    .getBuilder(GetExamDependencies.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                    .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
-                    .withQueryParam(API.PARAM_BULK_ACTION_ADD_INCLUDES, Constants.TRUE_STRING);
-
-            if (withConfigs) {
-                restCallBuilder.withQueryParam(
-                        API.PARAM_BULK_ACTION_INCLUDES,
-                        EntityType.CONFIGURATION_NODE.name());
-            }
-            if (withExams) {
-                restCallBuilder.withQueryParam(
-                        API.PARAM_BULK_ACTION_INCLUDES,
-                        EntityType.EXAM.name());
-            }
+                    .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name());
 
             final Set<EntityDependency> dependencies = restCallBuilder.call().getOrThrow();
             final List<EntityDependency> list = dependencies.stream().sorted().collect(Collectors.toList());
@@ -311,7 +231,7 @@ public class UserAccountDeletePopup {
 
             return () -> pageContext;
         } catch (final Exception e) {
-            log.error("Error while trying to compose User Account delete report page: ", e);
+            log.error("Error while trying to compose Exam delete report page: ", e);
             pageContext.notifyUnexpectedError(e);
             throw e;
         }

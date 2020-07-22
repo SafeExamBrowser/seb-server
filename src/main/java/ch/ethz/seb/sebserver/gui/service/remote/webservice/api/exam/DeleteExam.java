@@ -1,14 +1,12 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2020 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount;
-
-import java.util.Set;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -19,24 +17,24 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetUserDependency extends RestCall<Set<EntityDependency>> {
+public class DeleteExam extends RestCall<EntityProcessingReport> {
 
-    public GetUserDependency() {
+    public DeleteExam() {
         super(new TypeKey<>(
-                CallType.GET_DEPENDENCIES,
-                EntityType.USER,
-                new TypeReference<Set<EntityDependency>>() {
+                CallType.ACTIVATION_DEACTIVATE,
+                EntityType.EXAM,
+                new TypeReference<EntityProcessingReport>() {
                 }),
-                HttpMethod.GET,
+                HttpMethod.DELETE,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.USER_ACCOUNT_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT + API.DEPENDENCY_PATH_SEGMENT);
+                API.EXAM_ADMINISTRATION_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT);
     }
 
 }

@@ -276,6 +276,11 @@ public enum ActionDefinition {
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
+    EXAM_DELETE(
+            new LocTextKey("sebserver.exam.action.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
 
     EXAM_MODIFY_SEB_RESTRICTION_DETAILS(
             new LocTextKey("sebserver.exam.action.sebrestriction.details"),
