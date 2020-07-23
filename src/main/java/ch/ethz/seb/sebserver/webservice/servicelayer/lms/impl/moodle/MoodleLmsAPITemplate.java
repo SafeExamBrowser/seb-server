@@ -12,8 +12,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.MoodleSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -25,15 +29,20 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
 public class MoodleLmsAPITemplate implements LmsAPITemplate {
 
+    private static final Logger log = LoggerFactory.getLogger(MoodleLmsAPITemplate.class);
+
     private final LmsSetup lmsSetup;
     private final MoodleCourseAccess moodleCourseAccess;
+    private final MoodleCourseRestriction moodleCourseRestriction;
 
     protected MoodleLmsAPITemplate(
             final LmsSetup lmsSetup,
-            final MoodleCourseAccess moodleCourseAccess) {
+            final MoodleCourseAccess moodleCourseAccess,
+            final MoodleCourseRestriction moodleCourseRestriction) {
 
         this.lmsSetup = lmsSetup;
         this.moodleCourseAccess = moodleCourseAccess;
+        this.moodleCourseRestriction = moodleCourseRestriction;
     }
 
     @Override
@@ -87,7 +96,13 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
-        return Result.ofError(new UnsupportedOperationException("SEB Restriction API not available yet"));
+        if (log.isDebugEnabled()) {
+            log.debug("Get SEB Client restriction for Exam: {}", exam);
+        }
+
+        return this.moodleCourseRestriction
+                .getSEBRestriction(exam.externalId)
+                .map(restriction -> SEBRestriction.from(exam.id, restriction));
     }
 
     @Override
@@ -95,12 +110,25 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
             final String externalExamId,
             final SEBRestriction sebRestrictionData) {
 
-        return Result.ofError(new UnsupportedOperationException("SEB Restriction API not available yet"));
+        if (log.isDebugEnabled()) {
+            log.debug("Apply SEB Client restriction: {}", sebRestrictionData);
+        }
+
+        return this.moodleCourseRestriction
+                .putSEBRestriction(
+                        externalExamId,
+                        MoodleSEBRestriction.from(sebRestrictionData))
+                .map(result -> sebRestrictionData);
     }
 
     @Override
     public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
-        return Result.ofError(new UnsupportedOperationException("SEB Restriction API not available yet"));
+        if (log.isDebugEnabled()) {
+            log.debug("Release SEB Client restriction for Exam: {}", exam);
+        }
+
+        return this.moodleCourseRestriction.deleteSEBRestriction(exam.externalId)
+                .map(result -> exam);
     }
 
 }

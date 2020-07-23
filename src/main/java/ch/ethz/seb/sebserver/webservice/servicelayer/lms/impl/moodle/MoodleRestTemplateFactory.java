@@ -8,21 +8,17 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
-import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
-import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
-import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
-import ch.ethz.seb.sebserver.gbl.client.ProxyData;
-import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
-import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -36,16 +32,21 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
+import ch.ethz.seb.sebserver.gbl.client.ProxyData;
+import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 final class MoodleRestTemplateFactory {
 
@@ -243,11 +244,18 @@ final class MoodleRestTemplateFactory {
         }
 
         public String callMoodleAPIFunction(final String functionName) {
-            return callMoodleAPIFunction(functionName, null);
+            return callMoodleAPIFunction(functionName, null, null);
         }
 
         public String callMoodleAPIFunction(
                 final String functionName,
+                final MultiValueMap<String, String> queryAttributes) {
+            return callMoodleAPIFunction(functionName, null, queryAttributes);
+        }
+
+        public String callMoodleAPIFunction(
+                final String functionName,
+                final MultiValueMap<String, String> queryParams,
                 final MultiValueMap<String, String> queryAttributes) {
 
             getAccessToken();
@@ -257,6 +265,10 @@ final class MoodleRestTemplateFactory {
                     .queryParam(REST_REQUEST_TOKEN_NAME, this.accessToken)
                     .queryParam(REST_REQUEST_FUNCTION_NAME, functionName)
                     .queryParam(REST_REQUEST_FORMAT_NAME, "json");
+
+            if (queryParams != null && !queryParams.isEmpty()) {
+                queryParam.queryParams(queryParams);
+            }
 
             final boolean usePOST = queryAttributes != null && !queryAttributes.isEmpty();
             HttpEntity<?> functionReqEntity;

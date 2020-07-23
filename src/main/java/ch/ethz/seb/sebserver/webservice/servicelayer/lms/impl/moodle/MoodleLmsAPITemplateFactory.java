@@ -73,9 +73,15 @@ public class MoodleLmsAPITemplateFactory {
                     moodleRestTemplateFactory,
                     this.asyncService);
 
+            final MoodleCourseRestriction moodleCourseRestriction = new MoodleCourseRestriction(
+                    this.jsonMapper,
+                    lmsSetup,
+                    moodleRestTemplateFactory);
+
             return new MoodleLmsAPITemplate(
                     lmsSetup,
-                    moodleCourseAccess);
+                    moodleCourseAccess,
+                    moodleCourseRestriction);
         });
     }
 

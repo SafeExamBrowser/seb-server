@@ -173,4 +173,12 @@ public final class SEBRestriction implements Entity {
                 attrs);
     }
 
+    public static SEBRestriction from(final Long examId, final MoodleSEBRestriction restriction) {
+        return new SEBRestriction(
+                examId,
+                restriction.configKeys,
+                restriction.browserExamKeys,
+                null);
+    }
+
 }

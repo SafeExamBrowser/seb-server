@@ -133,7 +133,6 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
         return this.openEdxCourseRestriction.deleteSEBRestriction(exam.externalId)
                 .map(result -> exam);
-
     }
 
 }
