@@ -74,6 +74,7 @@ public class OpenEdxLmsAPITemplateFactory {
                     this.alternativeTokenRequestPaths);
 
             final OpenEdxCourseAccess openEdxCourseAccess = new OpenEdxCourseAccess(
+                    this.jsonMapper,
                     lmsSetup,
                     openEdxRestTemplateFactory,
                     this.webserviceInfo,

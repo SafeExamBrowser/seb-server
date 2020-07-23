@@ -108,7 +108,7 @@ public abstract class CourseAccess {
     public String getExamineeName(final String examineeSessionId) {
         return getExamineeAccountDetails(examineeSessionId)
                 .map(ExamineeAccountDetails::getDisplayName)
-                .onError(error -> log.warn("Failed to request Moodle user-name for ID: {}", error.getMessage(), error))
+                .onError(error -> log.warn("Failed to request user-name for ID: {}", error.getMessage(), error))
                 .getOr(examineeSessionId);
     }
 

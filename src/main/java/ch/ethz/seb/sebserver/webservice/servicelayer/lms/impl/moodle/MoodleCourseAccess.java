@@ -58,6 +58,18 @@ public class MoodleCourseAccess extends CourseAccess {
 
     private MoodleAPIRestTemplate restTemplate;
 
+    protected MoodleCourseAccess(
+            final JSONMapper jsonMapper,
+            final LmsSetup lmsSetup,
+            final MoodleRestTemplateFactory moodleRestTemplateFactory,
+            final AsyncService asyncService) {
+
+        super(asyncService);
+        this.jsonMapper = jsonMapper;
+        this.lmsSetup = lmsSetup;
+        this.moodleRestTemplateFactory = moodleRestTemplateFactory;
+    }
+
     @Override
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
         return Result.tryCatch(() -> {
@@ -103,18 +115,6 @@ public class MoodleCourseAccess extends CourseAccess {
                     userDetails[0].email,
                     additionalAttributes);
         });
-    }
-
-    protected MoodleCourseAccess(
-            final JSONMapper jsonMapper,
-            final LmsSetup lmsSetup,
-            final MoodleRestTemplateFactory moodleRestTemplateFactory,
-            final AsyncService asyncService) {
-
-        super(asyncService);
-        this.jsonMapper = jsonMapper;
-        this.lmsSetup = lmsSetup;
-        this.moodleRestTemplateFactory = moodleRestTemplateFactory;
     }
 
     LmsSetupTestResult initAPIAccess() {

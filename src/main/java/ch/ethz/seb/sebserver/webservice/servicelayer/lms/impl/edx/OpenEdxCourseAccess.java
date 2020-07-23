@@ -34,13 +34,17 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -58,7 +62,9 @@ final class OpenEdxCourseAccess extends CourseAccess {
             "/api/courses/v1/blocks/?depth=1&all_blocks=true&course_id=";
     private static final String OPEN_EDX_DEFAULT_BLOCKS_TYPE_CHAPTER = "chapter";
     private static final String OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX = "/courses/";
+    private static final String OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT = "/api/user/v1/accounts?username=";
 
+    private final JSONMapper jsonMapper;
     private final LmsSetup lmsSetup;
     private final OpenEdxRestTemplateFactory openEdxRestTemplateFactory;
     private final WebserviceInfo webserviceInfo;
@@ -66,12 +72,14 @@ final class OpenEdxCourseAccess extends CourseAccess {
     private OAuth2RestTemplate restTemplate;
 
     public OpenEdxCourseAccess(
+            final JSONMapper jsonMapper,
             final LmsSetup lmsSetup,
             final OpenEdxRestTemplateFactory openEdxRestTemplateFactory,
             final WebserviceInfo webserviceInfo,
             final AsyncService asyncService) {
 
         super(asyncService);
+        this.jsonMapper = jsonMapper;
         this.lmsSetup = lmsSetup;
         this.openEdxRestTemplateFactory = openEdxRestTemplateFactory;
         this.webserviceInfo = webserviceInfo;
@@ -109,6 +117,51 @@ final class OpenEdxCourseAccess extends CourseAccess {
         }
 
         return LmsSetupTestResult.ofOkay();
+    }
+
+    @Override
+    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
+        return Result.tryCatch(() -> {
+            final OAuth2RestTemplate template = getRestTemplate()
+                    .getOrThrow();
+
+            final String externalStartURI = this.webserviceInfo.getLmsExternalAddressAlias(this.lmsSetup.lmsApiUrl);
+            final String uri = (externalStartURI != null)
+                    ? externalStartURI + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeSessionId
+                    : this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeSessionId;
+            final HttpHeaders httpHeaders = new HttpHeaders();
+            final String responseJSON = template.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    new HttpEntity<>(httpHeaders),
+                    String.class)
+                    .getBody();
+
+            final EdxUserDetails[] userDetails = this.jsonMapper.<EdxUserDetails[]> readValue(
+                    responseJSON,
+                    new TypeReference<EdxUserDetails[]>() {
+                    });
+
+            if (userDetails == null || userDetails.length <= 0) {
+                throw new RuntimeException("No user details on Open edX API request");
+            }
+
+            final Map<String, String> additionalAttributes = new HashMap<>();
+            additionalAttributes.put("bio", userDetails[0].bio);
+            additionalAttributes.put("country", userDetails[0].country);
+            additionalAttributes.put("date_joined", userDetails[0].date_joined);
+            additionalAttributes.put("gender", userDetails[0].gender);
+            additionalAttributes.put("is_active", String.valueOf(userDetails[0].is_active));
+            additionalAttributes.put("mailing_address", userDetails[0].mailing_address);
+            additionalAttributes.put("secondary_email", userDetails[0].secondary_email);
+
+            return new ExamineeAccountDetails(
+                    userDetails[0].username,
+                    userDetails[0].name,
+                    userDetails[0].username,
+                    userDetails[0].email,
+                    additionalAttributes);
+        });
     }
 
     @Override
@@ -264,6 +317,44 @@ final class OpenEdxCourseAccess extends CourseAccess {
         public String block_id;
         public String display_name;
         public String type;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class EdxUserDetails {
+        final String username;
+        final String bio;
+        final String name;
+        final String secondary_email;
+        final String country;
+        final Boolean is_active;
+        final String gender;
+        final String mailing_address;
+        final String email;
+        final String date_joined;
+
+        protected EdxUserDetails(
+                @JsonProperty(value = "username") final String username,
+                @JsonProperty(value = "bio") final String bio,
+                @JsonProperty(value = "name") final String name,
+                @JsonProperty(value = "secondary_email") final String secondary_email,
+                @JsonProperty(value = "country") final String country,
+                @JsonProperty(value = "is_active") final Boolean is_active,
+                @JsonProperty(value = "gender") final String gender,
+                @JsonProperty(value = "mailing_address") final String mailing_address,
+                @JsonProperty(value = "email") final String email,
+                @JsonProperty(value = "date_joined") final String date_joined) {
+
+            this.username = username;
+            this.bio = bio;
+            this.name = name;
+            this.secondary_email = secondary_email;
+            this.country = country;
+            this.is_active = is_active;
+            this.gender = gender;
+            this.mailing_address = mailing_address;
+            this.email = email;
+            this.date_joined = date_joined;
+        }
     }
 
     private static final class EdxOAuth2RequestAuthenticator implements OAuth2RequestAuthenticator {
