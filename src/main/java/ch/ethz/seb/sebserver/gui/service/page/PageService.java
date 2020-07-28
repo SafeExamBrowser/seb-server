@@ -565,6 +565,11 @@ public interface PageService {
             return this;
         }
 
+        public PageActionBuilder withEntityKeys(final List<EntityKey> entityKeys) {
+            this.pageContext = this.pageContext.withEntityKeys(entityKeys);
+            return this;
+        }
+
         public PageActionBuilder ignoreMoveAwayFromEdit() {
             this.ignoreMoveAwayFromEdit = true;
             return this;

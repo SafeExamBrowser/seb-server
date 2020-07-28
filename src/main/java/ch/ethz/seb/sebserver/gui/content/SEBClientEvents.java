@@ -8,16 +8,25 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import org.apache.tomcat.util.buf.StringUtils;
 import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
@@ -31,8 +40,10 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientEventNames;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
@@ -42,7 +53,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Lazy
 @Component
 @GuiProfile
-public class SEBClientLogs implements TemplateComposer {
+public class SEBClientEvents implements TemplateComposer {
+
+    private static final Logger log = LoggerFactory.getLogger(SEBClientEvents.class);
 
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.seblogs.list.title");
@@ -71,11 +84,13 @@ public class SEBClientLogs implements TemplateComposer {
     private final RestService restService;
     private final I18nSupport i18nSupport;
     private final SEBClientLogDetailsPopup sebClientLogDetailsPopup;
+    private final SEBClientEventDeletePopup sebClientEventDeletePopup;
     private final int pageSize;
 
-    public SEBClientLogs(
+    public SEBClientEvents(
             final PageService pageService,
             final SEBClientLogDetailsPopup sebClientLogDetailsPopup,
+            final SEBClientEventDeletePopup sebClientEventDeletePopup,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
@@ -83,6 +98,7 @@ public class SEBClientLogs implements TemplateComposer {
         this.restService = this.resourceService.getRestService();
         this.i18nSupport = this.resourceService.getI18nSupport();
         this.sebClientLogDetailsPopup = sebClientLogDetailsPopup;
+        this.sebClientEventDeletePopup = sebClientEventDeletePopup;
         this.pageSize = pageSize;
 
         this.examFilter = new TableFilterAttribute(
@@ -112,6 +128,9 @@ public class SEBClientLogs implements TemplateComposer {
                 pageContext
                         .clearEntityKeys()
                         .clearAttributes());
+
+        final boolean writeGrant = this.pageService.getCurrentUser()
+                .hasInstitutionalPrivilege(PrivilegeType.WRITE, EntityType.CLIENT_EVENT);
 
         // table
         final EntityTable<ExtendedClientEvent> table = this.pageService.entityTableBuilder(
@@ -185,7 +204,37 @@ public class SEBClientLogs implements TemplateComposer {
                         action -> this.sebClientLogDetailsPopup.showDetails(action, table.getSingleSelectedROWData()),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
-                .publishIf(table::hasAnyContent, false);
+                .publishIf(table::hasAnyContent, false)
+
+                .newAction(ActionDefinition.LOGS_SEB_CLIENT_DELETE_ALL)
+                .withExec(action -> this.getOpenDelete(action, table.getFilterCriteria()))
+                .noEventPropagation()
+                .publishIf(() -> writeGrant);
+    }
+
+    private PageAction getOpenDelete(final PageAction pageAction, final MultiValueMap<String, String> filterCriteria) {
+        try {
+            final List<String> ids = this.restService.getBuilder(GetClientEventNames.class)
+                    .withQueryParams(filterCriteria)
+                    .call()
+                    .getOrThrow()
+                    .stream()
+                    .map(EntityName::getModelId)
+                    .collect(Collectors.toList());
+
+            final PageAction deleteAction = pageAction.withAttribute(
+                    PageContext.AttributeKeys.ENTITY_ID_LIST,
+                    StringUtils.join(ids, Constants.COMMA))
+                    .withAttribute(
+                            PageContext.AttributeKeys.ENTITY_LIST_TYPE,
+                            EntityType.CLIENT_EVENT.name());
+
+            return this.sebClientEventDeletePopup.deleteWizardFunction(deleteAction.pageContext())
+                    .apply(deleteAction);
+        } catch (final Exception e) {
+            log.error("Unexpected error while try to open SEB client log delete popup", e);
+            return pageAction;
+        }
     }
 
     private Function<ExtendedClientEvent, String> examNameFunction() {

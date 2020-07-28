@@ -75,7 +75,6 @@ public class MoodleLmsAPITemplateFactory {
 
             final MoodleCourseRestriction moodleCourseRestriction = new MoodleCourseRestriction(
                     this.jsonMapper,
-                    lmsSetup,
                     moodleRestTemplateFactory);
 
             return new MoodleLmsAPITemplate(

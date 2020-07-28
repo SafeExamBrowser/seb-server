@@ -630,7 +630,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         // check Exam has an default SEB Exam configuration attached
         if (!this.examSessionService.hasDefaultConfigurationAttached(examId)) {
             throw new APIConstraintViolationException(
-                    "Exam is currently has no default SEB Exam configuration attached");
+                    "Exam is currently running but has no default SEB Exam configuration attached");
         }
     }
 

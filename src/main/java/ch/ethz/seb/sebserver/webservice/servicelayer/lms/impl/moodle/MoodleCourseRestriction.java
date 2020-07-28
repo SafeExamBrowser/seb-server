@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.MoodleSEBRestriction;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
@@ -48,18 +47,15 @@ public class MoodleCourseRestriction {
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_BROWSER_KEY = "browserKey";
 
     private final JSONMapper jsonMapper;
-    private final LmsSetup lmsSetup;
     private final MoodleRestTemplateFactory moodleRestTemplateFactory;
 
     private MoodleAPIRestTemplate restTemplate;
 
     protected MoodleCourseRestriction(
             final JSONMapper jsonMapper,
-            final LmsSetup lmsSetup,
             final MoodleRestTemplateFactory moodleRestTemplateFactory) {
 
         this.jsonMapper = jsonMapper;
-        this.lmsSetup = lmsSetup;
         this.moodleRestTemplateFactory = moodleRestTemplateFactory;
     }
 

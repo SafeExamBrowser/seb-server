@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.gbl.model;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -111,6 +113,13 @@ public class EntityProcessingReport {
         builder.append(this.errors);
         builder.append("]");
         return builder.toString();
+    }
+
+    public static EntityProcessingReport ofEmptyError() {
+        return new EntityProcessingReport(
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Arrays.asList(new ErrorEntry(null, APIMessage.ErrorMessage.RESOURCE_NOT_FOUND.of())));
     }
 
 }

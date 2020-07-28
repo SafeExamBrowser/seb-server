@@ -316,6 +316,18 @@ public abstract class RestCall<T> {
             return this;
         }
 
+        public RestCallBuilder withFormParams(final MultiValueMap<String, String> params) {
+            if (params != null) {
+                params.entrySet()
+                        .stream()
+                        .forEach(param -> {
+                            final String name = param.getKey();
+                            param.getValue().stream().forEach(p -> withFormParam(name, p));
+                        });
+            }
+            return this;
+        }
+
         public RestCallBuilder withPaging(final int pageNumber, final int pageSize) {
             this.queryParams.put(Page.ATTR_PAGE_NUMBER, Arrays.asList(String.valueOf(pageNumber)));
             this.queryParams.put(Page.ATTR_PAGE_SIZE, Arrays.asList(String.valueOf(pageSize)));
@@ -375,7 +387,6 @@ public abstract class RestCall<T> {
                     + this.queryParams
                     + ", uriVariables=" + this.uriVariables + "]";
         }
-
     }
 
     public static final class TypeKey<T> {

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.page;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.eclipse.swt.widgets.Composite;
@@ -39,6 +40,8 @@ public interface PageContext {
         String PARENT_ENTITY_ID = "PARENT_ENTITY_ID";
         String ENTITY_TYPE = "ENTITY_TYPE";
         String PARENT_ENTITY_TYPE = "PARENT_ENTITY_TYPE";
+        String ENTITY_ID_LIST = "ENTITY_ID_LIST";
+        String ENTITY_LIST_TYPE = "ENTITY_TYPE";
 
         String IMPORT_FROM_QUIZ_DATA = "IMPORT_FROM_QUIZ_DATA";
 
@@ -149,6 +152,11 @@ public interface PageContext {
      * @return the EntityKey of the parent Entity that is associated within this PageContext */
     EntityKey getParentEntityKey();
 
+    /** Get a list of entity keys within the attribute ENTITY_ID_LIST and ENTITY_LIST_TYPE.
+     *
+     * @return A list of entity keys if available from the attributes map */
+    List<EntityKey> getEntityKeyList();
+
     /** Adds a given EntityKey as base Entity key to a new PageContext that is returned as a copy of this PageContext.
      *
      * @param entityKey the EntityKey to add as base Entity key
@@ -160,6 +168,12 @@ public interface PageContext {
      * @param entityKey the EntityKey to add as parent Entity key
      * @return the new PageContext with the EntityKey added */
     PageContext withParentEntityKey(EntityKey entityKey);
+
+    /** Adds a given collection of EntityKey to a new PageContext that is returned as a copy of this PageContext.
+     *
+     * @param entityKeys the list of EntityKey to add
+     * @return the new PageContext with the list of EntityKey added */
+    PageContext withEntityKeys(List<EntityKey> entityKeys);
 
     /** Create a copy of this PageContext and resets both entity keys attributes, the base and the parent EntityKey
      *

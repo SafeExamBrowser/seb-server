@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Widget;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.HtmlUtils;
 
@@ -292,6 +293,14 @@ public class EntityTable<ROW> {
         } catch (final Exception e) {
             log.error("Unexpected error while trying to apply filter: ", e);
         }
+    }
+
+    public MultiValueMap<String, String> getFilterCriteria() {
+        if (this.filter == null) {
+            return new LinkedMultiValueMap<>();
+        }
+
+        return this.filter.getFilterParameter();
     }
 
     public void applySort(final String columnName) {

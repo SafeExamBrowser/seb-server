@@ -8,12 +8,16 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.impl;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.widgets.DialogCallback;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -22,6 +26,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessageError;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -38,6 +43,8 @@ import ch.ethz.seb.sebserver.gui.widget.Message;
 public class PageContextImpl implements PageContext {
 
     private static final Logger log = LoggerFactory.getLogger(PageContextImpl.class);
+
+    private static final String ENTITY_LIST_TYPE = null;
 
     private final I18nSupport i18nSupport;
     private final ComposerService composerService;
@@ -183,6 +190,34 @@ public class PageContextImpl implements PageContext {
         }
         return withAttribute(AttributeKeys.PARENT_ENTITY_ID, entityKey.modelId)
                 .withAttribute(AttributeKeys.PARENT_ENTITY_TYPE, entityKey.entityType.name());
+    }
+
+    @Override
+    public List<EntityKey> getEntityKeyList() {
+        if (hasAttribute(AttributeKeys.ENTITY_ID_LIST) && hasAttribute(AttributeKeys.ENTITY_LIST_TYPE)) {
+            final EntityType type = EntityType.valueOf(getAttribute(ENTITY_LIST_TYPE));
+            Arrays.asList(StringUtils.split(getAttribute(AttributeKeys.ENTITY_ID_LIST), Constants.COMMA))
+                    .stream()
+                    .map(id -> new EntityKey(id, type))
+                    .collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
+    }
+
+    @Override
+    public PageContext withEntityKeys(final List<EntityKey> entityKeys) {
+        if (entityKeys == null || entityKeys.isEmpty()) {
+            return removeAttribute(AttributeKeys.ENTITY_ID_LIST)
+                    .removeAttribute(AttributeKeys.ENTITY_LIST_TYPE);
+        }
+        final List<String> ids = entityKeys
+                .stream()
+                .map(EntityKey::getModelId)
+                .collect(Collectors.toList());
+        final String joinedIds = StringUtils.join(ids, Constants.COMMA);
+        return withAttribute(AttributeKeys.ENTITY_ID_LIST, joinedIds)
+                .withAttribute(AttributeKeys.ENTITY_LIST_TYPE, entityKeys.get(0).entityType.name());
     }
 
     @Override

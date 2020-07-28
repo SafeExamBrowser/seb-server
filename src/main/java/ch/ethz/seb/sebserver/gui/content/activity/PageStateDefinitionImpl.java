@@ -24,7 +24,7 @@ import ch.ethz.seb.sebserver.gui.content.MonitoringRunningExamList;
 import ch.ethz.seb.sebserver.gui.content.QuizLookupList;
 import ch.ethz.seb.sebserver.gui.content.SEBClientConfigForm;
 import ch.ethz.seb.sebserver.gui.content.SEBClientConfigList;
-import ch.ethz.seb.sebserver.gui.content.SEBClientLogs;
+import ch.ethz.seb.sebserver.gui.content.SEBClientEvents;
 import ch.ethz.seb.sebserver.gui.content.SEBExamConfigList;
 import ch.ethz.seb.sebserver.gui.content.SEBExamConfigForm;
 import ch.ethz.seb.sebserver.gui.content.SEBSettingsForm;
@@ -85,7 +85,7 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
     MONITORING_CLIENT_CONNECTION(Type.FORM_VIEW, MonitoringClientConnection.class, ActivityDefinition.MONITORING_EXAMS),
 
     USER_ACTIVITY_LOGS(Type.LIST_VIEW, UserActivityLogs.class, ActivityDefinition.USER_ACTIVITY_LOGS),
-    SEB_CLIENT_LOGS(Type.LIST_VIEW, SEBClientLogs.class, ActivityDefinition.SEB_CLIENT_LOGS)
+    SEB_CLIENT_LOGS(Type.LIST_VIEW, SEBClientEvents.class, ActivityDefinition.SEB_CLIENT_LOGS)
 
     ;
 

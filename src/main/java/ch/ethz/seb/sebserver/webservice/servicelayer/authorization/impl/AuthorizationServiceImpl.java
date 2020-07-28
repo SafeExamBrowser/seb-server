@@ -179,7 +179,15 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.EXAM_ADMIN)
-                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.EXAM_SUPPORTER)
+                .withOwnerPrivilege(PrivilegeType.READ)
+                .create();
+
+        // grants for SEB client events
+        addPrivilege(EntityType.CLIENT_EVENT)
+                .forRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withOwnerPrivilege(PrivilegeType.READ)
                 .create();

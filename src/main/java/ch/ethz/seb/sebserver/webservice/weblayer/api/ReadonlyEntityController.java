@@ -13,6 +13,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
@@ -66,6 +67,22 @@ public abstract class ReadonlyEntityController<T extends Entity, M extends Entit
             final boolean addIncludes,
             final List<String> includes) {
         throw new UnsupportedOperationException(ONLY_READ_ACCESS);
+    }
+
+    @Override
+    public EntityProcessingReport hardDeleteAll(
+            final List<String> ids,
+            final boolean addIncludes,
+            final List<String> includes,
+            final Long institutionId) {
+
+        throw new UnsupportedOperationException(ONLY_READ_ACCESS);
+    }
+
+    @Override
+    protected SqlTable getSQLTableOfEntity() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override

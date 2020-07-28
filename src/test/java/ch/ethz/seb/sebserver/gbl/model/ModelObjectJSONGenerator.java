@@ -40,6 +40,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
@@ -122,6 +123,10 @@ public class ModelObjectJSONGenerator {
         domainObject = new ConfigurationNode(
                 1L, 1L, 1L, "name", "description", ConfigurationType.EXAM_CONFIG, "ownerUUID",
                 ConfigurationStatus.CONSTRUCTION);
+        System.out.println(domainObject.getClass().getSimpleName() + ":");
+        System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
+
+        domainObject = new Configuration(1L, 1L, 1L, "v1", DateTime.now(), false);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
@@ -262,6 +267,29 @@ public class ModelObjectJSONGenerator {
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject = new ClientInstruction(1L, 1L, InstructionType.SEB_QUIT, UUID.randomUUID().toString(), attrs);
+        System.out.println(domainObject.getClass().getSimpleName() + ":");
+        System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
+
+        domainObject = new EntityDependency(
+                new EntityKey(1L, EntityType.EXAM),
+                new EntityKey(1L, EntityType.INDICATOR),
+                "IndicatorName", "some description");
+        System.out.println(domainObject.getClass().getSimpleName() + ":");
+        System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
+
+        domainObject = new EntityProcessingReport(
+                Arrays.asList(new EntityKey(1L, EntityType.EXAM)),
+                Arrays.asList(new EntityKey(1L, EntityType.INDICATOR), new EntityKey(2L, EntityType.INDICATOR)),
+                Arrays.asList(new EntityProcessingReport.ErrorEntry(new EntityKey(2L, EntityType.INDICATOR),
+                        APIMessage.ErrorMessage.UNEXPECTED.of())));
+        System.out.println(domainObject.getClass().getSimpleName() + ":");
+        System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
+
+        domainObject = APIMessage.ErrorMessage.UNEXPECTED.of(
+                new RuntimeException("some unexpected exception"),
+                "attribute1",
+                "attribute2",
+                "attribute3");
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 

@@ -683,6 +683,11 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.logs.activity.seblogs.details"),
             ImageIcon.SHOW,
             ActionCategory.LOGS_SEB_CLIENT_LIST),
+    LOGS_SEB_CLIENT_DELETE_ALL(
+            new LocTextKey("sebserver.seblogs.action.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.SEB_CLIENT_LOGS,
+            ActionCategory.FORM),
 
     ;
 

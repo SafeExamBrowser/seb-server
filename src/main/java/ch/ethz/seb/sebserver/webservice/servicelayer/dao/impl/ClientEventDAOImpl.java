@@ -8,12 +8,12 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualToWhenPresent;
-import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -79,7 +79,17 @@ public class ClientEventDAOImpl implements ClientEventDAO {
 
         return Result.tryCatch(() -> this.clientEventRecordMapper
                 .selectByExample()
+                .leftJoin(ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                .on(
+                        ClientConnectionRecordDynamicSqlSupport.id,
+                        equalTo(ClientEventRecordDynamicSqlSupport.clientConnectionId))
                 .where(
+                        ClientConnectionRecordDynamicSqlSupport.institutionId,
+                        isEqualToWhenPresent(filterMap.getInstitutionId()))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        isEqualToWhenPresent(filterMap.getClientEventExamId()))
+                .and(
                         ClientEventRecordDynamicSqlSupport.clientConnectionId,
                         isEqualToWhenPresent(filterMap.getClientEventConnectionId()))
                 .and(
@@ -205,9 +215,22 @@ public class ClientEventDAOImpl implements ClientEventDAO {
     @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
-        throw new UnsupportedOperationException(
-                "Delete is not supported for particular client events. "
-                        + "Use delete of a client connection to delete also all client events of this connection.");
+        return Result.tryCatch(() -> {
+            return all
+                    .stream()
+                    .map(EntityKey::getModelId)
+                    .map(Long::parseLong)
+                    .map(pk -> {
+                        final int deleted = this.clientEventRecordMapper.deleteByPrimaryKey(pk);
+                        if (deleted == 1) {
+                            return new EntityKey(String.valueOf(pk), EntityType.CLIENT_EVENT);
+                        } else {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        });
     }
 
     private Result<ClientEventRecord> recordById(final Long id) {

@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -24,17 +24,17 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class DeleteExam extends RestCall<EntityProcessingReport> {
+public class DeleteAllClientEvents extends RestCall<EntityProcessingReport> {
 
-    public DeleteExam() {
+    public DeleteAllClientEvents() {
         super(new TypeKey<>(
                 CallType.DELETE,
-                EntityType.EXAM,
+                EntityType.CLIENT_EVENT,
                 new TypeReference<EntityProcessingReport>() {
                 }),
                 HttpMethod.DELETE,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.EXAM_ADMINISTRATION_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT);
+                API.SEB_CLIENT_EVENT_ENDPOINT);
     }
 
 }

@@ -339,6 +339,46 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 .getOrThrow();
     }
 
+    // **************************
+    // * DELETE ALL (hard-delete)
+    // **************************
+
+    @RequestMapping(
+            method = RequestMethod.DELETE,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public EntityProcessingReport hardDeleteAll(
+            @RequestParam(name = API.PARAM_MODEL_ID_LIST) final List<String> ids,
+            @RequestParam(name = API.PARAM_BULK_ACTION_ADD_INCLUDES, defaultValue = "false") final boolean addIncludes,
+            @RequestParam(name = API.PARAM_BULK_ACTION_INCLUDES, required = false) final List<String> includes,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        this.checkWritePrivilege(institutionId);
+
+        if (ids == null || ids.isEmpty()) {
+            return EntityProcessingReport.ofEmptyError();
+        }
+
+        final EntityType entityType = this.entityDAO.entityType();
+        final Collection<EntityKey> sources = ids.stream()
+                .map(id -> new EntityKey(id, entityType))
+                .collect(Collectors.toList());
+
+        final BulkAction bulkAction = new BulkAction(
+                BulkActionType.HARD_DELETE,
+                entityType,
+                sources,
+                convertToEntityType(addIncludes, includes));
+
+        return this.bulkActionService
+                .createReport(bulkAction)
+                .flatMap(this::notifyAllDeleted)
+                .getOrThrow();
+    }
+
     protected EnumSet<EntityType> convertToEntityType(final boolean addIncludes, final List<String> includes) {
         final EnumSet<EntityType> includeDependencies = (includes != null)
                 ? (includes.isEmpty())
@@ -387,6 +427,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 institutionId);
     }
 
+    protected void checkWritePrivilege(final Long institutionId) {
+        this.authorization.check(
+                PrivilegeType.WRITE,
+                getGrantEntityType(),
+                institutionId);
+    }
+
     protected Result<Collection<T>> getAll(final FilterMap filterMap) {
         return this.entityDAO.allMatching(
                 filterMap,
@@ -427,6 +474,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     }
 
     protected Result<Pair<T, EntityProcessingReport>> notifyDeleted(final Pair<T, EntityProcessingReport> pair) {
+        return Result.of(pair);
+    }
+
+    protected Result<EntityProcessingReport> notifyAllDeleted(final EntityProcessingReport pair) {
         return Result.of(pair);
     }
 
