@@ -95,6 +95,7 @@ public class EntityTable<ROW> {
     private final MultiValueMap<String, String> staticQueryParams;
     private final BiConsumer<TableItem, ROW> rowDecorator;
     private final Consumer<Set<ROW>> selectionListener;
+    private final Consumer<Integer> contentChangeListener;
 
     int pageNumber;
     int pageSize;
@@ -118,7 +119,8 @@ public class EntityTable<ROW> {
             final boolean hideNavigation,
             final MultiValueMap<String, String> staticQueryParams,
             final BiConsumer<TableItem, ROW> rowDecorator,
-            final Consumer<Set<ROW>> selectionListener) {
+            final Consumer<Set<ROW>> selectionListener,
+            final Consumer<Integer> contentChangeListener) {
 
         this.name = name;
         this.filterAttrName = name + "_filter";
@@ -149,6 +151,7 @@ public class EntityTable<ROW> {
         this.staticQueryParams = staticQueryParams;
         this.rowDecorator = rowDecorator;
         this.selectionListener = selectionListener;
+        this.contentChangeListener = contentChangeListener;
         this.pageSize = pageSize;
         this.filter = columns
                 .stream()
@@ -492,6 +495,7 @@ public class EntityTable<ROW> {
 
         this.composite.getParent().layout(true, true);
         PageService.updateScrolledComposite(this.composite);
+        this.notifyContentChange();
         this.notifySelectionChange();
     }
 
@@ -750,6 +754,12 @@ public class EntityTable<ROW> {
             } catch (final Exception e) {
                 log.error("Failed to get filter attributes form current user attributes", e);
             }
+        }
+    }
+
+    private void notifyContentChange() {
+        if (this.contentChangeListener != null) {
+            this.contentChangeListener.accept(this.table.getItemCount());
         }
     }
 

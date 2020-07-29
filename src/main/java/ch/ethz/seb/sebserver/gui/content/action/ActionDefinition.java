@@ -675,6 +675,11 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.logs.activity.userlogs.details"),
             ImageIcon.SHOW,
             ActionCategory.LOGS_USER_ACTIVITY_LIST),
+    LOGS_USER_ACTIVITY_DELETE_ALL(
+            new LocTextKey("sebserver.userlogs.action.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.USER_ACTIVITY_LOGS,
+            ActionCategory.LOGS_USER_ACTIVITY_LIST),
 
     LOGS_SEB_CLIENT(
             new LocTextKey("sebserver.logs.activity.seblogs"),
@@ -687,7 +692,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.seblogs.action.delete"),
             ImageIcon.DELETE,
             PageStateDefinitionImpl.SEB_CLIENT_LOGS,
-            ActionCategory.FORM),
+            ActionCategory.LOGS_SEB_CLIENT_LIST),
 
     ;
 

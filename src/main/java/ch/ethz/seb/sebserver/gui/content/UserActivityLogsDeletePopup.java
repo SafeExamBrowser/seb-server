@@ -38,26 +38,26 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.ModelInputWizard.WizardAction
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModelInputWizard.WizardPage;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllClientEvents;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllUserLogs;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
 @GuiProfile
-public class SEBClientEventDeletePopup {
+public class UserActivityLogsDeletePopup {
 
-    private static final Logger log = LoggerFactory.getLogger(SEBClientEventDeletePopup.class);
+    private static final Logger log = LoggerFactory.getLogger(UserActivityLogsDeletePopup.class);
 
     private final static LocTextKey FORM_TITLE =
-            new LocTextKey("sebserver.seblogs.delete.form.title");
+            new LocTextKey("sebserver.userlogs.delete.form.title");
     private final static LocTextKey ACTION_DELETE =
-            new LocTextKey("sebserver.seblogs.delete.action.delete");
+            new LocTextKey("sebserver.userlogs.delete.action.delete");
     private final static LocTextKey DELETE_CONFIRM_TITLE =
-            new LocTextKey("sebserver.seblogs.delete.confirm.title");
+            new LocTextKey("sebserver.userlogs.delete.confirm.title");
 
     private final PageService pageService;
 
-    protected SEBClientEventDeletePopup(final PageService pageService) {
+    protected UserActivityLogsDeletePopup(final PageService pageService) {
         this.pageService = pageService;
     }
 
@@ -96,14 +96,14 @@ public class SEBClientEventDeletePopup {
             final String idsToDelete = pageContext.getAttribute(PageContext.AttributeKeys.ENTITY_ID_LIST);
 
             final RestCall<EntityProcessingReport>.RestCallBuilder restCallBuilder = this.pageService.getRestService()
-                    .getBuilder(DeleteAllClientEvents.class)
+                    .getBuilder(DeleteAllUserLogs.class)
                     .withFormParam(API.PARAM_MODEL_ID_LIST, idsToDelete)
                     .withFormParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name());
 
             final EntityProcessingReport report = restCallBuilder.call().getOrThrow();
 
             final PageAction action = this.pageService.pageActionBuilder(pageContext)
-                    .newAction(ActionDefinition.LOGS_SEB_CLIENT)
+                    .newAction(ActionDefinition.LOGS_USER_ACTIVITY_LIST)
                     .create();
 
             this.pageService.firePageEvent(
@@ -113,13 +113,13 @@ public class SEBClientEventDeletePopup {
             pageContext.publishPageMessage(
                     DELETE_CONFIRM_TITLE,
                     new LocTextKey(
-                            "sebserver.seblogs.delete.confirm.message",
+                            "sebserver.userlogs.delete.confirm.message",
                             report.results.size(),
                             (report.errors.isEmpty()) ? "no" : String.valueOf((report.errors.size()))));
 
             return true;
         } catch (final Exception e) {
-            log.error("Unexpected error while trying to delete SEB client logs:", e);
+            log.error("Unexpected error while trying to delete user activity logs:", e);
             pageContext.notifyUnexpectedError(e);
             return false;
         }
@@ -140,7 +140,7 @@ public class SEBClientEventDeletePopup {
         final Label title = this.pageService.getWidgetFactory().labelLocalized(
                 grid,
                 CustomVariant.TEXT_H3,
-                new LocTextKey("sebserver.seblogs.delete.form.info", number));
+                new LocTextKey("sebserver.userlogs.delete.form.info", number));
         final GridData gridData = new GridData();
         gridData.horizontalIndent = 10;
         gridData.verticalIndent = 10;

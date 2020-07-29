@@ -47,6 +47,7 @@ public class TableBuilder<ROW> {
     private Function<PageSupplier.Builder<ROW>, PageSupplier.Builder<ROW>> restCallAdapter;
     private BiConsumer<TableItem, ROW> rowDecorator;
     private Consumer<Set<ROW>> selectionListener;
+    private Consumer<Integer> contentChangeListener;
     private boolean markupEnabled = false;
 
     public TableBuilder(
@@ -128,6 +129,11 @@ public class TableBuilder<ROW> {
         return this;
     }
 
+    public TableBuilder<ROW> withContentChangeListener(final Consumer<Integer> contentChangeListener) {
+        this.contentChangeListener = contentChangeListener;
+        return this;
+    }
+
     public TableBuilder<ROW> withStaticFilter(final String name, final String value) {
         this.staticQueryParams.add(name, value);
         return this;
@@ -171,7 +177,7 @@ public class TableBuilder<ROW> {
     }
 
     public EntityTable<ROW> compose(final PageContext pageContext) {
-        return new EntityTable<ROW>(
+        return new EntityTable<>(
                 this.name,
                 this.markupEnabled,
                 this.type,
@@ -188,7 +194,8 @@ public class TableBuilder<ROW> {
                 this.hideNavigation,
                 this.staticQueryParams,
                 this.rowDecorator,
-                this.selectionListener);
+                this.selectionListener,
+                this.contentChangeListener);
     }
 
 }

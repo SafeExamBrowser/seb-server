@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs;
 
 import java.util.List;
 
@@ -26,16 +26,17 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class GetClientEventNames extends RestCall<List<EntityName>> {
+public class GetUserLogNames extends RestCall<List<EntityName>> {
 
-    public GetClientEventNames() {
+    public GetUserLogNames() {
         super(new TypeKey<>(
                 CallType.GET_NAMES,
-                EntityType.CLIENT_EVENT,
+                EntityType.USER_ACTIVITY_LOG,
                 new TypeReference<List<EntityName>>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.SEB_CLIENT_EVENT_ENDPOINT + API.NAMES_PATH_SEGMENT);
+                API.USER_ACTIVITY_LOG_ENDPOINT + API.NAMES_PATH_SEGMENT);
     }
+
 }

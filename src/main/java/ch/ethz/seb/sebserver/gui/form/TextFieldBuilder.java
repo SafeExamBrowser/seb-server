@@ -10,13 +10,11 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.function.Consumer;
 
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -25,6 +23,7 @@ import org.eclipse.swt.widgets.Text;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public final class TextFieldBuilder extends FieldBuilder<String> {
@@ -77,6 +76,12 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         return this;
     }
 
+    public TextFieldBuilder asHTML(final int minHeight) {
+        this.isHTML = true;
+        this.areaMinHeight = minHeight;
+        return this;
+    }
+
     public FieldBuilder<?> asHTML(final boolean html) {
         this.isHTML = html;
         return this;
@@ -97,7 +102,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
             final Browser browser = new Browser(fieldGrid, SWT.NONE);
             final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
             gridData.minimumHeight = this.areaMinHeight;
-            browser.setBackground(new Color(builder.formParent.getDisplay(), new RGB(250, 250, 250)));
+            browser.setBackground(new Color(builder.formParent.getDisplay(), 250, 250, 250));
             browser.setLayoutData(gridData);
             if (StringUtils.isNoneBlank(this.value)) {
                 browser.setText(createHTMLText(this.value));

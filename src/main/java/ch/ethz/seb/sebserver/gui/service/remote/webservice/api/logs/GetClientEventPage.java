@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;

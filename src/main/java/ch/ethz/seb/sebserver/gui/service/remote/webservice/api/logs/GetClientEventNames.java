@@ -6,7 +6,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs;
+
+import java.util.List;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -17,24 +19,23 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class DeleteAllClientEvents extends RestCall<EntityProcessingReport> {
+public class GetClientEventNames extends RestCall<List<EntityName>> {
 
-    public DeleteAllClientEvents() {
+    public GetClientEventNames() {
         super(new TypeKey<>(
-                CallType.DELETE,
+                CallType.GET_NAMES,
                 EntityType.CLIENT_EVENT,
-                new TypeReference<EntityProcessingReport>() {
+                new TypeReference<List<EntityName>>() {
                 }),
-                HttpMethod.DELETE,
+                HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.SEB_CLIENT_EVENT_ENDPOINT);
+                API.SEB_CLIENT_EVENT_ENDPOINT + API.NAMES_PATH_SEGMENT);
     }
-
 }

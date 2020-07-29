@@ -8,18 +8,27 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import org.apache.tomcat.util.buf.StringUtils;
 import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -37,6 +46,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -50,6 +60,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Component
 @GuiProfile
 public class UserActivityLogs implements TemplateComposer {
+
+    private static final Logger log = LoggerFactory.getLogger(UserActivityLogs.class);
 
     private static final LocTextKey DETAILS_TITLE_TEXT_KEY =
             new LocTextKey("sebserver.userlogs.details.title");
@@ -93,16 +105,19 @@ public class UserActivityLogs implements TemplateComposer {
     private final ResourceService resourceService;
     private final I18nSupport i18nSupport;
     private final WidgetFactory widgetFactory;
+    private final UserActivityLogsDeletePopup userActivityLogsDeletePopup;
     private final int pageSize;
 
     public UserActivityLogs(
             final PageService pageService,
+            final UserActivityLogsDeletePopup userActivityLogsDeletePopup,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.i18nSupport = this.resourceService.getI18nSupport();
         this.widgetFactory = pageService.getWidgetFactory();
+        this.userActivityLogsDeletePopup = userActivityLogsDeletePopup;
         this.pageSize = pageSize;
 
         this.institutionFilter = new TableFilterAttribute(
@@ -151,6 +166,17 @@ public class UserActivityLogs implements TemplateComposer {
                                 return Constants.EMPTY_NOTE;
                             }
                         });
+
+        final Consumer<Boolean> deleteActionActivation = this.pageService.getActionActiviationPublisher(
+                pageContext,
+                ActionDefinition.LOGS_USER_ACTIVITY_DELETE_ALL);
+        final Consumer<Boolean> detailsActionActivation = this.pageService.getActionActiviationPublisher(
+                pageContext,
+                ActionDefinition.LOGS_USER_ACTIVITY_SHOW_DETAILS);
+        final Consumer<Integer> contentChangeListener = contentSize -> {
+            deleteActionActivation.accept(contentSize > 0);
+            detailsActionActivation.accept(contentSize > 0);
+        };
 
         // table
         final EntityTable<UserActivityLog> table = this.pageService.entityTableBuilder(
@@ -207,6 +233,8 @@ public class UserActivityLogs implements TemplateComposer {
                 .withSelectionListener(this.pageService.getSelectionPublisher(
                         pageContext,
                         ActionDefinition.LOGS_USER_ACTIVITY_SHOW_DETAILS))
+
+                .withContentChangeListener(contentChangeListener)
                 .compose(pageContext.copyOf(content));
 
         actionBuilder
@@ -216,8 +244,40 @@ public class UserActivityLogs implements TemplateComposer {
                         action -> this.showDetails(action, table.getSingleSelectedROWData()),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
-                .publishIf(table::hasAnyContent, false);
+                .publish(false)
 
+                .newAction(ActionDefinition.LOGS_USER_ACTIVITY_DELETE_ALL)
+                .withExec(action -> this.getOpenDelete(action, table.getFilterCriteria()))
+                .noEventPropagation()
+                .publishIf(isSEBAdmin, table.hasAnyContent());
+    }
+
+    private PageAction getOpenDelete(final PageAction pageAction, final MultiValueMap<String, String> filterCriteria) {
+        try {
+            final List<String> ids = this.pageService
+                    .getRestService()
+                    .getBuilder(GetUserLogNames.class)
+                    .withQueryParams(filterCriteria)
+                    .call()
+                    .getOrThrow()
+                    .stream()
+                    .map(EntityName::getModelId)
+                    .collect(Collectors.toList());
+
+            final PageAction deleteAction = pageAction.withAttribute(
+                    PageContext.AttributeKeys.ENTITY_ID_LIST,
+                    StringUtils.join(ids, Constants.COMMA))
+                    .withAttribute(
+                            PageContext.AttributeKeys.ENTITY_LIST_TYPE,
+                            EntityType.CLIENT_EVENT.name());
+
+            return this.userActivityLogsDeletePopup
+                    .deleteWizardFunction(deleteAction.pageContext())
+                    .apply(deleteAction);
+        } catch (final Exception e) {
+            log.error("Unexpected error while try to open user activity log delete popup", e);
+            return pageAction;
+        }
     }
 
     private String getLogTime(final UserActivityLog log) {

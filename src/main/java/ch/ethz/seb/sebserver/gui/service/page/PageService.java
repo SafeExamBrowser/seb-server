@@ -178,6 +178,20 @@ public interface PageService {
                         .get();
     }
 
+    /** Use this to get an action activation publisher that processes the action activation.
+     *
+     * @param pageContext the current PageContext
+     * @param actionDefinitions list of action definitions that activity should be toggled on table selection
+     * @return the action activation publisher that can be used to control the activity of an certain action */
+    default Consumer<Boolean> getActionActiviationPublisher(
+            final PageContext pageContext,
+            final ActionDefinition... actionDefinitions) {
+
+        return avtivate -> firePageEvent(
+                new ActionActivationEvent(avtivate, actionDefinitions),
+                pageContext);
+    }
+
     /** Use this to get an table selection action publisher that processes the action
      * activation on table selection.
      *

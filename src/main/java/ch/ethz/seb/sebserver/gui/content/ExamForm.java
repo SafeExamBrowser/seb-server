@@ -324,24 +324,28 @@ public class ExamForm implements TemplateComposer {
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.text(
-                        Domain.EXAM.ATTR_EXTERNAL_ID,
-                        FORM_QUIZ_ID_TEXT_KEY,
-                        exam.externalId)
-                        .readonly(true)
-                        .withEmptyCellSeparation(false))
-                .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_URL,
                         FORM_QUIZ_URL_TEXT_KEY,
                         exam.startURL)
                         .readonly(true)
-                        .withInputSpan(7))
+                        .withInputSpan(7)
+                        .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
                         exam.description)
-                        .asHTML()
+                        .asHTML(50)
                         .readonly(true)
+                        .withInputSpan(6)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.text(
+                        Domain.EXAM.ATTR_EXTERNAL_ID,
+                        FORM_QUIZ_ID_TEXT_KEY,
+                        exam.externalId)
+                        .readonly(true)
+                        .withLabelSpan(2)
                         .withInputSpan(6)
                         .withEmptyCellSeparation(false))
 
@@ -352,7 +356,8 @@ public class ExamForm implements TemplateComposer {
                         .readonly(true)
                         .withLabelSpan(2)
                         .withInputSpan(4)
-                        .withEmptyCellSpan(1))
+                        .withEmptyCellSeparation(false))
+
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_TYPE,
                         FORM_TYPE_TEXT_KEY,
@@ -400,11 +405,6 @@ public class ExamForm implements TemplateComposer {
                 .withExec(this.cancelModifyFunction())
                 .publishIf(() -> !readonly)
 
-                .newAction(ActionDefinition.EXAM_DELETE)
-                .withEntityKey(entityKey)
-                .withExec(this.examDeletePopup.deleteWizardFunction(pageContext))
-                .publishIf(() -> writeGrant && readonly)
-
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
                 .withEntityKey(entityKey)
                 .withExec(this.examSEBRestrictionSettings.settingsFunction(this.pageService))
@@ -428,7 +428,12 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
                 .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
-                        && BooleanUtils.isTrue(isRestricted));
+                        && BooleanUtils.isTrue(isRestricted))
+
+                .newAction(ActionDefinition.EXAM_DELETE)
+                .withEntityKey(entityKey)
+                .withExec(this.examDeletePopup.deleteWizardFunction(pageContext))
+                .publishIf(() -> writeGrant && readonly);
 
         // additional data in read-only view
         if (readonly && !importFromQuizData) {
