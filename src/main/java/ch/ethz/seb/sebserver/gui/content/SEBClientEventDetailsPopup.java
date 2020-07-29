@@ -38,9 +38,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Lazy
 @Component
 @GuiProfile
-public class SEBClientLogDetailsPopup {
+public class SEBClientEventDetailsPopup {
 
-    private static final Logger log = LoggerFactory.getLogger(SEBClientLogDetailsPopup.class);
+    private static final Logger log = LoggerFactory.getLogger(SEBClientEventDetailsPopup.class);
 
     private static final LocTextKey DETAILS_TITLE_TEXT_KEY =
             new LocTextKey("sebserver.seblogs.details.title");
@@ -87,7 +87,7 @@ public class SEBClientLogDetailsPopup {
     private final I18nSupport i18nSupport;
     private final WidgetFactory widgetFactory;
 
-    public SEBClientLogDetailsPopup(final PageService pageService) {
+    public SEBClientEventDetailsPopup(final PageService pageService) {
 
         this.pageService = pageService;
         this.widgetFactory = pageService.getWidgetFactory();

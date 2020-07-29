@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -83,13 +84,13 @@ public class SEBClientEvents implements TemplateComposer {
     private final ResourceService resourceService;
     private final RestService restService;
     private final I18nSupport i18nSupport;
-    private final SEBClientLogDetailsPopup sebClientLogDetailsPopup;
+    private final SEBClientEventDetailsPopup sebClientEventDetailsPopup;
     private final SEBClientEventDeletePopup sebClientEventDeletePopup;
     private final int pageSize;
 
     public SEBClientEvents(
             final PageService pageService,
-            final SEBClientLogDetailsPopup sebClientLogDetailsPopup,
+            final SEBClientEventDetailsPopup sebClientEventDetailsPopup,
             final SEBClientEventDeletePopup sebClientEventDeletePopup,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
@@ -97,7 +98,7 @@ public class SEBClientEvents implements TemplateComposer {
         this.resourceService = pageService.getResourceService();
         this.restService = this.resourceService.getRestService();
         this.i18nSupport = this.resourceService.getI18nSupport();
-        this.sebClientLogDetailsPopup = sebClientLogDetailsPopup;
+        this.sebClientEventDetailsPopup = sebClientEventDetailsPopup;
         this.sebClientEventDeletePopup = sebClientEventDeletePopup;
         this.pageSize = pageSize;
 
@@ -131,6 +132,17 @@ public class SEBClientEvents implements TemplateComposer {
 
         final boolean writeGrant = this.pageService.getCurrentUser()
                 .hasInstitutionalPrivilege(PrivilegeType.WRITE, EntityType.CLIENT_EVENT);
+
+        final Consumer<Boolean> deleteActionActivation = this.pageService.getActionActiviationPublisher(
+                pageContext,
+                ActionDefinition.LOGS_SEB_CLIENT_DELETE_ALL);
+        final Consumer<Boolean> detailsActionActivation = this.pageService.getActionActiviationPublisher(
+                pageContext,
+                ActionDefinition.LOGS_SEB_CLIENT_SHOW_DETAILS);
+        final Consumer<Integer> contentChangeListener = contentSize -> {
+            deleteActionActivation.accept(contentSize > 0);
+            detailsActionActivation.accept(contentSize > 0);
+        };
 
         // table
         final EntityTable<ExtendedClientEvent> table = this.pageService.entityTableBuilder(
@@ -186,7 +198,7 @@ public class SEBClientEvents implements TemplateComposer {
 
                 .withDefaultAction(t -> actionBuilder
                         .newAction(ActionDefinition.LOGS_SEB_CLIENT_SHOW_DETAILS)
-                        .withExec(action -> this.sebClientLogDetailsPopup.showDetails(action,
+                        .withExec(action -> this.sebClientEventDetailsPopup.showDetails(action,
                                 t.getSingleSelectedROWData()))
                         .noEventPropagation()
                         .create())
@@ -194,22 +206,22 @@ public class SEBClientEvents implements TemplateComposer {
                 .withSelectionListener(this.pageService.getSelectionPublisher(
                         pageContext,
                         ActionDefinition.LOGS_SEB_CLIENT_SHOW_DETAILS))
-
+                .withContentChangeListener(contentChangeListener)
                 .compose(pageContext.copyOf(content));
 
         actionBuilder
                 .newAction(ActionDefinition.LOGS_SEB_CLIENT_SHOW_DETAILS)
                 .withSelect(
                         table::getSelection,
-                        action -> this.sebClientLogDetailsPopup.showDetails(action, table.getSingleSelectedROWData()),
+                        action -> this.sebClientEventDetailsPopup.showDetails(action, table.getSingleSelectedROWData()),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
-                .publishIf(table::hasAnyContent, false)
+                .publish(false)
 
                 .newAction(ActionDefinition.LOGS_SEB_CLIENT_DELETE_ALL)
                 .withExec(action -> this.getOpenDelete(action, table.getFilterCriteria()))
                 .noEventPropagation()
-                .publishIf(() -> writeGrant);
+                .publishIf(() -> writeGrant, table.hasAnyContent());
     }
 
     private PageAction getOpenDelete(final PageAction pageAction, final MultiValueMap<String, String> filterCriteria) {

@@ -84,7 +84,7 @@ public class MonitoringClientConnection implements TemplateComposer {
     private final ResourceService resourceService;
     private final I18nSupport i18nSupport;
     private final InstructionProcessor instructionProcessor;
-    private final SEBClientLogDetailsPopup sebClientLogDetailsPopup;
+    private final SEBClientEventDetailsPopup sebClientLogDetailsPopup;
     private final long pollInterval;
     private final int pageSize;
 
@@ -96,7 +96,7 @@ public class MonitoringClientConnection implements TemplateComposer {
             final ServerPushService serverPushService,
             final PageService pageService,
             final InstructionProcessor instructionProcessor,
-            final SEBClientLogDetailsPopup sebClientLogDetailsPopup,
+            final SEBClientEventDetailsPopup sebClientLogDetailsPopup,
             @Value("${sebserver.gui.webservice.poll-interval:500}") final long pollInterval,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
