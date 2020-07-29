@@ -170,13 +170,13 @@ public class SEBClientConfigList implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(table::hasAnyContent, false)
+                .publish(false)
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_MODIFY_FROM_LIST)
                 .withSelect(
                         table.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> clientConfigGrant.im() && table.hasAnyContent(), false)
+                .publishIf(() -> clientConfigGrant.im(), false)
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_TOGGLE_ACTIVITY)
                 .withSelect(
@@ -184,7 +184,7 @@ public class SEBClientConfigList implements TemplateComposer {
                         this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY),
                         EMPTY_SELECTION_TEXT_KEY)
                 .withConfirm(this.pageService.confirmDeactivation(table))
-                .publishIf(() -> clientConfigGrant.im() && table.hasAnyContent(), false);
+                .publishIf(() -> clientConfigGrant.im(), false);
 
     }
 

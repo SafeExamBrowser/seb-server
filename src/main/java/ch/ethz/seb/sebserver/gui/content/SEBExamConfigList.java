@@ -159,13 +159,13 @@ public class SEBExamConfigList implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
                 .withSelect(configTable::getSelection, PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(configTable::hasAnyContent, false)
+                .publish(false)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST)
                 .withSelect(
                         configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> examConfigGrant.im() && configTable.hasAnyContent(), false)
+                .publishIf(() -> examConfigGrant.im(), false)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
                 .withSelect(

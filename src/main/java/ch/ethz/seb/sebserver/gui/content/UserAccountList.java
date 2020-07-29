@@ -222,16 +222,16 @@ public class UserAccountList implements TemplateComposer {
 
                 .newAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(table::hasAnyContent, false)
+                .publish(false)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM_LIST)
                 .withSelect(table::getSelection, this::editAction, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> userGrant.im() && table.hasAnyContent(), false)
+                .publishIf(() -> userGrant.im(), false)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_TOGGLE_ACTIVITY)
                 .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
                 .withConfirm(this.pageService.confirmDeactivation(table))
-                .publishIf(() -> userGrant.m() && table.hasAnyContent(), false);
+                .publishIf(() -> userGrant.m(), false);
     }
 
     private PageAction editAction(final PageAction pageAction) {

@@ -168,13 +168,13 @@ public class LmsSetupList implements TemplateComposer {
 
                 .newAction(ActionDefinition.LMS_SETUP_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(table::hasAnyContent, false)
+                .publish(false)
 
                 .newAction(ActionDefinition.LMS_SETUP_MODIFY_FROM_LIST)
                 .withSelect(
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> userGrant.im() && table.hasAnyContent(), false)
+                .publishIf(() -> userGrant.im(), false)
 
                 .newAction(ActionDefinition.LMS_SETUP_TOGGLE_ACTIVITY)
                 .withSelect(
@@ -185,7 +185,7 @@ public class LmsSetupList implements TemplateComposer {
                                 action -> LmsSetupForm.testLmsSetup(action, null, restService)),
                         EMPTY_SELECTION_TEXT_KEY)
                 .withConfirm(this.pageService.confirmDeactivation(table))
-                .publishIf(() -> userGrant.iw() && table.hasAnyContent(), false);
+                .publishIf(() -> userGrant.iw(), false);
 
     }
 
