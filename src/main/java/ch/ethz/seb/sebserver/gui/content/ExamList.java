@@ -209,14 +209,14 @@ public class ExamList implements TemplateComposer {
         actionBuilder
                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(table::hasAnyContent, false)
+                .publish(false)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)
                 .withSelect(
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         action -> modifyExam(action, table),
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> userGrant.im() && table.hasAnyContent(), false);
+                .publishIf(() -> userGrant.im(), false);
 
     }
 

@@ -336,7 +336,7 @@ public class SEBExamConfigForm implements TemplateComposer {
                         return pageAction.withEntityKey(
                                 new EntityKey(selectedExamMapping.examId, EntityType.EXAM));
                     })
-                    .publishIf(table::hasAnyContent, false);
+                    .publish(false);
         }
     }
 

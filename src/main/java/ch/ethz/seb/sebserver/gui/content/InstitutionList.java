@@ -87,8 +87,8 @@ public class InstitutionList implements TemplateComposer {
         final Composite content = this.pageService
                 .getWidgetFactory()
                 .defaultPageLayout(
-                    pageContext.getParent(),
-                    TITLE_TEXT_KEY);
+                        pageContext.getParent(),
+                        TITLE_TEXT_KEY);
 
         final PageActionBuilder pageActionBuilder =
                 this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
@@ -142,19 +142,19 @@ public class InstitutionList implements TemplateComposer {
                         table::getSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(table::hasAnyContent, false)
+                .publish(false)
 
                 .newAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
                 .withSelect(
                         table::getSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> instGrant.m() && table.hasAnyContent(), false)
+                .publishIf(() -> instGrant.m(), false)
 
                 .newAction(ActionDefinition.INSTITUTION_TOGGLE_ACTIVITY)
                 .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
                 .withConfirm(this.pageService.confirmDeactivation(table))
-                .publishIf(() -> instGrant.m() && table.hasAnyContent(), false);
+                .publishIf(() -> instGrant.m(), false);
     }
 
 }

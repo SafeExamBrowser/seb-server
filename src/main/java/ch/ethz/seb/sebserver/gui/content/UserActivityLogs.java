@@ -216,7 +216,7 @@ public class UserActivityLogs implements TemplateComposer {
                         action -> this.showDetails(action, table.getSingleSelectedROWData()),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
-                .publishIf(table::hasAnyContent, false);
+                .publish(false);
 
     }
 

@@ -185,7 +185,7 @@ public class SEBClientLogs implements TemplateComposer {
                         action -> this.sebClientLogDetailsPopup.showDetails(action, table.getSingleSelectedROWData()),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
-                .publishIf(table::hasAnyContent, false);
+                .publish(false);
     }
 
     private Function<ExtendedClientEvent, String> examNameFunction() {

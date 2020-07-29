@@ -148,12 +148,12 @@ public class ConfigTemplateList implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST)
                 .withSelect(templateTable::getSelection, PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_TEMPLATE_SELECTION_TEXT_KEY)
-                .publishIf(templateTable::hasAnyContent, false)
+                .publish(false)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_MODIFY_FROM_LIST)
                 .withSelect(
                         templateTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         PageAction::applySingleSelectionAsEntityKey, EMPTY_TEMPLATE_SELECTION_TEXT_KEY)
-                .publishIf(() -> examConfigGrant.im() && templateTable.hasAnyContent(), false);
+                .publishIf(() -> examConfigGrant.im(), false);
     }
 }

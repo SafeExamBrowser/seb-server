@@ -235,7 +235,7 @@ public class QuizLookupList implements TemplateComposer {
                                 institutionNameFunction),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()
-                .publishIf(table::hasAnyContent, false)
+                .publish(false)
 
                 .newAction(ActionDefinition.QUIZ_DISCOVERY_EXAM_IMPORT)
                 .withConfirm(importQuizConfirm(table, restService))
@@ -243,7 +243,7 @@ public class QuizLookupList implements TemplateComposer {
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         action -> this.importQuizData(action, table),
                         EMPTY_SELECTION_TEXT)
-                .publishIf(() -> examGrant.im() && table.hasAnyContent(), false);
+                .publishIf(() -> examGrant.im(), false);
     }
 
     private static Function<QuizData, String> quizDataLmsSetupNameFunction(final ResourceService resourceService) {

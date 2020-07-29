@@ -251,7 +251,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             attrTable::getSelection,
                             PageAction::applySingleSelectionAsEntityKey,
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
-                    .publishIf(() -> attrTable.hasAnyContent() && modifyGrant, false)
+                    .publishIf(() -> modifyGrant, false)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_SET_DEFAULT)
                     .withParentEntityKey(entityKey)
@@ -260,7 +260,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             action -> this.resetToDefaults(action, attrTable),
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
                     .noEventPropagation()
-                    .publishIf(() -> attrTable.hasAnyContent() && modifyGrant, false)
+                    .publishIf(() -> modifyGrant, false)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_LIST_REMOVE_VIEW)
                     .withParentEntityKey(entityKey)
@@ -269,7 +269,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             action -> this.removeFormView(action, attrTable),
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
                     .noEventPropagation()
-                    .publishIf(() -> attrTable.hasAnyContent() && modifyGrant, false)
+                    .publishIf(() -> modifyGrant, false)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_LIST_ATTACH_DEFAULT_VIEW)
                     .withParentEntityKey(entityKey)
@@ -278,7 +278,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                             action -> this.attachView(action, attrTable),
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
                     .noEventPropagation()
-                    .publishIf(() -> attrTable.hasAnyContent() && modifyGrant, false);
+                    .publishIf(() -> modifyGrant, false);
         }
 
         pageActionBuilder
