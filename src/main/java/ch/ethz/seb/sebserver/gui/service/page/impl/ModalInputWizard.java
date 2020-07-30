@@ -34,9 +34,9 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
-public class ModelInputWizard<T> extends Dialog {
+public class ModalInputWizard<T> extends Dialog {
 
-    private static final Logger log = LoggerFactory.getLogger(ModelInputWizard.class);
+    private static final Logger log = LoggerFactory.getLogger(ModalInputWizard.class);
 
     private static final long serialVersionUID = -3314062148477979319L;
 
@@ -45,7 +45,7 @@ public class ModelInputWizard<T> extends Dialog {
     private int dialogHeight = ModalInputDialog.DEFAULT_DIALOG_HEIGHT;
     private int buttonWidth = ModalInputDialog.DEFAULT_DIALOG_BUTTON_WIDTH;
 
-    public ModelInputWizard(
+    public ModalInputWizard(
             final Shell parent,
             final WidgetFactory widgetFactory) {
 
@@ -53,27 +53,27 @@ public class ModelInputWizard<T> extends Dialog {
         this.widgetFactory = widgetFactory;
     }
 
-    public ModelInputWizard<T> setDialogWidth(final int dialogWidth) {
+    public ModalInputWizard<T> setDialogWidth(final int dialogWidth) {
         this.dialogWidth = dialogWidth;
         return this;
     }
 
-    public ModelInputWizard<T> setLargeDialogWidth() {
+    public ModalInputWizard<T> setLargeDialogWidth() {
         this.dialogWidth = ModalInputDialog.LARGE_DIALOG_WIDTH;
         return this;
     }
 
-    public ModelInputWizard<T> setVeryLargeDialogWidth() {
+    public ModalInputWizard<T> setVeryLargeDialogWidth() {
         this.dialogWidth = ModalInputDialog.VERY_LARGE_DIALOG_WIDTH;
         return this;
     }
 
-    public ModelInputWizard<T> setDialogHeight(final int dialogHeight) {
+    public ModalInputWizard<T> setDialogHeight(final int dialogHeight) {
         this.dialogHeight = dialogHeight;
         return this;
     }
 
-    public ModelInputWizard<T> setButtonWidth(final int buttonWidth) {
+    public ModalInputWizard<T> setButtonWidth(final int buttonWidth) {
         this.buttonWidth = buttonWidth;
         return this;
     }

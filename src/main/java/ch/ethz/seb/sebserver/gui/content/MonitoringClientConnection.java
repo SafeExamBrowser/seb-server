@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Collection;
 
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -36,6 +38,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
@@ -250,8 +253,35 @@ public class MonitoringClientConnection implements TemplateComposer {
                 })
                 .noEventPropagation()
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER) &&
-                        connectionData.clientConnection.status == ConnectionStatus.ACTIVE);
+                        connectionData.clientConnection.status == ConnectionStatus.ACTIVE)
 
+                .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING)
+                .withExec(this::openProctorScreen)
+                .noEventPropagation()
+                .publish()
+
+        ;
+
+    }
+
+    private PageAction openProctorScreen(final PageAction action) {
+//
+//        final ProctorDialog dialog = new ProctorDialog(action.pageContext().getParent().getShell());
+//        dialog.open(EVENT_LIST_TITLE_KEY,
+//                "https://seb-jitsi.ethz.ch/TestRoomABC?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsiYXZhdGFyIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9qb2huLWRvZSIsIm5hbWUiOiJEaXNwbGF5IE5hbWUiLCJlbWFpbCI6Im5hbWVAZXhhbXBsZS5jb20ifX0sImF1ZCI6InNlYi1qaXRzaSIsImlzcyI6InNlYi1qaXRzaSIsInN1YiI6Im1lZXQuaml0c2kiLCJyb29tIjoiKiJ9.SD9Zs78mMFqxS1tpalPTykYYaubIYsj_406WAOhcqxQ");
+//
+//        final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
+//        urlLauncher.openURL(
+//                "https://seb-jitsi.ethz.ch/TestRoomABC?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsiYXZhdGFyIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9qb2huLWRvZSIsIm5hbWUiOiJEaXNwbGF5IE5hbWUiLCJlbWFpbCI6Im5hbWVAZXhhbXBsZS5jb20ifX0sImF1ZCI6InNlYi1qaXRzaSIsImlzcyI6InNlYi1qaXRzaSIsInN1YiI6Im1lZXQuaml0c2kiLCJyb29tIjoiKiJ9.SD9Zs78mMFqxS1tpalPTykYYaubIYsj_406WAOhcqxQ");
+
+        final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
+        javaScriptExecutor.execute(
+                "window.open("
+                        + "'https://seb-jitsi.ethz.ch/TestRoomABC?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsiYXZhdGFyIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9qb2huLWRvZSIsIm5hbWUiOiJEaXNwbGF5IE5hbWUiLCJlbWFpbCI6Im5hbWVAZXhhbXBsZS5jb20ifX0sImF1ZCI6InNlYi1qaXRzaSIsImlzcyI6InNlYi1qaXRzaSIsInN1YiI6Im1lZXQuaml0c2kiLCJyb29tIjoiKiJ9.SD9Zs78mMFqxS1tpalPTykYYaubIYsj_406WAOhcqxQ',"
+                        + "'proctoring',"
+                        + "'height=400,width=800,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes');");
+
+        return action;
     }
 
     private String getClientTime(final ClientEvent event) {

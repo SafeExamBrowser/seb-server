@@ -50,6 +50,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamProctoring;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -375,6 +376,76 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     }
 
     // **** SEB Restriction
+    // ****************************************************************************
+
+    // ****************************************************************************
+    // **** Proctoring
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_PROCTOR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ExamProctoring getExamProctoring(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable final Long modelId) {
+
+        checkReadPrivilege(institutionId);
+        return this.entityDAO.byPK(modelId)
+                .flatMap(this.authorization::checkRead)
+                .flatMap(this.examAdminService::getExamProctoring)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_PROCTOR_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ExamProctoring saveExamProctoring(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @Valid @RequestBody final ExamProctoring examProctoring) {
+
+        checkModifyPrivilege(institutionId);
+        return this.entityDAO.byPK(examId)
+                .flatMap(this.authorization::checkModify)
+                .flatMap(exam -> this.examAdminService.saveExamProctoring(examId, examProctoring))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_PROCTOR_PATH_SEGMENT
+                    + API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public String getExamProctoringURL(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
+            @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN) final String connectionToken) {
+
+        checkReadPrivilege(institutionId);
+        return this.entityDAO.byPK(examId)
+                .flatMap(this.authorization::checkRead)
+                .flatMap(this.examAdminService::getExamProctoring)
+                .flatMap(proc -> this.examAdminService
+                        .getExamProctoringService(proc.serverType)
+                        .map(s -> s.createProctoringURL(proc, connectionToken, true))
+                        .getOrThrow())
+                .getOrThrow();
+    }
+
+    // **** Proctoring
     // ****************************************************************************
 
     @Override

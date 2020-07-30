@@ -33,9 +33,9 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
-import ch.ethz.seb.sebserver.gui.service.page.impl.ModelInputWizard;
-import ch.ethz.seb.sebserver.gui.service.page.impl.ModelInputWizard.WizardAction;
-import ch.ethz.seb.sebserver.gui.service.page.impl.ModelInputWizard.WizardPage;
+import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputWizard;
+import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputWizard.WizardAction;
+import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputWizard.WizardPage;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllUserLogs;
@@ -64,8 +64,8 @@ public class UserActivityLogsDeletePopup {
     public Function<PageAction, PageAction> deleteWizardFunction(final PageContext pageContext) {
         return action -> {
 
-            final ModelInputWizard<PageContext> wizard =
-                    new ModelInputWizard<PageContext>(
+            final ModalInputWizard<PageContext> wizard =
+                    new ModalInputWizard<PageContext>(
                             action.pageContext().getParent().getShell(),
                             this.pageService.getWidgetFactory())
                                     .setVeryLargeDialogWidth();

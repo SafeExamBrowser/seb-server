@@ -103,7 +103,7 @@ public class SEBClientConfigForm implements TemplateComposer {
             SEBClientConfig.ATTR_QUIT_PASSWORD,
             SEBClientConfig.ATTR_QUIT_PASSWORD_CONFIRM));
 
-    private static final String FALLBACK_DEFAULT_TIME = String.valueOf(2 * Constants.MINUTE_IN_MILLIS);
+    private static final String FALLBACK_DEFAULT_TIME = String.valueOf(30 * Constants.SECOND_IN_MILLIS);
     private static final String FALLBACK_DEFAULT_ATTEMPTS = String.valueOf(5);
     private static final String FALLBACK_DEFAULT_ATTEMPT_INTERVAL = String.valueOf(2 * Constants.SECOND_IN_MILLIS);
 
