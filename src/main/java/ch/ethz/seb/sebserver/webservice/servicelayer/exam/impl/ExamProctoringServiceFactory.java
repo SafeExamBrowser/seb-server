@@ -31,7 +31,7 @@ public class ExamProctoringServiceFactory {
     public ExamProctoringServiceFactory(final Collection<ExamProctoringService> proctorServices) {
         this.services = new EnumMap<>(proctorServices
                 .stream()
-                .collect(Collectors.toMap(
+                .collect(Collectors.<ExamProctoringService, ServerType, ExamProctoringService> toMap(
                         s -> s.getType(),
                         Function.identity())));
     }
