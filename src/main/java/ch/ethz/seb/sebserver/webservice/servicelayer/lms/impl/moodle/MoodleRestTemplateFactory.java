@@ -48,7 +48,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
-final class MoodleRestTemplateFactory {
+class MoodleRestTemplateFactory {
 
     final JSONMapper jsonMapper;
     final LmsSetup lmsSetup;
@@ -134,7 +134,7 @@ final class MoodleRestTemplateFactory {
         });
     }
 
-    private MoodleAPIRestTemplate createRestTemplate(
+    protected MoodleAPIRestTemplate createRestTemplate(
             final ClientCredentials credentials,
             final String accessTokenRequestPath) {
 
@@ -158,7 +158,7 @@ final class MoodleRestTemplateFactory {
         return restTemplate;
     }
 
-    public final class MoodleAPIRestTemplate extends RestTemplate {
+    public class MoodleAPIRestTemplate extends RestTemplate {
 
         public static final String URI_VAR_USER_NAME = "username";
         public static final String URI_VAR_PASSWORD = "pwd";

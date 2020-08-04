@@ -81,7 +81,7 @@ public class MoodleCourseRestriction {
 
     LmsSetupTestResult initAPIAccess() {
         // TODO test availability
-        return LmsSetupTestResult.ofQuizAccessAPIError("not available yet");
+        return LmsSetupTestResult.ofQuizRestrictionAPIError("not available yet");
     }
 
     Result<MoodleSEBRestriction> getSEBRestriction(

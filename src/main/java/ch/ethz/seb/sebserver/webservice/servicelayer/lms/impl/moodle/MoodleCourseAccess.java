@@ -143,7 +143,7 @@ public class MoodleCourseAccess extends CourseAccess {
                     MOODLE_COURSE_API_FUNCTION_NAME,
                     MOODLE_QUIZ_API_FUNCTION_NAME);
         } catch (final RuntimeException e) {
-            log.error("Failed to access Open edX course API: ", e);
+            log.error("Failed to access Moodle course API: ", e);
             return LmsSetupTestResult.ofQuizAccessAPIError(e.getMessage());
         }
 
@@ -164,22 +164,21 @@ public class MoodleCourseAccess extends CourseAccess {
 
     private ArrayList<QuizData> collectAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
         final String urlPrefix = this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH;
-        return collectAllCourses(
-                restTemplate)
-                        .stream()
-                        .reduce(
-                                new ArrayList<>(),
-                                (list, courseData) -> {
-                                    list.addAll(quizDataOf(
-                                            this.lmsSetup,
-                                            courseData,
-                                            urlPrefix));
-                                    return list;
-                                },
-                                (list1, list2) -> {
-                                    list1.addAll(list2);
-                                    return list1;
-                                });
+        return collectAllCourses(restTemplate)
+                .stream()
+                .reduce(
+                        new ArrayList<>(),
+                        (list, courseData) -> {
+                            list.addAll(quizDataOf(
+                                    this.lmsSetup,
+                                    courseData,
+                                    urlPrefix));
+                            return list;
+                        },
+                        (list1, list2) -> {
+                            list1.addAll(list2);
+                            return list1;
+                        });
     }
 
     private List<CourseData> collectAllCourses(final MoodleAPIRestTemplate restTemplate) {
