@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.tomcat.util.buf.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
@@ -122,7 +122,10 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSe
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllUserLogs;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
@@ -2492,6 +2495,54 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             assertEquals("1002", apiMessage.getMessageCode());
             assertEquals("resource not found", apiMessage.getSystemMessage());
         }
+    }
+
+    @Test
+    @Order(20)
+    // *************************************
+    // Use Case 20: Login as admin and get and delete user activity logs
+    public void testUsecase20_DeleteUserActivityLogs() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetUserLogPage(),
+                new GetUserLogNames(),
+                new DeleteAllUserLogs());
+
+        // get all user logs
+        final List<EntityName> allUserLogs = restService.getBuilder(GetUserLogNames.class)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(allUserLogs);
+        assertFalse(allUserLogs.isEmpty());
+
+        // delete unknown user logs
+        final String toDelete = StringUtils.join(allUserLogs.stream()
+                .filter(log -> log.name.equals("--"))
+                .map(name -> name.getModelId())
+                .collect(Collectors.toList()), ",");
+
+        final EntityProcessingReport report = restService.getBuilder(DeleteAllUserLogs.class)
+                .withFormParam(API.PARAM_MODEL_ID_LIST, toDelete)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(report);
+        assertTrue(report.errors.isEmpty());
+        assertFalse(report.results.isEmpty());
+
+        final List<EntityName> allUserLogsAfterDel = restService.getBuilder(GetUserLogNames.class)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(allUserLogsAfterDel);
+        assertFalse(allUserLogsAfterDel.isEmpty());
+        assertTrue(allUserLogsAfterDel.stream()
+                .filter(log -> log.name.equals("--"))
+                .map(name -> name.getModelId())
+                .collect(Collectors.toList()).isEmpty());
+
     }
 
 }

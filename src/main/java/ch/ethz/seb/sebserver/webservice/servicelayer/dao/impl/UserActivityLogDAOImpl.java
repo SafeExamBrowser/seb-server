@@ -465,7 +465,9 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                 .map(record -> new UserActivityLog(
                         record.getId(),
                         record.getUserUuid(),
-                        userMapping.get(record.getUserUuid()),
+                        (userMapping.containsKey(record.getUserUuid()))
+                                ? userMapping.get(record.getUserUuid())
+                                : "--",
                         record.getTimestamp(),
                         UserLogActivityType.valueOf(record.getActivityType()),
                         EntityType.valueOf(record.getEntityType()),

@@ -30,7 +30,7 @@ public class EntityName extends EntityKey {
     public EntityName(
             @JsonProperty(value = API.PARAM_MODEL_ID, required = true) final String id,
             @JsonProperty(value = API.PARAM_ENTITY_TYPE, required = true) final EntityType entityType,
-            @JsonProperty(value = ATTR_NAME, required = true) final String name) {
+            @JsonProperty(value = ATTR_NAME) final String name) {
 
         super(id, entityType);
         this.name = name;
