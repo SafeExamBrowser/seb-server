@@ -47,6 +47,7 @@ public class MoodleCourseAccess extends CourseAccess {
     private static final Logger log = LoggerFactory.getLogger(MoodleCourseAccess.class);
 
     private static final String MOODLE_QUIZ_START_URL_PATH = "mod/quiz/view.php?id=";
+    private static final String MOODLE_COURSE_START_URL_PATH = "course/view.php?id=";
     private static final String MOODLE_COURSE_API_FUNCTION_NAME = "core_course_get_courses";
     private static final String MOODLE_USER_PROFILE_API_FUNCTION_NAME = "core_user_get_users_by_field";
     private static final String MOODLE_QUIZ_API_FUNCTION_NAME = "mod_quiz_get_quizzes_by_courses";
@@ -55,6 +56,7 @@ public class MoodleCourseAccess extends CourseAccess {
     private final JSONMapper jsonMapper;
     private final LmsSetup lmsSetup;
     private final MoodleRestTemplateFactory moodleRestTemplateFactory;
+    private final boolean includeCourses;
 
     private MoodleAPIRestTemplate restTemplate;
 
@@ -62,12 +64,14 @@ public class MoodleCourseAccess extends CourseAccess {
             final JSONMapper jsonMapper,
             final LmsSetup lmsSetup,
             final MoodleRestTemplateFactory moodleRestTemplateFactory,
-            final AsyncService asyncService) {
+            final AsyncService asyncService,
+            final boolean includeCourses) {
 
         super(asyncService);
         this.jsonMapper = jsonMapper;
         this.lmsSetup = lmsSetup;
         this.moodleRestTemplateFactory = moodleRestTemplateFactory;
+        this.includeCourses = includeCourses;
     }
 
     @Override
@@ -222,7 +226,7 @@ public class MoodleCourseAccess extends CourseAccess {
 
     static Map<String, String> additionalAttrs = new HashMap<>();
 
-    private static List<QuizData> quizDataOf(
+    private List<QuizData> quizDataOf(
             final LmsSetup lmsSetup,
             final CourseData courseData,
             final String uriPrefix) {
@@ -234,13 +238,13 @@ public class MoodleCourseAccess extends CourseAccess {
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_DISPLAY_NAME, courseData.display_name);
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SUMMARY, courseData.summary);
 
-        return courseData.quizzes
+        final List<QuizData> courseAndQuiz = courseData.quizzes
                 .stream()
                 .map(courseQuizData -> {
-                    final String startURI = uriPrefix + courseQuizData.id;
+                    final String startURI = uriPrefix + courseQuizData.course_module;
                     additionalAttrs.put(QuizData.ATTR_ADDITIONAL_TIME_LIMIT, String.valueOf(courseQuizData.time_limit));
                     return new QuizData(
-                            courseQuizData.id,
+                            courseData.id + ":" + courseQuizData.id,
                             lmsSetup.getInstitutionId(),
                             lmsSetup.id,
                             lmsSetup.getLmsType(),
@@ -252,6 +256,22 @@ public class MoodleCourseAccess extends CourseAccess {
                             additionalAttrs);
                 })
                 .collect(Collectors.toList());
+
+        if (this.includeCourses) {
+            courseAndQuiz.add(new QuizData(
+                    courseData.id,
+                    lmsSetup.getInstitutionId(),
+                    lmsSetup.id,
+                    lmsSetup.getLmsType(),
+                    courseData.display_name,
+                    courseData.full_name,
+                    Utils.toDateTimeUTCUnix(courseData.start_date),
+                    Utils.toDateTimeUTCUnix(courseData.end_date),
+                    lmsSetup.lmsApiUrl + MOODLE_COURSE_START_URL_PATH + courseData.id,
+                    additionalAttrs));
+        }
+
+        return courseAndQuiz;
     }
 
     private Result<MoodleAPIRestTemplate> getRestTemplate() {

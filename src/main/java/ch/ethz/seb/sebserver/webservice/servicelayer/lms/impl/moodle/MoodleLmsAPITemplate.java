@@ -115,7 +115,7 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
         }
 
         return this.moodleCourseRestriction
-                .putSEBRestriction(
+                .updateSEBRestriction(
                         externalExamId,
                         MoodleSEBRestriction.from(sebRestrictionData))
                 .map(result -> sebRestrictionData);
@@ -127,7 +127,8 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
             log.debug("Release SEB Client restriction for Exam: {}", exam);
         }
 
-        return this.moodleCourseRestriction.deleteSEBRestriction(exam.externalId)
+        return this.moodleCourseRestriction
+                .deleteSEBRestriction(exam.externalId)
                 .map(result -> exam);
     }
 
