@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamProctoring.ServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamProctoringService;

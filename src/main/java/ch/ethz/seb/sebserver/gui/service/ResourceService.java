@@ -20,9 +20,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
-import ch.ethz.seb.sebserver.gbl.util.Tuple3;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +44,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
@@ -60,6 +58,8 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Tuple3;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
@@ -109,6 +109,7 @@ public class ResourceService {
     public static final String SEB_RESTRICTION_WHITE_LIST_PREFIX = "sebserver.exam.form.sebrestriction.whiteListPaths.";
     public static final String SEB_RESTRICTION_PERMISSIONS_PREFIX = "sebserver.exam.form.sebrestriction.permissions.";
     public static final String SEB_CLIENT_CONFIG_PURPOSE_PREFIX = "sebserver.clientconfig.config.purpose.";
+    public static final String EXAM_PROCTORING_TYPE_PREFIX = "sebserver.exam.proctoring.type.servertype.";
 
     public static final EnumSet<AttributeType> ATTRIBUTE_TYPES_NOT_DISPLAYED = EnumSet.of(
             AttributeType.LABEL,
@@ -370,6 +371,18 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
+    public List<Tuple<String>> examProctoringTypeResources() {
+        return Arrays.stream(ExamType.values())
+                .map(type -> new Tuple3<>(
+                        type.name(),
+                        this.i18nSupport.getText(EXAM_PROCTORING_TYPE_PREFIX + type.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                EXAM_PROCTORING_TYPE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
     public List<Tuple<String>> examConfigStatusResources() {
         return examConfigStatusResources(false);
     }
@@ -387,9 +400,9 @@ public class ResourceService {
                         type.name(),
                         this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name()),
                         Utils.formatLineBreaks(this.i18nSupport.getText(
-                                this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name()) + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
-                                StringUtils.EMPTY))
-                        ))
+                                this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name())
+                                        + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }

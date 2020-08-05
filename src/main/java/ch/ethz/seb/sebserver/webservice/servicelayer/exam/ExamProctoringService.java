@@ -8,8 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamProctoring;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamProctoring.ServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -17,15 +17,15 @@ public interface ExamProctoringService {
 
     ServerType getType();
 
-    Result<Boolean> testExamProctoring(final ExamProctoring examProctoring);
+    Result<Boolean> testExamProctoring(final ProctoringSettings examProctoring);
 
     public Result<String> createProctoringURL(
-            final ExamProctoring examProctoring,
+            final ProctoringSettings examProctoring,
             final String connectionToken,
             final boolean server);
 
     Result<String> createProctoringURL(
-            final ExamProctoring examProctoring,
+            final ProctoringSettings examProctoring,
             ClientConnection clientConnection,
             boolean server);
 

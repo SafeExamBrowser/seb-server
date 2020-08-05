@@ -28,8 +28,8 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamProctoring;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamProctoring.ServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
@@ -156,56 +156,56 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
-    public Result<ExamProctoring> getExamProctoring(final Long examId) {
+    public Result<ProctoringSettings> getExamProctoring(final Long examId) {
         return this.additionalAttributesDAO.getAdditionalAttributes(EntityType.EXAM, examId)
                 .map(attrs -> attrs.stream()
                         .collect(Collectors.toMap(
                                 attr -> attr.getName(),
                                 Function.identity())))
                 .map(mapping -> {
-                    return new ExamProctoring(
+                    return new ProctoringSettings(
                             examId,
                             getEnabled(mapping),
                             getServerType(mapping),
-                            getString(mapping, ExamProctoring.ATTR_SERVER_URL),
-                            getString(mapping, ExamProctoring.ATTR_APP_KEY),
-                            getString(mapping, ExamProctoring.ATTR_APP_SECRET));
+                            getString(mapping, ProctoringSettings.ATTR_SERVER_URL),
+                            getString(mapping, ProctoringSettings.ATTR_APP_KEY),
+                            getString(mapping, ProctoringSettings.ATTR_APP_SECRET));
                 });
     }
 
     @Override
     @Transactional
-    public Result<ExamProctoring> saveExamProctoring(final Long examId, final ExamProctoring examProctoring) {
+    public Result<ProctoringSettings> saveExamProctoring(final Long examId, final ProctoringSettings examProctoring) {
         return Result.tryCatch(() -> {
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
-                    ExamProctoring.ATTR_ENABLE_PROCTORING,
+                    ProctoringSettings.ATTR_ENABLE_PROCTORING,
                     String.valueOf(examProctoring.enableProctoring));
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
-                    ExamProctoring.ATTR_SERVER_TYPE,
+                    ProctoringSettings.ATTR_SERVER_TYPE,
                     examProctoring.serverType.name());
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
-                    ExamProctoring.ATTR_SERVER_URL,
+                    ProctoringSettings.ATTR_SERVER_URL,
                     examProctoring.serverURL);
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
-                    ExamProctoring.ATTR_APP_KEY,
+                    ProctoringSettings.ATTR_APP_KEY,
                     examProctoring.appKey);
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
-                    ExamProctoring.ATTR_APP_SECRET,
+                    ProctoringSettings.ATTR_APP_SECRET,
                     this.cryptor.encrypt(examProctoring.appSecret).toString());
 
             return examProctoring;
@@ -217,7 +217,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         return this.additionalAttributesDAO.getAdditionalAttribute(
                 EntityType.EXAM,
                 examId,
-                ExamProctoring.ATTR_ENABLE_PROCTORING)
+                ProctoringSettings.ATTR_ENABLE_PROCTORING)
                 .map(rec -> rec != null && BooleanUtils.toBoolean(rec.getValue()));
     }
 
@@ -227,16 +227,16 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     private Boolean getEnabled(final Map<String, AdditionalAttributeRecord> mapping) {
-        if (mapping.containsKey(ExamProctoring.ATTR_ENABLE_PROCTORING)) {
-            return BooleanUtils.toBoolean(mapping.get(ExamProctoring.ATTR_ENABLE_PROCTORING).getValue());
+        if (mapping.containsKey(ProctoringSettings.ATTR_ENABLE_PROCTORING)) {
+            return BooleanUtils.toBoolean(mapping.get(ProctoringSettings.ATTR_ENABLE_PROCTORING).getValue());
         } else {
             return false;
         }
     }
 
     private ServerType getServerType(final Map<String, AdditionalAttributeRecord> mapping) {
-        if (mapping.containsKey(ExamProctoring.ATTR_SERVER_TYPE)) {
-            return ServerType.valueOf(mapping.get(ExamProctoring.ATTR_SERVER_TYPE).getValue());
+        if (mapping.containsKey(ProctoringSettings.ATTR_SERVER_TYPE)) {
+            return ServerType.valueOf(mapping.get(ProctoringSettings.ATTR_SERVER_TYPE).getValue());
         } else {
             return ServerType.JITSI_MEET;
         }

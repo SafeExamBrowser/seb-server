@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.hibernate.validator.constraints.URL;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -19,7 +20,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ExamProctoring implements Entity {
+public class ProctoringSettings implements Entity {
 
     public enum ServerType {
         JITSI_MEET
@@ -33,19 +34,25 @@ public class ExamProctoring implements Entity {
 
     @JsonProperty(Domain.EXAM.ATTR_ID)
     public final Long examId;
+
     @JsonProperty(ATTR_ENABLE_PROCTORING)
     public final Boolean enableProctoring;
+
     @JsonProperty(ATTR_SERVER_TYPE)
     public final ServerType serverType;
+
     @JsonProperty(ATTR_SERVER_URL)
+    @URL(message = "examProctoring:serverURL:invalidURL")
     public final String serverURL;
+
     @JsonProperty(ATTR_APP_KEY)
     public final String appKey;
+
     @JsonProperty(ATTR_APP_SECRET)
     public final CharSequence appSecret;
 
     @JsonCreator
-    public ExamProctoring(
+    public ProctoringSettings(
             @JsonProperty(Domain.EXAM.ATTR_ID) final Long examId,
             @JsonProperty(ATTR_ENABLE_PROCTORING) final Boolean enableProctoring,
             @JsonProperty(ATTR_SERVER_TYPE) final ServerType serverType,
@@ -117,7 +124,7 @@ public class ExamProctoring implements Entity {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final ExamProctoring other = (ExamProctoring) obj;
+        final ProctoringSettings other = (ProctoringSettings) obj;
         if (this.examId == null) {
             if (other.examId != null)
                 return false;

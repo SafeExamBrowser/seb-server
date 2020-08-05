@@ -21,8 +21,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamProctoring;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamProctoring.ServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -53,14 +53,14 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
     }
 
     @Override
-    public Result<Boolean> testExamProctoring(final ExamProctoring examProctoring) {
+    public Result<Boolean> testExamProctoring(final ProctoringSettings examProctoring) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public Result<String> createProctoringURL(
-            final ExamProctoring examProctoring,
+            final ProctoringSettings examProctoring,
             final String connectionToken,
             final boolean server) {
 
@@ -76,7 +76,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
 
     @Override
     public Result<String> createProctoringURL(
-            final ExamProctoring examProctoring,
+            final ProctoringSettings examProctoring,
             final ClientConnection clientConnection,
             final boolean server) {
 

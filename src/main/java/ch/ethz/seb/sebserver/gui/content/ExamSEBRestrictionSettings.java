@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -47,13 +49,15 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ActivateSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeactivateSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetCourseChapters;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetSEBRestriction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetSEBRestrictionSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveSEBRestriction;
 
 @Lazy
 @Component
 @GuiProfile
 public class ExamSEBRestrictionSettings {
+
+    private static final Logger log = LoggerFactory.getLogger(ExamSEBRestrictionSettings.class);
 
     private final static LocTextKey SEB_RESTRICTION_ERROR =
             new LocTextKey("sebserver.error.exam.seb.restriction");
@@ -153,7 +157,11 @@ public class ExamSEBRestrictionSettings {
                     additionalAttributes);
 
         } catch (final Exception e) {
-            e.printStackTrace();
+            log.error("Unexpected error while trying to get settings from form: ", e);
+        }
+
+        if (bodyValue == null) {
+            return false;
         }
 
         return !pageService
@@ -195,7 +203,7 @@ public class ExamSEBRestrictionSettings {
                     .createPopupScrollComposite(parent);
 
             final SEBRestriction sebRestriction = restService
-                    .getBuilder(GetSEBRestriction.class)
+                    .getBuilder(GetSEBRestrictionSettings.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .call()
                     .getOrThrow();

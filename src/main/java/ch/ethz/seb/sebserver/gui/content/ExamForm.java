@@ -8,27 +8,20 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.rap.rwt.RWT;
-import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -40,15 +33,12 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -63,15 +53,10 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
-import ch.ethz.seb.sebserver.gui.service.remote.download.SEBExamConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
@@ -79,8 +64,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
-import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
-import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
@@ -91,14 +74,15 @@ public class ExamForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(ExamForm.class);
 
+    protected static final String ATTR_READ_GRANT = "ATTR_READ_GRANT";
+    protected static final String ATTR_MODIFY_GRANT = "ATTR_MODIFY_GRANT";
+    protected static final String ATTR_EXAM_STATUS = "ATTR_EXAM_STATUS";
+
     public static final LocTextKey EXAM_FORM_TITLE_KEY =
             new LocTextKey("sebserver.exam.form.title");
     public static final LocTextKey EXAM_FORM_TITLE_IMPORT_KEY =
             new LocTextKey("sebserver.exam.form.title.import");
-    private static final LocTextKey CONFIG_EMPTY_LIST_MESSAGE =
-            new LocTextKey("sebserver.exam.configuration.list.empty");
-    private static final LocTextKey INDICATOR_EMPTY_LIST_MESSAGE =
-            new LocTextKey("sebserver.exam.indicator.list.empty");
+
     private static final LocTextKey FORM_SUPPORTER_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.supporter");
     private static final LocTextKey FORM_STATUS_TEXT_KEY =
@@ -120,32 +104,6 @@ public class ExamForm implements TemplateComposer {
     private static final LocTextKey FORM_LMSSETUP_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.lmssetup");
 
-    private final static LocTextKey CONFIG_LIST_TITLE_KEY =
-            new LocTextKey("sebserver.exam.configuration.list.title");
-    private final static LocTextKey CONFIG_LIST_TITLE_TOOLTIP_KEY =
-            new LocTextKey("sebserver.exam.configuration.list.title" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
-    private final static LocTextKey CONFIG_NAME_COLUMN_KEY =
-            new LocTextKey("sebserver.exam.configuration.list.column.name");
-    private final static LocTextKey CONFIG_DESCRIPTION_COLUMN_KEY =
-            new LocTextKey("sebserver.exam.configuration.list.column.description");
-    private final static LocTextKey CONFIG_STATUS_COLUMN_KEY =
-            new LocTextKey("sebserver.exam.configuration.list.column.status");
-    private final static LocTextKey CONFIG_EMPTY_SELECTION_TEXT_KEY =
-            new LocTextKey("sebserver.exam.configuration.list.pleaseSelect");
-
-    private final static LocTextKey INDICATOR_LIST_TITLE_KEY =
-            new LocTextKey("sebserver.exam.indicator.list.title");
-    private final static LocTextKey INDICATOR_LIST_TITLE_TOOLTIP_KEY =
-            new LocTextKey("sebserver.exam.indicator.list.title" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
-    private final static LocTextKey INDICATOR_TYPE_COLUMN_KEY =
-            new LocTextKey("sebserver.exam.indicator.list.column.type");
-    private final static LocTextKey INDICATOR_NAME_COLUMN_KEY =
-            new LocTextKey("sebserver.exam.indicator.list.column.name");
-    private final static LocTextKey INDICATOR_THRESHOLD_COLUMN_KEY =
-            new LocTextKey("sebserver.exam.indicator.list.column.thresholds");
-    private final static LocTextKey INDICATOR_EMPTY_SELECTION_TEXT_KEY =
-            new LocTextKey("sebserver.exam.indicator.list.pleaseSelect");
-
     private final static LocTextKey CONSISTENCY_MESSAGE_TITLE =
             new LocTextKey("sebserver.exam.consistency.title");
     private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_SUPPORTER =
@@ -158,19 +116,14 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.consistency.missing-seb-restriction");
 
     private final Map<String, LocTextKey> consistencyMessageMapping;
-
-    private final static LocTextKey CONFIRM_MESSAGE_REMOVE_CONFIG =
-            new LocTextKey("sebserver.exam.confirm.remove-config");
-
     private final PageService pageService;
     private final ResourceService resourceService;
     private final ExamSEBRestrictionSettings examSEBRestrictionSettings;
-    private final ExamToConfigBindingForm examToConfigBindingForm;
-    private final DownloadService downloadService;
-    private final String downloadFileName;
     private final WidgetFactory widgetFactory;
     private final RestService restService;
     private final ExamDeletePopup examDeletePopup;
+    private final ExamFormConfigs examFormConfigs;
+    private final ExamFormIndicators examFormIndicators;
 
     protected ExamForm(
             final PageService pageService,
@@ -178,17 +131,17 @@ public class ExamForm implements TemplateComposer {
             final ExamToConfigBindingForm examToConfigBindingForm,
             final DownloadService downloadService,
             final ExamDeletePopup examDeletePopup,
-            @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
+            final ExamFormConfigs examFormConfigs,
+            final ExamFormIndicators examFormIndicators) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.examSEBRestrictionSettings = examSEBRestrictionSettings;
-        this.examToConfigBindingForm = examToConfigBindingForm;
-        this.downloadService = downloadService;
-        this.downloadFileName = downloadFileName;
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = this.resourceService.getRestService();
         this.examDeletePopup = examDeletePopup;
+        this.examFormConfigs = examFormConfigs;
+        this.examFormIndicators = examFormIndicators;
 
         this.consistencyMessageMapping = new HashMap<>();
         this.consistencyMessageMapping.put(
@@ -255,7 +208,6 @@ public class ExamForm implements TemplateComposer {
         final boolean modifyGrant = userGrantCheck.m();
         final boolean writeGrant = userGrantCheck.w();
         final ExamStatus examStatus = exam.getStatus();
-        final boolean isExamRunning = examStatus == ExamStatus.RUNNING;
         final boolean editable = examStatus == ExamStatus.UP_COMING
                 || examStatus == ExamStatus.RUNNING
                         && currentUser.get().hasRole(UserRole.EXAM_ADMIN);
@@ -439,165 +391,21 @@ public class ExamForm implements TemplateComposer {
 
         // additional data in read-only view
         if (readonly && !importFromQuizData) {
+            // Configurations
+            this.examFormConfigs.compose(
+                    formContext
+                            .copyOf(content)
+                            .withAttribute(ATTR_READ_GRANT, String.valueOf(userGrantCheck.r()))
+                            .withAttribute(ATTR_MODIFY_GRANT, String.valueOf(modifyGrant))
+                            .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
 
-            // List of SEB Configuration
-            this.widgetFactory.addFormSubContextHeader(
-                    content,
-                    CONFIG_LIST_TITLE_KEY,
-                    CONFIG_LIST_TITLE_TOOLTIP_KEY);
-
-            final EntityTable<ExamConfigurationMap> configurationTable =
-                    this.pageService.entityTableBuilder(this.restService.getRestCall(GetExamConfigMappingsPage.class))
-                            .withRestCallAdapter(builder -> builder.withQueryParam(
-                                    ExamConfigurationMap.FILTER_ATTR_EXAM_ID,
-                                    entityKey.modelId))
-                            .withEmptyMessage(CONFIG_EMPTY_LIST_MESSAGE)
-                            .withPaging(1)
-                            .hideNavigation()
-                            .withColumn(new ColumnDefinition<>(
-                                    Domain.CONFIGURATION_NODE.ATTR_NAME,
-                                    CONFIG_NAME_COLUMN_KEY,
-                                    ExamConfigurationMap::getConfigName)
-                                            .widthProportion(2))
-                            .withColumn(new ColumnDefinition<>(
-                                    Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
-                                    CONFIG_DESCRIPTION_COLUMN_KEY,
-                                    ExamConfigurationMap::getConfigDescription)
-                                            .widthProportion(4))
-                            .withColumn(new ColumnDefinition<ExamConfigurationMap>(
-                                    Domain.CONFIGURATION_NODE.ATTR_STATUS,
-                                    CONFIG_STATUS_COLUMN_KEY,
-                                    this.resourceService::localizedExamConfigStatusName)
-                                            .widthProportion(1))
-                            .withDefaultActionIf(
-                                    () -> modifyGrant,
-                                    this::viewExamConfigPageAction)
-
-                            .withSelectionListener(this.pageService.getSelectionPublisher(
-                                    pageContext,
-                                    ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP,
-                                    ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST,
-                                    ActionDefinition.EXAM_CONFIGURATION_EXPORT,
-                                    ActionDefinition.EXAM_CONFIGURATION_GET_CONFIG_KEY))
-
-                            .compose(pageContext.copyOf(content));
-
-            final EntityKey configMapKey = (configurationTable.hasAnyContent())
-                    ? new EntityKey(
-                            configurationTable.getFirstRowData().configurationNodeId,
-                            EntityType.CONFIGURATION_NODE)
-                    : null;
-
-            actionBuilder
-
-                    .newAction(ActionDefinition.EXAM_CONFIGURATION_NEW)
-                    .withParentEntityKey(entityKey)
-                    .withExec(this.examToConfigBindingForm.bindFunction())
-                    .noEventPropagation()
-                    .publishIf(() -> modifyGrant && editable && !configurationTable.hasAnyContent())
-
-                    .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
-                    .withParentEntityKey(entityKey)
-                    .withEntityKey(configMapKey)
-                    .publishIf(() -> modifyGrant && configurationTable.hasAnyContent(), false)
-
-                    .newAction(ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST)
-                    .withEntityKey(entityKey)
-                    .withSelect(
-                            getConfigMappingSelection(configurationTable),
-                            this::deleteExamConfigMapping,
-                            CONFIG_EMPTY_SELECTION_TEXT_KEY)
-                    .withConfirm(() -> {
-                        if (isExamRunning) {
-                            return CONFIRM_MESSAGE_REMOVE_CONFIG;
-                        }
-                        return null;
-                    })
-                    .publishIf(() -> modifyGrant && configurationTable.hasAnyContent() && editable, false)
-
-                    .newAction(ActionDefinition.EXAM_CONFIGURATION_EXPORT)
-                    .withParentEntityKey(entityKey)
-                    .withSelect(
-                            getConfigSelection(configurationTable),
-                            this::downloadExamConfigAction,
-                            CONFIG_EMPTY_SELECTION_TEXT_KEY)
-                    .noEventPropagation()
-                    .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent(), false)
-
-                    .newAction(ActionDefinition.EXAM_CONFIGURATION_GET_CONFIG_KEY)
-                    .withSelect(
-                            getConfigSelection(configurationTable),
-                            this::getExamConfigKey,
-                            CONFIG_EMPTY_SELECTION_TEXT_KEY)
-                    .noEventPropagation()
-                    .publishIf(() -> userGrantCheck.r() && configurationTable.hasAnyContent(), false);
-
-            // List of Indicators
-            this.widgetFactory.addFormSubContextHeader(
-                    content,
-                    INDICATOR_LIST_TITLE_KEY,
-                    INDICATOR_LIST_TITLE_TOOLTIP_KEY);
-
-            final EntityTable<Indicator> indicatorTable =
-                    this.pageService.entityTableBuilder(this.restService.getRestCall(GetIndicatorPage.class))
-                            .withRestCallAdapter(builder -> builder.withQueryParam(
-                                    Indicator.FILTER_ATTR_EXAM_ID,
-                                    entityKey.modelId))
-                            .withEmptyMessage(INDICATOR_EMPTY_LIST_MESSAGE)
-                            .withMarkup()
-                            .withPaging(5)
-                            .hideNavigation()
-                            .withColumn(new ColumnDefinition<>(
-                                    Domain.INDICATOR.ATTR_NAME,
-                                    INDICATOR_NAME_COLUMN_KEY,
-                                    Indicator::getName)
-                                            .widthProportion(2))
-                            .withColumn(new ColumnDefinition<>(
-                                    Domain.INDICATOR.ATTR_TYPE,
-                                    INDICATOR_TYPE_COLUMN_KEY,
-                                    this::indicatorTypeName)
-                                            .widthProportion(1))
-                            .withColumn(new ColumnDefinition<>(
-                                    Domain.THRESHOLD.REFERENCE_NAME,
-                                    INDICATOR_THRESHOLD_COLUMN_KEY,
-                                    ExamForm::thresholdsValue)
-                                            .asMarkup()
-                                            .widthProportion(4))
-                            .withDefaultActionIf(
-                                    () -> modifyGrant,
-                                    () -> actionBuilder
-                                            .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
-                                            .withParentEntityKey(entityKey)
-                                            .create())
-
-                            .withSelectionListener(this.pageService.getSelectionPublisher(
-                                    pageContext,
-                                    ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST,
-                                    ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST))
-
-                            .compose(pageContext.copyOf(content));
-
-            actionBuilder
-
-                    .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
-                    .withParentEntityKey(entityKey)
-                    .withSelect(
-                            indicatorTable::getSelection,
-                            PageAction::applySingleSelectionAsEntityKey,
-                            INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent(), false)
-
-                    .newAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
-                    .withEntityKey(entityKey)
-                    .withSelect(
-                            indicatorTable::getSelection,
-                            this::deleteSelectedIndicator,
-                            INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                    .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent(), false)
-
-                    .newAction(ActionDefinition.EXAM_INDICATOR_NEW)
-                    .withParentEntityKey(entityKey)
-                    .publishIf(() -> modifyGrant);
+            // Indicators
+            this.examFormIndicators.compose(
+                    formContext
+                            .copyOf(content)
+                            .withAttribute(ATTR_READ_GRANT, String.valueOf(userGrantCheck.r()))
+                            .withAttribute(ATTR_MODIFY_GRANT, String.valueOf(modifyGrant))
+                            .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
         }
     }
 
@@ -656,95 +464,6 @@ public class ExamForm implements TemplateComposer {
                         message));
     }
 
-    private PageAction viewExamConfigPageAction(final EntityTable<ExamConfigurationMap> table) {
-
-        return this.pageService.pageActionBuilder(table.getPageContext()
-                .clearEntityKeys()
-                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA))
-                .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
-                .withSelectionSupplier(() -> {
-                    final ExamConfigurationMap selectedROWData = table.getSingleSelectedROWData();
-                    final HashSet<EntityKey> result = new HashSet<>();
-                    if (selectedROWData != null) {
-                        result.add(new EntityKey(
-                                selectedROWData.configurationNodeId,
-                                EntityType.CONFIGURATION_NODE));
-                    }
-                    return result;
-                })
-                .create();
-    }
-
-    private PageAction downloadExamConfigAction(final PageAction action) {
-        final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
-        final EntityKey selection = action.getSingleSelection();
-        if (selection != null) {
-            final String downloadURL = this.downloadService.createDownloadURL(
-                    selection.modelId,
-                    action.pageContext().getParentEntityKey().modelId,
-                    SEBExamConfigDownload.class,
-                    this.downloadFileName);
-            urlLauncher.openURL(downloadURL);
-        }
-        return action;
-    }
-
-    private Supplier<Set<EntityKey>> getConfigMappingSelection(
-            final EntityTable<ExamConfigurationMap> configurationTable) {
-        return () -> {
-            final ExamConfigurationMap firstRowData = configurationTable.getFirstRowData();
-            if (firstRowData == null) {
-                return Collections.emptySet();
-            } else {
-                return new HashSet<>(Arrays.asList(firstRowData.getEntityKey()));
-            }
-        };
-    }
-
-    private Supplier<Set<EntityKey>> getConfigSelection(final EntityTable<ExamConfigurationMap> configurationTable) {
-        return () -> {
-            final ExamConfigurationMap firstRowData = configurationTable.getFirstRowData();
-            if (firstRowData == null) {
-                return Collections.emptySet();
-            } else {
-                return new HashSet<>(Arrays.asList(new EntityKey(
-                        firstRowData.configurationNodeId,
-                        EntityType.CONFIGURATION_NODE)));
-            }
-        };
-    }
-
-    private PageAction deleteSelectedIndicator(final PageAction action) {
-        final EntityKey indicatorKey = action.getSingleSelection();
-        this.resourceService.getRestService()
-                .getBuilder(DeleteIndicator.class)
-                .withURIVariable(API.PARAM_MODEL_ID, indicatorKey.modelId)
-                .call();
-        return action;
-    }
-
-    private PageAction getExamConfigKey(final PageAction action) {
-        final EntityKey examConfigMappingKey = action.getSingleSelection();
-        if (examConfigMappingKey != null) {
-            action.withEntityKey(examConfigMappingKey);
-            return SEBExamConfigForm
-                    .getConfigKeyFunction(this.pageService)
-                    .apply(action);
-        }
-
-        return action;
-    }
-
-    private PageAction deleteExamConfigMapping(final PageAction action) {
-        final EntityKey examConfigMappingKey = action.getSingleSelection();
-        this.resourceService.getRestService()
-                .getBuilder(DeleteExamConfigMapping.class)
-                .withURIVariable(API.PARAM_MODEL_ID, examConfigMappingKey.modelId)
-                .call()
-                .onError(error -> action.pageContext().notifyRemoveError(EntityType.EXAM_CONFIGURATION_MAP, error));
-        return action;
-    }
-
     private Result<Exam> getExistingExam(final PageContext pageContext) {
         final EntityKey entityKey = pageContext.getEntityKey();
         return this.restService.getBuilder(GetExam.class)
@@ -761,43 +480,6 @@ public class ExamForm implements TemplateComposer {
                 .call()
                 .map(Exam::new)
                 .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error));
-    }
-
-    private String indicatorTypeName(final Indicator indicator) {
-        if (indicator.type == null) {
-            return Constants.EMPTY_NOTE;
-        }
-
-        return this.resourceService.getI18nSupport()
-                .getText(ResourceService.EXAM_INDICATOR_TYPE_PREFIX + indicator.type.name());
-    }
-
-    private static String thresholdsValue(final Indicator indicator) {
-        if (indicator.thresholds.isEmpty()) {
-            return Constants.EMPTY_NOTE;
-        }
-
-        final StringBuilder builder = indicator.thresholds
-                .stream()
-                .reduce(
-                        new StringBuilder(),
-                        (sb, threshold) -> sb
-                                .append("<span style='padding: 2px 5px 2px 5px; background-color: #")
-                                .append(threshold.color)
-                                .append("; ")
-                                .append((Utils.darkColor(Utils.parseRGB(threshold.color)))
-                                        ? "color: #4a4a4a; "
-                                        : "color: #FFFFFF;")
-                                .append("'>")
-                                .append(Indicator.getDisplayValue(indicator.type, threshold.value))
-                                .append(" (")
-                                .append(threshold.color)
-                                .append(")")
-                                .append("</span>")
-                                .append(" | "),
-                        StringBuilder::append);
-        builder.delete(builder.length() - 3, builder.length() - 1);
-        return builder.toString();
     }
 
     private Function<PageAction, PageAction> cancelModifyFunction() {

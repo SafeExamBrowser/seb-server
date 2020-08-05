@@ -50,7 +50,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamProctoring;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -386,7 +386,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_PROCTOR_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ExamProctoring getExamProctoring(
+    public ProctoringSettings getExamProctoring(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -405,18 +405,22 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_PROCTOR_PATH_SEGMENT,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ExamProctoring saveExamProctoring(
+    public Exam saveExamProctoring(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-            @Valid @RequestBody final ExamProctoring examProctoring) {
+            @Valid @RequestBody final ProctoringSettings examProctoring) {
 
         checkModifyPrivilege(institutionId);
         return this.entityDAO.byPK(examId)
                 .flatMap(this.authorization::checkModify)
-                .flatMap(exam -> this.examAdminService.saveExamProctoring(examId, examProctoring))
+                .map(exam -> {
+                    this.examAdminService.saveExamProctoring(examId, examProctoring);
+                    return exam;
+                })
+                .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
     }
 

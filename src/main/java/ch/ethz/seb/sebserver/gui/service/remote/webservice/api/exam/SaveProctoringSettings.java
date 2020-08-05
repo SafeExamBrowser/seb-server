@@ -24,12 +24,12 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class SaveSEBRestriction extends RestCall<Exam> {
+public class SaveProctoringSettings extends RestCall<Exam> {
 
-    public SaveSEBRestriction() {
+    public SaveProctoringSettings() {
         super(new TypeKey<>(
                 CallType.SAVE,
-                EntityType.EXAM_SEB_RESTRICTION,
+                EntityType.EXAM_PROCTOR_DATA,
                 new TypeReference<Exam>() {
                 }),
                 HttpMethod.POST,

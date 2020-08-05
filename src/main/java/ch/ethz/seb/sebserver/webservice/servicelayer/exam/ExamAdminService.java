@@ -9,8 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamProctoring;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamProctoring.ServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ExamAdminService {
@@ -38,7 +38,7 @@ public interface ExamAdminService {
      *
      * @param examId the exam instance
      * @return Result refer to ExamProctoring data for the exam. */
-    default Result<ExamProctoring> getExamProctoring(final Exam exam) {
+    default Result<ProctoringSettings> getExamProctoring(final Exam exam) {
         if (exam == null || exam.id == null) {
             return Result.ofRuntimeError("Invalid Exam model");
         }
@@ -49,14 +49,14 @@ public interface ExamAdminService {
      *
      * @param examId the exam identifier
      * @return Result refer to ExamProctoring data for the exam. */
-    Result<ExamProctoring> getExamProctoring(Long examId);
+    Result<ProctoringSettings> getExamProctoring(Long examId);
 
     /** Save the given ExamProctoring data for an existing Exam.
      *
      * @param examId the exam identifier
      * @param examProctoring The ExamProctoring data to save for the exam
      * @return Result refer to saved ExamProctoring data or to an error when happened. */
-    Result<ExamProctoring> saveExamProctoring(Long examId, ExamProctoring examProctoring);
+    Result<ProctoringSettings> saveExamProctoring(Long examId, ProctoringSettings examProctoring);
 
     /** This indicates if proctoring is set and enabled for a certain exam.
      *
