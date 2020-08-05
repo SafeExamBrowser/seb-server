@@ -365,7 +365,7 @@ public class ResourceService {
                         type.name(),
                         this.i18nSupport.getText(EXAM_TYPE_PREFIX + type.name()),
                         Utils.formatLineBreaks(this.i18nSupport.getText(
-                                EXAM_INDICATOR_TYPE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                EXAM_TYPE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
                                 StringUtils.EMPTY))))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
