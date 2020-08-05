@@ -19,4 +19,8 @@ public class NoSEBRestrictionException extends RuntimeException {
         super(cause);
     }
 
+    public NoSEBRestrictionException(final String message) {
+        super(message);
+    }
+
 }

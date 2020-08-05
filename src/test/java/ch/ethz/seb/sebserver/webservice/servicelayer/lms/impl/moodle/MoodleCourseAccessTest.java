@@ -152,7 +152,6 @@ public class MoodleCourseAccessTest {
         final MoodleRestTemplateFactory moodleRestTemplateFactory = mock(MoodleRestTemplateFactory.class);
         final MoodleAPIRestTemplate moodleAPIRestTemplate = mock(MoodleAPIRestTemplate.class);
         when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.of(moodleAPIRestTemplate));
-        //doThrow(RuntimeException.class).when(moodleAPIRestTemplate).testAPIConnection(any());
         when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay());
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(

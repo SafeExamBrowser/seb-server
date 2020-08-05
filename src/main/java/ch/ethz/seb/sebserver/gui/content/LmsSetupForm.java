@@ -457,9 +457,11 @@ public class LmsSetupForm implements TemplateComposer {
                                     Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
                         }
                         case QUIZ_RESTRICTION_API_REQUEST: {
-                            // NOTE: quiz restriction is not mandatory for functional LmsSetup
-                            //       so this error is ignored here
-                            break;
+
+                            throw new PageMessageException(new LocTextKey(
+                                    "sebserver.lmssetup.action.test.features.error",
+                                    "OK",
+                                    Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
                         }
                         default: {
                             throw new PageMessageException(new LocTextKey(

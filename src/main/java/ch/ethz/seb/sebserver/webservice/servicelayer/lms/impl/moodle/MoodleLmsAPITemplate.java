@@ -57,7 +57,7 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
-        return LmsSetupTestResult.ofQuizRestrictionAPIError("Not available yet");
+        return this.moodleCourseRestriction.initAPIAccess();
     }
 
     @Override

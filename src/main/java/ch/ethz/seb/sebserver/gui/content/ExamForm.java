@@ -43,7 +43,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -73,6 +74,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfi
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -620,12 +622,17 @@ public class ExamForm implements TemplateComposer {
     }
 
     private boolean testSEBRestrictionAPI(final Exam exam) {
-        return this.restService.getBuilder(GetLmsSetup.class)
+        // Call the testing endpoint with the specified data to test
+        final Result<LmsSetupTestResult> result = this.restService.getBuilder(TestLmsSetup.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
-                .call()
-                .onError(t -> log.error("Failed to check SEB restriction API: ", t))
-                .map(lmsSetup -> lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION))
-                .getOr(false);
+                .call();
+
+        if (result.hasError()) {
+            return false;
+        }
+
+        final LmsSetupTestResult lmsSetupTestResult = result.get();
+        return !lmsSetupTestResult.hasError(ErrorType.QUIZ_RESTRICTION_API_REQUEST);
     }
 
     private void showConsistencyChecks(final Collection<APIMessage> result, final Composite parent) {

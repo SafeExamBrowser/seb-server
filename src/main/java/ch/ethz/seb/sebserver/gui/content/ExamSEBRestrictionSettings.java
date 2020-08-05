@@ -200,12 +200,13 @@ public class ExamSEBRestrictionSettings {
                     .call()
                     .getOrThrow();
 
-            final Chapters chapters = restService
-                    .getBuilder(GetCourseChapters.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                    .call()
-                    .onError(t -> t.printStackTrace())
-                    .getOr(null);
+            final Chapters chapters = (lmsType == LmsType.OPEN_EDX)
+                    ? restService.getBuilder(GetCourseChapters.class)
+                            .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                            .call()
+                            .onError(t -> t.printStackTrace())
+                            .getOr(null)
+                    : null;
 
             final PageContext formContext = this.pageContext
                     .copyOf(content)
