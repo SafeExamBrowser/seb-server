@@ -16,12 +16,16 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -30,12 +34,16 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialogComposer;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveProctoringSettings;
 
+@Lazy
+@Component
+@GuiProfile
 public class ExamProctoringSettings {
 
     private static final Logger log = LoggerFactory.getLogger(ExamProctoringSettings.class);
@@ -55,10 +63,6 @@ public class ExamProctoringSettings {
     private final static LocTextKey SEB_PROCTORING_FORM_SECRET =
             new LocTextKey("sebserver.exam.proctoring.form.secret");
 
-    public ExamProctoringSettings() {
-        // TODO Auto-generated constructor stub
-    }
-
     Function<PageAction, PageAction> settingsFunction(final PageService pageService) {
 
         return action -> {
@@ -75,7 +79,7 @@ public class ExamProctoringSettings {
                     pageService,
                     action.pageContext());
 
-            final Predicate<FormHandle<?>> doBind = formHandle -> doCreate(
+            final Predicate<FormHandle<?>> doBind = formHandle -> doSaveSettings(
                     pageService,
                     pageContext,
                     formHandle);
@@ -90,7 +94,7 @@ public class ExamProctoringSettings {
         };
     }
 
-    private boolean doCreate(
+    private boolean doSaveSettings(
             final PageService pageService,
             final PageContext pageContext,
             final FormHandle<?> formHandle) {
@@ -105,6 +109,8 @@ public class ExamProctoringSettings {
         ProctoringSettings examProctoring = null;
         try {
             final Form form = formHandle.getForm();
+            form.clearErrors();
+
             final boolean enabled = BooleanUtils.toBoolean(
                     form.getFieldValue(ProctoringSettings.ATTR_ENABLE_PROCTORING));
             final ServerType serverType = ServerType.valueOf(
@@ -126,7 +132,7 @@ public class ExamProctoringSettings {
             return false;
         }
 
-        return !pageService
+        final boolean saveOk = !pageService
                 .getRestService()
                 .getBuilder(SaveProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
@@ -134,6 +140,19 @@ public class ExamProctoringSettings {
                 .call()
                 .onError(formHandle::handleError)
                 .hasError();
+
+        if (saveOk) {
+            final PageAction action = pageService.pageActionBuilder(pageContext)
+                    .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
+                    .create();
+
+            pageService.firePageEvent(
+                    new ActionEvent(action),
+                    action.pageContext());
+            return true;
+        }
+
+        return false;
     }
 
     private final class SEBProctoringPropertiesForm
@@ -196,9 +215,24 @@ public class ExamProctoringSettings {
                             ProctoringSettings.ATTR_SERVER_TYPE,
                             SEB_PROCTORING_FORM_TYPE,
                             proctoringSettings.serverType.name(),
-                            this.pageService.getResourceService()::examProctoringTypeResources))
+                            resourceService::examProctoringTypeResources))
 
-                    // TODO
+                    .addField(FormBuilder.text(
+                            ProctoringSettings.ATTR_SERVER_URL,
+                            SEB_PROCTORING_FORM_URL,
+                            proctoringSettings.serverURL))
+
+                    .addField(FormBuilder.text(
+                            ProctoringSettings.ATTR_APP_KEY,
+                            SEB_PROCTORING_FORM_APPKEY,
+                            proctoringSettings.appKey))
+
+                    .addField(FormBuilder.password(
+                            ProctoringSettings.ATTR_APP_SECRET,
+                            SEB_PROCTORING_FORM_SECRET,
+                            (proctoringSettings.appSecret != null)
+                                    ? String.valueOf(proctoringSettings.appSecret)
+                                    : null))
 
                     .build();
 

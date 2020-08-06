@@ -297,6 +297,16 @@ public enum ActionDefinition {
             ImageIcon.LOCK,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
+    EXAM_PROCTORING_ON(
+            new LocTextKey("sebserver.exam.proctoring.actions.open"),
+            ImageIcon.VISIBILITY,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
+    EXAM_PROCTORING_OFF(
+            new LocTextKey("sebserver.exam.proctoring.actions.open"),
+            ImageIcon.VISIBILITY_OFF,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
 
     EXAM_CONFIGURATION_NEW(
             new LocTextKey("sebserver.exam.configuration.action.list.new"),

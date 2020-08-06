@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
@@ -57,6 +58,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
@@ -119,6 +121,7 @@ public class ExamForm implements TemplateComposer {
     private final PageService pageService;
     private final ResourceService resourceService;
     private final ExamSEBRestrictionSettings examSEBRestrictionSettings;
+    private final ExamProctoringSettings examProctoringSettings;
     private final WidgetFactory widgetFactory;
     private final RestService restService;
     private final ExamDeletePopup examDeletePopup;
@@ -128,6 +131,7 @@ public class ExamForm implements TemplateComposer {
     protected ExamForm(
             final PageService pageService,
             final ExamSEBRestrictionSettings examSEBRestrictionSettings,
+            final ExamProctoringSettings examProctoringSettings,
             final ExamToConfigBindingForm examToConfigBindingForm,
             final DownloadService downloadService,
             final ExamDeletePopup examDeletePopup,
@@ -137,6 +141,7 @@ public class ExamForm implements TemplateComposer {
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.examSEBRestrictionSettings = examSEBRestrictionSettings;
+        this.examProctoringSettings = examProctoringSettings;
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = this.resourceService.getRestService();
         this.examDeletePopup = examDeletePopup;
@@ -336,6 +341,13 @@ public class ExamForm implements TemplateComposer {
                         ? this.restService.getRestCall(ImportAsExam.class)
                         : this.restService.getRestCall(SaveExam.class));
 
+        final boolean proctoringEnabled = this.restService
+                .getBuilder(GetProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                .call()
+                .map(ProctoringSettings::getEnableProctoring)
+                .getOr(false);
+
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(formContext
                 .clearEntityKeys()
                 .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
@@ -383,6 +395,18 @@ public class ExamForm implements TemplateComposer {
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
                 .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
                         && BooleanUtils.isTrue(isRestricted))
+
+                .newAction(ActionDefinition.EXAM_PROCTORING_ON)
+                .withEntityKey(entityKey)
+                .withExec(this.examProctoringSettings.settingsFunction(this.pageService))
+                .noEventPropagation()
+                .publishIf(() -> proctoringEnabled && readonly)
+
+                .newAction(ActionDefinition.EXAM_PROCTORING_OFF)
+                .withEntityKey(entityKey)
+                .withExec(this.examProctoringSettings.settingsFunction(this.pageService))
+                .noEventPropagation()
+                .publishIf(() -> !proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_DELETE)
                 .withEntityKey(entityKey)

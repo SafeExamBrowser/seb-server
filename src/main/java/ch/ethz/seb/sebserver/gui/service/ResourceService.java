@@ -39,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction.PermissionComponent;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction.WhiteListPath;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -372,7 +373,7 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> examProctoringTypeResources() {
-        return Arrays.stream(ExamType.values())
+        return Arrays.stream(ServerType.values())
                 .map(type -> new Tuple3<>(
                         type.name(),
                         this.i18nSupport.getText(EXAM_PROCTORING_TYPE_PREFIX + type.name()),

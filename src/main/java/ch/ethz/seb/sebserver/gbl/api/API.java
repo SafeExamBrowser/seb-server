@@ -126,7 +126,6 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_CHECK_RESTRICTION_PATH_SEGMENT = "/check-seb-restriction";
     public static final String EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT = "/check-imported";
     public static final String EXAM_ADMINISTRATION_SEB_RESTRICTION_CHAPTERS_PATH_SEGMENT = "/chapters";
-
     public static final String EXAM_ADMINISTRATION_PROCTOR_PATH_SEGMENT = "/proctoring";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";

@@ -18,8 +18,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.webservice.servicelayer.validation.ValidProctoringSettings;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ValidProctoringSettings
 public class ProctoringSettings implements Entity {
 
     public enum ServerType {
@@ -42,7 +44,7 @@ public class ProctoringSettings implements Entity {
     public final ServerType serverType;
 
     @JsonProperty(ATTR_SERVER_URL)
-    @URL(message = "examProctoring:serverURL:invalidURL")
+    @URL(message = "proctoringSettings:serverURL:invalidURL")
     public final String serverURL;
 
     @JsonProperty(ATTR_APP_KEY)

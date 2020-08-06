@@ -429,7 +429,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_PROCTOR_PATH_SEGMENT
                     + API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.TEXT_PLAIN_VALUE)
     public String getExamProctoringURL(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,

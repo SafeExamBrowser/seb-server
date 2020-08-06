@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -45,8 +46,10 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorURLForClient;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionDetails;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
@@ -237,6 +240,13 @@ public class MonitoringClientConnection implements TemplateComposer {
 
                 .compose(pageContext.copyOf(content));
 
+        final boolean proctoringEnabled = restService
+                .getBuilder(GetProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
+                .call()
+                .map(ProctoringSettings::getEnableProctoring)
+                .getOr(false);
+
         actionBuilder
                 .newAction(ActionDefinition.MONITOR_EXAM_BACK_TO_OVERVIEW)
                 .withEntityKey(parentEntityKey)
@@ -256,15 +266,16 @@ public class MonitoringClientConnection implements TemplateComposer {
                         connectionData.clientConnection.status == ConnectionStatus.ACTIVE)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING)
-                .withExec(this::openProctorScreen)
+                .withEntityKey(parentEntityKey)
+                .withExec(action -> this.openProctorScreen(action, connectionToken))
                 .noEventPropagation()
-                .publish()
+                .publishIf(() -> proctoringEnabled)
 
         ;
 
     }
 
-    private PageAction openProctorScreen(final PageAction action) {
+    private PageAction openProctorScreen(final PageAction action, final String connectionToken) {
 //
 //        final ProctorDialog dialog = new ProctorDialog(action.pageContext().getParent().getShell());
 //        dialog.open(EVENT_LIST_TITLE_KEY,
@@ -273,6 +284,12 @@ public class MonitoringClientConnection implements TemplateComposer {
 //        final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
 //        urlLauncher.openURL(
 //                "https://seb-jitsi.ethz.ch/TestRoomABC?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsiYXZhdGFyIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9qb2huLWRvZSIsIm5hbWUiOiJEaXNwbGF5IE5hbWUiLCJlbWFpbCI6Im5hbWVAZXhhbXBsZS5jb20ifX0sImF1ZCI6InNlYi1qaXRzaSIsImlzcyI6InNlYi1qaXRzaSIsInN1YiI6Im1lZXQuaml0c2kiLCJyb29tIjoiKiJ9.SD9Zs78mMFqxS1tpalPTykYYaubIYsj_406WAOhcqxQ");
+
+        final String proctorURL = this.pageService.getRestService().getBuilder(GetProctorURLForClient.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
+                .call()
+                .getOrThrow();
 
         final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
         javaScriptExecutor.execute(
