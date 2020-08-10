@@ -9,15 +9,22 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
+import org.mockito.Mockito;
+
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBClientProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 
 public class ExamJITSIProctoringServiceTest {
 
     @Test
     public void testCreateProctoringURL() {
-        final ExamJITSIProctoringService examJITSIProctoringService = new ExamJITSIProctoringService(null);
-        final String jwt = examJITSIProctoringService.createProctoringURL(
+        Cryptor cryptorMock = Mockito.mock(Cryptor.class);
+        Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn("fbvgeghergrgrthrehreg123");
+        final ExamJITSIProctoringService examJITSIProctoringService = new ExamJITSIProctoringService(null, cryptorMock);
+        final SEBClientProctoringConnectionData data = examJITSIProctoringService.createProctoringConnectionData(
                 "https://seb-jitsi.example.ch",
                 "test-app",
                 "fbvgeghergrgrthrehreg123",
@@ -27,9 +34,17 @@ public class ExamJITSIProctoringServiceTest {
                 1609459200L)
                 .getOrThrow();
 
+        assertNotNull(data);
+        assertEquals(
+                "https://seb-jitsi.example.ch/SomeRoom",
+                data.serverURL);
+        assertEquals(
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsibmFtZSI6IlRlc3QgTmFtZSJ9fSwiaXNzIjoidGVzdC1hcHAiLCJhdWQiOiJ0ZXN0LWNsaWVudCIsInN1YiI6InNlYi1qaXRzaS5leGFtcGxlLmNoIiwicm9vbSI6IlNvbWVSb29tIiwiZXhwIjoxNjA5NDU5MjAwfQ.4ovqUkG6jrLvkDEZNdhbtFI_DFLDFsM2eBJHhcYq7a4",
+                data.accessToken);
         assertEquals(
                 "https://seb-jitsi.example.ch/SomeRoom?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsibmFtZSI6IlRlc3QgTmFtZSJ9fSwiaXNzIjoidGVzdC1hcHAiLCJhdWQiOiJ0ZXN0LWNsaWVudCIsInN1YiI6InNlYi1qaXRzaS5leGFtcGxlLmNoIiwicm9vbSI6IlNvbWVSb29tIiwiZXhwIjoxNjA5NDU5MjAwfQ.4ovqUkG6jrLvkDEZNdhbtFI_DFLDFsM2eBJHhcYq7a4",
-                jwt);
+                data.connectionURL);
+
     }
 
 }

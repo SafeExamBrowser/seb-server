@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBClientProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -285,16 +286,17 @@ public class MonitoringClientConnection implements TemplateComposer {
 //        urlLauncher.openURL(
 //                "https://seb-jitsi.ethz.ch/TestRoomABC?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsiYXZhdGFyIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9qb2huLWRvZSIsIm5hbWUiOiJEaXNwbGF5IE5hbWUiLCJlbWFpbCI6Im5hbWVAZXhhbXBsZS5jb20ifX0sImF1ZCI6InNlYi1qaXRzaSIsImlzcyI6InNlYi1qaXRzaSIsInN1YiI6Im1lZXQuaml0c2kiLCJyb29tIjoiKiJ9.SD9Zs78mMFqxS1tpalPTykYYaubIYsj_406WAOhcqxQ");
 
-        final String proctorURL = this.pageService.getRestService().getBuilder(GetProctorURLForClient.class)
-                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
-                .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
-                .call()
-                .getOrThrow();
+        final SEBClientProctoringConnectionData proctoringConnectionData =
+                this.pageService.getRestService().getBuilder(GetProctorURLForClient.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                        .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
+                        .call()
+                        .getOrThrow();
 
         final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
         javaScriptExecutor.execute(
                 "window.open("
-                        + "'https://seb-jitsi.ethz.ch/TestRoomABC?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsiYXZhdGFyIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9qb2huLWRvZSIsIm5hbWUiOiJEaXNwbGF5IE5hbWUiLCJlbWFpbCI6Im5hbWVAZXhhbXBsZS5jb20ifX0sImF1ZCI6InNlYi1qaXRzaSIsImlzcyI6InNlYi1qaXRzaSIsInN1YiI6Im1lZXQuaml0c2kiLCJyb29tIjoiKiJ9.SD9Zs78mMFqxS1tpalPTykYYaubIYsj_406WAOhcqxQ',"
+                        + "'" + proctoringConnectionData.connectionURL + "',"
                         + "'proctoring',"
                         + "'height=400,width=800,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes');");
 

@@ -52,6 +52,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBClientProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
@@ -429,8 +430,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_PROCTOR_PATH_SEGMENT
                     + API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.GET,
-            produces = MediaType.TEXT_PLAIN_VALUE)
-    public String getExamProctoringURL(
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public SEBClientProctoringConnectionData getExamProctoringURL(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -444,8 +445,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .flatMap(this.examAdminService::getExamProctoring)
                 .flatMap(proc -> this.examAdminService
                         .getExamProctoringService(proc.serverType)
-                        .map(s -> s.createProctoringURL(proc, connectionToken, true))
-                        .getOrThrow())
+                        .flatMap(s -> s.createProctoringConnectionData(proc, connectionToken, true)))
                 .getOrThrow();
     }
 
