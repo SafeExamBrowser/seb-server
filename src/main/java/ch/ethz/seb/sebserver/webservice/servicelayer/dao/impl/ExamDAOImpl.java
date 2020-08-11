@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -146,7 +147,7 @@ public class ExamDAOImpl implements ExamDAO {
                     }
                 }
 
-                if (from != null) {
+                if (from != null && exam.startTime != null) {
                     if (exam.startTime.isBefore(from)) {
                         return false;
                     }
@@ -773,7 +774,12 @@ public class ExamDAOImpl implements ExamDAO {
             // collect Exam's
             return recordMapping.entrySet()
                     .stream()
-                    .map(entry -> toDomainModel(entry.getValue(), quizzes.get(entry.getKey())).getOrThrow())
+                    .map(entry -> toDomainModel(entry.getValue(), quizzes.get(entry.getKey()))
+                            .onError(error -> log.error(
+                                    "Failed to get quiz data from remote LMS for exam: ",
+                                    error))
+                            .getOr(null))
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         });
     }
@@ -781,6 +787,10 @@ public class ExamDAOImpl implements ExamDAO {
     private Result<Exam> toDomainModel(
             final ExamRecord record,
             final QuizData quizData) {
+
+        if (quizData == null) {
+            return Result.ofRuntimeError("No quizData found for exam: " + record);
+        }
 
         return Result.tryCatch(() -> {
 
@@ -801,11 +811,11 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getInstitutionId(),
                     record.getLmsSetupId(),
                     record.getExternalId(),
-                    (quizData != null) ? quizData.name : Constants.EMPTY_NOTE,
-                    (quizData != null) ? quizData.description : Constants.EMPTY_NOTE,
-                    (quizData != null) ? quizData.startTime : null,
-                    (quizData != null) ? quizData.endTime : null,
-                    (quizData != null) ? quizData.startURL : Constants.EMPTY_NOTE,
+                    quizData.name,
+                    quizData.description,
+                    quizData.startTime,
+                    quizData.endTime,
+                    quizData.startURL,
                     ExamType.valueOf(record.getType()),
                     record.getOwner(),
                     supporter,
