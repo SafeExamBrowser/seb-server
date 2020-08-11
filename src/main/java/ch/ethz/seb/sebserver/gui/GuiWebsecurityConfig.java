@@ -50,7 +50,8 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
         web
                 .ignoring()
                 .requestMatchers(PUBLIC_URLS)
-                .antMatchers(this.guiEntryPoint);
+                .antMatchers(this.guiEntryPoint)
+                .antMatchers("/proctoring/*");
     }
 
     @Override

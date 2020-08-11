@@ -75,4 +75,7 @@ public interface ClientConnectionDAO extends
      * @return Result refer to the ClientConnection for the specified connection token or to an error if happened */
     Result<ClientConnection> byConnectionToken(String connectionToken);
 
+    Result<Boolean> isActiveConnection(Long examId, String connectionToken);
+
+    Result<Set<String>> filterActive(Long examId, Set<String> connectionToken);
 }

@@ -523,6 +523,8 @@ CREATE TABLE IF NOT EXISTS `client_instruction` (
   `connection_token` VARCHAR(255) NOT NULL,
   `type` VARCHAR(45) NOT NULL,
   `attributes` VARCHAR(4000) NULL,
+  `needs_confirmation` INT(1) UNSIGNED NOT NULL DEFAULT 0,
+  `timestamp` BIGINT UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   INDEX `instructionExamRef_idx` (`exam_id` ASC),
   INDEX `instructionConnectionRef` (`connection_token` ASC),

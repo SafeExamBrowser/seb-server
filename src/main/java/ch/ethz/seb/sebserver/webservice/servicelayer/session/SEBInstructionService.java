@@ -34,16 +34,29 @@ public interface SEBInstructionService {
 
     /** Used to register a SEB client instruction for one or more active client connections
      *
-     * @param clientInstruction the ClientInstruction instance to register */
-    default Result<Void> registerInstruction(final ClientInstruction clientInstruction) {
-        return Result.tryCatch(() -> registerInstruction(
+     * @param clientInstruction the ClientInstruction instance to register
+     * @return A Result refer to a void marker or to an error if happened */
+    default Result<Void> registerInstruction(final ClientInstruction clientInstructionn) {
+        return registerInstruction(clientInstructionn, false);
+    }
+
+    /** Used to register a SEB client instruction for one or more active client connections
+     *
+     * @param clientInstruction the ClientInstruction instance to register
+     * @param needsConfirm indicates whether the SEB instruction needs a confirmation or not
+     * @return A Result refer to a void marker or to an error if happened */
+    default Result<Void> registerInstruction(
+            final ClientInstruction clientInstruction,
+            final boolean needsConfirmation) {
+
+        return registerInstruction(
                 clientInstruction.examId,
                 clientInstruction.type,
                 clientInstruction.attributes,
                 new HashSet<>(Arrays.asList(StringUtils.split(
                         clientInstruction.connectionToken,
-                        Constants.LIST_SEPARATOR))))
-                                .getOrThrow());
+                        Constants.LIST_SEPARATOR))),
+                needsConfirmation);
     }
 
     /** Used to register a SEB client instruction for one or more active client connections
@@ -51,13 +64,30 @@ public interface SEBInstructionService {
      * @param examId The exam identifier
      * @param type The InstructionType
      * @param attributes The instruction's attributes
-     * @param connectionTokens A Set of connectionTokens to register the instruction for.
+     * @param connectionToken a connectionToken to register the instruction for.
+     * @param needsConfirm indicates whether the SEB instruction needs a confirmation or not
      * @return A Result refer to a void marker or to an error if happened */
     Result<Void> registerInstruction(
             final Long examId,
             InstructionType type,
             Map<String, String> attributes,
-            Set<String> connectionTokens);
+            String connectionToken,
+            boolean needsConfirm);
+
+    /** Used to register a SEB client instruction for one or more active client connections
+     *
+     * @param examId The exam identifier
+     * @param type The InstructionType
+     * @param attributes The instruction's attributes
+     * @param connectionTokens A Set of connectionTokens to register the instruction for.
+     * @param needsConfirm indicates whether the SEB instruction needs a confirmation or not
+     * @return A Result refer to a void marker or to an error if happened */
+    Result<Void> registerInstruction(
+            final Long examId,
+            InstructionType type,
+            Map<String, String> attributes,
+            Set<String> connectionTokens,
+            boolean needsConfirm);
 
     /** Get a SEB instruction for the specified SEB Client connection or null of there
      * is currently no SEB instruction in the queue.
@@ -68,5 +98,11 @@ public interface SEBInstructionService {
      * @param connectionToken the SEB Client connection token
      * @return SEB instruction to sent to the SEB Client or null */
     String getInstructionJSON(final String connectionToken);
+
+    /** This is used to confirm SEB instructions that must be confirmed by the SEB client.
+     *
+     * @param connectionToken The SEB client connection token
+     * @param instructionConfirm the instruction confirm identifier */
+    void confirmInstructionDone(String connectionToken, String instructionConfirm);
 
 }

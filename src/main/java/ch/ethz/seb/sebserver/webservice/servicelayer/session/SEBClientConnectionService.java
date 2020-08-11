@@ -137,4 +137,10 @@ public interface SEBClientConnectionService {
      * @param event The SEB client event data */
     void notifyClientEvent(String connectionToken, final ClientEvent event);
 
+    /** This is used to confirm SEB instructions that must be confirmed by the SEB client.
+     *
+     * @param connectionToken The SEB client connection token
+     * @param instructionConfirm the instruction confirm identifier */
+    void confirmInstructionDone(String connectionToken, String instructionConfirm);
+
 }

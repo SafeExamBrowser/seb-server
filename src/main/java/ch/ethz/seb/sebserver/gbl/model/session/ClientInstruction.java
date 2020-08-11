@@ -24,7 +24,18 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 public final class ClientInstruction {
 
     public enum InstructionType {
-        SEB_QUIT
+        SEB_QUIT,
+        SEB_PROCTORING
+    }
+
+    public interface SEB_INSTRUCTION_ATTRIBUTES {
+        public interface SEB_PROCTORING {
+            public static final String SERVICE_TYPE = "service-type";
+            public static final String METHOD = "method";
+            public static final String JITSI_URL = "jitsiMeetServerURL";
+            public static final String JITSI_ROOM = "jitsiMeetRoom";
+            public static final String JITSI_TOKEN = "jitsiMeetToken";
+        }
     }
 
     @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_ID)

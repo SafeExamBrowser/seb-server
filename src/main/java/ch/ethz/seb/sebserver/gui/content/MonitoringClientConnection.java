@@ -300,6 +300,13 @@ public class MonitoringClientConnection implements TemplateComposer {
                         + "'proctoring',"
                         + "'height=400,width=800,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes');");
 
+//        final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
+//        javaScriptExecutor.execute(
+//                "window.open("
+//                        + "'http://localhost:8080/proctoring',"
+//                        + "'proctoring',"
+//                        + "'height=400,width=800,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes');");
+
         return action;
     }
 

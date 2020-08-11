@@ -20,7 +20,8 @@ public interface ClientInstructionDAO {
             Long examId,
             InstructionType type,
             String attributes,
-            String connectionTokens);
+            String connectionTokens,
+            boolean needsConfirmation);
 
     Result<Collection<ClientInstructionRecord>> getAllActive();
 

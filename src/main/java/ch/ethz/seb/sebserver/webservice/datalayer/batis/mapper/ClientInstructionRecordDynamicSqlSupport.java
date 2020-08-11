@@ -6,25 +6,31 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ClientInstructionRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-07-29T14:49:53.457+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-08-11T12:03:38.721+02:00", comments="Source Table: client_instruction")
     public static final ClientInstructionRecord clientInstructionRecord = new ClientInstructionRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-07-29T14:49:53.457+02:00", comments="Source field: client_instruction.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-08-11T12:03:38.721+02:00", comments="Source field: client_instruction.id")
     public static final SqlColumn<Long> id = clientInstructionRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-07-29T14:49:53.457+02:00", comments="Source field: client_instruction.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-08-11T12:03:38.721+02:00", comments="Source field: client_instruction.exam_id")
     public static final SqlColumn<Long> examId = clientInstructionRecord.examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-07-29T14:49:53.457+02:00", comments="Source field: client_instruction.connection_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-08-11T12:03:38.721+02:00", comments="Source field: client_instruction.connection_token")
     public static final SqlColumn<String> connectionToken = clientInstructionRecord.connectionToken;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-07-29T14:49:53.457+02:00", comments="Source field: client_instruction.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-08-11T12:03:38.722+02:00", comments="Source field: client_instruction.type")
     public static final SqlColumn<String> type = clientInstructionRecord.type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-07-29T14:49:53.457+02:00", comments="Source field: client_instruction.attributes")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-08-11T12:03:38.722+02:00", comments="Source field: client_instruction.attributes")
     public static final SqlColumn<String> attributes = clientInstructionRecord.attributes;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-07-29T14:49:53.457+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-08-11T12:03:38.722+02:00", comments="Source field: client_instruction.needs_confirmation")
+    public static final SqlColumn<Integer> needsConfirmation = clientInstructionRecord.needsConfirmation;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-08-11T12:03:38.722+02:00", comments="Source field: client_instruction.timestamp")
+    public static final SqlColumn<Long> timestamp = clientInstructionRecord.timestamp;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-08-11T12:03:38.721+02:00", comments="Source Table: client_instruction")
     public static final class ClientInstructionRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 
@@ -35,6 +41,10 @@ public final class ClientInstructionRecordDynamicSqlSupport {
         public final SqlColumn<String> type = column("type", JDBCType.VARCHAR);
 
         public final SqlColumn<String> attributes = column("attributes", JDBCType.VARCHAR);
+
+        public final SqlColumn<Integer> needsConfirmation = column("needs_confirmation", JDBCType.INTEGER);
+
+        public final SqlColumn<Long> timestamp = column("timestamp", JDBCType.BIGINT);
 
         public ClientInstructionRecord() {
             super("client_instruction");

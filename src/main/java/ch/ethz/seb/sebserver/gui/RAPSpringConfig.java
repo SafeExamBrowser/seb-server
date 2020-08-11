@@ -8,7 +8,15 @@
 
 package ch.ethz.seb.sebserver.gui;
 
-import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import java.io.IOException;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextListener;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.eclipse.rap.rwt.engine.RWTServlet;
 import org.eclipse.rap.rwt.engine.RWTServletContextListener;
 import org.slf4j.Logger;
@@ -22,8 +30,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextListener;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 
 @Configuration
 @GuiProfile
@@ -53,6 +60,28 @@ public class RAPSpringConfig {
     @Bean
     public ServletRegistrationBean<RWTServlet> servletRegistrationBean() {
         return new ServletRegistrationBean<>(new RWTServlet(), this.entrypoint + "/*");
+    }
+
+    @Bean
+    public ServletRegistrationBean<ProctoringServlet> servletProctoringRegistrationBean() {
+        return new ServletRegistrationBean<>(new ProctoringServlet(), "/proctoring/*");
+    }
+
+    private static class ProctoringServlet extends HttpServlet {
+
+        private static final long serialVersionUID = 3475978419653411800L;
+
+        @Override
+        protected void doGet(
+                final HttpServletRequest req,
+                final HttpServletResponse resp)
+                throws ServletException, IOException {
+
+            System.out.println("********************************");
+            resp.getOutputStream().println("Hello");
+
+        }
+
     }
 
     @Bean

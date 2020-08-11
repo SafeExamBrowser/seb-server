@@ -9,11 +9,18 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import java.util.Collection;
+import java.util.Map;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -27,9 +34,14 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientInstructionDAO;
 public class ClientInstructionDAOImpl implements ClientInstructionDAO {
 
     private final ClientInstructionRecordMapper clientInstructionRecordMapper;
+    private final JSONMapper jsonMapper;
 
-    protected ClientInstructionDAOImpl(final ClientInstructionRecordMapper clientInstructionRecordMapper) {
+    protected ClientInstructionDAOImpl(
+            final ClientInstructionRecordMapper clientInstructionRecordMapper,
+            final JSONMapper jsonMapper) {
+
         this.clientInstructionRecordMapper = clientInstructionRecordMapper;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -57,7 +69,8 @@ public class ClientInstructionDAOImpl implements ClientInstructionDAO {
             final Long examId,
             final InstructionType type,
             final String attributes,
-            final String connectionToken) {
+            final String connectionToken,
+            final boolean needsConfirmation) {
 
         return Result.tryCatch(() -> {
             final ClientInstructionRecord clientInstructionRecord = new ClientInstructionRecord(
@@ -65,9 +78,34 @@ public class ClientInstructionDAOImpl implements ClientInstructionDAO {
                     examId,
                     connectionToken,
                     type.name(),
-                    attributes);
+                    attributes,
+                    (needsConfirmation) ? 1 : 0,
+                    DateTime.now(DateTimeZone.UTC).getMillis());
 
             this.clientInstructionRecordMapper.insert(clientInstructionRecord);
+
+            if (needsConfirmation) {
+
+                final Map<String, String> attrs = this.jsonMapper.readValue(
+                        attributes,
+                        new TypeReference<Map<String, String>>() {
+                        });
+                attrs.put(API.EXAM_API_PING_INSTRUCTION_CONFIRM, String.valueOf(clientInstructionRecord.getId()));
+
+                this.clientInstructionRecordMapper.updateByPrimaryKeySelective(
+                        new ClientInstructionRecord(
+                                clientInstructionRecord.getId(),
+                                null,
+                                null,
+                                null,
+                                this.jsonMapper.writeValueAsString(attrs),
+                                null,
+                                null));
+
+                return this.clientInstructionRecordMapper
+                        .selectByPrimaryKey(clientInstructionRecord.getId());
+            }
+
             return clientInstructionRecord;
         });
     }

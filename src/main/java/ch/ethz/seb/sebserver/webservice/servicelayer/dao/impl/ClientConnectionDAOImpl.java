@@ -285,6 +285,41 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .flatMap(ClientConnectionDAOImpl::toDomainModel);
     }
 
+    @Override
+    public Result<Boolean> isActiveConnection(final Long examId, final String connectionToken) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+                .selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.connectionToken,
+                        SqlBuilder.isEqualTo(connectionToken))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .build()
+                .execute()
+                .stream()
+                .findFirst()
+                .isPresent());
+    }
+
+    @Override
+    public Result<Set<String>> filterActive(final Long examId, final Set<String> connectionToken) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+                .selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.connectionToken,
+                        SqlBuilder.isIn(new ArrayList<>(connectionToken)))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .build()
+                .execute()
+                .stream()
+                .filter(cc -> ConnectionStatus.ACTIVE.name() == cc.getStatus())
+                .map(ClientConnectionRecord::getConnectionToken)
+                .collect(Collectors.toSet()));
+    }
+
     private Result<ClientConnectionRecord> recordById(final Long id) {
         return Result.tryCatch(() -> {
 

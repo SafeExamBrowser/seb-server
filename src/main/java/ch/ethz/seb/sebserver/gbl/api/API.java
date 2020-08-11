@@ -97,6 +97,8 @@ public final class API {
 
     public static final String EXAM_API_PING_NUMBER = "ping-number";
 
+    public static final String EXAM_API_PING_INSTRUCTION_CONFIRM = "instruction-confirm";
+
     public static final String EXAM_API_EVENT_ENDPOINT = "/seblog";
 
     // *************************

@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -24,16 +26,22 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBClientProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.PingHandlingStrategy;
@@ -57,13 +65,15 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final SEBInstructionService sebInstructionService;
     private final WebserviceInfo webserviceInfo;
+    private final ExamAdminService examAdminService;
 
     protected SEBClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
             final PingHandlingStrategyFactory pingHandlingStrategyFactory,
             final SEBClientConfigDAO sebClientConfigDAO,
-            final SEBInstructionService sebInstructionService) {
+            final SEBInstructionService sebInstructionService,
+            final ExamAdminService examAdminService) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();
@@ -74,6 +84,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.sebInstructionService = sebInstructionService;
         this.webserviceInfo = sebInstructionService.getWebserviceInfo();
+        this.examAdminService = examAdminService;
     }
 
     @Override
@@ -331,8 +342,66 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     updatedClientConnection.id,
                     connectionToken);
 
+            postHandshakeProcessing(updatedClientConnection);
+
             return updatedClientConnection;
         });
+    }
+
+    private void postHandshakeProcessing(final ClientConnection clientConnection) {
+        // check if proctoring is enabled for the involved exam
+        try {
+            final Boolean proctoringEnabled = this.examAdminService
+                    .isExamProctoringEnabled(clientConnection.examId)
+                    .getOrThrow();
+            if (BooleanUtils.isTrue(proctoringEnabled)) {
+                // apply a SEB_PROCOTIRNG instruction for the specified SEB client connection
+                final ProctoringSettings proctoringSettings = this.examAdminService
+                        .getExamProctoring(clientConnection.examId)
+                        .getOrThrow();
+
+                final SEBClientProctoringConnectionData proctoringData =
+                        this.examAdminService.getExamProctoringService(proctoringSettings.serverType)
+                                .flatMap(s -> s.createProctoringConnectionData(
+                                        proctoringSettings,
+                                        clientConnection.connectionToken,
+                                        false))
+                                .getOrThrow();
+
+                final Map<String, String> attributes = new HashMap<>();
+                attributes.put(
+                        ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.SERVICE_TYPE,
+                        ServerType.JITSI_MEET.name());
+                attributes.put(
+                        ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.METHOD,
+                        "join");
+
+                if (proctoringSettings.serverType == ServerType.JITSI_MEET) {
+
+                    attributes.put(
+                            ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_ROOM,
+                            proctoringData.roomName);
+                    attributes.put(
+                            ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_URL,
+                            proctoringData.serverURL);
+                    attributes.put(
+                            ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_TOKEN,
+                            proctoringData.accessToken);
+                }
+
+                this.sebInstructionService.registerInstruction(
+                        clientConnection.examId,
+                        InstructionType.SEB_PROCTORING,
+                        attributes,
+                        clientConnection.connectionToken,
+                        true);
+
+            }
+        } catch (final Exception e) {
+            log.error(
+                    "Failed to process proctoring initialization for established SEB client connection: {}",
+                    clientConnection.connectionToken);
+        }
     }
 
     @Override
@@ -489,6 +558,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         } else {
             log.warn("No active ClientConnection found for connectionToken: {}", connectionToken);
         }
+    }
+
+    @Override
+    public void confirmInstructionDone(final String connectionToken, final String instructionConfirm) {
+        this.sebInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
     }
 
     private void checkExamRunning(final Long examId) {
