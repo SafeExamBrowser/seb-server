@@ -400,7 +400,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         } catch (final Exception e) {
             log.error(
                     "Failed to process proctoring initialization for established SEB client connection: {}",
-                    clientConnection.connectionToken);
+                    clientConnection.connectionToken, e);
         }
     }
 

@@ -19,6 +19,10 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
+/** This implements a page supplier within a static list.
+ * Currently ordering and filtering is not possible and must be implemented.
+ *
+ * @param <T> the type of the list/page elements */
 public class StaticListPageSupplier<T> implements PageSupplier<T> {
 
     private final EntityType entityType;
@@ -45,6 +49,7 @@ public class StaticListPageSupplier<T> implements PageSupplier<T> {
         private int pageNumber;
         private int pageSize;
         private String column;
+        @SuppressWarnings("unused")
         private PageSortOrder order;
 
         private StaticListTableBuilderAdapter(final List<T> list) {

@@ -282,15 +282,15 @@ public class ExamAPI_V1_Controller {
         final String pingNumString = request.getParameter(API.EXAM_API_PING_NUMBER);
         final String instructionConfirm = request.getParameter(API.EXAM_API_PING_INSTRUCTION_CONFIRM);
 
+        if (instructionConfirm != null) {
+            this.sebClientConnectionService.confirmInstructionDone(connectionToken, instructionConfirm);
+        }
+
         final String instruction = this.sebClientConnectionService
                 .notifyPing(
                         connectionToken,
                         Long.parseLong(timeStampString),
                         pingNumString != null ? Integer.parseInt(pingNumString) : -1);
-
-        if (instructionConfirm != null) {
-            this.sebClientConnectionService.confirmInstructionDone(connectionToken, instructionConfirm);
-        }
 
         if (instruction == null) {
             response.setStatus(HttpStatus.NO_CONTENT.value());

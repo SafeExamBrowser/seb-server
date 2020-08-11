@@ -315,7 +315,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .filter(cc -> ConnectionStatus.ACTIVE.name() == cc.getStatus())
+                .filter(cc -> ConnectionStatus.ACTIVE.name().equals(cc.getStatus()))
                 .map(ClientConnectionRecord::getConnectionToken)
                 .collect(Collectors.toSet()));
     }

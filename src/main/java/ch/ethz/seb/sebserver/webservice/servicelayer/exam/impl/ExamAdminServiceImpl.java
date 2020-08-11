@@ -28,11 +28,11 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -214,11 +214,15 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     public Result<Boolean> isExamProctoringEnabled(final Long examId) {
-        return this.additionalAttributesDAO.getAdditionalAttribute(
+        final Result<Boolean> result = this.additionalAttributesDAO.getAdditionalAttribute(
                 EntityType.EXAM,
                 examId,
                 ProctoringSettings.ATTR_ENABLE_PROCTORING)
-                .map(rec -> rec != null && BooleanUtils.toBoolean(rec.getValue()));
+                .map(rec -> BooleanUtils.toBoolean(rec.getValue()));
+        if (result.hasError()) {
+            return Result.of(false);
+        }
+        return result;
     }
 
     @Override

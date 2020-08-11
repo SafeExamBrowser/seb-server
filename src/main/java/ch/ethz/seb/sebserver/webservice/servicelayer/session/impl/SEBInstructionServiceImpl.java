@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -96,16 +97,24 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
             final boolean needsConfirm) {
 
         return Result.tryCatch(() -> {
+
             final boolean isActive = this.clientConnectionDAO
                     .isActiveConnection(examId, connectionToken)
                     .getOr(false);
             if (isActive) {
-                final String attributesString = Utils.toJsonArrayValue(attributes);
-                this.clientInstructionDAO
-                        .insert(examId, type, attributesString, connectionToken, needsConfirm)
-                        .map(inst -> this.instructions.putIfAbsent(inst.getConnectionToken(), inst))
-                        .onError(error -> log.error("Failed to put instruction: ", error))
-                        .getOrThrow();
+                try {
+                    final String attributesString = new JSONMapper().writeValueAsString(attributes);
+                    this.clientInstructionDAO
+                            .insert(examId, type, attributesString, connectionToken, needsConfirm)
+                            .map(inst -> {
+                                this.instructions.putIfAbsent(inst.getConnectionToken(), inst);
+                                return inst;
+                            })
+                            .onError(error -> log.error("Failed to put instruction: ", error))
+                            .getOrThrow();
+                } catch (final Exception e) {
+                    throw new RuntimeException("Unexpected: ", e);
+                }
             }
         });
     }
@@ -120,7 +129,7 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
 
         return Result.tryCatch(() -> {
 
-            final String attributesString = Utils.toJsonArrayValue(attributes);
+            final String attributesString = Utils.toJsonObject(attributes);
             final Set<String> activeConnections = this.clientConnectionDAO
                     .filterActive(examId, connectionTokens)
                     .getOrElse(Collections::emptySet);
@@ -177,9 +186,7 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
                     .append(JSON_ATTR)
                     .append(Constants.DOUBLE_QUOTE)
                     .append(Constants.COLON)
-                    .append(Constants.CURLY_BRACE_OPEN)
-                    .append(attributes)
-                    .append(Constants.CURLY_BRACE_CLOSE);
+                    .append(attributes);
         }
 
         return sBuilder

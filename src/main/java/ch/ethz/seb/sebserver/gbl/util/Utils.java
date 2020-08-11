@@ -569,7 +569,7 @@ public final class Utils {
         return (hexString.length() < 2) ? "0" + hexString : hexString;
     }
 
-    public static String toJsonArrayValue(final Map<String, String> attributes) {
+    public static String toJsonObject(final Map<String, String> attributes) {
         if (attributes == null || attributes.isEmpty()) {
             return StringUtils.EMPTY;
         }
@@ -578,7 +578,7 @@ public final class Utils {
                 .entrySet()
                 .stream()
                 .reduce(
-                        new StringBuilder(),
+                        new StringBuilder(Constants.CURLY_BRACE_OPEN),
                         (sb, entry) -> sb
                                 .append(Constants.DOUBLE_QUOTE)
                                 .append(entry.getKey())
@@ -588,7 +588,8 @@ public final class Utils {
                                 .append(entry.getValue())
                                 .append(Constants.DOUBLE_QUOTE)
                                 .append(Constants.COMMA),
-                        StringBuilder::append);
+                        StringBuilder::append)
+                .append(Constants.CURLY_BRACE_CLOSE);
 
         if (builder.length() > 0) {
             return builder
