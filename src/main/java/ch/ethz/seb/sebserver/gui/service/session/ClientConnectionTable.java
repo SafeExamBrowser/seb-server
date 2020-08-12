@@ -317,7 +317,7 @@ public final class ClientConnectionTable {
                     }
                 });
 
-        if (this.statusFilterChanged && !this.toDelete.isEmpty()) {
+        if (!this.toDelete.isEmpty()) {
             this.toDelete.forEach(id -> {
                 final UpdatableTableItem item = this.tableMapping.remove(id);
                 final List<Long> list = this.sessionIds.get(item.connectionData.clientConnection.userSessionId);
