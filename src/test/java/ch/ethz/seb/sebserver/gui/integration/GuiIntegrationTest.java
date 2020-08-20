@@ -71,7 +71,7 @@ public abstract class GuiIntegrationTest {
 
         final HttpSession sessionMock = Mockito.mock(HttpSession.class);
         final WebserviceURIService webserviceURIService = new WebserviceURIService(
-                "http", "localhost", "8080", "/", this.endpoint, "localhost");
+                "http", "localhost", "8080", "/", this.endpoint);
 
         final ClientHttpRequestFactoryService clientHttpRequestFactoryService = Mockito
                 .mock(ClientHttpRequestFactoryService.class);

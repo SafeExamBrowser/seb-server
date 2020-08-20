@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
 import ch.ethz.seb.sebserver.gui.ProctoringServlet;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -95,6 +96,7 @@ public class MonitoringClientConnection implements TemplateComposer {
     private final I18nSupport i18nSupport;
     private final InstructionProcessor instructionProcessor;
     private final SEBClientEventDetailsPopup sebClientLogDetailsPopup;
+    private final GuiServiceInfo guiServiceInfo;
     private final long pollInterval;
     private final int pageSize;
 
@@ -107,6 +109,7 @@ public class MonitoringClientConnection implements TemplateComposer {
             final PageService pageService,
             final InstructionProcessor instructionProcessor,
             final SEBClientEventDetailsPopup sebClientLogDetailsPopup,
+            final GuiServiceInfo guiServiceInfo,
             @Value("${sebserver.gui.webservice.poll-interval:500}") final long pollInterval,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
@@ -115,6 +118,7 @@ public class MonitoringClientConnection implements TemplateComposer {
         this.resourceService = pageService.getResourceService();
         this.i18nSupport = this.resourceService.getI18nSupport();
         this.instructionProcessor = instructionProcessor;
+        this.guiServiceInfo = guiServiceInfo;
         this.pollInterval = pollInterval;
         this.sebClientLogDetailsPopup = sebClientLogDetailsPopup;
         this.pageSize = pageSize;
@@ -305,12 +309,12 @@ public class MonitoringClientConnection implements TemplateComposer {
                 ProctoringServlet.SESSION_ATTR_PROCTORING_DATA,
                 proctoringConnectionData);
 
-        final String webserviceServerAddress = this.pageService.getAuthorizationContextHolder()
-                .getWebserviceURIService()
-                .getExternalServerURL();
-
         final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
-        final String script = String.format(OPEN_SINGEL_ROOM_SCRIPT, roomName, webserviceServerAddress, roomName);
+        final String script = String.format(
+                OPEN_SINGEL_ROOM_SCRIPT,
+                roomName,
+                this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
+                roomName);
         javaScriptExecutor.execute(script);
         return action;
     }

@@ -22,13 +22,16 @@ public class GuiInit implements ApplicationListener<ApplicationReadyEvent> {
 
     private final SEBServerInit sebServerInit;
     private final Environment environment;
+    private final GuiServiceInfo guiServiceInfo;
 
     protected GuiInit(
             final SEBServerInit sebServerInit,
-            final Environment environment) {
+            final Environment environment,
+            final GuiServiceInfo guiServiceInfo) {
 
         this.sebServerInit = sebServerInit;
         this.environment = environment;
+        this.guiServiceInfo = guiServiceInfo;
     }
 
     @Override
@@ -47,8 +50,18 @@ public class GuiInit implements ApplicationListener<ApplicationReadyEvent> {
         final String webServiceAddress = this.environment.getRequiredProperty("sebserver.gui.webservice.address");
         final String webServicePort = this.environment.getProperty("sebserver.gui.webservice.port", "80");
 
-        SEBServerInit.INIT_LOGGER.info("----> Webservice connection: " + webServiceProtocol + "://" + webServiceAddress
-                + ":" + webServicePort);
+        SEBServerInit.INIT_LOGGER
+                .info("----> Webservice connection: " + webServiceProtocol + "://" + webServiceAddress
+                        + ":" + webServicePort);
+        SEBServerInit.INIT_LOGGER.info(
+                "----> GUI service internal connection : "
+                        + this.guiServiceInfo.getInternalServerURIBuilder().toUriString());
+        SEBServerInit.INIT_LOGGER.info(
+                "----> GUI service external connection : "
+                        + this.guiServiceInfo.getExternalServerURIBuilder().toUriString());
+        SEBServerInit.INIT_LOGGER.info(
+                "----> GUI service endpoint : "
+                        + this.guiServiceInfo.getEntryPoint());
 
         final String webServiceAdminAPIEndpoint =
                 this.environment.getRequiredProperty("sebserver.gui.webservice.apipath");
