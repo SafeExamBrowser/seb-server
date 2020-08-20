@@ -32,6 +32,7 @@ public class ExamJITSIProctoringServiceTest {
                 "Test Name",
                 "test-client",
                 "SomeRoom",
+                "Subject",
                 1609459200L)
                 .getOrThrow();
 

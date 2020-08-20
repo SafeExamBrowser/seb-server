@@ -48,14 +48,37 @@ public class ProctoringServlet extends HttpServlet {
                     "<div id=\"proctoring\"></div> " +
                     "</body>" +
                     "<script>" +
-                    "    const options = {\r\n" +
-                    "        parentNode: document.querySelector('#proctoring'),\r\n" +
-                    "        roomName: '%s',\r\n" +
-                    "        width: 600,\r\n" +
-                    "        height: 400,\r\n" +
-                    "        jwt: '%s'\r\n" +
-                    "    }\r\n" +
-                    "    meetAPI = new JitsiMeetExternalAPI(\"%s\", options);\r\n" +
+                    "    const options = {\n" +
+                    "        parentNode: document.querySelector('#proctoring'),\n" +
+                    "        roomName: '%s',\n" +
+//                    "        width: 600,\n" +
+                    "        height: 400,\n" +
+                    "        jwt: '%s',\n" +
+                    "        configOverwrite: { startAudioOnly: false, startWithAudioMuted: true, startWithVideoMuted: true, disable1On1Mode: true },\n" +
+                    "        interfaceConfigOverwrite: { " +
+                    "TOOLBAR_BUTTONS: [\r\n" +
+                    "        'microphone', 'camera',\r\n" +
+                    "        'fodeviceselection', 'profile', 'chat', 'recording',\r\n" +
+                    "        'livestreaming', 'settings',\r\n" +
+                    "        'videoquality', 'filmstrip', 'feedback',\r\n" +
+                    "        'tileview', 'help', 'mute-everyone', 'security'\r\n" +
+                    "    ],"
+                    + "SHOW_WATERMARK_FOR_GUESTS: false, "
+                    + "RECENT_LIST_ENABLED: false, "
+                    + "HIDE_INVITE_MORE_HEADER: true, "
+                    + "DISABLE_RINGING: true, "
+                    + "DISABLE_PRESENCE_STATUS: true, "
+                    + "DISABLE_JOIN_LEAVE_NOTIFICATIONS: true, "
+                    + "GENERATE_ROOMNAMES_ON_WELCOME_PAGE: false, "
+                    + "MOBILE_APP_PROMO: false, "
+                    + "SHOW_JITSI_WATERMARK: false, "
+                    + "DISABLE_PRESENCE_STATUS: true, "
+                    + "DISABLE_RINGING: true, "
+                    + "DISABLE_VIDEO_BACKGROUND: false, "
+                    + "filmStripOnly: false }\n" +
+                    "    }\n" +
+                    "    const meetAPI = new JitsiMeetExternalAPI(\"%s\", options);\n" +
+                    "    meetAPI.executeCommand('subject', '%s');\n" +
                     "</script>" +
                     "</html>";
     // @formatter:on
@@ -80,10 +103,13 @@ public class ProctoringServlet extends HttpServlet {
         final SEBClientProctoringConnectionData proctoringConnectionData =
                 (SEBClientProctoringConnectionData) httpSession.getAttribute(SESSION_ATTR_PROCTORING_DATA);
 
-        final String accessToken = proctoringConnectionData.getAccessToken();
-        final String roomName = proctoringConnectionData.roomName;
-        final String server = "seb-jitsi.ethz.ch";
-        final String script = String.format(HTML, server, roomName, accessToken, server);
+        final String script = String.format(
+                HTML,
+                proctoringConnectionData.serverHost,
+                proctoringConnectionData.roomName,
+                proctoringConnectionData.accessToken,
+                proctoringConnectionData.serverHost,
+                proctoringConnectionData.subject);
         resp.getOutputStream().println(script);
 
     }

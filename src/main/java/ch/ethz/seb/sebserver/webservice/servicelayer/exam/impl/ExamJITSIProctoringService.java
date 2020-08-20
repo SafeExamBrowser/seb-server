@@ -120,6 +120,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     this.authorizationService.getUserService().getCurrentUser().getUsername(),
                     (server) ? "seb-server" : "seb-client",
                     roomName,
+                    clientConnection.userSessionId,
                     expTime)
                             .getOrThrow();
         });
@@ -133,6 +134,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
             final String clientName,
             final String clientKey,
             final String roomName,
+            final String subject,
             final Long expTime) {
 
         return Result.tryCatch(() -> {
@@ -161,6 +163,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     host,
                     roomUrl,
                     roomName,
+                    subject,
                     token,
                     connectionURL);
         });

@@ -18,6 +18,7 @@ public class SEBClientProctoringConnectionData {
     public static final String ATTR_SERVER_HOST = "serverHost";
     public static final String ATTR_SERVER_URL = "serverURL";
     public static final String ATTR_ROOM_NAME = "roomName";
+    public static final String ATTR_SUBJECT = "subject";
     public static final String ATTR_ACCESS_TOKEN = "accessToken";
     public static final String ATTR_CONNECTION_URL = "connectionURL";
 
@@ -30,6 +31,9 @@ public class SEBClientProctoringConnectionData {
     @JsonProperty(ATTR_ROOM_NAME)
     public final String roomName;
 
+    @JsonProperty(ATTR_SUBJECT)
+    public final String subject;
+
     @JsonProperty(ATTR_ACCESS_TOKEN)
     public final String accessToken;
 
@@ -41,12 +45,14 @@ public class SEBClientProctoringConnectionData {
             @JsonProperty(ATTR_SERVER_HOST) final String serverHost,
             @JsonProperty(ATTR_SERVER_URL) final String serverURL,
             @JsonProperty(ATTR_ROOM_NAME) final String roomName,
+            @JsonProperty(ATTR_SUBJECT) final String subject,
             @JsonProperty(ATTR_ACCESS_TOKEN) final String accessToken,
             @JsonProperty(ATTR_CONNECTION_URL) final String connectionURL) {
 
         this.serverHost = serverHost;
         this.serverURL = serverURL;
         this.roomName = roomName;
+        this.subject = subject;
         this.accessToken = accessToken;
         this.connectionURL = connectionURL;
     }
@@ -71,6 +77,10 @@ public class SEBClientProctoringConnectionData {
         return this.roomName;
     }
 
+    public String getSubject() {
+        return this.subject;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -80,6 +90,8 @@ public class SEBClientProctoringConnectionData {
         builder.append(this.serverURL);
         builder.append(", roomName=");
         builder.append(this.roomName);
+        builder.append(", subject=");
+        builder.append(this.subject);
         builder.append(", accessToken=");
         builder.append(this.accessToken);
         builder.append(", connectionURL=");

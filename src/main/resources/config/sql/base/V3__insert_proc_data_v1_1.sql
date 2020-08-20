@@ -1,4 +1,10 @@
-INSERT INTO configuration_attribute VALUES
+INSERT INTO view (name, columns, position, template_id) VALUES 
+    ('proctoring', 12, 12, 0);
+    
+SET @proct_view_id = LAST_INSERT_ID();
+
+
+INSERT IGNORE INTO configuration_attribute VALUES
     (1100, 'jitsiMeetAudioMuted', 'CHECKBOX', null, null, null, null, 'true'),
     (1101, 'jitsiMeetAudioOnly', 'CHECKBOX', null, null, null, null, 'false'),
     (1102, 'jitsiMeetEnable', 'CHECKBOX', null, null, null, null, 'true'),
@@ -33,3 +39,6 @@ INSERT INTO configuration_attribute VALUES
     (1132, 'jitsiMeetSendAudio', 'CHECKBOX', null, null, null, null, 'true'),
     (1133, 'jitsiMeetSendVideo', 'CHECKBOX', null, null, null, null, 'true')
     ;
+    
+INSERT INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
+    (1102, 0,  @proct_view_id, null, 1, 1, 2, 1, 'NONE');
