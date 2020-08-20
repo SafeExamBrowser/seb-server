@@ -307,7 +307,7 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         final String webserviceServerAddress = this.pageService.getAuthorizationContextHolder()
                 .getWebserviceURIService()
-                .getWebserviceServerAddress();
+                .getExternalServerURL();
 
         final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
         final String script = String.format(OPEN_SINGEL_ROOM_SCRIPT, roomName, webserviceServerAddress, roomName);

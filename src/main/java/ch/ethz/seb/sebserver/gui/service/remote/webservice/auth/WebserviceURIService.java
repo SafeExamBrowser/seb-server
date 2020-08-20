@@ -14,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import io.micrometer.core.instrument.util.StringUtils;
 
 @Component
 @GuiProfile
@@ -22,13 +23,15 @@ public class WebserviceURIService {
     private final String servletContextPath;
     private final String webserviceServerAddress;
     private final UriComponentsBuilder webserviceURIBuilder;
+    private final UriComponentsBuilder externaGUIURIBuilder;
 
     public WebserviceURIService(
             @Value("${sebserver.gui.webservice.protocol}") final String webserviceProtocol,
             @Value("${sebserver.gui.webservice.address}") final String webserviceServerAddress,
             @Value("${sebserver.gui.webservice.port}") final String webserviceServerPort,
             @Value("${server.servlet.context-path}") final String servletContextPath,
-            @Value("${sebserver.gui.webservice.apipath}") final String webserviceAPIPath) {
+            @Value("${sebserver.gui.webservice.apipath}") final String webserviceAPIPath,
+            @Value("${sebserver.gui.webservice.address.external}") final String externalServerName) {
 
         this.servletContextPath = servletContextPath;
         this.webserviceServerAddress =
@@ -38,6 +41,19 @@ public class WebserviceURIService {
                 .port(webserviceServerPort)
                 .path(servletContextPath)
                 .path(webserviceAPIPath);
+        if (StringUtils.isNotBlank(externalServerName)) {
+            this.externaGUIURIBuilder = UriComponentsBuilder
+                    .fromHttpUrl(webserviceProtocol + "://" + externalServerName)
+                    .port(webserviceServerPort);
+        } else {
+            this.externaGUIURIBuilder = UriComponentsBuilder
+                    .fromHttpUrl(webserviceProtocol + "://" + webserviceServerAddress)
+                    .port(webserviceServerPort);
+        }
+    }
+
+    public String getExternalServerURL() {
+        return this.externaGUIURIBuilder.toUriString();
     }
 
     public String getWebserviceServerAddress() {
