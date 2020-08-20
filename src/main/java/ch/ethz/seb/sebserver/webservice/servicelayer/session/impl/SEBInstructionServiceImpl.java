@@ -16,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -49,6 +51,8 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
     private final WebserviceInfo webserviceInfo;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ClientInstructionDAO clientInstructionDAO;
+    private final JSONMapper jsonMapper;
+
     private final Map<String, ClientInstructionRecord> instructions;
 
     private long lastRefresh = 0;
@@ -56,11 +60,13 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
     public SEBInstructionServiceImpl(
             final WebserviceInfo webserviceInfo,
             final ClientConnectionDAO clientConnectionDAO,
-            final ClientInstructionDAO clientInstructionDAO) {
+            final ClientInstructionDAO clientInstructionDAO,
+            final JSONMapper jsonMapper) {
 
         this.webserviceInfo = webserviceInfo;
         this.clientConnectionDAO = clientConnectionDAO;
         this.clientInstructionDAO = clientInstructionDAO;
+        this.jsonMapper = jsonMapper;
         this.instructions = new ConcurrentHashMap<>();
     }
 
@@ -101,15 +107,13 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
             final boolean isActive = this.clientConnectionDAO
                     .isActiveConnection(examId, connectionToken)
                     .getOr(false);
+
             if (isActive) {
                 try {
-                    final String attributesString = new JSONMapper().writeValueAsString(attributes);
+                    final String attributesString = this.jsonMapper.writeValueAsString(attributes);
                     this.clientInstructionDAO
                             .insert(examId, type, attributesString, connectionToken, needsConfirm)
-                            .map(inst -> {
-                                this.instructions.putIfAbsent(inst.getConnectionToken(), inst);
-                                return inst;
-                            })
+                            .map(this::chacheInstruction)
                             .onError(error -> log.error("Failed to put instruction: ", error))
                             .getOrThrow();
                 } catch (final Exception e) {
@@ -139,10 +143,10 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
                     .filter(activeConnections::contains)
                     .map(token -> this.clientInstructionDAO.insert(examId, type, attributesString, token, needsConfirm))
                     .map(result -> result.get(
-                            error -> log.error("Failed to put instruction: ", error),
+                            error -> log.error("Failed to register instruction: ", error),
                             () -> null))
                     .filter(Objects::nonNull)
-                    .forEach(inst -> this.instructions.putIfAbsent(inst.getConnectionToken(), inst));
+                    .forEach(this::chacheInstruction);
         });
 
     }
@@ -227,6 +231,26 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
         return Result.tryCatch(() -> this.clientInstructionDAO.getAllActive()
                 .getOrThrow()
                 .forEach(inst -> this.instructions.putIfAbsent(inst.getConnectionToken(), inst)));
+    }
+
+    private ClientInstructionRecord chacheInstruction(final ClientInstructionRecord instruction) {
+        final String connectionToken = instruction.getConnectionToken();
+        if (this.instructions.containsKey(connectionToken)) {
+            // check if previous instruction is still valid
+            final ClientInstructionRecord clientInstructionRecord = this.instructions.get(connectionToken);
+            if (BooleanUtils.toBoolean(BooleanUtils.toBooleanObject(clientInstructionRecord.getNeedsConfirmation()))) {
+                // check if time is out
+                final long now = DateTime.now(DateTimeZone.UTC).getMillis();
+                final Long timestamp = clientInstructionRecord.getTimestamp();
+                if (timestamp != null && now - timestamp > Constants.MINUTE_IN_MILLIS) {
+                    // remove old instruction and add new one
+                    this.instructions.put(connectionToken, instruction);
+                }
+            }
+        } else {
+            this.instructions.put(connectionToken, instruction);
+        }
+        return instruction;
     }
 
 }

@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.Base64;
+import java.util.Base64.Encoder;
 import java.util.Collection;
 
 import org.eclipse.rap.rwt.RWT;
@@ -33,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.ProctoringServlet;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
@@ -276,16 +279,18 @@ public class MonitoringClientConnection implements TemplateComposer {
 
     }
 
-    private PageAction openProctorScreen(final PageAction action, final String connectionToken) {
-//
-//        final ProctorDialog dialog = new ProctorDialog(action.pageContext().getParent().getShell());
-//        dialog.open(EVENT_LIST_TITLE_KEY,
-//                "https://seb-jitsi.ethz.ch/TestRoomABC?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsiYXZhdGFyIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9qb2huLWRvZSIsIm5hbWUiOiJEaXNwbGF5IE5hbWUiLCJlbWFpbCI6Im5hbWVAZXhhbXBsZS5jb20ifX0sImF1ZCI6InNlYi1qaXRzaSIsImlzcyI6InNlYi1qaXRzaSIsInN1YiI6Im1lZXQuaml0c2kiLCJyb29tIjoiKiJ9.SD9Zs78mMFqxS1tpalPTykYYaubIYsj_406WAOhcqxQ");
-//
-//        final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
-//        urlLauncher.openURL(
-//                "https://seb-jitsi.ethz.ch/TestRoomABC?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsiYXZhdGFyIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9qb2huLWRvZSIsIm5hbWUiOiJEaXNwbGF5IE5hbWUiLCJlbWFpbCI6Im5hbWVAZXhhbXBsZS5jb20ifX0sImF1ZCI6InNlYi1qaXRzaSIsImlzcyI6InNlYi1qaXRzaSIsInN1YiI6Im1lZXQuaml0c2kiLCJyb29tIjoiKiJ9.SD9Zs78mMFqxS1tpalPTykYYaubIYsj_406WAOhcqxQ");
+    // @formatter:off
+    private static final String OPEN_SINGEL_ROOM_SCRIPT =
+            "var existingWin = window.open('', '%s', 'height=420,width=620,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes');\n" +
+            "if(existingWin.location.href === 'about:blank'){\n" +
+            "    existingWin.location.href = '%s/proctoring/%s';\n" +
+            "    existingWin.focus();\n" +
+            "} else {\n" +
+            "    existingWin.focus();\n" +
+            "}";
+   // @formatter:on
 
+    private PageAction openProctorScreen(final PageAction action, final String connectionToken) {
         final SEBClientProctoringConnectionData proctoringConnectionData =
                 this.pageService.getRestService().getBuilder(GetProctorURLForClient.class)
                         .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
@@ -293,20 +298,20 @@ public class MonitoringClientConnection implements TemplateComposer {
                         .call()
                         .getOrThrow();
 
+        final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
+        final String roomName = urlEncoder.encodeToString(Utils.toByteArray(connectionToken));
+
+        RWT.getUISession().getHttpSession().setAttribute(
+                ProctoringServlet.SESSION_ATTR_PROCTORING_DATA,
+                proctoringConnectionData);
+
+        final String webserviceServerAddress = this.pageService.getAuthorizationContextHolder()
+                .getWebserviceURIService()
+                .getWebserviceServerAddress();
+
         final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
-        javaScriptExecutor.execute(
-                "window.open("
-                        + "'" + proctoringConnectionData.connectionURL + "',"
-                        + "'proctoring',"
-                        + "'height=400,width=800,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes');");
-
-//        final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
-//        javaScriptExecutor.execute(
-//                "window.open("
-//                        + "'http://localhost:8080/proctoring',"
-//                        + "'proctoring',"
-//                        + "'height=400,width=800,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes');");
-
+        final String script = String.format(OPEN_SINGEL_ROOM_SCRIPT, roomName, webserviceServerAddress, roomName);
+        javaScriptExecutor.execute(script);
         return action;
     }
 

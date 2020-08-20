@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
@@ -45,13 +46,16 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
     private static final String JITSI_ACCESS_TOKEN_PAYLOAD =
             "{\"context\":{\"user\":{\"name\":\"%s\"}},\"iss\":\"%s\",\"aud\":\"%s\",\"sub\":\"%s\",\"room\":\"%s\"%s}";
 
+    private final AuthorizationService authorizationService;
     private final ExamSessionService examSessionService;
     private final Cryptor cryptor;
 
     protected ExamJITSIProctoringService(
+            final AuthorizationService authorizationService,
             final ExamSessionService examSessionService,
             final Cryptor cryptor) {
 
+        this.authorizationService = authorizationService;
         this.examSessionService = examSessionService;
         this.cryptor = cryptor;
     }
@@ -113,7 +117,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     examProctoring.serverURL,
                     examProctoring.appKey,
                     examProctoring.getAppSecret(),
-                    clientConnection.userSessionId,
+                    this.authorizationService.getUserService().getCurrentUser().getUsername(),
                     (server) ? "seb-server" : "seb-client",
                     roomName,
                     expTime)
@@ -154,6 +158,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     .append(token).toString();
 
             return new SEBClientProctoringConnectionData(
+                    host,
                     roomUrl,
                     roomName,
                     token,
@@ -166,9 +171,12 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
             final String roomName) {
 
         final StringBuilder builder = new StringBuilder();
-        return builder.append(url)
-                .append("/")
-                .append(roomName)
+        builder.append(url);
+        if (!url.endsWith(Constants.URL_PATH_SEPARATOR)) {
+            builder.append(Constants.URL_PATH_SEPARATOR);
+        }
+
+        return builder.append(roomName)
                 .toString();
     }
 

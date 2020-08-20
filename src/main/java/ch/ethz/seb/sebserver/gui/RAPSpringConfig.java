@@ -8,14 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui;
 
-import java.io.IOException;
-
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextListener;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.rap.rwt.engine.RWTServlet;
 import org.eclipse.rap.rwt.engine.RWTServletContextListener;
@@ -25,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,25 +58,12 @@ public class RAPSpringConfig {
     }
 
     @Bean
-    public ServletRegistrationBean<ProctoringServlet> servletProctoringRegistrationBean() {
-        return new ServletRegistrationBean<>(new ProctoringServlet(), "/proctoring/*");
-    }
+    public ServletRegistrationBean<ProctoringServlet> servletProctoringRegistrationBean(
+            final ApplicationContext applicationContext) {
 
-    private static class ProctoringServlet extends HttpServlet {
-
-        private static final long serialVersionUID = 3475978419653411800L;
-
-        @Override
-        protected void doGet(
-                final HttpServletRequest req,
-                final HttpServletResponse resp)
-                throws ServletException, IOException {
-
-            System.out.println("********************************");
-            resp.getOutputStream().println("Hello");
-
-        }
-
+        final ProctoringServlet proctoringServlet = applicationContext
+                .getBean(ProctoringServlet.class);
+        return new ServletRegistrationBean<>(proctoringServlet, "/proctoring/*");
     }
 
     @Bean

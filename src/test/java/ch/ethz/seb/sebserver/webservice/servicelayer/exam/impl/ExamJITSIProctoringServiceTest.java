@@ -21,9 +21,10 @@ public class ExamJITSIProctoringServiceTest {
 
     @Test
     public void testCreateProctoringURL() {
-        Cryptor cryptorMock = Mockito.mock(Cryptor.class);
+        final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn("fbvgeghergrgrthrehreg123");
-        final ExamJITSIProctoringService examJITSIProctoringService = new ExamJITSIProctoringService(null, cryptorMock);
+        final ExamJITSIProctoringService examJITSIProctoringService =
+                new ExamJITSIProctoringService(null, null, cryptorMock);
         final SEBClientProctoringConnectionData data = examJITSIProctoringService.createProctoringConnectionData(
                 "https://seb-jitsi.example.ch",
                 "test-app",
