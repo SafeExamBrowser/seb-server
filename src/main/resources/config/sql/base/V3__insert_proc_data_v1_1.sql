@@ -41,4 +41,33 @@ INSERT IGNORE INTO configuration_attribute VALUES
     ;
     
 INSERT INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
-    (1102, 0,  @proct_view_id, null, 1, 1, 2, 1, 'NONE');
+    (1129, 0,  @proct_view_id, null, 3, 1, 3, 1, 'LEFT_SPAN'),
+    (1130, 0,  @proct_view_id, null, 0, 2, 6, 1, 'NONE'),
+    (1131, 0,  @proct_view_id, null, 0, 3, 6, 1, 'NONE'),
+    (1132, 0,  @proct_view_id, null, 0, 4, 6, 1, 'NONE'),
+    (1133, 0,  @proct_view_id, null, 0, 5, 6, 1, 'NONE'),
+    
+    (1102, 0,  @proct_view_id, null, 6, 1, 6, 1, 'NONE'),
+    
+    (1103, 0,  @proct_view_id, 'jitsi_features', 6, 2, 6, 1, 'NONE'),
+    (1106, 0,  @proct_view_id, 'jitsi_features', 6, 3, 6, 1, 'NONE'),
+    (1108, 0,  @proct_view_id, 'jitsi_features', 6, 4, 6, 1, 'NONE'),
+    (1104, 0,  @proct_view_id, 'jitsi_features', 6, 5, 6, 1, 'NONE'),
+    (1105, 0,  @proct_view_id, 'jitsi_features', 6, 6, 6, 1, 'NONE'),
+    
+    (1100, 0,  @proct_view_id, 'jitsi_controls', 6, 8, 6, 1, 'NONE'),
+    (1116, 0,  @proct_view_id, 'jitsi_controls', 6, 9, 6, 1, 'NONE'),
+    (1101, 0,  @proct_view_id, 'jitsi_controls', 6, 10, 6, 1, 'NONE'),
+    
+    (1120, 0,  @proct_view_id, null, 0, 7, 6, 1, 'NONE'),
+    
+    (1122, 0,  @proct_view_id, 'ai_faces_number', 0, 8, 6, 1, 'NONE'),
+    (1123, 0,  @proct_view_id, 'ai_faces_number', 0, 9, 6, 1, 'NONE'),
+    
+    (1125, 0,  @proct_view_id, 'ai_faces_angle', 0, 11, 6, 1, 'NONE'),
+    (1124, 0,  @proct_view_id, 'ai_faces_angle', 0, 12, 6, 1, 'NONE'),
+    (1121, 0,  @proct_view_id, 'ai_faces_angle', 0, 13, 6, 1, 'NONE')
+    ;
+    
+    
+    
