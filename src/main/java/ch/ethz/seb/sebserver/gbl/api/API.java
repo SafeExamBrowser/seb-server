@@ -128,7 +128,9 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_CHECK_RESTRICTION_PATH_SEGMENT = "/check-seb-restriction";
     public static final String EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT = "/check-imported";
     public static final String EXAM_ADMINISTRATION_SEB_RESTRICTION_CHAPTERS_PATH_SEGMENT = "/chapters";
-    public static final String EXAM_ADMINISTRATION_PROCTOR_PATH_SEGMENT = "/proctoring";
+    public static final String PROCTOR_PATH_SEGMENT = "/proctoring";
+    public static final String PROCTOR_JOIN_ROOM_PATH_SEGMENT = "/join";
+    public static final String PROCTOR_LEAVE_ROOM_PATH_SEGMENT = "/leave";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 
@@ -166,9 +168,9 @@ public final class API {
     public static final String EXAM_MONITORING_ENDPOINT = "/monitoring";
     public static final String EXAM_MONITORING_INSTRUCTION_ENDPOINT = "/instruction";
     public static final String EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT = "/disable-connection";
+    public static final String EXAM_MONITORING_STATE_FILTER = "hidden-states";
     public static final String EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT =
             "/{" + EXAM_API_SEB_CONNECTION_TOKEN + "}";
-    public static final String EXAM_MONITORING_STATE_FILTER = "hidden-states";
 
     public static final String SEB_CLIENT_CONNECTION_ENDPOINT = "/seb-client-connection";
 

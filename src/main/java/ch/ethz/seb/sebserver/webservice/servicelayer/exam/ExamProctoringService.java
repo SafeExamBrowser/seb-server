@@ -30,4 +30,9 @@ public interface ExamProctoringService {
             ClientConnection clientConnection,
             boolean server);
 
+    Result<SEBClientProctoringConnectionData> createProcotringDataForRoom(
+            final ProctoringSettings examProctoring,
+            final String roomName,
+            final boolean server);
+
 }

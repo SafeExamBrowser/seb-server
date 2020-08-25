@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 @Lazy
 @Service
 @GuiProfile
-public class ProcotringViewRules implements ValueChangeRule {
+public class ProctoringViewRules implements ValueChangeRule {
 
     public static final String KEY_ENABLE_AI = "proctoringAIEnable";
     public static final String KEY_ENABLE_JITSI = "jitsiMeetEnable";

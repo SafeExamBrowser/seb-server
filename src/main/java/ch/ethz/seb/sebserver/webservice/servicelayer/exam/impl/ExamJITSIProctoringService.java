@@ -96,19 +96,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
 
         return Result.tryCatch(() -> {
 
-            if (examProctoring.examId == null) {
-                throw new IllegalStateException("Missing exam identifier from ExamProctoring data");
-            }
-
-            long expTime = System.currentTimeMillis() + Constants.DAY_IN_MILLIS;
-            if (this.examSessionService.isExamRunning(examProctoring.examId)) {
-                final Exam exam = this.examSessionService.getRunningExam(examProctoring.examId)
-                        .getOrThrow();
-                if (exam.endTime != null) {
-                    expTime = exam.endTime.getMillis();
-                }
-            }
-
+            final long expTime = forExam(examProctoring);
             final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
             final String roomName = urlEncoder.encodeToString(
                     Utils.toByteArray(clientConnection.connectionToken));
@@ -121,6 +109,29 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     (server) ? "seb-server" : "seb-client",
                     roomName,
                     clientConnection.userSessionId,
+                    expTime)
+                            .getOrThrow();
+        });
+
+    }
+
+    @Override
+    public Result<SEBClientProctoringConnectionData> createProcotringDataForRoom(
+            final ProctoringSettings examProctoring,
+            final String roomName,
+            final boolean server) {
+
+        return Result.tryCatch(() -> {
+            final long expTime = forExam(examProctoring);
+
+            return createProctoringConnectionData(
+                    examProctoring.serverURL,
+                    examProctoring.appKey,
+                    examProctoring.getAppSecret(),
+                    this.authorizationService.getUserService().getCurrentUser().getUsername(),
+                    (server) ? "seb-server" : "seb-client",
+                    roomName,
+                    roomName,
                     expTime)
                             .getOrThrow();
         });
@@ -222,6 +233,22 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                 .append(hash);
 
         return builder.toString();
+    }
+
+    private long forExam(final ProctoringSettings examProctoring) {
+        if (examProctoring.examId == null) {
+            throw new IllegalStateException("Missing exam identifier from ExamProctoring data");
+        }
+
+        long expTime = System.currentTimeMillis() + Constants.DAY_IN_MILLIS;
+        if (this.examSessionService.isExamRunning(examProctoring.examId)) {
+            final Exam exam = this.examSessionService.getRunningExam(examProctoring.examId)
+                    .getOrThrow();
+            if (exam.endTime != null) {
+                expTime = exam.endTime.getMillis();
+            }
+        }
+        return expTime;
     }
 
 }

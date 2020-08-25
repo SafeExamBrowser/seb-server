@@ -54,7 +54,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorURLForClient;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorDataForSEBClient;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionDetails;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
@@ -296,7 +296,7 @@ public class MonitoringClientConnection implements TemplateComposer {
 
     private PageAction openProctorScreen(final PageAction action, final String connectionToken) {
         final SEBClientProctoringConnectionData proctoringConnectionData =
-                this.pageService.getRestService().getBuilder(GetProctorURLForClient.class)
+                this.pageService.getRestService().getBuilder(GetProctorDataForSEBClient.class)
                         .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
                         .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
                         .call()

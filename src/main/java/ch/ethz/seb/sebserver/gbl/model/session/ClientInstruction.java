@@ -28,6 +28,11 @@ public final class ClientInstruction {
         SEB_PROCTORING
     }
 
+    public enum ProctoringInstructionMethod {
+        JOIN,
+        LEAVE
+    }
+
     public interface SEB_INSTRUCTION_ATTRIBUTES {
         public interface SEB_PROCTORING {
             public static final String SERVICE_TYPE = "service-type";

@@ -36,7 +36,7 @@ public class GetProctoringSettings extends RestCall<ProctoringSettings> {
                 MediaType.APPLICATION_JSON_UTF8,
                 API.EXAM_ADMINISTRATION_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.EXAM_ADMINISTRATION_PROCTOR_PATH_SEGMENT);
+                        + API.PROCTOR_PATH_SEGMENT);
     }
 
 }

@@ -24,9 +24,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class GetProctorURLForClient extends RestCall<SEBClientProctoringConnectionData> {
+public class GetProctorDataForSEBClient extends RestCall<SEBClientProctoringConnectionData> {
 
-    public GetProctorURLForClient() {
+    public GetProctorDataForSEBClient() {
         super(new TypeKey<>(
                 CallType.GET_SINGLE,
                 EntityType.EXAM_PROCTOR_DATA,
@@ -34,9 +34,9 @@ public class GetProctorURLForClient extends RestCall<SEBClientProctoringConnecti
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.EXAM_ADMINISTRATION_ENDPOINT
+                API.EXAM_MONITORING_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.EXAM_ADMINISTRATION_PROCTOR_PATH_SEGMENT
+                        + API.PROCTOR_PATH_SEGMENT
                         + API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT);
     }
 
