@@ -92,7 +92,6 @@ public class UserServiceImpl implements UserService {
             }
         };
         binder.registerCustomEditor(Long.class, usersInstitutionDefaultEditor);
-
     }
 
     // 1. OAuth2Authentication strategy

@@ -341,7 +341,7 @@ public class ExamForm implements TemplateComposer {
                         ? this.restService.getRestCall(ImportAsExam.class)
                         : this.restService.getRestCall(SaveExam.class));
 
-        final boolean proctoringEnabled = this.restService
+        final boolean proctoringEnabled = importFromQuizData ? false : this.restService
                 .getBuilder(GetProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
