@@ -17,6 +17,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.coyote.http11.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
@@ -47,7 +49,6 @@ public class MoodleCourseAccess extends CourseAccess {
     private static final Logger log = LoggerFactory.getLogger(MoodleCourseAccess.class);
 
     private static final String MOODLE_QUIZ_START_URL_PATH = "mod/quiz/view.php?id=";
-    private static final String MOODLE_COURSE_START_URL_PATH = "course/view.php?id=";
     private static final String MOODLE_COURSE_API_FUNCTION_NAME = "core_course_get_courses";
     private static final String MOODLE_USER_PROFILE_API_FUNCTION_NAME = "core_user_get_users_by_field";
     private static final String MOODLE_QUIZ_API_FUNCTION_NAME = "mod_quiz_get_quizzes_by_courses";
@@ -56,7 +57,6 @@ public class MoodleCourseAccess extends CourseAccess {
     private final JSONMapper jsonMapper;
     private final LmsSetup lmsSetup;
     private final MoodleRestTemplateFactory moodleRestTemplateFactory;
-    private final boolean includeCourses;
 
     private MoodleAPIRestTemplate restTemplate;
 
@@ -64,14 +64,12 @@ public class MoodleCourseAccess extends CourseAccess {
             final JSONMapper jsonMapper,
             final LmsSetup lmsSetup,
             final MoodleRestTemplateFactory moodleRestTemplateFactory,
-            final AsyncService asyncService,
-            final boolean includeCourses) {
+            final AsyncService asyncService) {
 
         super(asyncService);
         this.jsonMapper = jsonMapper;
         this.lmsSetup = lmsSetup;
         this.moodleRestTemplateFactory = moodleRestTemplateFactory;
-        this.includeCourses = includeCourses;
     }
 
     @Override
@@ -233,6 +231,7 @@ public class MoodleCourseAccess extends CourseAccess {
         additionalAttrs.clear();
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_CREATION_TIME, String.valueOf(courseData.time_created));
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SHORT_NAME, courseData.short_name);
+        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_ID_NUMBER, courseData.idnumber);
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_FULL_NAME, courseData.full_name);
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_DISPLAY_NAME, courseData.display_name);
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SUMMARY, courseData.summary);
@@ -243,7 +242,7 @@ public class MoodleCourseAccess extends CourseAccess {
                     final String startURI = uriPrefix + courseQuizData.course_module;
                     additionalAttrs.put(QuizData.ATTR_ADDITIONAL_TIME_LIMIT, String.valueOf(courseQuizData.time_limit));
                     return new QuizData(
-                            courseData.id + ":" + courseQuizData.id,
+                            getInternalQuizId(courseQuizData.id, courseData.short_name, courseData.idnumber),
                             lmsSetup.getInstitutionId(),
                             lmsSetup.id,
                             lmsSetup.getLmsType(),
@@ -255,20 +254,6 @@ public class MoodleCourseAccess extends CourseAccess {
                             additionalAttrs);
                 })
                 .collect(Collectors.toList());
-
-        if (this.includeCourses) {
-            courseAndQuiz.add(new QuizData(
-                    courseData.id,
-                    lmsSetup.getInstitutionId(),
-                    lmsSetup.id,
-                    lmsSetup.getLmsType(),
-                    courseData.display_name,
-                    courseData.full_name,
-                    Utils.toDateTimeUTCUnix(courseData.start_date),
-                    Utils.toDateTimeUTCUnix(courseData.end_date),
-                    lmsSetup.lmsApiUrl + MOODLE_COURSE_START_URL_PATH + courseData.id,
-                    additionalAttrs));
-        }
 
         return courseAndQuiz;
     }
@@ -292,6 +277,7 @@ public class MoodleCourseAccess extends CourseAccess {
     static final class CourseData {
         final String id;
         final String short_name;
+        final String idnumber;
         final String full_name;
         final String display_name;
         final String summary;
@@ -304,6 +290,7 @@ public class MoodleCourseAccess extends CourseAccess {
         protected CourseData(
                 @JsonProperty(value = "id") final String id,
                 @JsonProperty(value = "shortname") final String short_name,
+                @JsonProperty(value = "idnumber") final String idnumber,
                 @JsonProperty(value = "fullname") final String full_name,
                 @JsonProperty(value = "displayname") final String display_name,
                 @JsonProperty(value = "summary") final String summary,
@@ -313,6 +300,7 @@ public class MoodleCourseAccess extends CourseAccess {
 
             this.id = id;
             this.short_name = short_name;
+            this.idnumber = idnumber;
             this.full_name = full_name;
             this.display_name = display_name;
             this.summary = summary;
@@ -321,6 +309,52 @@ public class MoodleCourseAccess extends CourseAccess {
             this.time_created = time_created;
         }
 
+    }
+
+    static final String getInternalQuizId(final String quizId, final String shortname, final String idnumber) {
+        final StringBuilder sb = new StringBuilder(quizId);
+        if (StringUtils.isNotEmpty(shortname)) {
+            sb.insert(0, ":").insert(0, shortname);
+        }
+        if (StringUtils.isNotEmpty(idnumber)) {
+            sb.insert(0, ":").insert(0, idnumber);
+        }
+        return sb.toString();
+    }
+
+    static final String getQuizId(final String internalQuizId) {
+        if (StringUtils.isBlank(internalQuizId)) {
+            return null;
+        }
+
+        final String[] ids = internalQuizId.split(internalQuizId, Constants.COLON);
+        return ids[ids.length - 1];
+    }
+
+    static final String getShortname(final String internalQuizId) {
+        if (StringUtils.isBlank(internalQuizId)) {
+            return null;
+        }
+
+        final String[] ids = internalQuizId.split(internalQuizId, Constants.COLON);
+        if (ids.length > 1) {
+            return ids[ids.length - 2];
+        } else {
+            return null;
+        }
+    }
+
+    static final String getIdnumber(final String internalQuizId) {
+        if (StringUtils.isBlank(internalQuizId)) {
+            return null;
+        }
+
+        final String[] ids = internalQuizId.split(internalQuizId, Constants.COLON);
+        if (ids.length == 3) {
+            return ids[0];
+        } else {
+            return null;
+        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

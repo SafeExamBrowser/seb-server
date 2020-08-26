@@ -45,6 +45,7 @@ public final class QuizData implements GrantEntity {
 
     public static final String ATTR_ADDITIONAL_CREATION_TIME = "time_created";
     public static final String ATTR_ADDITIONAL_SHORT_NAME = "course_short_name";
+    public static final String ATTR_ADDITIONAL_ID_NUMBER = "idnumber";
     public static final String ATTR_ADDITIONAL_FULL_NAME = "course_full_name";
     public static final String ATTR_ADDITIONAL_DISPLAY_NAME = "course_display_name";
     public static final String ATTR_ADDITIONAL_SUMMARY = "course_summary";

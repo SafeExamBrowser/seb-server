@@ -34,15 +34,13 @@ public class MoodleLmsAPITemplateFactory {
     private final ClientCredentialService clientCredentialService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final String[] alternativeTokenRequestPaths;
-    private final boolean includeCourses;
 
     protected MoodleLmsAPITemplateFactory(
             final JSONMapper jsonMapper,
             final AsyncService asyncService,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
-            @Value("${sebserver.webservice.lms.moodle.api.token.request.paths:}") final String alternativeTokenRequestPaths,
-            @Value("${sebserver.webservice.lms.moodle.api.includeCourses:false}") final boolean includeCourses) {
+            @Value("${sebserver.webservice.lms.moodle.api.token.request.paths:}") final String alternativeTokenRequestPaths) {
 
         this.jsonMapper = jsonMapper;
         this.asyncService = asyncService;
@@ -51,7 +49,6 @@ public class MoodleLmsAPITemplateFactory {
         this.alternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
                 ? StringUtils.split(alternativeTokenRequestPaths, Constants.LIST_SEPARATOR)
                 : null;
-        this.includeCourses = includeCourses;
     }
 
     public Result<MoodleLmsAPITemplate> create(
@@ -74,8 +71,7 @@ public class MoodleLmsAPITemplateFactory {
                     this.jsonMapper,
                     lmsSetup,
                     moodleRestTemplateFactory,
-                    this.asyncService,
-                    this.includeCourses);
+                    this.asyncService);
 
             final MoodleCourseRestriction moodleCourseRestriction = new MoodleCourseRestriction(
                     this.jsonMapper,

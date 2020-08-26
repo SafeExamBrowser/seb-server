@@ -35,7 +35,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
  *
  * <pre>
  * {
- *   "courseId": "123",
  *   "quizId": "456",
  *   "configKeys": [
  *       "key1",
@@ -65,7 +64,9 @@ public class MoodleCourseRestriction {
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_WS_FUNCTION_CREATE = "seb_restriction_create";
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_WS_FUNCTION_UPDATE = "seb_restriction_update";
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_WS_FUNCTION_DELETE = "seb_restriction_delete";
-    private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_COURSE_ID = "courseId";
+    //private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_COURSE_ID = "courseId";
+    private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_SHORT_NAME = "shortname";
+    private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_ID_NUMBER = "idnumber";
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_QUIZ_ID = "quizId";
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_CONFIG_KEY = "configKey";
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_BROWSER_KEY = "browserKey";
@@ -108,28 +109,24 @@ public class MoodleCourseRestriction {
     }
 
     Result<MoodleSEBRestriction> getSEBRestriction(
-            final String externalId) {
+            final String internalId) {
 
         return Result.tryCatch(() -> {
-            final String[] courseQuizId = StringUtils.split(externalId, ":");
-            if (courseQuizId.length > 1) {
-                // we only have the course id (this is a course)
-                return getSEBRestriction(courseQuizId[0], null)
-                        .getOrThrow();
-            } else {
-                // we have the course id and the quiz is (this is a quiz)
-                return getSEBRestriction(courseQuizId[0], courseQuizId[1])
-                        .getOrThrow();
-            }
+            return getSEBRestriction(
+                    MoodleCourseAccess.getQuizId(internalId),
+                    MoodleCourseAccess.getShortname(internalId),
+                    MoodleCourseAccess.getIdnumber(internalId))
+                            .getOrThrow();
         });
     }
 
     Result<MoodleSEBRestriction> getSEBRestriction(
-            final String courseId,
-            final String quizId) {
+            final String quizId,
+            final String shortname,
+            final String idnumber) {
 
         if (log.isDebugEnabled()) {
-            log.debug("GET SEB Client restriction on course: {} quiz: {}", courseId, quizId);
+            log.debug("GET SEB Client restriction on course: {} quiz: {}", shortname, quizId);
         }
 
         return Result.tryCatch(() -> {
@@ -138,9 +135,12 @@ public class MoodleCourseRestriction {
                     .getOrThrow();
 
             final MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-            queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_COURSE_ID, courseId);
-            if (quizId != null) {
-                queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_QUIZ_ID, quizId);
+            queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_QUIZ_ID, quizId);
+            if (StringUtils.isNotBlank(shortname)) {
+                queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_SHORT_NAME, shortname);
+            }
+            if (StringUtils.isNotBlank(idnumber)) {
+                queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_ID_NUMBER, idnumber);
             }
 
             final String resultJSON = template.callMoodleAPIFunction(
@@ -164,102 +164,94 @@ public class MoodleCourseRestriction {
     }
 
     Result<MoodleSEBRestriction> createSEBRestriction(
-            final String externalId,
+            final String internalId,
             final MoodleSEBRestriction restriction) {
 
         return Result.tryCatch(() -> {
-            final String[] courseQuizId = StringUtils.split(externalId, ":");
-            if (courseQuizId.length > 1) {
-                // we only have the course id (this is a course)
-                return createSEBRestriction(courseQuizId[0], null, restriction)
-                        .getOrThrow();
-            } else {
-                // we have the course id and the quiz is (this is a quiz)
-                return createSEBRestriction(courseQuizId[0], courseQuizId[1], restriction)
-                        .getOrThrow();
-            }
+            return createSEBRestriction(
+                    MoodleCourseAccess.getQuizId(internalId),
+                    MoodleCourseAccess.getShortname(internalId),
+                    MoodleCourseAccess.getIdnumber(internalId),
+                    restriction)
+                            .getOrThrow();
         });
     }
 
     Result<MoodleSEBRestriction> createSEBRestriction(
-            final String courseId,
             final String quizId,
+            final String shortname,
+            final String idnumber,
             final MoodleSEBRestriction restriction) {
 
         if (log.isDebugEnabled()) {
             log.debug("POST SEB Client restriction on course: {} quiz: restriction : {}",
-                    courseId,
+                    shortname,
                     quizId,
                     restriction);
         }
 
         return postSEBRestriction(
-                courseId,
                 quizId,
+                shortname,
+                idnumber,
                 MOODLE_DEFAULT_COURSE_RESTRICTION_WS_FUNCTION_CREATE,
                 restriction);
     }
 
     Result<MoodleSEBRestriction> updateSEBRestriction(
-            final String externalId,
+            final String internalId,
             final MoodleSEBRestriction restriction) {
 
         return Result.tryCatch(() -> {
-            final String[] courseQuizId = StringUtils.split(externalId, ":");
-            if (courseQuizId.length > 1) {
-                // we only have the course id (this is a course)
-                return updateSEBRestriction(courseQuizId[0], null, restriction)
-                        .getOrThrow();
-            } else {
-                // we have the course id and the quiz is (this is a quiz)
-                return updateSEBRestriction(courseQuizId[0], courseQuizId[1], restriction)
-                        .getOrThrow();
-            }
+            return updateSEBRestriction(
+                    MoodleCourseAccess.getQuizId(internalId),
+                    MoodleCourseAccess.getShortname(internalId),
+                    MoodleCourseAccess.getIdnumber(internalId),
+                    restriction)
+                            .getOrThrow();
         });
     }
 
     Result<MoodleSEBRestriction> updateSEBRestriction(
-            final String courseId,
             final String quizId,
+            final String shortname,
+            final String idnumber,
             final MoodleSEBRestriction restriction) {
 
         if (log.isDebugEnabled()) {
             log.debug("POST SEB Client restriction on course: {} quiz: restriction : {}",
-                    courseId,
+                    shortname,
                     quizId,
                     restriction);
         }
 
         return postSEBRestriction(
-                courseId,
                 quizId,
+                shortname,
+                idnumber,
                 MOODLE_DEFAULT_COURSE_RESTRICTION_WS_FUNCTION_UPDATE,
                 restriction);
     }
 
     Result<Boolean> deleteSEBRestriction(
-            final String externalId) {
+            final String internalId) {
 
         return Result.tryCatch(() -> {
-            final String[] courseQuizId = StringUtils.split(externalId, ":");
-            if (courseQuizId.length > 1) {
-                // we only have the course id (this is a course)
-                return deleteSEBRestriction(courseQuizId[0], null)
-                        .getOrThrow();
-            } else {
-                // we have the course id and the quiz is (this is a quiz)
-                return deleteSEBRestriction(courseQuizId[0], courseQuizId[1])
-                        .getOrThrow();
-            }
+            return deleteSEBRestriction(
+                    MoodleCourseAccess.getQuizId(internalId),
+                    MoodleCourseAccess.getShortname(internalId),
+                    MoodleCourseAccess.getIdnumber(internalId))
+                            .getOrThrow();
         });
     }
 
     Result<Boolean> deleteSEBRestriction(
-            final String courseId,
-            final String quizId) {
+            final String quizId,
+            final String shortname,
+            final String idnumber) {
 
         if (log.isDebugEnabled()) {
-            log.debug("DELETE SEB Client restriction on course: {} quizId {}", courseId, quizId);
+            log.debug("DELETE SEB Client restriction on course: {} quizId {}", shortname, quizId);
         }
 
         return Result.tryCatch(() -> {
@@ -267,8 +259,13 @@ public class MoodleCourseRestriction {
                     .getOrThrow();
 
             final MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-            queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_COURSE_ID, courseId);
             queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_QUIZ_ID, quizId);
+            if (StringUtils.isNotBlank(shortname)) {
+                queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_SHORT_NAME, shortname);
+            }
+            if (StringUtils.isNotBlank(idnumber)) {
+                queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_ID_NUMBER, idnumber);
+            }
 
             final String jsonResponse = template.callMoodleAPIFunction(
                     MOODLE_DEFAULT_COURSE_RESTRICTION_WS_FUNCTION_DELETE,
@@ -300,8 +297,9 @@ public class MoodleCourseRestriction {
     }
 
     private Result<MoodleSEBRestriction> postSEBRestriction(
-            final String courseId,
             final String quizId,
+            final String shortname,
+            final String idnumber,
             final String function,
             final MoodleSEBRestriction restriction) {
         return Result.tryCatch(() -> {
@@ -310,8 +308,13 @@ public class MoodleCourseRestriction {
                     .getOrThrow();
 
             final MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-            queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_COURSE_ID, courseId);
             queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_QUIZ_ID, quizId);
+            if (StringUtils.isNotBlank(shortname)) {
+                queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_SHORT_NAME, shortname);
+            }
+            if (StringUtils.isNotBlank(idnumber)) {
+                queryParams.add(MOODLE_DEFAULT_COURSE_RESTRICTION_ID_NUMBER, idnumber);
+            }
 
             final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
             queryAttributes.addAll(

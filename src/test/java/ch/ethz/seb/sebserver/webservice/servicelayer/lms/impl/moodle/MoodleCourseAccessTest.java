@@ -67,8 +67,7 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 null,
                 moodleRestTemplateFactory,
-                mock(AsyncService.class),
-                false);
+                mock(AsyncService.class));
 
         final String examId = "123";
         final Result<ExamineeAccountDetails> examineeAccountDetails =
@@ -115,8 +114,7 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 null,
                 moodleRestTemplateFactory,
-                mock(AsyncService.class),
-                false);
+                mock(AsyncService.class));
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.initAPIAccess();
         assertNotNull(initAPIAccess);
@@ -137,8 +135,7 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 null,
                 moodleRestTemplateFactory,
-                mock(AsyncService.class),
-                false);
+                mock(AsyncService.class));
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.initAPIAccess();
         assertNotNull(initAPIAccess);
@@ -158,8 +155,7 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 null,
                 moodleRestTemplateFactory,
-                mock(AsyncService.class),
-                false);
+                mock(AsyncService.class));
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.initAPIAccess();
         assertNotNull(initAPIAccess);
