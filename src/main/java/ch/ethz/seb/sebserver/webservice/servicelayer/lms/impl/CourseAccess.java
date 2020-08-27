@@ -44,14 +44,14 @@ public abstract class CourseAccess {
         this.allQuizzesRequest = asyncService.createMemoizingCircuitBreaker(
                 allQuizzesSupplier(),
                 3,
-                Constants.MINUTE_IN_MILLIS,
+                10 * Constants.SECOND_IN_MILLIS,
                 Constants.MINUTE_IN_MILLIS,
                 true,
                 Constants.HOUR_IN_MILLIS);
 
         this.chaptersRequest = asyncService.createCircuitBreaker(
                 3,
-                Constants.MINUTE_IN_MILLIS,
+                10 * Constants.SECOND_IN_MILLIS,
                 Constants.MINUTE_IN_MILLIS);
 
         this.accountDetailRequest = asyncService.createCircuitBreaker(

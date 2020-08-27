@@ -161,7 +161,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             final Long institutionId = filterMap.getInstitutionId();
             return this.lmsSetupDAO.all(institutionId, true)
                     .getOrThrow()
-                    .stream()
+                    .parallelStream()
                     .map(this::getLmsAPITemplate)
                     .flatMap(Result::onErrorLogAndSkip)
                     .map(template -> template.getQuizzes(filterMap))
