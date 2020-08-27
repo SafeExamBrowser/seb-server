@@ -234,6 +234,9 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
     }
 
     private ClientInstructionRecord chacheInstruction(final ClientInstructionRecord instruction) {
+
+        System.out.println("************* register instruction: " + instruction);
+
         final String connectionToken = instruction.getConnectionToken();
         if (this.instructions.containsKey(connectionToken)) {
             // check if previous instruction is still valid

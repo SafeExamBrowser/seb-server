@@ -27,7 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBClientProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -54,7 +54,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorDataForSEBClient;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnectionData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionDetails;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
@@ -277,10 +277,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .withEntityKey(parentEntityKey)
                 .withExec(action -> this.openProctorScreen(action, connectionToken))
                 .noEventPropagation()
-                .publishIf(() -> proctoringEnabled)
-
-        ;
-
+                .publishIf(() -> proctoringEnabled);
     }
 
     // @formatter:off
@@ -295,12 +292,12 @@ public class MonitoringClientConnection implements TemplateComposer {
    // @formatter:on
 
     private PageAction openProctorScreen(final PageAction action, final String connectionToken) {
-        final SEBClientProctoringConnectionData proctoringConnectionData =
-                this.pageService.getRestService().getBuilder(GetProctorDataForSEBClient.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
-                        .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
-                        .call()
-                        .getOrThrow();
+        final SEBProctoringConnectionData proctoringConnectionData = this.pageService.getRestService()
+                .getBuilder(GetProctorRoomConnectionData.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .withQueryParam(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
+                .call()
+                .getOrThrow();
 
         final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
         final String roomName = urlEncoder.encodeToString(Utils.toByteArray(connectionToken));
@@ -316,6 +313,9 @@ public class MonitoringClientConnection implements TemplateComposer {
                 this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
                 roomName);
         javaScriptExecutor.execute(script);
+        this.pageService.getCurrentUser()
+                .getProctoringGUIService()
+                .registerProctoringWindow(roomName);
         return action;
     }
 

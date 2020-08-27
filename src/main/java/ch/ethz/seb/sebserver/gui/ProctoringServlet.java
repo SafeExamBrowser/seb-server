@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBClientProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
@@ -51,8 +51,8 @@ public class ProctoringServlet extends HttpServlet {
                     "    const options = {\n" +
                     "        parentNode: document.querySelector('#proctoring'),\n" +
                     "        roomName: '%s',\n" +
-//                    "        width: 600,\n" +
-                    "        height: 400,\n" +
+                    "        width: window.innerWidth,\n" +
+                    "        height: window.innerHeight,\n" +
                     "        jwt: '%s',\n" +
                     "        configOverwrite: { startAudioOnly: false, startWithAudioMuted: true, startWithVideoMuted: true, disable1On1Mode: true },\n" +
                     "        interfaceConfigOverwrite: { " +
@@ -100,8 +100,8 @@ public class ProctoringServlet extends HttpServlet {
             return;
         }
 
-        final SEBClientProctoringConnectionData proctoringConnectionData =
-                (SEBClientProctoringConnectionData) httpSession.getAttribute(SESSION_ATTR_PROCTORING_DATA);
+        final SEBProctoringConnectionData proctoringConnectionData =
+                (SEBProctoringConnectionData) httpSession.getAttribute(SESSION_ATTR_PROCTORING_DATA);
 
         final String script = String.format(
                 HTML,

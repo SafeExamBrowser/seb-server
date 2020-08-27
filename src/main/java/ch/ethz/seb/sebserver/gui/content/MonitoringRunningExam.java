@@ -15,6 +15,8 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -31,6 +33,8 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -38,6 +42,8 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
+import ch.ethz.seb.sebserver.gui.ProctoringServlet;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -53,10 +59,13 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnectionData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
+import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
 
 @Lazy
 @Component
@@ -80,18 +89,21 @@ public class MonitoringRunningExam implements TemplateComposer {
     private final PageService pageService;
     private final ResourceService resourceService;
     private final InstructionProcessor instructionProcessor;
+    private final GuiServiceInfo guiServiceInfo;
     private final long pollInterval;
 
     protected MonitoringRunningExam(
             final ServerPushService serverPushService,
             final PageService pageService,
             final InstructionProcessor instructionProcessor,
+            final GuiServiceInfo guiServiceInfo,
             @Value("${sebserver.gui.webservice.poll-interval:1000}") final long pollInterval) {
 
         this.serverPushService = serverPushService;
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.instructionProcessor = instructionProcessor;
+        this.guiServiceInfo = guiServiceInfo;
         this.pollInterval = pollInterval;
     }
 
@@ -145,7 +157,8 @@ public class MonitoringRunningExam implements TemplateComposer {
                         pageContext,
                         ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION,
                         ActionDefinition.MONITOR_EXAM_QUIT_SELECTED,
-                        ActionDefinition.MONITOR_EXAM_DISABLE_SELECTED_CONNECTION));
+                        ActionDefinition.MONITOR_EXAM_DISABLE_SELECTED_CONNECTION,
+                        ActionDefinition.MONITOR_EXAM_NEW_PROCTOR_ROOM));
 
         this.serverPushService.runServerPush(
                 new ServerPushContext(content, Utils.truePredicate()),
@@ -275,6 +288,136 @@ public class MonitoringRunningExam implements TemplateComposer {
             }
 
         }
+
+        final boolean proctoringEnabled = restService
+                .getBuilder(GetProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                .call()
+                .map(ProctoringSettings::getEnableProctoring)
+                .getOr(false);
+
+        if (proctoringEnabled) {
+
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_NEW_PROCTOR_ROOM)
+                    .withEntityKey(entityKey)
+                    .withSelect(
+                            clientTable::getSelection,
+                            action -> newProctoringRoom(clientTable, action),
+                            EMPTY_SELECTION_TEXT_KEY)
+                    .noEventPropagation()
+                    .publishIf(privilege, false);
+
+            final ProctoringGUIService proctoringGUIService = this.pageService
+                    .getCurrentUser()
+                    .getProctoringGUIService();
+
+            proctoringGUIService.roomNames().forEach(roomName -> {
+                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM)
+                        .withEntityKey(entityKey)
+                        .withExec(a -> showProctoringRoom(roomName, clientTable, a))
+                        .withNameAttributes(roomName)
+                        .noEventPropagation()
+                        .publish();
+                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_CLOSE_PROCTOR_ROOM)
+                        .withEntityKey(entityKey)
+                        .withExec(a -> closeProctoringRoom(roomName, clientTable, a))
+                        .withNameAttributes(roomName)
+                        .publish();
+            });
+        }
+    }
+
+    // @formatter:off
+    private static final String OPEN_SINGEL_ROOM_SCRIPT =
+            "var existingWin = window.open('', '%s', 'height=800,width=1200,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes');\n" +
+            "if(existingWin.location.href === 'about:blank'){\n" +
+            "    existingWin.location.href = '%s/proctoring/%s';\n" +
+            "    existingWin.focus();\n" +
+            "} else {\n" +
+            "    existingWin.focus();\n" +
+            "}";
+    // @formatter:on
+
+    private PageAction closeProctoringRoom(
+            final String roomName,
+            final ClientConnectionTable clientTable,
+            final PageAction action) {
+
+        final ProctoringGUIService proctoringGUIService = this.pageService
+                .getCurrentUser()
+                .getProctoringGUIService();
+
+        proctoringGUIService.closeRoom(roomName);
+
+        return action;
+    }
+
+    private PageAction newProctoringRoom(
+            final ClientConnectionTable clientTable,
+            final PageAction action) {
+
+        final ProctoringGUIService proctoringGUIService = this.pageService
+                .getCurrentUser()
+                .getProctoringGUIService();
+        final String newRoomName = proctoringGUIService.createNewRoomName();
+        final Set<String> connectionTokens = clientTable.getConnectionTokens(
+                ClientConnection.getStatusPredicate(ConnectionStatus.ACTIVE),
+                true);
+
+        proctoringGUIService.registerNewProcotringRoom(
+                action.getEntityKey().modelId,
+                newRoomName,
+                connectionTokens);
+
+        this.pageService.pageActionBuilder(action.pageContext())
+                .newAction(ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM)
+                .withEntityKey(action.getEntityKey())
+                .withExec(a -> showProctoringRoom(newRoomName, clientTable, a))
+                .withNameAttributes(newRoomName)
+                .noEventPropagation()
+                .publish();
+
+        this.pageService.pageActionBuilder(action.pageContext())
+                .newAction(ActionDefinition.MONITOR_EXAM_CLOSE_PROCTOR_ROOM)
+                .withEntityKey(action.getEntityKey())
+                .withExec(a -> closeProctoringRoom(newRoomName, clientTable, a))
+                .withNameAttributes(newRoomName)
+                .publish();
+
+        return showProctoringRoom(newRoomName, clientTable, action);
+    }
+
+    private PageAction showProctoringRoom(
+            final String roomName,
+            final ClientConnectionTable clientTable,
+            final PageAction action) {
+
+        final SEBProctoringConnectionData proctoringConnectionData = this.pageService.getRestService()
+                .getBuilder(GetProctorRoomConnectionData.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .withQueryParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, roomName)
+                .call()
+                .getOrThrow();
+
+        RWT.getUISession().getHttpSession().setAttribute(
+                ProctoringServlet.SESSION_ATTR_PROCTORING_DATA,
+                proctoringConnectionData);
+
+        final String script = String.format(
+                OPEN_SINGEL_ROOM_SCRIPT,
+                roomName,
+                this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
+                roomName);
+
+        RWT.getClient()
+                .getService(JavaScriptExecutor.class)
+                .execute(script);
+
+        this.pageService.getCurrentUser()
+                .getProctoringGUIService()
+                .registerProctoringWindow(roomName);
+
+        return action;
     }
 
     private static Function<PageAction, PageAction> showStateViewAction(

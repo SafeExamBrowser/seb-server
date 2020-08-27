@@ -684,6 +684,22 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.FILTER),
 
+    MONITOR_EXAM_NEW_PROCTOR_ROOM(
+            new LocTextKey("sebserver.monitoring.exam.action.newroom"),
+            ImageIcon.VISIBILITY,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.PROCTORING),
+    MONITOR_EXAM_VIEW_PROCTOR_ROOM(
+            new LocTextKey("sebserver.monitoring.exam.action.viewroom"),
+            ImageIcon.SHOW,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.PROCTORING),
+    MONITOR_EXAM_CLOSE_PROCTOR_ROOM(
+            new LocTextKey("sebserver.monitoring.exam.action.closeroom"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.PROCTORING),
+
     LOGS_USER_ACTIVITY_LIST(
             new LocTextKey("sebserver.logs.activity.userlogs"),
             PageStateDefinitionImpl.USER_ACTIVITY_LOGS),
@@ -743,6 +759,10 @@ public enum ActionDefinition {
         this.icon = icon;
         this.targetState = targetState;
         this.category = category;
+    }
+
+    public LocTextKey getTitle(final Object... args) {
+        return new LocTextKey(this.title.name, args);
     }
 
 }

@@ -34,6 +34,8 @@ import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
 
 @Component
 @GuiProfile
@@ -46,10 +48,19 @@ public class CurrentUser {
     private SEBServerAuthorizationContext authContext = null;
     private Map<RoleTypeKey, Privilege> privileges = null;
     private final Map<String, String> attributes;
+    private final ProctoringGUIService proctoringGUIService;
 
-    public CurrentUser(final AuthorizationContextHolder authorizationContextHolder) {
+    public CurrentUser(
+            final AuthorizationContextHolder authorizationContextHolder,
+            final RestService restService) {
+
         this.authorizationContextHolder = authorizationContextHolder;
         this.attributes = new HashMap<>();
+        this.proctoringGUIService = new ProctoringGUIService(restService);
+    }
+
+    public ProctoringGUIService getProctoringGUIService() {
+        return this.proctoringGUIService;
     }
 
     public void putAttribute(final String name, final String value) {
@@ -179,6 +190,7 @@ public class CurrentUser {
             this.attributes.clear();
         }
 
+        this.proctoringGUIService.clear();
         this.privileges = null;
 
         if (isAvailable()) {

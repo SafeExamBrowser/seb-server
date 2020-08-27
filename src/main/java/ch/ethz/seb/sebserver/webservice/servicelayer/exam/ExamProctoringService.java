@@ -10,8 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBClientProctoringConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ExamProctoringService {
@@ -20,19 +19,21 @@ public interface ExamProctoringService {
 
     Result<Boolean> testExamProctoring(final ProctoringSettings examProctoring);
 
-    public Result<SEBClientProctoringConnectionData> createProctoringConnectionData(
+    Result<SEBProctoringConnectionData> createProctorPrivateRoomConnection(
+            final ProctoringSettings examProctoring,
+            final String connectionToken);
+
+    Result<SEBProctoringConnectionData> createProctorPublicRoomConnection(
+            final ProctoringSettings examProctoring,
+            final String roomName);
+
+    Result<SEBProctoringConnectionData> createClientPrivateRoomConnection(
+            final ProctoringSettings examProctoring,
+            final String connectionToken);
+
+    Result<SEBProctoringConnectionData> createClientPublicRoomConnection(
             final ProctoringSettings examProctoring,
             final String connectionToken,
-            final boolean server);
-
-    Result<SEBClientProctoringConnectionData> createProctoringConnectionData(
-            final ProctoringSettings examProctoring,
-            ClientConnection clientConnection,
-            boolean server);
-
-    Result<SEBClientProctoringConnectionData> createProcotringDataForRoom(
-            final ProctoringSettings examProctoring,
-            final String roomName,
-            final boolean server);
+            final String roomName);
 
 }

@@ -25,8 +25,8 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBClientProctoringConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -72,64 +72,101 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
     }
 
     @Override
-    public Result<SEBClientProctoringConnectionData> createProctoringConnectionData(
+    public Result<SEBProctoringConnectionData> createProctorPrivateRoomConnection(
             final ProctoringSettings examProctoring,
-            final String connectionToken,
-            final boolean server) {
+            final String connectionToken) {
 
         return Result.tryCatch(() -> {
-            return createProctoringConnectionData(
-                    examProctoring,
-                    this.examSessionService
-                            .getConnectionData(connectionToken)
-                            .getOrThrow().clientConnection,
-                    server)
-                            .getOrThrow();
-        });
-    }
 
-    @Override
-    public Result<SEBClientProctoringConnectionData> createProctoringConnectionData(
-            final ProctoringSettings examProctoring,
-            final ClientConnection clientConnection,
-            final boolean server) {
-
-        return Result.tryCatch(() -> {
+            final ClientConnectionData clientConnection = this.examSessionService.getConnectionData(connectionToken)
+                    .getOrThrow();
 
             final long expTime = forExam(examProctoring);
             final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
             final String roomName = urlEncoder.encodeToString(
-                    Utils.toByteArray(clientConnection.connectionToken));
+                    Utils.toByteArray(clientConnection.clientConnection.connectionToken));
 
             return createProctoringConnectionData(
+                    connectionToken,
                     examProctoring.serverURL,
                     examProctoring.appKey,
                     examProctoring.getAppSecret(),
                     this.authorizationService.getUserService().getCurrentUser().getUsername(),
-                    (server) ? "seb-server" : "seb-client",
+                    "seb-server",
                     roomName,
-                    clientConnection.userSessionId,
+                    clientConnection.clientConnection.userSessionId,
                     expTime)
                             .getOrThrow();
         });
-
     }
 
     @Override
-    public Result<SEBClientProctoringConnectionData> createProcotringDataForRoom(
+    public Result<SEBProctoringConnectionData> createProctorPublicRoomConnection(
             final ProctoringSettings examProctoring,
-            final String roomName,
-            final boolean server) {
+            final String roomName) {
+
+        return Result.tryCatch(() -> {
+            return createProctoringConnectionData(
+                    null,
+                    examProctoring.serverURL,
+                    examProctoring.appKey,
+                    examProctoring.getAppSecret(),
+                    this.authorizationService.getUserService().getCurrentUser().getUsername(),
+                    "seb-server",
+                    roomName,
+                    roomName,
+                    forExam(examProctoring))
+                            .getOrThrow();
+        });
+    }
+
+    @Override
+    public Result<SEBProctoringConnectionData> createClientPrivateRoomConnection(
+            final ProctoringSettings examProctoring,
+            final String connectionToken) {
+
+        // TODO Auto-generated method stub
+        return Result.tryCatch(() -> {
+            final ClientConnectionData clientConnection = this.examSessionService.getConnectionData(connectionToken)
+                    .getOrThrow();
+
+            final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
+            final String roomName = urlEncoder.encodeToString(
+                    Utils.toByteArray(clientConnection.clientConnection.connectionToken));
+
+            return createProctoringConnectionData(
+                    null,
+                    examProctoring.serverURL,
+                    examProctoring.appKey,
+                    examProctoring.getAppSecret(),
+                    clientConnection.clientConnection.userSessionId,
+                    "seb-server",
+                    roomName,
+                    clientConnection.clientConnection.userSessionId,
+                    forExam(examProctoring))
+                            .getOrThrow();
+        });
+    }
+
+    @Override
+    public Result<SEBProctoringConnectionData> createClientPublicRoomConnection(
+            final ProctoringSettings examProctoring,
+            final String connectionToken,
+            final String roomName) {
 
         return Result.tryCatch(() -> {
             final long expTime = forExam(examProctoring);
 
+            final ClientConnectionData connectionData = this.examSessionService.getConnectionData(connectionToken)
+                    .getOrThrow();
+
             return createProctoringConnectionData(
+                    connectionToken,
                     examProctoring.serverURL,
                     examProctoring.appKey,
                     examProctoring.getAppSecret(),
-                    this.authorizationService.getUserService().getCurrentUser().getUsername(),
-                    (server) ? "seb-server" : "seb-client",
+                    connectionData.clientConnection.userSessionId,
+                    "seb-client",
                     roomName,
                     roomName,
                     expTime)
@@ -138,7 +175,8 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
 
     }
 
-    public Result<SEBClientProctoringConnectionData> createProctoringConnectionData(
+    public Result<SEBProctoringConnectionData> createProctoringConnectionData(
+            final String connectionToken,
             final String url,
             final String appKey,
             final CharSequence appSecret,
@@ -165,18 +203,13 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     expTime,
                     host);
 
-            final StringBuilder builder = new StringBuilder();
-            final String connectionURL = builder.append(roomUrl)
-                    .append("?jwt=")
-                    .append(token).toString();
-
-            return new SEBClientProctoringConnectionData(
+            return new SEBProctoringConnectionData(
+                    connectionToken,
                     host,
                     roomUrl,
                     roomName,
                     subject,
-                    token,
-                    connectionURL);
+                    token);
         });
     }
 

@@ -13,14 +13,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SEBClientProctoringConnectionData {
+public class SEBProctoringConnectionData {
 
+    public static final String ATTR_CONNECTION_TOKEN = "connectionToken";
     public static final String ATTR_SERVER_HOST = "serverHost";
     public static final String ATTR_SERVER_URL = "serverURL";
     public static final String ATTR_ROOM_NAME = "roomName";
     public static final String ATTR_SUBJECT = "subject";
     public static final String ATTR_ACCESS_TOKEN = "accessToken";
     public static final String ATTR_CONNECTION_URL = "connectionURL";
+
+    @JsonProperty(ATTR_CONNECTION_TOKEN)
+    public final String connectionToken;
 
     @JsonProperty(ATTR_SERVER_HOST)
     public final String serverHost;
@@ -37,24 +41,25 @@ public class SEBClientProctoringConnectionData {
     @JsonProperty(ATTR_ACCESS_TOKEN)
     public final String accessToken;
 
-    @JsonProperty(ATTR_CONNECTION_URL)
-    public final String connectionURL;
-
     @JsonCreator
-    public SEBClientProctoringConnectionData(
+    public SEBProctoringConnectionData(
+            @JsonProperty(ATTR_CONNECTION_TOKEN) final String connectionToken,
             @JsonProperty(ATTR_SERVER_HOST) final String serverHost,
             @JsonProperty(ATTR_SERVER_URL) final String serverURL,
             @JsonProperty(ATTR_ROOM_NAME) final String roomName,
             @JsonProperty(ATTR_SUBJECT) final String subject,
-            @JsonProperty(ATTR_ACCESS_TOKEN) final String accessToken,
-            @JsonProperty(ATTR_CONNECTION_URL) final String connectionURL) {
+            @JsonProperty(ATTR_ACCESS_TOKEN) final String accessToken) {
 
+        this.connectionToken = connectionToken;
         this.serverHost = serverHost;
         this.serverURL = serverURL;
         this.roomName = roomName;
         this.subject = subject;
         this.accessToken = accessToken;
-        this.connectionURL = connectionURL;
+    }
+
+    public String getConnectionToken() {
+        return this.connectionToken;
     }
 
     public String getServerHost() {
@@ -67,10 +72,6 @@ public class SEBClientProctoringConnectionData {
 
     public String getServerURL() {
         return this.serverURL;
-    }
-
-    public String getConnectionURL() {
-        return this.connectionURL;
     }
 
     public String getRoomName() {
@@ -94,8 +95,6 @@ public class SEBClientProctoringConnectionData {
         builder.append(this.subject);
         builder.append(", accessToken=");
         builder.append(this.accessToken);
-        builder.append(", connectionURL=");
-        builder.append(this.connectionURL);
         builder.append("]");
         return builder.toString();
     }

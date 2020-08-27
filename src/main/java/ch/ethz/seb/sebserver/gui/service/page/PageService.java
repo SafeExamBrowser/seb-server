@@ -454,6 +454,7 @@ public interface PageService {
         private boolean fireActionEvent = true;
         private boolean ignoreMoveAwayFromEdit = false;
         private PageAction switchAction;
+        private Object[] titleArgs;
 
         protected PageActionBuilder(final PageService pageService, final PageContext pageContext) {
             this.pageService = pageService;
@@ -486,7 +487,8 @@ public interface PageService {
                     exec,
                     fireActionEvent,
                     ignoreMoveAwayFromEdit,
-                    switchAction);
+                    switchAction,
+                    titleArgs);
         }
 
         public PageActionBuilder publish() {
@@ -517,6 +519,11 @@ public interface PageService {
 
         public PageActionBuilder withExec(final Function<PageAction, PageAction> exec) {
             this.exec = exec;
+            return this;
+        }
+
+        public PageActionBuilder withNameAttributes(final Object... attributes) {
+            this.titleArgs = attributes;
             return this;
         }
 

@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBClientProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -360,12 +360,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         .getExamProctoring(clientConnection.examId)
                         .getOrThrow();
 
-                final SEBClientProctoringConnectionData proctoringData =
+                final SEBProctoringConnectionData proctoringData =
                         this.examAdminService.getExamProctoringService(proctoringSettings.serverType)
-                                .flatMap(s -> s.createProctoringConnectionData(
+                                .flatMap(s -> s.createClientPrivateRoomConnection(
                                         proctoringSettings,
-                                        clientConnection.connectionToken,
-                                        false))
+                                        clientConnection.connectionToken))
                                 .getOrThrow();
 
                 final Map<String, String> attributes = new HashMap<>();

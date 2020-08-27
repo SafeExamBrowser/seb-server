@@ -43,6 +43,7 @@ public final class PageAction {
     final boolean fireActionEvent;
     final boolean ignoreMoveAwayFromEdit;
     private PageAction switchAction;
+    final Object[] titleArgs;
 
     final LocTextKey successMessage;
 
@@ -56,7 +57,8 @@ public final class PageAction {
             final Function<PageAction, PageAction> exec,
             final boolean fireActionEvent,
             final boolean ignoreMoveAwayFromEdit,
-            final PageAction switchAction) {
+            final PageAction switchAction,
+            final Object[] titleArgs) {
 
         this.definition = definition;
         this.confirm = confirm;
@@ -68,6 +70,7 @@ public final class PageAction {
         this.fireActionEvent = fireActionEvent;
         this.ignoreMoveAwayFromEdit = ignoreMoveAwayFromEdit;
         this.switchAction = switchAction;
+        this.titleArgs = titleArgs;
         if (this.switchAction != null) {
             this.switchAction.switchAction = this;
         }
@@ -89,6 +92,14 @@ public final class PageAction {
         }
 
         return Constants.EMPTY_NOTE;
+    }
+
+    public LocTextKey getTitle() {
+        if (this.titleArgs != null) {
+            return this.definition.getTitle(this.titleArgs);
+        } else {
+            return this.definition.title;
+        }
     }
 
     public PageAction getSwitchAction() {
@@ -277,7 +288,8 @@ public final class PageAction {
                 source.exec,
                 source.fireActionEvent,
                 source.ignoreMoveAwayFromEdit,
-                source.switchAction);
+                source.switchAction,
+                source.titleArgs);
     }
 
 }

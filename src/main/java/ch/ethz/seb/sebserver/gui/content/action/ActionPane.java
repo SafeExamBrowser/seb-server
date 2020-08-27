@@ -81,7 +81,7 @@ public class ActionPane implements TemplateComposer {
                     final Tree treeForGroup = getTreeForGroup(actionTrees, parent, event.action.definition, true);
                     final TreeItem actionItem = ActionPane.this.widgetFactory.treeItemLocalized(
                             treeForGroup,
-                            event.action.definition.title);
+                            event.action.getTitle());
 
                     final Image image = event.active
                             ? event.action.definition.icon.getImage(parent.getDisplay())
@@ -114,6 +114,7 @@ public class ActionPane implements TemplateComposer {
                             continue;
                         }
 
+                        final PageAction action = (PageAction) actionItem.getData(ACTION_EVENT_CALL_KEY);
                         final Image image = event.activation
                                 ? ad.icon.getImage(parent.getDisplay())
                                 : ad.icon.getGreyedImage(parent.getDisplay());
@@ -122,18 +123,21 @@ public class ActionPane implements TemplateComposer {
                             actionItem.setForeground(null);
                         } else {
                             actionItem.setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
-                            ActionPane.this.pageService.getPolyglotPageService().injectI18n(actionItem, ad.title);
+                            ActionPane.this.pageService.getPolyglotPageService().injectI18n(
+                                    actionItem,
+                                    (action != null) ? action.getTitle() : ad.title);
                         }
                     }
 
                     if (event.decoration != null) {
                         final TreeItem actionItemToDecorate = findAction(actionTrees, parent, event.decoration._1);
+                        final PageAction action = (PageAction) actionItemToDecorate.getData(ACTION_EVENT_CALL_KEY);
                         if (actionItemToDecorate != null && event.decoration._2 != null) {
                             actionItemToDecorate.setImage(0,
                                     event.decoration._2.icon.getImage(parent.getDisplay()));
                             ActionPane.this.pageService.getPolyglotPageService().injectI18n(
                                     actionItemToDecorate,
-                                    event.decoration._2.title);
+                                    (action != null) ? action.getTitle() : event.decoration._2.title);
                         }
                     }
                 });
@@ -250,7 +254,7 @@ public class ActionPane implements TemplateComposer {
                 final PageAction switchAction = action.getSwitchAction();
                 if (switchAction != null) {
                     final PolyglotPageService polyglotPageService = this.pageService.getPolyglotPageService();
-                    polyglotPageService.injectI18n(treeItem, switchAction.definition.title);
+                    polyglotPageService.injectI18n(treeItem, switchAction.getTitle());
                     treeItem.setImage(switchAction.definition.icon.getImage(treeItem.getDisplay()));
                     treeItem.setData(ACTION_EVENT_CALL_KEY, switchAction);
                 }

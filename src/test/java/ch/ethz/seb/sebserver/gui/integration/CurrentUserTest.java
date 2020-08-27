@@ -24,7 +24,7 @@ public class CurrentUserTest extends GuiIntegrationTest {
     public void testCurrentUserLoginAndGet() {
         final OAuth2AuthorizationContextHolder authorizationContextHolder = getAuthorizationContextHolder();
 
-        final CurrentUser currentUser = new CurrentUser(authorizationContextHolder);
+        final CurrentUser currentUser = new CurrentUser(authorizationContextHolder, null);
 
         // no user is logged in for now
         try {
@@ -51,7 +51,7 @@ public class CurrentUserTest extends GuiIntegrationTest {
     public void testCurrentUserPrivileges() {
         final OAuth2AuthorizationContextHolder authorizationContextHolder = getAuthorizationContextHolder();
 
-        final CurrentUser currentUser = new CurrentUser(authorizationContextHolder);
+        final CurrentUser currentUser = new CurrentUser(authorizationContextHolder, null);
         // login as SEB Administrator
         authorizationContextHolder.getAuthorizationContext().login("admin", "admin");
 
@@ -64,7 +64,7 @@ public class CurrentUserTest extends GuiIntegrationTest {
     @Test
     public void testCurrentUserLogin() {
         final OAuth2AuthorizationContextHolder authorizationContextHolder = login("admin", "admin");
-        final CurrentUser currentUser = new CurrentUser(authorizationContextHolder);
+        final CurrentUser currentUser = new CurrentUser(authorizationContextHolder, null);
         final UserInfo userInfo = currentUser.getOrHandleError(error -> {
             fail("expecting no error here");
             return null;
