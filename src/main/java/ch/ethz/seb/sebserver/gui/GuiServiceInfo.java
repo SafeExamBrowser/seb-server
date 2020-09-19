@@ -33,7 +33,7 @@ public class GuiServiceInfo {
             @Value("${server.address}") final String internalServer,
             @Value("${sebserver.gui.http.external.servername}") final String externalServer,
             @Value("${server.port}") final String internalPort,
-            @Value("${sebserver.webservice.http.external.port}") final String externalPort,
+            @Value("${sebserver.gui.http.external.port}") final String externalPort,
             @Value("${sebserver.gui.entrypoint:/gui}") final String entryPoint) {
 
         this.externalScheme = externalScheme;
