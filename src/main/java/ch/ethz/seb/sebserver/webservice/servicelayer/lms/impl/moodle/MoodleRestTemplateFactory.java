@@ -225,7 +225,7 @@ class MoodleRestTemplateFactory {
                         MoodleRestTemplateFactory.this.jsonMapper.readValue(apiInfo, WebserviceInfo.class);
 
                 if (StringUtils.isBlank(webserviceInfo.username) || StringUtils.isBlank(webserviceInfo.userid)) {
-                    throw new RuntimeException("Ivalid WebserviceInfo: " + webserviceInfo);
+                    throw new RuntimeException("Invalid WebserviceInfo: " + webserviceInfo);
                 }
 
                 final List<String> missingAPIFunctions = Arrays.stream(functions)

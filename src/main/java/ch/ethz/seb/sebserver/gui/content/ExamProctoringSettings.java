@@ -52,6 +52,8 @@ public class ExamProctoringSettings {
             new LocTextKey("sebserver.exam.proctoring.form.title");
     private final static LocTextKey SEB_PROCTORING_FORM_INFO =
             new LocTextKey("sebserver.exam.proctoring.form.info");
+    private final static LocTextKey SEB_PROCTORING_FORM_INFO_TITLE =
+            new LocTextKey("sebserver.exam.proctoring.form.info.title");
     private final static LocTextKey SEB_PROCTORING_FORM_ENABLE =
             new LocTextKey("sebserver.exam.proctoring.form.enabled");
     private final static LocTextKey SEB_PROCTORING_FORM_TYPE =
@@ -200,7 +202,7 @@ public class ExamProctoringSettings {
 
                     .addField(FormBuilder.text(
                             "Info",
-                            SEB_PROCTORING_FORM_INFO,
+                            SEB_PROCTORING_FORM_INFO_TITLE,
                             this.pageService.getI18nSupport().getText(SEB_PROCTORING_FORM_INFO))
                             .asArea(50)
                             .asHTML()

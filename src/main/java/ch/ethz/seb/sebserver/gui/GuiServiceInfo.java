@@ -43,11 +43,17 @@ public class GuiServiceInfo {
         this.externalPort = externalPort;
         this.entryPoint = entryPoint;
         this.internalServerURIBuilder = UriComponentsBuilder
-                .fromHttpUrl("http://" + this.internalServer)
-                .port(this.internalPort);
+                .fromHttpUrl("http://" + this.internalServer);
+        if (StringUtils.isNotBlank(internalPort)) {
+            this.internalServerURIBuilder.port(this.internalPort);
+        }
         this.externalServerURIBuilder = UriComponentsBuilder
-                .fromHttpUrl(this.externalScheme + "://" + this.externalServer)
-                .port(this.externalPort);
+                .fromHttpUrl(this.externalScheme + "://" + this.externalServer);
+        if (StringUtils.isNotBlank(externalPort)) {
+            this.externalServerURIBuilder.port(this.externalPort);
+        } else if (StringUtils.isNotBlank(internalPort)) {
+            this.externalServerURIBuilder.port(this.internalPort);
+        }
     }
 
     public String getExternalScheme() {

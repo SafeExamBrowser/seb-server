@@ -125,7 +125,6 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
             final ProctoringSettings examProctoring,
             final String connectionToken) {
 
-        // TODO Auto-generated method stub
         return Result.tryCatch(() -> {
             final ClientConnectionData clientConnection = this.examSessionService.getConnectionData(connectionToken)
                     .getOrThrow();
@@ -188,7 +187,6 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
 
         return Result.tryCatch(() -> {
 
-            final String roomUrl = createServerConnectionURL(url, roomName);
             final String host = UriComponentsBuilder.fromHttpUrl(url)
                     .build()
                     .getHost();
@@ -206,25 +204,11 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
             return new SEBProctoringConnectionData(
                     connectionToken,
                     host,
-                    roomUrl,
+                    url,
                     roomName,
                     subject,
                     token);
         });
-    }
-
-    private String createServerConnectionURL(
-            final String url,
-            final String roomName) {
-
-        final StringBuilder builder = new StringBuilder();
-        builder.append(url);
-        if (!url.endsWith(Constants.URL_PATH_SEPARATOR)) {
-            builder.append(Constants.URL_PATH_SEPARATOR);
-        }
-
-        return builder.append(roomName)
-                .toString();
     }
 
     private String createAccessToken(

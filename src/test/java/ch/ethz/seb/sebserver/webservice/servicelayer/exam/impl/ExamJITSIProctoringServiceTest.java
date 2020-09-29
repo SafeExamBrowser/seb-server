@@ -39,7 +39,7 @@ public class ExamJITSIProctoringServiceTest {
 
         assertNotNull(data);
         assertEquals(
-                "https://seb-jitsi.example.ch/SomeRoom",
+                "https://seb-jitsi.example.ch",
                 data.serverURL);
         assertEquals(
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsibmFtZSI6IlRlc3QgTmFtZSJ9fSwiaXNzIjoidGVzdC1hcHAiLCJhdWQiOiJ0ZXN0LWNsaWVudCIsInN1YiI6InNlYi1qaXRzaS5leGFtcGxlLmNoIiwicm9vbSI6IlNvbWVSb29tIiwiZXhwIjoxNjA5NDU5MjAwfQ.4ovqUkG6jrLvkDEZNdhbtFI_DFLDFsM2eBJHhcYq7a4",

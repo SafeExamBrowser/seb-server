@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.Error;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -395,7 +396,10 @@ public class LmsSetupForm implements TemplateComposer {
 
         return handleTestResult(
                 action,
-                Function.identity(),
+                info -> {
+                    action.pageContext().publishInfo(info);
+                    return action;
+                },
                 result.getOrThrow());
     }
 
@@ -423,10 +427,8 @@ public class LmsSetupForm implements TemplateComposer {
 
         return handleTestResult(
                 action,
-                a -> {
-                    action.pageContext().publishInfo(
-                            new LocTextKey("sebserver.lmssetup.action.test.ok"));
-
+                info -> {
+                    action.pageContext().publishInfo(info);
                     return action;
                 },
                 result.getOrThrow());
@@ -434,44 +436,52 @@ public class LmsSetupForm implements TemplateComposer {
 
     private static PageAction handleTestResult(
             final PageAction action,
-            final Function<PageAction, PageAction> onOK,
+            final Function<LocTextKey, PageAction> onOK,
             final LmsSetupTestResult testResult) {
 
         if (testResult.isOk()) {
-            return onOK.apply(action);
+            return onOK.apply(new LocTextKey("sebserver.lmssetup.action.test.ok"));
         }
 
-        testResult.errors
+        final Error error = testResult.errors
                 .stream()
                 .findFirst()
-                .ifPresent(error -> {
-                    switch (error.errorType) {
-                        case TOKEN_REQUEST: {
-                            throw new PageMessageException(new LocTextKey(
-                                    "sebserver.lmssetup.action.test.tokenRequestError",
-                                    Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
-                        }
-                        case QUIZ_ACCESS_API_REQUEST: {
-                            throw new PageMessageException(new LocTextKey(
-                                    "sebserver.lmssetup.action.test.quizRequestError",
-                                    Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
-                        }
-                        case QUIZ_RESTRICTION_API_REQUEST: {
+                .orElse(null);
+        if (error != null) {
 
-                            throw new PageMessageException(new LocTextKey(
-                                    "sebserver.lmssetup.action.test.features.error",
-                                    "OK",
-                                    Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
-                        }
-                        default: {
-                            throw new PageMessageException(new LocTextKey(
-                                    "sebserver.lmssetup.action.test.unknownError",
-                                    Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
-                        }
-                    }
-                });
+            switch (error.errorType) {
+                case TOKEN_REQUEST: {
+                    throw new PageMessageException(new LocTextKey(
+                            "sebserver.lmssetup.action.test.tokenRequestError",
+                            Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
+                }
+                case QUIZ_ACCESS_API_REQUEST: {
+                    throw new PageMessageException(new LocTextKey(
+                            "sebserver.lmssetup.action.test.quizRequestError",
+                            Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
+                }
+                case QUIZ_RESTRICTION_API_REQUEST: {
+                    final LocTextKey locTextKey = new LocTextKey(
+                            "sebserver.lmssetup.action.test.features.error",
+                            "OK",
+                            Utils.formatHTMLLinesForceEscaped(
+                                    Utils.escapeHTML_XML_EcmaScript(error.message)));
+                    return onOK.apply(locTextKey);
+//                            throw new PageMessageException(new LocTextKey(
+//                                    "sebserver.lmssetup.action.test.features.error",
+//                                    "OK",
+//                                    Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
 
-        return onOK.apply(action);
+                }
+                default: {
+                    throw new PageMessageException(new LocTextKey(
+                            "sebserver.lmssetup.action.test.unknownError",
+                            Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
+                }
+            }
+        } else {
+            return onOK.apply(new LocTextKey("sebserver.lmssetup.action.test.ok"));
+        }
     }
 
 }

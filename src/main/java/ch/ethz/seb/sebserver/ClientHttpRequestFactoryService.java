@@ -104,8 +104,12 @@ public class ClientHttpRequestFactoryService {
     /** A ClientHttpRequestFactory for development profile with no TSL SSL protocol and
      * not following redirects on redirect responses.
      *
-     * @return ClientHttpRequestFactory bean for development profiles */
-    private ClientHttpRequestFactory clientHttpRequestFactory(final ProxyData proxy) {
+     * @return ClientHttpRequestFactory bean for development profiles
+     * @throws KeyStoreException
+     * @throws NoSuchAlgorithmException
+     * @throws KeyManagementException */
+    private ClientHttpRequestFactory clientHttpRequestFactory(final ProxyData proxy)
+            throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
 
         if (log.isDebugEnabled()) {
             log.debug("Initialize ClientHttpRequestFactory with insecure ClientHttpRequestFactory for development");
