@@ -40,7 +40,14 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (1133, 'jitsiMeetSendVideo', 'CHECKBOX', null, null, null, null, 'true')
     ;
     
+UPDATE orientation SET width='4' WHERE id='68';
+    
 INSERT INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
+    (942, 0, 5, 'quitLink', 4, 5, 4, 1, 'NONE'),
+    
+    (940, 0, 5, 'examSession', 0, 7, 8, 1, 'NONE'),
+    (941, 0, 5, 'examSession', 2, 8, 6, 1, 'LEFT_SPAN'),
+
     (1129, 0,  @proct_view_id, null, 3, 1, 3, 1, 'LEFT_SPAN'),
     (1130, 0,  @proct_view_id, null, 0, 2, 6, 1, 'NONE'),
     (1131, 0,  @proct_view_id, null, 0, 3, 6, 1, 'NONE'),
