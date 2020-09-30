@@ -9,6 +9,6 @@ INSERT INTO configuration_attribute VALUES
     (945, 'blockScreenShotsLegacy', 'CHECKBOX', null, null, null, null, 'false'),
     (946, 'enableAAC', 'CHECKBOX', null, null, null, null, 'true'),
     (947, 'enablePrivateClipboardMacEnforce', 'CHECKBOX', null, null, null, null, 'true'),
-    (948, 'enablePrivateClipboardMacEnforce', 'CHECKBOX', null, null, null, null, 'false')
+    (948, 'screenSharingMacEnforceBlocked', 'CHECKBOX', null, null, null, null, 'false')
     
     ;
