@@ -149,7 +149,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     null,
                     data.clientAddress,
                     data.virtualClientAddress,
-                    Utils.getMillisecondsNow());
+                    Utils.getMillisecondsNow(),
+                    data.proctorRoomId);
 
             this.clientConnectionRecordMapper.insert(newRecord);
             return newRecord;
@@ -172,7 +173,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.userSessionId,
                     data.clientAddress,
                     data.virtualClientAddress,
-                    null);
+                    null,
+                    data.proctorRoomId);
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
@@ -349,7 +351,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getExamUserSessionId(),
                     record.getClientAddress(),
                     record.getVirtualClientAddress(),
-                    record.getCreationTime());
+                    record.getCreationTime(),
+                    record.getProctorRoomId());
         });
     }
 

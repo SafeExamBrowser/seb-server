@@ -239,7 +239,7 @@ public class ModelObjectJSONGenerator {
         domainObject =
                 new ClientConnection(
                         1L, 1L, 1L, ConnectionStatus.ACTIVE, UUID.randomUUID().toString(),
-                        "user-account-1", "86.119.30.213", "0.0.0.0", System.currentTimeMillis());
+                        "user-account-1", "86.119.30.213", "0.0.0.0", System.currentTimeMillis(), null);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
@@ -247,7 +247,7 @@ public class ModelObjectJSONGenerator {
                 false,
                 new ClientConnection(
                         1L, 1L, 1L, ConnectionStatus.ACTIVE, UUID.randomUUID().toString(),
-                        "user-account-1", "86.119.30.213", "0.0.0.0", System.currentTimeMillis()),
+                        "user-account-1", "86.119.30.213", "0.0.0.0", System.currentTimeMillis(), null),
                 Arrays.asList(
                         new SimpleIndicatorValue(IndicatorType.LAST_PING, 1.0),
                         new SimpleIndicatorValue(IndicatorType.ERROR_COUNT, 2.0),

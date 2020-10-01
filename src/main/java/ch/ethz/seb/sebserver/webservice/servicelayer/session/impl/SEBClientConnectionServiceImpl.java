@@ -144,7 +144,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     clientAddress,
                     null,
-                    Utils.getMillisecondsNow()))
+                    Utils.getMillisecondsNow(),
+                    null))
                     .getOrThrow();
 
             // load client connection data into cache
@@ -231,6 +232,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             userSessionId,
                             null,
                             virtualClientAddress,
+                            null,
                             null))
                     .getOrThrow();
 
@@ -296,6 +298,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     clientAddress,
                     clientConnection.clientAddress);
 
+            // TODO verify proctor room id
+            final Long proctorRoomId = null;
+
             // create new ClientConnection for update
             final ClientConnection establishedClientConnection = new ClientConnection(
                     clientConnection.id,
@@ -306,7 +311,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     clientConnection.userSessionId,
                     null,
                     virtualClientAddress,
-                    null);
+                    null,
+                    proctorRoomId);
 
             // ClientConnection integrity
             if (clientConnection.institutionId == null ||
@@ -675,6 +681,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     accountId,
                     null,
                     null,
+                    null,
                     null);
 
             clientConnection = this.clientConnectionDAO
@@ -710,7 +717,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private ClientConnection saveInState(final ClientConnection clientConnection, final ConnectionStatus status) {
         return this.clientConnectionDAO.save(new ClientConnection(
                 clientConnection.id, null, null,
-                status, null, null, null, null, null))
+                status, null, null, null, null, null, null))
                 .getOrThrow();
     }
 

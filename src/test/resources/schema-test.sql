@@ -81,6 +81,28 @@ CREATE TABLE IF NOT EXISTS `exam` (
 
 
 -- -----------------------------------------------------
+-- Table `proctor_room`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `proctor_room` ;
+
+CREATE TABLE IF NOT EXISTS `proctor_room` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `exam_id` BIGINT UNSIGNED NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `size` INT NULL,
+  `subject` VARCHAR(255) NULL,
+  `token` VARCHAR(4000) NULL,
+  PRIMARY KEY (`id`),
+  INDEX `proctor_room_exam_id_idx` (`exam_id` ASC),
+  CONSTRAINT `proctorRoomExamRef`
+    FOREIGN KEY (`exam_id`)
+    REFERENCES `exam` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+;
+
+
+-- -----------------------------------------------------
 -- Table `client_connection`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `client_connection` ;
@@ -95,10 +117,12 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `client_address` VARCHAR(45) NOT NULL,
   `virtual_client_address` VARCHAR(45) NULL,
   `creation_time` BIGINT UNSIGNED NOT NULL,
+  `proctor_room_id` BIGINT UNSIGNED NULL,
   PRIMARY KEY (`id`),
   INDEX `connection_exam_ref_idx` (`exam_id` ASC),
   INDEX `clientConnectionInstitutionRef_idx` (`institution_id` ASC),
   INDEX `connectionTokenRef` (`connection_token` ASC),
+  INDEX `clientConnectionProctorRoomRef_idx` (`proctor_room_id` ASC),
   CONSTRAINT `clientConnectionExamRef`
     FOREIGN KEY (`exam_id`)
     REFERENCES `exam` (`id`)
@@ -107,6 +131,11 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   CONSTRAINT `clientConnectionInstitutionRef`
     FOREIGN KEY (`institution_id`)
     REFERENCES `institution` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `clientConnectionProctorRoomRef`
+    FOREIGN KEY (`proctor_room_id`)
+    REFERENCES `proctor_room` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
@@ -539,3 +568,5 @@ CREATE TABLE IF NOT EXISTS `client_instruction` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
+
+
