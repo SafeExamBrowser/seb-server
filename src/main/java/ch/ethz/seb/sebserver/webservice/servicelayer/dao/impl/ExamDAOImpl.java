@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
@@ -82,6 +83,13 @@ public class ExamDAOImpl implements ExamDAO {
     public Result<Exam> byPK(final Long id) {
         return recordById(id)
                 .flatMap(this::toDomainModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<GrantEntity> examGrantEntityByPK(final Long id) {
+        return recordById(id)
+                .map(record -> toDomainModel(record, null).getOrThrow());
     }
 
     @Override
