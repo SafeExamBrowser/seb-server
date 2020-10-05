@@ -796,10 +796,6 @@ public class ExamDAOImpl implements ExamDAO {
             final ExamRecord record,
             final QuizData quizData) {
 
-        if (quizData == null) {
-            return Result.ofRuntimeError("No quizData found for exam: " + record);
-        }
-
         return Result.tryCatch(() -> {
 
             final Collection<String> supporter = (StringUtils.isNotBlank(record.getSupporter()))
@@ -819,11 +815,11 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getInstitutionId(),
                     record.getLmsSetupId(),
                     record.getExternalId(),
-                    quizData.name,
-                    quizData.description,
-                    quizData.startTime,
-                    quizData.endTime,
-                    quizData.startURL,
+                    (quizData != null) ? quizData.name : "[Failed to load quiz data]",
+                    (quizData != null) ? quizData.description : "[Failed to load quiz data]",
+                    (quizData != null) ? quizData.startTime : null,
+                    (quizData != null) ? quizData.endTime : null,
+                    (quizData != null) ? quizData.startURL : Constants.EMPTY_NOTE,
                     ExamType.valueOf(record.getType()),
                     record.getOwner(),
                     supporter,
