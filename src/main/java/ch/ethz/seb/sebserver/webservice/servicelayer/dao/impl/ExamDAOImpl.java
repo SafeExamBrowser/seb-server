@@ -92,12 +92,11 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Exam> byClientConnection(final Long connectionId) {
+    public Result<GrantEntity> examGrantEntityByClientConnection(final Long connectionId) {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper
                 .selectByPrimaryKey(connectionId))
                 .flatMap(ccRecord -> recordById(ccRecord.getExamId()))
-                .flatMap(this::toDomainModelCached)
-                .onError(TransactionHandler::rollback);
+                .map(record -> toDomainModel(record, null).getOrThrow());
     }
 
     @Override
@@ -669,14 +668,6 @@ public class ExamDAOImpl implements ExamDAO {
             }
             return record;
         });
-    }
-
-    private Result<Exam> toDomainModelCached(final ExamRecord record) {
-        return Result.tryCatch(() -> this.lmsAPIService
-                .getLmsAPITemplate(record.getLmsSetupId())
-                .getOrThrow())
-                .flatMap(template -> template.getQuizFromCache(record.getExternalId()))
-                .flatMap(quizData -> this.toDomainModel(record, quizData));
     }
 
     private Result<Exam> toDomainModel(final ExamRecord record) {

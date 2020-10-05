@@ -239,9 +239,13 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 .putIfAbsent(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
                 .putIfAbsent(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name());
 
+        // NOTE: we evict the exam from the cache (if present) to ensure user is seeing always the current state of the Exam
         return this.examDAO.allMatching(filterMap, predicate)
                 .map(col -> col.stream()
-                        .map(exam -> this.examSessionCacheService.getRunningExam(exam.id))
+                        .map(exam -> {
+                            this.examSessionCacheService.evict(exam);
+                            return this.examSessionCacheService.getRunningExam(exam.id);
+                        })
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList()));
     }

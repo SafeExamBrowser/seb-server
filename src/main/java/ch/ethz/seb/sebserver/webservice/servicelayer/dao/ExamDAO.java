@@ -24,10 +24,18 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     /** Get a GrantEntity for the exam of specified id (PK)
      * This is actually a Exam instance but with no course data loaded.
-     * 
+     *
      * @param id The id of the exam (PK)
      * @return Result referring to the GrantEntity of the exam or to an error when happened */
     Result<GrantEntity> examGrantEntityByPK(final Long id);
+
+    /** Get an Exam GrantEntity by a given ClientConnection id.
+     * This is actually a Exam instance but with no course data loaded.
+     *
+     * @param connectionId the connection identifier
+     * @return a Result containing the Exam GrantEntity by a given ClientConnection id or refer to an error if
+     *         happened */
+    Result<GrantEntity> examGrantEntityByClientConnection(Long connectionId);
 
     /** Get all active Exams for a given institution.
      *
@@ -55,12 +63,6 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
             cacheNames = ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM,
             key = "#exam.id")
     Result<Exam> save(Exam exam);
-
-    /** Get an Exam by a given ClientConnection id.
-     *
-     * @param connectionId the connection identifier
-     * @return a Result containing the Exam by a given ClientConnection id or refer to an error if happened */
-    Result<Exam> byClientConnection(Long connectionId);
 
     /** Use this to get identifiers of all exams in a specified state for a specified institution.
      *
