@@ -33,6 +33,7 @@ public class ProctoringSettings implements Entity {
     public static final String ATTR_SERVER_URL = "serverURL";
     public static final String ATTR_APP_KEY = "appKey";
     public static final String ATTR_APP_SECRET = "appSecret";
+    public static final String ATTR_COLLECTING_ROOM_SIZE = "collectingRoomSize";
 
     @JsonProperty(Domain.EXAM.ATTR_ID)
     public final Long examId;
@@ -53,12 +54,16 @@ public class ProctoringSettings implements Entity {
     @JsonProperty(ATTR_APP_SECRET)
     public final CharSequence appSecret;
 
+    @JsonProperty(ATTR_COLLECTING_ROOM_SIZE)
+    public final Long collectingRoomSize;
+
     @JsonCreator
     public ProctoringSettings(
             @JsonProperty(Domain.EXAM.ATTR_ID) final Long examId,
             @JsonProperty(ATTR_ENABLE_PROCTORING) final Boolean enableProctoring,
             @JsonProperty(ATTR_SERVER_TYPE) final ServerType serverType,
             @JsonProperty(ATTR_SERVER_URL) final String serverURL,
+            @JsonProperty(ATTR_COLLECTING_ROOM_SIZE) final Long collectingRoomSize,
             @JsonProperty(ATTR_APP_KEY) final String appKey,
             @JsonProperty(ATTR_APP_SECRET) final CharSequence appSecret) {
 
@@ -66,6 +71,7 @@ public class ProctoringSettings implements Entity {
         this.enableProctoring = BooleanUtils.isTrue(enableProctoring);
         this.serverType = (serverType != null) ? serverType : ServerType.JITSI_MEET;
         this.serverURL = serverURL;
+        this.collectingRoomSize = (collectingRoomSize != null) ? collectingRoomSize : 20;
         this.appKey = appKey;
         this.appSecret = appSecret;
     }
@@ -99,6 +105,10 @@ public class ProctoringSettings implements Entity {
 
     public String getServerURL() {
         return this.serverURL;
+    }
+
+    public Long getCollectingRoomSize() {
+        return this.collectingRoomSize;
     }
 
     public String getAppKey() {
@@ -140,7 +150,7 @@ public class ProctoringSettings implements Entity {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("ExamProctoring [examId=");
+        builder.append("ProctoringSettings [examId=");
         builder.append(this.examId);
         builder.append(", enableProctoring=");
         builder.append(this.enableProctoring);
@@ -148,10 +158,8 @@ public class ProctoringSettings implements Entity {
         builder.append(this.serverType);
         builder.append(", serverURL=");
         builder.append(this.serverURL);
-        builder.append(", appKey=");
-        builder.append(this.appKey);
-        builder.append(", appSecret=");
-        builder.append("--");
+        builder.append(", collectingRoomSize=");
+        builder.append(this.collectingRoomSize);
         builder.append("]");
         return builder.toString();
     }

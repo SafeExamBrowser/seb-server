@@ -282,9 +282,9 @@ public class MonitoringClientConnection implements TemplateComposer {
 
     // @formatter:off
     private static final String OPEN_SINGEL_ROOM_SCRIPT =
-            "var existingWin = window.open('', '%s', 'height=420,width=620,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes');\n" +
+            "var existingWin = window.open('', '%s', 'height=420,width=620,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
             "if(existingWin.location.href === 'about:blank'){\n" +
-            "    existingWin.location.href = '%s/proctoring/%s';\n" +
+            "    existingWin.location.href = '%s/proc/%s';\n" +
             "    existingWin.focus();\n" +
             "} else {\n" +
             "    existingWin.focus();\n" +
@@ -305,6 +305,10 @@ public class MonitoringClientConnection implements TemplateComposer {
         RWT.getUISession().getHttpSession().setAttribute(
                 ProctoringServlet.SESSION_ATTR_PROCTORING_DATA,
                 proctoringConnectionData);
+
+//        final String url = this.guiServiceInfo.getExternalServerURIBuilder().toUriString() + "/proctoring/" + roomName;
+//        final ProctorDialog proctorDialog = new ProctorDialog(action.pageContext().getShell());
+//        proctorDialog.open(new LocTextKey("title"), url);
 
         final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
         final String script = String.format(

@@ -58,6 +58,11 @@ public class RAPSpringConfig {
     }
 
     @Bean
+    public ServletRegistrationBean<RWTServlet> servletRegistrationBeanProc() {
+        return new ServletRegistrationBean<>(new RWTServlet(), "/proc/*");
+    }
+
+    @Bean
     public ServletRegistrationBean<ProctoringServlet> servletProctoringRegistrationBean(
             final ApplicationContext applicationContext) {
 

@@ -115,7 +115,7 @@ public class ProctoringGUIService {
             closeWindow(name);
             final RoomConnectionData roomConnectionData = this.rooms.remove(name);
             if (roomConnectionData != null) {
-                // first send instruction to leave this room and join the personal single room
+                // first send instruction to leave this room and join the personal room
                 final String connectionsString = StringUtils.join(
                         roomConnectionData.connections
                                 .stream()

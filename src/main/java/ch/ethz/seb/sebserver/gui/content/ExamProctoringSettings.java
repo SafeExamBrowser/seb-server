@@ -60,6 +60,8 @@ public class ExamProctoringSettings {
             new LocTextKey("sebserver.exam.proctoring.form.type");
     private final static LocTextKey SEB_PROCTORING_FORM_URL =
             new LocTextKey("sebserver.exam.proctoring.form.url");
+    private final static LocTextKey SEB_PROCTORING_FORM_ROOM_SIZE =
+            new LocTextKey("sebserver.exam.proctoring.form.collectingRoomSize");
     private final static LocTextKey SEB_PROCTORING_FORM_APPKEY =
             new LocTextKey("sebserver.exam.proctoring.form.appkey");
     private final static LocTextKey SEB_PROCTORING_FORM_SECRET =
@@ -123,6 +125,7 @@ public class ExamProctoringSettings {
                     enabled,
                     serverType,
                     form.getFieldValue(ProctoringSettings.ATTR_SERVER_URL),
+                    Long.parseLong(form.getFieldValue(ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE)),
                     form.getFieldValue(ProctoringSettings.ATTR_APP_KEY),
                     form.getFieldValue(ProctoringSettings.ATTR_APP_SECRET));
 
@@ -196,8 +199,9 @@ public class ExamProctoringSettings {
 
             final FormHandle<ProctoringSettings> formHandle = this.pageService.formBuilder(
                     formContext)
-                    .withDefaultSpanInput(6)
-                    .withEmptyCellSeparation(false)
+                    .withDefaultSpanInput(5)
+                    .withEmptyCellSeparation(true)
+                    .withDefaultSpanEmptyCell(1)
                     .readonly(isReadonly)
 
                     .addField(FormBuilder.text(
@@ -223,11 +227,21 @@ public class ExamProctoringSettings {
                             ProctoringSettings.ATTR_SERVER_URL,
                             SEB_PROCTORING_FORM_URL,
                             proctoringSettings.serverURL))
+                    .withDefaultSpanInput(1)
+
+                    .addField(FormBuilder.text(
+                            ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE,
+                            SEB_PROCTORING_FORM_ROOM_SIZE,
+                            String.valueOf(proctoringSettings.getCollectingRoomSize()))
+                            .asNumber(numString -> Long.parseLong(numString)))
+                    .withDefaultSpanInput(5)
+                    .withDefaultSpanEmptyCell(4)
 
                     .addField(FormBuilder.text(
                             ProctoringSettings.ATTR_APP_KEY,
                             SEB_PROCTORING_FORM_APPKEY,
                             proctoringSettings.appKey))
+                    .withEmptyCellSeparation(false)
 
                     .addField(FormBuilder.password(
                             ProctoringSettings.ATTR_APP_SECRET,

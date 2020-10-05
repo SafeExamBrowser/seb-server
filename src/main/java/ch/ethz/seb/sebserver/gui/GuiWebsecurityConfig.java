@@ -51,6 +51,8 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
                 .ignoring()
                 .requestMatchers(PUBLIC_URLS)
                 .antMatchers(this.guiEntryPoint)
+                .antMatchers("/proc*")
+                .antMatchers("/proc/*")
                 .antMatchers("/proctoring/*");
     }
 

@@ -168,6 +168,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                             getEnabled(mapping),
                             getServerType(mapping),
                             getString(mapping, ProctoringSettings.ATTR_SERVER_URL),
+                            getCollectingRoomSize(mapping),
                             getString(mapping, ProctoringSettings.ATTR_APP_KEY),
                             getString(mapping, ProctoringSettings.ATTR_APP_SECRET));
                 });
@@ -195,6 +196,12 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     examId,
                     ProctoringSettings.ATTR_SERVER_URL,
                     examProctoring.serverURL);
+
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.EXAM,
+                    examId,
+                    ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE,
+                    String.valueOf(examProctoring.collectingRoomSize));
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
@@ -251,6 +258,14 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             return mapping.get(name).getValue();
         } else {
             return null;
+        }
+    }
+
+    private Long getCollectingRoomSize(final Map<String, AdditionalAttributeRecord> mapping) {
+        if (mapping.containsKey(ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE)) {
+            return Long.valueOf(mapping.get(ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE).getValue());
+        } else {
+            return 20L;
         }
     }
 

@@ -55,6 +55,21 @@ public class RAPConfiguration implements ApplicationConfiguration {
             properties.put(WebClient.THEME_ID, DEFAULT_THEME_NAME);
             //        properties.put(WebClient.FAVICON, "icons/favicon.png");
             application.addEntryPoint("/gui", new RAPSpringEntryPointFactory(), properties);
+            application.addEntryPoint("/proc", new EntryPointFactory() {
+
+                @Override
+                public EntryPoint create() {
+                    return new AbstractEntryPoint() {
+
+                        private static final long serialVersionUID = -1299125117752916270L;
+
+                        @Override
+                        protected void createContents(final Composite parent) {
+                            System.out.print("******");
+                        }
+                    };
+                }
+            }, properties);
 
         } catch (final RuntimeException re) {
             throw re;
