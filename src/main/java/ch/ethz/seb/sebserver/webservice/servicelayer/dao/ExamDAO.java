@@ -12,6 +12,7 @@ import java.util.Collection;
 
 import org.springframework.cache.annotation.CacheEvict;
 
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -20,6 +21,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCac
 
 /** Concrete EntityDAO interface of Exam entities */
 public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSupportDAO<Exam> {
+
+    /** Get a GrantEntity for the exam of specified id (PK)
+     * This is actually a Exam instance but with no course data loaded.
+     * 
+     * @param id The id of the exam (PK)
+     * @return Result referring to the GrantEntity of the exam or to an error when happened */
+    Result<GrantEntity> examGrantEntityByPK(final Long id);
 
     /** Get all active Exams for a given institution.
      *

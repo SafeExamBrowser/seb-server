@@ -108,7 +108,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
         }
 
         return this.examDao
-                .byPK(entity.examId)
+                .examGrantEntityByPK(entity.examId)
                 .getOrThrow();
     }
 
