@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui;
 
-import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextListener;
+
 import org.eclipse.rap.rwt.engine.RWTServlet;
 import org.eclipse.rap.rwt.engine.RWTServletContextListener;
 import org.slf4j.Logger;
@@ -22,8 +24,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextListener;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 
 @Configuration
 @GuiProfile
@@ -38,7 +39,13 @@ public class RAPSpringConfig {
     private String externalMessagesPath;
 
     @Bean
+    public StaticApplicationPropertyResolver staticApplicationPropertyResolver() {
+        return new StaticApplicationPropertyResolver();
+    }
+
+    @Bean
     public ServletContextInitializer initializer() {
+        staticApplicationPropertyResolver();
         return new RAPServletContextInitializer();
     }
 
