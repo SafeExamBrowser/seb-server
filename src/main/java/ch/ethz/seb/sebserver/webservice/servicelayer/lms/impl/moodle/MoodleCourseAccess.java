@@ -18,7 +18,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.coyote.http11.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
@@ -29,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
@@ -48,7 +48,7 @@ public class MoodleCourseAccess extends CourseAccess {
 
     private static final Logger log = LoggerFactory.getLogger(MoodleCourseAccess.class);
 
-    private static final String MOODLE_QUIZ_START_URL_PATH = "mod/quiz/view.php?id=";
+    private static final String MOODLE_QUIZ_START_URL_PATH = "mod/quiz/view.php?q=";
     private static final String MOODLE_COURSE_API_FUNCTION_NAME = "core_course_get_courses";
     private static final String MOODLE_USER_PROFILE_API_FUNCTION_NAME = "core_user_get_users_by_field";
     private static final String MOODLE_QUIZ_API_FUNCTION_NAME = "mod_quiz_get_quizzes_by_courses";
@@ -161,7 +161,9 @@ public class MoodleCourseAccess extends CourseAccess {
     }
 
     private ArrayList<QuizData> collectAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
-        final String urlPrefix = this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH;
+        final String urlPrefix = (this.lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
+                ? this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
+                : this.lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
         return collectAllCourses(restTemplate)
                 .stream()
                 .reduce(
@@ -239,7 +241,7 @@ public class MoodleCourseAccess extends CourseAccess {
         final List<QuizData> courseAndQuiz = courseData.quizzes
                 .stream()
                 .map(courseQuizData -> {
-                    final String startURI = uriPrefix + courseQuizData.course_module;
+                    final String startURI = uriPrefix + courseQuizData.id;
                     additionalAttrs.put(QuizData.ATTR_ADDITIONAL_TIME_LIMIT, String.valueOf(courseQuizData.time_limit));
                     return new QuizData(
                             getInternalQuizId(courseQuizData.id, courseData.short_name, courseData.idnumber),

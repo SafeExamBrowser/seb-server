@@ -205,7 +205,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
     @Override
     protected GrantEntity toGrantEntity(final ClientEvent entity) {
         return this.examDao
-                .byPK(entity.connectionId)
+                .examGrantEntityByClientConnection(entity.connectionId)
                 .get();
     }
 
