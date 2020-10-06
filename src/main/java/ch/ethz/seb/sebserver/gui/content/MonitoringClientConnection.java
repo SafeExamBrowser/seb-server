@@ -99,6 +99,7 @@ public class MonitoringClientConnection implements TemplateComposer {
     private final GuiServiceInfo guiServiceInfo;
     private final long pollInterval;
     private final int pageSize;
+    private final String remoteProctoringEndpoint;
 
     private final TableFilterAttribute typeFilter;
     private final TableFilterAttribute textFilter =
@@ -111,7 +112,8 @@ public class MonitoringClientConnection implements TemplateComposer {
             final SEBClientEventDetailsPopup sebClientLogDetailsPopup,
             final GuiServiceInfo guiServiceInfo,
             @Value("${sebserver.gui.webservice.poll-interval:500}") final long pollInterval,
-            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
+            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize,
+            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint) {
 
         this.serverPushService = serverPushService;
         this.pageService = pageService;
@@ -122,6 +124,7 @@ public class MonitoringClientConnection implements TemplateComposer {
         this.pollInterval = pollInterval;
         this.sebClientLogDetailsPopup = sebClientLogDetailsPopup;
         this.pageSize = pageSize;
+        this.remoteProctoringEndpoint = remoteProctoringEndpoint;
 
         this.typeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -284,7 +287,7 @@ public class MonitoringClientConnection implements TemplateComposer {
     private static final String OPEN_SINGEL_ROOM_SCRIPT =
             "var existingWin = window.open('', '%s', 'height=420,width=620,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
             "if(existingWin.location.href === 'about:blank'){\n" +
-            "    existingWin.location.href = '%s/proc/%s';\n" +
+            "    existingWin.location.href = '%s%s/%s';\n" +
             "    existingWin.focus();\n" +
             "} else {\n" +
             "    existingWin.focus();\n" +
@@ -315,6 +318,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 OPEN_SINGEL_ROOM_SCRIPT,
                 roomName,
                 this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
+                this.remoteProctoringEndpoint,
                 roomName);
         javaScriptExecutor.execute(script);
         this.pageService.getCurrentUser()

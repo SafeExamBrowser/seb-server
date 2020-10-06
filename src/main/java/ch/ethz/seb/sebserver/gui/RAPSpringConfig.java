@@ -39,6 +39,12 @@ public class RAPSpringConfig {
     @Value("${sebserver.gui.external.messages:messages}")
     private String externalMessagesPath;
 
+    @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}")
+    private String remoteProctoringEndpoint;
+
+    @Value("${sebserver.gui.remote.proctoring.api-servler.endpoint:/remote-view-servlet}")
+    private String remoteProctoringViewServletEndpoint;
+
     @Bean
     public ServletContextInitializer initializer() {
         return new RAPServletContextInitializer();
@@ -54,12 +60,10 @@ public class RAPSpringConfig {
 
     @Bean
     public ServletRegistrationBean<RWTServlet> servletRegistrationBean() {
-        return new ServletRegistrationBean<>(new RWTServlet(), this.entrypoint + "/*");
-    }
-
-    @Bean
-    public ServletRegistrationBean<RWTServlet> servletRegistrationBeanProc() {
-        return new ServletRegistrationBean<>(new RWTServlet(), "/proc/*");
+        return new ServletRegistrationBean<>(
+                new RWTServlet(),
+                this.entrypoint + "/*",
+                this.remoteProctoringEndpoint + "/*");
     }
 
     @Bean
@@ -68,7 +72,9 @@ public class RAPSpringConfig {
 
         final ProctoringServlet proctoringServlet = applicationContext
                 .getBean(ProctoringServlet.class);
-        return new ServletRegistrationBean<>(proctoringServlet, "/proctoring/*");
+        return new ServletRegistrationBean<>(
+                proctoringServlet,
+                this.remoteProctoringEndpoint + this.remoteProctoringViewServletEndpoint + "/*");
     }
 
     @Bean

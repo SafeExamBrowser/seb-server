@@ -58,18 +58,22 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
     private static final Logger log = LoggerFactory.getLogger(InstitutionalAuthenticationEntryPoint.class);
 
     private final String guiEntryPoint;
+
+    private final String remoteProctoringEndpoint;
     private final String defaultLogo;
     private final WebserviceURIService webserviceURIService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
 
     protected InstitutionalAuthenticationEntryPoint(
             @Value("${sebserver.gui.entrypoint}") final String guiEntryPoint,
+            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint,
             @Value("${sebserver.gui.defaultLogo:" + Constants.NO_NAME + "}") final String defaultLogoFileName,
             final WebserviceURIService webserviceURIService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final ResourceLoader resourceLoader) {
 
         this.guiEntryPoint = guiEntryPoint;
+        this.remoteProctoringEndpoint = remoteProctoringEndpoint;
         this.webserviceURIService = webserviceURIService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
 
@@ -149,7 +153,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
                     request.getSession().setAttribute(API.PARAM_LOGO_IMAGE, logoImageBase64);
 
                 }
-                forwardToEntryPoint(request, response, this.guiEntryPoint);
+                forwardToEntryPoint(request, response, this.guiEntryPoint, false);
                 return;
             }
         } catch (final Exception e) {
@@ -160,20 +164,35 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
         request.getSession().setAttribute(INST_SUFFIX_ATTRIBUTE, null);
         request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        forwardToEntryPoint(request, response, this.guiEntryPoint);
+        forwardToEntryPoint(request, response, this.guiEntryPoint, true);
 
     }
 
     private void forwardToEntryPoint(
             final HttpServletRequest request,
             final HttpServletResponse response,
-            final String entryPoint) throws ServletException, IOException {
+            final String entryPoint,
+            final boolean redirect) throws ServletException, IOException {
 
-        final RequestDispatcher dispatcher = request
-                .getServletContext()
-                .getRequestDispatcher(entryPoint);
+        final String requestURI = request.getRequestURI();
+        if (requestURI.startsWith(this.remoteProctoringEndpoint)) {
+            final RequestDispatcher dispatcher = request
+                    .getServletContext()
+                    .getRequestDispatcher(requestURI);
 
-        dispatcher.forward(request, response);
+            dispatcher.forward(request, response);
+            return;
+        }
+
+        if (redirect) {
+            response.sendRedirect(entryPoint);
+        } else {
+            final RequestDispatcher dispatcher = request
+                    .getServletContext()
+                    .getRequestDispatcher(entryPoint);
+
+            dispatcher.forward(request, response);
+        }
     }
 
     public static String extractInstitutionalEndpoint(final HttpServletRequest request) {
