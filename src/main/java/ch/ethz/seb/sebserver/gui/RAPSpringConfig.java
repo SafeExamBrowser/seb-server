@@ -46,7 +46,13 @@ public class RAPSpringConfig {
     private String remoteProctoringViewServletEndpoint;
 
     @Bean
+    public StaticApplicationPropertyResolver staticApplicationPropertyResolver() {
+        return new StaticApplicationPropertyResolver();
+    }
+
+    @Bean
     public ServletContextInitializer initializer() {
+        staticApplicationPropertyResolver();
         return new RAPServletContextInitializer();
     }
 

@@ -42,6 +42,9 @@ public class RAPConfiguration implements ApplicationConfiguration {
     public void configure(final Application application) {
         try {
 
+            final String guiEntrypoint = StaticApplicationPropertyResolver
+                    .getProperty("sebserver.gui.entrypoint", "/gui");
+
             // TODO get file path from properties
             //application.addStyleSheet(RWT.DEFAULT_THEME_ID, "static/css/sebserver.css");
             application.addStyleSheet(DEFAULT_THEME_NAME, "resource/theme/default.css");
@@ -54,7 +57,8 @@ public class RAPConfiguration implements ApplicationConfiguration {
             properties.put(WebClient.BODY_HTML, "<big>Loading Application<big>");
             properties.put(WebClient.THEME_ID, DEFAULT_THEME_NAME);
             //        properties.put(WebClient.FAVICON, "icons/favicon.png");
-            application.addEntryPoint("/gui", new RAPSpringEntryPointFactory(), properties);
+
+            application.addEntryPoint(guiEntrypoint, new RAPSpringEntryPointFactory(), properties);
             application.addEntryPoint("/proc", new EntryPointFactory() {
 
                 @Override
@@ -70,7 +74,6 @@ public class RAPConfiguration implements ApplicationConfiguration {
                     };
                 }
             }, properties);
-
         } catch (final RuntimeException re) {
             throw re;
         } catch (final Exception e) {
