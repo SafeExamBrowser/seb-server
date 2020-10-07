@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -19,27 +19,26 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class SEBClientsJoinProctorRoom extends RestCall<List<SEBProctoringConnectionData>> {
+public class GetProcotringRooms extends RestCall<Collection<RemoteProctoringRoom>> {
 
-    public SEBClientsJoinProctorRoom() {
+    public GetProcotringRooms() {
         super(new TypeKey<>(
                 CallType.GET_SINGLE,
                 EntityType.EXAM_PROCTOR_DATA,
-                new TypeReference<List<SEBProctoringConnectionData>>() {
+                new TypeReference<Collection<RemoteProctoringRoom>>() {
                 }),
-                HttpMethod.POST,
+                HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_MONITORING_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
                         + API.PROCTORING_PATH_SEGMENT
-                        + API.PROCTORING_JOIN_ROOM_PATH_SEGMENT);
+                        + API.PROCTORING_ROOMS_SEGMENT);
     }
-
 }

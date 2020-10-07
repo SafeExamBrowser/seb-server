@@ -71,6 +71,17 @@ public class MonitoringClientConnection implements TemplateComposer {
     private static final LocTextKey PAGE_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.title");
 
+ // @formatter:off
+    private static final String OPEN_SINGEL_ROOM_SCRIPT =
+            "var existingWin = window.open('', '%s', 'height=420,width=620,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
+            "if(existingWin.location.href === 'about:blank'){\n" +
+            "    existingWin.location.href = '%s%s';\n" +
+            "    existingWin.focus();\n" +
+            "} else {\n" +
+            "    existingWin.focus();\n" +
+            "}";
+   // @formatter:on
+
     private static final LocTextKey EVENT_LIST_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.title");
     private static final LocTextKey EVENT_LIST_TITLE_TOOLTIP_KEY =
@@ -283,17 +294,6 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .publishIf(() -> proctoringEnabled);
     }
 
-    // @formatter:off
-    private static final String OPEN_SINGEL_ROOM_SCRIPT =
-            "var existingWin = window.open('', '%s', 'height=420,width=620,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
-            "if(existingWin.location.href === 'about:blank'){\n" +
-            "    existingWin.location.href = '%s%s/%s';\n" +
-            "    existingWin.focus();\n" +
-            "} else {\n" +
-            "    existingWin.focus();\n" +
-            "}";
-   // @formatter:on
-
     private PageAction openProctorScreen(final PageAction action, final String connectionToken) {
         final SEBProctoringConnectionData proctoringConnectionData = this.pageService.getRestService()
                 .getBuilder(GetProctorRoomConnectionData.class)
@@ -318,8 +318,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 OPEN_SINGEL_ROOM_SCRIPT,
                 roomName,
                 this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                this.remoteProctoringEndpoint,
-                roomName);
+                this.remoteProctoringEndpoint);
         javaScriptExecutor.execute(script);
         this.pageService.getCurrentUser()
                 .getProctoringGUIService()

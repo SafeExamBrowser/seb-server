@@ -178,7 +178,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
         if (requestURI.startsWith(this.remoteProctoringEndpoint)) {
             final RequestDispatcher dispatcher = request
                     .getServletContext()
-                    .getRequestDispatcher(requestURI);
+                    .getRequestDispatcher(this.remoteProctoringEndpoint);
 
             dispatcher.forward(request, response);
             return;

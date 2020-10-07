@@ -150,7 +150,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.clientAddress,
                     data.virtualClientAddress,
                     Utils.getMillisecondsNow(),
-                    data.proctorRoomId);
+                    data.remoteProctoringRoomId);
 
             this.clientConnectionRecordMapper.insert(newRecord);
             return newRecord;
@@ -174,13 +174,34 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.clientAddress,
                     data.virtualClientAddress,
                     null,
-                    data.proctorRoomId);
+                    data.remoteProctoringRoomId);
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
         })
                 .flatMap(ClientConnectionDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Long> removeFromRemoteProctoringRoom(final Long connectionId) {
+        return Result.tryCatch(() -> {
+            final ClientConnectionRecord record = this.clientConnectionRecordMapper.selectByPrimaryKey(connectionId);
+            final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
+                    record.getId(),
+                    record.getInstitutionId(),
+                    record.getExamId(),
+                    record.getStatus(),
+                    record.getConnectionToken(),
+                    record.getExamUserSessionId(),
+                    record.getClientAddress(),
+                    record.getVirtualClientAddress(),
+                    record.getCreationTime(),
+                    null);
+            this.clientConnectionRecordMapper.updateByPrimaryKey(updateRecord);
+            return connectionId;
+        });
     }
 
     @Override
@@ -352,7 +373,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getClientAddress(),
                     record.getVirtualClientAddress(),
                     record.getCreationTime(),
-                    record.getProctorRoomId());
+                    record.getRemoteProctoringRoomId());
         });
     }
 

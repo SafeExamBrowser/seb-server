@@ -32,7 +32,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -233,7 +233,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
-    public Result<ExamProctoringService> getExamProctoringService(final ServerType type) {
+    public Result<ExamProctoringService> getExamProctoringService(final ProctoringServerType type) {
         return this.examProctoringServiceFactory.getExamProctoringService(type);
     }
 
@@ -245,11 +245,11 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         }
     }
 
-    private ServerType getServerType(final Map<String, AdditionalAttributeRecord> mapping) {
+    private ProctoringServerType getServerType(final Map<String, AdditionalAttributeRecord> mapping) {
         if (mapping.containsKey(ProctoringSettings.ATTR_SERVER_TYPE)) {
-            return ServerType.valueOf(mapping.get(ProctoringSettings.ATTR_SERVER_TYPE).getValue());
+            return ProctoringServerType.valueOf(mapping.get(ProctoringSettings.ATTR_SERVER_TYPE).getValue());
         } else {
-            return ServerType.JITSI_MEET;
+            return ProctoringServerType.JITSI_MEET;
         }
     }
 
@@ -261,11 +261,11 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         }
     }
 
-    private Long getCollectingRoomSize(final Map<String, AdditionalAttributeRecord> mapping) {
+    private Integer getCollectingRoomSize(final Map<String, AdditionalAttributeRecord> mapping) {
         if (mapping.containsKey(ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE)) {
-            return Long.valueOf(mapping.get(ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE).getValue());
+            return Integer.valueOf(mapping.get(ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE).getValue());
         } else {
-            return 20L;
+            return 20;
         }
     }
 

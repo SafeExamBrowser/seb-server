@@ -3,25 +3,25 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class InstitutionRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.917+02:00", comments="Source field: institution.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.918+02:00", comments="Source field: institution.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.name")
     private String name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.918+02:00", comments="Source field: institution.url_suffix")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.url_suffix")
     private String urlSuffix;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.918+02:00", comments="Source field: institution.theme_name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.theme_name")
     private String themeName;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.918+02:00", comments="Source field: institution.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.active")
     private Integer active;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.918+02:00", comments="Source field: institution.logo_image")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.logo_image")
     private String logoImage;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.917+02:00", comments="Source Table: institution")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source Table: institution")
     public InstitutionRecord(Long id, String name, String urlSuffix, String themeName, Integer active, String logoImage) {
         this.id = id;
         this.name = name;
@@ -31,32 +31,32 @@ public class InstitutionRecord {
         this.logoImage = logoImage;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.917+02:00", comments="Source field: institution.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.918+02:00", comments="Source field: institution.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.name")
     public String getName() {
         return name;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.918+02:00", comments="Source field: institution.url_suffix")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.url_suffix")
     public String getUrlSuffix() {
         return urlSuffix;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.918+02:00", comments="Source field: institution.theme_name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.theme_name")
     public String getThemeName() {
         return themeName;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.918+02:00", comments="Source field: institution.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.active")
     public Integer getActive() {
         return active;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-09-30T15:13:44.918+02:00", comments="Source field: institution.logo_image")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.117+02:00", comments="Source field: institution.logo_image")
     public String getLogoImage() {
         return logoImage;
     }
@@ -65,7 +65,7 @@ public class InstitutionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table institution
      *
-     * @mbg.generated Wed Sep 30 15:13:44 CEST 2020
+     * @mbg.generated Tue Oct 06 15:56:14 CEST 2020
      */
     @Override
     public String toString() {
@@ -87,7 +87,7 @@ public class InstitutionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table institution
      *
-     * @mbg.generated Wed Sep 30 15:13:44 CEST 2020
+     * @mbg.generated Tue Oct 06 15:56:14 CEST 2020
      */
     @Override
     public boolean equals(Object that) {
@@ -113,7 +113,7 @@ public class InstitutionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table institution
      *
-     * @mbg.generated Wed Sep 30 15:13:44 CEST 2020
+     * @mbg.generated Tue Oct 06 15:56:14 CEST 2020
      */
     @Override
     public int hashCode() {

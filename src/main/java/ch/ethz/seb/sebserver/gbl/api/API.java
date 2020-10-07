@@ -128,9 +128,10 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_CHECK_RESTRICTION_PATH_SEGMENT = "/check-seb-restriction";
     public static final String EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT = "/check-imported";
     public static final String EXAM_ADMINISTRATION_SEB_RESTRICTION_CHAPTERS_PATH_SEGMENT = "/chapters";
-    public static final String PROCTOR_PATH_SEGMENT = "/proctoring";
-    public static final String PROCTOR_JOIN_ROOM_PATH_SEGMENT = "/join";
-    public static final String PROCTOR_LEAVE_ROOM_PATH_SEGMENT = "/leave";
+    public static final String PROCTORING_PATH_SEGMENT = "/proctoring";
+    public static final String PROCTORING_ROOMS_SEGMENT = "/rooms";
+    public static final String PROCTORING_JOIN_ROOM_PATH_SEGMENT = "/join";
+    public static final String PROCTORING_LEAVE_ROOM_PATH_SEGMENT = "/leave";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 

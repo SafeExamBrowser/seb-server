@@ -36,7 +36,7 @@ public class GetProctorRoomConnectionData extends RestCall<SEBProctoringConnecti
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_MONITORING_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.PROCTOR_PATH_SEGMENT);
+                        + API.PROCTORING_PATH_SEGMENT);
     }
 
 }

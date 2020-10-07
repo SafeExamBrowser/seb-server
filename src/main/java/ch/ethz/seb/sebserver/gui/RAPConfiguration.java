@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.eclipse.rap.rwt.RWT;
@@ -26,6 +27,7 @@ import org.eclipse.rap.rwt.service.ServiceManager;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -44,6 +46,8 @@ public class RAPConfiguration implements ApplicationConfiguration {
 
             final String guiEntrypoint = StaticApplicationPropertyResolver
                     .getProperty("sebserver.gui.entrypoint", "/gui");
+            final String proctoringEntrypoint = StaticApplicationPropertyResolver
+                    .getProperty("sebserver.gui.remote.proctoring.entrypoint", "/remote-proctoring");
 
             // TODO get file path from properties
             //application.addStyleSheet(RWT.DEFAULT_THEME_ID, "static/css/sebserver.css");
@@ -59,21 +63,7 @@ public class RAPConfiguration implements ApplicationConfiguration {
             //        properties.put(WebClient.FAVICON, "icons/favicon.png");
 
             application.addEntryPoint(guiEntrypoint, new RAPSpringEntryPointFactory(), properties);
-            application.addEntryPoint("/proc", new EntryPointFactory() {
-
-                @Override
-                public EntryPoint create() {
-                    return new AbstractEntryPoint() {
-
-                        private static final long serialVersionUID = -1299125117752916270L;
-
-                        @Override
-                        protected void createContents(final Composite parent) {
-                            System.out.print("******");
-                        }
-                    };
-                }
-            }, properties);
+            application.addEntryPoint(proctoringEntrypoint, new RAPRemoteProcotringEntryPointFactory(), properties);
         } catch (final RuntimeException re) {
             throw re;
         } catch (final Exception e) {
@@ -86,6 +76,38 @@ public class RAPConfiguration implements ApplicationConfiguration {
         void loadLoginPage(final Composite parent);
 
         void loadMainPage(final Composite parent);
+
+        void loadProctoringView(Composite parent);
+
+    }
+
+    public static final class RAPRemoteProcotringEntryPointFactory implements EntryPointFactory {
+
+        @Override
+        public EntryPoint create() {
+            return new AbstractEntryPoint() {
+
+                private static final long serialVersionUID = -1299125117752916270L;
+
+                @Override
+                protected void createContents(final Composite parent) {
+                    final HttpSession httpSession = RWT
+                            .getUISession(parent.getDisplay())
+                            .getHttpSession();
+
+                    final WebApplicationContext webApplicationContext = getWebApplicationContext(httpSession);
+                    final boolean authenticated = isAuthenticated(httpSession, webApplicationContext);
+                    if (authenticated) {
+                        final EntryPointService entryPointService = webApplicationContext
+                                .getBean(EntryPointService.class);
+                        entryPointService.loadProctoringView(parent);
+                    } else {
+                        final HttpServletResponse response = RWT.getResponse();
+                        response.setStatus(HttpStatus.FORBIDDEN.value());
+                    }
+                }
+            };
+        }
     }
 
     public static final class RAPSpringEntryPointFactory implements EntryPointFactory {
@@ -148,35 +170,34 @@ public class RAPConfiguration implements ApplicationConfiguration {
                 }
             }
         }
+    }
 
-        private boolean isAuthenticated(
-                final HttpSession httpSession,
-                final WebApplicationContext webApplicationContext) {
+    private static boolean isAuthenticated(
+            final HttpSession httpSession,
+            final WebApplicationContext webApplicationContext) {
 
-            final AuthorizationContextHolder authorizationContextHolder = webApplicationContext
-                    .getBean(AuthorizationContextHolder.class);
-            final SEBServerAuthorizationContext authorizationContext = authorizationContextHolder
-                    .getAuthorizationContext(httpSession);
-            return authorizationContext.isValid() && authorizationContext.isLoggedIn();
+        final AuthorizationContextHolder authorizationContextHolder = webApplicationContext
+                .getBean(AuthorizationContextHolder.class);
+        final SEBServerAuthorizationContext authorizationContext = authorizationContextHolder
+                .getAuthorizationContext(httpSession);
+        return authorizationContext.isValid() && authorizationContext.isLoggedIn();
+    }
+
+    private static WebApplicationContext getWebApplicationContext(final HttpSession httpSession) {
+        try {
+            final ServletContext servletContext = httpSession.getServletContext();
+
+            log.debug("Initialize Spring-Context on Servlet-Context: " + servletContext);
+
+            return WebApplicationContextUtils
+                    .getRequiredWebApplicationContext(servletContext);
+
+        } catch (final RuntimeException e) {
+            log.error("Failed to initialize Spring-Context on HttpSession: " + httpSession);
+            throw e;
+        } catch (final Exception e) {
+            log.error("Failed to initialize Spring-Context on HttpSession: " + httpSession);
+            throw new RuntimeException("Failed to initialize Spring-Context on HttpSession: " + httpSession);
         }
-
-        private WebApplicationContext getWebApplicationContext(final HttpSession httpSession) {
-            try {
-                final ServletContext servletContext = httpSession.getServletContext();
-
-                log.debug("Initialize Spring-Context on Servlet-Context: " + servletContext);
-
-                return WebApplicationContextUtils
-                        .getRequiredWebApplicationContext(servletContext);
-
-            } catch (final RuntimeException e) {
-                log.error("Failed to initialize Spring-Context on HttpSession: " + httpSession);
-                throw e;
-            } catch (final Exception e) {
-                log.error("Failed to initialize Spring-Context on HttpSession: " + httpSession);
-                throw new RuntimeException("Failed to initialize Spring-Context on HttpSession: " + httpSession);
-            }
-        }
-
     }
 }

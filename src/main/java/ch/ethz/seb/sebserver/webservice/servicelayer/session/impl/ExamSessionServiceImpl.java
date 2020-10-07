@@ -36,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -369,6 +370,11 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
             return exam;
         });
+    }
+
+    @Override
+    public Result<Collection<RemoteProctoringRoom>> getProctoringRooms(final Long examId) {
+        return Result.tryCatch(() -> this.examSessionCacheService.getRemoteProctoringRooms(examId));
     }
 
 }

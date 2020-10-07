@@ -17,7 +17,7 @@ import javax.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
 
 public class ProctoringSettingsValidator implements ConstraintValidator<ValidProctoringSettings, ProctoringSettings> {
 
@@ -28,7 +28,7 @@ public class ProctoringSettingsValidator implements ConstraintValidator<ValidPro
         }
 
         if (value.enableProctoring) {
-            if (value.serverType == ServerType.JITSI_MEET) {
+            if (value.serverType == ProctoringServerType.JITSI_MEET) {
                 boolean passed = true;
                 if (StringUtils.isBlank(value.serverURL)) {
                     context.disableDefaultConstraintViolation();

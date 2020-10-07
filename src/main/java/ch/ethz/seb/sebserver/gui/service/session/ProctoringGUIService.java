@@ -40,9 +40,9 @@ public class ProctoringGUIService {
 
     private final AtomicInteger counter = new AtomicInteger(1);
     private final RestService restService;
+    final Map<String, RoomConnectionData> rooms = new HashMap<>();
 
     final Set<String> openWindows = new HashSet<>();
-    final Map<String, RoomConnectionData> rooms = new HashMap<>();
 
     public ProctoringGUIService(final RestService restService) {
         this.restService = restService;

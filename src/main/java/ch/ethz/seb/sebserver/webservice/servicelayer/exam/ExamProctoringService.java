@@ -9,13 +9,13 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ExamProctoringService {
 
-    ServerType getType();
+    ProctoringServerType getType();
 
     Result<Boolean> testExamProctoring(final ProctoringSettings examProctoring);
 
@@ -34,6 +34,7 @@ public interface ExamProctoringService {
     Result<SEBProctoringConnectionData> createClientPublicRoomConnection(
             final ProctoringSettings examProctoring,
             final String connectionToken,
-            final String roomName);
+            final String roomName,
+            final String subject);
 
 }

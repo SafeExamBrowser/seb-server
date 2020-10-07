@@ -12,6 +12,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SEBProctoringConnectionData {
 
@@ -22,6 +24,9 @@ public class SEBProctoringConnectionData {
     public static final String ATTR_SUBJECT = "subject";
     public static final String ATTR_ACCESS_TOKEN = "accessToken";
     public static final String ATTR_CONNECTION_URL = "connectionURL";
+
+    @JsonProperty(ProctoringSettings.ATTR_SERVER_TYPE)
+    public final ProctoringServerType proctoringServerType;
 
     @JsonProperty(ATTR_CONNECTION_TOKEN)
     public final String connectionToken;
@@ -43,6 +48,7 @@ public class SEBProctoringConnectionData {
 
     @JsonCreator
     public SEBProctoringConnectionData(
+            @JsonProperty(ProctoringSettings.ATTR_SERVER_TYPE) final ProctoringServerType proctoringServerType,
             @JsonProperty(ATTR_CONNECTION_TOKEN) final String connectionToken,
             @JsonProperty(ATTR_SERVER_HOST) final String serverHost,
             @JsonProperty(ATTR_SERVER_URL) final String serverURL,
@@ -50,12 +56,17 @@ public class SEBProctoringConnectionData {
             @JsonProperty(ATTR_SUBJECT) final String subject,
             @JsonProperty(ATTR_ACCESS_TOKEN) final String accessToken) {
 
+        this.proctoringServerType = proctoringServerType;
         this.connectionToken = connectionToken;
         this.serverHost = serverHost;
         this.serverURL = serverURL;
         this.roomName = roomName;
         this.subject = subject;
         this.accessToken = accessToken;
+    }
+
+    public ProctoringServerType getProctoringServerType() {
+        return this.proctoringServerType;
     }
 
     public String getConnectionToken() {
@@ -85,7 +96,9 @@ public class SEBProctoringConnectionData {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("SEBClientProctoringConnectionData [serverHost=");
+        builder.append("SEBProctoringConnectionData [proctoringServerType=");
+        builder.append(this.proctoringServerType);
+        builder.append(", serverHost=");
         builder.append(this.serverHost);
         builder.append(", serverURL=");
         builder.append(this.serverURL);
@@ -93,8 +106,6 @@ public class SEBProctoringConnectionData {
         builder.append(this.roomName);
         builder.append(", subject=");
         builder.append(this.subject);
-        builder.append(", accessToken=");
-        builder.append(this.accessToken);
         builder.append("]");
         return builder.toString();
     }

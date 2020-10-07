@@ -50,6 +50,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -288,7 +289,24 @@ public class ExamMonitoringController {
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.PROCTOR_PATH_SEGMENT,
+                    + API.PROCTORING_PATH_SEGMENT
+                    + API.PROCTORING_ROOMS_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Collection<RemoteProctoringRoom> getDefaultProcotringRoomsOfExam(@RequestParam(
+            name = API.PARAM_INSTITUTION_ID,
+            required = true,
+            defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_MODEL_ID) final Long examId) {
+
+        return this.examSessionService.getProctoringRooms(examId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.PROCTORING_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -330,8 +348,8 @@ public class ExamMonitoringController {
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.PROCTOR_PATH_SEGMENT
-                    + API.PROCTOR_JOIN_ROOM_PATH_SEGMENT,
+                    + API.PROCTORING_PATH_SEGMENT
+                    + API.PROCTORING_JOIN_ROOM_PATH_SEGMENT,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<SEBProctoringConnectionData> joinProctoringRoom(
@@ -369,7 +387,7 @@ public class ExamMonitoringController {
                             .stream()
                             .map(connectionToken -> {
                                 final SEBProctoringConnectionData data = examProctoringService
-                                        .createClientPublicRoomConnection(settings, connectionToken, roomName)
+                                        .createClientPublicRoomConnection(settings, connectionToken, roomName, roomName)
                                         .getOrThrow();
                                 sendJoinInstruction(examId, connectionToken, data)
                                         .onError(error -> log.error(
@@ -384,8 +402,8 @@ public class ExamMonitoringController {
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.PROCTOR_PATH_SEGMENT
-                    + API.PROCTOR_LEAVE_ROOM_PATH_SEGMENT,
+                    + API.PROCTORING_PATH_SEGMENT
+                    + API.PROCTORING_LEAVE_ROOM_PATH_SEGMENT,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<SEBProctoringConnectionData> leaveProctoringRoom(
@@ -423,7 +441,7 @@ public class ExamMonitoringController {
                             .stream()
                             .map(connectionToken -> {
                                 final SEBProctoringConnectionData data = examProctoringService
-                                        .createClientPublicRoomConnection(settings, connectionToken, roomName)
+                                        .createClientPublicRoomConnection(settings, connectionToken, roomName, roomName)
                                         .getOrThrow();
 
                                 sendLeaveInstruction(examId, connectionTokens, data)
@@ -488,7 +506,7 @@ public class ExamMonitoringController {
         final Map<String, String> attributes = new HashMap<>();
         attributes.put(
                 ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.SERVICE_TYPE,
-                ProctoringSettings.ServerType.JITSI_MEET.name());
+                ProctoringSettings.ProctoringServerType.JITSI_MEET.name());
         attributes.put(
                 ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.METHOD,
                 method);

@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Collection;
 
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -31,6 +33,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecord
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 
 /** Handles caching for exam session and defines caching for following object:
@@ -48,6 +51,7 @@ public class ExamSessionCacheService {
     public static final String CACHE_NAME_ACTIVE_CLIENT_CONNECTION = "ACTIVE_CLIENT_CONNECTION";
     public static final String CACHE_NAME_SEB_CONFIG_EXAM = "SEB_CONFIG_EXAM";
     public static final String CACHE_NAME_PING_RECORD = "CACHE_NAME_PING_RECORD";
+    public static final String CACHE_NAME_PROCTORING_ROOM = "CACHE_NAME_PROCTORING_ROOM";
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionCacheService.class);
 
@@ -57,6 +61,7 @@ public class ExamSessionCacheService {
     private final ExamConfigService sebExamConfigService;
     private final ClientEventRecordMapper clientEventRecordMapper;
     private final ExamUpdateHandler examUpdateHandler;
+    private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
 
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
@@ -64,7 +69,8 @@ public class ExamSessionCacheService {
             final ClientIndicatorFactory clientIndicatorFactory,
             final ExamConfigService sebExamConfigService,
             final ClientEventRecordMapper clientEventRecordMapper,
-            final ExamUpdateHandler examUpdateHandler) {
+            final ExamUpdateHandler examUpdateHandler,
+            final RemoteProctoringRoomDAO remoteProctoringRoomDAO) {
 
         this.examDAO = examDAO;
         this.clientConnectionDAO = clientConnectionDAO;
@@ -72,6 +78,34 @@ public class ExamSessionCacheService {
         this.sebExamConfigService = sebExamConfigService;
         this.clientEventRecordMapper = clientEventRecordMapper;
         this.examUpdateHandler = examUpdateHandler;
+        this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
+    }
+
+    @Cacheable(
+            cacheNames = CACHE_NAME_PROCTORING_ROOM,
+            key = "#examId",
+            unless = "#result == null")
+    public Collection<RemoteProctoringRoom> getRemoteProctoringRooms(final Long examId) {
+        final Result<Collection<RemoteProctoringRoom>> roomsForExam = this.remoteProctoringRoomDAO
+                .getRoomsForExam(examId);
+
+        if (roomsForExam.hasError()) {
+            log.error("Failed to find/load RemoteProcotringRooms for Exam with id {}", examId, roomsForExam.getError());
+            return null;
+        }
+
+        return roomsForExam.get();
+    }
+
+    @CacheEvict(
+            cacheNames = CACHE_NAME_RUNNING_EXAM,
+            key = "#examId")
+    public Long evictRemoteProctoringRooms(final Long examId) {
+        if (log.isDebugEnabled()) {
+            log.debug("Conditional eviction of RemoteProcotringRooms for Exam: {}", examId);
+        }
+
+        return examId;
     }
 
     @Cacheable(

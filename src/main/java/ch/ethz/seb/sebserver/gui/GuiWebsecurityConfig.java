@@ -35,6 +35,8 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
     private String guiEntryPoint;
     @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}")
     private String remoteProctoringEndpoint;
+    @Value("${sebserver.gui.remote.proctoring.api-servler.endpoint:/remote-view-servlet}")
+    private String remoteProctoringViewServletEndpoint;
 
     /** Gui-service related public URLS from spring web security perspective */
     public static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
@@ -53,7 +55,8 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
                 .ignoring()
                 .requestMatchers(PUBLIC_URLS)
                 .antMatchers(this.guiEntryPoint)
-                .antMatchers(this.remoteProctoringEndpoint + "/*");
+                .antMatchers(this.remoteProctoringEndpoint)
+                .antMatchers(this.remoteProctoringEndpoint + this.remoteProctoringViewServletEndpoint + "/*");
     }
 
     @Override

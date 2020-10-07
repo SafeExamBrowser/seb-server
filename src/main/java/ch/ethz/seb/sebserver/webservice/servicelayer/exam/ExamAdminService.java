@@ -10,7 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface ExamAdminService {
@@ -75,6 +75,6 @@ public interface ExamAdminService {
      * @return Result refer to proctoring is enabled flag or to an error when happened. */
     Result<Boolean> isExamProctoringEnabled(final Long examId);
 
-    public Result<ExamProctoringService> getExamProctoringService(final ServerType type);
+    public Result<ExamProctoringService> getExamProctoringService(final ProctoringServerType type);
 
 }

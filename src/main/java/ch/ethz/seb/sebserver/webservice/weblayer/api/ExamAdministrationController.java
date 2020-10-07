@@ -383,7 +383,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.PROCTOR_PATH_SEGMENT,
+                    + API.PROCTORING_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ProctoringSettings getExamProctoring(
@@ -402,7 +402,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.PROCTOR_PATH_SEGMENT,
+                    + API.PROCTORING_PATH_SEGMENT,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Exam saveExamProctoring(

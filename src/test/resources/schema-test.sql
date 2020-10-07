@@ -81,11 +81,11 @@ CREATE TABLE IF NOT EXISTS `exam` (
 
 
 -- -----------------------------------------------------
--- Table `proctor_room`
+-- Table `remote_proctoring_room`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `proctor_room` ;
+DROP TABLE IF EXISTS `remote_proctoring_room` ;
 
-CREATE TABLE IF NOT EXISTS `proctor_room` (
+CREATE TABLE IF NOT EXISTS `remote_proctoring_room` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `exam_id` BIGINT UNSIGNED NOT NULL,
   `name` VARCHAR(255) NOT NULL,
@@ -98,9 +98,7 @@ CREATE TABLE IF NOT EXISTS `proctor_room` (
     FOREIGN KEY (`exam_id`)
     REFERENCES `exam` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-;
-
+    ON UPDATE NO ACTION);
 
 -- -----------------------------------------------------
 -- Table `client_connection`
@@ -117,12 +115,12 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `client_address` VARCHAR(45) NOT NULL,
   `virtual_client_address` VARCHAR(45) NULL,
   `creation_time` BIGINT UNSIGNED NOT NULL,
-  `proctor_room_id` BIGINT UNSIGNED NULL,
+  `remote_proctoring_room_id` BIGINT UNSIGNED NULL,
   PRIMARY KEY (`id`),
   INDEX `connection_exam_ref_idx` (`exam_id` ASC),
   INDEX `clientConnectionInstitutionRef_idx` (`institution_id` ASC),
   INDEX `connectionTokenRef` (`connection_token` ASC),
-  INDEX `clientConnectionProctorRoomRef_idx` (`proctor_room_id` ASC),
+  INDEX `clientConnectionProctorRoomRef_idx` (`remote_proctoring_room_id` ASC),
   CONSTRAINT `clientConnectionExamRef`
     FOREIGN KEY (`exam_id`)
     REFERENCES `exam` (`id`)
@@ -133,9 +131,9 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
     REFERENCES `institution` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `clientConnectionProctorRoomRef`
-    FOREIGN KEY (`proctor_room_id`)
-    REFERENCES `proctor_room` (`id`)
+  CONSTRAINT `clientConnectionRemoteProctoringRoomRef`
+    FOREIGN KEY (`remote_proctoring_room_id`)
+    REFERENCES `remote_proctoring_room` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;

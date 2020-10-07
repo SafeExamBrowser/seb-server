@@ -333,7 +333,7 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional
     public Result<Collection<EntityKey>> setActive(final Set<EntityKey> all, final boolean active) {
-        return Result.tryCatch(() -> {
+        final Result<Collection<EntityKey>> tryCatch = Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
             final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
@@ -349,6 +349,7 @@ public class ExamDAOImpl implements ExamDAO {
                     .collect(Collectors.toList());
 
         });
+        return tryCatch.onError(TransactionHandler::rollback);
     }
 
     @Override

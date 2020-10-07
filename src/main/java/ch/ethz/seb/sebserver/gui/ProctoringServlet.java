@@ -51,7 +51,7 @@ public class ProctoringServlet extends HttpServlet {
                     "    const options = {\n" +
                     "        parentNode: document.querySelector('#proctoring'),\n" +
                     "        roomName: '%s',\n" +
-                    "        width: window.innerWidth,\n" +
+//                    "        width: window.innerWidth,\n" +
                     "        height: window.innerHeight,\n" +
                     "        jwt: '%s',\n" +
                     "        configOverwrite: { startAudioOnly: false, startWithAudioMuted: true, startWithVideoMuted: true, disable1On1Mode: true },\n" +

@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -181,5 +182,11 @@ public interface ExamSessionService {
 
         return false;
     }
+
+    /** Get all existing default proctoring rooms of an exam.
+     *
+     * @param examId The exam identifier
+     * @return Result refer to the list of default proctoring rooms for the specified Exam */
+    Result<Collection<RemoteProctoringRoom>> getProctoringRooms(Long examId);
 
 }

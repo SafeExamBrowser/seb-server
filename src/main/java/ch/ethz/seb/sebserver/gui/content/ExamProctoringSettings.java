@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -117,7 +117,7 @@ public class ExamProctoringSettings {
 
             final boolean enabled = BooleanUtils.toBoolean(
                     form.getFieldValue(ProctoringSettings.ATTR_ENABLE_PROCTORING));
-            final ServerType serverType = ServerType.valueOf(
+            final ProctoringServerType serverType = ProctoringServerType.valueOf(
                     form.getFieldValue(ProctoringSettings.ATTR_SERVER_TYPE));
 
             examProctoring = new ProctoringSettings(
@@ -125,7 +125,7 @@ public class ExamProctoringSettings {
                     enabled,
                     serverType,
                     form.getFieldValue(ProctoringSettings.ATTR_SERVER_URL),
-                    Long.parseLong(form.getFieldValue(ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE)),
+                    Integer.parseInt(form.getFieldValue(ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE)),
                     form.getFieldValue(ProctoringSettings.ATTR_APP_KEY),
                     form.getFieldValue(ProctoringSettings.ATTR_APP_SECRET));
 

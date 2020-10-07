@@ -82,8 +82,8 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME)
     public final Long creationTime;
 
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_PROCTOR_ROOM_ID)
-    public final Long proctorRoomId;
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID)
+    public final Long remoteProctoringRoomId;
 
     @JsonCreator
     public ClientConnection(
@@ -96,7 +96,7 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS) final String virtualClientAddress,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME) final Long creationTime,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_PROCTOR_ROOM_ID) final Long proctorRoomId) {
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -107,7 +107,7 @@ public final class ClientConnection implements GrantEntity {
         this.clientAddress = clientAddress;
         this.virtualClientAddress = virtualClientAddress;
         this.creationTime = creationTime;
-        this.proctorRoomId = proctorRoomId;
+        this.remoteProctoringRoomId = remoteProctoringRoomId;
     }
 
     @Override
@@ -164,8 +164,8 @@ public final class ClientConnection implements GrantEntity {
         return this.creationTime;
     }
 
-    public Long getProctorRoomId() {
-        return this.proctorRoomId;
+    public Long getRemoteProctoringRoomId() {
+        return this.remoteProctoringRoomId;
     }
 
     @Override
@@ -238,8 +238,8 @@ public final class ClientConnection implements GrantEntity {
         builder.append(this.virtualClientAddress);
         builder.append(", creationTime=");
         builder.append(this.creationTime);
-        builder.append(", proctorRoomId=");
-        builder.append(this.proctorRoomId);
+        builder.append(", remoteProctoringRoomId=");
+        builder.append(this.remoteProctoringRoomId);
         builder.append("]");
         return builder.toString();
     }

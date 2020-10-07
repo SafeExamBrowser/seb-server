@@ -24,7 +24,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.ValidProctoringS
 @ValidProctoringSettings
 public class ProctoringSettings implements Entity {
 
-    public enum ServerType {
+    public enum ProctoringServerType {
         JITSI_MEET
     }
 
@@ -42,7 +42,7 @@ public class ProctoringSettings implements Entity {
     public final Boolean enableProctoring;
 
     @JsonProperty(ATTR_SERVER_TYPE)
-    public final ServerType serverType;
+    public final ProctoringServerType serverType;
 
     @JsonProperty(ATTR_SERVER_URL)
     @URL(message = "proctoringSettings:serverURL:invalidURL")
@@ -55,21 +55,21 @@ public class ProctoringSettings implements Entity {
     public final CharSequence appSecret;
 
     @JsonProperty(ATTR_COLLECTING_ROOM_SIZE)
-    public final Long collectingRoomSize;
+    public final Integer collectingRoomSize;
 
     @JsonCreator
     public ProctoringSettings(
             @JsonProperty(Domain.EXAM.ATTR_ID) final Long examId,
             @JsonProperty(ATTR_ENABLE_PROCTORING) final Boolean enableProctoring,
-            @JsonProperty(ATTR_SERVER_TYPE) final ServerType serverType,
+            @JsonProperty(ATTR_SERVER_TYPE) final ProctoringServerType serverType,
             @JsonProperty(ATTR_SERVER_URL) final String serverURL,
-            @JsonProperty(ATTR_COLLECTING_ROOM_SIZE) final Long collectingRoomSize,
+            @JsonProperty(ATTR_COLLECTING_ROOM_SIZE) final Integer collectingRoomSize,
             @JsonProperty(ATTR_APP_KEY) final String appKey,
             @JsonProperty(ATTR_APP_SECRET) final CharSequence appSecret) {
 
         this.examId = examId;
         this.enableProctoring = BooleanUtils.isTrue(enableProctoring);
-        this.serverType = (serverType != null) ? serverType : ServerType.JITSI_MEET;
+        this.serverType = (serverType != null) ? serverType : ProctoringServerType.JITSI_MEET;
         this.serverURL = serverURL;
         this.collectingRoomSize = (collectingRoomSize != null) ? collectingRoomSize : 20;
         this.appKey = appKey;
@@ -99,7 +99,7 @@ public class ProctoringSettings implements Entity {
         return this.enableProctoring;
     }
 
-    public ServerType getServerType() {
+    public ProctoringServerType getServerType() {
         return this.serverType;
     }
 
@@ -107,7 +107,7 @@ public class ProctoringSettings implements Entity {
         return this.serverURL;
     }
 
-    public Long getCollectingRoomSize() {
+    public Integer getCollectingRoomSize() {
         return this.collectingRoomSize;
     }
 
