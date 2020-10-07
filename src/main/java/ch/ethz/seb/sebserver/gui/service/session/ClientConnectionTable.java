@@ -320,12 +320,15 @@ public final class ClientConnectionTable {
         if (!this.toDelete.isEmpty()) {
             this.toDelete.forEach(id -> {
                 final UpdatableTableItem item = this.tableMapping.remove(id);
-                final List<Long> list = this.sessionIds.get(item.connectionData.clientConnection.userSessionId);
-                if (list != null) {
-                    list.remove(id);
+                if (item != null) {
+                    final List<Long> list = this.sessionIds.get(item.connectionData.clientConnection.userSessionId);
+                    if (list != null) {
+                        list.remove(id);
+                    }
                 }
             });
             this.statusFilterChanged = false;
+            this.toDelete.clear();
         }
 
         this.forceUpdateAll = false;
