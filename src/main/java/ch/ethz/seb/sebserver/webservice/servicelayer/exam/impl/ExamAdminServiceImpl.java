@@ -43,9 +43,10 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamProctoringServiceFactory;
 
 @Lazy
 @Service

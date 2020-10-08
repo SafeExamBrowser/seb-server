@@ -37,6 +37,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.ProctoringInstructionMethod;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -365,7 +366,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     updatedClientConnection.id,
                     connectionToken);
 
-            // if remote proctoring is enabled send instruction to join room to client
+            // if remote proctoring is enabled send instruction to join exam collection room to client
             if (proctoringEnabled && updatedClientConnection.remoteProctoringRoomId != null) {
                 applyProcotringInstruction(updatedClientConnection);
             }
@@ -722,14 +723,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     final String roomName = UUID.randomUUID().toString();
                     final String subject =
                             "Room " + ((remoteProctoringRooms == null) ? "[0]" : remoteProctoringRooms.size() + 1);
-                    final SEBProctoringConnectionData proctoringData =
-                            this.examAdminService.getExamProctoringService(proctoringSettings.serverType)
-                                    .flatMap(s -> s.createClientPublicRoomConnection(
-                                            proctoringSettings,
-                                            connectionToken,
-                                            roomName,
-                                            subject))
-                                    .getOrThrow();
                     final RemoteProctoringRoom newRoom = this.remoteProctoringRoomDAO.createNewRoom(
                             examId,
                             new RemoteProctoringRoom(
@@ -737,8 +730,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                                     examId,
                                     roomName,
                                     1,
-                                    subject,
-                                    proctoringData.accessToken))
+                                    subject))
                             .getOrThrow();
                     return newRoom.getId();
                 } else {
@@ -765,7 +757,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             final SEBProctoringConnectionData proctoringData =
                     this.examAdminService.getExamProctoringService(proctoringSettings.serverType)
-                            .flatMap(s -> s.createClientPrivateRoomConnection(
+                            .flatMap(s -> s.getClientExamCollectionRoomConnectionData(
                                     proctoringSettings,
                                     clientConnection.connectionToken))
                             .getOrThrow();
@@ -776,7 +768,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     ProctoringServerType.JITSI_MEET.name());
             attributes.put(
                     ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.METHOD,
-                    "join");
+                    ProctoringInstructionMethod.JOIN.name());
 
             if (proctoringSettings.serverType == ProctoringServerType.JITSI_MEET) {
 

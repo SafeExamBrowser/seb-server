@@ -26,11 +26,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class SEBClientsJoinProctorRoom extends RestCall<List<SEBProctoringConnectionData>> {
+public class LeaveRemoteProctoringRoom extends RestCall<List<SEBProctoringConnectionData>> {
 
-    public SEBClientsJoinProctorRoom() {
+    public LeaveRemoteProctoringRoom() {
         super(new TypeKey<>(
-                CallType.GET_SINGLE,
+                CallType.UNDEFINED,
                 EntityType.EXAM_PROCTOR_DATA,
                 new TypeReference<List<SEBProctoringConnectionData>>() {
                 }),
@@ -39,7 +39,6 @@ public class SEBClientsJoinProctorRoom extends RestCall<List<SEBProctoringConnec
                 API.EXAM_MONITORING_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
                         + API.PROCTORING_PATH_SEGMENT
-                        + API.PROCTORING_JOIN_ROOM_PATH_SEGMENT);
+                        + API.PROCTORING_LEAVE_ROOM_PATH_SEGMENT);
     }
-
 }

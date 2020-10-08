@@ -91,7 +91,6 @@ CREATE TABLE IF NOT EXISTS `remote_proctoring_room` (
   `name` VARCHAR(255) NOT NULL,
   `size` INT NULL,
   `subject` VARCHAR(255) NULL,
-  `token` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`),
   INDEX `proctor_room_exam_id_idx` (`exam_id` ASC),
   CONSTRAINT `proctorRoomExamRef`

@@ -30,7 +30,8 @@ public final class ClientInstruction {
 
     public enum ProctoringInstructionMethod {
         JOIN,
-        LEAVE
+        LEAVE,
+        RECONFIGURE
     }
 
     public interface SEB_INSTRUCTION_ATTRIBUTES {

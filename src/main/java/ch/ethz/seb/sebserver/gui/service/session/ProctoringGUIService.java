@@ -9,15 +9,13 @@
 package ch.ethz.seb.sebserver.gui.service.session;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import org.apache.tomcat.util.buf.StringUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -30,16 +28,19 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SEBClientsJoinProctorRoom;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendJoinRemoteProctoringRoom;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendRejoinExamCollectionRoom;
 
 public class ProctoringGUIService {
 
     private static final Logger log = LoggerFactory.getLogger(ProctoringGUIService.class);
 
+    public static final String SESSION_ATTR_PROCTORING_DATA = "SESSION_ATTR_PROCTORING_DATA";
     private static final String CLOSE_ROOM_SCRIPT = "var existingWin = window.open('', '%s'); existingWin.close()";
 
-    private final AtomicInteger counter = new AtomicInteger(1);
     private final RestService restService;
+
+    private final AtomicInteger counter = new AtomicInteger(1);
     final Map<String, RoomConnectionData> rooms = new HashMap<>();
 
     final Set<String> openWindows = new HashSet<>();
@@ -60,24 +61,62 @@ public class ProctoringGUIService {
         return this.rooms.keySet();
     }
 
-    public void registerNewProcotringRoom(
+    public static SEBProctoringConnectionData getCurrentProctoringData() {
+        return (SEBProctoringConnectionData) RWT.getUISession()
+                .getHttpSession()
+                .getAttribute(SESSION_ATTR_PROCTORING_DATA);
+    }
+
+    public static void setCurrentProctoringData(final SEBProctoringConnectionData data) {
+        RWT.getUISession().getHttpSession().setAttribute(
+                SESSION_ATTR_PROCTORING_DATA,
+                data);
+    }
+
+    public Result<SEBProctoringConnectionData> registerNewSingleProcotringRoom(
             final String examId,
             final String roomName,
+            final String subject,
+            final String connectionToken) {
+
+        return Result.tryCatch(() -> {
+            final SEBProctoringConnectionData connection =
+                    this.restService.getBuilder(SendJoinRemoteProctoringRoom.class)
+                            .withURIVariable(API.PARAM_MODEL_ID, examId)
+                            .withFormParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, roomName)
+                            .withFormParam(SEBProctoringConnectionData.ATTR_SUBJECT, subject)
+                            .withFormParam(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
+                            .call()
+                            .getOrThrow();
+
+            this.rooms.put(roomName, new RoomConnectionData(roomName, examId, connectionToken));
+            this.openWindows.add(roomName);
+            return connection;
+        });
+    }
+
+    public Result<SEBProctoringConnectionData> registerNewProcotringRoom(
+            final String examId,
+            final String roomName,
+            final String subject,
             final Collection<String> connectionTokens) {
 
-        final List<SEBProctoringConnectionData> connections =
-                this.restService.getBuilder(SEBClientsJoinProctorRoom.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, examId)
-                        .withFormParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, roomName)
-                        .withFormParam(
-                                API.EXAM_API_SEB_CONNECTION_TOKEN,
-                                StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR_CHAR))
-                        .call()
-                        .getOrThrow();
+        return Result.tryCatch(() -> {
+            final SEBProctoringConnectionData connection =
+                    this.restService.getBuilder(SendJoinRemoteProctoringRoom.class)
+                            .withURIVariable(API.PARAM_MODEL_ID, examId)
+                            .withFormParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, roomName)
+                            .withFormParam(SEBProctoringConnectionData.ATTR_SUBJECT, subject)
+                            .withFormParam(
+                                    API.EXAM_API_SEB_CONNECTION_TOKEN,
+                                    StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR_CHAR))
+                            .call()
+                            .getOrThrow();
 
-        this.rooms.put(roomName, new RoomConnectionData(roomName, examId, connections));
-        this.openWindows.add(roomName);
-
+            this.rooms.put(roomName, new RoomConnectionData(roomName, examId, connectionTokens));
+            this.openWindows.add(roomName);
+            return connection;
+        });
     }
 
     public void addConnectionsToRoom(
@@ -90,16 +129,15 @@ public class ProctoringGUIService {
             if (!roomConnectionData.examId.equals(examId) || !roomConnectionData.roomName.equals(room)) {
                 throw new IllegalArgumentException("Exam identifier mismatch");
             }
-            final List<SEBProctoringConnectionData> newConnections =
-                    this.restService.getBuilder(SEBClientsJoinProctorRoom.class)
-                            .withURIVariable(API.PARAM_MODEL_ID, examId)
-                            .withFormParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, room)
-                            .withFormParam(
-                                    API.EXAM_API_SEB_CONNECTION_TOKEN,
-                                    StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR_CHAR))
-                            .call()
-                            .getOrThrow();
-            roomConnectionData.connections.addAll(newConnections);
+            this.restService.getBuilder(SendJoinRemoteProctoringRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, examId)
+                    .withFormParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, room)
+                    .withFormParam(
+                            API.EXAM_API_SEB_CONNECTION_TOKEN,
+                            StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR_CHAR))
+                    .call()
+                    .getOrThrow();
+            roomConnectionData.connections.addAll(connectionTokens);
         }
     }
 
@@ -110,38 +148,21 @@ public class ProctoringGUIService {
 
     }
 
-    public Result<List<SEBProctoringConnectionData>> closeRoom(final String name) {
-        return Result.tryCatch(() -> {
-            closeWindow(name);
-            final RoomConnectionData roomConnectionData = this.rooms.remove(name);
-            if (roomConnectionData != null) {
-                // first send instruction to leave this room and join the personal room
-                final String connectionsString = StringUtils.join(
-                        roomConnectionData.connections
-                                .stream()
-                                .map(c -> c.connectionToken)
-                                .collect(Collectors.toList()),
-                        Constants.LIST_SEPARATOR_CHAR);
+    public void closeRoom(final String name) {
+        closeWindow(name);
+        final RoomConnectionData roomConnectionData = this.rooms.remove(name);
+        if (roomConnectionData != null) {
+            // send instruction to leave this room and join the own exam collection room
 
-// NOTE: uncomment this if we need to send first a LEAVE instruction before sending the JOIN instruction for the single room
-//                this.restService.getBuilder(LeaveProctorRoom.class)
-//                        .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
-//                        .withFormParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, name)
-//                        .withFormParam(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionsString)
-//                        .call()
-//                        .getOrThrow();
+            this.restService.getBuilder(SendRejoinExamCollectionRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
+                    .withFormParam(
+                            API.EXAM_API_SEB_CONNECTION_TOKEN,
+                            StringUtils.join(roomConnectionData.connections, Constants.LIST_SEPARATOR_CHAR))
+                    .call()
+                    .getOrThrow();
 
-                return this.restService.getBuilder(SEBClientsJoinProctorRoom.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
-                        .withFormParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, name)
-                        .withFormParam(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionsString)
-                        .call()
-                        .getOrThrow();
-
-            }
-
-            return Collections.emptyList();
-        });
+        }
     }
 
     public void clear() {
@@ -172,18 +193,27 @@ public class ProctoringGUIService {
     private static final class RoomConnectionData {
         final String roomName;
         final String examId;
-        final Collection<SEBProctoringConnectionData> connections;
+        final Collection<String> connections;
 
         protected RoomConnectionData(
                 final String roomName,
                 final String examId,
-                final Collection<SEBProctoringConnectionData> connections) {
+                final String... connections) {
+
+            this.roomName = roomName;
+            this.examId = examId;
+            this.connections = connections != null ? Arrays.asList(connections) : new ArrayList<>();
+        }
+
+        protected RoomConnectionData(
+                final String roomName,
+                final String examId,
+                final Collection<String> connections) {
 
             this.roomName = roomName;
             this.examId = examId;
             this.connections = connections != null ? new ArrayList<>(connections) : new ArrayList<>();
         }
-
     }
 
 }

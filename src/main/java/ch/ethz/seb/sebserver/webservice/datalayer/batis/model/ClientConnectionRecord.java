@@ -3,37 +3,37 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ClientConnectionRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.exam_id")
     private Long examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.status")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.status")
     private String status;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.connection_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.connection_token")
     private String connectionToken;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.exam_user_session_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.exam_user_session_id")
     private String examUserSessionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.client_address")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.client_address")
     private String clientAddress;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.virtual_client_address")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.virtual_client_address")
     private String virtualClientAddress;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.083+02:00", comments="Source field: client_connection.creation_time")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.creation_time")
     private Long creationTime;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.083+02:00", comments="Source field: client_connection.remote_proctoring_room_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.remote_proctoring_room_id")
     private Long remoteProctoringRoomId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.081+02:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source Table: client_connection")
     public ClientConnectionRecord(Long id, Long institutionId, Long examId, String status, String connectionToken, String examUserSessionId, String clientAddress, String virtualClientAddress, Long creationTime, Long remoteProctoringRoomId) {
         this.id = id;
         this.institutionId = institutionId;
@@ -47,52 +47,52 @@ public class ClientConnectionRecord {
         this.remoteProctoringRoomId = remoteProctoringRoomId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.exam_id")
     public Long getExamId() {
         return examId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.status")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.status")
     public String getStatus() {
         return status;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.connection_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.connection_token")
     public String getConnectionToken() {
         return connectionToken;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.exam_user_session_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.exam_user_session_id")
     public String getExamUserSessionId() {
         return examUserSessionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.082+02:00", comments="Source field: client_connection.client_address")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.client_address")
     public String getClientAddress() {
         return clientAddress;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.083+02:00", comments="Source field: client_connection.virtual_client_address")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.virtual_client_address")
     public String getVirtualClientAddress() {
         return virtualClientAddress;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.083+02:00", comments="Source field: client_connection.creation_time")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.creation_time")
     public Long getCreationTime() {
         return creationTime;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-06T15:56:14.083+02:00", comments="Source field: client_connection.remote_proctoring_room_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.246+02:00", comments="Source field: client_connection.remote_proctoring_room_id")
     public Long getRemoteProctoringRoomId() {
         return remoteProctoringRoomId;
     }
@@ -101,7 +101,7 @@ public class ClientConnectionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_connection
      *
-     * @mbg.generated Tue Oct 06 15:56:14 CEST 2020
+     * @mbg.generated Thu Oct 08 13:12:41 CEST 2020
      */
     @Override
     public String toString() {
@@ -127,7 +127,7 @@ public class ClientConnectionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_connection
      *
-     * @mbg.generated Tue Oct 06 15:56:14 CEST 2020
+     * @mbg.generated Thu Oct 08 13:12:41 CEST 2020
      */
     @Override
     public boolean equals(Object that) {
@@ -157,7 +157,7 @@ public class ClientConnectionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_connection
      *
-     * @mbg.generated Tue Oct 06 15:56:14 CEST 2020
+     * @mbg.generated Thu Oct 08 13:12:41 CEST 2020
      */
     @Override
     public int hashCode() {

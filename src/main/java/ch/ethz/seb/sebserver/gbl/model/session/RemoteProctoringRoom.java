@@ -32,24 +32,19 @@ public class RemoteProctoringRoom {
     @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_SUBJECT)
     public final String subject;
 
-    @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_TOKEN)
-    public final String token;
-
     @JsonCreator
     public RemoteProctoringRoom(
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID) final Long id,
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_EXAM_ID) final Long examId,
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_NAME) final String name,
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_SIZE) final Integer roomSize,
-            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_SUBJECT) final String subject,
-            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_TOKEN) final String token) {
+            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_SUBJECT) final String subject) {
 
         this.id = id;
         this.examId = examId;
         this.name = name;
         this.roomSize = roomSize;
         this.subject = subject;
-        this.token = token;
     }
 
     public Long getId() {
@@ -72,10 +67,6 @@ public class RemoteProctoringRoom {
         return this.subject;
     }
 
-    public String getToken() {
-        return this.token;
-    }
-
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -89,8 +80,6 @@ public class RemoteProctoringRoom {
         builder.append(this.roomSize);
         builder.append(", subject=");
         builder.append(this.subject);
-        builder.append(", token=");
-        builder.append(this.token);
         builder.append("]");
         return builder.toString();
     }

@@ -17,11 +17,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.RemoteProctoringView;
+import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
 
 @Component
 @GuiProfile
@@ -49,7 +51,12 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
         final Composite parent = pageContext.getParent();
 
         parent.addListener(SWT.Dispose, event -> {
-            System.out.println("*********************");
+            final ProctoringGUIService proctoringGUIService = this.pageService
+                    .getCurrentUser()
+                    .getProctoringGUIService();
+            final SEBProctoringConnectionData currentProctoringData = ProctoringGUIService
+                    .getCurrentProctoringData();
+            proctoringGUIService.closeRoom(currentProctoringData.roomName);
         });
 
         final String url = this.guiServiceInfo.getExternalServerURIBuilder().toUriString()

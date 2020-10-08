@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -17,6 +17,7 @@ import org.mockito.Mockito;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamJITSIProctoringService;
 
 public class ExamJITSIProctoringServiceTest {
 

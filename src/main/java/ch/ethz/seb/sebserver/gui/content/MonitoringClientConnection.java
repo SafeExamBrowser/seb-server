@@ -11,10 +11,13 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.Base64;
 import java.util.Base64.Encoder;
 import java.util.Collection;
+import java.util.Optional;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
 import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -32,11 +35,11 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
-import ch.ethz.seb.sebserver.gui.ProctoringServlet;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
@@ -54,10 +57,12 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProcotringRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnectionData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionDetails;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
+import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
@@ -68,10 +73,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class MonitoringClientConnection implements TemplateComposer {
 
-    private static final LocTextKey PAGE_TITLE_KEY =
-            new LocTextKey("sebserver.monitoring.exam.connection.title");
+    private static final Logger log = LoggerFactory.getLogger(MonitoringClientConnection.class);
 
- // @formatter:off
+    // @formatter:off
     private static final String OPEN_SINGEL_ROOM_SCRIPT =
             "var existingWin = window.open('', '%s', 'height=420,width=620,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
             "if(existingWin.location.href === 'about:blank'){\n" +
@@ -80,8 +84,10 @@ public class MonitoringClientConnection implements TemplateComposer {
             "} else {\n" +
             "    existingWin.focus();\n" +
             "}";
-   // @formatter:on
+    // @formatter:on
 
+    private static final LocTextKey PAGE_TITLE_KEY =
+            new LocTextKey("sebserver.monitoring.exam.connection.title");
     private static final LocTextKey EVENT_LIST_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.title");
     private static final LocTextKey EVENT_LIST_TITLE_TOOLTIP_KEY =
@@ -262,13 +268,6 @@ public class MonitoringClientConnection implements TemplateComposer {
 
                 .compose(pageContext.copyOf(content));
 
-        final boolean proctoringEnabled = restService
-                .getBuilder(GetProctoringSettings.class)
-                .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
-                .call()
-                .map(ProctoringSettings::getEnableProctoring)
-                .getOr(false);
-
         actionBuilder
                 .newAction(ActionDefinition.MONITOR_EXAM_BACK_TO_OVERVIEW)
                 .withEntityKey(parentEntityKey)
@@ -285,34 +284,102 @@ public class MonitoringClientConnection implements TemplateComposer {
                 })
                 .noEventPropagation()
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER) &&
-                        connectionData.clientConnection.status == ConnectionStatus.ACTIVE)
+                        connectionData.clientConnection.status == ConnectionStatus.ACTIVE);
 
-                .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING)
-                .withEntityKey(parentEntityKey)
-                .withExec(action -> this.openProctorScreen(action, connectionToken))
-                .noEventPropagation()
-                .publishIf(() -> proctoringEnabled);
+        final ProctoringSettings procotringSettings = restService
+                .getBuilder(GetProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
+                .call()
+                .onError(error -> log.error("Failed to get ProctoringSettings", error))
+                .getOr(null);
+
+        if (procotringSettings != null && procotringSettings.enableProctoring) {
+            actionBuilder
+                    .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING)
+                    .withEntityKey(parentEntityKey)
+                    .withExec(action -> this.openSingleProctorScreen(action, connectionData))
+                    .noEventPropagation()
+                    .publish()
+
+                    .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_EXAM_ROOM_PROCTORING)
+                    .withEntityKey(parentEntityKey)
+                    .withExec(action -> this.openExamCollectionProctorScreen(action, connectionData))
+                    .noEventPropagation()
+                    .publish();
+        }
+
     }
 
-    private PageAction openProctorScreen(final PageAction action, final String connectionToken) {
-        final SEBProctoringConnectionData proctoringConnectionData = this.pageService.getRestService()
-                .getBuilder(GetProctorRoomConnectionData.class)
-                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
-                .withQueryParam(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
+    private PageAction openExamCollectionProctorScreen(
+            final PageAction action,
+            final ClientConnectionData connectionData) {
+
+        final String examId = action.getEntityKey().modelId;
+
+        final ProctoringSettings proctoringSettings = this.pageService.getRestService()
+                .getBuilder(GetProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examId)
                 .call()
                 .getOrThrow();
 
+        final Optional<RemoteProctoringRoom> roomOptional =
+                this.pageService.getRestService().getBuilder(GetProcotringRooms.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, examId)
+                        .call()
+                        .getOrThrow()
+                        .stream()
+                        .filter(room -> room.id.equals(connectionData.clientConnection.remoteProctoringRoomId))
+                        .findFirst();
+
+        if (roomOptional.isPresent()) {
+            final RemoteProctoringRoom room = roomOptional.get();
+            final SEBProctoringConnectionData proctoringConnectionData = this.pageService
+                    .getRestService()
+                    .getBuilder(GetProctorRoomConnectionData.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
+                    .withQueryParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, room.name)
+                    .withQueryParam(SEBProctoringConnectionData.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
+                    .call()
+                    .getOrThrow();
+
+            ProctoringGUIService.setCurrentProctoringData(proctoringConnectionData);
+            final String script = String.format(
+                    MonitoringRunningExam.OPEN_EXAM_COLLECTION_ROOM_SCRIPT,
+                    room.name,
+                    this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
+                    this.remoteProctoringEndpoint);
+
+            RWT.getClient()
+                    .getService(JavaScriptExecutor.class)
+                    .execute(script);
+
+            this.pageService.getCurrentUser()
+                    .getProctoringGUIService()
+                    .registerProctoringWindow(room.name);
+        }
+
+        return action;
+    }
+
+    private PageAction openSingleProctorScreen(
+            final PageAction action,
+            final ClientConnectionData connectionData) {
+
+        final String connectionToken = connectionData.clientConnection.connectionToken;
         final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
         final String roomName = urlEncoder.encodeToString(Utils.toByteArray(connectionToken));
+        final String examId = action.getEntityKey().modelId;
 
-        RWT.getUISession().getHttpSession().setAttribute(
-                ProctoringServlet.SESSION_ATTR_PROCTORING_DATA,
-                proctoringConnectionData);
+        final SEBProctoringConnectionData proctoringConnectionData = this.pageService.getCurrentUser()
+                .getProctoringGUIService()
+                .registerNewSingleProcotringRoom(
+                        examId,
+                        roomName,
+                        connectionData.clientConnection.userSessionId,
+                        connectionToken)
+                .getOrThrow();
 
-//        final String url = this.guiServiceInfo.getExternalServerURIBuilder().toUriString() + "/proctoring/" + roomName;
-//        final ProctorDialog proctorDialog = new ProctorDialog(action.pageContext().getShell());
-//        proctorDialog.open(new LocTextKey("title"), url);
-
+        ProctoringGUIService.setCurrentProctoringData(proctoringConnectionData);
         final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
         final String script = String.format(
                 OPEN_SINGEL_ROOM_SCRIPT,

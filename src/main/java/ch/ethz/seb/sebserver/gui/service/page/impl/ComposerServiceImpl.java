@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gui.ProctoringServlet;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
@@ -35,6 +33,7 @@ import ch.ethz.seb.sebserver.gui.service.page.RemoteProctoringView;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.IllegalUserSessionStateException;
+import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
 import ch.ethz.seb.sebserver.gui.widget.Message;
 
 @Lazy
@@ -85,10 +84,7 @@ public class ComposerServiceImpl implements ComposerService {
 
     @Override
     public void loadProctoringView(final Composite parent) {
-        final SEBProctoringConnectionData proctoringConnectionData = (SEBProctoringConnectionData) RWT.getUISession()
-                .getHttpSession()
-                .getAttribute(ProctoringServlet.SESSION_ATTR_PROCTORING_DATA);
-
+        final SEBProctoringConnectionData proctoringConnectionData = ProctoringGUIService.getCurrentProctoringData();
         this.composer.values()
                 .stream()
                 .filter(c -> c instanceof RemoteProctoringView)

@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -47,7 +46,6 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
-import ch.ethz.seb.sebserver.gui.ProctoringServlet;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -66,9 +64,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProcotringRooms;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnectionData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
+import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
 
 @Lazy
 @Component
@@ -78,7 +78,7 @@ public class MonitoringRunningExam implements TemplateComposer {
     private static final Logger log = LoggerFactory.getLogger(MonitoringRunningExam.class);
 
  // @formatter:off
-    private static final String OPEN_SINGEL_ROOM_SCRIPT =
+    static final String OPEN_EXAM_COLLECTION_ROOM_SCRIPT =
             "var existingWin = window.open('', '%s', 'height=800,width=1200,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
             "if(existingWin.location.href === 'about:blank'){\n" +
             "    existingWin.location.href = '%s%s';\n" +
@@ -442,25 +442,19 @@ public class MonitoringRunningExam implements TemplateComposer {
             final RemoteProctoringRoom room,
             final PageAction action) {
 
-        final String host = UriComponentsBuilder.fromHttpUrl(proctoringSettings.serverURL)
-                .build()
-                .getHost();
+        final SEBProctoringConnectionData proctoringConnectionData = this.pageService
+                .getRestService()
+                .getBuilder(GetProctorRoomConnectionData.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
+                .withQueryParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, room.name)
+                .withQueryParam(SEBProctoringConnectionData.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
+                .call()
+                .getOrThrow();
 
-        final SEBProctoringConnectionData proctoringConnectionData = new SEBProctoringConnectionData(
-                proctoringSettings.serverType,
-                null,
-                host,
-                proctoringSettings.serverURL,
-                room.name,
-                room.subject,
-                room.token);
-
-        RWT.getUISession().getHttpSession().setAttribute(
-                ProctoringServlet.SESSION_ATTR_PROCTORING_DATA,
-                proctoringConnectionData);
+        ProctoringGUIService.setCurrentProctoringData(proctoringConnectionData);
 
         final String script = String.format(
-                OPEN_SINGEL_ROOM_SCRIPT,
+                OPEN_EXAM_COLLECTION_ROOM_SCRIPT,
                 room.name,
                 this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
                 this.remoteProctoringEndpoint);
@@ -474,7 +468,6 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .registerProctoringWindow(room.name);
 
         return action;
-
     }
 
 //    private PageAction showProctoringRoom(

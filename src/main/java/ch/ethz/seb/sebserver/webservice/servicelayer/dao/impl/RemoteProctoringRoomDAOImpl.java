@@ -74,8 +74,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     examId,
                     room.name,
                     (room.roomSize != null) ? room.roomSize : 0,
-                    room.subject,
-                    room.token);
+                    room.subject);
 
             this.remoteProctoringRoomRecordMapper.insert(remoteProctoringRoomRecord);
             return this.remoteProctoringRoomRecordMapper
@@ -97,8 +96,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     examId,
                     room.name,
                     room.roomSize,
-                    room.subject,
-                    room.token);
+                    room.subject);
 
             this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
             return this.remoteProctoringRoomRecordMapper
@@ -155,7 +153,6 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                             null,
                             null,
                             r.getSize() + 1,
-                            null,
                             null);
 
                     this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
@@ -186,7 +183,6 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     null,
                     null,
                     record.getSize() - 1,
-                    null,
                     null);
 
             this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
@@ -204,8 +200,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 record.getExamId(),
                 record.getName(),
                 record.getSize(),
-                record.getSubject(),
-                record.getToken());
+                record.getSubject());
     }
 
 }

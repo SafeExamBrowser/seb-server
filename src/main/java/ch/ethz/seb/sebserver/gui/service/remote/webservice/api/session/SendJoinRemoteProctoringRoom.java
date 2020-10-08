@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session;
 
-import java.util.List;
-
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -26,19 +24,20 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class SEBClientsLeaveProctorRoom extends RestCall<List<SEBProctoringConnectionData>> {
+public class SendJoinRemoteProctoringRoom extends RestCall<SEBProctoringConnectionData> {
 
-    public SEBClientsLeaveProctorRoom() {
+    public SendJoinRemoteProctoringRoom() {
         super(new TypeKey<>(
-                CallType.GET_SINGLE,
+                CallType.UNDEFINED,
                 EntityType.EXAM_PROCTOR_DATA,
-                new TypeReference<List<SEBProctoringConnectionData>>() {
+                new TypeReference<SEBProctoringConnectionData>() {
                 }),
                 HttpMethod.POST,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_MONITORING_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
                         + API.PROCTORING_PATH_SEGMENT
-                        + API.PROCTORING_LEAVE_ROOM_PATH_SEGMENT);
+                        + API.PROCTORING_JOIN_ROOM_PATH_SEGMENT);
     }
+
 }

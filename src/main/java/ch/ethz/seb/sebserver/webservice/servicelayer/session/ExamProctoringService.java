@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
+package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
@@ -19,22 +19,40 @@ public interface ExamProctoringService {
 
     Result<Boolean> testExamProctoring(final ProctoringSettings examProctoring);
 
-    Result<SEBProctoringConnectionData> createProctorPrivateRoomConnection(
-            final ProctoringSettings examProctoring,
-            final String connectionToken);
-
     Result<SEBProctoringConnectionData> createProctorPublicRoomConnection(
             final ProctoringSettings examProctoring,
-            final String roomName);
+            final String roomName,
+            final String subject);
 
-    Result<SEBProctoringConnectionData> createClientPrivateRoomConnection(
+    Result<SEBProctoringConnectionData> getClientExamCollectionRoomConnectionData(
             final ProctoringSettings examProctoring,
             final String connectionToken);
 
-    Result<SEBProctoringConnectionData> createClientPublicRoomConnection(
+    Result<SEBProctoringConnectionData> getClientRoomConnectionData(
+            final ProctoringSettings proctoringSettings,
+            final String connectionToken);
+
+    Result<SEBProctoringConnectionData> getClientRoomConnectionData(
             final ProctoringSettings examProctoring,
             final String connectionToken,
             final String roomName,
             final String subject);
+
+    Result<SEBProctoringConnectionData> createProctoringConnectionData(
+            final ProctoringServerType proctoringServerType,
+            final String connectionToken,
+            final String url,
+            final String appKey,
+            final CharSequence appSecret,
+            final String clientName,
+            final String clientKey,
+            final String roomName,
+            final String subject,
+            final Long expTime);
+
+    Result<String> createClientAccessToken(
+            final ProctoringSettings proctoringSettings,
+            final String connectionToken,
+            final String roomName);
 
 }

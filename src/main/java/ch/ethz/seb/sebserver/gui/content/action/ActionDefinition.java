@@ -630,6 +630,11 @@ public enum ActionDefinition {
             ImageIcon.SHOW,
             PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
             ActionCategory.FORM),
+    MONITOR_EXAM_CLIENT_CONNECTION_EXAM_ROOM_PROCTORING(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.proctoring.examroom"),
+            ImageIcon.SHOW,
+            PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
+            ActionCategory.FORM),
 
     MONITOR_EXAM_QUIT_SELECTED(
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.selected"),

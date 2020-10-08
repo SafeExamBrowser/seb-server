@@ -26,14 +26,13 @@ import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
+import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
 
 @Component
 @GuiProfile
 public class ProctoringServlet extends HttpServlet {
 
     private static final long serialVersionUID = 3475978419653411800L;
-
-    public static final String SESSION_ATTR_PROCTORING_DATA = "SESSION_ATTR_PROCTORING_DATA";
 
     // @formatter:off
     private static final String HTML =
@@ -101,7 +100,8 @@ public class ProctoringServlet extends HttpServlet {
         }
 
         final SEBProctoringConnectionData proctoringConnectionData =
-                (SEBProctoringConnectionData) httpSession.getAttribute(SESSION_ATTR_PROCTORING_DATA);
+                (SEBProctoringConnectionData) httpSession
+                        .getAttribute(ProctoringGUIService.SESSION_ATTR_PROCTORING_DATA);
 
         final String script = String.format(
                 HTML,

@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.util.Collection;
 import java.util.EnumMap;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamProctoringService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 
 @Lazy
 @Service
