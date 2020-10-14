@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
@@ -18,13 +19,15 @@ public interface RemoteProctoringRoomDAO {
 
     Result<Collection<RemoteProctoringRoom>> getRoomsForExam(Long examId);
 
-    Result<RemoteProctoringRoom> createNewRoom(final Long examId, RemoteProctoringRoom room);
-
     Result<RemoteProctoringRoom> saveRoom(final Long examId, RemoteProctoringRoom room);
 
     Result<Collection<EntityKey>> deleteRooms(Long examId);
 
-    Result<RemoteProctoringRoom> reservePlaceInRoom(Long examId, int roomMaxSize);
+    Result<RemoteProctoringRoom> reservePlaceInRoom(
+            Long examId,
+            int roomMaxSize,
+            Function<Long, String> newRoomNameFunction,
+            Function<Long, String> newRommSubjectFunction);
 
     Result<RemoteProctoringRoom> releasePlaceInRoom(final Long examId, Long roomId);
 

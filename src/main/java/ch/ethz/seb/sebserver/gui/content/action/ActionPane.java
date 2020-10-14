@@ -83,16 +83,20 @@ public class ActionPane implements TemplateComposer {
                             treeForGroup,
                             event.action.getTitle());
 
-                    final Image image = event.active
-                            ? event.action.definition.icon.getImage(parent.getDisplay())
-                            : event.action.definition.icon.getGreyedImage(parent.getDisplay());
+                    if (event.action.definition.icon != null) {
+                        final Image image = event.active
+                                ? event.action.definition.icon.getImage(parent.getDisplay())
+                                : event.action.definition.icon.getGreyedImage(parent.getDisplay());
+                        actionItem.setImage(image);
+                    }
 
                     if (!event.active) {
                         actionItem.setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
                     }
-
-                    actionItem.setImage(image);
                     actionItem.setData(ACTION_EVENT_CALL_KEY, event.action);
+                    if (event.actionConsumer != null) {
+                        event.actionConsumer.accept(actionItem);
+                    }
                     parent.layout();
                 });
 
@@ -245,18 +249,19 @@ public class ActionPane implements TemplateComposer {
 
         actions.addListener(SWT.Selection, event -> {
             final TreeItem treeItem = (TreeItem) event.item;
+            treeItem.getParent().deselectAll();
+            if (event.button == 1) {
+                final PageAction action = (PageAction) treeItem.getData(ACTION_EVENT_CALL_KEY);
+                this.pageService.executePageAction(action);
+                if (!treeItem.isDisposed()) {
 
-            final PageAction action = (PageAction) treeItem.getData(ACTION_EVENT_CALL_KEY);
-            this.pageService.executePageAction(action);
-
-            if (!treeItem.isDisposed()) {
-                treeItem.getParent().deselectAll();
-                final PageAction switchAction = action.getSwitchAction();
-                if (switchAction != null) {
-                    final PolyglotPageService polyglotPageService = this.pageService.getPolyglotPageService();
-                    polyglotPageService.injectI18n(treeItem, switchAction.getTitle());
-                    treeItem.setImage(switchAction.definition.icon.getImage(treeItem.getDisplay()));
-                    treeItem.setData(ACTION_EVENT_CALL_KEY, switchAction);
+                    final PageAction switchAction = action.getSwitchAction();
+                    if (switchAction != null) {
+                        final PolyglotPageService polyglotPageService = this.pageService.getPolyglotPageService();
+                        polyglotPageService.injectI18n(treeItem, switchAction.getTitle());
+                        treeItem.setImage(switchAction.definition.icon.getImage(treeItem.getDisplay()));
+                        treeItem.setData(ACTION_EVENT_CALL_KEY, switchAction);
+                    }
                 }
             }
         });

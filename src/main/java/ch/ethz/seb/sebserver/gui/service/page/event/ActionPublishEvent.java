@@ -8,6 +8,10 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.event;
 
+import java.util.function.Consumer;
+
+import org.eclipse.swt.widgets.TreeItem;
+
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 
 /** This action is used to publish an Action to the Action-Pane for a specified context.
@@ -16,10 +20,18 @@ public class ActionPublishEvent implements PageEvent {
 
     public final boolean active;
     public final PageAction action;
+    public final Consumer<TreeItem> actionConsumer;
 
     public ActionPublishEvent(final PageAction action, final boolean active) {
         this.action = action;
         this.active = active;
+        this.actionConsumer = null;
+    }
+
+    public ActionPublishEvent(final PageAction action, final Consumer<TreeItem> actionConsumer) {
+        this.action = action;
+        this.active = true;
+        this.actionConsumer = actionConsumer;
     }
 
 }

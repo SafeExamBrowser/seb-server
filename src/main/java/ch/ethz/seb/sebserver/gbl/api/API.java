@@ -131,8 +131,11 @@ public final class API {
     public static final String PROCTORING_PATH_SEGMENT = "/proctoring";
     public static final String PROCTORING_ROOMS_SEGMENT = "/rooms";
     public static final String PROCTORING_JOIN_ROOM_PATH_SEGMENT = "/join";
-    public static final String PROCTORING_REJOIN_EXAM_ROOM_PATH_SEGMENT = "/rejoin-exam-room";
     public static final String PROCTORING_LEAVE_ROOM_PATH_SEGMENT = "/leave";
+    public static final String PROCTORING_REJOIN_EXAM_ROOM_PATH_SEGMENT = "/rejoin-exam-room";
+    public static final String PROCTORING_BROADCAST_ON_PATH_SEGMENT = "/broadcast-on";
+    public static final String PROCTORING_BROADCAST_OFF_PATH_SEGMENT = "/broadcast-off";
+    public static final String PROCTORING_ROOM_CONNECTIONS_PATH_SEGMENT = "/room-connections";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 

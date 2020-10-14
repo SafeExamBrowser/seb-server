@@ -28,6 +28,11 @@ public interface ExamProctoringService {
             final ProctoringSettings examProctoring,
             final String connectionToken);
 
+    Result<SEBProctoringConnectionData> getClientExamCollectionRoomConnectionData(
+            final ProctoringSettings proctoringSettings,
+            final String connectionToken,
+            final String roomName);
+
     Result<SEBProctoringConnectionData> getClientRoomConnectionData(
             final ProctoringSettings proctoringSettings,
             final String connectionToken);

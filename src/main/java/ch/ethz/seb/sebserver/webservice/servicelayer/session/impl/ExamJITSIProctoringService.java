@@ -159,6 +159,32 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
     }
 
     @Override
+    public Result<SEBProctoringConnectionData> getClientExamCollectionRoomConnectionData(
+            final ProctoringSettings proctoringSettings,
+            final String connectionToken,
+            final String roomName) {
+
+        return Result.tryCatch(() -> {
+            final ClientConnectionData clientConnection = this.examSessionService
+                    .getConnectionData(connectionToken)
+                    .getOrThrow();
+
+            return createProctoringConnectionData(
+                    proctoringSettings.serverType,
+                    null,
+                    proctoringSettings.serverURL,
+                    proctoringSettings.appKey,
+                    proctoringSettings.getAppSecret(),
+                    clientConnection.clientConnection.userSessionId,
+                    "seb-client",
+                    roomName,
+                    clientConnection.clientConnection.userSessionId,
+                    forExam(proctoringSettings))
+                            .getOrThrow();
+        });
+    }
+
+    @Override
     public Result<SEBProctoringConnectionData> getClientRoomConnectionData(
             final ProctoringSettings proctoringSettings,
             final String connectionToken) {

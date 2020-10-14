@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProcotringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 
 @Service
@@ -37,6 +38,7 @@ class ExamSessionControlTask implements DisposableBean {
     private final ExamDAO examDAO;
     private final SEBClientConnectionService sebClientConnectionService;
     private final ExamUpdateHandler examUpdateHandler;
+    private final ExamProcotringRoomService examProcotringRoomService;
     private final Long examTimePrefix;
     private final Long examTimeSuffix;
     private final String examTaskCron;
@@ -60,6 +62,7 @@ class ExamSessionControlTask implements DisposableBean {
             final ExamDAO examDAO,
             final SEBClientConnectionService sebClientConnectionService,
             final ExamUpdateHandler examUpdateHandler,
+            final ExamProcotringRoomService examProcotringRoomService,
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,
             @Value("${sebserver.webservice.api.exam.update-interval:1 * * * * *}") final String examTaskCron,
@@ -72,6 +75,7 @@ class ExamSessionControlTask implements DisposableBean {
         this.examTimeSuffix = examTimeSuffix;
         this.examTaskCron = examTaskCron;
         this.pingUpdateRate = pingUpdateRate;
+        this.examProcotringRoomService = examProcotringRoomService;
     }
 
     @EventListener(SEBServerInitEvent.class)
@@ -120,6 +124,7 @@ class ExamSessionControlTask implements DisposableBean {
         }
 
         this.sebClientConnectionService.updatePingEvents();
+        this.examProcotringRoomService.updateProctoringRooms();
     }
 
     private void controlExamStart(final String updateId) {

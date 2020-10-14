@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -34,6 +33,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.IllegalUserSessionStateException;
 import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
+import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService.ProctoringWindowData;
 import ch.ethz.seb.sebserver.gui.widget.Message;
 
 @Lazy
@@ -84,12 +84,12 @@ public class ComposerServiceImpl implements ComposerService {
 
     @Override
     public void loadProctoringView(final Composite parent) {
-        final SEBProctoringConnectionData proctoringConnectionData = ProctoringGUIService.getCurrentProctoringData();
+        final ProctoringWindowData currentProctoringWindowData = ProctoringGUIService.getCurrentProctoringWindowData();
         this.composer.values()
                 .stream()
                 .filter(c -> c instanceof RemoteProctoringView)
                 .map(c -> (RemoteProctoringView) c)
-                .filter(c -> c.serverType() == proctoringConnectionData.proctoringServerType)
+                .filter(c -> c.serverType() == currentProctoringWindowData.connectionData.proctoringServerType)
                 .findFirst()
                 .ifPresent(c -> c.compose(createPageContext(parent)));
     }

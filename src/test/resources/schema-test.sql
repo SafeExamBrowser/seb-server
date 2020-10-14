@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `virtual_client_address` VARCHAR(45) NULL,
   `creation_time` BIGINT UNSIGNED NOT NULL,
   `remote_proctoring_room_id` BIGINT UNSIGNED NULL,
+  `remote_proctoring_room_update` INT(1) UNSIGNED NULL,
   PRIMARY KEY (`id`),
   INDEX `connection_exam_ref_idx` (`exam_id` ASC),
   INDEX `clientConnectionInstitutionRef_idx` (`institution_id` ASC),

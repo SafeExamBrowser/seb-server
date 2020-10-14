@@ -584,9 +584,7 @@ public final class Utils {
                                 .append(entry.getKey())
                                 .append(Constants.DOUBLE_QUOTE)
                                 .append(Constants.COLON)
-                                .append(Constants.DOUBLE_QUOTE)
-                                .append(entry.getValue())
-                                .append(Constants.DOUBLE_QUOTE)
+                                .append(getJSONValue(entry.getValue()))
                                 .append(Constants.COMMA),
                         StringBuilder::append)
                 .append(Constants.CURLY_BRACE_CLOSE);
@@ -598,6 +596,28 @@ public final class Utils {
         } else {
             return StringUtils.EMPTY;
         }
+    }
+
+    private static String getJSONValue(final String value) {
+        if (Constants.TRUE_STRING.equalsIgnoreCase(value) || Constants.FALSE_STRING.equalsIgnoreCase(value)) {
+            return value.toLowerCase();
+        }
+
+        try {
+            return String.valueOf(Long.parseLong(value));
+        } catch (final Exception e) {
+        }
+
+        try {
+            return String.valueOf(Double.parseDouble(value));
+        } catch (final Exception e) {
+        }
+
+        return new StringBuilder()
+                .append(Constants.DOUBLE_QUOTE)
+                .append(value)
+                .append(Constants.DOUBLE_QUOTE)
+                .toString();
     }
 
     public static String toAppFormUrlEncodedBody(final MultiValueMap<String, String> attributes) {

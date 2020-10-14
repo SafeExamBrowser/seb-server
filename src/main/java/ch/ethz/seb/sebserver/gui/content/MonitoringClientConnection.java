@@ -342,7 +342,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                     .call()
                     .getOrThrow();
 
-            ProctoringGUIService.setCurrentProctoringData(proctoringConnectionData);
+            ProctoringGUIService.setCurrentProctoringWindowData(examId, proctoringConnectionData);
             final String script = String.format(
                     MonitoringRunningExam.OPEN_EXAM_COLLECTION_ROOM_SCRIPT,
                     room.name,
@@ -379,7 +379,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                         connectionToken)
                 .getOrThrow();
 
-        ProctoringGUIService.setCurrentProctoringData(proctoringConnectionData);
+        ProctoringGUIService.setCurrentProctoringWindowData(examId, proctoringConnectionData);
         final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
         final String script = String.format(
                 OPEN_SINGEL_ROOM_SCRIPT,

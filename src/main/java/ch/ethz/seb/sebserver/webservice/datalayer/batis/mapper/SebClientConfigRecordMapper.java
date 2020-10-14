@@ -34,20 +34,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface SebClientConfigRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.268+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.784+02:00", comments="Source Table: seb_client_configuration")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.268+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.784+02:00", comments="Source Table: seb_client_configuration")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.268+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.784+02:00", comments="Source Table: seb_client_configuration")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<SebClientConfigRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.268+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.784+02:00", comments="Source Table: seb_client_configuration")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -61,7 +61,7 @@ public interface SebClientConfigRecordMapper {
     })
     SebClientConfigRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.268+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.784+02:00", comments="Source Table: seb_client_configuration")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -75,22 +75,22 @@ public interface SebClientConfigRecordMapper {
     })
     List<SebClientConfigRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.268+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.268+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(sebClientConfigRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.269+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, sebClientConfigRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.269+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, sebClientConfigRecord)
                 .where(id, isEqualTo(id_))
@@ -98,7 +98,7 @@ public interface SebClientConfigRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.269+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default int insert(SebClientConfigRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(sebClientConfigRecord)
@@ -113,7 +113,7 @@ public interface SebClientConfigRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.269+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default int insertSelective(SebClientConfigRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(sebClientConfigRecord)
@@ -128,19 +128,19 @@ public interface SebClientConfigRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.269+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<SebClientConfigRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(this::selectMany, id, institutionId, name, date, clientName, clientSecret, encryptSecret, active)
                 .from(sebClientConfigRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.269+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<SebClientConfigRecord>>> selectDistinctByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectMany, id, institutionId, name, date, clientName, clientSecret, encryptSecret, active)
                 .from(sebClientConfigRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.269+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default SebClientConfigRecord selectByPrimaryKey(Long id_) {
         return SelectDSL.selectWithMapper(this::selectOne, id, institutionId, name, date, clientName, clientSecret, encryptSecret, active)
                 .from(sebClientConfigRecord)
@@ -149,7 +149,7 @@ public interface SebClientConfigRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.269+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(SebClientConfigRecord record) {
         return UpdateDSL.updateWithMapper(this::update, sebClientConfigRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
@@ -161,7 +161,7 @@ public interface SebClientConfigRecordMapper {
                 .set(active).equalTo(record::getActive);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.269+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(SebClientConfigRecord record) {
         return UpdateDSL.updateWithMapper(this::update, sebClientConfigRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)
@@ -173,7 +173,7 @@ public interface SebClientConfigRecordMapper {
                 .set(active).equalToWhenPresent(record::getActive);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.269+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default int updateByPrimaryKey(SebClientConfigRecord record) {
         return UpdateDSL.updateWithMapper(this::update, sebClientConfigRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
@@ -188,7 +188,7 @@ public interface SebClientConfigRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-08T13:12:41.269+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.785+02:00", comments="Source Table: seb_client_configuration")
     default int updateByPrimaryKeySelective(SebClientConfigRecord record) {
         return UpdateDSL.updateWithMapper(this::update, sebClientConfigRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)

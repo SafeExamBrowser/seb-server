@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `remote_proctoring_room` (
 -- -----------------------------------------------------
 ALTER TABLE `client_connection`
 ADD COLUMN IF NOT EXISTS `remote_proctoring_room_id` BIGINT UNSIGNED NULL,
+ADD COLUMN IF NOT EXISTS `remote_proctoring_room_update` INT(1) UNSIGNED NULL,
 ADD INDEX IF NOT EXISTS `clientConnectionProctorRoomRef_idx` (`remote_proctoring_room_id` ASC),
 ADD CONSTRAINT `clientConnectionRemoteProctoringRoomRef` 
     FOREIGN KEY IF NOT EXISTS (`remote_proctoring_room_id`) 

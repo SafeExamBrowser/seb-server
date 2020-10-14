@@ -19,6 +19,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -150,7 +151,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.clientAddress,
                     data.virtualClientAddress,
                     Utils.getMillisecondsNow(),
-                    data.remoteProctoringRoomId);
+                    data.remoteProctoringRoomId,
+                    null);
 
             this.clientConnectionRecordMapper.insert(newRecord);
             return newRecord;
@@ -174,34 +176,14 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.clientAddress,
                     data.virtualClientAddress,
                     null,
-                    data.remoteProctoringRoomId);
+                    data.remoteProctoringRoomId,
+                    BooleanUtils.toIntegerObject(data.remoteProctoringRoomUpdate));
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
         })
                 .flatMap(ClientConnectionDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
-    }
-
-    @Override
-    @Transactional
-    public Result<Long> removeFromRemoteProctoringRoom(final Long connectionId) {
-        return Result.tryCatch(() -> {
-            final ClientConnectionRecord record = this.clientConnectionRecordMapper.selectByPrimaryKey(connectionId);
-            final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
-                    record.getId(),
-                    record.getInstitutionId(),
-                    record.getExamId(),
-                    record.getStatus(),
-                    record.getConnectionToken(),
-                    record.getExamUserSessionId(),
-                    record.getClientAddress(),
-                    record.getVirtualClientAddress(),
-                    record.getCreationTime(),
-                    null);
-            this.clientConnectionRecordMapper.updateByPrimaryKey(updateRecord);
-            return connectionId;
-        });
     }
 
     @Override
@@ -357,7 +339,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         });
     }
 
-    private static Result<ClientConnection> toDomainModel(final ClientConnectionRecord record) {
+    public static Result<ClientConnection> toDomainModel(final ClientConnectionRecord record) {
         return Result.tryCatch(() -> {
 
             final String status = record.getStatus();
@@ -373,7 +355,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getClientAddress(),
                     record.getVirtualClientAddress(),
                     record.getCreationTime(),
-                    record.getRemoteProctoringRoomId());
+                    record.getRemoteProctoringRoomId(),
+                    BooleanUtils.toBooleanObject(record.getRemoteProctoringRoomUpdate()));
         });
     }
 

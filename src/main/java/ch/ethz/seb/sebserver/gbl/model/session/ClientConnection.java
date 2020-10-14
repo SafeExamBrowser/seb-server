@@ -49,7 +49,8 @@ public final class ClientConnection implements GrantEntity {
             null,
             null,
             null,
-            null);
+            null,
+            false);
 
     public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
     public static final String FILTER_ATTR_STATUS = Domain.CLIENT_CONNECTION.ATTR_STATUS;
@@ -85,6 +86,9 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID)
     public final Long remoteProctoringRoomId;
 
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_UPDATE)
+    public final Boolean remoteProctoringRoomUpdate;
+
     @JsonCreator
     public ClientConnection(
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID) final Long id,
@@ -96,7 +100,8 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS) final String virtualClientAddress,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME) final Long creationTime,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId) {
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_UPDATE) final Boolean remoteProctoringRoomUpdate) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -108,6 +113,7 @@ public final class ClientConnection implements GrantEntity {
         this.virtualClientAddress = virtualClientAddress;
         this.creationTime = creationTime;
         this.remoteProctoringRoomId = remoteProctoringRoomId;
+        this.remoteProctoringRoomUpdate = (remoteProctoringRoomUpdate != null) ? remoteProctoringRoomUpdate : false;
     }
 
     @Override
@@ -166,6 +172,10 @@ public final class ClientConnection implements GrantEntity {
 
     public Long getRemoteProctoringRoomId() {
         return this.remoteProctoringRoomId;
+    }
+
+    public Boolean getRemoteProctoringRoomUpdate() {
+        return this.remoteProctoringRoomUpdate;
     }
 
     @Override

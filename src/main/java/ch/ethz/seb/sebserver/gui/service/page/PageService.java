@@ -24,6 +24,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -278,6 +279,16 @@ public interface PageService {
      * @param pageAction the PageAction to publish
      * @param active indicates whether the action is active or not */
     void publishAction(final PageAction pageAction, boolean active);
+
+    /** Publishes a PageAction to the current page. This uses the firePageEvent form
+     * PageContext of the given PageAction and fires a ActionPublishEvent for the given PageAction
+     *
+     * All ActionPublishEventListeners that are registered within the current page will
+     * receive the ActionPublishEvent sent by this.
+     *
+     * @param pageAction the PageAction to publish
+     * @param actionConsumer An consumer that gets the actions TreeItem after creation */
+    void publishAction(final PageAction pageAction, Consumer<TreeItem> actionConsumer);
 
     /** Get a new FormBuilder for the given PageContext
      * This FormBuilder uses the standard form grid which has 8 rows (2 title, 5 input and 1 right-space)

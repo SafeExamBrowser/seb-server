@@ -13,8 +13,8 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.CacheEvict;
@@ -44,7 +44,6 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     protected RemoteProctoringRoomDAOImpl(
             final RemoteProctoringRoomRecordMapper remoteProctoringRoomRecordMapper) {
 
-        super();
         this.remoteProctoringRoomRecordMapper = remoteProctoringRoomRecordMapper;
     }
 
@@ -62,27 +61,27 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
         });
     }
 
-    @Override
-    @Transactional
-    @CacheEvict(
-            cacheNames = ExamSessionCacheService.CACHE_NAME_PROCTORING_ROOM,
-            key = "#examId")
-    public Result<RemoteProctoringRoom> createNewRoom(final Long examId, final RemoteProctoringRoom room) {
-        return Result.tryCatch(() -> {
-            final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord(
-                    null,
-                    examId,
-                    room.name,
-                    (room.roomSize != null) ? room.roomSize : 0,
-                    room.subject);
-
-            this.remoteProctoringRoomRecordMapper.insert(remoteProctoringRoomRecord);
-            return this.remoteProctoringRoomRecordMapper
-                    .selectByPrimaryKey(remoteProctoringRoomRecord.getId());
-        })
-                .map(this::toDomainModel)
-                .onError(TransactionHandler::rollback);
-    }
+//    @Override
+//    @Transactional
+//    @CacheEvict(
+//            cacheNames = ExamSessionCacheService.CACHE_NAME_PROCTORING_ROOM,
+//            key = "#examId")
+//    public Result<RemoteProctoringRoom> createNewRoom(final Long examId, final RemoteProctoringRoom room) {
+//        return Result.tryCatch(() -> {
+//            final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord(
+//                    null,
+//                    examId,
+//                    room.name,
+//                    (room.roomSize != null) ? room.roomSize : 0,
+//                    room.subject);
+//
+//            this.remoteProctoringRoomRecordMapper.insert(remoteProctoringRoomRecord);
+//            return this.remoteProctoringRoomRecordMapper
+//                    .selectByPrimaryKey(remoteProctoringRoomRecord.getId());
+//        })
+//                .map(this::toDomainModel)
+//                .onError(TransactionHandler::rollback);
+//    }
 
     @Override
     @Transactional
@@ -136,7 +135,12 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     @CacheEvict(
             cacheNames = ExamSessionCacheService.CACHE_NAME_PROCTORING_ROOM,
             key = "#examId")
-    public Result<RemoteProctoringRoom> reservePlaceInRoom(final Long examId, final int roomMaxSize) {
+    public synchronized Result<RemoteProctoringRoom> reservePlaceInRoom(
+            final Long examId,
+            final int roomMaxSize,
+            final Function<Long, String> newRoomNameFunction,
+            final Function<Long, String> newRommSubjectFunction) {
+
         return Result.tryCatch(() -> {
             final Optional<RemoteProctoringRoomRecord> room = this.remoteProctoringRoomRecordMapper.selectByExample()
                     .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
@@ -161,7 +165,19 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 }).get();
 
             } else {
-                throw new NoSuchElementException("No free room available");
+                // create new room
+                final Long roomNumber = this.remoteProctoringRoomRecordMapper.countByExample()
+                        .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                        .build()
+                        .execute();
+                final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord(
+                        null,
+                        examId,
+                        newRoomNameFunction.apply(roomNumber),
+                        1,
+                        newRommSubjectFunction.apply(roomNumber));
+                this.remoteProctoringRoomRecordMapper.insert(remoteProctoringRoomRecord);
+                return remoteProctoringRoomRecord;
             }
         })
                 .map(this::toDomainModel)

@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpSession;
 
 import org.eclipse.rap.rwt.RWT;
+import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -350,6 +351,11 @@ public class PageServiceImpl implements PageService {
     @Override
     public void publishAction(final PageAction pageAction, final boolean active) {
         this.firePageEvent(new ActionPublishEvent(pageAction, active), pageAction.pageContext());
+    }
+
+    @Override
+    public void publishAction(final PageAction pageAction, final Consumer<TreeItem> actionConsumer) {
+        this.firePageEvent(new ActionPublishEvent(pageAction, actionConsumer), pageAction.pageContext());
     }
 
     @Override

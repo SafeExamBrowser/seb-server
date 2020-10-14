@@ -627,12 +627,12 @@ public enum ActionDefinition {
             ActionCategory.FORM),
     MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING(
             new LocTextKey("sebserver.monitoring.exam.connection.action.proctoring"),
-            ImageIcon.SHOW,
+            ImageIcon.PROCTOR_SINGLE,
             PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
             ActionCategory.FORM),
     MONITOR_EXAM_CLIENT_CONNECTION_EXAM_ROOM_PROCTORING(
             new LocTextKey("sebserver.monitoring.exam.connection.action.proctoring.examroom"),
-            ImageIcon.SHOW,
+            ImageIcon.PROCTOR_ROOM,
             PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
             ActionCategory.FORM),
 
@@ -696,12 +696,7 @@ public enum ActionDefinition {
             ActionCategory.PROCTORING),
     MONITOR_EXAM_VIEW_PROCTOR_ROOM(
             new LocTextKey("sebserver.monitoring.exam.action.viewroom"),
-            ImageIcon.SHOW,
-            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.PROCTORING),
-    MONITOR_EXAM_CLOSE_PROCTOR_ROOM(
-            new LocTextKey("sebserver.monitoring.exam.action.closeroom"),
-            ImageIcon.DELETE,
+            ImageIcon.PROCTOR_ROOM,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.PROCTORING),
 

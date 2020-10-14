@@ -8,10 +8,10 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -23,6 +23,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +49,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
@@ -312,15 +314,8 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .call()
                 .getOr(null);
 
-//        final boolean proctoringEnabled = restService
-//                .getBuilder(GetProctoringSettings.class)
-//                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-//                .call()
-//                .map(ProctoringSettings::getEnableProctoring)
-//                .getOr(false);
-
         if (proctoringSettings != null && proctoringSettings.enableProctoring) {
-            final List<String> availableRoomNames = new ArrayList<>();
+            final Map<String, TreeItem> availableRoomNames = new HashMap<>();
             updateRoomActions(
                     entityKey,
                     availableRoomNames,
@@ -334,108 +329,49 @@ public class MonitoringRunningExam implements TemplateComposer {
                             availableRoomNames,
                             actionBuilder,
                             proctoringSettings));
-
-//            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_NEW_PROCTOR_ROOM)
-//                    .withEntityKey(entityKey)
-//                    .withSelect(
-//                            clientTable::getSelection,
-//                            action -> newProctoringRoom(clientTable, action),
-//                            EMPTY_SELECTION_TEXT_KEY)
-//                    .noEventPropagation()
-//                    .publishIf(privilege, false);
-//
-//            final ProctoringGUIService proctoringGUIService = this.pageService
-//                    .getCurrentUser()
-//                    .getProctoringGUIService();
-//
-//            proctoringGUIService.roomNames().forEach(roomName -> {
-//                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM)
-//                        .withEntityKey(entityKey)
-//                        .withExec(a -> showProctoringRoom(roomName, clientTable, a))
-//                        .withNameAttributes(roomName)
-//                        .noEventPropagation()
-//                        .publish();
-//                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_CLOSE_PROCTOR_ROOM)
-//                        .withEntityKey(entityKey)
-//                        .withExec(a -> closeProctoringRoom(roomName, clientTable, a))
-//                        .withNameAttributes(roomName)
-//                        .publish();
-//            });
         }
     }
 
     private void updateRoomActions(
             final EntityKey entityKey,
-            final List<String> availableRoomNames,
+            final Map<String, TreeItem> rooms,
             final PageActionBuilder actionBuilder,
             final ProctoringSettings proctoringSettings) {
 
+        final I18nSupport i18nSupport = this.pageService.getI18nSupport();
         this.pageService.getRestService().getBuilder(GetProcotringRooms.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
                 .getOrThrow()
                 .stream()
-                .filter(room -> !availableRoomNames.contains(room.name))
                 .forEach(room -> {
-                    actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM)
-                            .withEntityKey(entityKey)
-                            .withExec(a -> showExamProctoringRoom(proctoringSettings, room, a))
-                            .withNameAttributes(room.subject)
-                            .noEventPropagation()
-                            .publish();
-                    availableRoomNames.add(room.name);
+                    if (rooms.containsKey(room.name)) {
+                        // update action
+                        final TreeItem treeItem = rooms.get(room.name);
+                        treeItem.setText(i18nSupport.getText(new LocTextKey(
+                                ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM.title.name,
+                                room.subject,
+                                room.roomSize,
+                                proctoringSettings.collectingRoomSize)));
+
+                    } else {
+                        // create new action
+                        final PageAction action =
+                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM)
+                                        .withEntityKey(entityKey)
+                                        .withExec(a -> showExamProctoringRoom(proctoringSettings, room, a))
+                                        .withNameAttributes(
+                                                room.subject,
+                                                room.roomSize,
+                                                proctoringSettings.collectingRoomSize)
+                                        .noEventPropagation()
+                                        .create();
+
+                        this.pageService.publishAction(action, treeItem -> rooms.put(room.name, treeItem));
+                    }
                 });
 
     }
-
-//    private PageAction closeProctoringRoom(
-//            final String roomName,
-//            final ClientConnectionTable clientTable,
-//            final PageAction action) {
-//
-//        final ProctoringGUIService proctoringGUIService = this.pageService
-//                .getCurrentUser()
-//                .getProctoringGUIService();
-//
-//        proctoringGUIService.closeRoom(roomName);
-//
-//        return action;
-//    }
-
-//    private PageAction newProctoringRoom(
-//            final ClientConnectionTable clientTable,
-//            final PageAction action) {
-//
-//        final ProctoringGUIService proctoringGUIService = this.pageService
-//                .getCurrentUser()
-//                .getProctoringGUIService();
-//        final String newRoomName = proctoringGUIService.createNewRoomName();
-//        final Set<String> connectionTokens = clientTable.getConnectionTokens(
-//                ClientConnection.getStatusPredicate(ConnectionStatus.ACTIVE),
-//                true);
-//
-//        proctoringGUIService.registerNewProcotringRoom(
-//                action.getEntityKey().modelId,
-//                newRoomName,
-//                connectionTokens);
-//
-//        this.pageService.pageActionBuilder(action.pageContext())
-//                .newAction(ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM)
-//                .withEntityKey(action.getEntityKey())
-//                .withExec(a -> showProctoringRoom(newRoomName, clientTable, a))
-//                .withNameAttributes(newRoomName)
-//                .noEventPropagation()
-//                .publish();
-//
-//        this.pageService.pageActionBuilder(action.pageContext())
-//                .newAction(ActionDefinition.MONITOR_EXAM_CLOSE_PROCTOR_ROOM)
-//                .withEntityKey(action.getEntityKey())
-//                .withExec(a -> closeProctoringRoom(newRoomName, clientTable, a))
-//                .withNameAttributes(newRoomName)
-//                .publish();
-//
-//        return showProctoringRoom(newRoomName, clientTable, action);
-//    }
 
     private PageAction showExamProctoringRoom(
             final ProctoringSettings proctoringSettings,
@@ -451,7 +387,9 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .call()
                 .getOrThrow();
 
-        ProctoringGUIService.setCurrentProctoringData(proctoringConnectionData);
+        ProctoringGUIService.setCurrentProctoringWindowData(
+                String.valueOf(proctoringSettings.examId),
+                proctoringConnectionData);
 
         final String script = String.format(
                 OPEN_EXAM_COLLECTION_ROOM_SCRIPT,
@@ -469,39 +407,6 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         return action;
     }
-
-//    private PageAction showProctoringRoom(
-//            final String roomName,
-//            final ClientConnectionTable clientTable,
-//            final PageAction action) {
-//
-//        final SEBProctoringConnectionData proctoringConnectionData = this.pageService.getRestService()
-//                .getBuilder(GetProctorRoomConnectionData.class)
-//                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
-//                .withQueryParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, roomName)
-//                .call()
-//                .getOrThrow();
-//
-//        RWT.getUISession().getHttpSession().setAttribute(
-//                ProctoringServlet.SESSION_ATTR_PROCTORING_DATA,
-//                proctoringConnectionData);
-//
-//        final String script = String.format(
-//                OPEN_SINGEL_ROOM_SCRIPT,
-//                roomName,
-//                this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-//                roomName);
-//
-//        RWT.getClient()
-//                .getService(JavaScriptExecutor.class)
-//                .execute(script);
-//
-//        this.pageService.getCurrentUser()
-//                .getProctoringGUIService()
-//                .registerProctoringWindow(roomName);
-//
-//        return action;
-//    }
 
     private static Function<PageAction, PageAction> showStateViewAction(
             final ClientConnectionTable clientTable,

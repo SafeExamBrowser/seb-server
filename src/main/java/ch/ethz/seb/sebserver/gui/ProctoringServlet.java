@@ -22,11 +22,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
 import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
+import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService.ProctoringWindowData;
 
 @Component
 @GuiProfile
@@ -51,9 +51,9 @@ public class ProctoringServlet extends HttpServlet {
                     "        parentNode: document.querySelector('#proctoring'),\n" +
                     "        roomName: '%s',\n" +
 //                    "        width: window.innerWidth,\n" +
-                    "        height: window.innerHeight,\n" +
+                    "        height: window.innerHeight - 4,\n" +
                     "        jwt: '%s',\n" +
-                    "        configOverwrite: { startAudioOnly: false, startWithAudioMuted: true, startWithVideoMuted: true, disable1On1Mode: true },\n" +
+                    "        configOverwrite: { startAudioOnly: true, startWithAudioMuted: true, startWithVideoMuted: true, disable1On1Mode: true },\n" +
                     "        interfaceConfigOverwrite: { " +
                     "TOOLBAR_BUTTONS: [\r\n" +
                     "        'microphone', 'camera',\r\n" +
@@ -99,17 +99,17 @@ public class ProctoringServlet extends HttpServlet {
             return;
         }
 
-        final SEBProctoringConnectionData proctoringConnectionData =
-                (SEBProctoringConnectionData) httpSession
+        final ProctoringWindowData proctoringData =
+                (ProctoringWindowData) httpSession
                         .getAttribute(ProctoringGUIService.SESSION_ATTR_PROCTORING_DATA);
 
         final String script = String.format(
                 HTML,
-                proctoringConnectionData.serverHost,
-                proctoringConnectionData.roomName,
-                proctoringConnectionData.accessToken,
-                proctoringConnectionData.serverHost,
-                proctoringConnectionData.subject);
+                proctoringData.connectionData.serverHost,
+                proctoringData.connectionData.roomName,
+                proctoringData.connectionData.accessToken,
+                proctoringData.connectionData.serverHost,
+                proctoringData.connectionData.subject);
         resp.getOutputStream().println(script);
 
     }

@@ -9,10 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.security.Principal;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -28,23 +24,15 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.ProctoringInstructionMethod;
-import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
@@ -78,7 +66,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final SEBInstructionService sebInstructionService;
     private final WebserviceInfo webserviceInfo;
     private final ExamAdminService examAdminService;
-    private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
 
     protected SEBClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
@@ -86,8 +73,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final PingHandlingStrategyFactory pingHandlingStrategyFactory,
             final SEBClientConfigDAO sebClientConfigDAO,
             final SEBInstructionService sebInstructionService,
-            final ExamAdminService examAdminService,
-            final RemoteProctoringRoomDAO remoteProctoringRoomDAO) {
+            final ExamAdminService examAdminService) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();
@@ -99,7 +85,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.sebInstructionService = sebInstructionService;
         this.webserviceInfo = sebInstructionService.getWebserviceInfo();
         this.examAdminService = examAdminService;
-        this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
     }
 
     @Override
@@ -160,6 +145,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     clientAddress,
                     null,
                     Utils.getMillisecondsNow(),
+                    null,
                     null))
                     .getOrThrow();
 
@@ -248,6 +234,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             null,
                             virtualClientAddress,
                             null,
+                            null,
                             null))
                     .getOrThrow();
 
@@ -316,7 +303,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final Boolean proctoringEnabled = this.examAdminService
                     .isExamProctoringEnabled(clientConnection.examId)
                     .getOr(false);
-
             final Long currentExamId = (examId != null) ? examId : clientConnection.examId;
 
             // create new ClientConnection for update
@@ -330,7 +316,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     virtualClientAddress,
                     null,
-                    (proctoringEnabled) ? getProctoringRoomId(currentExamId, connectionToken) : null);
+                    null,
+                    proctoringEnabled);
 
             // ClientConnection integrity
             if (clientConnection.institutionId == null ||
@@ -365,11 +352,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             this.pingHandlingStrategy.initForConnection(
                     updatedClientConnection.id,
                     connectionToken);
-
-            // if remote proctoring is enabled send instruction to join exam collection room to client
-            if (proctoringEnabled && updatedClientConnection.remoteProctoringRoomId != null) {
-                applyProcotringInstruction(updatedClientConnection);
-            }
 
             return updatedClientConnection;
         });
@@ -455,7 +437,26 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             clientConnection);
                 }
 
-                disableRemoteProctoring(updatedClientConnection);
+                final Boolean proctoringEnabled = this.examAdminService
+                        .isExamProctoringEnabled(clientConnection.examId)
+                        .getOr(false);
+                if (proctoringEnabled) {
+                    final ClientConnection updateClientConnection = new ClientConnection(
+                            clientConnection.id,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            true);
+                    this.clientConnectionDAO
+                            .save(updateClientConnection)
+                            .getOrThrow();
+                }
             } else {
                 log.warn("SEB client connection in invalid state for disabling: {}", clientConnection);
                 updatedClientConnection = clientConnection;
@@ -464,22 +465,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             reloadConnectionCache(connectionToken);
             return updatedClientConnection;
         });
-    }
-
-    private void disableRemoteProctoring(final ClientConnection updatedClientConnection) {
-        if (updatedClientConnection.remoteProctoringRoomId != null) {
-            try {
-                this.clientConnectionDAO.removeFromRemoteProctoringRoom(updatedClientConnection.id)
-                        .flatMap(cId -> this.remoteProctoringRoomDAO.releasePlaceInRoom(
-                                updatedClientConnection.examId, updatedClientConnection.remoteProctoringRoomId))
-                        .getOrThrow();
-            } catch (final Exception e) {
-                log.error("Failed to release client connection: {} form remote procotring room: {}",
-                        updatedClientConnection,
-                        updatedClientConnection.remoteProctoringRoomId,
-                        e);
-            }
-        }
     }
 
     @Override
@@ -659,6 +644,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     null,
+                    null,
                     null);
 
             clientConnection = this.clientConnectionDAO
@@ -694,7 +680,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private ClientConnection saveInState(final ClientConnection clientConnection, final ConnectionStatus status) {
         return this.clientConnectionDAO.save(new ClientConnection(
                 clientConnection.id, null, null,
-                status, null, null, null, null, null, null))
+                status, null, null, null, null, null, null,
+                null))
                 .getOrThrow();
     }
 
@@ -705,96 +692,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.examSessionCacheService.evictPingRecord(connectionToken);
         // and load updated ClientConnection into cache
         return this.examSessionCacheService.getActiveClientConnection(connectionToken);
-    }
-
-    private Long getProctoringRoomId(final Long examId, final String connectionToken) {
-        try {
-            final ProctoringSettings proctoringSettings = this.examAdminService
-                    .getExamProctoring(examId)
-                    .getOrThrow();
-            final Result<RemoteProctoringRoom> reservePlaceInRoom = this.remoteProctoringRoomDAO.reservePlaceInRoom(
-                    examId,
-                    proctoringSettings.collectingRoomSize);
-            if (reservePlaceInRoom.hasError()) {
-                if (reservePlaceInRoom.getError() instanceof NoSuchElementException) {
-                    // create new Room
-                    final Collection<RemoteProctoringRoom> remoteProctoringRooms =
-                            this.examSessionCacheService.getRemoteProctoringRooms(examId);
-                    final String roomName = UUID.randomUUID().toString();
-                    final String subject =
-                            "Room " + ((remoteProctoringRooms == null) ? "[0]" : remoteProctoringRooms.size() + 1);
-                    final RemoteProctoringRoom newRoom = this.remoteProctoringRoomDAO.createNewRoom(
-                            examId,
-                            new RemoteProctoringRoom(
-                                    null,
-                                    examId,
-                                    roomName,
-                                    1,
-                                    subject))
-                            .getOrThrow();
-                    return newRoom.getId();
-                } else {
-                    throw reservePlaceInRoom.getError();
-                }
-            } else {
-                return reservePlaceInRoom.get().id;
-            }
-        } catch (final Exception e) {
-            log.error("Failed to initialize remote proctoring room for exam: {} and connection: {}",
-                    examId,
-                    connectionToken,
-                    e);
-            return null;
-        }
-    }
-
-    private void applyProcotringInstruction(final ClientConnection clientConnection) {
-        try {
-            // apply a SEB_PROCOTIRNG instruction for the specified SEB client connection
-            final ProctoringSettings proctoringSettings = this.examAdminService
-                    .getExamProctoring(clientConnection.examId)
-                    .getOrThrow();
-
-            final SEBProctoringConnectionData proctoringData =
-                    this.examAdminService.getExamProctoringService(proctoringSettings.serverType)
-                            .flatMap(s -> s.getClientExamCollectionRoomConnectionData(
-                                    proctoringSettings,
-                                    clientConnection.connectionToken))
-                            .getOrThrow();
-
-            final Map<String, String> attributes = new HashMap<>();
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.SERVICE_TYPE,
-                    ProctoringServerType.JITSI_MEET.name());
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.METHOD,
-                    ProctoringInstructionMethod.JOIN.name());
-
-            if (proctoringSettings.serverType == ProctoringServerType.JITSI_MEET) {
-
-                attributes.put(
-                        ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_ROOM,
-                        proctoringData.roomName);
-                attributes.put(
-                        ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_URL,
-                        proctoringData.serverURL);
-                attributes.put(
-                        ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_TOKEN,
-                        proctoringData.accessToken);
-            }
-
-            this.sebInstructionService.registerInstruction(
-                    clientConnection.examId,
-                    InstructionType.SEB_PROCTORING,
-                    attributes,
-                    clientConnection.connectionToken,
-                    true);
-
-        } catch (final Exception e) {
-            log.error(
-                    "Failed to process proctoring initialization for established SEB client connection: {}",
-                    clientConnection.connectionToken, e);
-        }
     }
 
 }

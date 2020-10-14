@@ -57,13 +57,6 @@ public interface ClientConnectionDAO extends
     @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
     Result<ClientConnection> save(ClientConnection data);
 
-    /** Used to remove a specified client connection form the default proctoring room
-     * This just resets the proctoring room id field of the client connection data
-     * 
-     * @param connectionId the identifier of the client connection
-     * @return Result refer to the identifier of the client connection or to an error when happened */
-    Result<Long> removeFromRemoteProctoringRoom(Long connectionId);
-
     /** Deletes the given ClientConnection data.
      *
      * This evicts all entries from the CONNECTION_TOKENS_CACHE.
@@ -98,4 +91,5 @@ public interface ClientConnectionDAO extends
      * @param connectionToken
      * @return */
     Result<Set<String>> filterActive(Long examId, Set<String> connectionToken);
+
 }
