@@ -360,7 +360,7 @@ public class ExamMonitoringController {
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
             @RequestParam(
                     name = Domain.REMOTE_PROCTORING_ROOM.ATTR_ID,
-                    required = true) final Long roomId) {
+                    required = true) final String roomName) {
 
         this.authorization.check(
                 PrivilegeType.READ,
@@ -370,7 +370,7 @@ public class ExamMonitoringController {
         this.authorization.checkRead(
                 this.examSessionService.getExamDAO().byPK(examId).getOrThrow());
 
-        return this.examProcotringRoomService.getRoomConnections(roomId)
+        return this.examProcotringRoomService.getRoomConnections(examId, roomName)
                 .getOrThrow();
     }
 
@@ -638,62 +638,6 @@ public class ExamMonitoringController {
                 (StringUtils.isNotBlank(subject)) ? subject : roomName)
                 .getOrThrow();
     }
-
-//    @RequestMapping(
-//            path = API.MODEL_ID_VAR_PATH_SEGMENT
-//                    + API.PROCTORING_PATH_SEGMENT
-//                    + API.PROCTORING_LEAVE_ROOM_PATH_SEGMENT,
-//            method = RequestMethod.POST,
-//            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-//    public List<SEBProctoringConnectionData> leaveProctoringRoom(
-//            @RequestParam(
-//                    name = API.PARAM_INSTITUTION_ID,
-//                    required = true,
-//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-//            @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
-//            @RequestParam(
-//                    name = SEBProctoringConnectionData.ATTR_ROOM_NAME,
-//                    required = true) final String roomName,
-//            @RequestParam(
-//                    name = API.EXAM_API_SEB_CONNECTION_TOKEN,
-//                    required = true) final String connectionTokens) {
-//
-//        this.authorization.check(
-//                PrivilegeType.READ,
-//                EntityType.EXAM,
-//                institutionId);
-//
-//        final ProctoringSettings settings = this.examSessionService
-//                .getRunningExam(examId)
-//                .flatMap(this.authorization::checkRead)
-//                .flatMap(this.examAdminService::getExamProctoring)
-//                .getOrThrow();
-//
-//        final ExamProctoringService examProctoringService = this.examAdminService
-//                .getExamProctoringService(settings.serverType)
-//                .getOrThrow();
-//
-//        if (StringUtils.isNotBlank(connectionTokens)) {
-//            return (connectionTokens.contains(Constants.LIST_SEPARATOR)
-//                    ? Arrays.asList(StringUtils.split(connectionTokens, Constants.LIST_SEPARATOR))
-//                    : Arrays.asList(connectionTokens))
-//                            .stream()
-//                            .map(connectionToken -> {
-//                                final SEBProctoringConnectionData data = examProctoringService
-//                                        .createClientPublicRoomConnection(settings, connectionToken, roomName, roomName)
-//                                        .getOrThrow();
-//
-//                                sendLeaveInstruction(examId, connectionTokens, data)
-//                                        .onError(error -> log.error(
-//                                                "Failed to send proctoring leave instruction for common room to client: {} ",
-//                                                connectionToken, error));
-//                                return data;
-//
-//                            }).collect(Collectors.toList());
-//        }
-//
-//        return Collections.emptyList();
-//    }
 
     //**** Proctoring
     //***********************************************************************************************

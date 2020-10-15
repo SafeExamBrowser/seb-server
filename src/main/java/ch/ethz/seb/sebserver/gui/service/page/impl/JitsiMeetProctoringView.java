@@ -42,19 +42,19 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 public class JitsiMeetProctoringView implements RemoteProctoringView {
 
     private static final LocTextKey CLOSE_WINDOW_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.exam.action.close");
+            new LocTextKey("sebserver.monitoring.exam.proctoring.action.close");
     private static final LocTextKey BROADCAST_AUDIO_ON_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.exam.action.broadcaston.audio");
+            new LocTextKey("sebserver.monitoring.exam.proctoring.action.broadcaston.audio");
     private static final LocTextKey BROADCAST_AUDIO_OFF_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.exam.action.broadcastoff.audio");
+            new LocTextKey("sebserver.monitoring.exam.proctoring.action.broadcastoff.audio");
     private static final LocTextKey BROADCAST_VIDEO_ON_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.exam.action.broadcaston.video");
+            new LocTextKey("sebserver.monitoring.exam.proctoring.action.broadcaston.video");
     private static final LocTextKey BROADCAST_VIDEO_OFF_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.exam.action.broadcastoff.video");
+            new LocTextKey("sebserver.monitoring.exam.proctoring.action.broadcastoff.video");
     private static final LocTextKey CHAT_ON_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.exam.action.broadcaston.chat");
+            new LocTextKey("sebserver.monitoring.exam.proctoring.action.broadcaston.chat");
     private static final LocTextKey CHAT_OFF_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.exam.action.broadcastoff.chat");
+            new LocTextKey("sebserver.monitoring.exam.proctoring.action.broadcastoff.chat");
 
     private final PageService pageService;
     private final GuiServiceInfo guiServiceInfo;
@@ -132,7 +132,8 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
         broadcastVideoAction.addListener(SWT.Selection, event -> toggleBroadcastVideo(
                 proctoringWindowData.examId,
                 proctoringWindowData.connectionData.roomName,
-                broadcastVideoAction));
+                broadcastVideoAction,
+                broadcastAudioAction));
         broadcastVideoAction.setData(BroadcastActionState.KEY_NAME, broadcastActionState);
 
         final Button chatAction = widgetFactory.buttonLocalized(footer, CHAT_ON_TEXT_KEY);
@@ -172,24 +173,37 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
         state.audio = !state.audio;
     }
 
-    private void toggleBroadcastVideo(final String examId, final String roomName, final Button broadcastAction) {
+    private void toggleBroadcastVideo(
+            final String examId,
+            final String roomName,
+            final Button videoAction,
+            final Button audioAction) {
         final BroadcastActionState state =
-                (BroadcastActionState) broadcastAction.getData(BroadcastActionState.KEY_NAME);
+                (BroadcastActionState) videoAction.getData(BroadcastActionState.KEY_NAME);
         if (state.video) {
-            this.pageService.getPolyglotPageService().injectI18n(broadcastAction, BROADCAST_VIDEO_ON_TEXT_KEY);
+            this.pageService.getPolyglotPageService().injectI18n(audioAction, BROADCAST_AUDIO_ON_TEXT_KEY);
+            this.pageService.getPolyglotPageService().injectI18n(videoAction, BROADCAST_VIDEO_ON_TEXT_KEY);
+
             this.pageService.getRestService().getBuilder(SendProctoringBroadcastOffInstruction.class)
                     .withURIVariable(API.PARAM_MODEL_ID, examId)
                     .withFormParam(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID, roomName)
+                    .withFormParam(
+                            ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_AUDIO,
+                            Constants.TRUE_STRING)
                     .withFormParam(
                             ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_VIDEO,
                             Constants.TRUE_STRING)
                     .call()
                     .getOrThrow();
         } else {
-            this.pageService.getPolyglotPageService().injectI18n(broadcastAction, BROADCAST_VIDEO_OFF_TEXT_KEY);
+            this.pageService.getPolyglotPageService().injectI18n(audioAction, BROADCAST_AUDIO_OFF_TEXT_KEY);
+            this.pageService.getPolyglotPageService().injectI18n(videoAction, BROADCAST_VIDEO_OFF_TEXT_KEY);
             this.pageService.getRestService().getBuilder(SendProctoringBroadcastOnInstruction.class)
                     .withURIVariable(API.PARAM_MODEL_ID, examId)
                     .withFormParam(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID, roomName)
+                    .withFormParam(
+                            ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_AUDIO,
+                            Constants.TRUE_STRING)
                     .withFormParam(
                             ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_VIDEO,
                             Constants.TRUE_STRING)
@@ -197,6 +211,7 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
                     .getOrThrow();
         }
         state.video = !state.video;
+        state.audio = state.video;
     }
 
     private void toggleChat(final String examId, final String roomName, final Button broadcastAction) {

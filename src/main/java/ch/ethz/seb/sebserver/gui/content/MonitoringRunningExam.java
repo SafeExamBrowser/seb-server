@@ -23,6 +23,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +91,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             "}";
     // @formatter:on
 
+    private static final String SHOW_CONNECTION_ACTION_APPLIED = "SHOW_CONNECTION_ACTION_APPLIED";
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.emptySelection");
     private static final LocTextKey EMPTY_ACTIVE_SELECTION_TEXT_KEY =
@@ -108,12 +110,14 @@ public class MonitoringRunningExam implements TemplateComposer {
     private final GuiServiceInfo guiServiceInfo;
     private final long pollInterval;
     private final String remoteProctoringEndpoint;
+    private final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup;
 
     protected MonitoringRunningExam(
             final ServerPushService serverPushService,
             final PageService pageService,
             final InstructionProcessor instructionProcessor,
             final GuiServiceInfo guiServiceInfo,
+            final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup,
             @Value("${sebserver.gui.webservice.poll-interval:1000}") final long pollInterval,
             @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint) {
 
@@ -124,6 +128,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         this.guiServiceInfo = guiServiceInfo;
         this.pollInterval = pollInterval;
         this.remoteProctoringEndpoint = remoteProctoringEndpoint;
+        this.proctorRoomConnectionsPopup = proctorRoomConnectionsPopup;
     }
 
     @Override
@@ -315,10 +320,11 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .getOr(null);
 
         if (proctoringSettings != null && proctoringSettings.enableProctoring) {
-            final Map<String, TreeItem> availableRoomNames = new HashMap<>();
+            final Map<RemoteProctoringRoom, TreeItem> availableRooms = new HashMap<>();
             updateRoomActions(
                     entityKey,
-                    availableRoomNames,
+                    pageContext,
+                    availableRooms,
                     actionBuilder,
                     proctoringSettings);
             this.serverPushService.runServerPush(
@@ -326,7 +332,8 @@ public class MonitoringRunningExam implements TemplateComposer {
                     5000,
                     context -> updateRoomActions(
                             entityKey,
-                            availableRoomNames,
+                            pageContext,
+                            availableRooms,
                             actionBuilder,
                             proctoringSettings));
         }
@@ -334,7 +341,8 @@ public class MonitoringRunningExam implements TemplateComposer {
 
     private void updateRoomActions(
             final EntityKey entityKey,
-            final Map<String, TreeItem> rooms,
+            final PageContext pageContext,
+            final Map<RemoteProctoringRoom, TreeItem> rooms,
             final PageActionBuilder actionBuilder,
             final ProctoringSettings proctoringSettings) {
 
@@ -345,9 +353,9 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .getOrThrow()
                 .stream()
                 .forEach(room -> {
-                    if (rooms.containsKey(room.name)) {
+                    if (rooms.containsKey(room)) {
                         // update action
-                        final TreeItem treeItem = rooms.get(room.name);
+                        final TreeItem treeItem = rooms.get(room);
                         treeItem.setText(i18nSupport.getText(new LocTextKey(
                                 ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM.title.name,
                                 room.subject,
@@ -367,10 +375,36 @@ public class MonitoringRunningExam implements TemplateComposer {
                                         .noEventPropagation()
                                         .create();
 
-                        this.pageService.publishAction(action, treeItem -> rooms.put(room.name, treeItem));
+                        this.pageService.publishAction(action, treeItem -> rooms.put(room, treeItem));
+
+                        // check and add show connections in room action adaptation
+                        if (!rooms.isEmpty()) {
+                            final TreeItem treeItem = rooms.values().iterator().next();
+                            final Tree tree = treeItem.getParent();
+                            if (tree.getData(SHOW_CONNECTION_ACTION_APPLIED) == null) {
+                                tree.addListener(SWT.Selection, event -> {
+                                    final TreeItem item = (TreeItem) event.item;
+                                    treeItem.getParent().deselectAll();
+                                    if (event.button == 3) {
+                                        rooms.entrySet()
+                                                .stream()
+                                                .filter(e -> e.getValue().equals(item))
+                                                .findFirst()
+                                                .ifPresent(e -> {
+                                                    final PageContext pc = pageContext.copy()
+                                                            .clearAttributes()
+                                                            .withEntityKey(new EntityKey(e.getKey().getName(),
+                                                                    EntityType.REMOTE_PROCTORING_ROOM))
+                                                            .withParentEntityKey(entityKey);
+                                                    this.proctorRoomConnectionsPopup.show(pc, e.getKey().getSubject());
+                                                });
+                                    }
+                                });
+                                tree.setData(SHOW_CONNECTION_ACTION_APPLIED, true);
+                            }
+                        }
                     }
                 });
-
     }
 
     private PageAction showExamProctoringRoom(
