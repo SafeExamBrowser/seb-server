@@ -286,28 +286,30 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER) &&
                         connectionData.clientConnection.status == ConnectionStatus.ACTIVE);
 
-        final ProctoringSettings procotringSettings = restService
-                .getBuilder(GetProctoringSettings.class)
-                .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
-                .call()
-                .onError(error -> log.error("Failed to get ProctoringSettings", error))
-                .getOr(null);
+        // TODO if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {
+        if (connectionData.clientConnection.status != ConnectionStatus.DISABLED) {
+            final ProctoringSettings procotringSettings = restService
+                    .getBuilder(GetProctoringSettings.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
+                    .call()
+                    .onError(error -> log.error("Failed to get ProctoringSettings", error))
+                    .getOr(null);
 
-        if (procotringSettings != null && procotringSettings.enableProctoring) {
-            actionBuilder
-                    .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING)
-                    .withEntityKey(parentEntityKey)
-                    .withExec(action -> this.openSingleProctorScreen(action, connectionData))
-                    .noEventPropagation()
-                    .publish()
+            if (procotringSettings != null && procotringSettings.enableProctoring) {
+                actionBuilder
+                        .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING)
+                        .withEntityKey(parentEntityKey)
+                        .withExec(action -> this.openSingleProctorScreen(action, connectionData))
+                        .noEventPropagation()
+                        .publish()
 
-                    .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_EXAM_ROOM_PROCTORING)
-                    .withEntityKey(parentEntityKey)
-                    .withExec(action -> this.openExamCollectionProctorScreen(action, connectionData))
-                    .noEventPropagation()
-                    .publish();
+                        .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_EXAM_ROOM_PROCTORING)
+                        .withEntityKey(parentEntityKey)
+                        .withExec(action -> this.openExamCollectionProctorScreen(action, connectionData))
+                        .noEventPropagation()
+                        .publish();
+            }
         }
-
     }
 
     private PageAction openExamCollectionProctorScreen(

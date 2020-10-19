@@ -61,13 +61,24 @@ public class ProctoringGUIService {
         return this.rooms.keySet();
     }
 
+    public String getRoomConnectionTokens(final String roomName) {
+        if (this.rooms.containsKey(roomName)) {
+            return StringUtils.join(this.rooms.get(roomName).connections, Constants.COMMA);
+        } else {
+            return null;
+        }
+    }
+
     public static ProctoringWindowData getCurrentProctoringWindowData() {
         return (ProctoringWindowData) RWT.getUISession()
                 .getHttpSession()
                 .getAttribute(SESSION_ATTR_PROCTORING_DATA);
     }
 
-    public static void setCurrentProctoringWindowData(final String examId, final SEBProctoringConnectionData data) {
+    public static void setCurrentProctoringWindowData(
+            final String examId,
+            final SEBProctoringConnectionData data) {
+
         RWT.getUISession().getHttpSession().setAttribute(
                 SESSION_ATTR_PROCTORING_DATA,
                 new ProctoringWindowData(examId, data));
@@ -220,8 +231,9 @@ public class ProctoringGUIService {
         public final String examId;
         public final SEBProctoringConnectionData connectionData;
 
-        protected ProctoringWindowData(final String examId, final SEBProctoringConnectionData connectionData) {
-            super();
+        protected ProctoringWindowData(
+                final String examId,
+                final SEBProctoringConnectionData connectionData) {
             this.examId = examId;
             this.connectionData = connectionData;
         }

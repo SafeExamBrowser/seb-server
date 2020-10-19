@@ -388,7 +388,10 @@ public class ExamMonitoringController {
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
             @RequestParam(
                     name = Domain.REMOTE_PROCTORING_ROOM.ATTR_ID,
-                    required = true) final String roomName,
+                    required = false) final String roomName,
+            @RequestParam(
+                    name = API.EXAM_API_SEB_CONNECTION_TOKEN,
+                    required = false) final String connectionTokens,
             @RequestParam(
                     name = ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_AUDIO,
                     required = false) final Boolean sendReceiveAudio,
@@ -429,21 +432,46 @@ public class ExamMonitoringController {
             return;
         }
 
-        this.examProcotringRoomService.getRoomConnections(examId, roomName)
-                .getOrThrow()
-                .stream()
-                .forEach(connection -> {
-                    this.sebInstructionService.registerInstruction(
-                            examId,
-                            InstructionType.SEB_RECONFIGURE_SETTINGS,
-                            attributes,
-                            connection.connectionToken,
-                            true)
-                            .onError(error -> log.error(
-                                    "Failed to register reconfiguring instruction for connection: {}",
-                                    connection.connectionToken,
-                                    error));
-                });
+        if (StringUtils.isNotBlank(connectionTokens)) {
+            final boolean single = connectionTokens.contains(Constants.LIST_SEPARATOR);
+            (single
+                    ? Arrays.asList(StringUtils.split(connectionTokens, Constants.LIST_SEPARATOR))
+                    : Arrays.asList(connectionTokens))
+                            .stream()
+                            .forEach(connectionToken -> {
+                                this.sebInstructionService.registerInstruction(
+                                        examId,
+                                        InstructionType.SEB_RECONFIGURE_SETTINGS,
+                                        attributes,
+                                        connectionToken,
+                                        true)
+                                        .onError(error -> log.error(
+                                                "Failed to register reconfiguring instruction for connection: {}",
+                                                connectionToken,
+                                                error));
+
+                            });
+        } else if (StringUtils.isNotBlank(roomName)) {
+            this.examProcotringRoomService.getRoomConnections(examId, roomName)
+                    .getOrThrow()
+                    .stream()
+                    .forEach(connection -> {
+                        this.sebInstructionService.registerInstruction(
+                                examId,
+                                InstructionType.SEB_RECONFIGURE_SETTINGS,
+                                attributes,
+                                connection.connectionToken,
+                                true)
+                                .onError(error -> log.error(
+                                        "Failed to register reconfiguring instruction for connection: {}",
+                                        connection.connectionToken,
+                                        error));
+                    });
+        } else {
+            throw new RuntimeException("API attribute validation error: missing  "
+                    + Domain.REMOTE_PROCTORING_ROOM.ATTR_ID + " and/or" +
+                    API.EXAM_API_SEB_CONNECTION_TOKEN + " attribute");
+        }
     }
 
     @RequestMapping(
@@ -462,6 +490,9 @@ public class ExamMonitoringController {
                     name = Domain.REMOTE_PROCTORING_ROOM.ATTR_ID,
                     required = true) final String roomName,
             @RequestParam(
+                    name = API.EXAM_API_SEB_CONNECTION_TOKEN,
+                    required = true) final String connectionTokens,
+            @RequestParam(
                     name = ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_AUDIO,
                     required = false) final Boolean sendReceiveAudio,
             @RequestParam(
@@ -501,21 +532,46 @@ public class ExamMonitoringController {
             return;
         }
 
-        this.examProcotringRoomService.getRoomConnections(examId, roomName)
-                .getOrThrow()
-                .stream()
-                .forEach(connection -> {
-                    this.sebInstructionService.registerInstruction(
-                            examId,
-                            InstructionType.SEB_RECONFIGURE_SETTINGS,
-                            attributes,
-                            connection.connectionToken,
-                            true)
-                            .onError(error -> log.error(
-                                    "Failed to register reconfiguring instruction for connection: {}",
-                                    connection.connectionToken,
-                                    error));
-                });
+        if (StringUtils.isNotBlank(connectionTokens)) {
+            final boolean single = connectionTokens.contains(Constants.LIST_SEPARATOR);
+            (single
+                    ? Arrays.asList(StringUtils.split(connectionTokens, Constants.LIST_SEPARATOR))
+                    : Arrays.asList(connectionTokens))
+                            .stream()
+                            .forEach(connectionToken -> {
+                                this.sebInstructionService.registerInstruction(
+                                        examId,
+                                        InstructionType.SEB_RECONFIGURE_SETTINGS,
+                                        attributes,
+                                        connectionToken,
+                                        true)
+                                        .onError(error -> log.error(
+                                                "Failed to register reconfiguring instruction for connection: {}",
+                                                connectionToken,
+                                                error));
+                            });
+        } else if (StringUtils.isNotBlank(roomName)) {
+
+            this.examProcotringRoomService.getRoomConnections(examId, roomName)
+                    .getOrThrow()
+                    .stream()
+                    .forEach(connection -> {
+                        this.sebInstructionService.registerInstruction(
+                                examId,
+                                InstructionType.SEB_RECONFIGURE_SETTINGS,
+                                attributes,
+                                connection.connectionToken,
+                                true)
+                                .onError(error -> log.error(
+                                        "Failed to register reconfiguring instruction for connection: {}",
+                                        connection.connectionToken,
+                                        error));
+                    });
+        } else {
+            throw new RuntimeException("API attribute validation error: missing  "
+                    + Domain.REMOTE_PROCTORING_ROOM.ATTR_ID + " and/or" +
+                    API.EXAM_API_SEB_CONNECTION_TOKEN + " attribute");
+        }
     }
 
     @RequestMapping(

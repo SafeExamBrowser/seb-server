@@ -174,6 +174,8 @@ public class WidgetFactory {
         TEXT_ACTION("action"),
         TEXT_READONLY("readonlyText"),
 
+        ACTIONS("actions"),
+
         FORM_CENTER("form-center"),
         SELECTION("selection"),
         SELECTED("selected"),

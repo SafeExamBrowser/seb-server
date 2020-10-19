@@ -47,7 +47,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 @Component
 public class ActionPane implements TemplateComposer {
 
-    private static final String ACTION_EVENT_CALL_KEY = "ACTION_EVENT_CALL";
+    public static final String ACTION_EVENT_CALL_KEY = "ACTION_EVENT_CALL";
     private static final LocTextKey TITLE_KEY = new LocTextKey("sebserver.actionpane.title");
 
     private final PageService pageService;
@@ -226,7 +226,7 @@ public class ActionPane implements TemplateComposer {
         final Tree actions = this.widgetFactory.treeLocalized(
                 composite,
                 SWT.SINGLE | SWT.FULL_SELECTION | SWT.NO_SCROLL);
-        actions.setData(RWT.CUSTOM_VARIANT, "actions");
+        actions.setData(RWT.CUSTOM_VARIANT, CustomVariant.ACTIONS.key);
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
         actions.setLayoutData(gridData);
         final Template template = new Template();

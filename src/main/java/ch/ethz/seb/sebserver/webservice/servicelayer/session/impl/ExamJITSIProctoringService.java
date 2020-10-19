@@ -72,36 +72,6 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
         return null;
     }
 
-//    @Override
-//    public Result<SEBProctoringConnectionData> createProctorPrivateRoomConnection(
-//            final ProctoringSettings proctoringSettings,
-//            final String connectionToken) {
-//
-//        return Result.tryCatch(() -> {
-//
-//            final ClientConnectionData clientConnection = this.examSessionService.getConnectionData(connectionToken)
-//                    .getOrThrow();
-//
-//            final long expTime = forExam(proctoringSettings);
-//            final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
-//            final String roomName = urlEncoder.encodeToString(
-//                    Utils.toByteArray(clientConnection.clientConnection.connectionToken));
-//
-//            return createProctoringConnectionData(
-//                    proctoringSettings.serverType,
-//                    connectionToken,
-//                    proctoringSettings.serverURL,
-//                    proctoringSettings.appKey,
-//                    proctoringSettings.getAppSecret(),
-//                    this.authorizationService.getUserService().getCurrentUser().getUsername(),
-//                    "seb-server",
-//                    roomName,
-//                    clientConnection.clientConnection.userSessionId,
-//                    expTime)
-//                            .getOrThrow();
-//        });
-//    }
-
     @Override
     public Result<SEBProctoringConnectionData> createProctorPublicRoomConnection(
             final ProctoringSettings proctoringSettings,

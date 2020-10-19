@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl;
 import java.util.Collection;
 
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.RGBA;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.core.ParameterizedTypeReference;
@@ -124,6 +125,7 @@ public final class Constants {
 
     public static final RGB WHITE_RGB = new RGB(255, 255, 255);
     public static final RGB BLACK_RGB = new RGB(0, 0, 0);
+    public static final RGBA GREY_DISABLED = new RGBA(150, 150, 150, 50);
 
     public static final String IMPORTED_PASSWORD_MARKER = "_IMPORTED_PASSWORD";
 
