@@ -49,6 +49,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
@@ -114,6 +115,7 @@ public class MonitoringRunningExam implements TemplateComposer {
     private final InstructionProcessor instructionProcessor;
     private final GuiServiceInfo guiServiceInfo;
     private final long pollInterval;
+    private final long proctoringRoomUpdateInterval;
     private final String remoteProctoringEndpoint;
     private final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup;
 
@@ -124,7 +126,8 @@ public class MonitoringRunningExam implements TemplateComposer {
             final GuiServiceInfo guiServiceInfo,
             final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup,
             @Value("${sebserver.gui.webservice.poll-interval:1000}") final long pollInterval,
-            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint) {
+            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint,
+            @Value("${sebserver.gui.remote.proctoring.rooms.update.poll-interval:5000}") final long proctoringRoomUpdateInterval) {
 
         this.serverPushService = serverPushService;
         this.pageService = pageService;
@@ -134,6 +137,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         this.pollInterval = pollInterval;
         this.remoteProctoringEndpoint = remoteProctoringEndpoint;
         this.proctorRoomConnectionsPopup = proctorRoomConnectionsPopup;
+        this.proctoringRoomUpdateInterval = proctoringRoomUpdateInterval;
     }
 
     @Override
@@ -325,7 +329,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .getOr(null);
 
         if (proctoringSettings != null && proctoringSettings.enableProctoring) {
-            final Map<RemoteProctoringRoom, TreeItem> availableRooms = new HashMap<>();
+            final Map<String, Pair<RemoteProctoringRoom, TreeItem>> availableRooms = new HashMap<>();
             updateRoomActions(
                     entityKey,
                     pageContext,
@@ -334,7 +338,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                     proctoringSettings);
             this.serverPushService.runServerPush(
                     new ServerPushContext(content, Utils.truePredicate()),
-                    5000,
+                    this.proctoringRoomUpdateInterval,
                     context -> updateRoomActions(
                             entityKey,
                             pageContext,
@@ -347,7 +351,7 @@ public class MonitoringRunningExam implements TemplateComposer {
     private void updateRoomActions(
             final EntityKey entityKey,
             final PageContext pageContext,
-            final Map<RemoteProctoringRoom, TreeItem> rooms,
+            final Map<String, Pair<RemoteProctoringRoom, TreeItem>> rooms,
             final PageActionBuilder actionBuilder,
             final ProctoringSettings proctoringSettings) {
 
@@ -358,9 +362,10 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .getOrThrow()
                 .stream()
                 .forEach(room -> {
-                    if (rooms.containsKey(room)) {
+                    if (rooms.containsKey(room.name)) {
                         // update action
-                        final TreeItem treeItem = rooms.get(room);
+                        final TreeItem treeItem = rooms.get(room.name).b;
+                        rooms.put(room.name, new Pair<>(room, treeItem));
                         treeItem.setText(i18nSupport.getText(new LocTextKey(
                                 ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM.title.name,
                                 room.subject,
@@ -372,7 +377,13 @@ public class MonitoringRunningExam implements TemplateComposer {
                         final PageAction action =
                                 actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM)
                                         .withEntityKey(entityKey)
-                                        .withExec(a -> showExamProctoringRoom(proctoringSettings, room, rooms, a))
+                                        .withExec(_action -> {
+                                            final int actualRoomSize = getActualRoomSize(room, rooms);
+                                            if (actualRoomSize <= 0) {
+                                                return _action;
+                                            }
+                                            return showExamProctoringRoom(proctoringSettings, room, _action);
+                                        })
                                         .withNameAttributes(
                                                 room.subject,
                                                 room.roomSize,
@@ -380,15 +391,11 @@ public class MonitoringRunningExam implements TemplateComposer {
                                         .noEventPropagation()
                                         .create();
 
-                        this.pageService.publishAction(action, treeItem -> rooms.put(room, treeItem));
+                        this.pageService.publishAction(
+                                action,
+                                _treeItem -> rooms.put(room.name, new Pair<>(room, _treeItem)));
                         addRoomConnectionsPopupListener(entityKey, pageContext, rooms);
-                        rooms.entrySet().stream()
-                                .filter(entry -> entry.getKey().equals(room))
-                                .findFirst()
-                                .ifPresent(entry -> processProctorRoomActionActivation(
-                                        entry.getValue(),
-                                        room,
-                                        pageContext));
+                        processProctorRoomActionActivation(rooms.get(room.name).b, room, pageContext);
                     }
                 });
     }
@@ -414,10 +421,10 @@ public class MonitoringRunningExam implements TemplateComposer {
     private void addRoomConnectionsPopupListener(
             final EntityKey entityKey,
             final PageContext pageContext,
-            final Map<RemoteProctoringRoom, TreeItem> rooms) {
+            final Map<String, Pair<RemoteProctoringRoom, TreeItem>> rooms) {
 
         if (!rooms.isEmpty()) {
-            final TreeItem treeItem = rooms.values().iterator().next();
+            final TreeItem treeItem = rooms.values().iterator().next().b;
             final Tree tree = treeItem.getParent();
             if (tree.getData(SHOW_CONNECTION_ACTION_APPLIED) == null) {
                 tree.addListener(SWT.Selection, event -> {
@@ -426,16 +433,17 @@ public class MonitoringRunningExam implements TemplateComposer {
                     if (event.button == 3) {
                         rooms.entrySet()
                                 .stream()
-                                .filter(e -> e.getValue().equals(item))
+                                .filter(e -> e.getValue().b.equals(item))
                                 .findFirst()
                                 .ifPresent(e -> {
-                                    if (e.getKey().roomSize > 0) {
+                                    final RemoteProctoringRoom room = e.getValue().a;
+                                    if (room.roomSize > 0) {
                                         final PageContext pc = pageContext.copy()
                                                 .clearAttributes()
-                                                .withEntityKey(new EntityKey(e.getKey().getName(),
+                                                .withEntityKey(new EntityKey(room.name,
                                                         EntityType.REMOTE_PROCTORING_ROOM))
                                                 .withParentEntityKey(entityKey);
-                                        this.proctorRoomConnectionsPopup.show(pc, e.getKey().getSubject());
+                                        this.proctorRoomConnectionsPopup.show(pc, room.subject);
                                     }
                                 });
                     }
@@ -445,24 +453,17 @@ public class MonitoringRunningExam implements TemplateComposer {
         }
     }
 
-    private int getActualRoomSize(final RemoteProctoringRoom room, final Map<RemoteProctoringRoom, TreeItem> rooms) {
-        return rooms.entrySet().stream()
-                .filter(entry -> entry.getKey().equals(room))
-                .findFirst()
-                .map(entry -> entry.getKey().roomSize)
-                .orElseGet(() -> 1);
+    private int getActualRoomSize(
+            final RemoteProctoringRoom room,
+            final Map<String, Pair<RemoteProctoringRoom, TreeItem>> rooms) {
+
+        return rooms.get(room.name).a.roomSize;
     }
 
     private PageAction showExamProctoringRoom(
             final ProctoringSettings proctoringSettings,
             final RemoteProctoringRoom room,
-            final Map<RemoteProctoringRoom, TreeItem> rooms,
             final PageAction action) {
-
-        final int actualRoomSize = getActualRoomSize(room, rooms);
-        if (actualRoomSize <= 0) {
-            return action;
-        }
 
         final SEBProctoringConnectionData proctoringConnectionData = this.pageService
                 .getRestService()

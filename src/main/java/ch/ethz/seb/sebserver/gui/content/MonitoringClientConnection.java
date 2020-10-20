@@ -77,7 +77,7 @@ public class MonitoringClientConnection implements TemplateComposer {
 
     // @formatter:off
     private static final String OPEN_SINGEL_ROOM_SCRIPT =
-            "var existingWin = window.open('', '%s', 'height=420,width=620,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
+            "var existingWin = window.open('', '%s', 'height=420,width=640,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
             "if(existingWin.location.href === 'about:blank'){\n" +
             "    existingWin.location.href = '%s%s';\n" +
             "    existingWin.focus();\n" +

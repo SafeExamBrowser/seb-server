@@ -17,6 +17,8 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +42,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Component
 @GuiProfile
 public class JitsiMeetProctoringView implements RemoteProctoringView {
+
+    private static final Logger log = LoggerFactory.getLogger(JitsiMeetProctoringView.class);
 
     private static final LocTextKey CLOSE_WINDOW_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.proctoring.action.close");
@@ -92,8 +96,17 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
                 .getProctoringGUIService()
                 .closeRoom(proctoringWindowData.connectionData.roomName));
 
-        final String url = this.guiServiceInfo.getExternalServerURIBuilder().toUriString()
-                + this.remoteProctoringEndpoint + this.remoteProctoringViewServletEndpoint + "/";
+        final String url = this.guiServiceInfo
+                .getExternalServerURIBuilder()
+                .toUriString()
+                + this.remoteProctoringEndpoint
+                + this.remoteProctoringViewServletEndpoint
+                + Constants.SLASH;
+
+        if (log.isDebugEnabled()) {
+            log.debug("Open proctoring Servlet in IFrame with URL: {}", url);
+        }
+
         final Browser browser = new Browser(content, SWT.NONE | SWT.NO_SCROLL);
         browser.setLayout(new GridLayout());
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -274,7 +287,7 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
         return ProctoringServerType.JITSI_MEET;
     }
 
-    private static class BroadcastActionState {
+    private static final class BroadcastActionState {
         public static final String KEY_NAME = "BroadcastActionState";
         boolean audio = false;
         boolean video = false;

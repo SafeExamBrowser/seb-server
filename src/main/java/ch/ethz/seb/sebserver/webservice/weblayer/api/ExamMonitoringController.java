@@ -410,68 +410,13 @@ public class ExamMonitoringController {
         this.authorization.checkRead(
                 this.examSessionService.getExamDAO().byPK(examId).getOrThrow());
 
-        final Map<String, String> attributes = new HashMap<>();
-        if (BooleanUtils.isTrue(sendReceiveAudio)) {
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_AUDIO,
-                    Constants.TRUE_STRING);
-        }
-        if (BooleanUtils.isTrue(sendReceiveVideo)) {
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_VIDEO,
-                    Constants.TRUE_STRING);
-        }
-        if (BooleanUtils.isTrue(sendAllowChat)) {
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_ALLOW_CHAT,
-                    Constants.TRUE_STRING);
-        }
+        final Map<String, String> attributes = createProctorInstructionAttributes(
+                sendReceiveAudio,
+                sendReceiveVideo,
+                sendAllowChat,
+                Constants.TRUE_STRING);
 
-        if (attributes.isEmpty()) {
-            log.warn("Missing reconfigure instruction attributes. Skip sending empty instruction to SEB clients");
-            return;
-        }
-
-        if (StringUtils.isNotBlank(connectionTokens)) {
-            final boolean single = connectionTokens.contains(Constants.LIST_SEPARATOR);
-            (single
-                    ? Arrays.asList(StringUtils.split(connectionTokens, Constants.LIST_SEPARATOR))
-                    : Arrays.asList(connectionTokens))
-                            .stream()
-                            .forEach(connectionToken -> {
-                                this.sebInstructionService.registerInstruction(
-                                        examId,
-                                        InstructionType.SEB_RECONFIGURE_SETTINGS,
-                                        attributes,
-                                        connectionToken,
-                                        true)
-                                        .onError(error -> log.error(
-                                                "Failed to register reconfiguring instruction for connection: {}",
-                                                connectionToken,
-                                                error));
-
-                            });
-        } else if (StringUtils.isNotBlank(roomName)) {
-            this.examProcotringRoomService.getRoomConnections(examId, roomName)
-                    .getOrThrow()
-                    .stream()
-                    .forEach(connection -> {
-                        this.sebInstructionService.registerInstruction(
-                                examId,
-                                InstructionType.SEB_RECONFIGURE_SETTINGS,
-                                attributes,
-                                connection.connectionToken,
-                                true)
-                                .onError(error -> log.error(
-                                        "Failed to register reconfiguring instruction for connection: {}",
-                                        connection.connectionToken,
-                                        error));
-                    });
-        } else {
-            throw new RuntimeException("API attribute validation error: missing  "
-                    + Domain.REMOTE_PROCTORING_ROOM.ATTR_ID + " and/or" +
-                    API.EXAM_API_SEB_CONNECTION_TOKEN + " attribute");
-        }
+        sendProctoringInstructions(examId, roomName, connectionTokens, attributes);
     }
 
     @RequestMapping(
@@ -510,68 +455,18 @@ public class ExamMonitoringController {
         this.authorization.checkRead(
                 this.examSessionService.getExamDAO().byPK(examId).getOrThrow());
 
-        final Map<String, String> attributes = new HashMap<>();
-        if (BooleanUtils.isTrue(sendReceiveAudio)) {
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_AUDIO,
-                    Constants.FALSE_STRING);
-        }
-        if (BooleanUtils.isTrue(sendReceiveVideo)) {
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_VIDEO,
-                    Constants.FALSE_STRING);
-        }
-        if (BooleanUtils.isTrue(sendAllowChat)) {
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_ALLOW_CHAT,
-                    Constants.FALSE_STRING);
-        }
+        final Map<String, String> attributes = createProctorInstructionAttributes(
+                sendReceiveAudio,
+                sendReceiveVideo,
+                sendAllowChat,
+                Constants.FALSE_STRING);
 
         if (attributes.isEmpty()) {
             log.warn("Missing reconfigure instruction attributes. Skip sending empty instruction to SEB clients");
             return;
         }
 
-        if (StringUtils.isNotBlank(connectionTokens)) {
-            final boolean single = connectionTokens.contains(Constants.LIST_SEPARATOR);
-            (single
-                    ? Arrays.asList(StringUtils.split(connectionTokens, Constants.LIST_SEPARATOR))
-                    : Arrays.asList(connectionTokens))
-                            .stream()
-                            .forEach(connectionToken -> {
-                                this.sebInstructionService.registerInstruction(
-                                        examId,
-                                        InstructionType.SEB_RECONFIGURE_SETTINGS,
-                                        attributes,
-                                        connectionToken,
-                                        true)
-                                        .onError(error -> log.error(
-                                                "Failed to register reconfiguring instruction for connection: {}",
-                                                connectionToken,
-                                                error));
-                            });
-        } else if (StringUtils.isNotBlank(roomName)) {
-
-            this.examProcotringRoomService.getRoomConnections(examId, roomName)
-                    .getOrThrow()
-                    .stream()
-                    .forEach(connection -> {
-                        this.sebInstructionService.registerInstruction(
-                                examId,
-                                InstructionType.SEB_RECONFIGURE_SETTINGS,
-                                attributes,
-                                connection.connectionToken,
-                                true)
-                                .onError(error -> log.error(
-                                        "Failed to register reconfiguring instruction for connection: {}",
-                                        connection.connectionToken,
-                                        error));
-                    });
-        } else {
-            throw new RuntimeException("API attribute validation error: missing  "
-                    + Domain.REMOTE_PROCTORING_ROOM.ATTR_ID + " and/or" +
-                    API.EXAM_API_SEB_CONNECTION_TOKEN + " attribute");
-        }
+        sendProctoringInstructions(examId, roomName, connectionTokens, attributes);
     }
 
     @RequestMapping(
@@ -693,6 +588,83 @@ public class ExamMonitoringController {
                 roomName,
                 (StringUtils.isNotBlank(subject)) ? subject : roomName)
                 .getOrThrow();
+    }
+
+    private void sendProctoringInstructions(
+            final Long examId,
+            final String roomName,
+            final String connectionTokens,
+            final Map<String, String> attributes) {
+
+        if (attributes.isEmpty()) {
+            log.warn("Missing reconfigure instruction attributes. Skip sending empty instruction to SEB clients");
+            return;
+        }
+
+        if (StringUtils.isNotBlank(connectionTokens)) {
+            final boolean single = connectionTokens.contains(Constants.LIST_SEPARATOR);
+            (single
+                    ? Arrays.asList(StringUtils.split(connectionTokens, Constants.LIST_SEPARATOR))
+                    : Arrays.asList(connectionTokens))
+                            .stream()
+                            .forEach(connectionToken -> {
+                                this.sebInstructionService.registerInstruction(
+                                        examId,
+                                        InstructionType.SEB_RECONFIGURE_SETTINGS,
+                                        attributes,
+                                        connectionToken,
+                                        true)
+                                        .onError(error -> log.error(
+                                                "Failed to register reconfiguring instruction for connection: {}",
+                                                connectionToken,
+                                                error));
+
+                            });
+        } else if (StringUtils.isNotBlank(roomName)) {
+            this.examProcotringRoomService.getRoomConnections(examId, roomName)
+                    .getOrThrow()
+                    .stream()
+                    .forEach(connection -> {
+                        this.sebInstructionService.registerInstruction(
+                                examId,
+                                InstructionType.SEB_RECONFIGURE_SETTINGS,
+                                attributes,
+                                connection.connectionToken,
+                                true)
+                                .onError(error -> log.error(
+                                        "Failed to register reconfiguring instruction for connection: {}",
+                                        connection.connectionToken,
+                                        error));
+                    });
+        } else {
+            throw new RuntimeException("API attribute validation error: missing  "
+                    + Domain.REMOTE_PROCTORING_ROOM.ATTR_ID + " and/or" +
+                    API.EXAM_API_SEB_CONNECTION_TOKEN + " attribute");
+        }
+    }
+
+    private Map<String, String> createProctorInstructionAttributes(
+            final Boolean sendReceiveAudio,
+            final Boolean sendReceiveVideo,
+            final Boolean sendAllowChat,
+            final String flagValue) {
+        final Map<String, String> attributes = new HashMap<>();
+        if (BooleanUtils.isTrue(sendReceiveAudio)) {
+            attributes.put(
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_AUDIO,
+                    flagValue);
+        }
+        if (BooleanUtils.isTrue(sendReceiveVideo)) {
+            attributes.put(
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_VIDEO,
+                    flagValue);
+        }
+        if (BooleanUtils.isTrue(sendAllowChat)) {
+            attributes.put(
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_ALLOW_CHAT,
+                    flagValue);
+        }
+        return attributes;
     }
 
     //**** Proctoring
