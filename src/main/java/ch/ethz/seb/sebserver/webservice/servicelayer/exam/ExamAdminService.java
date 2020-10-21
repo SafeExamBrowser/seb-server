@@ -19,8 +19,14 @@ public interface ExamAdminService {
     /** Adds a default indicator that is defined by configuration to a given exam.
      *
      * @param exam The Exam to add the default indicator
-     * @return the Exam with added default indicator */
+     * @return Result refer to the Exam with added default indicator or to an error if happened */
     Result<Exam> addDefaultIndicator(Exam exam);
+
+    /** Saves additional attributes for a specified Exam on creation or on update.
+     *
+     * @param exam The Exam to add the default indicator
+     * @return Result refer */
+    Result<Exam> saveAdditionalAttributes(Exam exam);
 
     /** Applies all additional SEB restriction attributes that are defined by the
      * type of the LMS of a given Exam to this given Exam.

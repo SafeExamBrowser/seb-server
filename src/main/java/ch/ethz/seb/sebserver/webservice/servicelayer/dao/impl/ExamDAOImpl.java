@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -40,12 +41,17 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttributeRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttributeRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -53,23 +59,29 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseAccess;
 
 @Lazy
 @Component
 @WebServiceProfile
 public class ExamDAOImpl implements ExamDAO {
 
+    public static final String FAILED_TO_LOAD_QUIZ_DATA_MARK = "[FAILED TO LOAD DATA FROM LMS]";
+
     private final ExamRecordMapper examRecordMapper;
     private final ClientConnectionRecordMapper clientConnectionRecordMapper;
+    private final AdditionalAttributeRecordMapper additionalAttributeRecordMapper;
     private final LmsAPIService lmsAPIService;
 
     public ExamDAOImpl(
             final ExamRecordMapper examRecordMapper,
             final ClientConnectionRecordMapper clientConnectionRecordMapper,
+            final AdditionalAttributeRecordMapper additionalAttributeRecordMapper,
             final LmsAPIService lmsAPIService) {
 
         this.examRecordMapper = examRecordMapper;
         this.clientConnectionRecordMapper = clientConnectionRecordMapper;
+        this.additionalAttributeRecordMapper = additionalAttributeRecordMapper;
         this.lmsAPIService = lmsAPIService;
     }
 
@@ -588,10 +600,16 @@ public class ExamDAOImpl implements ExamDAO {
                     .build()
                     .execute();
 
+            // delete all additional attributes
+            this.additionalAttributeRecordMapper.deleteByExample()
+                    .where(AdditionalAttributeRecordDynamicSqlSupport.entityType, isEqualTo(EntityType.EXAM.name()))
+                    .and(AdditionalAttributeRecordDynamicSqlSupport.entityId, isIn(ids))
+                    .build()
+                    .execute();
+
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.EXAM))
                     .collect(Collectors.toList());
-
         });
     }
 
@@ -774,14 +792,85 @@ public class ExamDAOImpl implements ExamDAO {
             // collect Exam's
             return recordMapping.entrySet()
                     .stream()
-                    .map(entry -> toDomainModel(entry.getValue(), quizzes.get(entry.getKey()))
-                            .onError(error -> log.error(
-                                    "Failed to get quiz data from remote LMS for exam: ",
-                                    error))
-                            .getOr(null))
+                    .map(entry -> toDomainModel(
+                            entry.getValue(),
+                            getQuizData(quizzes, entry.getKey(), entry.getValue()))
+                                    .onError(error -> log.error(
+                                            "Failed to get quiz data from remote LMS for exam: ",
+                                            error))
+                                    .getOr(null))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         });
+    }
+
+    private QuizData getQuizData(
+            final Map<String, QuizData> quizzes,
+            final String externalId,
+            final ExamRecord record) {
+
+        if (quizzes.containsKey(externalId)) {
+            return quizzes.get(externalId);
+        } else {
+            // If this is a Moodle quiz, try to recover from eventually restore of the quiz on the LMS side
+            // NOTE: This is a workaround for Moodle quizzes that had have a recovery within the sandbox tool
+            //       Where potentially quiz identifiers get changed during such a recovery and the SEB Server
+            //       internal mapping is not working properly anymore. In this case we try to recover from such
+            //       a case by using the short name of the quiz and search for the quiz within the course with this
+            //       short name. If one quiz has been found that matches all criteria, we adapt the internal id
+            //       mapping to this quiz.
+            try {
+                final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(record.getLmsSetupId())
+                        .getOrThrow();
+                if (lmsSetup.lmsType == LmsType.MOODLE) {
+                    // get additional quiz name attribute
+                    final AdditionalAttributeRecord additionalAttribute =
+                            this.additionalAttributeRecordMapper.selectByExample()
+                                    .where(
+                                            AdditionalAttributeRecordDynamicSqlSupport.entityType,
+                                            SqlBuilder.isEqualTo(EntityType.EXAM.name()))
+                                    .and(
+                                            AdditionalAttributeRecordDynamicSqlSupport.entityId,
+                                            SqlBuilder.isEqualTo(record.getId()))
+                                    .and(
+                                            AdditionalAttributeRecordDynamicSqlSupport.name,
+                                            SqlBuilder.isEqualTo(QuizData.QUIZ_ATTR_NAME))
+                                    .build()
+                                    .execute()
+                                    .stream()
+                                    .findAny()
+                                    .orElse(null);
+                    if (additionalAttribute != null) {
+                        // get the course name identifier
+                        final String shortname = MoodleCourseAccess.getShortname(externalId);
+                        if (StringUtils.isNotBlank(shortname)) {
+                            final QuizData recoveredQuizData = quizzes.entrySet()
+                                    .stream()
+                                    .filter(quizEntry -> {
+                                        final String qShortName = MoodleCourseAccess.getShortname(quizEntry.getKey());
+                                        return qShortName != null && qShortName.equals(shortname);
+                                    })
+                                    .map(quizEntry -> quizEntry.getValue())
+                                    .filter(quiz -> additionalAttribute.getValue().equals(quiz.name))
+                                    .findAny()
+                                    .orElse(null);
+                            if (recoveredQuizData != null) {
+                                // save exam with new external id
+                                this.examRecordMapper.updateByPrimaryKeySelective(new ExamRecord(
+                                        record.getId(),
+                                        null, null,
+                                        recoveredQuizData.id,
+                                        null, null, null, null, null, null, null, null, null, null));
+                            }
+                            return recoveredQuizData;
+                        }
+                    }
+                }
+            } catch (final Exception e) {
+                log.warn("Failed to try to recover from Moodle quiz restore: ", e.getMessage());
+            }
+            return null;
+        }
     }
 
     private Result<Exam> toDomainModel(
@@ -807,8 +896,8 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getInstitutionId(),
                     record.getLmsSetupId(),
                     record.getExternalId(),
-                    (quizData != null) ? quizData.name : "[Failed to load quiz data]",
-                    (quizData != null) ? quizData.description : "[Failed to load quiz data]",
+                    (quizData != null) ? quizData.name : FAILED_TO_LOAD_QUIZ_DATA_MARK,
+                    (quizData != null) ? quizData.description : FAILED_TO_LOAD_QUIZ_DATA_MARK,
                     (quizData != null) ? quizData.startTime : null,
                     (quizData != null) ? quizData.endTime : null,
                     (quizData != null) ? quizData.startURL : Constants.EMPTY_NOTE,

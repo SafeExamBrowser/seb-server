@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -44,6 +45,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamProctoringServiceFactory;
@@ -142,6 +144,31 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             return this.examDAO
                     .byPK(exam.id)
                     .getOrThrow();
+        });
+    }
+
+    @Override
+    public Result<Exam> saveAdditionalAttributes(final Exam exam) {
+        return saveAdditionalAttributesForMoodleExams(exam);
+    }
+
+    private Result<Exam> saveAdditionalAttributesForMoodleExams(final Exam exam) {
+        return Result.tryCatch(() -> {
+            final LmsAPITemplate lmsTemplate = this.lmsAPIService
+                    .getLmsAPITemplate(exam.lmsSetupId)
+                    .getOrThrow();
+
+            if (lmsTemplate.lmsSetup().lmsType == LmsType.MOODLE) {
+                lmsTemplate.getQuiz(exam.externalId)
+                        .flatMap(quizData -> this.additionalAttributesDAO.saveAdditionalAttribute(
+                                EntityType.EXAM,
+                                exam.id,
+                                QuizData.QUIZ_ATTR_NAME,
+                                quizData.name))
+                        .getOrThrow();
+            }
+
+            return exam;
         });
     }
 

@@ -450,6 +450,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     protected Result<Exam> notifyCreated(final Exam entity) {
         return this.examAdminService
                 .addDefaultIndicator(entity)
+                .flatMap(this.examAdminService::saveAdditionalAttributes)
                 .flatMap(this.examAdminService::applyAdditionalSEBRestrictions);
     }
 
@@ -458,7 +459,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return Result.tryCatch(() -> {
             this.examSessionService.flushCache(entity);
             return entity;
-        });
+        }).flatMap(this.examAdminService::saveAdditionalAttributes);
     }
 
     @Override

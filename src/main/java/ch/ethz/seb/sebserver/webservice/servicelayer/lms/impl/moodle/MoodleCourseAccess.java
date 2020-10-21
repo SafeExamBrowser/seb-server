@@ -313,7 +313,7 @@ public class MoodleCourseAccess extends CourseAccess {
 
     }
 
-    static final String getInternalQuizId(final String quizId, final String shortname, final String idnumber) {
+    public static final String getInternalQuizId(final String quizId, final String shortname, final String idnumber) {
         final StringBuilder sb = new StringBuilder(quizId);
         if (StringUtils.isNotEmpty(shortname)) {
             sb.insert(0, ":").insert(0, shortname);
@@ -324,7 +324,7 @@ public class MoodleCourseAccess extends CourseAccess {
         return sb.toString();
     }
 
-    static final String getQuizId(final String internalQuizId) {
+    public static final String getQuizId(final String internalQuizId) {
         if (StringUtils.isBlank(internalQuizId)) {
             return null;
         }
@@ -333,7 +333,7 @@ public class MoodleCourseAccess extends CourseAccess {
         return ids[ids.length - 1];
     }
 
-    static final String getShortname(final String internalQuizId) {
+    public static final String getShortname(final String internalQuizId) {
         if (StringUtils.isBlank(internalQuizId)) {
             return null;
         }
@@ -346,7 +346,7 @@ public class MoodleCourseAccess extends CourseAccess {
         }
     }
 
-    static final String getIdnumber(final String internalQuizId) {
+    public static final String getIdnumber(final String internalQuizId) {
         if (StringUtils.isBlank(internalQuizId)) {
             return null;
         }
