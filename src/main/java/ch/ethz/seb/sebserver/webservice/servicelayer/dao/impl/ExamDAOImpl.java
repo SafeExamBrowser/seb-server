@@ -153,6 +153,10 @@ public class ExamDAOImpl implements ExamDAO {
                 }
 
                 if (from != null) {
+                    // always show exams that has not ended yet
+                    if (exam.endTime == null || exam.endTime.isAfter(from)) {
+                        return true;
+                    }
                     if (exam.startTime.isBefore(from)) {
                         return false;
                     }
@@ -755,7 +759,7 @@ public class ExamDAOImpl implements ExamDAO {
             try {
                 status = ExamStatus.valueOf(record.getStatus());
             } catch (final Exception e) {
-                log.error("Missing exam status form data base. Set ExamStatus.UP_COMING as fallback ", e);
+                log.error("Missing exam status from data base. Set ExamStatus.UP_COMING as fallback ", e);
                 status = ExamStatus.UP_COMING;
             }
 
@@ -766,7 +770,7 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getExternalId(),
                     (quizData != null) ? quizData.name : Constants.EMPTY_NOTE,
                     (quizData != null) ? quizData.description : Constants.EMPTY_NOTE,
-                    (quizData != null) ? quizData.startTime : null,
+                    (quizData != null) ? quizData.startTime : new DateTime(0),
                     (quizData != null) ? quizData.endTime : null,
                     (quizData != null) ? quizData.startURL : Constants.EMPTY_NOTE,
                     ExamType.valueOf(record.getType()),
