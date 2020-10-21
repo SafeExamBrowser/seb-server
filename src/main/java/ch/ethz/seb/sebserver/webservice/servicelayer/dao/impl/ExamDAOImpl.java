@@ -823,6 +823,9 @@ public class ExamDAOImpl implements ExamDAO {
                 final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(record.getLmsSetupId())
                         .getOrThrow();
                 if (lmsSetup.lmsType == LmsType.MOODLE) {
+
+                    log.info("Try to recover quiz data for Moodle quiz with internal identifier: {}", externalId);
+
                     // get additional quiz name attribute
                     final AdditionalAttributeRecord additionalAttribute =
                             this.additionalAttributeRecordMapper.selectByExample()
@@ -841,9 +844,15 @@ public class ExamDAOImpl implements ExamDAO {
                                     .findAny()
                                     .orElse(null);
                     if (additionalAttribute != null) {
+
+                        log.debug("Found additional quiz name attribute: {}", additionalAttribute);
+
                         // get the course name identifier
                         final String shortname = MoodleCourseAccess.getShortname(externalId);
                         if (StringUtils.isNotBlank(shortname)) {
+
+                            log.debug("using shortame: {} for recovering", shortname);
+
                             final QuizData recoveredQuizData = quizzes.entrySet()
                                     .stream()
                                     .filter(quizEntry -> {
@@ -855,6 +864,9 @@ public class ExamDAOImpl implements ExamDAO {
                                     .findAny()
                                     .orElse(null);
                             if (recoveredQuizData != null) {
+
+                                log.debug("found quiz data for recovering: {}", recoveredQuizData);
+
                                 // save exam with new external id
                                 this.examRecordMapper.updateByPrimaryKeySelective(new ExamRecord(
                                         record.getId(),
