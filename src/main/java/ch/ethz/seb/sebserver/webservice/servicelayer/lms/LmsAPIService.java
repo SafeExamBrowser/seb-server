@@ -100,6 +100,9 @@ public interface LmsAPIService {
      * @param filterMap the FilterMap containing the filter criteria
      * @return true if the given QuizzData passes the filter */
     static Predicate<QuizData> quizFilterPredicate(final FilterMap filterMap) {
+        if (filterMap == null) {
+            return q -> true;
+        }
         final String name = filterMap.getQuizName();
         final DateTime from = filterMap.getQuizFromTime();
         return q -> {

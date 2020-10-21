@@ -329,7 +329,7 @@ public class MoodleCourseAccess extends CourseAccess {
             return null;
         }
 
-        final String[] ids = internalQuizId.split(internalQuizId, Constants.COLON);
+        final String[] ids = StringUtils.split(internalQuizId, Constants.COLON);
         return ids[ids.length - 1];
     }
 
@@ -338,9 +338,11 @@ public class MoodleCourseAccess extends CourseAccess {
             return null;
         }
 
-        final String[] ids = internalQuizId.split(internalQuizId, Constants.COLON);
-        if (ids.length > 1) {
-            return ids[ids.length - 2];
+        final String[] ids = StringUtils.split(internalQuizId, Constants.COLON);
+        if (ids.length == 3) {
+            return ids[1];
+        } else if (ids.length == 2) {
+            return ids[0];
         } else {
             return null;
         }
@@ -351,7 +353,7 @@ public class MoodleCourseAccess extends CourseAccess {
             return null;
         }
 
-        final String[] ids = internalQuizId.split(internalQuizId, Constants.COLON);
+        final String[] ids = StringUtils.split(internalQuizId, Constants.COLON);
         if (ids.length == 3) {
             return ids[0];
         } else {

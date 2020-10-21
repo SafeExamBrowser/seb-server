@@ -820,7 +820,8 @@ public class ExamDAOImpl implements ExamDAO {
             //       short name. If one quiz has been found that matches all criteria, we adapt the internal id
             //       mapping to this quiz.
             try {
-                final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(record.getLmsSetupId())
+                final LmsSetup lmsSetup = this.lmsAPIService
+                        .getLmsSetup(record.getLmsSetupId())
                         .getOrThrow();
                 if (lmsSetup.lmsType == LmsType.MOODLE) {
 
@@ -851,21 +852,23 @@ public class ExamDAOImpl implements ExamDAO {
                         final String shortname = MoodleCourseAccess.getShortname(externalId);
                         if (StringUtils.isNotBlank(shortname)) {
 
-                            log.debug("using shortame: {} for recovering", shortname);
+                            log.debug("Using short-name: {} for recovering", shortname);
 
-                            final QuizData recoveredQuizData = quizzes.entrySet()
-                                    .stream()
-                                    .filter(quizEntry -> {
-                                        final String qShortName = MoodleCourseAccess.getShortname(quizEntry.getKey());
-                                        return qShortName != null && qShortName.equals(shortname);
-                                    })
-                                    .map(quizEntry -> quizEntry.getValue())
-                                    .filter(quiz -> additionalAttribute.getValue().equals(quiz.name))
-                                    .findAny()
-                                    .orElse(null);
+                            final QuizData recoveredQuizData = this.lmsAPIService.getLmsAPITemplate(lmsSetup.id)
+                                    .map(template -> template.getQuizzes(new FilterMap())
+                                            .getOrThrow()
+                                            .stream()
+                                            .filter(quiz -> {
+                                                final String qShortName = MoodleCourseAccess.getShortname(quiz.id);
+                                                return qShortName != null && qShortName.equals(shortname);
+                                            })
+                                            .filter(quiz -> additionalAttribute.getValue().equals(quiz.name))
+                                            .findAny()
+                                            .get())
+                                    .getOrThrow();
                             if (recoveredQuizData != null) {
 
-                                log.debug("found quiz data for recovering: {}", recoveredQuizData);
+                                log.debug("Found quiz data for recovering: {}", recoveredQuizData);
 
                                 // save exam with new external id
                                 this.examRecordMapper.updateByPrimaryKeySelective(new ExamRecord(
@@ -873,6 +876,9 @@ public class ExamDAOImpl implements ExamDAO {
                                         null, null,
                                         recoveredQuizData.id,
                                         null, null, null, null, null, null, null, null, null, null));
+
+                                log.debug("Successfully recovered exam quiz data to new externalId {}",
+                                        recoveredQuizData.id);
                             }
                             return recoveredQuizData;
                         }
