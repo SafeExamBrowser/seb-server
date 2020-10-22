@@ -65,7 +65,10 @@ SEB Server version. There is an entry for each platform with a beta or testing r
    
 For testing: 
 
-`Download beta version of SEB Client for iOS <https://sourceforge.net/p/seb/discussion/seb-ios/thread/e7e542a5/>`_
+*Note that these are all beta versions and must only be used for testing or demonstration.*
+
+`Download beta version of SEB Client iOS <https://sourceforge.net/p/seb/discussion/seb-ios/thread/e7e542a5/>`_
+`Download beta version of SEB Client Windows <https://sebdev-let.ethz.ch/project/appveyor/seb-win-refactoring/build/job/syhbap4i8f4ykd5h/artifacts>`_
 
 
 
