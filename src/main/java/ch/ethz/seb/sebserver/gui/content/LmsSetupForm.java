@@ -66,6 +66,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class LmsSetupForm implements TemplateComposer {
 
+    private static final String FORM_PROXY_CHECK = "FORM_PROXY_CHECK";
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.lmssetup.form.title");
     private static final LocTextKey NEW_TITLE_TEXT_KEY =
@@ -225,7 +226,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .addFieldIf(
                         isEdit,
                         () -> FormBuilder.checkbox(
-                                "FORM_PROXY_CHECK",
+                                FORM_PROXY_CHECK,
                                 FORM_PROXY_CHECK_KEY,
                                 withProxy
                                         ? Constants.TRUE_STRING
@@ -281,7 +282,7 @@ public class LmsSetupForm implements TemplateComposer {
             formHandle.process(
                     PROXY_ATTRIBUTES::contains,
                     ffa -> ffa.setVisible(withProxy));
-            formHandle.getForm().getFieldInput("FORM_PROXY_CHECK")
+            formHandle.getForm().getFieldInput(FORM_PROXY_CHECK)
                     .addListener(SWT.Selection, event -> formHandle.process(
                             PROXY_ATTRIBUTES::contains,
                             ffa -> {
@@ -467,11 +468,6 @@ public class LmsSetupForm implements TemplateComposer {
                             Utils.formatHTMLLinesForceEscaped(
                                     Utils.escapeHTML_XML_EcmaScript(error.message)));
                     return onOK.apply(locTextKey);
-//                            throw new PageMessageException(new LocTextKey(
-//                                    "sebserver.lmssetup.action.test.features.error",
-//                                    "OK",
-//                                    Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
-
                 }
                 default: {
                     throw new PageMessageException(new LocTextKey(

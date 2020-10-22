@@ -99,8 +99,10 @@ public class ClientIndicatorFactory {
                         clientConnection.examId,
                         "hidden_ping_indicator",
                         IndicatorType.LAST_PING,
-                        "",
-                        Arrays.asList(new Indicator.Threshold(5000d, "")));
+                        null,
+                        null,
+                        null,
+                        Arrays.asList(new Indicator.Threshold(5000d, null, null)));
                 pingIndicator.init(
                         indicator,
                         clientConnection.id,

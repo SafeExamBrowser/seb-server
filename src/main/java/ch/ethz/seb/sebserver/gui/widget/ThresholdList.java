@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -26,6 +25,7 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
@@ -122,7 +122,8 @@ public final class ThresholdList extends Composite {
         removeInvalidListEntries();
         return this.thresholds
                 .stream()
-                .map(entry -> new Threshold(entry.getValue(), entry.getColor()))
+                .map(entry -> new Threshold(entry.getValue(), entry.getColor(),
+                        null /* TODO add icon selection here */))
                 .collect(Collectors.toList());
     }
 

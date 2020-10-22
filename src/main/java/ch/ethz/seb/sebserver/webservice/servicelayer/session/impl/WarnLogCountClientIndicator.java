@@ -20,9 +20,9 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecord
 @Lazy
 @Component(IndicatorType.Names.WARN_COUNT)
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class WarnCountClientIndicator extends AbstractLogLevelCountIndicator {
+public class WarnLogCountClientIndicator extends AbstractLogLevelCountIndicator {
 
-    protected WarnCountClientIndicator(final ClientEventRecordMapper clientEventRecordMapper) {
+    protected WarnLogCountClientIndicator(final ClientEventRecordMapper clientEventRecordMapper) {
         super(clientEventRecordMapper, EventType.WARN_LOG);
     }
 

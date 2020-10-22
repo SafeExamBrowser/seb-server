@@ -125,7 +125,9 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     null,
                     modified.type.name(),
                     modified.name,
-                    modified.defaultColor);
+                    modified.defaultColor,
+                    modified.defaultIcon,
+                    modified.tags);
 
             this.indicatorRecordMapper.updateByPrimaryKeySelective(newRecord);
 
@@ -141,7 +143,8 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                             null,
                             modified.id,
                             new BigDecimal(threshold.value),
-                            threshold.color))
+                            threshold.color,
+                            threshold.icon))
                     .forEach(this.thresholdRecordMapper::insert);
 
             return this.indicatorRecordMapper.selectByPrimaryKey(modified.id);
@@ -160,7 +163,9 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     modified.examId,
                     modified.type.name(),
                     modified.name,
-                    modified.defaultColor);
+                    modified.defaultColor,
+                    modified.defaultIcon,
+                    modified.tags);
 
             this.indicatorRecordMapper.insert(newRecord);
 
@@ -172,7 +177,8 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                             null,
                             newRecord.getId(),
                             new BigDecimal(threshold.value),
-                            threshold.color))
+                            threshold.color,
+                            threshold.icon))
                     .forEach(this.thresholdRecordMapper::insert);
 
             return newRecord;
@@ -353,7 +359,8 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     .stream()
                     .map(tRec -> new Threshold(
                             tRec.getValue().doubleValue(),
-                            tRec.getColor()))
+                            tRec.getColor(),
+                            tRec.getIcon()))
                     .collect(Collectors.toList());
 
             return new Indicator(
@@ -362,6 +369,8 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     record.getName(),
                     IndicatorType.valueOf(record.getType()),
                     record.getColor(),
+                    record.getIcon(),
+                    record.getTags(),
                     thresholds);
         });
 

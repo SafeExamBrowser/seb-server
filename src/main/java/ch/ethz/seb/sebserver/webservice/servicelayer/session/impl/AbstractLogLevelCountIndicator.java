@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValueHolder;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
@@ -54,8 +54,26 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractClientIndic
     }
 
     @Override
-    public void notifyValueChange(final IndicatorValueHolder indicatorValueHolder) {
-        this.currentValue = getValue() + 1d;
+    public void notifyValueChange(final ClientEvent event) {
+        if (this.tags == null || this.tags.length == 0) {
+            this.currentValue = getValue() + 1d;
+        } else if (hasTag(event.text)) {
+            this.currentValue = getValue() + 1d;
+        }
+    }
+
+    private boolean hasTag(final String text) {
+        if (text == null) {
+            return false;
+        }
+
+        for (int i = 0; i < this.tags.length; i++) {
+            if (text.startsWith(this.tags[i])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override

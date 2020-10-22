@@ -23,8 +23,8 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValueHolder;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
@@ -74,7 +74,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     }
 
     @Override
-    public void notifyValueChange(final IndicatorValueHolder indicatorValueHolder) {
+    public void notifyValueChange(final ClientEvent event) {
 
     }
 

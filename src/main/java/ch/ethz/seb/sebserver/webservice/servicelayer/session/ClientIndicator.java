@@ -11,9 +11,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 import java.util.Set;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
-import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValueHolder;
 
 /** A client indicator is a indicator value holder for a specific Indicator
  * on a running client connection.
@@ -32,6 +32,6 @@ public interface ClientIndicator extends IndicatorValue {
 
     Set<EventType> observedEvents();
 
-    void notifyValueChange(IndicatorValueHolder indicatorValueHolder);
+    void notifyValueChange(ClientEvent event);
 
 }

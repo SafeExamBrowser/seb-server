@@ -32,57 +32,61 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface IndicatorRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.772+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.772+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.772+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<IndicatorRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.772+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
         @Arg(column="exam_id", javaType=Long.class, jdbcType=JdbcType.BIGINT),
         @Arg(column="type", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
-        @Arg(column="color", javaType=String.class, jdbcType=JdbcType.VARCHAR)
+        @Arg(column="color", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="icon", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="tags", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
     IndicatorRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.772+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
         @Arg(column="exam_id", javaType=Long.class, jdbcType=JdbcType.BIGINT),
         @Arg(column="type", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
-        @Arg(column="color", javaType=String.class, jdbcType=JdbcType.VARCHAR)
+        @Arg(column="color", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="icon", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="tags", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
     List<IndicatorRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.772+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.772+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(indicatorRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.773+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, indicatorRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.773+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, indicatorRecord)
                 .where(id, isEqualTo(id_))
@@ -90,7 +94,7 @@ public interface IndicatorRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.773+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     default int insert(IndicatorRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(indicatorRecord)
@@ -98,11 +102,13 @@ public interface IndicatorRecordMapper {
                 .map(type).toProperty("type")
                 .map(name).toProperty("name")
                 .map(color).toProperty("color")
+                .map(icon).toProperty("icon")
+                .map(tags).toProperty("tags")
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.773+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     default int insertSelective(IndicatorRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(indicatorRecord)
@@ -110,68 +116,78 @@ public interface IndicatorRecordMapper {
                 .map(type).toPropertyWhenPresent("type", record::getType)
                 .map(name).toPropertyWhenPresent("name", record::getName)
                 .map(color).toPropertyWhenPresent("color", record::getColor)
+                .map(icon).toPropertyWhenPresent("icon", record::getIcon)
+                .map(tags).toPropertyWhenPresent("tags", record::getTags)
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.773+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<IndicatorRecord>>> selectByExample() {
-        return SelectDSL.selectWithMapper(this::selectMany, id, examId, type, name, color)
+        return SelectDSL.selectWithMapper(this::selectMany, id, examId, type, name, color, icon, tags)
                 .from(indicatorRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.773+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.456+02:00", comments="Source Table: indicator")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<IndicatorRecord>>> selectDistinctByExample() {
-        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, examId, type, name, color)
+        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, examId, type, name, color, icon, tags)
                 .from(indicatorRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.773+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.457+02:00", comments="Source Table: indicator")
     default IndicatorRecord selectByPrimaryKey(Long id_) {
-        return SelectDSL.selectWithMapper(this::selectOne, id, examId, type, name, color)
+        return SelectDSL.selectWithMapper(this::selectOne, id, examId, type, name, color, icon, tags)
                 .from(indicatorRecord)
                 .where(id, isEqualTo(id_))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.773+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.457+02:00", comments="Source Table: indicator")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(IndicatorRecord record) {
         return UpdateDSL.updateWithMapper(this::update, indicatorRecord)
                 .set(examId).equalTo(record::getExamId)
                 .set(type).equalTo(record::getType)
                 .set(name).equalTo(record::getName)
-                .set(color).equalTo(record::getColor);
+                .set(color).equalTo(record::getColor)
+                .set(icon).equalTo(record::getIcon)
+                .set(tags).equalTo(record::getTags);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.773+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.457+02:00", comments="Source Table: indicator")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(IndicatorRecord record) {
         return UpdateDSL.updateWithMapper(this::update, indicatorRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)
                 .set(type).equalToWhenPresent(record::getType)
                 .set(name).equalToWhenPresent(record::getName)
-                .set(color).equalToWhenPresent(record::getColor);
+                .set(color).equalToWhenPresent(record::getColor)
+                .set(icon).equalToWhenPresent(record::getIcon)
+                .set(tags).equalToWhenPresent(record::getTags);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.773+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.457+02:00", comments="Source Table: indicator")
     default int updateByPrimaryKey(IndicatorRecord record) {
         return UpdateDSL.updateWithMapper(this::update, indicatorRecord)
                 .set(examId).equalTo(record::getExamId)
                 .set(type).equalTo(record::getType)
                 .set(name).equalTo(record::getName)
                 .set(color).equalTo(record::getColor)
+                .set(icon).equalTo(record::getIcon)
+                .set(tags).equalTo(record::getTags)
                 .where(id, isEqualTo(record::getId))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-12T13:53:04.773+02:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.457+02:00", comments="Source Table: indicator")
     default int updateByPrimaryKeySelective(IndicatorRecord record) {
         return UpdateDSL.updateWithMapper(this::update, indicatorRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)
                 .set(type).equalToWhenPresent(record::getType)
                 .set(name).equalToWhenPresent(record::getName)
                 .set(color).equalToWhenPresent(record::getColor)
+                .set(icon).equalToWhenPresent(record::getIcon)
+                .set(tags).equalToWhenPresent(record::getTags)
                 .where(id, isEqualTo(record::getId))
                 .build()
                 .execute();

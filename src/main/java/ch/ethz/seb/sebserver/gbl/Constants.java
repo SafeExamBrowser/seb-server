@@ -45,6 +45,8 @@ public final class Constants {
     public static final Character CURLY_BRACE_CLOSE = '}';
     public static final Character SQUARE_BRACE_OPEN = '[';
     public static final Character SQUARE_BRACE_CLOSE = ']';
+    public static final Character ANGLE_BRACE_OPEN = '<';
+    public static final Character ANGLE_BRACE_CLOSE = '>';
     public static final Character COLON = ':';
     public static final Character SEMICOLON = ';';
     public static final Character PERCENTAGE = '%';

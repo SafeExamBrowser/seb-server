@@ -32,3 +32,16 @@ ADD CONSTRAINT `clientConnectionRemoteProctoringRoomRef`
 ALTER TABLE `client_instruction`
 ADD COLUMN IF NOT EXISTS `needs_confirmation` INT(1) UNSIGNED NOT NULL DEFAULT 0 AFTER `attributes`,
 ADD COLUMN IF NOT EXISTS `timestamp` BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER `needs_confirmation`;
+
+-- -----------------------------------------------------
+-- Alter Table `indicator`
+-- -----------------------------------------------------
+ALTER TABLE `indicator`
+ADD COLUMN IF NOT EXISTS `icon` VARCHAR(45) NULL AFTER `color`,
+ADD COLUMN IF NOT EXISTS `tags` VARCHAR(45) NULL AFTER `icon`;
+
+-- -----------------------------------------------------
+-- Alter Table `threshold`
+-- -----------------------------------------------------
+ALTER TABLE `threshold`
+ADD COLUMN IF NOT EXISTS `icon` VARCHAR(45) NULL AFTER `color`;

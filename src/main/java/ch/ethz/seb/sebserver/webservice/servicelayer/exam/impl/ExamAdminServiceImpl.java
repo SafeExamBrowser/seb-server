@@ -110,6 +110,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     this.defaultIndicatorName,
                     IndicatorType.valueOf(this.defaultIndicatorType),
                     this.defaultIndicatorColor,
+                    null,
+                    null,
                     thresholds);
 
             this.indicatorDAO.createNew(indicator)

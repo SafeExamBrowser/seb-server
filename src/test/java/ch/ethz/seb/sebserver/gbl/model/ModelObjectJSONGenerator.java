@@ -188,10 +188,10 @@ public class ModelObjectJSONGenerator {
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject = new Indicator(
-                1L, 1L, "name", IndicatorType.LAST_PING, "#111111", Arrays.asList(
-                        new Indicator.Threshold(100.0, "#111111"),
-                        new Indicator.Threshold(200.0, "#222222"),
-                        new Indicator.Threshold(300.0, "#333333")));
+                1L, 1L, "name", IndicatorType.LAST_PING, "#111111", "icon1", "tag1", Arrays.asList(
+                        new Indicator.Threshold(100.0, "#111111", "icon1"),
+                        new Indicator.Threshold(200.0, "#222222", "icon2"),
+                        new Indicator.Threshold(300.0, "#333333", "icon3")));
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 

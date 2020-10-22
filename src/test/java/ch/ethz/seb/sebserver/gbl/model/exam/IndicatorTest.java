@@ -32,15 +32,17 @@ public class IndicatorTest {
                 "Ping",
                 IndicatorType.LAST_PING,
                 "b4b4b4",
+                "icon1",
+                "tag1",
                 Arrays.asList(
-                        new Indicator.Threshold(2000d, "22b14c"),
-                        new Indicator.Threshold(5000d, "ff7e00"),
-                        new Indicator.Threshold(10000d, "ed1c24")));
+                        new Indicator.Threshold(2000d, "22b14c", "icon1"),
+                        new Indicator.Threshold(5000d, "ff7e00", "icon2"),
+                        new Indicator.Threshold(10000d, "ed1c24", "icon3")));
 
         final JSONMapper mapper = new JSONMapper();
         final String jsonString = mapper.writeValueAsString(indicator);
         assertEquals(
-                "{\"examId\":1,\"name\":\"Ping\",\"type\":\"LAST_PING\",\"color\":\"b4b4b4\",\"thresholds\":[{\"value\":2000.0,\"color\":\"22b14c\"},{\"value\":5000.0,\"color\":\"ff7e00\"},{\"value\":10000.0,\"color\":\"ed1c24\"}]}",
+                "{\"examId\":1,\"name\":\"Ping\",\"type\":\"LAST_PING\",\"color\":\"b4b4b4\",\"icon\":\"icon1\",\"tags\":\"tag1\",\"thresholds\":[{\"value\":2000.0,\"color\":\"22b14c\",\"icon\":\"icon1\"},{\"value\":5000.0,\"color\":\"ff7e00\",\"icon\":\"icon2\"},{\"value\":10000.0,\"color\":\"ed1c24\",\"icon\":\"icon3\"}]}",
                 jsonString);
 
         final String threholds =
@@ -49,7 +51,7 @@ public class IndicatorTest {
         });
 
         assertEquals(
-                "[Threshold [value=2000.0, color=22b14c], Threshold [value=5000.0, color=ff7e00], Threshold [value=10000.0, color=ed1c24]]",
+                "[Threshold [value=2000.0, color=22b14c, icon=null], Threshold [value=5000.0, color=ff7e00, icon=null], Threshold [value=10000.0, color=ed1c24, icon=null]]",
                 values.toString());
     }
 

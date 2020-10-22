@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -37,6 +39,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
+import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import io.micrometer.core.instrument.util.StringUtils;
 
@@ -57,6 +60,8 @@ public class IndicatorForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.indicator.form.type");
     private static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.exam.indicator.form.name");
+    private static final LocTextKey FORM_TAGS_TEXT_KEY =
+            new LocTextKey("sebserver.exam.indicator.form.tags");
     private static final LocTextKey FORM_EXAM_TEXT_KEY =
             new LocTextKey("sebserver.exam.indicator.form.exam");
     private static final LocTextKey FORM_DESC_TEXT_KEY =
@@ -165,6 +170,11 @@ public class IndicatorForm implements TemplateComposer {
                         FORM_COLOR_TEXT_KEY,
                         indicator.defaultColor)
                         .withEmptyCellSeparation(false))
+                .addField(FormBuilder.text(
+                        Domain.INDICATOR.ATTR_TAGS,
+                        FORM_TAGS_TEXT_KEY,
+                        indicator.tags)
+                        .visibleIf(indicator.hasTags()))
                 .addField(FormBuilder.thresholdList(
                         Domain.THRESHOLD.REFERENCE_NAME,
                         FORM_THRESHOLDS_TEXT_KEY,
@@ -173,6 +183,14 @@ public class IndicatorForm implements TemplateComposer {
                 .buildFor((isNew)
                         ? restService.getRestCall(NewIndicator.class)
                         : restService.getRestCall(SaveIndicator.class));
+
+        formHandle.getForm().getFieldInput(Domain.INDICATOR.ATTR_TYPE)
+                .addListener(SWT.Selection, event -> formHandle.process(
+                        name -> Domain.INDICATOR.ATTR_TAGS.equals(name),
+                        ffa -> {
+                            final String stringValue = ((Selection) event.widget).getSelectionValue();
+                            ffa.setVisible(stringValue == null || !stringValue.equals(IndicatorType.LAST_PING.name));
+                        }));
 
         // propagate content actions to action-pane
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())

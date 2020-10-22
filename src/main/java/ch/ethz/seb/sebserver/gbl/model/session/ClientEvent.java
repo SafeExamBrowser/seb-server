@@ -45,7 +45,9 @@ public class ClientEvent implements Entity, IndicatorValueHolder {
         INFO_LOG(2),
         WARN_LOG(3),
         ERROR_LOG(4),
-        LAST_PING(5)
+        LAST_PING(5),
+        NOTIFICATION(6),
+        NOTIFICATION_CONFIRMED(7)
 
         ;
 

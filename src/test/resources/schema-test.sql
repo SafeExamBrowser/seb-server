@@ -173,6 +173,8 @@ CREATE TABLE IF NOT EXISTS `indicator` (
   `type` VARCHAR(45) NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `color` VARCHAR(45) NULL,
+  `icon` VARCHAR(45) NULL,
+  `tags` VARCHAR(255) NULL,
   INDEX `indicator_exam_idx` (`exam_id` ASC),
   PRIMARY KEY (`id`),
   CONSTRAINT `exam_ref`
@@ -460,6 +462,7 @@ CREATE TABLE IF NOT EXISTS `threshold` (
   `indicator_id` BIGINT UNSIGNED NOT NULL,
   `value` DECIMAL(10,4) NOT NULL,
   `color` VARCHAR(45) NULL,
+  `icon` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
   INDEX `indicator_threshold_id_idx` (`indicator_id` ASC),
   CONSTRAINT `indicator_threshold_id`

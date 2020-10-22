@@ -17,6 +17,7 @@ import javax.validation.constraints.Size;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -36,7 +37,8 @@ public final class Indicator implements Entity {
     public enum IndicatorType {
         LAST_PING(Names.LAST_PING, true, true),
         ERROR_COUNT(Names.ERROR_COUNT, true, false),
-        WARN_COUNT(Names.WARN_COUNT, true, false);
+        WARN_COUNT(Names.WARN_COUNT, true, false),
+        INFO_COUNT(Names.INFO_COUNT, true, false);
 
         public final String name;
         public final boolean integerValue;
@@ -61,6 +63,7 @@ public final class Indicator implements Entity {
             String LAST_PING = "LAST_PING";
             String ERROR_COUNT = "ERROR_COUNT";
             String WARN_COUNT = "WARN_COUNT";
+            String INFO_COUNT = "INFO_COUNT";
         }
     }
 
@@ -83,6 +86,13 @@ public final class Indicator implements Entity {
     @JsonProperty(INDICATOR.ATTR_COLOR)
     public final String defaultColor;
 
+    @JsonProperty(INDICATOR.ATTR_ICON)
+    public final String defaultIcon;
+
+    @JsonProperty(INDICATOR.ATTR_TAGS)
+    @Size(min = 3, max = 255, message = "indicator:tag:size:{min}:{max}:${validatedValue}")
+    public final String tags;
+
     @JsonProperty(THRESHOLD.REFERENCE_NAME)
     public final List<Threshold> thresholds;
 
@@ -93,6 +103,8 @@ public final class Indicator implements Entity {
             @JsonProperty(INDICATOR.ATTR_NAME) final String name,
             @JsonProperty(INDICATOR.ATTR_TYPE) final IndicatorType type,
             @JsonProperty(INDICATOR.ATTR_COLOR) final String defaultColor,
+            @JsonProperty(INDICATOR.ATTR_ICON) final String defaultIcon,
+            @JsonProperty(INDICATOR.ATTR_TAGS) final String tags,
             @JsonProperty(THRESHOLD.REFERENCE_NAME) final Collection<Threshold> thresholds) {
 
         this.id = id;
@@ -100,6 +112,8 @@ public final class Indicator implements Entity {
         this.name = name;
         this.type = type;
         this.defaultColor = defaultColor;
+        this.defaultIcon = defaultIcon;
+        this.tags = tags;
         this.thresholds = Utils.immutableListOf(thresholds);
     }
 
@@ -109,6 +123,8 @@ public final class Indicator implements Entity {
         this.name = postParams.getString(Domain.INDICATOR.ATTR_NAME);
         this.type = postParams.getEnum(Domain.INDICATOR.ATTR_TYPE, IndicatorType.class);
         this.defaultColor = postParams.getString(Domain.INDICATOR.ATTR_COLOR);
+        this.defaultIcon = postParams.getString(Domain.INDICATOR.ATTR_ICON);
+        this.tags = postParams.getString(Domain.INDICATOR.ATTR_TAGS);
         this.thresholds = postParams.getThresholds();
     }
 
@@ -143,6 +159,19 @@ public final class Indicator implements Entity {
         return this.defaultColor;
     }
 
+    public String getDefaultIcon() {
+        return this.defaultIcon;
+    }
+
+    public String getTags() {
+        return this.tags;
+    }
+
+    @JsonIgnore
+    public boolean hasTags() {
+        return this.type != IndicatorType.LAST_PING;
+    }
+
     public Collection<Threshold> getThresholds() {
         return this.thresholds;
     }
@@ -160,6 +189,10 @@ public final class Indicator implements Entity {
         builder.append(this.type);
         builder.append(", defaultColor=");
         builder.append(this.defaultColor);
+        builder.append(", defaultIcon=");
+        builder.append(this.defaultIcon);
+        builder.append(", tags=");
+        builder.append(this.tags);
         builder.append(", thresholds=");
         builder.append(this.thresholds);
         builder.append("]");
@@ -167,7 +200,7 @@ public final class Indicator implements Entity {
     }
 
     public static Indicator createNew(final Exam exam) {
-        return new Indicator(null, exam.id, null, null, null, null);
+        return new Indicator(null, exam.id, null, null, null, null, null, null);
     }
 
     public static String getDisplayValue(final IndicatorType indicatorType, final Double value) {
@@ -190,13 +223,18 @@ public final class Indicator implements Entity {
         @JsonProperty(THRESHOLD.ATTR_COLOR)
         public final String color;
 
+        @JsonProperty(THRESHOLD.ATTR_ICON)
+        public final String icon;
+
         @JsonCreator
         public Threshold(
                 @JsonProperty(THRESHOLD.ATTR_VALUE) final Double value,
-                @JsonProperty(THRESHOLD.ATTR_COLOR) final String color) {
+                @JsonProperty(THRESHOLD.ATTR_COLOR) final String color,
+                @JsonProperty(THRESHOLD.ATTR_ICON) final String icon) {
 
             this.value = value;
             this.color = color;
+            this.icon = icon;
         }
 
         public Double getValue() {
@@ -207,9 +245,21 @@ public final class Indicator implements Entity {
             return this.color;
         }
 
+        public String getIcon() {
+            return this.icon;
+        }
+
         @Override
         public String toString() {
-            return "Threshold [value=" + this.value + ", color=" + this.color + "]";
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Threshold [value=");
+            builder.append(this.value);
+            builder.append(", color=");
+            builder.append(this.color);
+            builder.append(", icon=");
+            builder.append(this.icon);
+            builder.append("]");
+            return builder.toString();
         }
 
         @Override

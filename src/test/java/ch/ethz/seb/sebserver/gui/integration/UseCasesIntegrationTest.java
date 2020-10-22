@@ -931,10 +931,16 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals("000001", newIndicator.defaultColor);
 
         final Indicator indicatorToSave = new Indicator(
-                newIndicator.id, newIndicator.examId, newIndicator.name, newIndicator.type, newIndicator.defaultColor,
+                newIndicator.id,
+                newIndicator.examId,
+                newIndicator.name,
+                newIndicator.type,
+                newIndicator.defaultColor,
+                newIndicator.defaultIcon,
+                newIndicator.tags,
                 Utils.immutableCollectionOf(
-                        new Indicator.Threshold(2000d, "000011"),
-                        new Indicator.Threshold(5000d, "001111")));
+                        new Indicator.Threshold(2000d, "000011", null),
+                        new Indicator.Threshold(5000d, "001111", null)));
 
         final Result<Indicator> savedIndicatorResult = restService
                 .getBuilder(SaveIndicator.class)
