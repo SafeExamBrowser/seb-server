@@ -12,10 +12,10 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import ch.ethz.seb.sebserver.gbl.client.ClientCredentialServiceImpl;
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.junit.Test;
 import org.springframework.core.env.Environment;
+
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 
 public class ClientCredentialServiceTest {
 
@@ -36,7 +36,7 @@ public class ClientCredentialServiceTest {
         when(envMock.getRequiredProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
                 .thenReturn("secret1");
 
-        Cryptor cryptor = new Cryptor(envMock);
+        final Cryptor cryptor = new Cryptor(envMock);
 
         final String clientName = "simpleClientName";
 
