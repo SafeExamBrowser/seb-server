@@ -245,6 +245,7 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                 break;
             case LMS_SETUP:
                 selectionFunction = this::allIdsOfLmsSetup;
+                break;
             case USER:
                 selectionFunction = this::allIdsOfUser;
                 break;
