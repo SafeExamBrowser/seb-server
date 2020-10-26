@@ -465,6 +465,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     sebClientConfig.fallbackStartURL);
         } else {
             this.additionalAttributesDAO.delete(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
                     configId,
                     SEBClientConfig.ATTR_FALLBACK_START_URL);
         }
@@ -477,6 +478,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     sebClientConfig.fallbackTimeout.toString());
         } else {
             this.additionalAttributesDAO.delete(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
                     configId,
                     SEBClientConfig.ATTR_FALLBACK_TIMEOUT);
         }
@@ -489,6 +491,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     sebClientConfig.fallbackAttempts.toString());
         } else {
             this.additionalAttributesDAO.delete(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
                     configId,
                     SEBClientConfig.ATTR_FALLBACK_ATTEMPTS);
         }
@@ -501,6 +504,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     sebClientConfig.fallbackAttemptInterval.toString());
         } else {
             this.additionalAttributesDAO.delete(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
                     configId,
                     SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL);
         }
@@ -513,6 +517,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     this.clientCredentialService.encrypt(sebClientConfig.fallbackPassword).toString());
         } else {
             this.additionalAttributesDAO.delete(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
                     configId,
                     SEBClientConfig.ATTR_FALLBACK_PASSWORD);
         }
@@ -525,6 +530,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     this.clientCredentialService.encrypt(sebClientConfig.quitPassword).toString());
         } else {
             this.additionalAttributesDAO.delete(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
                     configId,
                     SEBClientConfig.ATTR_QUIT_PASSWORD);
         }
