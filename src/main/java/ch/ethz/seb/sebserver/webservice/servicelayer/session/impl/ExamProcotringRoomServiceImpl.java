@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
@@ -40,6 +41,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionR
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RemoteProctoringRoomRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ClientConnectionDAOImpl;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
@@ -53,24 +55,29 @@ public class ExamProcotringRoomServiceImpl implements ExamProcotringRoomService 
 
     private static final Logger log = LoggerFactory.getLogger(ExamProcotringRoomServiceImpl.class);
 
+    private final static String ACTIVE_COLLECTING_ALL_ROOM_ATTRIBUTE_NAME = "ACTIVE_COLLECTING_ALL_ROOM";
+
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final ClientConnectionRecordMapper clientConnectionRecordMapper;
     private final SEBInstructionService sebInstructionService;
     private final ExamAdminService examAdminService;
     private final ExamSessionCacheService examSessionCacheService;
+    private final AdditionalAttributesDAO additionalAttributesDAO;
 
     public ExamProcotringRoomServiceImpl(
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
             final ClientConnectionRecordMapper clientConnectionRecordMapper,
             final SEBInstructionService sebInstructionService,
             final ExamAdminService examAdminService,
-            final ExamSessionCacheService examSessionCacheService) {
+            final ExamSessionCacheService examSessionCacheService,
+            final AdditionalAttributesDAO additionalAttributesDAO) {
 
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
         this.clientConnectionRecordMapper = clientConnectionRecordMapper;
         this.sebInstructionService = sebInstructionService;
         this.examAdminService = examAdminService;
         this.examSessionCacheService = examSessionCacheService;
+        this.additionalAttributesDAO = additionalAttributesDAO;
     }
 
     @Override
@@ -125,6 +132,37 @@ public class ExamProcotringRoomServiceImpl implements ExamProcotringRoomService 
                         removeFromRoom(cc);
                     }
                 });
+    }
+
+    @Override
+    @Transactional
+    public Result<String> createCollectAllRoom(final Long examId) {
+        final String newCollectingRoomName = UUID.randomUUID().toString();
+        return this.additionalAttributesDAO
+                .saveAdditionalAttribute(
+                        EntityType.EXAM,
+                        examId,
+                        ACTIVE_COLLECTING_ALL_ROOM_ATTRIBUTE_NAME,
+                        newCollectingRoomName)
+                .map(attr -> attr.getValue());
+    }
+
+    @Override
+    @Transactional
+    public void disposeCollectAllRoom(final Long examId) {
+        this.additionalAttributesDAO.delete(
+                EntityType.EXAM,
+                examId,
+                ACTIVE_COLLECTING_ALL_ROOM_ATTRIBUTE_NAME);
+    }
+
+    private Result<String> getActiveCollectingAllRoom(final Long examId) {
+        return this.additionalAttributesDAO
+                .getAdditionalAttribute(
+                        EntityType.EXAM,
+                        examId,
+                        ACTIVE_COLLECTING_ALL_ROOM_ATTRIBUTE_NAME)
+                .map(attr -> attr.getValue());
     }
 
     // TODO considering doing bulk update here

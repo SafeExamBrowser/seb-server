@@ -62,9 +62,10 @@ public interface AdditionalAttributesDAO {
 
     /** Use this to delete an additional attribute by its entity identifier and name.
      *
+     * @param type the entity type
      * @param entityId the entity identifier (primary-key)
      * @param name the name of the additional attribute */
-    void delete(Long entityId, String name);
+    void delete(EntityType type, Long entityId, String name);
 
     /** Use this to delete all additional attributes for a given entity.
      *

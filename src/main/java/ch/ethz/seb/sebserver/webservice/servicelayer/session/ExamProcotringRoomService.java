@@ -44,4 +44,8 @@ public interface ExamProcotringRoomService {
      * name of an exam. */
     void updateProctoringRooms();
 
+    Result<String> createCollectAllRoom(Long examId);
+
+    void disposeCollectAllRoom(Long examId);
+
 }

@@ -145,10 +145,13 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
 
     @Override
     @Transactional
-    public void delete(final Long entityId, final String name) {
+    public void delete(final EntityType type, final Long entityId, final String name) {
         this.additionalAttributeRecordMapper
                 .deleteByExample()
                 .where(
+                        AdditionalAttributeRecordDynamicSqlSupport.entityType,
+                        SqlBuilder.isEqualTo(type.name()))
+                .and(
                         AdditionalAttributeRecordDynamicSqlSupport.entityId,
                         SqlBuilder.isEqualTo(entityId))
                 .and(

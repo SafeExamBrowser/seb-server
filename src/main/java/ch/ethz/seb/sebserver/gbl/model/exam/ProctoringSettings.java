@@ -34,6 +34,7 @@ public class ProctoringSettings implements Entity {
     public static final String ATTR_APP_KEY = "appKey";
     public static final String ATTR_APP_SECRET = "appSecret";
     public static final String ATTR_COLLECTING_ROOM_SIZE = "collectingRoomSize";
+    public static final String ATTR_COLLECT_ALL_ROOM_NAME = "collectAllRoomName";
 
     @JsonProperty(Domain.EXAM.ATTR_ID)
     public final Long examId;
