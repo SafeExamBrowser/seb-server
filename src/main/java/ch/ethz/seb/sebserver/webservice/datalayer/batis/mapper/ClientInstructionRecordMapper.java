@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface ClientInstructionRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.871+01:00", comments="Source Table: client_instruction")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.871+01:00", comments="Source Table: client_instruction")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.871+01:00", comments="Source Table: client_instruction")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<ClientInstructionRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.871+01:00", comments="Source Table: client_instruction")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -58,7 +58,7 @@ public interface ClientInstructionRecordMapper {
     })
     ClientInstructionRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -71,22 +71,22 @@ public interface ClientInstructionRecordMapper {
     })
     List<ClientInstructionRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(clientInstructionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientInstructionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientInstructionRecord)
                 .where(id, isEqualTo(id_))
@@ -94,7 +94,7 @@ public interface ClientInstructionRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default int insert(ClientInstructionRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientInstructionRecord)
@@ -108,7 +108,7 @@ public interface ClientInstructionRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default int insertSelective(ClientInstructionRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientInstructionRecord)
@@ -122,19 +122,19 @@ public interface ClientInstructionRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientInstructionRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(this::selectMany, id, examId, connectionToken, type, attributes, needsConfirmation, timestamp)
                 .from(clientInstructionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientInstructionRecord>>> selectDistinctByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectMany, id, examId, connectionToken, type, attributes, needsConfirmation, timestamp)
                 .from(clientInstructionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.449+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default ClientInstructionRecord selectByPrimaryKey(Long id_) {
         return SelectDSL.selectWithMapper(this::selectOne, id, examId, connectionToken, type, attributes, needsConfirmation, timestamp)
                 .from(clientInstructionRecord)
@@ -143,7 +143,7 @@ public interface ClientInstructionRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.450+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(ClientInstructionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientInstructionRecord)
                 .set(examId).equalTo(record::getExamId)
@@ -154,7 +154,7 @@ public interface ClientInstructionRecordMapper {
                 .set(timestamp).equalTo(record::getTimestamp);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.450+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(ClientInstructionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientInstructionRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)
@@ -165,7 +165,7 @@ public interface ClientInstructionRecordMapper {
                 .set(timestamp).equalToWhenPresent(record::getTimestamp);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.450+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default int updateByPrimaryKey(ClientInstructionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientInstructionRecord)
                 .set(examId).equalTo(record::getExamId)
@@ -179,7 +179,7 @@ public interface ClientInstructionRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-22T14:34:22.450+02:00", comments="Source Table: client_instruction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.872+01:00", comments="Source Table: client_instruction")
     default int updateByPrimaryKeySelective(ClientInstructionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientInstructionRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)
