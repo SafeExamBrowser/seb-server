@@ -166,11 +166,13 @@ public class ExamForm implements TemplateComposer {
     private final String downloadFileName;
     private final WidgetFactory widgetFactory;
     private final RestService restService;
+    private final ExamCreateClientConfigPopup examCreateClientConfigPopup;
 
     protected ExamForm(
             final PageService pageService,
             final ResourceService resourceService,
             final DownloadService downloadService,
+            final ExamCreateClientConfigPopup examCreateClientConfigPopup,
             @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
@@ -179,6 +181,7 @@ public class ExamForm implements TemplateComposer {
         this.downloadFileName = downloadFileName;
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = this.resourceService.getRestService();
+        this.examCreateClientConfigPopup = examCreateClientConfigPopup;
 
         this.consistencyMessageMapping = new HashMap<>();
         this.consistencyMessageMapping.put(
@@ -245,6 +248,7 @@ public class ExamForm implements TemplateComposer {
         final boolean modifyGrant = userGrantCheck.m();
         final ExamStatus examStatus = exam.getStatus();
         final boolean isExamRunning = examStatus == ExamStatus.RUNNING;
+        final boolean writeGrant = userGrantCheck.w();
         final boolean editable = examStatus == ExamStatus.UP_COMING
                 || examStatus == ExamStatus.RUNNING
                         && currentUser.get().hasRole(UserRole.EXAM_ADMIN);
@@ -390,6 +394,11 @@ public class ExamForm implements TemplateComposer {
                 .withAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA, String.valueOf(importFromQuizData))
                 .withExec(this.cancelModifyFunction())
                 .publishIf(() -> !readonly)
+
+                .newAction(ActionDefinition.EXAM_SEB_CLIENT_CONFIG_EXPORT)
+                .withEntityKey(entityKey)
+                .withExec(this.examCreateClientConfigPopup.exportFunction())
+                .publishIf(() -> writeGrant && readonly)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
                 .withEntityKey(entityKey)

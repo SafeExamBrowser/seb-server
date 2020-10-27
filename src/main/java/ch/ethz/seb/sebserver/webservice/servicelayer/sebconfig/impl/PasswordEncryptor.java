@@ -69,6 +69,7 @@ public class PasswordEncryptor implements SEBConfigCryptor {
         try {
 
             final CharSequence password = context.getPassword();
+
             if (password.length() == 0) {
                 encryptOutput = new AES256JNCryptorOutputStreamEmptyPwdSupport(
                         output,

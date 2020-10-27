@@ -31,9 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
@@ -245,18 +245,20 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
             checkUniqueName(sebClientConfig);
 
+            final SebClientConfigRecord record =
+                    this.sebClientConfigRecordMapper.selectByPrimaryKey(sebClientConfig.id);
+
             final SebClientConfigRecord newRecord = new SebClientConfigRecord(
                     sebClientConfig.id,
-                    null,
+                    record.getInstitutionId(),
                     sebClientConfig.name,
-                    null,
-                    null,
-                    null,
+                    record.getDate(),
+                    record.getClientName(),
+                    record.getClientSecret(),
                     getEncryptionPassword(sebClientConfig),
-                    null);
+                    record.getActive());
 
-            this.sebClientConfigRecordMapper
-                    .updateByPrimaryKeySelective(newRecord);
+            this.sebClientConfigRecordMapper.updateByPrimaryKey(newRecord);
 
             saveAdditionalAttributes(sebClientConfig, newRecord.getId());
 

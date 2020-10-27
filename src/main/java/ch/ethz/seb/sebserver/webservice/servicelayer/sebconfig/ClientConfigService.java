@@ -45,10 +45,12 @@ public interface ClientConfigService {
      * as described here: https://www.safeexambrowser.org/developer/seb-file-format.html
      *
      * @param out OutputStream to write the export to
-     * @param modelId the model identifier of the SEBClientConfiguration to export */
+     * @param modelId the model identifier of the SEBClientConfiguration to export 
+     * @param examId The exam identifier. May be null, if not the exported client config will contain the exam information*/
     void exportSEBClientConfiguration(
             OutputStream out,
-            final String modelId);
+            final String modelId,
+            final Long examId);
 
     /** Get the ClientDetails for given client name that identifies a SEBClientConfiguration entry.
      *
