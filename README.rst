@@ -58,7 +58,7 @@ For testing:
 
 `Download beta version of SEB Client iOS <https://sourceforge.net/p/seb/discussion/seb-ios/thread/e7e542a5/>`_
 
-`Download beta version of SEB Client Windows <https://sebdev-let.ethz.ch/project/appveyor/seb-win-refactoring/build/job/syhbap4i8f4ykd5h/artifacts>`_
+`Download beta version of SEB Client Windows <https://sebdev-let.ethz.ch/project/appveyor/seb-win-refactoring/build/job/9bkx49fd3p0plr8a/artifacts>`_
 
 
 
