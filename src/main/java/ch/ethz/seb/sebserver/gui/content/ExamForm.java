@@ -22,6 +22,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -127,6 +128,7 @@ public class ExamForm implements TemplateComposer {
     private final ExamDeletePopup examDeletePopup;
     private final ExamFormConfigs examFormConfigs;
     private final ExamFormIndicators examFormIndicators;
+    private final ExamCreateClientConfigPopup examCreateClientConfigPopup;
 
     protected ExamForm(
             final PageService pageService,
@@ -136,7 +138,9 @@ public class ExamForm implements TemplateComposer {
             final DownloadService downloadService,
             final ExamDeletePopup examDeletePopup,
             final ExamFormConfigs examFormConfigs,
-            final ExamFormIndicators examFormIndicators) {
+            final ExamFormIndicators examFormIndicators,
+            final ExamCreateClientConfigPopup examCreateClientConfigPopup,
+            @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
@@ -147,6 +151,7 @@ public class ExamForm implements TemplateComposer {
         this.examDeletePopup = examDeletePopup;
         this.examFormConfigs = examFormConfigs;
         this.examFormIndicators = examFormIndicators;
+        this.examCreateClientConfigPopup = examCreateClientConfigPopup;
 
         this.consistencyMessageMapping = new HashMap<>();
         this.consistencyMessageMapping.put(
@@ -370,6 +375,11 @@ public class ExamForm implements TemplateComposer {
                 .withAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA, String.valueOf(importFromQuizData))
                 .withExec(this.cancelModifyFunction())
                 .publishIf(() -> !readonly)
+
+                .newAction(ActionDefinition.EXAM_SEB_CLIENT_CONFIG_EXPORT)
+                .withEntityKey(entityKey)
+                .withExec(this.examCreateClientConfigPopup.exportFunction())
+                .publishIf(() -> writeGrant && readonly)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
                 .withEntityKey(entityKey)

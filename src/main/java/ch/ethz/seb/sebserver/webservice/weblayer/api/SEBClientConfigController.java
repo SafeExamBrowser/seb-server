@@ -30,6 +30,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -37,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -83,6 +85,7 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void downloadSEBConfig(
             @PathVariable final String modelId,
+            @RequestParam(name = EXAM.ATTR_ID, required = false) final Long examId,
             final HttpServletResponse response) throws IOException {
 
         this.entityDAO.byModelId(modelId)
@@ -98,7 +101,8 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
 
             this.sebClientConfigService.exportSEBClientConfiguration(
                     pout,
-                    modelId);
+                    modelId,
+                    examId);
 
             IOUtils.copyLarge(pin, outputStream);
 

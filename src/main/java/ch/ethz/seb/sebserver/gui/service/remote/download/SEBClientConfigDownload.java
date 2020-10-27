@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +21,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ExportClientConfig;
 
@@ -45,8 +48,15 @@ public class SEBClientConfigDownload extends AbstractDownloadServiceHandler {
     @Override
     protected void webserviceCall(final String modelId, final String parentModelId, final OutputStream downloadOut) {
 
-        final InputStream input = this.restService.getBuilder(ExportClientConfig.class)
-                .withURIVariable(API.PARAM_MODEL_ID, modelId)
+        final RestCall<InputStream>.RestCallBuilder restCallBuilder = this.restService
+                .getBuilder(ExportClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, modelId);
+
+        if (StringUtils.isNotBlank(parentModelId)) {
+            restCallBuilder.withQueryParam(EXAM.ATTR_ID, parentModelId);
+        }
+
+        final InputStream input = restCallBuilder
                 .call()
                 .getOrThrow();
 

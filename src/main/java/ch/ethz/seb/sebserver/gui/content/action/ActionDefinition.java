@@ -373,6 +373,11 @@ public enum ActionDefinition {
             ImageIcon.CANCEL,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
+    EXAM_SEB_CLIENT_CONFIG_EXPORT(
+            new LocTextKey("sebserver.exam.action.createClientToStartExam"),
+            ImageIcon.EXPORT,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
 
     SEB_CLIENT_CONFIG_LIST(
             new LocTextKey("sebserver.clientconfig.list.title"),

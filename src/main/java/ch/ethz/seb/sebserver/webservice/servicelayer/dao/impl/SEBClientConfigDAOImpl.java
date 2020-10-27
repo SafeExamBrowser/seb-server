@@ -246,18 +246,20 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
             checkUniqueName(sebClientConfig);
 
+            final SebClientConfigRecord record =
+                    this.sebClientConfigRecordMapper.selectByPrimaryKey(sebClientConfig.id);
+
             final SebClientConfigRecord newRecord = new SebClientConfigRecord(
                     sebClientConfig.id,
-                    null,
+                    record.getInstitutionId(),
                     sebClientConfig.name,
-                    null,
-                    null,
-                    null,
+                    record.getDate(),
+                    record.getClientName(),
+                    record.getClientSecret(),
                     getEncryptionPassword(sebClientConfig),
-                    null);
+                    record.getActive());
 
-            this.sebClientConfigRecordMapper
-                    .updateByPrimaryKeySelective(newRecord);
+            this.sebClientConfigRecordMapper.updateByPrimaryKey(newRecord);
 
             saveAdditionalAttributes(sebClientConfig, newRecord.getId());
 
