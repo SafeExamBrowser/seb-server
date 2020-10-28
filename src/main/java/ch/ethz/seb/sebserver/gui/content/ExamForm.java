@@ -378,7 +378,7 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_SEB_CLIENT_CONFIG_EXPORT)
                 .withEntityKey(entityKey)
-                .withExec(this.examCreateClientConfigPopup.exportFunction())
+                .withExec(this.examCreateClientConfigPopup.exportFunction(exam.institutionId))
                 .publishIf(() -> writeGrant && readonly)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
