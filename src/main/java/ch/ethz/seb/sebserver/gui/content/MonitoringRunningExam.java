@@ -108,6 +108,8 @@ public class MonitoringRunningExam implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.all.confirm");
     private static final LocTextKey CONFIRM_DISABLE_SELECTED =
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.disable.selected.confirm");
+    private static final LocTextKey EXAM_ROOM_NAME =
+            new LocTextKey("sebserver.monitoring.exam.proctoring.room.all.name");
 
     private final ServerPushService serverPushService;
     private final PageService pageService;
@@ -329,6 +331,13 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .getOr(null);
 
         if (proctoringSettings != null && proctoringSettings.enableProctoring) {
+
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_CREATE_ALL_PROCTOR_ROOM)
+                    .withEntityKey(entityKey)
+                    .withExec(this::createCollectingAllRoom)
+                    .noEventPropagation()
+                    .publish();
+
             final Map<String, Pair<RemoteProctoringRoom, TreeItem>> availableRooms = new HashMap<>();
             updateRoomActions(
                     entityKey,
@@ -348,6 +357,41 @@ public class MonitoringRunningExam implements TemplateComposer {
         }
     }
 
+    private PageAction createCollectingAllRoom(final PageAction action) {
+        final EntityKey examId = action.getEntityKey();
+
+        final ProctoringGUIService proctoringGUIService = this.pageService
+                .getCurrentUser()
+                .getProctoringGUIService();
+
+        String activeAllRoomName = proctoringGUIService.getActiveAllRoom(examId.modelId);
+
+        if (activeAllRoomName == null) {
+            final SEBProctoringConnectionData proctoringConnectionData = proctoringGUIService
+                    .registerAllProcotringRoom(
+                            examId.modelId,
+                            this.pageService.getI18nSupport().getText(EXAM_ROOM_NAME))
+                    .onError(error -> log.error(
+                            "Failed to open all collecting room for exam {} {}", examId.modelId, error.getMessage()))
+                    .getOrThrow();
+            ProctoringGUIService.setCurrentProctoringWindowData(
+                    examId.modelId,
+                    proctoringConnectionData);
+            activeAllRoomName = proctoringConnectionData.roomName;
+        }
+
+        final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
+        final String script = String.format(
+                OPEN_EXAM_COLLECTION_ROOM_SCRIPT,
+                activeAllRoomName,
+                this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
+                this.remoteProctoringEndpoint);
+        javaScriptExecutor.execute(script);
+        proctoringGUIService.registerProctoringWindow(activeAllRoomName);
+
+        return action;
+    }
+
     private void updateRoomActions(
             final EntityKey entityKey,
             final PageContext pageContext,
@@ -359,7 +403,8 @@ public class MonitoringRunningExam implements TemplateComposer {
         this.pageService.getRestService().getBuilder(GetProcotringRooms.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
-                .getOrThrow()
+                .onError(error -> log.error("Failed to update proctoring rooms on GUI {}", error.getMessage()))
+                .getOr(Collections.emptyList())
                 .stream()
                 .forEach(room -> {
                     if (rooms.containsKey(room.name)) {

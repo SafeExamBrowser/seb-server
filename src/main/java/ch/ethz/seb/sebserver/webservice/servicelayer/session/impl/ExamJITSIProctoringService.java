@@ -13,6 +13,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Base64.Encoder;
+import java.util.Collection;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -26,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -99,15 +101,27 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
             final ProctoringSettings proctoringSettings,
             final String connectionToken) {
 
+        return this.examSessionService
+                .getConnectionData(connectionToken)
+                .flatMap(connection -> getClientExamCollectionRoomConnectionData(
+                        proctoringSettings,
+                        connection.clientConnection));
+    }
+
+    @Override
+    public Result<SEBProctoringConnectionData> getClientExamCollectionRoomConnectionData(
+            final ProctoringSettings proctoringSettings,
+            final ClientConnection connection) {
+
         return Result.tryCatch(() -> {
-            final ClientConnectionData clientConnection = this.examSessionService
-                    .getConnectionData(connectionToken)
-                    .getOrThrow();
-            final RemoteProctoringRoom room = this.examSessionService
+
+            final Collection<RemoteProctoringRoom> remoteProctoringRooms = this.examSessionService
                     .getExamSessionCacheService()
-                    .getRemoteProctoringRooms(clientConnection.clientConnection.examId)
+                    .getRemoteProctoringRooms(connection.examId);
+
+            final RemoteProctoringRoom room = remoteProctoringRooms
                     .stream()
-                    .filter(r -> r.id.equals(clientConnection.clientConnection.remoteProctoringRoomId))
+                    .filter(r -> r.id.equals(connection.remoteProctoringRoomId))
                     .findFirst()
                     .orElseGet(() -> {
                         throw new RuntimeException("No exam proctoring room found for clientConnection");
@@ -119,10 +133,10 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     proctoringSettings.serverURL,
                     proctoringSettings.appKey,
                     proctoringSettings.getAppSecret(),
-                    clientConnection.clientConnection.userSessionId,
+                    connection.userSessionId,
                     "seb-client",
                     room.name,
-                    clientConnection.clientConnection.userSessionId,
+                    connection.userSessionId,
                     forExam(proctoringSettings))
                             .getOrThrow();
         });

@@ -128,14 +128,7 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_CHECK_RESTRICTION_PATH_SEGMENT = "/check-seb-restriction";
     public static final String EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT = "/check-imported";
     public static final String EXAM_ADMINISTRATION_SEB_RESTRICTION_CHAPTERS_PATH_SEGMENT = "/chapters";
-    public static final String PROCTORING_PATH_SEGMENT = "/proctoring";
-    public static final String PROCTORING_ROOMS_SEGMENT = "/rooms";
-    public static final String PROCTORING_JOIN_ROOM_PATH_SEGMENT = "/join";
-    public static final String PROCTORING_LEAVE_ROOM_PATH_SEGMENT = "/leave";
-    public static final String PROCTORING_REJOIN_EXAM_ROOM_PATH_SEGMENT = "/rejoin-exam-room";
-    public static final String PROCTORING_BROADCAST_ON_PATH_SEGMENT = "/broadcast-on";
-    public static final String PROCTORING_BROADCAST_OFF_PATH_SEGMENT = "/broadcast-off";
-    public static final String PROCTORING_ROOM_CONNECTIONS_PATH_SEGMENT = "/room-connections";
+    public static final String EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT = "/proctoring";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 
@@ -176,6 +169,16 @@ public final class API {
     public static final String EXAM_MONITORING_STATE_FILTER = "hidden-states";
     public static final String EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT =
             "/{" + EXAM_API_SEB_CONNECTION_TOKEN + "}";
+
+    public static final String EXAM_PROCTORING_ENDPOINT = EXAM_MONITORING_ENDPOINT + "/proctoring";
+    public static final String EXAM_PROCTORING_ROOMS_SEGMENT = "/rooms";
+    public static final String EXAM_PROCTORING_JOIN_ROOM_PATH_SEGMENT = "/join";
+    public static final String EXAM_PROCTORING_REJOIN_COLLECTING_ROOM_PATH_SEGMENT = "/rejoin-collecting-room";
+    public static final String EXAM_PROCTORING_BROADCAST_ON_PATH_SEGMENT = "/broadcast-on";
+    public static final String EXAM_PROCTORING_BROADCAST_OFF_PATH_SEGMENT = "/broadcast-off";
+    public static final String EXAM_PROCTORING_ROOM_CONNECTIONS_PATH_SEGMENT = "/room-connections";
+    public static final String EXAM_PROCTORING_JON_ALL_COLLECTING_ROOM = "join-all-collecting-room";
+    public static final String EXAM_PROCTORING_REJON_ALL_COLLECTING_ROOM = "rejoin-all-collecting-room";
 
     public static final String SEB_CLIENT_CONNECTION_ENDPOINT = "/seb-client-connection";
 

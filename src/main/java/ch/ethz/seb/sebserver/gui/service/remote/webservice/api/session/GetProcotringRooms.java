@@ -36,9 +36,8 @@ public class GetProcotringRooms extends RestCall<Collection<RemoteProctoringRoom
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.EXAM_MONITORING_ENDPOINT
+                API.EXAM_PROCTORING_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.PROCTORING_PATH_SEGMENT
-                        + API.PROCTORING_ROOMS_SEGMENT);
+                        + API.EXAM_PROCTORING_ROOMS_SEGMENT);
     }
 }

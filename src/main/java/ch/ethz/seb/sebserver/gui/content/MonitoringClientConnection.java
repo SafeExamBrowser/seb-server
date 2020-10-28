@@ -372,16 +372,25 @@ public class MonitoringClientConnection implements TemplateComposer {
         final String roomName = urlEncoder.encodeToString(Utils.toByteArray(connectionToken));
         final String examId = action.getEntityKey().modelId;
 
-        final SEBProctoringConnectionData proctoringConnectionData = this.pageService.getCurrentUser()
-                .getProctoringGUIService()
-                .registerNewSingleProcotringRoom(
-                        examId,
-                        roomName,
-                        connectionData.clientConnection.userSessionId,
-                        connectionToken)
-                .getOrThrow();
+        final ProctoringGUIService proctoringGUIService = this.pageService
+                .getCurrentUser()
+                .getProctoringGUIService();
 
-        ProctoringGUIService.setCurrentProctoringWindowData(examId, proctoringConnectionData);
+        if (!proctoringGUIService.hasRoom(roomName)) {
+            final SEBProctoringConnectionData proctoringConnectionData = proctoringGUIService
+                    .registerNewSingleProcotringRoom(
+                            examId,
+                            roomName,
+                            connectionData.clientConnection.userSessionId,
+                            connectionToken)
+                    .onError(error -> log.error(
+                            "Failed to open single proctoring room for connection {} {}",
+                            connectionToken,
+                            error.getMessage()))
+                    .getOr(null);
+            ProctoringGUIService.setCurrentProctoringWindowData(examId, proctoringConnectionData);
+        }
+
         final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
         final String script = String.format(
                 OPEN_SINGEL_ROOM_SCRIPT,
@@ -389,9 +398,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
                 this.remoteProctoringEndpoint);
         javaScriptExecutor.execute(script);
-        this.pageService.getCurrentUser()
-                .getProctoringGUIService()
-                .registerProctoringWindow(roomName);
+        proctoringGUIService.registerProctoringWindow(roomName);
         return action;
     }
 

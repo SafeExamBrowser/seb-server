@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.AccessDeniedException;
@@ -314,9 +313,15 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public Result<ClientConnectionData> getConnectionData(final String connectionToken) {
+
         return Result.tryCatch(() -> {
-            final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
-            return cache.get(connectionToken, ClientConnectionData.class);
+            final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
+                    .getActiveClientConnection(connectionToken);
+            if (activeClientConnection == null) {
+                throw new NoSuchElementException("Client Connection with token: " + connectionToken);
+            }
+
+            return activeClientConnection;
         });
     }
 

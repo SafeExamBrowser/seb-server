@@ -33,10 +33,9 @@ public class SendProctoringBroadcastOnInstruction extends RestCall<Void> {
                 }),
                 HttpMethod.POST,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.EXAM_MONITORING_ENDPOINT
+                API.EXAM_PROCTORING_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.PROCTORING_PATH_SEGMENT
-                        + API.PROCTORING_BROADCAST_ON_PATH_SEGMENT);
+                        + API.EXAM_PROCTORING_BROADCAST_ON_PATH_SEGMENT);
     }
 
 }

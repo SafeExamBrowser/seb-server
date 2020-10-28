@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,6 +29,8 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.CreateCollectingAllProctoringRoom;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisposeCollectingAllProctoringRoom;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendJoinRemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendRejoinExamCollectionRoom;
 
@@ -84,26 +87,54 @@ public class ProctoringGUIService {
                 new ProctoringWindowData(examId, data));
     }
 
+    public boolean hasRoom(final String roomName) {
+        return this.rooms.containsKey(roomName);
+    }
+
+    public String getActiveAllRoom(final String examId) {
+        return this.rooms
+                .values()
+                .stream()
+                .filter(data -> Objects.equals(data.examId, examId) && data.connections.isEmpty())
+                .findFirst()
+                .map(data -> data.roomName)
+                .orElseGet(() -> null);
+    }
+
     public Result<SEBProctoringConnectionData> registerNewSingleProcotringRoom(
             final String examId,
             final String roomName,
             final String subject,
             final String connectionToken) {
 
-        return Result.tryCatch(() -> {
-            final SEBProctoringConnectionData connection =
-                    this.restService.getBuilder(SendJoinRemoteProctoringRoom.class)
-                            .withURIVariable(API.PARAM_MODEL_ID, examId)
-                            .withFormParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, roomName)
-                            .withFormParam(SEBProctoringConnectionData.ATTR_SUBJECT, subject)
-                            .withFormParam(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
-                            .call()
-                            .getOrThrow();
+        return this.restService.getBuilder(SendJoinRemoteProctoringRoom.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examId)
+                .withFormParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, roomName)
+                .withFormParam(SEBProctoringConnectionData.ATTR_SUBJECT, subject)
+                .withFormParam(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
+                .call()
+                .map(connection -> {
+                    this.rooms.put(roomName, new RoomConnectionData(roomName, examId, connectionToken));
+                    this.openWindows.add(roomName);
+                    return connection;
+                });
+    }
 
-            this.rooms.put(roomName, new RoomConnectionData(roomName, examId, connectionToken));
-            this.openWindows.add(roomName);
-            return connection;
-        });
+    public Result<SEBProctoringConnectionData> registerAllProcotringRoom(
+            final String examId,
+            final String subject) {
+
+        return this.restService.getBuilder(CreateCollectingAllProctoringRoom.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examId)
+                .withFormParam(SEBProctoringConnectionData.ATTR_SUBJECT, subject)
+                .call()
+                .map(connection -> {
+                    this.rooms.put(
+                            connection.roomName,
+                            new RoomConnectionData(connection.roomName, examId));
+                    this.openWindows.add(connection.roomName);
+                    return connection;
+                });
     }
 
     public Result<SEBProctoringConnectionData> registerNewProcotringRoom(
@@ -112,22 +143,19 @@ public class ProctoringGUIService {
             final String subject,
             final Collection<String> connectionTokens) {
 
-        return Result.tryCatch(() -> {
-            final SEBProctoringConnectionData connection =
-                    this.restService.getBuilder(SendJoinRemoteProctoringRoom.class)
-                            .withURIVariable(API.PARAM_MODEL_ID, examId)
-                            .withFormParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, roomName)
-                            .withFormParam(SEBProctoringConnectionData.ATTR_SUBJECT, subject)
-                            .withFormParam(
-                                    API.EXAM_API_SEB_CONNECTION_TOKEN,
-                                    StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR_CHAR))
-                            .call()
-                            .getOrThrow();
-
-            this.rooms.put(roomName, new RoomConnectionData(roomName, examId, connectionTokens));
-            this.openWindows.add(roomName);
-            return connection;
-        });
+        return this.restService.getBuilder(SendJoinRemoteProctoringRoom.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examId)
+                .withFormParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, roomName)
+                .withFormParam(SEBProctoringConnectionData.ATTR_SUBJECT, subject)
+                .withFormParam(
+                        API.EXAM_API_SEB_CONNECTION_TOKEN,
+                        StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR_CHAR))
+                .call()
+                .map(connection -> {
+                    this.rooms.put(roomName, new RoomConnectionData(roomName, examId, connectionTokens));
+                    this.openWindows.add(roomName);
+                    return connection;
+                });
     }
 
     public void addConnectionsToRoom(
@@ -147,7 +175,9 @@ public class ProctoringGUIService {
                             API.EXAM_API_SEB_CONNECTION_TOKEN,
                             StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR_CHAR))
                     .call()
-                    .getOrThrow();
+                    .onError(error -> log.error("Failed to add connection to proctoring room: {} {}",
+                            room,
+                            error.getMessage()));
             roomConnectionData.connections.addAll(connectionTokens);
         }
     }
@@ -164,15 +194,24 @@ public class ProctoringGUIService {
         final RoomConnectionData roomConnectionData = this.rooms.remove(name);
         if (roomConnectionData != null) {
             // send instruction to leave this room and join the own exam collection room
-
-            this.restService.getBuilder(SendRejoinExamCollectionRoom.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
-                    .withFormParam(
-                            API.EXAM_API_SEB_CONNECTION_TOKEN,
-                            StringUtils.join(roomConnectionData.connections, Constants.LIST_SEPARATOR_CHAR))
-                    .call()
-                    .getOrThrow();
-
+            if (!roomConnectionData.connections.isEmpty()) {
+                this.restService.getBuilder(SendRejoinExamCollectionRoom.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
+                        .withFormParam(
+                                API.EXAM_API_SEB_CONNECTION_TOKEN,
+                                StringUtils.join(roomConnectionData.connections, Constants.LIST_SEPARATOR_CHAR))
+                        .call()
+                        .onError(error -> log.error("Failed to close proctoring room: {} {}",
+                                name,
+                                error.getMessage()));
+            } else {
+                this.restService.getBuilder(DisposeCollectingAllProctoringRoom.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
+                        .call()
+                        .onError(error -> log.error("Failed to close proctoring room: {} {}",
+                                name,
+                                error.getMessage()));
+            }
         }
     }
 

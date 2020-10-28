@@ -124,7 +124,8 @@ public class ExamProcotringRoomServiceImpl implements ExamProcotringRoomService 
                 .build()
                 .execute();
 
-        flagUpdated(toUpdate).stream()
+        flagUpdated(toUpdate)
+                .stream()
                 .forEach(cc -> {
                     if (ConnectionStatus.ACTIVE.name().equals(cc.getStatus())) {
                         assignToRoom(cc);
@@ -156,13 +157,14 @@ public class ExamProcotringRoomServiceImpl implements ExamProcotringRoomService 
                 ACTIVE_COLLECTING_ALL_ROOM_ATTRIBUTE_NAME);
     }
 
-    private Result<String> getActiveCollectingAllRoom(final Long examId) {
+    private String getActiveCollectingAllRoom(final Long examId) {
         return this.additionalAttributesDAO
                 .getAdditionalAttribute(
                         EntityType.EXAM,
                         examId,
                         ACTIVE_COLLECTING_ALL_ROOM_ATTRIBUTE_NAME)
-                .map(attr -> attr.getValue());
+                .map(attr -> attr.getValue())
+                .getOr(null);
     }
 
     // TODO considering doing bulk update here
@@ -202,7 +204,13 @@ public class ExamProcotringRoomServiceImpl implements ExamProcotringRoomService 
                         proctoringRoom.id,
                         0));
                 this.examSessionCacheService.evictRemoteProctoringRooms(cc.getExamId());
-                applyProcotringInstruction(cc.getExamId(), cc.getConnectionToken(), proctoringRoom.name);
+                this.examSessionCacheService.evictClientConnection(cc.getConnectionToken());
+                final String activeCollectingAllRoom = getActiveCollectingAllRoom(cc.getExamId());
+                if (activeCollectingAllRoom != null) {
+                    applyProcotringInstruction(cc.getExamId(), cc.getConnectionToken(), activeCollectingAllRoom);
+                } else {
+                    applyProcotringInstruction(cc.getExamId(), cc.getConnectionToken(), proctoringRoom.name);
+                }
             }
         } catch (final Exception e) {
             log.error("Failed to process proctoring room update for client connection: {}", cc.getConnectionToken(), e);

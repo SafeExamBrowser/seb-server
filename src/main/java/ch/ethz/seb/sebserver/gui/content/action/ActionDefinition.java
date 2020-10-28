@@ -704,6 +704,11 @@ public enum ActionDefinition {
             ImageIcon.PROCTOR_ROOM,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.PROCTORING),
+    MONITOR_EXAM_CREATE_ALL_PROCTOR_ROOM(
+            new LocTextKey("sebserver.monitoring.exam.action.proctoring.allRoom"),
+            ImageIcon.PROCTOR_ROOM,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.PROCTORING),
 
     LOGS_USER_ACTIVITY_LIST(
             new LocTextKey("sebserver.logs.activity.userlogs"),
