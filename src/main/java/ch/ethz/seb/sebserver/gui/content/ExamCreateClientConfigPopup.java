@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
@@ -68,7 +69,7 @@ public class ExamCreateClientConfigPopup {
         this.downloadFileName = downloadFileName;
     }
 
-    public Function<PageAction, PageAction> exportFunction() {
+    public Function<PageAction, PageAction> exportFunction(final Long examInstitutionId) {
 
         return action -> {
 
@@ -80,7 +81,8 @@ public class ExamCreateClientConfigPopup {
 
             final CreationFormContext creationFormContext = new CreationFormContext(
                     this.pageService,
-                    action.pageContext());
+                    action.pageContext(),
+                    String.valueOf(examInstitutionId));
 
             final Predicate<FormHandle<?>> doCreate = formHandle -> doCreate(
                     this.pageService,
@@ -124,13 +126,16 @@ public class ExamCreateClientConfigPopup {
 
         private final PageService pageService;
         private final PageContext pageContext;
+        private final String examInstitutionId;
 
         protected CreationFormContext(
                 final PageService pageService,
-                final PageContext pageContext) {
+                final PageContext pageContext,
+                final String examInstitutionId) {
 
             this.pageService = pageService;
             this.pageContext = pageContext;
+            this.examInstitutionId = examInstitutionId;
         }
 
         @Override
@@ -138,6 +143,7 @@ public class ExamCreateClientConfigPopup {
 
             final List<Tuple<String>> configs = this.pageService.getRestService().getBuilder(GetClientConfigs.class)
                     .withQueryParam(SEBClientConfig.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
+                    .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, this.examInstitutionId)
                     .call()
                     .getOrThrow()
                     .stream()
