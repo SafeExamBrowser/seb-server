@@ -8,9 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.validation;
 
-import java.net.InetAddress;
-import java.net.URI;
-
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
@@ -38,22 +35,22 @@ public class ProctoringSettingsValidator implements ConstraintValidator<ValidPro
                     passed = false;
                 }
 
-                try {
-
-                    if (!InetAddress.getByName(new URI(value.serverURL).getHost()).isReachable(5000)) {
-                        context.disableDefaultConstraintViolation();
-                        context
-                                .buildConstraintViolationWithTemplate("proctoringSettings:serverURL:serverNotAvailable")
-                                .addPropertyNode("serverURL").addConstraintViolation();
-                        passed = false;
-                    }
-                } catch (final Exception e) {
-                    context.disableDefaultConstraintViolation();
-                    context
-                            .buildConstraintViolationWithTemplate("proctoringSettings:serverURL:serverNotAvailable")
-                            .addPropertyNode("serverURL").addConstraintViolation();
-                    passed = false;
-                }
+//                try {
+//
+//                    if (!InetAddress.getByName(new URI(value.serverURL).getHost()).isReachable(5000)) {
+//                        context.disableDefaultConstraintViolation();
+//                        context
+//                                .buildConstraintViolationWithTemplate("proctoringSettings:serverURL:serverNotAvailable")
+//                                .addPropertyNode("serverURL").addConstraintViolation();
+//                        passed = false;
+//                    }
+//                } catch (final Exception e) {
+//                    context.disableDefaultConstraintViolation();
+//                    context
+//                            .buildConstraintViolationWithTemplate("proctoringSettings:serverURL:serverNotAvailable")
+//                            .addPropertyNode("serverURL").addConstraintViolation();
+//                    passed = false;
+//                }
 
                 if (StringUtils.isBlank(value.appKey)) {
                     context.disableDefaultConstraintViolation();
