@@ -57,8 +57,6 @@ public class GuiServiceInfo {
                 .fromHttpUrl(this.externalScheme + "://" + this.externalServer);
         if (StringUtils.isNotBlank(externalPort)) {
             this.externalServerURIBuilder.port(this.externalPort);
-        } else if (StringUtils.isNotBlank(internalPort)) {
-            this.externalServerURIBuilder.port(this.internalPort);
         }
     }
 
