@@ -31,6 +31,8 @@ public class GuiServiceInfo {
     public GuiServiceInfo(
             @Value("${sebserver.gui.http.external.scheme:https}") final String externalScheme,
             @Value("${server.address}") final String internalServer,
+            @Value("${sebserver.webservice.http.external.servername}") final String webserviceServer,
+            @Value("${sebserver.webservice.http.external.port}") final String webservicePort,
             @Value("${sebserver.gui.http.external.servername}") final String externalServer,
             @Value("${server.port}") final String internalPort,
             @Value("${sebserver.gui.http.external.port}") final String externalPort,
@@ -38,9 +40,13 @@ public class GuiServiceInfo {
 
         this.externalScheme = externalScheme;
         this.internalServer = internalServer;
-        this.externalServer = StringUtils.isNotBlank(externalServer) ? externalServer : internalServer;
+        this.externalServer = StringUtils.isNotBlank(externalServer)
+                ? externalServer
+                : StringUtils.isNotBlank(webserviceServer)
+                        ? webserviceServer
+                        : internalServer;
         this.internalPort = internalPort;
-        this.externalPort = externalPort;
+        this.externalPort = StringUtils.isNotBlank(externalPort) ? externalPort : webservicePort;
         this.entryPoint = entryPoint;
         this.internalServerURIBuilder = UriComponentsBuilder
                 .fromHttpUrl("http://" + this.internalServer);
