@@ -17,6 +17,7 @@ import org.springframework.cache.CacheManager;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -29,6 +30,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCac
 
 /** A Service to handle running exam sessions */
 public interface ExamSessionService {
+
+    public static final Predicate<ClientConnection> ACTIVE_CONNECTION_FILTER =
+            cc -> cc.status == ConnectionStatus.ACTIVE;
+    public static final Predicate<ClientConnectionData> ACTIVE_CONNECTION_DATA_FILTER =
+            ccd -> ccd.clientConnection.status == ConnectionStatus.ACTIVE;
 
     /** Get the underling ExamDAO service.
      *
@@ -148,6 +154,10 @@ public interface ExamSessionService {
     Result<Collection<ClientConnectionData>> getConnectionData(
             Long examId,
             Predicate<ClientConnectionData> filter);
+
+    default Result<Collection<ClientConnectionData>> getAllActiveConnectionData(final Long examId) {
+        return getConnectionData(examId, ACTIVE_CONNECTION_DATA_FILTER);
+    }
 
     /** Use this to check if the current cached running exam is up to date
      * and if not to flush the cache.

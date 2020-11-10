@@ -26,12 +26,14 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.CreateCollectingAllProctoringRoom;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisposeCollectingAllProctoringRoom;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ActivateTownhallRoom;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisposeTownhallRoom;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendJoinRemoteProctoringRoom;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendProctoringBroadcastAttributes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendRejoinExamCollectionRoom;
 
 public class ProctoringGUIService {
@@ -91,7 +93,7 @@ public class ProctoringGUIService {
         return this.rooms.containsKey(roomName);
     }
 
-    public String getActiveAllRoom(final String examId) {
+    public String getTownhallRoom(final String examId) {
         return this.rooms
                 .values()
                 .stream()
@@ -120,11 +122,11 @@ public class ProctoringGUIService {
                 });
     }
 
-    public Result<SEBProctoringConnectionData> registerAllProcotringRoom(
+    public Result<SEBProctoringConnectionData> registerTownhallRoom(
             final String examId,
             final String subject) {
 
-        return this.restService.getBuilder(CreateCollectingAllProctoringRoom.class)
+        return this.restService.getBuilder(ActivateTownhallRoom.class)
                 .withURIVariable(API.PARAM_MODEL_ID, examId)
                 .withFormParam(SEBProctoringConnectionData.ATTR_SUBJECT, subject)
                 .call()
@@ -193,7 +195,16 @@ public class ProctoringGUIService {
         closeWindow(name);
         final RoomConnectionData roomConnectionData = this.rooms.remove(name);
         if (roomConnectionData != null) {
-            // send instruction to leave this room and join the own exam collection room
+            // send reset of broadcast attributes to all in the room
+            this.restService.getBuilder(SendProctoringBroadcastAttributes.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
+                    .withFormParam(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID, roomConnectionData.roomName)
+                    .call()
+                    .onError(error -> log.error(
+                            "Failed to send reset broadcast attribute instruction call for room: {}, cause: {}",
+                            roomConnectionData.roomName,
+                            error.getMessage()));
+            // send instruction to leave this room and join the own exam collecting room
             if (!roomConnectionData.connections.isEmpty()) {
                 this.restService.getBuilder(SendRejoinExamCollectionRoom.class)
                         .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
@@ -205,7 +216,7 @@ public class ProctoringGUIService {
                                 name,
                                 error.getMessage()));
             } else {
-                this.restService.getBuilder(DisposeCollectingAllProctoringRoom.class)
+                this.restService.getBuilder(DisposeTownhallRoom.class)
                         .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
                         .call()
                         .onError(error -> log.error("Failed to close proctoring room: {} {}",

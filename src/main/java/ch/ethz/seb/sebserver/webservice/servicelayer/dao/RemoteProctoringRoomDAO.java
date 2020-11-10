@@ -17,18 +17,28 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface RemoteProctoringRoomDAO {
 
-    Result<Collection<RemoteProctoringRoom>> getRoomsForExam(Long examId);
+    Result<Collection<RemoteProctoringRoom>> getCollectingRoomsForExam(Long examId);
+
+    Result<RemoteProctoringRoom> getRoom(Long roomId);
+
+    Result<String> getRoomName(Long roomId);
+
+    Result<RemoteProctoringRoom> getTownhallRoom(Long examId);
+
+    Result<RemoteProctoringRoom> createTownhallRoom(Long examId, String subject);
 
     Result<RemoteProctoringRoom> saveRoom(final Long examId, RemoteProctoringRoom room);
 
+    Result<EntityKey> deleteTownhallRoom(Long examId);
+
     Result<Collection<EntityKey>> deleteRooms(Long examId);
 
-    Result<RemoteProctoringRoom> reservePlaceInRoom(
+    Result<RemoteProctoringRoom> reservePlaceInCollectingRoom(
             Long examId,
             int roomMaxSize,
             Function<Long, String> newRoomNameFunction,
             Function<Long, String> newRommSubjectFunction);
 
-    Result<RemoteProctoringRoom> releasePlaceInRoom(final Long examId, Long roomId);
+    Result<RemoteProctoringRoom> releasePlaceInCollectingRoom(final Long examId, Long roomId);
 
 }

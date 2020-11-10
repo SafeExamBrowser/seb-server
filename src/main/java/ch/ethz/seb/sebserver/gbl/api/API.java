@@ -174,11 +174,13 @@ public final class API {
     public static final String EXAM_PROCTORING_ROOMS_SEGMENT = "/rooms";
     public static final String EXAM_PROCTORING_JOIN_ROOM_PATH_SEGMENT = "/join";
     public static final String EXAM_PROCTORING_REJOIN_COLLECTING_ROOM_PATH_SEGMENT = "/rejoin-collecting-room";
-    public static final String EXAM_PROCTORING_BROADCAST_ON_PATH_SEGMENT = "/broadcast-on";
-    public static final String EXAM_PROCTORING_BROADCAST_OFF_PATH_SEGMENT = "/broadcast-off";
+    public static final String EXAM_PROCTORING_BROADCAST_SEND_ATTRIBUTES = "/broadcast-attributes";
+//    public static final String EXAM_PROCTORING_BROADCAST_ON_PATH_SEGMENT = "/broadcast-on";
+//    public static final String EXAM_PROCTORING_BROADCAST_OFF_PATH_SEGMENT = "/broadcast-off";
     public static final String EXAM_PROCTORING_ROOM_CONNECTIONS_PATH_SEGMENT = "/room-connections";
-    public static final String EXAM_PROCTORING_JON_ALL_COLLECTING_ROOM = "join-all-collecting-room";
-    public static final String EXAM_PROCTORING_REJON_ALL_COLLECTING_ROOM = "rejoin-all-collecting-room";
+    public static final String EXAM_PROCTORING_ACTIVATE_TOWNHALL_ROOM = "activate-towhall-room";
+    public static final String EXAM_PROCTORING_DEACTIVATE_TOWNHALL_ROOM = "deactivate-towhall-room";
+    public static final String EXAM_PROCTORING_TOWNHALL_ROOM_DATA = "towhall-room-data";
 
     public static final String SEB_CLIENT_CONNECTION_ENDPOINT = "/seb-client-connection";
 

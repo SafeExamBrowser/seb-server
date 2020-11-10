@@ -13,6 +13,9 @@ import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.mybatis.dynamic.sql.SqlBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientInstructionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientInstructionDAO;
@@ -32,6 +36,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientInstructionDAO;
 @Component
 @WebServiceProfile
 public class ClientInstructionDAOImpl implements ClientInstructionDAO {
+
+    private static final Logger log = LoggerFactory.getLogger(ClientInstructionDAOImpl.class);
 
     private final ClientInstructionRecordMapper clientInstructionRecordMapper;
     private final JSONMapper jsonMapper;
@@ -47,10 +53,15 @@ public class ClientInstructionDAOImpl implements ClientInstructionDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<ClientInstructionRecord>> getAllActive() {
-        return Result.tryCatch(() -> this.clientInstructionRecordMapper
-                .selectByExample()
-                .build()
-                .execute());
+        return Result.tryCatch(() -> {
+            final long millisNowMinusOneMinute = DateTime.now(DateTimeZone.UTC).minusMinutes(1).getMillis();
+            return this.clientInstructionRecordMapper
+                    .selectByExample()
+                    .where(ClientInstructionRecordDynamicSqlSupport.timestamp,
+                            SqlBuilder.isGreaterThanOrEqualTo(millisNowMinusOneMinute))
+                    .build()
+                    .execute();
+        });
     }
 
     @Override
@@ -60,6 +71,8 @@ public class ClientInstructionDAOImpl implements ClientInstructionDAO {
             final int deleteByPrimaryKey = this.clientInstructionRecordMapper.deleteByPrimaryKey(id);
             if (deleteByPrimaryKey != 1) {
                 throw new RuntimeException("Failed to delete ClientInstruction with id: " + id);
+            } else if (log.isDebugEnabled()) {
+                log.debug("Deleted client instruction with id: {}", id);
             }
         });
     }

@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.model.session;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,6 +18,9 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RemoteProctoringRoom {
+
+    public static final RemoteProctoringRoom NULL_ROOM = new RemoteProctoringRoom(
+            null, null, null, null, null, false);
 
     @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID)
     public final Long id;
@@ -32,19 +37,24 @@ public class RemoteProctoringRoom {
     @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_SUBJECT)
     public final String subject;
 
+    @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_TOWNHALL_ROOM)
+    public final Boolean townhallRoom;
+
     @JsonCreator
     public RemoteProctoringRoom(
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID) final Long id,
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_EXAM_ID) final Long examId,
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_NAME) final String name,
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_SIZE) final Integer roomSize,
-            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_SUBJECT) final String subject) {
+            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_SUBJECT) final String subject,
+            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_TOWNHALL_ROOM) final Boolean townhallRoom) {
 
         this.id = id;
         this.examId = examId;
         this.name = name;
         this.roomSize = roomSize;
         this.subject = subject;
+        this.townhallRoom = BooleanUtils.isTrue(townhallRoom);
     }
 
     public Long getId() {
@@ -67,6 +77,10 @@ public class RemoteProctoringRoom {
         return this.subject;
     }
 
+    public Boolean getTownhallRoom() {
+        return this.townhallRoom;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -80,6 +94,8 @@ public class RemoteProctoringRoom {
         builder.append(this.roomSize);
         builder.append(", subject=");
         builder.append(this.subject);
+        builder.append(", townhallRoom=");
+        builder.append(this.townhallRoom);
         builder.append("]");
         return builder.toString();
     }

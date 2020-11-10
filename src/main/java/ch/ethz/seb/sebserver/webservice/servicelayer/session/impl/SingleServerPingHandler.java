@@ -29,7 +29,7 @@ public class SingleServerPingHandler implements PingHandlingStrategy {
     public void notifyPing(final String connectionToken, final long timestamp, final int pingNumber) {
         // update ping indicators
         final ClientConnectionDataInternal activeClientConnection =
-                this.examSessionCacheService.getActiveClientConnection(connectionToken);
+                this.examSessionCacheService.getClientConnection(connectionToken);
 
         if (activeClientConnection != null) {
             activeClientConnection.notifyPing(timestamp, pingNumber);

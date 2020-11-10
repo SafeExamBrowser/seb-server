@@ -40,11 +40,13 @@ public final class ClientInstruction {
             public static final String METHOD = "method";
             public static final String JITSI_URL = "jitsiMeetServerURL";
             public static final String JITSI_ROOM = "jitsiMeetRoom";
+            public static final String JITSI_ROOM_SUBJECT = "jitsiMeetSubject";
             public static final String JITSI_TOKEN = "jitsiMeetToken";
             public static final String JITSI_RECEIVE_AUDIO = "jitsiMeetReceiveAudio";
             public static final String JITSI_RECEIVE_VIDEO = "jitsiMeetReceiveVideo";
             public static final String JITSI_ALLOW_CHAT = "jitsiMeetFeatureFlagChat";
         }
+
         public interface SEB_RECONFIGURE_SETTINGS {
             public static final String JITSI_RECEIVE_AUDIO = "jitsiMeetReceiveAudio";
             public static final String JITSI_RECEIVE_VIDEO = "jitsiMeetReceiveVideo";

@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +42,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProcotringRoomService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBInstructionService;
@@ -55,14 +54,14 @@ public class ExamProctoringController {
 
     private static final Logger log = LoggerFactory.getLogger(ExamProctoringController.class);
 
-    private final ExamProcotringRoomService examProcotringRoomService;
+    private final ExamProctoringRoomService examProcotringRoomService;
     private final ExamAdminService examAdminService;
     private final SEBInstructionService sebInstructionService;
     private final AuthorizationService authorization;
     private final ExamSessionService examSessionService;
 
     public ExamProctoringController(
-            final ExamProcotringRoomService examProcotringRoomService,
+            final ExamProctoringRoomService examProcotringRoomService,
             final ExamAdminService examAdminService,
             final SEBInstructionService sebInstructionService,
             final AuthorizationService authorization,
@@ -93,7 +92,7 @@ public class ExamProctoringController {
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Collection<RemoteProctoringRoom> getDefaultProcotringRoomsOfExam(
+    public Collection<RemoteProctoringRoom> getProcotringCollectingRoomsOfExam(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -101,7 +100,7 @@ public class ExamProctoringController {
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId) {
 
         return this.examProcotringRoomService
-                .getProctoringRooms(examId)
+                .getProctoringCollectingRooms(examId)
                 .getOrThrow();
     }
 
@@ -157,10 +156,10 @@ public class ExamProctoringController {
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_PROCTORING_BROADCAST_ON_PATH_SEGMENT,
+                    + API.EXAM_PROCTORING_BROADCAST_SEND_ATTRIBUTES,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void sendBroadcastOn(
+    public void sendBroadcastAttributes(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -174,66 +173,32 @@ public class ExamProctoringController {
                     required = false) final String connectionTokens,
             @RequestParam(
                     name = ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_AUDIO,
-                    required = false) final Boolean sendReceiveAudio,
+                    required = false,
+                    defaultValue = "false") final String sendReceiveAudio,
             @RequestParam(
                     name = ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_VIDEO,
-                    required = false) final Boolean sendReceiveVideo,
+                    required = false,
+                    defaultValue = "false") final String sendReceiveVideo,
             @RequestParam(
                     name = ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_ALLOW_CHAT,
-                    required = false) final Boolean sendAllowChat) {
+                    required = false,
+                    defaultValue = "false") final String sendAllowChat) {
 
         checkAccess(institutionId, examId);
 
-        final Map<String, String> attributes = createProctorInstructionAttributes(
-                sendReceiveAudio,
-                sendReceiveVideo,
-                sendAllowChat,
-                Constants.TRUE_STRING);
+        final Map<String, String> attributes = new HashMap<>();
 
-        sendProctoringInstructions(examId, roomName, connectionTokens, attributes);
-    }
+        attributes.put(
+                ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_AUDIO,
+                sendReceiveAudio);
+        attributes.put(
+                ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_VIDEO,
+                sendReceiveVideo);
+        attributes.put(
+                ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_ALLOW_CHAT,
+                sendAllowChat);
 
-    @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_PROCTORING_BROADCAST_OFF_PATH_SEGMENT,
-            method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void sendBroadcastOff(
-            @RequestParam(
-                    name = API.PARAM_INSTITUTION_ID,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
-            @RequestParam(
-                    name = Domain.REMOTE_PROCTORING_ROOM.ATTR_ID,
-                    required = true) final String roomName,
-            @RequestParam(
-                    name = API.EXAM_API_SEB_CONNECTION_TOKEN,
-                    required = true) final String connectionTokens,
-            @RequestParam(
-                    name = ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_AUDIO,
-                    required = false) final Boolean sendReceiveAudio,
-            @RequestParam(
-                    name = ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_VIDEO,
-                    required = false) final Boolean sendReceiveVideo,
-            @RequestParam(
-                    name = ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_ALLOW_CHAT,
-                    required = false) final Boolean sendAllowChat) {
-
-        checkAccess(institutionId, examId);
-
-        final Map<String, String> attributes = createProctorInstructionAttributes(
-                sendReceiveAudio,
-                sendReceiveVideo,
-                sendAllowChat,
-                Constants.FALSE_STRING);
-
-        if (attributes.isEmpty()) {
-            log.warn("Missing reconfigure instruction attributes. Skip sending empty instruction to SEB clients");
-            return;
-        }
-
-        sendProctoringInstructions(examId, roomName, connectionTokens, attributes);
+        sendBroadcastInstructions(examId, roomName, connectionTokens, attributes);
     }
 
     @RequestMapping(
@@ -241,7 +206,7 @@ public class ExamProctoringController {
                     + API.EXAM_PROCTORING_REJOIN_COLLECTING_ROOM_PATH_SEGMENT,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void sendRejoinExamCollectionRoomToClients(
+    public void sendRejoinExamCollectingRoomToClients(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -266,7 +231,7 @@ public class ExamProctoringController {
                 .stream()
                 .forEach(connectionToken -> {
                     examProctoringService
-                            .getClientExamCollectionRoomConnectionData(
+                            .getClientExamCollectingRoomConnectionData(
                                     settings,
                                     connectionToken)
                             .flatMap(data -> this.sendJoinInstruction(examId, connectionToken, data))
@@ -353,10 +318,28 @@ public class ExamProctoringController {
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_PROCTORING_JON_ALL_COLLECTING_ROOM,
+                    + API.EXAM_PROCTORING_TOWNHALL_ROOM_DATA,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public RemoteProctoringRoom getTownhallRoomData(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_MODEL_ID) final Long examId) {
+
+        checkAccess(institutionId, examId);
+
+        return this.examProcotringRoomService.getTownhallRoomData(examId)
+                .getOrElse(() -> RemoteProctoringRoom.NULL_ROOM);
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_PROCTORING_ACTIVATE_TOWNHALL_ROOM,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public SEBProctoringConnectionData sendJoinAllCollectingRoomToClients(
+    public SEBProctoringConnectionData activateTownhall(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -380,15 +363,12 @@ public class ExamProctoringController {
         // first create and register a room to collect all connection of the exam
         // As long as the room exists new connections will join this room immediately
         // after have been applied to the default collecting room
-        final String roomName = this.examProcotringRoomService.createCollectAllRoom(examId)
-                .onError(error -> this.examProcotringRoomService.disposeCollectAllRoom(examId))
+        final RemoteProctoringRoom townhallRoom = this.examProcotringRoomService.createTownhallRoom(examId, subject)
+                .onError(error -> this.examProcotringRoomService.disposeTownhallRoom(examId))
                 .getOrThrow();
 
         // get all active connections for the exam and send the join instruction
-        this.examSessionService.getConnectionData(
-                examId,
-                cData -> cData.clientConnection.status == ConnectionStatus.ACTIVE
-                        || cData.clientConnection.status == ConnectionStatus.CLOSED)
+        this.examSessionService.getAllActiveConnectionData(examId)
                 .getOrThrow()
                 .stream()
                 .forEach(cc -> {
@@ -396,8 +376,8 @@ public class ExamProctoringController {
                             .getClientRoomConnectionData(
                                     settings,
                                     cc.clientConnection.connectionToken,
-                                    roomName,
-                                    (StringUtils.isNotBlank(subject)) ? subject : roomName)
+                                    townhallRoom.name,
+                                    townhallRoom.subject)
                             .onError(error -> log.error(
                                     "Failed to get client room connection data for {} cause: {}",
                                     cc.clientConnection.connectionToken,
@@ -413,17 +393,17 @@ public class ExamProctoringController {
 
         return examProctoringService.createProctorPublicRoomConnection(
                 settings,
-                roomName,
-                (StringUtils.isNotBlank(subject)) ? subject : roomName)
+                townhallRoom.name,
+                townhallRoom.subject)
                 .getOrThrow();
     }
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_PROCTORING_REJON_ALL_COLLECTING_ROOM,
+                    + API.EXAM_PROCTORING_DEACTIVATE_TOWNHALL_ROOM,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public void sendReJoinAllCollectingRoomToClients(
+    public void deactivateTownhall(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -442,7 +422,7 @@ public class ExamProctoringController {
                 .getOrThrow();
 
         // first unregister the current room to collect all connection of the exam
-        this.examProcotringRoomService.disposeCollectAllRoom(examId);
+        this.examProcotringRoomService.disposeTownhallRoom(examId);
 
         // get all active connections for the exam and send the join instruction
         this.examSessionService.getConnectionData(
@@ -453,7 +433,7 @@ public class ExamProctoringController {
                 .stream()
                 .forEach(cc -> {
                     examProctoringService
-                            .getClientExamCollectionRoomConnectionData(
+                            .getClientExamCollectingRoomConnectionData(
                                     settings,
                                     cc.clientConnection)
                             .flatMap(data -> this.sendJoinInstruction(
@@ -466,7 +446,7 @@ public class ExamProctoringController {
                 });
     }
 
-    private void sendProctoringInstructions(
+    private void sendBroadcastInstructions(
             final Long examId,
             final String roomName,
             final String connectionTokens,
@@ -478,6 +458,8 @@ public class ExamProctoringController {
         }
 
         if (StringUtils.isNotBlank(connectionTokens)) {
+            // we have defined connection tokens to send instructions to
+
             final boolean single = connectionTokens.contains(Constants.LIST_SEPARATOR);
             (single
                     ? Arrays.asList(StringUtils.split(connectionTokens, Constants.LIST_SEPARATOR))
@@ -496,10 +478,31 @@ public class ExamProctoringController {
                                                 error));
 
                             });
+        } else if (this.examProcotringRoomService.getTownhallRoomData(examId).hasValue()) {
+            // we are in the town hall so all active connections are involved
+
+            this.examSessionService.getAllActiveConnectionData(examId)
+                    .getOrThrow()
+                    .stream()
+                    .forEach(connection -> {
+                        this.sebInstructionService.registerInstruction(
+                                examId,
+                                InstructionType.SEB_RECONFIGURE_SETTINGS,
+                                attributes,
+                                connection.clientConnection.connectionToken,
+                                true)
+                                .onError(error -> log.error(
+                                        "Failed to register reconfiguring instruction for connection: {}",
+                                        connection.clientConnection.connectionToken,
+                                        error));
+                    });
         } else if (StringUtils.isNotBlank(roomName)) {
+            // we have a room name so all connection of this room are involved
+
             this.examProcotringRoomService.getRoomConnections(examId, roomName)
                     .getOrThrow()
                     .stream()
+                    .filter(ExamSessionService.ACTIVE_CONNECTION_FILTER)
                     .forEach(connection -> {
                         this.sebInstructionService.registerInstruction(
                                 examId,
@@ -517,30 +520,6 @@ public class ExamProctoringController {
                     + Domain.REMOTE_PROCTORING_ROOM.ATTR_ID + " and/or" +
                     API.EXAM_API_SEB_CONNECTION_TOKEN + " attribute");
         }
-    }
-
-    private Map<String, String> createProctorInstructionAttributes(
-            final Boolean sendReceiveAudio,
-            final Boolean sendReceiveVideo,
-            final Boolean sendAllowChat,
-            final String flagValue) {
-        final Map<String, String> attributes = new HashMap<>();
-        if (BooleanUtils.isTrue(sendReceiveAudio)) {
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_AUDIO,
-                    flagValue);
-        }
-        if (BooleanUtils.isTrue(sendReceiveVideo)) {
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_RECEIVE_VIDEO,
-                    flagValue);
-        }
-        if (BooleanUtils.isTrue(sendAllowChat)) {
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_ALLOW_CHAT,
-                    flagValue);
-        }
-        return attributes;
     }
 
     private Result<Void> sendJoinInstruction(

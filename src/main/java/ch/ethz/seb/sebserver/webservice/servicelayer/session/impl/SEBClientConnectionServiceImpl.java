@@ -151,7 +151,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // load client connection data into cache
             final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-                    .getActiveClientConnection(connectionToken);
+                    .getClientConnection(connectionToken);
 
             if (activeClientConnection == null) {
                 log.warn("Failed to load ClientConnectionDataInternal into cache on update");
@@ -510,7 +510,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final ClientEvent event) {
 
         final ClientConnectionDataInternal activeClientConnection =
-                this.examSessionCacheService.getActiveClientConnection(connectionToken);
+                this.examSessionCacheService.getClientConnection(connectionToken);
 
         if (activeClientConnection != null) {
 
@@ -691,7 +691,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         // evict also cached ping record
         this.examSessionCacheService.evictPingRecord(connectionToken);
         // and load updated ClientConnection into cache
-        return this.examSessionCacheService.getActiveClientConnection(connectionToken);
+        return this.examSessionCacheService.getClientConnection(connectionToken);
     }
 
 }

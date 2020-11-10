@@ -284,7 +284,6 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
             http.antMatcher(apiEndpoint + "/**")
                     .authorizeRequests()
                     .anyRequest()
-                    //        .permitAll();
                     .hasAuthority(UserRole.SEB_SERVER_ADMIN.name());
         }
 

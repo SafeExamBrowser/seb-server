@@ -23,9 +23,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class SendProctoringBroadcastOnInstruction extends RestCall<Void> {
+public class DisposeTownhallRoom extends RestCall<Void> {
 
-    public SendProctoringBroadcastOnInstruction() {
+    public DisposeTownhallRoom() {
         super(new TypeKey<>(
                 CallType.UNDEFINED,
                 EntityType.EXAM_PROCTOR_DATA,
@@ -35,7 +35,7 @@ public class SendProctoringBroadcastOnInstruction extends RestCall<Void> {
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_PROCTORING_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.EXAM_PROCTORING_BROADCAST_ON_PATH_SEGMENT);
+                        + API.EXAM_PROCTORING_DEACTIVATE_TOWNHALL_ROOM);
     }
 
 }

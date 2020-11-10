@@ -16,15 +16,32 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientInstructionR
 
 public interface ClientInstructionDAO {
 
+    /** Inserts a new client instruction with the given attributes in the database
+     * Note, if a client instruction needs confirmation an "instruction-confirm" attribute
+     * is added to the given attributes with a unique confirmation number
+     *
+     * @param examId The exam identifier
+     * @param type the type of instruction
+     * @param attributes attributes in a JSON array
+     * @param connectionToken the connection token of the SEB Client connection
+     * @param needsConfirmation indicates whether this instruction needs confirmation or not
+     * @return */
     Result<ClientInstructionRecord> insert(
             Long examId,
             InstructionType type,
             String attributes,
-            String connectionTokens,
+            String connectionToken,
             boolean needsConfirmation);
 
+    /** Gets all instructions that are younger then one minute
+     *
+     * @return Result refer to all instructions that are younger then one minute or to an error when happened */
     Result<Collection<ClientInstructionRecord>> getAllActive();
 
+    /** Deletes the specified instruction form the data base
+     *
+     * @param id the identifier (PK) if the ClientInstruction to delete
+     * @return Void Result refer to an error if happened */
     Result<Void> delete(Long id);
 
 }

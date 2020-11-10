@@ -63,6 +63,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
@@ -74,6 +75,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctorin
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProcotringRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnectionData;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetTownhallRoom;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
@@ -332,11 +334,28 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         if (proctoringSettings != null && proctoringSettings.enableProctoring) {
 
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_CREATE_ALL_PROCTOR_ROOM)
+            final RemoteProctoringRoom townhall = restService.getBuilder(GetTownhallRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                    .call()
+                    .getOr(null);
+
+            final boolean townhallActive = townhall != null && townhall.id != null;
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)
                     .withEntityKey(entityKey)
-                    .withExec(this::createCollectingAllRoom)
+                    .withExec(this::openTownhallRoom)
                     .noEventPropagation()
                     .publish();
+
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)
+                    .withEntityKey(entityKey)
+                    .withExec(this::closeTownhallRoom)
+                    .noEventPropagation()
+                    .publish();
+            if (!townhallActive) {
+                this.pageService.firePageEvent(
+                        new ActionActivationEvent(false, ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
+                        pageContext);
+            }
 
             final Map<String, Pair<RemoteProctoringRoom, TreeItem>> availableRooms = new HashMap<>();
             updateRoomActions(
@@ -357,18 +376,18 @@ public class MonitoringRunningExam implements TemplateComposer {
         }
     }
 
-    private PageAction createCollectingAllRoom(final PageAction action) {
+    private PageAction openTownhallRoom(final PageAction action) {
         final EntityKey examId = action.getEntityKey();
 
         final ProctoringGUIService proctoringGUIService = this.pageService
                 .getCurrentUser()
                 .getProctoringGUIService();
 
-        String activeAllRoomName = proctoringGUIService.getActiveAllRoom(examId.modelId);
+        String activeAllRoomName = proctoringGUIService.getTownhallRoom(examId.modelId);
 
         if (activeAllRoomName == null) {
             final SEBProctoringConnectionData proctoringConnectionData = proctoringGUIService
-                    .registerAllProcotringRoom(
+                    .registerTownhallRoom(
                             examId.modelId,
                             this.pageService.getI18nSupport().getText(EXAM_ROOM_NAME))
                     .onError(error -> log.error(
@@ -388,7 +407,35 @@ public class MonitoringRunningExam implements TemplateComposer {
                 this.remoteProctoringEndpoint);
         javaScriptExecutor.execute(script);
         proctoringGUIService.registerProctoringWindow(activeAllRoomName);
+        this.pageService.firePageEvent(
+                new ActionActivationEvent(
+                        true,
+                        ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
+                action.pageContext());
+        return action;
+    }
 
+    private PageAction closeTownhallRoom(final PageAction action) {
+        final RemoteProctoringRoom townhall = this.pageService.getRestService()
+                .getBuilder(GetTownhallRoom.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .call()
+                .getOr(null);
+
+        if (townhall == null || townhall.id == null) {
+            return action;
+        }
+
+        final ProctoringGUIService proctoringGUIService = this.pageService
+                .getCurrentUser()
+                .getProctoringGUIService();
+
+        proctoringGUIService.closeRoom(townhall.name);
+        this.pageService.firePageEvent(
+                new ActionActivationEvent(
+                        false,
+                        ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
+                action.pageContext());
         return action;
     }
 

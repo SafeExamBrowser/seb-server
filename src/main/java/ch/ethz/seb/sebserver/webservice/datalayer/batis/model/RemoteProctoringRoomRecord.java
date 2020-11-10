@@ -3,60 +3,69 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class RemoteProctoringRoomRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.855+01:00", comments="Source field: remote_proctoring_room.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.855+01:00", comments="Source field: remote_proctoring_room.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.exam_id")
     private Long examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.855+01:00", comments="Source field: remote_proctoring_room.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.name")
     private String name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.855+01:00", comments="Source field: remote_proctoring_room.size")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.size")
     private Integer size;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.856+01:00", comments="Source field: remote_proctoring_room.subject")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.subject")
     private String subject;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.855+01:00", comments="Source Table: remote_proctoring_room")
-    public RemoteProctoringRoomRecord(Long id, Long examId, String name, Integer size, String subject) {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.townhall_room")
+    private Integer townhallRoom;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source Table: remote_proctoring_room")
+    public RemoteProctoringRoomRecord(Long id, Long examId, String name, Integer size, String subject, Integer townhallRoom) {
         this.id = id;
         this.examId = examId;
         this.name = name;
         this.size = size;
         this.subject = subject;
+        this.townhallRoom = townhallRoom;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.855+01:00", comments="Source field: remote_proctoring_room.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.855+01:00", comments="Source field: remote_proctoring_room.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.exam_id")
     public Long getExamId() {
         return examId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.855+01:00", comments="Source field: remote_proctoring_room.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.name")
     public String getName() {
         return name;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.856+01:00", comments="Source field: remote_proctoring_room.size")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.size")
     public Integer getSize() {
         return size;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.856+01:00", comments="Source field: remote_proctoring_room.subject")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.subject")
     public String getSubject() {
         return subject;
+    }
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.813+01:00", comments="Source field: remote_proctoring_room.townhall_room")
+    public Integer getTownhallRoom() {
+        return townhallRoom;
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table remote_proctoring_room
      *
-     * @mbg.generated Mon Oct 26 09:59:01 CET 2020
+     * @mbg.generated Thu Nov 05 13:06:44 CET 2020
      */
     @Override
     public String toString() {
@@ -69,6 +78,7 @@ public class RemoteProctoringRoomRecord {
         sb.append(", name=").append(name);
         sb.append(", size=").append(size);
         sb.append(", subject=").append(subject);
+        sb.append(", townhallRoom=").append(townhallRoom);
         sb.append("]");
         return sb.toString();
     }
@@ -77,7 +87,7 @@ public class RemoteProctoringRoomRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table remote_proctoring_room
      *
-     * @mbg.generated Mon Oct 26 09:59:01 CET 2020
+     * @mbg.generated Thu Nov 05 13:06:44 CET 2020
      */
     @Override
     public boolean equals(Object that) {
@@ -95,14 +105,15 @@ public class RemoteProctoringRoomRecord {
             && (this.getExamId() == null ? other.getExamId() == null : this.getExamId().equals(other.getExamId()))
             && (this.getName() == null ? other.getName() == null : this.getName().equals(other.getName()))
             && (this.getSize() == null ? other.getSize() == null : this.getSize().equals(other.getSize()))
-            && (this.getSubject() == null ? other.getSubject() == null : this.getSubject().equals(other.getSubject()));
+            && (this.getSubject() == null ? other.getSubject() == null : this.getSubject().equals(other.getSubject()))
+            && (this.getTownhallRoom() == null ? other.getTownhallRoom() == null : this.getTownhallRoom().equals(other.getTownhallRoom()));
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table remote_proctoring_room
      *
-     * @mbg.generated Mon Oct 26 09:59:01 CET 2020
+     * @mbg.generated Thu Nov 05 13:06:44 CET 2020
      */
     @Override
     public int hashCode() {
@@ -113,6 +124,7 @@ public class RemoteProctoringRoomRecord {
         result = prime * result + ((getName() == null) ? 0 : getName().hashCode());
         result = prime * result + ((getSize() == null) ? 0 : getSize().hashCode());
         result = prime * result + ((getSubject() == null) ? 0 : getSubject().hashCode());
+        result = prime * result + ((getTownhallRoom() == null) ? 0 : getTownhallRoom().hashCode());
         return result;
     }
 }

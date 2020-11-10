@@ -7,25 +7,25 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ThresholdRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.877+01:00", comments="Source Table: threshold")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.828+01:00", comments="Source Table: threshold")
     public static final ThresholdRecord thresholdRecord = new ThresholdRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.877+01:00", comments="Source field: threshold.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.828+01:00", comments="Source field: threshold.id")
     public static final SqlColumn<Long> id = thresholdRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.877+01:00", comments="Source field: threshold.indicator_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.828+01:00", comments="Source field: threshold.indicator_id")
     public static final SqlColumn<Long> indicatorId = thresholdRecord.indicatorId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.878+01:00", comments="Source field: threshold.value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.828+01:00", comments="Source field: threshold.value")
     public static final SqlColumn<BigDecimal> value = thresholdRecord.value;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.879+01:00", comments="Source field: threshold.color")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.828+01:00", comments="Source field: threshold.color")
     public static final SqlColumn<String> color = thresholdRecord.color;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.879+01:00", comments="Source field: threshold.icon")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.828+01:00", comments="Source field: threshold.icon")
     public static final SqlColumn<String> icon = thresholdRecord.icon;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-10-26T09:59:01.877+01:00", comments="Source Table: threshold")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2020-11-05T13:06:44.828+01:00", comments="Source Table: threshold")
     public static final class ThresholdRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

@@ -209,6 +209,10 @@ public final class Result<T> {
     }
 
     public void ifPresent(final Consumer<T> consumer) {
+        if (this == EMPTY) {
+            consumer.accept(this.value);
+            return;
+        }
         if (this.value != null) {
             consumer.accept(this.value);
         }

@@ -41,6 +41,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecord
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RemoteProctoringRoomRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -110,6 +111,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<ClientConnection>> allOf(final Set<Long> pks) {
+        if (pks == null || pks.isEmpty()) {
+            return Result.ofRuntimeError("Null or empty set reference");
+        }
         return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()
                 .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
                 .build()
@@ -133,6 +137,113 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .stream()
                 .map(ClientConnectionRecord::getConnectionToken)
                 .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional
+    public Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateActive() {
+        return Result.tryCatch(() -> {
+            final Collection<ClientConnectionRecord> records = this.clientConnectionRecordMapper.selectByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate, isNotEqualTo(0))
+                    .and(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.ACTIVE.name()))
+                    .build()
+                    .execute();
+
+            if (records == null || records.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            final List<Long> ids = records
+                    .stream()
+                    .map(rec -> rec.getId())
+                    .collect(Collectors.toList());
+
+            final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
+                    null, null, null, null, null,
+                    null, null, null, null, null,
+                    0);
+
+            this.clientConnectionRecordMapper.updateByExampleSelective(updateRecord)
+                    .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
+            return records;
+        });
+    }
+
+    @Override
+    @Transactional
+    public Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateInactive() {
+        return Result.tryCatch(() -> {
+            final Collection<ClientConnectionRecord> records = this.clientConnectionRecordMapper.selectByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate, isNotEqualTo(0))
+                    .and(ClientConnectionRecordDynamicSqlSupport.status, isNotEqualTo(ConnectionStatus.ACTIVE.name()))
+                    .build()
+                    .execute();
+
+            if (records == null || records.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            final List<Long> ids = records
+                    .stream()
+                    .map(rec -> rec.getId())
+                    .collect(Collectors.toList());
+
+            final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
+                    null, null, null, null, null,
+                    null, null, null, null, null,
+                    0);
+
+            this.clientConnectionRecordMapper.updateByExampleSelective(updateRecord)
+                    .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
+            return records;
+        });
+    }
+
+    @Override
+    @Transactional
+    public void setNeedsRoomUpdate(final Long connectionId) {
+        final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
+                connectionId,
+                null, null, null, null,
+                null, null, null, null, null,
+                1);
+        this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ClientConnection>> getRoomConnections(final Long roomId) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()
+                .where(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomId, isEqualTo(roomId))
+                .build()
+                .execute()
+                .stream()
+                .map(ClientConnectionDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ClientConnection>> getRoomConnections(final Long examId, final String roomName) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()
+                .leftJoin(RemoteProctoringRoomRecordDynamicSqlSupport.remoteProctoringRoomRecord)
+                .on(RemoteProctoringRoomRecordDynamicSqlSupport.id,
+                        SqlBuilder.equalTo(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomId))
+                .where(ClientConnectionRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                .and(RemoteProctoringRoomRecordDynamicSqlSupport.name, SqlBuilder.isLike(roomName))
+                .build()
+                .execute()
+                .stream()
+                .map(ClientConnectionDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .collect(Collectors.toList()));
     }
 
@@ -187,6 +298,53 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    @Transactional
+    public Result<Void> assignToProctoringRoom(
+            final Long connectionId,
+            final String connectionToken,
+            final Long roomId) {
+
+        return Result.tryCatch(() -> {
+            this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
+                    connectionId,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    roomId,
+                    0));
+        });
+    }
+
+    @Override
+    @Transactional
+    public Result<Void> removeFromProctoringRoom(final Long connectionId, final String connectionToken) {
+        return Result.tryCatch(() -> {
+            final ClientConnectionRecord record = this.clientConnectionRecordMapper.selectByPrimaryKey(connectionId);
+            if (record != null) {
+                this.clientConnectionRecordMapper.updateByPrimaryKey(new ClientConnectionRecord(
+                        connectionId,
+                        record.getInstitutionId(),
+                        record.getExamId(),
+                        record.getStatus(),
+                        record.getConnectionToken(),
+                        record.getExamUserSessionId(),
+                        record.getClientAddress(),
+                        record.getVirtualClientAddress(),
+                        record.getCreationTime(),
+                        null,
+                        0));
+            } else {
+                throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, String.valueOf(connectionId));
+            }
+        });
+    }
+
+    @Override
     public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // only for deletion
         if (bulkAction.type == BulkActionType.ACTIVATE || bulkAction.type == BulkActionType.DEACTIVATE) {
@@ -226,6 +384,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             // first delete all related client events
             this.clientEventRecordMapper.deleteByExample()
@@ -245,12 +406,16 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .stream()
                     .map(r -> r.getConnectionToken())
                     .collect(Collectors.toList());
-            this.clientInstructionRecordMapper.deleteByExample()
-                    .where(
-                            ClientInstructionRecordDynamicSqlSupport.connectionToken,
-                            SqlBuilder.isIn(connectionTokens))
-                    .build()
-                    .execute();
+
+            if (connectionTokens != null && !connectionTokens.isEmpty()) {
+
+                this.clientInstructionRecordMapper.deleteByExample()
+                        .where(
+                                ClientInstructionRecordDynamicSqlSupport.connectionToken,
+                                SqlBuilder.isIn(connectionTokens))
+                        .build()
+                        .execute();
+            }
 
             // then delete all requested client-connections
             this.clientConnectionRecordMapper.deleteByExample()
@@ -310,6 +475,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     public Result<Set<String>> filterActive(final Long examId, final Set<String> connectionToken) {
+        if (connectionToken == null || connectionToken.isEmpty()) {
+            return Result.ofRuntimeError("Null or empty set reference");
+        }
         return Result.tryCatch(() -> this.clientConnectionRecordMapper
                 .selectByExample()
                 .where(

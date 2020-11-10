@@ -30,8 +30,8 @@ public class GetProcotringRooms extends RestCall<Collection<RemoteProctoringRoom
 
     public GetProcotringRooms() {
         super(new TypeKey<>(
-                CallType.GET_SINGLE,
-                EntityType.EXAM_PROCTOR_DATA,
+                CallType.GET_LIST,
+                EntityType.REMOTE_PROCTORING_ROOM,
                 new TypeReference<Collection<RemoteProctoringRoom>>() {
                 }),
                 HttpMethod.GET,

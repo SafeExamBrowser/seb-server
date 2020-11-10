@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Collection;
 
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.slf4j.Logger;
@@ -24,7 +23,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -51,7 +49,6 @@ public class ExamSessionCacheService {
     public static final String CACHE_NAME_ACTIVE_CLIENT_CONNECTION = "ACTIVE_CLIENT_CONNECTION";
     public static final String CACHE_NAME_SEB_CONFIG_EXAM = "SEB_CONFIG_EXAM";
     public static final String CACHE_NAME_PING_RECORD = "CACHE_NAME_PING_RECORD";
-    public static final String CACHE_NAME_PROCTORING_ROOM = "CACHE_NAME_PROCTORING_ROOM";
 
     private static final Logger log = LoggerFactory.getLogger(ExamSessionCacheService.class);
 
@@ -61,7 +58,6 @@ public class ExamSessionCacheService {
     private final ExamConfigService sebExamConfigService;
     private final ClientEventRecordMapper clientEventRecordMapper;
     private final ExamUpdateHandler examUpdateHandler;
-    private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
 
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
@@ -78,34 +74,6 @@ public class ExamSessionCacheService {
         this.sebExamConfigService = sebExamConfigService;
         this.clientEventRecordMapper = clientEventRecordMapper;
         this.examUpdateHandler = examUpdateHandler;
-        this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
-    }
-
-    @Cacheable(
-            cacheNames = CACHE_NAME_PROCTORING_ROOM,
-            key = "#examId",
-            unless = "#result == null")
-    public Collection<RemoteProctoringRoom> getRemoteProctoringRooms(final Long examId) {
-        final Result<Collection<RemoteProctoringRoom>> roomsForExam = this.remoteProctoringRoomDAO
-                .getRoomsForExam(examId);
-
-        if (roomsForExam.hasError()) {
-            log.error("Failed to find/load RemoteProcotringRooms for Exam with id {}", examId, roomsForExam.getError());
-            return null;
-        }
-
-        return roomsForExam.get();
-    }
-
-    @CacheEvict(
-            cacheNames = CACHE_NAME_RUNNING_EXAM,
-            key = "#examId")
-    public Long evictRemoteProctoringRooms(final Long examId) {
-        if (log.isDebugEnabled()) {
-            log.debug("Conditional eviction of RemoteProcotringRooms for Exam: {}", examId);
-        }
-
-        return examId;
     }
 
     @Cacheable(
@@ -168,7 +136,7 @@ public class ExamSessionCacheService {
             cacheNames = CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
             key = "#connectionToken",
             unless = "#result == null")
-    public ClientConnectionDataInternal getActiveClientConnection(final String connectionToken) {
+    public ClientConnectionDataInternal getClientConnection(final String connectionToken) {
 
         if (log.isDebugEnabled()) {
             log.debug("Verify ClientConnection for running exam for caching by connectionToken: {}", connectionToken);
@@ -267,14 +235,14 @@ public class ExamSessionCacheService {
     }
 
     private ClientConnection getClientConnectionByToken(final String connectionToken) {
-        final Result<ClientConnection> byPK = this.clientConnectionDAO
+        final Result<ClientConnection> result = this.clientConnectionDAO
                 .byConnectionToken(connectionToken);
 
-        if (byPK.hasError()) {
-            log.error("Failed to find/load ClientConnection with connectionToken {}", connectionToken, byPK.getError());
+        if (result.hasError()) {
+            log.error("Failed to find/load ClientConnection with connectionToken {}", connectionToken, result.getError());
             return null;
         }
-        return byPK.get();
+        return result.get();
     }
 
 }

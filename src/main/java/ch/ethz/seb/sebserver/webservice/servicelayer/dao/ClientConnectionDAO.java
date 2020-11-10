@@ -17,7 +17,9 @@ import org.springframework.cache.annotation.Cacheable;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 
 public interface ClientConnectionDAO extends
         EntityDAO<ClientConnection, ClientConnection>,
@@ -40,6 +42,40 @@ public interface ClientConnectionDAO extends
             unless = "#result.hasError()")
     Result<Collection<String>> getConnectionTokens(Long examId);
 
+    /** Get a collection of all client connections records that needs a room update
+     * and that are in the status ACTIVE.
+     * This also flags the involved connections for no update needed within the
+     * same transaction. So if something will go wrong in the update process
+     * the affected client connection(s) must be marked for need update again.
+     *
+     * @return Result refer to a collection of all ClientConnection records for update or to an error when happened */
+    Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateActive();
+
+    /** Get a collection of all client connections records that needs a room update
+     * and that are NOT in the status ACTIVE.
+     * This also flags the involved connections for no update needed within the
+     * same transaction. So if something will go wrong in the update process
+     * the affected client connection(s) must be marked for need update again.
+     *
+     * @return Result refer to a collection of all ClientConnection records for update or to an error when happened */
+    Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateInactive();
+
+    /** Used to re-mark a client connection record for room update in error case. */
+    void setNeedsRoomUpdate(Long connectionId);
+
+    /** Get all ClientConnection that are assigned to a defined proctoring collecting room.
+     *
+     * @param roomId The proctoring room identifier
+     * @return Result refer to a collection of all ClientConnection of the room or to an error if happened */
+    Result<Collection<ClientConnection>> getRoomConnections(final Long roomId);
+
+    /** Get all ClientConnections that are assigned to a proctoring room by a given room name and exam
+     *
+     * @param examId The exam identifier
+     * @param roomName the room name
+     * @return Result refer to a collection of all ClientConnection of the room or to an error if happened */
+    Result<Collection<ClientConnection>> getRoomConnections(final Long examId, final String roomName);
+
     /** Creates new ClientConnection from the given ClientConnection data.
      *
      * This evicts all entries from the CONNECTION_TOKENS_CACHE.
@@ -53,9 +89,17 @@ public interface ClientConnectionDAO extends
     Result<ClientConnection> createNew(ClientConnection data);
 
     @Override
-    // TODO check if this is needed
-    @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
     Result<ClientConnection> save(ClientConnection data);
+
+    @CacheEvict(
+            cacheNames = ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
+            key = "#connectionToken")
+    Result<Void> assignToProctoringRoom(Long connectionId, String connectionToken, Long roomId);
+
+    @CacheEvict(
+            cacheNames = ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
+            key = "#connectionToken")
+    Result<Void> removeFromProctoringRoom(Long connectionId, String connectionToken);
 
     /** Deletes the given ClientConnection data.
      *

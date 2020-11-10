@@ -316,7 +316,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
         return Result.tryCatch(() -> {
             final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-                    .getActiveClientConnection(connectionToken);
+                    .getClientConnection(connectionToken);
             if (activeClientConnection == null) {
                 throw new NoSuchElementException("Client Connection with token: " + connectionToken);
             }
@@ -334,7 +334,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 .getConnectionTokens(examId)
                 .getOrThrow()
                 .stream()
-                .map(this.examSessionCacheService::getActiveClientConnection)
+                .map(this.examSessionCacheService::getClientConnection)
                 .filter(filter)
                 .collect(Collectors.toList()));
     }

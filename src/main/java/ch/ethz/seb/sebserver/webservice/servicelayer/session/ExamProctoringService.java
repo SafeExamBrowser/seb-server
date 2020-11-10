@@ -25,18 +25,19 @@ public interface ExamProctoringService {
             final String roomName,
             final String subject);
 
-    Result<SEBProctoringConnectionData> getClientExamCollectionRoomConnectionData(
+    Result<SEBProctoringConnectionData> getClientExamCollectingRoomConnectionData(
             final ProctoringSettings proctoringSettings,
             final String connectionToken);
 
-    Result<SEBProctoringConnectionData> getClientExamCollectionRoomConnectionData(
+    Result<SEBProctoringConnectionData> getClientExamCollectingRoomConnectionData(
             final ProctoringSettings proctoringSettings,
             final ClientConnection connection);
 
-    Result<SEBProctoringConnectionData> getClientExamCollectionRoomConnectionData(
+    Result<SEBProctoringConnectionData> getClientExamCollectingRoomConnectionData(
             final ProctoringSettings proctoringSettings,
             final String connectionToken,
-            final String roomName);
+            final String roomName,
+            final String subject);
 
     Result<SEBProctoringConnectionData> getClientRoomConnectionData(
             final ProctoringSettings proctoringSettings,

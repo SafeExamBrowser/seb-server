@@ -53,7 +53,7 @@ public class ProctoringServlet extends HttpServlet {
 //                    "        width: window.innerWidth,\n" +
                     "        height: window.innerHeight - 4,\n" +
                     "        jwt: '%s',\n" +
-                    "        configOverwrite: { startAudioOnly: true, startWithAudioMuted: true, startWithVideoMuted: true, disable1On1Mode: true },\n" +
+                    "        configOverwrite: { startAudioOnly: false, startWithAudioMuted: true, startWithVideoMuted: false, disable1On1Mode: true },\n" +
                     "        interfaceConfigOverwrite: { " +
                     "TOOLBAR_BUTTONS: [\r\n" +
                     "        'microphone', 'camera',\r\n" +

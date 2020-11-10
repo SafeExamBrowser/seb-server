@@ -80,7 +80,7 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
         SEBServerInit.INIT_LOGGER.info("------>");
         SEBServerInit.INIT_LOGGER.info("------> Run SEBInstructionService...");
 
-        loadInstruction()
+        loadInstructions()
                 .onError(
                         error -> log.error(
                                 "Failed  to initialize and load persistent storage SEB client instructions: ",
@@ -114,7 +114,7 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
                     this.clientInstructionDAO
                             .insert(examId, type, attributesString, connectionToken, needsConfirm)
                             .map(this::chacheInstruction)
-                            .onError(error -> log.error("Failed to put instruction: ", error))
+                            .onError(error -> log.error("Failed to register instruction: {}", error.getMessage()))
                             .getOrThrow();
                 } catch (final Exception e) {
                     throw new RuntimeException("Unexpected: ", e);
@@ -143,7 +143,7 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
                     .filter(activeConnections::contains)
                     .map(token -> this.clientInstructionDAO.insert(examId, type, attributesString, token, needsConfirm))
                     .map(result -> result.get(
-                            error -> log.error("Failed to register instruction: ", error),
+                            error -> log.error("Failed to register instruction: {}", error.getMessage()),
                             () -> null))
                     .filter(Objects::nonNull)
                     .forEach(this::chacheInstruction);
@@ -163,8 +163,8 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
         }
 
         final ClientInstructionRecord clientInstruction = this.instructions.get(connectionToken);
-
-        if (!BooleanUtils.toBoolean(clientInstruction.getNeedsConfirmation())) {
+        final boolean needsConfirm = BooleanUtils.toBoolean(clientInstruction.getNeedsConfirmation());
+        if (!needsConfirm) {
             this.instructions.remove(connectionToken);
             final Result<Void> delete = this.clientInstructionDAO.delete(clientInstruction.getId());
             if (delete.hasError()) {
@@ -193,9 +193,15 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
                     .append(attributes);
         }
 
-        return sBuilder
+        final String instructionJSON = sBuilder
                 .append(Constants.CURLY_BRACE_CLOSE)
                 .toString();
+
+        if (log.isDebugEnabled()) {
+            log.debug("Send SEB client instruction: {} to: {} ", connectionToken, instructionJSON);
+        }
+
+        return instructionJSON;
     }
 
     @Override
@@ -220,14 +226,14 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
         if (currentTimeMillis - this.lastRefresh > Constants.SECOND_IN_MILLIS) {
             this.lastRefresh = currentTimeMillis;
 
-            loadInstruction()
+            loadInstructions()
                     .onError(error -> log.error(
                             "Failed load instructions from persistent storage and to refresh cache: ",
                             error));
         }
     }
 
-    private Result<Void> loadInstruction() {
+    private Result<Void> loadInstructions() {
         return Result.tryCatch(() -> this.clientInstructionDAO.getAllActive()
                 .getOrThrow()
                 .forEach(inst -> this.instructions.putIfAbsent(inst.getConnectionToken(), inst)));
@@ -241,12 +247,16 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
         if (this.instructions.containsKey(connectionToken)) {
             // check if previous instruction is still valid
             final ClientInstructionRecord clientInstructionRecord = this.instructions.get(connectionToken);
+
+            System.out.println("************* previous instruction still active: " + clientInstructionRecord);
+
             if (BooleanUtils.toBoolean(BooleanUtils.toBooleanObject(clientInstructionRecord.getNeedsConfirmation()))) {
                 // check if time is out
                 final long now = DateTime.now(DateTimeZone.UTC).getMillis();
                 final Long timestamp = clientInstructionRecord.getTimestamp();
                 if (timestamp != null && now - timestamp > Constants.MINUTE_IN_MILLIS) {
                     // remove old instruction and add new one
+                    System.out.println("************* remove old instruction and put new: ");
                     this.instructions.put(connectionToken, instruction);
                 }
             }

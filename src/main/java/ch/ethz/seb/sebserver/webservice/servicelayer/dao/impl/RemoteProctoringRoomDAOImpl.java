@@ -8,16 +8,17 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
-import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.springframework.cache.annotation.CacheEvict;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +33,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RemoteProctoringR
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RemoteProctoringRoomRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 
 @Lazy
 @Component
@@ -49,45 +49,81 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<RemoteProctoringRoom>> getRoomsForExam(final Long examId) {
+    public Result<Collection<RemoteProctoringRoom>> getCollectingRoomsForExam(final Long examId) {
+        return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper.selectByExample()
+                .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                .and(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isEqualTo(0))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<RemoteProctoringRoom> getRoom(final Long roomId) {
+        return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper
+                .selectByPrimaryKey(roomId))
+                .map(this::toDomainModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<String> getRoomName(final Long roomId) {
+        return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper
+                .selectByPrimaryKey(roomId))
+                .map(record -> record.getName());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<RemoteProctoringRoom> getTownhallRoom(final Long examId) {
         return Result.tryCatch(() -> {
             return this.remoteProctoringRoomRecordMapper.selectByExample()
                     .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                    .and(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isNotEqualTo(0))
                     .build()
                     .execute()
-                    .stream()
-                    .map(this::toDomainModel)
-                    .collect(Collectors.toList());
-        });
+                    .get(0);
+        })
+                .map(this::toDomainModel);
     }
-
-//    @Override
-//    @Transactional
-//    @CacheEvict(
-//            cacheNames = ExamSessionCacheService.CACHE_NAME_PROCTORING_ROOM,
-//            key = "#examId")
-//    public Result<RemoteProctoringRoom> createNewRoom(final Long examId, final RemoteProctoringRoom room) {
-//        return Result.tryCatch(() -> {
-//            final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord(
-//                    null,
-//                    examId,
-//                    room.name,
-//                    (room.roomSize != null) ? room.roomSize : 0,
-//                    room.subject);
-//
-//            this.remoteProctoringRoomRecordMapper.insert(remoteProctoringRoomRecord);
-//            return this.remoteProctoringRoomRecordMapper
-//                    .selectByPrimaryKey(remoteProctoringRoomRecord.getId());
-//        })
-//                .map(this::toDomainModel)
-//                .onError(TransactionHandler::rollback);
-//    }
 
     @Override
     @Transactional
-    @CacheEvict(
-            cacheNames = ExamSessionCacheService.CACHE_NAME_PROCTORING_ROOM,
-            key = "#examId")
+    public Result<RemoteProctoringRoom> createTownhallRoom(final Long examId, final String subject) {
+        return Result.tryCatch(() -> {
+            // check first if town-hall room is not already active
+            final long active = this.remoteProctoringRoomRecordMapper.countByExample()
+                    .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                    .and(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isNotEqualTo(0))
+                    .build()
+                    .execute();
+
+            if (active > 0) {
+                throw new IllegalStateException("Townhall, for exam: " + examId + " already existis");
+            }
+
+            final String newCollectingRoomName = UUID.randomUUID().toString();
+            final RemoteProctoringRoomRecord townhallRoomRecord = new RemoteProctoringRoomRecord(
+                    null,
+                    examId,
+                    newCollectingRoomName,
+                    0,
+                    StringUtils.isNotBlank(subject) ? subject : newCollectingRoomName,
+                    1);
+
+            this.remoteProctoringRoomRecordMapper.insert(townhallRoomRecord);
+            return this.remoteProctoringRoomRecordMapper
+                    .selectByPrimaryKey(townhallRoomRecord.getId());
+        })
+                .map(this::toDomainModel)
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
     public Result<RemoteProctoringRoom> saveRoom(final Long examId, final RemoteProctoringRoom room) {
         return Result.tryCatch(() -> {
             final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord(
@@ -95,7 +131,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     examId,
                     room.name,
                     room.roomSize,
-                    room.subject);
+                    room.subject,
+                    BooleanUtils.toInteger(room.townhallRoom, 1, 0, 0));
 
             this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
             return this.remoteProctoringRoomRecordMapper
@@ -107,9 +144,16 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
 
     @Override
     @Transactional
-    @CacheEvict(
-            cacheNames = ExamSessionCacheService.CACHE_NAME_PROCTORING_ROOM,
-            key = "#examId")
+    public Result<EntityKey> deleteTownhallRoom(final Long examId) {
+        return getTownhallRoom(examId)
+                .map(room -> {
+                    this.remoteProctoringRoomRecordMapper.deleteByPrimaryKey(room.id);
+                    return new EntityKey(room.id, EntityType.REMOTE_PROCTORING_ROOM);
+                });
+    }
+
+    @Override
+    @Transactional
     public Result<Collection<EntityKey>> deleteRooms(final Long examId) {
         final Result<Collection<EntityKey>> tryCatch = Result.tryCatch(() -> {
             final List<Long> ids = this.remoteProctoringRoomRecordMapper.selectIdsByExample()
@@ -132,10 +176,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
 
     @Override
     @Transactional
-    @CacheEvict(
-            cacheNames = ExamSessionCacheService.CACHE_NAME_PROCTORING_ROOM,
-            key = "#examId")
-    public synchronized Result<RemoteProctoringRoom> reservePlaceInRoom(
+    public synchronized Result<RemoteProctoringRoom> reservePlaceInCollectingRoom(
             final Long examId,
             final int roomMaxSize,
             final Function<Long, String> newRoomNameFunction,
@@ -157,6 +198,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                             null,
                             null,
                             r.getSize() + 1,
+                            null,
                             null);
 
                     this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
@@ -175,7 +217,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                         examId,
                         newRoomNameFunction.apply(roomNumber),
                         1,
-                        newRommSubjectFunction.apply(roomNumber));
+                        newRommSubjectFunction.apply(roomNumber),
+                        0);
                 this.remoteProctoringRoomRecordMapper.insert(remoteProctoringRoomRecord);
                 return remoteProctoringRoomRecord;
             }
@@ -186,10 +229,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
 
     @Override
     @Transactional
-    @CacheEvict(
-            cacheNames = ExamSessionCacheService.CACHE_NAME_PROCTORING_ROOM,
-            key = "#examId")
-    public Result<RemoteProctoringRoom> releasePlaceInRoom(final Long examId, final Long roomId) {
+    public Result<RemoteProctoringRoom> releasePlaceInCollectingRoom(final Long examId, final Long roomId) {
         return Result.tryCatch(() -> {
             final RemoteProctoringRoomRecord record = this.remoteProctoringRoomRecordMapper
                     .selectByPrimaryKey(roomId);
@@ -199,6 +239,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     null,
                     null,
                     record.getSize() - 1,
+                    null,
                     null);
 
             this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
@@ -216,7 +257,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 record.getExamId(),
                 record.getName(),
                 record.getSize(),
-                record.getSubject());
+                record.getSubject(),
+                BooleanUtils.toBooleanObject(record.getTownhallRoom()));
     }
 
 }
