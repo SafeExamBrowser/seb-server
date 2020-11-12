@@ -334,26 +334,19 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         if (proctoringSettings != null && proctoringSettings.enableProctoring) {
 
-            final RemoteProctoringRoom townhall = restService.getBuilder(GetTownhallRoom.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                    .call()
-                    .getOr(null);
-
-            final boolean townhallActive = townhall != null && townhall.id != null;
             actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)
                     .withEntityKey(entityKey)
-                    .withExec(this::openTownhallRoom)
+                    .withExec(this::toggleTownhallRoom)
                     .noEventPropagation()
                     .publish();
 
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)
-                    .withEntityKey(entityKey)
-                    .withExec(this::closeTownhallRoom)
-                    .noEventPropagation()
-                    .publish();
-            if (!townhallActive) {
+            if (isTownhallRoomActive(entityKey.modelId)) {
                 this.pageService.firePageEvent(
-                        new ActionActivationEvent(false, ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
+                        new ActionActivationEvent(
+                                true,
+                                new Tuple<>(
+                                        ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                        ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
                         pageContext);
             }
 
@@ -373,6 +366,40 @@ public class MonitoringRunningExam implements TemplateComposer {
                             availableRooms,
                             actionBuilder,
                             proctoringSettings));
+        }
+    }
+
+    private boolean isTownhallRoomActive(final String examModelId) {
+        final RemoteProctoringRoom townhall = this.pageService.getRestService()
+                .getBuilder(GetTownhallRoom.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examModelId)
+                .call()
+                .getOr(null);
+
+        return townhall != null && townhall.id != null;
+    }
+
+    private PageAction toggleTownhallRoom(final PageAction action) {
+        if (isTownhallRoomActive(action.getEntityKey().modelId)) {
+            closeTownhallRoom(action);
+            this.pageService.firePageEvent(
+                    new ActionActivationEvent(
+                            true,
+                            new Tuple<>(
+                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)),
+                    action.pageContext());
+            return action;
+        } else {
+            openTownhallRoom(action);
+            this.pageService.firePageEvent(
+                    new ActionActivationEvent(
+                            true,
+                            new Tuple<>(
+                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                    ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
+                    action.pageContext());
+            return action;
         }
     }
 
@@ -407,11 +434,6 @@ public class MonitoringRunningExam implements TemplateComposer {
                 this.remoteProctoringEndpoint);
         javaScriptExecutor.execute(script);
         proctoringGUIService.registerProctoringWindow(activeAllRoomName);
-        this.pageService.firePageEvent(
-                new ActionActivationEvent(
-                        true,
-                        ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
-                action.pageContext());
         return action;
     }
 
@@ -431,12 +453,27 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .getProctoringGUIService();
 
         proctoringGUIService.closeRoom(townhall.name);
-        this.pageService.firePageEvent(
-                new ActionActivationEvent(
-                        false,
-                        ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
-                action.pageContext());
         return action;
+    }
+
+    private void updateTownhallButton(final EntityKey entityKey, final PageContext pageContext) {
+        if (isTownhallRoomActive(entityKey.modelId)) {
+            this.pageService.firePageEvent(
+                    new ActionActivationEvent(
+                            true,
+                            new Tuple<>(
+                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                    ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
+                    pageContext);
+        } else {
+            this.pageService.firePageEvent(
+                    new ActionActivationEvent(
+                            true,
+                            new Tuple<>(
+                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)),
+                    pageContext);
+        }
     }
 
     private void updateRoomActions(
@@ -446,6 +483,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             final PageActionBuilder actionBuilder,
             final ProctoringSettings proctoringSettings) {
 
+        updateTownhallButton(entityKey, pageContext);
         final I18nSupport i18nSupport = this.pageService.getI18nSupport();
         this.pageService.getRestService().getBuilder(GetProcotringRooms.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)

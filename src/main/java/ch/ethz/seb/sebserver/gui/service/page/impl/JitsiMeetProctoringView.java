@@ -29,12 +29,10 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerT
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
-import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.RemoteProctoringView;
-import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendProctoringBroadcastAttributes;
 import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
 import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService.ProctoringWindowData;
@@ -92,7 +90,7 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
         final GridData headerCell = new GridData(SWT.FILL, SWT.FILL, true, true);
         content.setLayoutData(headerCell);
 
-        parent.addListener(SWT.Dispose, event -> closeRoom(proctoringWindowData, pageContext));
+        parent.addListener(SWT.Dispose, event -> closeRoom(proctoringWindowData));
 
         final String url = this.guiServiceInfo
                 .getExternalServerURIBuilder()
@@ -122,7 +120,7 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
 
         final Button closeAction = widgetFactory.buttonLocalized(footer, CLOSE_WINDOW_TEXT_KEY);
         closeAction.setLayoutData(new RowData(150, 30));
-        closeAction.addListener(SWT.Selection, event -> closeRoom(proctoringWindowData, pageContext));
+        closeAction.addListener(SWT.Selection, event -> closeRoom(proctoringWindowData));
 
         final BroadcastActionState broadcastActionState = new BroadcastActionState();
         final String connectionTokens = getConnectionTokens(proctoringWindowData);
@@ -258,16 +256,11 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
         boolean chat = false;
     }
 
-    private void closeRoom(final ProctoringWindowData proctoringWindowData, final PageContext pageContext) {
+    private void closeRoom(final ProctoringWindowData proctoringWindowData) {
         this.pageService
                 .getCurrentUser()
                 .getProctoringGUIService()
                 .closeRoom(proctoringWindowData.connectionData.roomName);
-        this.pageService.firePageEvent(
-                new ActionActivationEvent(
-                        false,
-                        ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
-                pageContext);
     }
 
 }

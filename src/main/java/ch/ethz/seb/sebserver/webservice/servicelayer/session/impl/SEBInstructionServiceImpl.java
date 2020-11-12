@@ -16,8 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -31,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.SizedArrayNonBlockingQueue;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientInstructionRecord;
@@ -45,6 +44,7 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBInstructionServiceImpl.class);
 
+    private static final int INSTRUCTION_QUEUE_MAX_SIZE = 10;
     private static final String JSON_INST = "instruction";
     private static final String JSON_ATTR = "attributes";
 
@@ -53,7 +53,7 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
     private final ClientInstructionDAO clientInstructionDAO;
     private final JSONMapper jsonMapper;
 
-    private final Map<String, ClientInstructionRecord> instructions;
+    private final Map<String, SizedArrayNonBlockingQueue<ClientInstructionRecord>> instructions;
 
     private long lastRefresh = 0;
 
@@ -113,7 +113,7 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
                     final String attributesString = this.jsonMapper.writeValueAsString(attributes);
                     this.clientInstructionDAO
                             .insert(examId, type, attributesString, connectionToken, needsConfirm)
-                            .map(this::chacheInstruction)
+                            .map(this::putToCacheIfAbsent)
                             .onError(error -> log.error("Failed to register instruction: {}", error.getMessage()))
                             .getOrThrow();
                 } catch (final Exception e) {
@@ -146,7 +146,7 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
                             error -> log.error("Failed to register instruction: {}", error.getMessage()),
                             () -> null))
                     .filter(Objects::nonNull)
-                    .forEach(this::chacheInstruction);
+                    .forEach(this::putToCacheIfAbsent);
         });
 
     }
@@ -162,10 +162,19 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
             return null;
         }
 
-        final ClientInstructionRecord clientInstruction = this.instructions.get(connectionToken);
+        final SizedArrayNonBlockingQueue<ClientInstructionRecord> queue = this.instructions.get(connectionToken);
+        if (queue.isEmpty()) {
+            return null;
+        }
+
+        final ClientInstructionRecord clientInstruction = queue.peek();
+        if (clientInstruction == null) {
+            return null;
+        }
+
         final boolean needsConfirm = BooleanUtils.toBoolean(clientInstruction.getNeedsConfirmation());
         if (!needsConfirm) {
-            this.instructions.remove(connectionToken);
+            queue.poll();
             final Result<Void> delete = this.clientInstructionDAO.delete(clientInstruction.getId());
             if (delete.hasError()) {
                 log.error("Failed to delete SEB client instruction on persistent storage: ", delete.getError());
@@ -207,13 +216,26 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
     @Override
     public void confirmInstructionDone(final String connectionToken, final String instructionConfirm) {
         try {
-            this.instructions.remove(connectionToken);
-            this.clientInstructionDAO.delete(Long.valueOf(instructionConfirm));
+            final SizedArrayNonBlockingQueue<ClientInstructionRecord> queue = this.instructions.get(connectionToken);
+            if (queue.isEmpty()) {
+                return;
+            }
+
+            final ClientInstructionRecord instruction = queue.peek();
+            if (String.valueOf(instruction.getId()).equals(String.valueOf(instruction.getId()))) {
+                queue.poll();
+                this.clientInstructionDAO.delete(Long.valueOf(instructionConfirm));
+            } else {
+                log.warn("SEB instruction confirmation mismatch. Sent instructionConfirm: {} pending instruction: {}",
+                        instructionConfirm,
+                        instruction.getId());
+            }
         } catch (final Exception e) {
             log.error(
-                    "Failed to remove SEB instruction after confirmation: connectionToken: {} instructionConfirm: {}",
+                    "Failed to remove SEB instruction after confirmation: connectionToken: {} instructionConfirm: {} connectionToken: {}",
                     connectionToken,
-                    instructionConfirm);
+                    instructionConfirm,
+                    connectionToken);
         }
     }
 
@@ -236,33 +258,53 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
     private Result<Void> loadInstructions() {
         return Result.tryCatch(() -> this.clientInstructionDAO.getAllActive()
                 .getOrThrow()
-                .forEach(inst -> this.instructions.putIfAbsent(inst.getConnectionToken(), inst)));
+                .forEach(this::putToCacheIfAbsent));
     }
 
-    private ClientInstructionRecord chacheInstruction(final ClientInstructionRecord instruction) {
+//    private ClientInstructionRecord chacheInstruction(final ClientInstructionRecord instruction) {
+//
+//
+//
+//        final String connectionToken = instruction.getConnectionToken();
+//        if (this.instructions.containsKey(connectionToken)) {
+//            // check if previous instruction is still valid
+//            final ClientInstructionRecord clientInstructionRecord = this.instructions.get(connectionToken);
+//
+//            System.out.println("************* previous instruction still active: " + clientInstructionRecord);
+//
+//            if (BooleanUtils.toBoolean(BooleanUtils.toBooleanObject(clientInstructionRecord.getNeedsConfirmation()))) {
+//                // check if time is out
+//                final long now = DateTime.now(DateTimeZone.UTC).getMillis();
+//                final Long timestamp = clientInstructionRecord.getTimestamp();
+//                if (timestamp != null && now - timestamp > Constants.MINUTE_IN_MILLIS) {
+//                    // remove old instruction and add new one
+//                    System.out.println("************* remove old instruction and put new: ");
+//                    this.instructions.put(connectionToken, instruction);
+//                }
+//            }
+//        } else {
+//            this.instructions.put(connectionToken, instruction);
+//        }
+//        return instruction;
+//    }
+
+    private ClientInstructionRecord putToCacheIfAbsent(final ClientInstructionRecord instruction) {
+        final SizedArrayNonBlockingQueue<ClientInstructionRecord> queue = this.instructions.computeIfAbsent(
+                instruction.getConnectionToken(),
+                key -> new SizedArrayNonBlockingQueue<>(INSTRUCTION_QUEUE_MAX_SIZE));
+
+        if (queue.contains(instruction)) {
+            log.warn("Instruction alread in the queue: {}", instruction);
+            return instruction;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Put SEB instruction into instruction queue: {}", instruction);
+        }
 
         System.out.println("************* register instruction: " + instruction);
 
-        final String connectionToken = instruction.getConnectionToken();
-        if (this.instructions.containsKey(connectionToken)) {
-            // check if previous instruction is still valid
-            final ClientInstructionRecord clientInstructionRecord = this.instructions.get(connectionToken);
-
-            System.out.println("************* previous instruction still active: " + clientInstructionRecord);
-
-            if (BooleanUtils.toBoolean(BooleanUtils.toBooleanObject(clientInstructionRecord.getNeedsConfirmation()))) {
-                // check if time is out
-                final long now = DateTime.now(DateTimeZone.UTC).getMillis();
-                final Long timestamp = clientInstructionRecord.getTimestamp();
-                if (timestamp != null && now - timestamp > Constants.MINUTE_IN_MILLIS) {
-                    // remove old instruction and add new one
-                    System.out.println("************* remove old instruction and put new: ");
-                    this.instructions.put(connectionToken, instruction);
-                }
-            }
-        } else {
-            this.instructions.put(connectionToken, instruction);
-        }
+        queue.add(instruction);
         return instruction;
     }
 

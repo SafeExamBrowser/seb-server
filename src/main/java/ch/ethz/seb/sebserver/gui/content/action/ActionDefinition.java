@@ -711,7 +711,7 @@ public enum ActionDefinition {
             ActionCategory.PROCTORING),
     MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM(
             new LocTextKey("sebserver.monitoring.exam.action.proctoring.closeTownhall"),
-            ImageIcon.PROCTOR_ROOM,
+            ImageIcon.CANCEL,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.PROCTORING),
 

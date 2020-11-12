@@ -135,13 +135,11 @@ public class ActionPane implements TemplateComposer {
 
                     if (event.decoration != null) {
                         final TreeItem actionItemToDecorate = findAction(actionTrees, parent, event.decoration._1);
-                        final PageAction action = (PageAction) actionItemToDecorate.getData(ACTION_EVENT_CALL_KEY);
                         if (actionItemToDecorate != null && event.decoration._2 != null) {
                             actionItemToDecorate.setImage(0,
                                     event.decoration._2.icon.getImage(parent.getDisplay()));
                             ActionPane.this.pageService.getPolyglotPageService().injectI18n(
-                                    actionItemToDecorate,
-                                    (action != null) ? action.getTitle() : event.decoration._2.title);
+                                    actionItemToDecorate, event.decoration._2.title);
                         }
                     }
                 });

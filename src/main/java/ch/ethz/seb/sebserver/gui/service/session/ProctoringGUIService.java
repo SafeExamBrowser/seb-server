@@ -199,6 +199,11 @@ public class ProctoringGUIService {
             this.restService.getBuilder(SendProctoringBroadcastAttributes.class)
                     .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
                     .withFormParam(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID, roomConnectionData.roomName)
+                    .withFormParam(
+                            API.EXAM_API_SEB_CONNECTION_TOKEN,
+                            roomConnectionData.connections.isEmpty()
+                                    ? ""
+                                    : StringUtils.join(roomConnectionData.connections, Constants.LIST_SEPARATOR_CHAR))
                     .call()
                     .onError(error -> log.error(
                             "Failed to send reset broadcast attribute instruction call for room: {}, cause: {}",
@@ -229,7 +234,9 @@ public class ProctoringGUIService {
     public void clear() {
 
         if (!this.rooms.isEmpty()) {
-            this.rooms.keySet().stream().forEach(this::closeRoom);
+            this.rooms.keySet()
+                    .stream()
+                    .forEach(this::closeRoom);
             this.rooms.clear();
         }
 
