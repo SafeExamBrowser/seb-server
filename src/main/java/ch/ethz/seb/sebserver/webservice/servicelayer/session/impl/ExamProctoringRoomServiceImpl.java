@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
@@ -80,17 +79,20 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     }
 
     @Override
-    @Transactional
     public void updateProctoringCollectingRooms() {
-        this.clientConnectionDAO.getAllConnectionIdsForRoomUpdateActive()
-                .getOrThrow()
-                .stream()
-                .forEach(this::assignToRoom);
+        try {
+            this.clientConnectionDAO.getAllConnectionIdsForRoomUpdateActive()
+                    .getOrThrow()
+                    .stream()
+                    .forEach(this::assignToRoom);
 
-        this.clientConnectionDAO.getAllConnectionIdsForRoomUpdateInactive()
-                .getOrThrow()
-                .stream()
-                .forEach(this::removeFromRoom);
+            this.clientConnectionDAO.getAllConnectionIdsForRoomUpdateInactive()
+                    .getOrThrow()
+                    .stream()
+                    .forEach(this::removeFromRoom);
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to update proctoring collecting rooms: ", e);
+        }
     }
 
     @Override
