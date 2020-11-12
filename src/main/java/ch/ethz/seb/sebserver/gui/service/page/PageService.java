@@ -346,7 +346,7 @@ public interface PageService {
 
     /** This triggers a logout on the current authorization context to logout the current user
      * and forward to the login page with showing a successful logout message to the user. */
-    void logout(PageContext pageContext);
+    boolean logout(PageContext pageContext);
 
     default <T> T logoutOnError(final Exception t, final PageContext pageContext) {
         log.error("Unexpected, Current User related error.Automatically logout and cleanup current user session. ", t);
@@ -474,7 +474,7 @@ public interface PageService {
 
         public PageActionBuilder newAction(final ActionDefinition definition) {
             final PageActionBuilder newBuilder = new PageActionBuilder(this.pageService, this.originalPageContext);
-            newBuilder.pageContext = originalPageContext.copy();
+            newBuilder.pageContext = this.originalPageContext.copy();
             newBuilder.definition = definition;
             newBuilder.confirm = null;
             newBuilder.successMessage = null;
@@ -489,17 +489,17 @@ public interface PageService {
 
         public PageAction create() {
             return new PageAction(
-                    definition,
-                    confirm,
-                    successMessage,
-                    selectionSupplier,
-                    noSelectionMessage,
-                    pageContext,
-                    exec,
-                    fireActionEvent,
-                    ignoreMoveAwayFromEdit,
-                    switchAction,
-                    titleArgs);
+                    this.definition,
+                    this.confirm,
+                    this.successMessage,
+                    this.selectionSupplier,
+                    this.noSelectionMessage,
+                    this.pageContext,
+                    this.exec,
+                    this.fireActionEvent,
+                    this.ignoreMoveAwayFromEdit,
+                    this.switchAction,
+                    this.titleArgs);
         }
 
         public PageActionBuilder publish() {
@@ -507,7 +507,7 @@ public interface PageService {
         }
 
         public PageActionBuilder publish(final boolean active) {
-            pageService.publishAction(create(), active);
+            this.pageService.publishAction(create(), active);
             return this;
         }
 

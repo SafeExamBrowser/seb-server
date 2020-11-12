@@ -145,19 +145,16 @@ public class DefaultPageLayout implements TemplateComposer {
             logout.setLayoutData(new GridData(SWT.RIGHT, SWT.FILL, true, true));
             logout.setData(RWT.CUSTOM_VARIANT, "header");
             logout.addListener(SWT.Selection, event -> {
-                this.pageService.logout(pageContext);
-                // show successful logout message
-                final MessageBox logoutSuccess = new Message(
-                        pageContext.getShell(),
-                        this.polyglotPageService.getI18nSupport().getText("sebserver.logout"),
-                        this.polyglotPageService.getI18nSupport().getText("sebserver.logout.success.message"),
-                        SWT.ICON_INFORMATION,
-                        pageContext.getI18nSupport());
-                logoutSuccess.open(null);
-
-                // TODO Try to invalidate RWT's user session.
-                //      This seems to be more difficult then expected and just invalidate the HttpSession doesn't work
-                //      Try to send a redirect JSON to the client: https://bugs.eclipse.org/bugs/show_bug.cgi?id=388249
+                if (this.pageService.logout(pageContext)) {
+                    // show successful logout message
+                    final MessageBox logoutSuccess = new Message(
+                            pageContext.getShell(),
+                            this.polyglotPageService.getI18nSupport().getText("sebserver.logout"),
+                            this.polyglotPageService.getI18nSupport().getText("sebserver.logout.success.message"),
+                            SWT.ICON_INFORMATION,
+                            pageContext.getI18nSupport());
+                    logoutSuccess.open(null);
+                }
             });
         }
     }
