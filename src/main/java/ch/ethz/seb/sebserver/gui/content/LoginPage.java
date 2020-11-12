@@ -88,9 +88,6 @@ public class LoginPage implements TemplateComposer {
         final Text loginPassword = this.widgetFactory.passwordInput(loginGroup);
         loginPassword.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
 
-        final SEBServerAuthorizationContext authorizationContext = this.authorizationContextHolder
-                .getAuthorizationContext(RWT.getUISession().getHttpSession());
-
         final Composite buttons = new Composite(loginGroup, SWT.NONE);
         buttons.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         buttons.setLayout(new GridLayout(2, false));
@@ -103,16 +100,14 @@ public class LoginPage implements TemplateComposer {
         loginButton.addListener(SWT.Selection, event -> login(
                 pageContext,
                 loginName.getText(),
-                loginPassword.getText(),
-                authorizationContext));
+                loginPassword.getText()));
         loginName.addListener(SWT.KeyDown, event -> {
             if (event.character == '\n' || event.character == '\r') {
                 if (StringUtils.isNotBlank(loginPassword.getText())) {
                     login(
                             pageContext,
                             loginName.getText(),
-                            loginPassword.getText(),
-                            authorizationContext);
+                            loginPassword.getText());
                 } else {
                     loginPassword.setFocus();
                 }
@@ -124,8 +119,7 @@ public class LoginPage implements TemplateComposer {
                     login(
                             pageContext,
                             loginName.getText(),
-                            loginPassword.getText(),
-                            authorizationContext);
+                            loginPassword.getText());
                 } else {
                     loginName.setFocus();
                 }
@@ -144,10 +138,12 @@ public class LoginPage implements TemplateComposer {
     private void login(
             final PageContext pageContext,
             final String loginName,
-            final CharSequence loginPassword,
-            final SEBServerAuthorizationContext authorizationContext) {
+            final CharSequence loginPassword) {
 
         try {
+
+            final SEBServerAuthorizationContext authorizationContext = this.authorizationContextHolder
+                    .getAuthorizationContext();
 
             final boolean loggedIn = authorizationContext.login(
                     loginName,
@@ -172,6 +168,8 @@ public class LoginPage implements TemplateComposer {
 
             } else {
                 loginError(pageContext, "sebserver.login.failed.message");
+                // disable user authorization
+                this.authorizationContextHolder.getAuthorizationContext();
             }
         } catch (final Exception e) {
             log.error("Unexpected error while trying to login with user: {}", loginName, e);

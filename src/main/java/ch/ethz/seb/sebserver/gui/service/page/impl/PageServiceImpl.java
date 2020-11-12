@@ -374,8 +374,6 @@ public class PageServiceImpl implements PageService {
 
             if (!logoutSuccessful) {
                 log.warn("Failed to logout. See log-files for more information");
-                pageContext.forwardToMainPage();
-                pageContext.publishInfo(new LocTextKey("sebserver.error.logout"));
                 return false;
             }
 
