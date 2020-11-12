@@ -366,7 +366,7 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public void logout(final PageContext pageContext) {
+    public boolean logout(final PageContext pageContext) {
         this.clearState();
 
         try {
@@ -374,14 +374,20 @@ public class PageServiceImpl implements PageService {
 
             if (!logoutSuccessful) {
                 log.warn("Failed to logout. See log-files for more information");
+                pageContext.forwardToMainPage();
+                pageContext.publishInfo(new LocTextKey("sebserver.error.logout"));
+                return false;
             }
 
         } catch (final Exception e) {
-            log.info("Cleanup logout failed: {}", e.getMessage());
-        } finally {
-            pageContext.forwardToLoginPage();
+            log.info("Cleanup logout failed: {}", e.getMessage(), e);
+            pageContext.forwardToMainPage();
+            pageContext.notifyError(new LocTextKey("sebserver.error.logout"), e);
+            return false;
         }
 
+        pageContext.forwardToLoginPage();
+        return true;
     }
 
     @Override
