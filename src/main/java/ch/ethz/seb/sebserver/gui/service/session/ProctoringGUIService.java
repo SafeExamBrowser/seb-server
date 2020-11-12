@@ -234,7 +234,7 @@ public class ProctoringGUIService {
     public void clear() {
 
         if (!this.rooms.isEmpty()) {
-            this.rooms.keySet()
+            new ArrayList<>(this.rooms.keySet())
                     .stream()
                     .forEach(this::closeRoom);
             this.rooms.clear();
