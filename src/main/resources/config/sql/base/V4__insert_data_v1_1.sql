@@ -42,7 +42,7 @@ INSERT IGNORE INTO configuration_attribute VALUES
     
 UPDATE orientation SET width='4' WHERE id='68';
     
-INSERT INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
+INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
     (942, 0, 5, 'quitLink', 4, 5, 4, 1, 'NONE'),
     
     (940, 0, 5, 'examSession', 0, 7, 8, 1, 'NONE'),
