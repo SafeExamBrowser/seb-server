@@ -20,8 +20,7 @@ Usually this API comes as a REST or SOAP API with the core LMS implementation.
 
 SEB Server supports this course API's so far:
  - Open edX: The standard system `Open edX REST API <https://courses.edx.org/api-docs/>`_. The SEB Server uses the "courses" endpoints to get course data.
- - Moodle (experimental): The standard system `Moodle REST API <https://docs.moodle.org/dev/Web_service_API_functions>`_. The SEB Server uses the "core_course" endpoints to get course data. Note that Moodle binding is experimental in the current SEB Server version and there is no garantee to work correctly or to work
-with an upcoming full Moodle integration in newer version.
+ - Moodle (experimental): The standard system `Moodle REST API <https://docs.moodle.org/dev/Web_service_API_functions>`_. The SEB Server uses the "core_course" endpoints to get course data. Note that Moodle binding is experimental in the current SEB Server version and there is no garantee to work correctly or to work with an upcoming full Moodle integration in newer version.
 
 
 **SEB restriction API** 
