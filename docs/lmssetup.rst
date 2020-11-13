@@ -20,7 +20,8 @@ Usually this API comes as a REST or SOAP API with the core LMS implementation.
 
 SEB Server supports this course API's so far:
  - Open edX: The standard system `Open edX REST API <https://courses.edx.org/api-docs/>`_. The SEB Server uses the "courses" endpoints to get course data.
- - Moodle: The standard system `Moodle REST API <https://docs.moodle.org/dev/Web_service_API_functions>`_. The SEB Server uses the "core_course" endpoints to get course data. 
+ - Moodle (experimental): The standard system `Moodle REST API <https://docs.moodle.org/dev/Web_service_API_functions>`_. The SEB Server uses the "core_course" endpoints to get course data. Note that Moodle binding is experimental in the current SEB Server version and there is no garantee to work correctly or to work
+  with an upcoming full Moodle integration in newer version.
 
 
 **SEB restriction API** 
@@ -57,9 +58,10 @@ SEB Server internally. Use the "Type" selector to specify the type of the LMS to
 - **Open edX**: This type is to bind an existing `Open edX <https://open.edx.org/>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the described API's of the Open edX system and if the automated SEB restriction feature wanted to be used the 
   :ref:`lms-setup-edx-plugin-label` must be installed properly within the LMS.
-- **Moodle**: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
+- **: Moodle**: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the described API's of the Moodle system but there is currently no SEB restriction plugin available that works
-  with SEB Server.
+  with SEB Server. Note that Moodle binding is experimental in the current SEB Server version and there is no garantee to work correctly or to work
+  with an upcoming full Moodle integration in newer version.
 
 The "LMS Server Address" is the root URL to connect to the LMS server with HTTP over the Internet or intranet. This is usually the the URL that is 
 also used with the Browser to connect to the main page of the LMS system. And additionally the credentials that has been created with the creation of the :ref:`lms-api-account-label` has to be set in the LMS Setup the make the SEB Server
