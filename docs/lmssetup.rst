@@ -59,7 +59,7 @@ SEB Server internally. Use the "Type" selector to specify the type of the LMS to
   Server tries to make use of the above described API's of the Open edX system. 
 
     .. note:: 
-      if you want to use the automated SEB restriction feature, the `Open edX SEB Plugin <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-setup-rest-plugin-label>`_ must be installed properly on the LMS.
+      If you want to use the automated SEB restriction feature too, the `Open edX SEB Plugin <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-setup-rest-plugin-label>`_ must be installed properly on the LMS.
   
 - **: Moodle**: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the described API's of the Moodle system but there is currently no SEB restriction plugin available that works
@@ -98,7 +98,7 @@ A new Open edX system has been installed within your institution and to be able 
 you have to bind the LMS to the SEB Server. 
 
 - If not already done, install the `Open edX SEB Plugin <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-setup-rest-plugin-label>`_  on the Open edX system first.
-- If you don't already have an API access account on Open edX side, `<create one <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-api-account-edx-label>`_
+- If you don't already have an API access account on Open edX side, `create one <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-api-account-edx-label>`_
 - Sign into SEB Server with your institutional administrator role account.
 - Navigate to "Exam Administration" / "LMS Setup" within the navigation on the left hand side.
 - Use the "Add LMS Setup" action from the right action pane to open a LMS Setup creation form.
