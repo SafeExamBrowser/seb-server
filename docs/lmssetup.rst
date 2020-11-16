@@ -8,15 +8,16 @@ Overview
 
 To be able to connect to a learning management system (LMS), to view and manage the courses provided by a LMS is an essential feature of the SEB Server.
 To setup an exam or e-assessment for SEB on SEB Server that is based on a course from a LMS, we have to make a binding to the course on the LMS.
-This allows as to always get the actual course data from LMS like, start- end-time, name and others. If we furthermore want to be able to automatically 
-restrict the course for SEB access only we also need to have proper integration API's in place on both sides, the LMS and the SEB Server. 
-This integration is separated into two main features so far. This are:
+This is also used to always get the actual course data from LMS like start- end-time, name and others. 
+Another feature of SEB Server that needs a LMS communication is the SEB restriction. A SEB restriction will restrict course access on the LMS only 
+for connection with Safe Exam Browser and will also check if a Safe Exam Browser of trust is used and the right configuration is used by the
+Safe Exam Browser that was defines for the exam on the SEB Server.
 
 **Course API** 
 
 This API, provided by the LMS, is used by the SEB Server to query the available courses and the needed data for each course. This API
-is essential to be able to import a course from the LMS as an exam into SEB Server and configure the course as an e-assessment with SEB.
-Usually this API comes as a REST or SOAP API with the core LMS implementation. 
+is needed to be able to import a course from the LMS as an exam into SEB Server and configure the course as an e-assessment with SEB.
+Usually this API comes as a REST or SOAP API with the core LMS implementation or a plugin.
 
 SEB Server supports this course API's so far:
  - Open edX: The standard system `Open edX REST API <https://courses.edx.org/api-docs/>`_. The SEB Server uses the "courses" endpoints to get course data.
@@ -123,7 +124,7 @@ that has to be set on the existing LMS Setup on the SEB Server.
 - Use the Filter above the list to find the specified LMS Setup.
 - Select the LMS Setup from the list and use the "Edit LMS Setup" action from the right action pane to open the LMS Setup in edit mode.
 - Set the new credentials and make sure, the LMS Setup is still active. 
-- Use the "Save LMS Setup" action form the right action pane to save the changes and test the conneciton.
+- Use the "Save LMS Setup" action form the right action pane to save the changes and test the connection.
 
 .. note:: 
     If some form attributes are missing or not correct, the SEB Server system will respond with the usual form validation errors.
@@ -146,13 +147,19 @@ the setup and exams on the SEB Server for this LMS.
 - Navigate also to "Exam" and make sure that all previously imported exams from the deactivated LMS Setup are not available anymore.
 
 .. _lms-api-account-label:
+
 API Access Account on LMS
 --------------------------
 
 .. _lms-api-account-edx-label:
-**Open edX API Access Account**
+
+**Create Open edX API Access Account**
+
+
 
 To be able to create an API access-account on Open edX you need a user-account with staff and administration privileges. Following the steps below:
+
+For Open edX Hawthorn and Ironwood versions:
 
 - Login to Open edX LMS Administration with an appropriate user-account that has administration rights. And find the Users section:
 
@@ -181,13 +188,15 @@ Once the client registration was successful the client id and client secret can 
 
 
 .. _lms-setup-rest-plugin-label:
+
 Install SEB restriction API plugin
 ----------------------------------
 
 .. _lms-setup-edx-plugin-label:
+
 **Open edX SEB Plugin**
 
-There is a SEB integration plugin developed and supported by `eduNEXT <https://www.edunext.co/>`_. 
- - `Documentation <https://seb-openedx.readthedocs.io/en/latest/>`_
- - `Repository <https://github.com/eduNEXT/seb-openedx>`_
+    There is a SEB integration plugin developed and supported by `eduNEXT <https://www.edunext.co/>`_. 
+     - `Documentation <https://seb-openedx.readthedocs.io/en/latest/>`_
+     - `Repository <https://github.com/eduNEXT/seb-openedx>`_
 
