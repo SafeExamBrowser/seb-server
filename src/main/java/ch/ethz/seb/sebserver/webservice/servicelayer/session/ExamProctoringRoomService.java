@@ -52,8 +52,16 @@ public interface ExamProctoringRoomService {
      * @return Result referencing the created room name or to an error when happened */
     Result<RemoteProctoringRoom> createTownhallRoom(Long examId, String subject);
 
+    /** Get the RemoteProctoringRoom data for the town-hall of specified exam.
+     * If the town-hall is not active for the specified exam, returns the RemoteProctoringRoom.NULL_ROOM
+     *
+     * @param examId the exam identifier
+     * @return Result refer to the RemoteProctoringRoom data or to an error when happened */
     Result<RemoteProctoringRoom> getTownhallRoomData(final Long examId);
 
+    /** Used to close and dispose an active town-hall for the specified exam.
+     *
+     * @param examId exam identifier */
     void disposeTownhallRoom(Long examId);
 
 }
