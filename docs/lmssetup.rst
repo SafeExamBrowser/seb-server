@@ -52,18 +52,18 @@ is only able to see and create LMS Setup for its own institution. The name of th
 SEB Server internally. Use the "Type" selector to specify the type of the LMS to bind to the SEB Server within the LMS Setup. Currently supported are:
 
 - **Testing**: This is for testing purposes only and can be used to mock a LMS to test exam settings. This type provides some mock-up courses within the 
-  LMS API of the SEB Server that can be seen in the LMS Exam Lookup once the LMS text setup is active. This mock-up courses can be imported and configuraed
+  LMS API of the SEB Server that can be seen in the LMS Exam Lookup once the LMS text setup is active. This mock-up courses can be imported and configured
   as exams like they would exist. But note the a SEB client that is trying to connect to such a course would not be able to connect to the LMS since it
   is not existing. But a SEB client is able to download the defined exam configuration for testing.
 - **Open edX**: This type is to bind an existing `Open edX <https://open.edx.org/>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the above described API's of the Open edX system. 
 
     .. note:: 
-      if you want to use the automated SEB restriction feature, the :ref:`<lms-setup-edx-plugin-label>` must be installed properly within the LMS.
+      if you want to use the automated SEB restriction feature, the `Open edX SEB Plugin <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-setup-rest-plugin-label>`_ must be installed properly on the LMS.
   
 - **: Moodle**: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the described API's of the Moodle system but there is currently no SEB restriction plugin available that works
-  with SEB Server. Note that Moodle binding is experimental in the current SEB Server version and there is no garantee to work correctly or to work
+  with SEB Server. Note that Moodle binding is experimental in the current SEB Server version and there is no guarantee to work correctly or to work
   with an upcoming full Moodle integration in newer version.
 
 The "LMS Server Address" is the root URL to connect to the LMS server with HTTP over the Internet or intranet. This is usually the the URL that is 
@@ -97,12 +97,8 @@ Use Cases
 A new Open edX system has been installed within your institution and to be able to use the system also for e-assessments with SEB and SEB Server,
 you have to bind the LMS to the SEB Server. 
 
-.. note:: 
-    If not already done, install the  :ref:`lms-setup-edx-plugin-label`  on the Open edX system first.
-    
-.. note:: 
-    If you don't already have an API access account on Open edX side, create an :ref:`lms-api-account-edx-label` .
-
+- If not already done, install the `Open edX SEB Plugin <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-setup-rest-plugin-label>`_  on the Open edX system first.
+- If you don't already have an API access account on Open edX side, `<create one <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-api-account-edx-label>`_
 - Sign into SEB Server with your institutional administrator role account.
 - Navigate to "Exam Administration" / "LMS Setup" within the navigation on the left hand side.
 - Use the "Add LMS Setup" action from the right action pane to open a LMS Setup creation form.
