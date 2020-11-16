@@ -6,6 +6,7 @@ coverage:
     project:
       default:
         threshold: 5%
+    patch: off
   
 fixes:
   -"::seb-server/"
