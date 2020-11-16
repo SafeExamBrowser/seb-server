@@ -8,15 +8,16 @@ Overview
 
 To be able to connect to a learning management system (LMS), to view and manage the courses provided by a LMS is an essential feature of the SEB Server.
 To setup an exam or e-assessment for SEB on SEB Server that is based on a course from a LMS, we have to make a binding to the course on the LMS.
-This allows as to always get the actual course data from LMS like, start- end-time, name and others. If we furthermore want to be able to automatically 
-restrict the course for SEB access only we also need to have proper integration API's in place on both sides, the LMS and the SEB Server. 
-This integration is separated into two main features so far. This are:
+This is also used to always get the actual course data from LMS like start- end-time, name and others. 
+Another feature of SEB Server that needs a LMS communication is the SEB restriction. A SEB restriction will restrict course access on the LMS only 
+for connection with Safe Exam Browser and will also check if a Safe Exam Browser of trust is used and the right configuration is used by the
+Safe Exam Browser that was defines for the exam on the SEB Server.
 
 **Course API** 
 
 This API, provided by the LMS, is used by the SEB Server to query the available courses and the needed data for each course. This API
-is essential to be able to import a course from the LMS as an exam into SEB Server and configure the course as an e-assessment with SEB.
-Usually this API comes as a REST or SOAP API with the core LMS implementation. 
+is needed to be able to import a course from the LMS as an exam into SEB Server and configure the course as an e-assessment with SEB.
+Usually this API comes as a REST or SOAP API with the core LMS implementation or a plugin.
 
 SEB Server supports this course API's so far:
  - Open edX: The standard system `Open edX REST API <https://courses.edx.org/api-docs/>`_. The SEB Server uses the "courses" endpoints to get course data.
@@ -38,7 +39,7 @@ Regardless if a supported LMS is missing the SEB integration plugin installation
 setup will be possible but without automated SEB restriction feature.
 
 To be able connect to an LMS from SEB Server, we need to create an API access-acount on the LMS side that can be used by the SEB Server to 
-access the API of the LMS. How to do this for the different supported types of LMS see ref:`lms-api-account-label`
+access the API of the LMS. How to do this for the different supported types of LMS see :ref:`lms-api-account-label`
 After such an account was created the account credentials, username and password, can be used by the SEB Server to connect to the LMS.
 Therefore we need to create a LMS Setup on the SEB Server.
 
@@ -51,15 +52,18 @@ is only able to see and create LMS Setup for its own institution. The name of th
 SEB Server internally. Use the "Type" selector to specify the type of the LMS to bind to the SEB Server within the LMS Setup. Currently supported are:
 
 - **Testing**: This is for testing purposes only and can be used to mock a LMS to test exam settings. This type provides some mock-up courses within the 
-  LMS API of the SEB Server that can be seen in the LMS Exam Lookup once the LMS text setup is active. This mock-up courses can be imported and configuraed
+  LMS API of the SEB Server that can be seen in the LMS Exam Lookup once the LMS text setup is active. This mock-up courses can be imported and configured
   as exams like they would exist. But note the a SEB client that is trying to connect to such a course would not be able to connect to the LMS since it
   is not existing. But a SEB client is able to download the defined exam configuration for testing.
 - **Open edX**: This type is to bind an existing `Open edX <https://open.edx.org/>`_ LMS system that is available on the Internet or intranet. The SEB
-  Server tries to make use of the described API's of the Open edX system and if the automated SEB restriction feature wanted to be used the 
-  :ref:`lms-setup-edx-plugin-label` must be installed properly within the LMS.
+  Server tries to make use of the above described API's of the Open edX system. 
+
+    .. note:: 
+      If you want to use the automated SEB restriction feature too, the `Open edX SEB Plugin <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-setup-rest-plugin-label>`_ must be installed properly on the LMS.
+  
 - **: Moodle**: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the described API's of the Moodle system but there is currently no SEB restriction plugin available that works
-  with SEB Server. Note that Moodle binding is experimental in the current SEB Server version and there is no garantee to work correctly or to work
+  with SEB Server. Note that Moodle binding is experimental in the current SEB Server version and there is no guarantee to work correctly or to work
   with an upcoming full Moodle integration in newer version.
 
 The "LMS Server Address" is the root URL to connect to the LMS server with HTTP over the Internet or intranet. This is usually the the URL that is 
@@ -93,14 +97,14 @@ Use Cases
 A new Open edX system has been installed within your institution and to be able to use the system also for e-assessments with SEB and SEB Server,
 you have to bind the LMS to the SEB Server. 
 
-- If not already done, install the :ref:`lms-setup-edx-plugin-label` on the Open edX system first.
-- On the Open edX system create an :ref:`lms-api-account-edx-label`.
+- If not already done, install the `Open edX SEB Plugin <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-setup-rest-plugin-label>`_  on the Open edX system first.
+- If you don't already have an API access account on Open edX side, `create one <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-api-account-edx-label>`_
 - Sign into SEB Server with your institutional administrator role account.
 - Navigate to "Exam Administration" / "LMS Setup" within the navigation on the left hand side.
 - Use the "Add LMS Setup" action from the right action pane to open a LMS Setup creation form.
 - Give a unique name to the new LMS Setup for internally identification.
 - Set the main URL that points to the new LMS system. This is usually the the URL that is also used with the Browser to connect to the main page of the LMS system
-- Set the API credentials that has been creates within step two.
+- Set the API credentials that has been creates within step two (client-id, secret).
 - Use the "Activate LMS Setup" action on the right action pane to test, save and activate the new LMS Setup within one step.
 
 .. note:: 
@@ -123,7 +127,7 @@ that has to be set on the existing LMS Setup on the SEB Server.
 - Use the Filter above the list to find the specified LMS Setup.
 - Select the LMS Setup from the list and use the "Edit LMS Setup" action from the right action pane to open the LMS Setup in edit mode.
 - Set the new credentials and make sure, the LMS Setup is still active. 
-- Use the "Save LMS Setup" action form the right action pane to save the changes and test the conneciton.
+- Use the "Save LMS Setup" action form the right action pane to save the changes and test the connection.
 
 .. note:: 
     If some form attributes are missing or not correct, the SEB Server system will respond with the usual form validation errors.
@@ -146,13 +150,17 @@ the setup and exams on the SEB Server for this LMS.
 - Navigate also to "Exam" and make sure that all previously imported exams from the deactivated LMS Setup are not available anymore.
 
 .. _lms-api-account-label:
+
 API Access Account on LMS
 --------------------------
 
 .. _lms-api-account-edx-label:
-**Open edX API Access Account**
 
-To be able to create an API access-account on Open edX you need a user-account with staff and administration privileges. Following the steps below:
+**Create Open edX API Access Account**
+
+To be able to create an API access-account on Open edX you need a user-account with staff and administration privileges.
+
+**For Open edX Hawthorn and Ironwood versions following the steps below::**
 
 - Login to Open edX LMS Administration with an appropriate user-account that has administration rights. And find the Users section:
 
@@ -181,13 +189,15 @@ Once the client registration was successful the client id and client secret can 
 
 
 .. _lms-setup-rest-plugin-label:
+
 Install SEB restriction API plugin
 ----------------------------------
 
 .. _lms-setup-edx-plugin-label:
+
 **Open edX SEB Plugin**
 
-There is a SEB integration plugin developed and supported by `eduNEXT <https://www.edunext.co/>`_. 
- - `Documentation <https://seb-openedx.readthedocs.io/en/latest/>`_
- - `Repository <https://github.com/eduNEXT/seb-openedx>`_
+    There is a SEB integration plugin developed and supported by `eduNEXT <https://www.edunext.co/>`_. 
+     - `Documentation <https://seb-openedx.readthedocs.io/en/latest/>`_
+     - `Repository <https://github.com/eduNEXT/seb-openedx>`_
 
