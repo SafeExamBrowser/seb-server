@@ -59,7 +59,7 @@ SEB Server internally. Use the "Type" selector to specify the type of the LMS to
   Server tries to make use of the above described API's of the Open edX system. 
 
     .. note:: 
-      if you want to use the automated SEB restriction feature, the :ref:`lms-setup-edx-plugin-label` must be installed properly within the LMS.
+      if you want to use the automated SEB restriction feature, the :ref:`<lms-setup-edx-plugin-label>` must be installed properly within the LMS.
   
 - **: Moodle**: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the described API's of the Moodle system but there is currently no SEB restriction plugin available that works
