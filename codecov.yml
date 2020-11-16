@@ -1,7 +1,12 @@
 coverage:
-  range: "40...75"
-  round: down
   precision: 2
+  round: down
+  range: "40...100"
+  status:
+    project:
+      default:
+        threshold: 5%
+    patch: off
   
 fixes:
   -"::seb-server/"
