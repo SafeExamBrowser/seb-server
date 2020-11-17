@@ -54,43 +54,43 @@ public class ServerPushService {
                     }
                 }
 
-                if (business != null) {
-                    try {
-                        log.trace("Call business on Server Push Session on: {}", Thread.currentThread().getName());
-                        business.accept(context);
-                    } catch (final Exception e) {
-                        log.error("Unexpected error while do business for server push service", e);
-                        if (context.runAgain()) {
-                            continue;
-                        } else {
-                            return;
-                        }
-                    }
+                if (context.isDisposed()) {
+                    continue;
                 }
 
-                if (!context.isDisposed()) {
-
-                    log.trace("Call update on Server Push Session on: {}", Thread.currentThread().getName());
-
-                    context.getDisplay().asyncExec(() -> {
+                context.getDisplay().asyncExec(() -> {
+                    if (business != null) {
                         try {
-                            update.accept(context);
+
+                            if (log.isTraceEnabled()) {
+                                log.trace("Call business on Server Push Session on: {}",
+                                        Thread.currentThread().getName());
+                            }
+
+                            business.accept(context);
+                            updateGUI(context, update);
+
                         } catch (final Exception e) {
-                            log.warn(
-                                    "Failed to update on Server Push Session {}. It seems that the UISession is not available anymore. "
-                                            + "This may source from a connection interruption. cause: {}",
-                                    Thread.currentThread().getName(), e.getMessage());
+                            log.error("Unexpected error while do business for server push service", e);
+                            context.internalStop = context.errorHandler.apply(e);
                         }
-                    });
-                }
+                    } else {
+                        updateGUI(context, update);
+                    }
+                });
             }
 
-            log.info("Stop Server Push Session on: {}", Thread.currentThread().getName());
+            if (log.isInfoEnabled()) {
+                log.info("Stop Server Push Session on: {}", Thread.currentThread().getName());
+            }
+
             try {
                 pushSession.stop();
             } catch (final Exception e) {
                 log.warn(
-                        "Failed to stop Server Push Session on: {}. It seems that the UISession is not available anymore. This may source from a connection interruption",
+                        "Failed to stop Server Push Session on: {}. "
+                                + "It seems that the UISession is not available anymore. "
+                                + "This may source from a connection interruption",
                         Thread.currentThread().getName(), e);
             }
 
@@ -100,5 +100,29 @@ public class ServerPushService {
 
         bgThread.setDaemon(true);
         bgThread.start();
+    }
+
+    private void updateGUI(
+            final ServerPushContext context,
+            final Consumer<ServerPushContext> update) {
+
+        if (!context.isDisposed()) {
+
+            if (log.isTraceEnabled()) {
+                log.trace("Call update on Server Push Session on: {}",
+                        Thread.currentThread().getName());
+            }
+
+            try {
+                update.accept(context);
+            } catch (final Exception e) {
+                log.warn(
+                        "Failed to update on Server Push Session {}. "
+                                + "It seems that the UISession is not available anymore. "
+                                + "This may source from a connection interruption. cause: {}",
+                        Thread.currentThread().getName(), e.getMessage());
+                context.internalStop = context.errorHandler.apply(e);
+            }
+        }
     }
 }

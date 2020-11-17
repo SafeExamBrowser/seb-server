@@ -113,7 +113,13 @@ public final class ImageUploadSelection extends Composite {
                 ImageUploadSelection.this.fileUpload.submit(uploadHandler.getUploadUrl());
 
                 ImageUploadSelection.this.serverPushService.runServerPush(
-                        new ServerPushContext(ImageUploadSelection.this, ImageUploadSelection::uploadInProgress),
+                        new ServerPushContext(
+                                ImageUploadSelection.this,
+                                ImageUploadSelection::uploadInProgress,
+                                error -> {
+                                    log.error("Failed to upload image: {}", error.getMessage());
+                                    return false;
+                                }),
                         200,
                         ImageUploadSelection::update);
             });

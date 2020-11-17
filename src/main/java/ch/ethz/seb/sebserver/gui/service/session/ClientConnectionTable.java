@@ -303,10 +303,7 @@ public final class ClientConnectionTable {
         this.restCallBuilder
                 .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam)
                 .call()
-                .get(error -> {
-                    log.error("Error poll connection data: ", error);
-                    return Collections.emptyList();
-                })
+                .getOrThrow()
                 .forEach(data -> {
                     final UpdatableTableItem tableItem = this.tableMapping.computeIfAbsent(
                             data.getConnectionId(),

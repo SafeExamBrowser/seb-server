@@ -163,7 +163,10 @@ public class MonitoringClientConnection implements TemplateComposer {
                 indicators);
 
         this.serverPushService.runServerPush(
-                new ServerPushContext(content, Utils.truePredicate()),
+                new ServerPushContext(
+                        content,
+                        Utils.truePredicate(),
+                        MonitoringRunningExam.createServerPushUpdateErrorHandler(this.pageService, pageContext)),
                 this.pollInterval,
                 context1 -> clientConnectionDetails.updateData(),
                 context -> clientConnectionDetails.updateGUI());
