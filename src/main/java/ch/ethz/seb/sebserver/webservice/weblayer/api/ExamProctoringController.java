@@ -33,7 +33,6 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
@@ -427,8 +426,7 @@ public class ExamProctoringController {
         // get all active connections for the exam and send the join instruction
         this.examSessionService.getConnectionData(
                 examId,
-                cData -> cData.clientConnection.status == ConnectionStatus.ACTIVE
-                        || cData.clientConnection.status == ConnectionStatus.CLOSED)
+                ExamSessionService.ACTIVE_CONNECTION_DATA_FILTER)
                 .getOrThrow()
                 .stream()
                 .forEach(cc -> {

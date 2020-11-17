@@ -29,24 +29,26 @@ public class GuiServiceInfo {
     private final UriComponentsBuilder externalServerURIBuilder;
 
     public GuiServiceInfo(
-            @Value("${sebserver.gui.http.external.scheme:https}") final String externalScheme,
             @Value("${server.address}") final String internalServer,
-            @Value("${sebserver.webservice.http.external.servername}") final String webserviceServer,
-            @Value("${sebserver.webservice.http.external.port}") final String webservicePort,
-            @Value("${sebserver.gui.http.external.servername}") final String externalServer,
             @Value("${server.port}") final String internalPort,
+            @Value("${sebserver.gui.http.external.scheme}") final String externalScheme,
+            @Value("${sebserver.gui.http.external.servername}") final String externalServer,
             @Value("${sebserver.gui.http.external.port}") final String externalPort,
             @Value("${sebserver.gui.entrypoint:/gui}") final String entryPoint) {
 
+        if (StringUtils.isBlank(externalScheme)) {
+            throw new RuntimeException("Missing mandatory inital parameter sebserver.gui.http.external.servername");
+        }
+
+        if (StringUtils.isBlank(externalServer)) {
+            throw new RuntimeException("Missing mandatory inital parameter sebserver.gui.http.external.servername");
+        }
+
         this.externalScheme = externalScheme;
         this.internalServer = internalServer;
-        this.externalServer = StringUtils.isNotBlank(externalServer)
-                ? externalServer
-                : StringUtils.isNotBlank(webserviceServer)
-                        ? webserviceServer
-                        : internalServer;
+        this.externalServer = externalServer;
         this.internalPort = internalPort;
-        this.externalPort = StringUtils.isNotBlank(externalPort) ? externalPort : webservicePort;
+        this.externalPort = externalPort;
         this.entryPoint = entryPoint;
         this.internalServerURIBuilder = UriComponentsBuilder
                 .fromHttpUrl("http://" + this.internalServer);

@@ -681,7 +681,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         return this.clientConnectionDAO.save(new ClientConnection(
                 clientConnection.id, null, null,
                 status, null, null, null, null, null, null,
-                null))
+                true))
                 .getOrThrow();
     }
 
