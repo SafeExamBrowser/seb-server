@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
@@ -146,7 +147,7 @@ public class ComposerServiceImpl implements ComposerService {
                 final MessageBox logoutSuccess = new Message(
                         pageContext.getShell(),
                         this.i18nSupport.getText("sebserver.logout"),
-                        this.i18nSupport.getText("sebserver.logout.invalid-session.message"),
+                        Utils.formatLineBreaks(this.i18nSupport.getText("sebserver.logout.invalid-session.message")),
                         SWT.ICON_INFORMATION,
                         this.i18nSupport);
                 logoutSuccess.open(null);

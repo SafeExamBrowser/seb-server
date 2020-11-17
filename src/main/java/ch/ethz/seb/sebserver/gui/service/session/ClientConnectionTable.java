@@ -296,12 +296,12 @@ public final class ClientConnectionTable {
     }
 
     public void updateValues() {
-        if (this.statusFilterChanged) {
+        if (this.statusFilterChanged || this.forceUpdateAll) {
             this.toDelete.clear();
             this.toDelete.addAll(this.tableMapping.keySet());
         }
         this.restCallBuilder
-                .withHeader(API.EXAM_MONITORING_STATE_FILTER, (this.forceUpdateAll) ? "" : this.statusFilterParam)
+                .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam)
                 .call()
                 .get(error -> {
                     log.error("Error poll connection data: ", error);
@@ -312,7 +312,7 @@ public final class ClientConnectionTable {
                             data.getConnectionId(),
                             UpdatableTableItem::new);
                     tableItem.push(data);
-                    if (this.statusFilterChanged) {
+                    if (this.statusFilterChanged || this.forceUpdateAll) {
                         this.toDelete.remove(data.getConnectionId());
                     }
                 });
