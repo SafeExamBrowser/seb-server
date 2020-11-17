@@ -26,6 +26,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
@@ -80,6 +81,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
 import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
+import ch.ethz.seb.sebserver.gui.widget.Message;
 
 @Lazy
 @Component
@@ -198,7 +200,9 @@ public class MonitoringRunningExam implements TemplateComposer {
                         ActionDefinition.MONITOR_EXAM_NEW_PROCTOR_ROOM));
 
         this.serverPushService.runServerPush(
-                new ServerPushContext(content, Utils.truePredicate()),
+                new ServerPushContext(
+                        content, Utils.truePredicate(),
+                        createServerPushUpdateErrorHandler(this.pageService, pageContext)),
                 this.pollInterval,
                 context -> clientTable.updateValues(),
                 updateTableGUI(clientTable));
@@ -358,7 +362,10 @@ public class MonitoringRunningExam implements TemplateComposer {
                     actionBuilder,
                     proctoringSettings);
             this.serverPushService.runServerPush(
-                    new ServerPushContext(content, Utils.truePredicate()),
+                    new ServerPushContext(
+                            content,
+                            Utils.truePredicate(),
+                            createServerPushUpdateErrorHandler(this.pageService, pageContext)),
                     this.proctoringRoomUpdateInterval,
                     context -> updateRoomActions(
                             entityKey,
@@ -704,6 +711,32 @@ public class MonitoringRunningExam implements TemplateComposer {
                     }
                 }
             }
+        };
+    }
+
+    static final Function<Exception, Boolean> createServerPushUpdateErrorHandler(
+            final PageService pageService,
+            final PageContext pageContext) {
+
+        return error -> {
+            log.error("Fialed to update server push: {}", error.getMessage());
+            try {
+                pageService.getCurrentUser().get();
+            } catch (final Exception e) {
+                log.error("Failed to verify current user after server push error: {}", e.getMessage());
+                log.info("Force logout and session cleanup...");
+                pageContext.forwardToLoginPage();
+                final MessageBox logoutSuccess = new Message(
+                        pageContext.getShell(),
+                        pageService.getI18nSupport().getText("sebserver.logout"),
+                        Utils.formatLineBreaks(
+                                pageService.getI18nSupport().getText("sebserver.logout.invalid-session.message")),
+                        SWT.ICON_INFORMATION,
+                        pageService.getI18nSupport());
+                logoutSuccess.open(null);
+                return true;
+            }
+            return false;
         };
     }
 

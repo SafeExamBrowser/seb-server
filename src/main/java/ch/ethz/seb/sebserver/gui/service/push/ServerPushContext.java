@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.push;
 
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.eclipse.swt.widgets.Composite;
@@ -18,23 +19,25 @@ import org.eclipse.swt.widgets.Display;
  * @author anhefti */
 public final class ServerPushContext {
 
-    private final Composite anchor;
-    private final Predicate<ServerPushContext> runAgain;
-
-    public ServerPushContext(final Composite anchor) {
-        this(anchor, context -> false);
-    }
+    public final Composite anchor;
+    public final Predicate<ServerPushContext> runAgain;
+    public final Function<Exception, Boolean> errorHandler;
+    boolean internalStop = false;
 
     public ServerPushContext(
             final Composite anchor,
-            final Predicate<ServerPushContext> runAgain) {
+            final Predicate<ServerPushContext> runAgain,
+            final Function<Exception, Boolean> errorHandler) {
 
+        this.errorHandler = errorHandler != null
+                ? errorHandler
+                : error -> true;
         this.anchor = anchor;
         this.runAgain = runAgain;
     }
 
     public boolean runAgain() {
-        return this.runAgain.test(this);
+        return !this.internalStop && this.runAgain.test(this);
     }
 
     public boolean isDisposed() {
