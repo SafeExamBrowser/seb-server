@@ -68,14 +68,14 @@ public class ServerPushService {
                             }
 
                             business.accept(context);
-                            updateGUI(context, update);
+                            doUpdate(context, update);
 
                         } catch (final Exception e) {
                             log.error("Unexpected error while do business for server push service", e);
                             context.internalStop = context.errorHandler.apply(e);
                         }
                     } else {
-                        updateGUI(context, update);
+                        doUpdate(context, update);
                     }
                 });
             }
@@ -102,7 +102,7 @@ public class ServerPushService {
         bgThread.start();
     }
 
-    private void updateGUI(
+    private void doUpdate(
             final ServerPushContext context,
             final Consumer<ServerPushContext> update) {
 
