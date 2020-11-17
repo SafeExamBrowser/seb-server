@@ -89,6 +89,8 @@ public interface ClientConnectionDAO extends
     Result<ClientConnection> createNew(ClientConnection data);
 
     @Override
+    // TODO check if it is possible to remove with examId
+    @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
     Result<ClientConnection> save(ClientConnection data);
 
     @CacheEvict(
