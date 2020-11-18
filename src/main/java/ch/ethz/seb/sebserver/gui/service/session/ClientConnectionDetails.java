@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.session;
 
 import java.util.Collection;
 import java.util.EnumMap;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.graphics.Color;
@@ -58,6 +59,7 @@ public class ClientConnectionDetails {
 
     private ClientConnectionData connectionData = null;
     private boolean statusChanged = true;
+    private Consumer<ClientConnectionData> statusChangeListener = null;
 
     public ClientConnectionDetails(
             final PageService pageService,
@@ -112,6 +114,10 @@ public class ClientConnectionDetails {
         this.formHandle = formBuilder.build();
     }
 
+    public void setStatusChangeListener(final Consumer<ClientConnectionData> statusChangeListener) {
+        this.statusChangeListener = statusChangeListener;
+    }
+
     public void updateData() {
         final ClientConnectionData connectionData = this.restCallBuilder
                 .call()
@@ -123,8 +129,8 @@ public class ClientConnectionDetails {
         if (this.connectionData != null && connectionData != null) {
             this.statusChanged =
                     this.connectionData.clientConnection.status != connectionData.clientConnection.status ||
-                            BooleanUtils.toBoolean(this.connectionData.missingPing) !=
-                                    BooleanUtils.toBoolean(connectionData.missingPing);
+                            BooleanUtils.toBoolean(this.connectionData.missingPing) != BooleanUtils
+                                    .toBoolean(connectionData.missingPing);
         }
         this.connectionData = connectionData;
     }
@@ -152,6 +158,10 @@ public class ClientConnectionDetails {
             final Color statusTextColor = this.colorData.getStatusTextColor(statusColor);
             form.setFieldColor(Domain.CLIENT_CONNECTION.ATTR_STATUS, statusColor);
             form.setFieldTextColor(Domain.CLIENT_CONNECTION.ATTR_STATUS, statusTextColor);
+
+            if (this.statusChangeListener != null) {
+                this.statusChangeListener.accept(this.connectionData);
+            }
         }
 
         // update indicators

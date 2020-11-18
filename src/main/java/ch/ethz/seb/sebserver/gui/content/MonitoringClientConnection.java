@@ -47,6 +47,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
@@ -75,16 +76,16 @@ public class MonitoringClientConnection implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(MonitoringClientConnection.class);
 
-    // @formatter:off
-    private static final String OPEN_SINGEL_ROOM_SCRIPT =
-            "var existingWin = window.open('', '%s', 'height=420,width=640,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
-            "if(existingWin.location.href === 'about:blank'){\n" +
-            "    existingWin.location.href = '%s%s';\n" +
-            "    existingWin.focus();\n" +
-            "} else {\n" +
-            "    existingWin.focus();\n" +
-            "}";
-    // @formatter:on
+//    // @formatter:off
+//    private static final String OPEN_SINGEL_ROOM_SCRIPT =
+//            "var existingWin = window.open('', '%s', 'height=420,width=640,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
+//            "if(existingWin.location.href === 'about:blank'){\n" +
+//            "    existingWin.location.href = '%s%s';\n" +
+//            "    existingWin.focus();\n" +
+//            "} else {\n" +
+//            "    existingWin.focus();\n" +
+//            "}";
+//    // @formatter:on
 
     private static final LocTextKey PAGE_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.title");
@@ -289,8 +290,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER) &&
                         connectionData.clientConnection.status == ConnectionStatus.ACTIVE);
 
-        // TODO if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {
-        if (connectionData.clientConnection.status != ConnectionStatus.DISABLED) {
+        if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {
             final ProctoringSettings procotringSettings = restService
                     .getBuilder(GetProctoringSettings.class)
                     .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
@@ -311,6 +311,16 @@ public class MonitoringClientConnection implements TemplateComposer {
                         .withExec(action -> this.openExamCollectionProctorScreen(action, connectionData))
                         .noEventPropagation()
                         .publish();
+
+                clientConnectionDetails.setStatusChangeListener(ccd -> {
+                    this.pageService.firePageEvent(
+                            new ActionActivationEvent(
+                                    ccd.clientConnection.status == ConnectionStatus.ACTIVE,
+                                    ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_QUIT,
+                                    ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING,
+                                    ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_EXAM_ROOM_PROCTORING),
+                            pageContext);
+                });
             }
         }
     }
@@ -349,8 +359,10 @@ public class MonitoringClientConnection implements TemplateComposer {
 
             ProctoringGUIService.setCurrentProctoringWindowData(examId, proctoringConnectionData);
             final String script = String.format(
-                    MonitoringRunningExam.OPEN_EXAM_COLLECTION_ROOM_SCRIPT,
+                    MonitoringRunningExam.OPEN_ROOM_SCRIPT,
                     room.name,
+                    800,
+                    1200,
                     this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
                     this.remoteProctoringEndpoint);
 
@@ -396,8 +408,10 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
         final String script = String.format(
-                OPEN_SINGEL_ROOM_SCRIPT,
+                MonitoringRunningExam.OPEN_ROOM_SCRIPT,
                 roomName,
+                420,
+                640,
                 this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
                 this.remoteProctoringEndpoint);
         javaScriptExecutor.execute(script);

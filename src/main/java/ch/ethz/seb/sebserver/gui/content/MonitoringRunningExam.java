@@ -91,13 +91,18 @@ public class MonitoringRunningExam implements TemplateComposer {
     private static final Logger log = LoggerFactory.getLogger(MonitoringRunningExam.class);
 
  // @formatter:off
-    static final String OPEN_EXAM_COLLECTION_ROOM_SCRIPT =
-            "var existingWin = window.open('', '%s', 'height=800,width=1200,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
+    static final String OPEN_ROOM_SCRIPT =
+            "try {\n" +
+            "var existingWin = window.open('', '%s', 'height=%s,width=%s,location=no,scrollbars=yes,status=no,menubar=0,toolbar=no,titlebar=no,dialog=no');\n" +
             "if(existingWin.location.href === 'about:blank'){\n" +
             "    existingWin.location.href = '%s%s';\n" +
             "    existingWin.focus();\n" +
             "} else {\n" +
             "    existingWin.focus();\n" +
+            "}" +
+            "}\n" +
+            "catch(err) {\n" +
+            "    alert(\"Unexpected Javascript Error happened: \" + err);\n"+
             "}";
     // @formatter:on
 
@@ -411,55 +416,71 @@ public class MonitoringRunningExam implements TemplateComposer {
     }
 
     private PageAction openTownhallRoom(final PageAction action) {
-        final EntityKey examId = action.getEntityKey();
+        try {
+            final EntityKey examId = action.getEntityKey();
 
-        final ProctoringGUIService proctoringGUIService = this.pageService
-                .getCurrentUser()
-                .getProctoringGUIService();
+            final ProctoringGUIService proctoringGUIService = this.pageService
+                    .getCurrentUser()
+                    .getProctoringGUIService();
 
-        String activeAllRoomName = proctoringGUIService.getTownhallRoom(examId.modelId);
+            String activeAllRoomName = proctoringGUIService.getTownhallRoom(examId.modelId);
 
-        if (activeAllRoomName == null) {
-            final SEBProctoringConnectionData proctoringConnectionData = proctoringGUIService
-                    .registerTownhallRoom(
-                            examId.modelId,
-                            this.pageService.getI18nSupport().getText(EXAM_ROOM_NAME))
-                    .onError(error -> log.error(
-                            "Failed to open all collecting room for exam {} {}", examId.modelId, error.getMessage()))
-                    .getOrThrow();
-            ProctoringGUIService.setCurrentProctoringWindowData(
-                    examId.modelId,
-                    proctoringConnectionData);
-            activeAllRoomName = proctoringConnectionData.roomName;
+            if (activeAllRoomName == null) {
+                final SEBProctoringConnectionData proctoringConnectionData = proctoringGUIService
+                        .registerTownhallRoom(
+                                examId.modelId,
+                                this.pageService.getI18nSupport().getText(EXAM_ROOM_NAME))
+                        .onError(error -> log.error(
+                                "Failed to open all collecting room for exam {} {}", examId.modelId,
+                                error.getMessage()))
+                        .getOrThrow();
+                ProctoringGUIService.setCurrentProctoringWindowData(
+                        examId.modelId,
+                        proctoringConnectionData);
+                activeAllRoomName = proctoringConnectionData.roomName;
+            }
+
+            final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
+            final String script = String.format(
+                    OPEN_ROOM_SCRIPT,
+                    activeAllRoomName,
+                    800,
+                    1200,
+                    this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
+                    this.remoteProctoringEndpoint);
+            javaScriptExecutor.execute(script);
+            proctoringGUIService.registerProctoringWindow(activeAllRoomName);
+
+        } catch (final Exception e) {
+            log.error("Failed to open popup for townhall room: ", e);
         }
-
-        final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
-        final String script = String.format(
-                OPEN_EXAM_COLLECTION_ROOM_SCRIPT,
-                activeAllRoomName,
-                this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                this.remoteProctoringEndpoint);
-        javaScriptExecutor.execute(script);
-        proctoringGUIService.registerProctoringWindow(activeAllRoomName);
         return action;
     }
 
     private PageAction closeTownhallRoom(final PageAction action) {
+        final String examId = action.getEntityKey().modelId;
         final RemoteProctoringRoom townhall = this.pageService.getRestService()
                 .getBuilder(GetTownhallRoom.class)
-                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .withURIVariable(API.PARAM_MODEL_ID, examId)
                 .call()
                 .getOr(null);
 
         if (townhall == null || townhall.id == null) {
+            log.warn(
+                    "Close townhall action cannot get active townhall form webservice for exam: {}",
+                    examId);
             return action;
         }
 
-        final ProctoringGUIService proctoringGUIService = this.pageService
-                .getCurrentUser()
-                .getProctoringGUIService();
+        try {
+            final ProctoringGUIService proctoringGUIService = this.pageService
+                    .getCurrentUser()
+                    .getProctoringGUIService();
 
-        proctoringGUIService.closeRoom(townhall.name);
+            proctoringGUIService.closeRoom(townhall.name);
+        } catch (final Exception e) {
+            log.error("Failed to close procotring townhall room for exam: {}", examId);
+        }
         return action;
     }
 
@@ -616,8 +637,10 @@ public class MonitoringRunningExam implements TemplateComposer {
                 proctoringConnectionData);
 
         final String script = String.format(
-                OPEN_EXAM_COLLECTION_ROOM_SCRIPT,
+                OPEN_ROOM_SCRIPT,
                 room.name,
+                800,
+                1200,
                 this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
                 this.remoteProctoringEndpoint);
 

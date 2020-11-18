@@ -228,6 +228,8 @@ public class ProctoringGUIService {
                                 name,
                                 error.getMessage()));
             }
+        } else {
+            log.warn("No proctoring room with name: {} found for closing.", name);
         }
     }
 
