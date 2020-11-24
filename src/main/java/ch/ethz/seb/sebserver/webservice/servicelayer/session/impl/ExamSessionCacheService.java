@@ -112,6 +112,18 @@ public class ExamSessionCacheService {
         return exam;
     }
 
+    @CacheEvict(
+            cacheNames = CACHE_NAME_RUNNING_EXAM,
+            key = "#examId")
+    public Long evict(final Long examId) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Conditional eviction of running Exam from cache: {}", examId);
+        }
+
+        return examId;
+    }
+
     public boolean isRunning(final Exam exam) {
         if (exam == null) {
             return false;
