@@ -34,7 +34,7 @@ public class DisableClientConnection extends RestCall<String> {
                 HttpMethod.POST,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_MONITORING_ENDPOINT
-                        + API.MODEL_ID_VAR_PATH_SEGMENT
+                        + API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                         + API.EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT);
     }
 

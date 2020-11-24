@@ -41,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -51,7 +52,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
 
 @WebServiceProfile
 @RestController
@@ -62,21 +64,24 @@ public class ExamMonitoringController {
 
     private final SEBClientConnectionService sebClientConnectionService;
     private final ExamSessionService examSessionService;
-    private final SEBInstructionService sebInstructionService;
+    private final SEBClientInstructionService sebClientInstructionService;
     private final AuthorizationService authorization;
     private final PaginationService paginationService;
+    private final SEBClientNotificationService sebClientNotificationService;
 
     public ExamMonitoringController(
             final SEBClientConnectionService sebClientConnectionService,
-            final SEBInstructionService sebInstructionService,
+            final SEBClientInstructionService sebClientInstructionService,
             final AuthorizationService authorization,
-            final PaginationService paginationService) {
+            final PaginationService paginationService,
+            final SEBClientNotificationService sebClientNotificationService) {
 
         this.sebClientConnectionService = sebClientConnectionService;
         this.examSessionService = sebClientConnectionService.getExamSessionService();
-        this.sebInstructionService = sebInstructionService;
+        this.sebClientInstructionService = sebClientInstructionService;
         this.authorization = authorization;
         this.paginationService = paginationService;
+        this.sebClientNotificationService = sebClientNotificationService;
     }
 
     /** This is called by Spring to initialize the WebDataBinder and is used here to
@@ -150,7 +155,7 @@ public class ExamMonitoringController {
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -159,7 +164,7 @@ public class ExamMonitoringController {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates) {
 
         // check overall privilege
@@ -194,7 +199,8 @@ public class ExamMonitoringController {
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -203,7 +209,7 @@ public class ExamMonitoringController {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
         // check overall privilege
@@ -226,7 +232,8 @@ public class ExamMonitoringController {
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.EXAM_MONITORING_INSTRUCTION_ENDPOINT,
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_INSTRUCTION_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public void registerInstruction(
@@ -234,14 +241,64 @@ public class ExamMonitoringController {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @Valid @RequestBody final ClientInstruction clientInstruction) {
 
-        this.sebInstructionService.registerInstruction(clientInstruction);
+        this.sebClientInstructionService.registerInstruction(clientInstruction);
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT,
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_NOTIFICATION_ENDPOINT +
+                    API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Collection<ClientEvent> pendingNotifications(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
+
+        final ClientConnectionData connection = getConnectionDataForSingleConnection(
+                institutionId,
+                examId,
+                connectionToken);
+        return this.sebClientNotificationService
+                .getPendingNotifications(connection.getConnectionId())
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_NOTIFICATION_ENDPOINT +
+                    API.MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public void confirmNotification(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long notificationId,
+            @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
+
+        final ClientConnectionData connection = getConnectionDataForSingleConnection(
+                institutionId,
+                examId,
+                connectionToken);
+        this.sebClientNotificationService.confirmPendingNotification(
+                notificationId,
+                connection.getConnectionId())
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void disableConnection(
@@ -249,7 +306,7 @@ public class ExamMonitoringController {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @RequestParam(
                     name = Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
                     required = true) final String connectionToken) {
@@ -266,7 +323,6 @@ public class ExamMonitoringController {
                     .disableConnection(connectionToken, institutionId)
                     .getOrThrow();
         }
-
     }
 
     private boolean hasRunningExamPrivilege(final Long examId, final Long institution) {

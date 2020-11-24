@@ -13,6 +13,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -31,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper.ConnectionEventJoinRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
@@ -181,6 +183,43 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                 .map(ClientEventDAOImpl::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<List<ClientEvent>> getPendingNotifications(final Long clientConnectionId) {
+        return Result.tryCatch(() -> this.clientEventRecordMapper.selectByExample()
+                .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(clientConnectionId))
+                .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.NOTIFICATION.id))
+                .build()
+                .execute()
+                .stream()
+                .map(ClientEventDAOImpl::toDomainModel)
+                .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional
+    public Result<ClientEvent> confirmPendingNotification(final Long notificationId, final Long clientConnectionId) {
+        return Result.tryCatch(() -> {
+            final Long pk = this.clientEventRecordMapper.selectIdsByExample()
+                    .where(ClientEventRecordDynamicSqlSupport.id, isEqualTo(notificationId))
+                    .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.NOTIFICATION.id))
+                    .build()
+                    .execute()
+                    .stream().collect(Utils.toSingleton());
+
+            this.clientEventRecordMapper.updateByPrimaryKeySelective(new ClientEventRecord(
+                    pk,
+                    null,
+                    EventType.NOTIFICATION_CONFIRMED.id,
+                    null, null, null, null));
+
+            return this.clientEventRecordMapper.selectByPrimaryKey(pk);
+        })
+                .flatMap(ClientEventDAOImpl::toDomainModel)
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

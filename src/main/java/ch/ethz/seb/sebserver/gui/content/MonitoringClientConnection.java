@@ -182,7 +182,7 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         final RestCall<ClientConnectionData>.RestCallBuilder getConnectionData =
                 restService.getBuilder(GetClientConnectionData.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                        .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
                         .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
 
         final ClientConnectionData connectionData = getConnectionData

@@ -44,7 +44,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 
 @WebServiceProfile
 @RestController
@@ -55,14 +55,14 @@ public class ExamProctoringController {
 
     private final ExamProctoringRoomService examProcotringRoomService;
     private final ExamAdminService examAdminService;
-    private final SEBInstructionService sebInstructionService;
+    private final SEBClientInstructionService sebInstructionService;
     private final AuthorizationService authorization;
     private final ExamSessionService examSessionService;
 
     public ExamProctoringController(
             final ExamProctoringRoomService examProcotringRoomService,
             final ExamAdminService examAdminService,
-            final SEBInstructionService sebInstructionService,
+            final SEBClientInstructionService sebInstructionService,
             final AuthorizationService authorization,
             final ExamSessionService examSessionService) {
 

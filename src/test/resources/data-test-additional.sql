@@ -12,13 +12,18 @@ INSERT IGNORE INTO exam VALUES
     ;
     
 INSERT IGNORE INTO indicator VALUES
-    (1, 2, 'LAST_PING', 'Ping', 'dcdcdc', null, null)
+    (1, 2, 'LAST_PING', 'Ping', 'dcdcdc', null, null),
+    (2, 2, 'ERROR_COUNT', 'errors', 'dcdcdc', null, null),
+    (3, 2, 'INFO_COUNT', 'errors <vip,top>', 'dcdcdc', null, 'vip,top')
     ;
     
 INSERT IGNORE INTO threshold VALUES
     (1, 1, 1000.0000, '22b14c', null),
     (2, 1, 2000.0000, 'ff7e00', null),
-    (3, 1, 5000.0000, 'ed1c24', null)
+    (3, 1, 5000.0000, 'ed1c24', null),
+    (4, 2, 1, '22b14c', null),
+    (5, 2, 2, 'ff7e00', null),
+    (6, 2, 5, 'ed1c24', null)
     ;
 
 INSERT IGNORE INTO view VALUES

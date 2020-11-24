@@ -34,7 +34,7 @@ public class PropagateInstruction extends RestCall<String> {
                 HttpMethod.POST,
                 MediaType.APPLICATION_JSON_UTF8,
                 API.EXAM_MONITORING_ENDPOINT
-                        + API.MODEL_ID_VAR_PATH_SEGMENT
+                        + API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                         + API.EXAM_MONITORING_INSTRUCTION_ENDPOINT);
     }
 

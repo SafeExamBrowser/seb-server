@@ -918,8 +918,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final Result<Indicator> newIndicatorResult = restService
                 .getBuilder(NewIndicator.class)
                 .withFormParam(Domain.INDICATOR.ATTR_EXAM_ID, exam.getModelId())
-                .withFormParam(Domain.INDICATOR.ATTR_NAME, "Ping")
-                .withFormParam(Domain.INDICATOR.ATTR_TYPE, IndicatorType.LAST_PING.name)
+                .withFormParam(Domain.INDICATOR.ATTR_NAME, "Errors")
+                .withFormParam(Domain.INDICATOR.ATTR_TYPE, IndicatorType.ERROR_COUNT.name)
                 .withFormParam(Domain.INDICATOR.ATTR_COLOR, "000001")
                 .call();
 
@@ -927,7 +927,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(newIndicatorResult.hasError());
         final Indicator newIndicator = newIndicatorResult.get();
 
-        assertEquals("Ping", newIndicator.name);
+        assertEquals("Errors", newIndicator.name);
         assertEquals("000001", newIndicator.defaultColor);
 
         final Indicator indicatorToSave = new Indicator(
@@ -951,7 +951,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(savedIndicatorResult.hasError());
         final Indicator savedIndicator = savedIndicatorResult.get();
 
-        assertEquals("Ping", savedIndicator.name);
+        assertEquals("Errors", savedIndicator.name);
         assertEquals("000001", savedIndicator.defaultColor);
         final Collection<Threshold> thresholds = savedIndicator.getThresholds();
         assertFalse(thresholds.isEmpty());
@@ -2089,7 +2089,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         // get SEB connections
         Result<Collection<ClientConnectionData>> connectionsCall =
                 restService.getBuilder(GetClientConnectionDataList.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                        .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
                         .call();
 
         assertNotNull(connectionsCall);
@@ -2122,7 +2122,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             // send quit instruction
             connectionsCall =
                     restService.getBuilder(GetClientConnectionDataList.class)
-                            .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                            .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
                             .call();
 
             assertNotNull(connectionsCall);
@@ -2141,7 +2141,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     null);
 
             final Result<String> instructionCall = restService.getBuilder(PropagateInstruction.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.id))
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(exam.id))
                     .withBody(clientInstruction)
                     .call();
 
@@ -2155,7 +2155,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         connectionsCall =
                 restService.getBuilder(GetClientConnectionDataList.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                        .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
                         .call();
 
         assertNotNull(connectionsCall);
@@ -2171,7 +2171,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         // disable connection
         final Result<String> disableCall = restService.getBuilder(DisableClientConnection.class)
-                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
                 .withFormParam(
                         Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
                         conData.clientConnection.connectionToken)
@@ -2180,7 +2180,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(disableCall.hasError());
         connectionsCall =
                 restService.getBuilder(GetClientConnectionDataList.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                        .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
                         .call();
 
         assertNotNull(connectionsCall);

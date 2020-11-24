@@ -37,7 +37,7 @@ public class GetClientConnectionDataList extends RestCall<Collection<ClientConne
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_MONITORING_ENDPOINT
-                        + API.MODEL_ID_VAR_PATH_SEGMENT);
+                        + API.PARENT_MODEL_ID_VAR_PATH_SEGMENT);
     }
 
 }

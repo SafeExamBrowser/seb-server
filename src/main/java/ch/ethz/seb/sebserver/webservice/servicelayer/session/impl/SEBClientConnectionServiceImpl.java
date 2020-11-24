@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -39,7 +40,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrate
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.PingHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
 
 @Lazy
@@ -63,7 +65,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final ClientConnectionDAO clientConnectionDAO;
     private final PingHandlingStrategy pingHandlingStrategy;
     private final SEBClientConfigDAO sebClientConfigDAO;
-    private final SEBInstructionService sebInstructionService;
+    private final SEBClientInstructionService sebInstructionService;
+    private final SEBClientNotificationService sebClientNotificationService;
     private final WebserviceInfo webserviceInfo;
     private final ExamAdminService examAdminService;
 
@@ -72,7 +75,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
             final PingHandlingStrategyFactory pingHandlingStrategyFactory,
             final SEBClientConfigDAO sebClientConfigDAO,
-            final SEBInstructionService sebInstructionService,
+            final SEBClientInstructionService sebInstructionService,
+            final SEBClientNotificationService sebClientNotificationService,
             final ExamAdminService examAdminService) {
 
         this.examSessionService = examSessionService;
@@ -83,6 +87,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.eventHandlingStrategy = eventHandlingStrategyFactory.get();
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.sebInstructionService = sebInstructionService;
+        this.sebClientNotificationService = sebClientNotificationService;
         this.webserviceInfo = sebInstructionService.getWebserviceInfo();
         this.examAdminService = examAdminService;
     }
@@ -519,9 +524,14 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     event,
                     activeClientConnection.getConnectionId()));
 
-            // update indicators
-            activeClientConnection.getIndicatorMapping(event.eventType)
-                    .forEach(indicator -> indicator.notifyValueChange(event));
+            if (event.eventType == EventType.NOTIFICATION || event.eventType == EventType.NOTIFICATION_CONFIRMED) {
+                // notify notification service
+                this.sebClientNotificationService.notifyNewNotification(activeClientConnection.getConnectionId());
+            } else {
+                // update indicators
+                activeClientConnection.getIndicatorMapping(event.eventType)
+                        .forEach(indicator -> indicator.notifyValueChange(event));
+            }
         } else {
             log.warn("No active ClientConnection found for connectionToken: {}", connectionToken);
         }

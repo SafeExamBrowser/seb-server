@@ -181,7 +181,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCall =
                 restService.getBuilder(GetClientConnectionDataList.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId());
+                        .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId());
 
         final ClientConnectionTable clientTable = new ClientConnectionTable(
                 this.pageService,

@@ -54,7 +54,7 @@ public class ExamSessionCacheService {
 
     private final ExamDAO examDAO;
     private final ClientConnectionDAO clientConnectionDAO;
-    private final ClientIndicatorFactory clientIndicatorFactory;
+    private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
     private final ExamConfigService sebExamConfigService;
     private final ClientEventRecordMapper clientEventRecordMapper;
     private final ExamUpdateHandler examUpdateHandler;
@@ -62,7 +62,7 @@ public class ExamSessionCacheService {
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
             final ClientConnectionDAO clientConnectionDAO,
-            final ClientIndicatorFactory clientIndicatorFactory,
+            final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
             final ExamConfigService sebExamConfigService,
             final ClientEventRecordMapper clientEventRecordMapper,
             final ExamUpdateHandler examUpdateHandler,
@@ -70,7 +70,7 @@ public class ExamSessionCacheService {
 
         this.examDAO = examDAO;
         this.clientConnectionDAO = clientConnectionDAO;
-        this.clientIndicatorFactory = clientIndicatorFactory;
+        this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
         this.sebExamConfigService = sebExamConfigService;
         this.clientEventRecordMapper = clientEventRecordMapper;
         this.examUpdateHandler = examUpdateHandler;
@@ -146,9 +146,7 @@ public class ExamSessionCacheService {
         if (clientConnection == null) {
             return null;
         } else {
-            return new ClientConnectionDataInternal(
-                    clientConnection,
-                    this.clientIndicatorFactory.createFor(clientConnection));
+            return this.internalClientConnectionDataFactory.createClientConnectionData(clientConnection);
         }
     }
 
@@ -239,7 +237,8 @@ public class ExamSessionCacheService {
                 .byConnectionToken(connectionToken);
 
         if (result.hasError()) {
-            log.error("Failed to find/load ClientConnection with connectionToken {}", connectionToken, result.getError());
+            log.error("Failed to find/load ClientConnection with connectionToken {}", connectionToken,
+                    result.getError());
             return null;
         }
         return result.get();

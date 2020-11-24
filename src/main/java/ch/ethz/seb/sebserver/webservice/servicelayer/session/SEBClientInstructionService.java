@@ -25,7 +25,7 @@ import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
  *
  * SEB instructions are sent as response of a SEB Ping on a active SEB Connection
  * If there is an instruction in the queue for a specified SEB Client. */
-public interface SEBInstructionService {
+public interface SEBClientInstructionService {
 
     /** Get the underling WebserviceInfo
      *

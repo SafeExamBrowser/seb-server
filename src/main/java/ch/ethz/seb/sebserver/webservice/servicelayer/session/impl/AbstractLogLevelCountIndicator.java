@@ -17,6 +17,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.SqlCriterion;
+
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -28,6 +34,7 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractClientIndic
     private final Set<EventType> observed;
     private final List<Integer> eventTypeIds;
     private final ClientEventRecordMapper clientEventRecordMapper;
+    protected String[] tags;
 
     protected AbstractLogLevelCountIndicator(
             final ClientEventRecordMapper clientEventRecordMapper,
@@ -38,6 +45,20 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractClientIndic
         this.eventTypeIds = Utils.immutableListOf(Arrays.stream(eventTypes)
                 .map(et -> et.id)
                 .collect(Collectors.toList()));
+
+    }
+
+    @Override
+    public void init(final Indicator indicatorDefinition, final Long connectionId, final boolean cachingEnabled) {
+        super.init(indicatorDefinition, connectionId, cachingEnabled);
+        if (indicatorDefinition == null || indicatorDefinition.tags == null) {
+            this.tags = null;
+        } else {
+            this.tags = StringUtils.split(indicatorDefinition.tags, Constants.COMMA);
+            for (int i = 0; i < this.tags.length; i++) {
+                this.tags[i] = Constants.ANGLE_BRACE_OPEN + this.tags[i] + Constants.ANGLE_BRACE_CLOSE;
+            }
+        }
     }
 
     @Override
@@ -47,10 +68,38 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractClientIndic
                 .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
                 .and(ClientEventRecordDynamicSqlSupport.type, isIn(this.eventTypeIds))
                 .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.text,
+                        isLikeWhenPresent(getfirstTagSQL()),
+                        getSubTagSQL())
                 .build()
                 .execute();
 
         return errors.doubleValue();
+    }
+
+    private String getfirstTagSQL() {
+        if (this.tags == null || this.tags.length == 0) {
+            return null;
+        }
+
+        return Utils.toSQLWildcard(this.tags[0]);
+    }
+
+    @SuppressWarnings("unchecked")
+    private SqlCriterion<String>[] getSubTagSQL() {
+        if (this.tags == null || this.tags.length == 0 || this.tags.length == 1) {
+            return new SqlCriterion[0];
+        }
+
+        final SqlCriterion<String>[] result = new SqlCriterion[this.tags.length - 1];
+        for (int i = 1; i < this.tags.length; i++) {
+            result[i - 1] = SqlBuilder.or(
+                    ClientEventRecordDynamicSqlSupport.text,
+                    isLike(Utils.toSQLWildcard(this.tags[1])));
+        }
+
+        return result;
     }
 
     @Override

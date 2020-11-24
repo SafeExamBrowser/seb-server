@@ -35,14 +35,14 @@ import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientInstructionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientInstructionDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 
 @Lazy
 @Service
 @WebServiceProfile
-public class SEBInstructionServiceImpl implements SEBInstructionService {
+public class SEBClientInstructionServiceImpl implements SEBClientInstructionService {
 
-    private static final Logger log = LoggerFactory.getLogger(SEBInstructionServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(SEBClientInstructionServiceImpl.class);
 
     private static final int INSTRUCTION_QUEUE_MAX_SIZE = 10;
     private static final String JSON_INST = "instruction";
@@ -57,7 +57,7 @@ public class SEBInstructionServiceImpl implements SEBInstructionService {
 
     private long lastRefresh = 0;
 
-    public SEBInstructionServiceImpl(
+    public SEBClientInstructionServiceImpl(
             final WebserviceInfo webserviceInfo,
             final ClientConnectionDAO clientConnectionDAO,
             final ClientInstructionDAO clientInstructionDAO,

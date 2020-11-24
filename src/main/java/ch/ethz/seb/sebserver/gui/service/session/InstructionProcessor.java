@@ -93,7 +93,7 @@ public class InstructionProcessor {
                 null);
 
         processInstruction(() -> this.restService.getBuilder(PropagateInstruction.class)
-                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examId))
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(examId))
                 .withBody(clientInstruction)
                 .call()
                 .getOrThrow(),
@@ -124,7 +124,7 @@ public class InstructionProcessor {
         }
 
         processInstruction(() -> this.restService.getBuilder(DisableClientConnection.class)
-                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(examId))
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(examId))
                 .withFormParam(
                         Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
                         StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR))

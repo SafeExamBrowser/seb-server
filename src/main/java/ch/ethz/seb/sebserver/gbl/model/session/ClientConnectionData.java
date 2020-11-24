@@ -14,15 +14,18 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientConnectionData {
 
     public static final String ATTR_CLIENT_CONNECTION = "clientConnection";
     public static final String ATTR_INDICATOR_VALUE = "indicatorValues";
     public static final String ATTR_MISSING_PING = "missingPing";
+    public static final String ATTR_PENDING_NOTIFICATION = "pendingNotification";
 
     @JsonProperty(ATTR_CLIENT_CONNECTION)
     public final ClientConnection clientConnection;
@@ -54,6 +57,11 @@ public class ClientConnectionData {
     @JsonProperty(ATTR_MISSING_PING)
     public Boolean getMissingPing() {
         return this.missingPing;
+    }
+
+    @JsonProperty(ATTR_PENDING_NOTIFICATION)
+    public Boolean pendingNotification() {
+        return false;
     }
 
     @JsonIgnore

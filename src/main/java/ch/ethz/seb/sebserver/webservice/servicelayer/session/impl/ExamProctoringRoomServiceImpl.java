@@ -34,7 +34,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 
 @Lazy
 @Service
@@ -45,14 +45,14 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final ClientConnectionDAO clientConnectionDAO;
-    private final SEBInstructionService sebInstructionService;
+    private final SEBClientInstructionService sebInstructionService;
     private final ExamAdminService examAdminService;
     private final ExamSessionService examSessionService;
 
     public ExamProctoringRoomServiceImpl(
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
             final ClientConnectionDAO clientConnectionDAO,
-            final SEBInstructionService sebInstructionService,
+            final SEBClientInstructionService sebInstructionService,
             final ExamAdminService examAdminService,
             final ExamSessionService examSessionService) {
 

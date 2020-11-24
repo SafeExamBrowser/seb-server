@@ -165,6 +165,7 @@ public final class API {
 
     public static final String EXAM_MONITORING_ENDPOINT = "/monitoring";
     public static final String EXAM_MONITORING_INSTRUCTION_ENDPOINT = "/instruction";
+    public static final String EXAM_MONITORING_NOTIFICATION_ENDPOINT = "/notification";
     public static final String EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT = "/disable-connection";
     public static final String EXAM_MONITORING_STATE_FILTER = "hidden-states";
     public static final String EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT =

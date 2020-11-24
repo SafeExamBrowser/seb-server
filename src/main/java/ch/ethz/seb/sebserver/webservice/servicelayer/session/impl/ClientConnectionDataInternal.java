@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.PendingNotificationIndication;
 
 public class ClientConnectionDataInternal extends ClientConnectionData {
 
@@ -31,12 +32,15 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     final EnumMap<EventType, Collection<ClientIndicator>> indicatorMapping;
 
     PingIntervalClientIndicator pingIndicator = null;
+    private final PendingNotificationIndication pendingNotificationIndication;
 
     protected ClientConnectionDataInternal(
             final ClientConnection clientConnection,
+            final PendingNotificationIndication pendingNotificationIndication,
             final List<ClientIndicator> clientIndicators) {
 
         super(clientConnection, clientIndicators);
+        this.pendingNotificationIndication = pendingNotificationIndication;
 
         this.indicatorMapping = new EnumMap<>(EventType.class);
         for (final ClientIndicator clientIndicator : clientIndicators) {
@@ -62,17 +66,21 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     }
 
     Collection<ClientIndicator> getIndicatorMapping(final EventType eventType) {
-        if (!this.indicatorMapping.containsKey(eventType)) {
-            return Collections.emptyList();
-        }
-
-        return this.indicatorMapping.get(eventType);
+        return this.indicatorMapping.getOrDefault(
+                eventType,
+                Collections.emptyList());
     }
 
     @Override
-    @JsonProperty("missingPing")
+    @JsonProperty(ATTR_MISSING_PING)
     public Boolean getMissingPing() {
         return this.pingIndicator.missingPing;
+    }
+
+    @Override
+    @JsonProperty(ATTR_PENDING_NOTIFICATION)
+    public Boolean pendingNotification() {
+        return this.pendingNotificationIndication.notifictionPending();
     }
 
 }

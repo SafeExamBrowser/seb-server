@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -25,5 +26,9 @@ public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
     Result<Collection<ExtendedClientEvent>> allMatchingExtended(
             FilterMap filterMap,
             Predicate<ExtendedClientEvent> predicate);
+
+    Result<List<ClientEvent>> getPendingNotifications(Long clientConnectionId);
+
+    Result<ClientEvent> confirmPendingNotification(Long notificationId, Long clientConnectionId);
 
 }
