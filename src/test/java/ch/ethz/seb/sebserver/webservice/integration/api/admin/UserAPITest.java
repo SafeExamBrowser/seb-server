@@ -916,6 +916,10 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 .header("Authorization", "Bearer " + examAdminToken))
                 .andExpect(status().isForbidden());
 
+        if ("0".equals(timeNow)) {
+            System.out.println("******");
+        }
+
         // With SEB Administrator it should work
         final String sebAdminToken = getSebAdminAccess();
         final EntityProcessingReport report = this.jsonMapper.readValue(

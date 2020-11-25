@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;

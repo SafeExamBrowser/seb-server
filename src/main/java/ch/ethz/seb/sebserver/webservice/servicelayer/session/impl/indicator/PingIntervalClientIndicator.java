@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -19,6 +19,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
@@ -60,6 +62,21 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
             log.error("Failed to initialize pingErrorThreshold: {}", e.getMessage());
             this.pingErrorThreshold = Constants.SECOND_IN_MILLIS * 5;
         }
+    }
+
+    @JsonIgnore
+    public final boolean isMissingPing() {
+        return this.missingPing;
+    }
+
+    @JsonIgnore
+    public final boolean isHidden() {
+        return this.hidden;
+    }
+
+    @JsonIgnore
+    public final void setHidden() {
+        this.hidden = true;
     }
 
     @Override

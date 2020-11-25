@@ -35,23 +35,31 @@ public final class Indicator implements Entity {
     public static final String FILTER_ATTR_EXAM_ID = "examId";
 
     public enum IndicatorType {
-        LAST_PING(Names.LAST_PING, true, true),
-        ERROR_COUNT(Names.ERROR_COUNT, true, false),
-        WARN_COUNT(Names.WARN_COUNT, true, false),
-        INFO_COUNT(Names.INFO_COUNT, true, false);
+        LAST_PING(Names.LAST_PING, true, true, false, false),
+        ERROR_COUNT(Names.ERROR_COUNT, true, false, true, false),
+        WARN_COUNT(Names.WARN_COUNT, true, false, true, false),
+        INFO_COUNT(Names.INFO_COUNT, true, false, true, false),
+        BATTERY_STATUS(Names.BATTERY_STATUS, true, true, true, true),
+        WLAN_STATUS(Names.WLAN_STATUS, true, true, true, true);
 
         public final String name;
         public final boolean integerValue;
         public final boolean showOnlyInActiveState;
+        public final boolean tags;
+        public final boolean tagsReadonly;
 
         IndicatorType(
                 final String name,
                 final boolean integerValue,
-                final boolean showOnlyInActiveState) {
+                final boolean showOnlyInActiveState,
+                final boolean tags,
+                final boolean tagsReadonly) {
 
             this.name = name;
             this.integerValue = integerValue;
             this.showOnlyInActiveState = showOnlyInActiveState;
+            this.tags = tags;
+            this.tagsReadonly = tagsReadonly;
         }
 
         @Override
@@ -64,6 +72,8 @@ public final class Indicator implements Entity {
             String ERROR_COUNT = "ERROR_COUNT";
             String WARN_COUNT = "WARN_COUNT";
             String INFO_COUNT = "INFO_COUNT";
+            String BATTERY_STATUS = "BATTERY_STATUS";
+            String WLAN_STATUS = "WLAN_STATUS";
         }
     }
 

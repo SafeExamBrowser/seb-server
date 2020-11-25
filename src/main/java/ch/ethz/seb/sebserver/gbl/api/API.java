@@ -101,6 +101,9 @@ public final class API {
 
     public static final String EXAM_API_EVENT_ENDPOINT = "/seblog";
 
+    public static final String LOG_EVENT_TAG_BATTERY_STATUS = "<battery>";
+    public static final String LOG_EVENT_TAG_WLAN_STATUS = "<wlan>";
+
     // *************************
     // ** Domain Object API
     // *************************

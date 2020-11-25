@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.PingIntervalClientIndicator;
 
 @Lazy
 @Component
@@ -93,7 +94,7 @@ public class ClientIndicatorFactory {
             if (!pingIndicatorAvailable) {
                 final PingIntervalClientIndicator pingIndicator = this.applicationContext
                         .getBean(PingIntervalClientIndicator.class);
-                pingIndicator.hidden = true;
+                pingIndicator.setHidden();
                 final Indicator indicator = new Indicator(
                         null,
                         clientConnection.examId,

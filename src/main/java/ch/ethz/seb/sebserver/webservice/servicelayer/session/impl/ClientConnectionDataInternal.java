@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.PendingNotificationIndication;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.PingIntervalClientIndicator;
 
 public class ClientConnectionDataInternal extends ClientConnectionData {
 
@@ -74,7 +75,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     @Override
     @JsonProperty(ATTR_MISSING_PING)
     public Boolean getMissingPing() {
-        return this.pingIndicator.missingPing;
+        return this.pingIndicator.isMissingPing();
     }
 
     @Override

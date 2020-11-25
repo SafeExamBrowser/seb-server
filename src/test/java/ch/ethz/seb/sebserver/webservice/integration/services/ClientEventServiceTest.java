@@ -29,7 +29,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.AbstractLogLevelCountIndicator;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.AbstractLogIndicator;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.AbstractLogLevelCountIndicator;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
 public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
@@ -158,6 +159,57 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
         ((AbstractLogLevelCountIndicator) clientIndicator).reset();
         assertEquals("3", IndicatorValue.getDisplayValue(clientIndicator));
 
+    }
+
+    @Test
+    public void testBatteryStatusIndicator() {
+
+        final ClientConnection connection = this.clientConnectionDAO
+                .createNew(new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token3", "userId", "", "", 1L,
+                        null, false))
+                .getOrThrow();
+
+        assertNotNull(connection.id);
+
+        final ClientConnectionData connectionData =
+                this.sebClientConnectionService.getExamSessionService().getConnectionData("token3")
+                        .getOrThrow();
+
+        assertNotNull(connectionData);
+        final Optional<? extends IndicatorValue> findFirst = connectionData.indicatorValues
+                .stream()
+                .filter(indicator -> indicator.getType() == IndicatorType.BATTERY_STATUS)
+                .findFirst();
+        assertTrue(findFirst.isPresent());
+        final IndicatorValue clientIndicator = findFirst.get();
+
+        assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator));
+
+        this.sebClientConnectionService.notifyClientEvent(
+                "token3",
+                new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "some info other"));
+
+        this.sebClientConnectionService.notifyClientEvent(
+                "token3",
+                new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "<vip> some info other"));
+
+        assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator));
+
+        this.sebClientConnectionService.notifyClientEvent(
+                "token3",
+                new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 90.0, "<battery> some info other"));
+
+        assertEquals("90", IndicatorValue.getDisplayValue(clientIndicator));
+
+        this.sebClientConnectionService.notifyClientEvent(
+                "token3",
+                new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 40.0, "<battery> some info other"));
+
+        assertEquals("40", IndicatorValue.getDisplayValue(clientIndicator));
+
+        // test reset indicator value and load it from persistent storage
+        ((AbstractLogIndicator) clientIndicator).reset();
+        assertEquals("40", IndicatorValue.getDisplayValue(clientIndicator));
     }
 
 }

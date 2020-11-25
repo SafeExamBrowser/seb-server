@@ -6,11 +6,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
 import static org.junit.Assert.assertEquals;
 
 import org.joda.time.DateTimeUtils;
+import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -21,10 +22,15 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapp
 
 public class PingIntervalClientIndicatorTest {
 
+    @After
+    public void cleanup() {
+        DateTimeUtils.setCurrentMillisProvider(DateTimeUtils.SYSTEM_MILLIS_PROVIDER);
+    }
+
     @Test
     public void testCreation() {
 
-        DateTimeUtils.setCurrentMillisFixed(1);
+        DateTimeUtils.setCurrentMillisProvider(() -> 1L);
 
         final ClientEventExtensionMapper clientEventExtensionMapper = Mockito.mock(ClientEventExtensionMapper.class);
 
@@ -35,7 +41,8 @@ public class PingIntervalClientIndicatorTest {
 
     @Test
     public void testInterval() {
-        DateTimeUtils.setCurrentMillisFixed(1);
+
+        DateTimeUtils.setCurrentMillisProvider(() -> 1L);
 
         final ClientEventExtensionMapper clientEventExtensionMapper = Mockito.mock(ClientEventExtensionMapper.class);
 
@@ -43,14 +50,14 @@ public class PingIntervalClientIndicatorTest {
                 new PingIntervalClientIndicator(clientEventExtensionMapper);
         assertEquals("0.0", String.valueOf(pingIntervalClientIndicator.getValue()));
 
-        DateTimeUtils.setCurrentMillisFixed(10);
+        DateTimeUtils.setCurrentMillisProvider(() -> 10L);
 
         assertEquals("9.0", String.valueOf(pingIntervalClientIndicator.getValue()));
     }
 
     @Test
     public void testSerialization() throws JsonProcessingException {
-        DateTimeUtils.setCurrentMillisFixed(1);
+        DateTimeUtils.setCurrentMillisProvider(() -> 1L);
 
         final ClientEventExtensionMapper clientEventExtensionMapper = Mockito.mock(ClientEventExtensionMapper.class);
 

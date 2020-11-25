@@ -14,7 +14,8 @@ INSERT IGNORE INTO exam VALUES
 INSERT IGNORE INTO indicator VALUES
     (1, 2, 'LAST_PING', 'Ping', 'dcdcdc', null, null),
     (2, 2, 'ERROR_COUNT', 'errors', 'dcdcdc', null, null),
-    (3, 2, 'INFO_COUNT', 'errors <vip,top>', 'dcdcdc', null, 'vip,top')
+    (3, 2, 'INFO_COUNT', 'errors <vip,top>', 'dcdcdc', null, 'vip,top'),
+    (4, 2, 'BATTERY_STATUS', 'battery status', 'dcdcdc', null, 'battery')
     ;
     
 INSERT IGNORE INTO threshold VALUES
