@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -33,6 +34,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -136,7 +138,7 @@ public final class ClientConnectionTable {
         loadStatusFilter();
 
         this.table = this.widgetFactory.tableLocalized(tableRoot, SWT.MULTI | SWT.V_SCROLL);
-        final GridLayout gridLayout = new GridLayout(3 + indicators.size(), true);
+        final GridLayout gridLayout = new GridLayout(3 + indicators.size(), false);
         gridLayout.horizontalSpacing = 100;
         gridLayout.marginWidth = 100;
         gridLayout.marginRight = 100;
@@ -147,6 +149,7 @@ public final class ClientConnectionTable {
         this.table.setLinesVisible(true);
 
         this.table.addListener(SWT.Selection, event -> this.notifySelectionChange());
+        this.table.addListener(SWT.MouseUp, this::notifyTableInfoClick);
 
         this.widgetFactory.tableColumnLocalized(
                 this.table,
@@ -432,6 +435,10 @@ public final class ClientConnectionTable {
         this.selectionListener.accept(this.getSelection());
     }
 
+    private void notifyTableInfoClick(final Event event) {
+        // TODO if right click get selected item and show additional information (notification)
+    }
+
     private final class UpdatableTableItem implements Comparable<UpdatableTableItem> {
 
         final Long connectionId;
@@ -445,14 +452,14 @@ public final class ClientConnectionTable {
             this.connectionId = connectionId;
         }
 
-        void update(final TableItem tableItem, final boolean force) {
+        private void update(final TableItem tableItem, final boolean force) {
             if (force || this.changed) {
                 update(tableItem);
             }
             this.changed = false;
         }
 
-        void update(final TableItem tableItem) {
+        private void update(final TableItem tableItem) {
             if (ClientConnectionTable.this.statusFilter.contains(this.connectionData.clientConnection.status)) {
                 tableItem.dispose();
                 return;
@@ -462,23 +469,35 @@ public final class ClientConnectionTable {
                 updateConnectionStatusColor(tableItem);
                 updateIndicatorValues(tableItem);
                 updateDuplicateColor(tableItem);
+                updateNotifications(tableItem);
             }
         }
 
-        void updateData(final TableItem tableItem) {
+        private void updateNotifications(final TableItem tableItem) {
+            if (BooleanUtils.isTrue(this.connectionData.pendingNotification())) {
+                tableItem.setImage(0,
+                        WidgetFactory.ImageIcon.NOTIFICATION.getImage(ClientConnectionTable.this.table.getDisplay()));
+            } else {
+                if (tableItem.getImage(0) != null) {
+                    tableItem.setImage(0, null);
+                }
+            }
+        }
+
+        private void updateData(final TableItem tableItem) {
             tableItem.setText(0, getConnectionIdentifier());
             tableItem.setText(1, getConnectionAddress());
             tableItem.setText(2, getStatusName());
         }
 
-        void updateConnectionStatusColor(final TableItem tableItem) {
+        private void updateConnectionStatusColor(final TableItem tableItem) {
             final Color statusColor = ClientConnectionTable.this.colorData.getStatusColor(this.connectionData);
             final Color statusTextColor = ClientConnectionTable.this.colorData.getStatusTextColor(statusColor);
             tableItem.setBackground(2, statusColor);
             tableItem.setForeground(2, statusTextColor);
         }
 
-        void updateDuplicateColor(final TableItem tableItem) {
+        private void updateDuplicateColor(final TableItem tableItem) {
 
             tableItem.setBackground(0, null);
             tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
@@ -494,14 +513,18 @@ public final class ClientConnectionTable {
                 if (list != null && list.size() > 1) {
                     tableItem.setBackground(0, ClientConnectionTable.this.colorData.color3);
                     tableItem.setForeground(0, ClientConnectionTable.this.lightFontColor);
+                    tableItem.setImage(1,
+                            WidgetFactory.ImageIcon.ADD.getImage(ClientConnectionTable.this.table.getDisplay()));
                 } else {
                     tableItem.setBackground(0, null);
                     tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
+                    tableItem.setImage(0, null);
+
                 }
             }
         }
 
-        void updateIndicatorValues(final TableItem tableItem) {
+        private void updateIndicatorValues(final TableItem tableItem) {
             if (this.connectionData == null || this.indicatorWeights == null) {
                 return;
             }

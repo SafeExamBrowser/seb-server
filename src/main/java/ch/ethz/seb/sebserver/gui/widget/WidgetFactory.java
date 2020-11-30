@@ -120,7 +120,8 @@ public class WidgetFactory {
         UNLOCK("unlock.png"),
         RESTRICTION("restriction.png"),
         VISIBILITY("visibility.png"),
-        VISIBILITY_OFF("visibility_off.png");
+        VISIBILITY_OFF("visibility_off.png"),
+        NOTIFICATION("notification.png");
 
         public String fileName;
         private ImageData image = null;
