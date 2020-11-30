@@ -13,6 +13,7 @@ import java.util.Base64.Encoder;
 import java.util.Collection;
 import java.util.Optional;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
 import org.eclipse.swt.widgets.Composite;
@@ -57,7 +58,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetPendingClientNotifications;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProcotringRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnectionData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -66,6 +69,7 @@ import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
 import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
+import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -76,19 +80,16 @@ public class MonitoringClientConnection implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(MonitoringClientConnection.class);
 
-//    // @formatter:off
-//    private static final String OPEN_SINGEL_ROOM_SCRIPT =
-//            "var existingWin = window.open('', '%s', 'height=420,width=640,location=no,scrollbars=yes,status=no,menubar=yes,toolbar=yes,titlebar=yes,dialog=yes');\n" +
-//            "if(existingWin.location.href === 'about:blank'){\n" +
-//            "    existingWin.location.href = '%s%s';\n" +
-//            "    existingWin.focus();\n" +
-//            "} else {\n" +
-//            "    existingWin.focus();\n" +
-//            "}";
-//    // @formatter:on
-
     private static final LocTextKey PAGE_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.title");
+
+    private static final LocTextKey NOTIFICATION_LIST_TITLE_KEY =
+            new LocTextKey("sebserver.monitoring.exam.connection.notificationlist.title");
+    private static final LocTextKey NOTIFICATION_LIST_TITLE_TOOLTIP_KEY =
+            new LocTextKey("sebserver.monitoring.exam.connection.notificationlist.title.tooltip");
+    private static final LocTextKey NOTIFICATION_LIST_CONFIRM_TEXT_KEY =
+            new LocTextKey("monitoring.exam.connection.action.confirm.notification.text");
+
     private static final LocTextKey EVENT_LIST_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.title");
     private static final LocTextKey EVENT_LIST_TITLE_TOOLTIP_KEY =
@@ -205,16 +206,76 @@ public class MonitoringClientConnection implements TemplateComposer {
                 context1 -> clientConnectionDetails.updateData(),
                 context -> clientConnectionDetails.updateGUI());
 
-        widgetFactory.addFormSubContextHeader(
-                content,
-                EVENT_LIST_TITLE_KEY,
-                EVENT_LIST_TITLE_TOOLTIP_KEY);
-
         final PageService.PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(
                         pageContext
                                 .clearAttributes()
                                 .clearEntityKeys());
+
+        final boolean hasNotification = BooleanUtils.isTrue(connectionData.pendingNotification());
+        if (hasNotification) {
+            // add notification table
+
+            widgetFactory.addFormSubContextHeader(
+                    content,
+                    NOTIFICATION_LIST_TITLE_KEY,
+                    NOTIFICATION_LIST_TITLE_TOOLTIP_KEY);
+
+            final EntityTable<ClientEvent> notificationTable = this.pageService.remoteListTableBuilder(
+                    restService.getRestCall(GetPendingClientNotifications.class),
+                    EntityType.CLIENT_EVENT)
+                    .withRestCallAdapter(builder -> builder.withURIVariable(
+                            API.PARAM_PARENT_MODEL_ID,
+                            parentEntityKey.modelId)
+                            .withURIVariable(
+                                    API.EXAM_API_SEB_CONNECTION_TOKEN,
+                                    connectionToken))
+                    .withPaging(5)
+                    .withColumn(new ColumnDefinition<ClientEvent>(
+                            Domain.CLIENT_EVENT.ATTR_TYPE,
+                            LIST_COLUMN_TYPE_KEY,
+                            this.resourceService::getEventTypeName)
+                                    .sortable()
+                                    .widthProportion(2))
+
+                    .withColumn(new ColumnDefinition<>(
+                            Domain.CLIENT_EVENT.ATTR_TEXT,
+                            LIST_COLUMN_TEXT_KEY,
+                            ClientEvent::getText)
+                                    .sortable()
+                                    .withCellTooltip()
+                                    .widthProportion(4))
+                    .withColumn(new ColumnDefinition<>(
+                            Domain.CLIENT_EVENT.ATTR_SERVER_TIME,
+                            new LocTextKey(LIST_COLUMN_SERVER_TIME_KEY.name,
+                                    this.i18nSupport.getUsersTimeZoneTitleSuffix()),
+                            this::getServerTime)
+                                    .sortable()
+                                    .widthProportion(1))
+                    .withDefaultAction(t -> actionBuilder
+                            .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_CONFIRM_NOTIFICATION)
+                            .withParentEntityKey(parentEntityKey)
+                            .withConfirm(() -> NOTIFICATION_LIST_CONFIRM_TEXT_KEY)
+                            .withExec(action -> this.confirmNotification(action, connectionData))
+                            .noEventPropagation()
+                            .create())
+                    .withSelectionListener(this.pageService.getSelectionPublisher(
+                            pageContext,
+                            ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_CONFIRM_NOTIFICATION))
+                    .compose(pageContext.copyOf(content));
+
+            actionBuilder
+                    .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_CONFIRM_NOTIFICATION)
+                    .withParentEntityKey(parentEntityKey)
+                    .withConfirm(() -> NOTIFICATION_LIST_CONFIRM_TEXT_KEY)
+                    .withExec(action -> this.confirmNotification(action, connectionData))
+                    .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
+        }
+
+        widgetFactory.addFormSubContextHeader(
+                content,
+                EVENT_LIST_TITLE_KEY,
+                EVENT_LIST_TITLE_TOOLTIP_KEY);
 
         // client event table for this connection
         this.pageService.entityTableBuilder(restService.getRestCall(GetExtendedClientEventPage.class))
@@ -323,6 +384,24 @@ public class MonitoringClientConnection implements TemplateComposer {
                 });
             }
         }
+    }
+
+    private PageAction confirmNotification(
+            final PageAction pageAction,
+            final ClientConnectionData connectionData) {
+
+        final EntityKey entityKey = pageAction.getSingleSelection();
+        final EntityKey parentEntityKey = pageAction.getParentEntityKey();
+
+        this.pageService.getRestService()
+                .getBuilder(ConfirmPendingClientNotification.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, parentEntityKey.modelId)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionData.clientConnection.connectionToken)
+                .call()
+                .getOrThrow();
+
+        return pageAction;
     }
 
     private PageAction openExamCollectionProctorScreen(

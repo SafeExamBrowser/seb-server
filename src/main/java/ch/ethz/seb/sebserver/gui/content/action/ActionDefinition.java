@@ -640,6 +640,11 @@ public enum ActionDefinition {
             ImageIcon.PROCTOR_ROOM,
             PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
             ActionCategory.FORM),
+    MONITOR_EXAM_CLIENT_CONNECTION_CONFIRM_NOTIFICATION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.confirm.notification"),
+            ImageIcon.YES,
+            PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
+            ActionCategory.FORM),
 
     MONITOR_EXAM_QUIT_SELECTED(
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.selected"),

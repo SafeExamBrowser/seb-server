@@ -110,6 +110,10 @@ public final class PageAction {
         return this.pageContext.getEntityKey();
     }
 
+    public EntityKey getParentEntityKey() {
+        return this.pageContext.getParentEntityKey();
+    }
+
     public PageContext pageContext() {
         return this.pageContext;
     }

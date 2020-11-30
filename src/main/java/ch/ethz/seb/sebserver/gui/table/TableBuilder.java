@@ -35,7 +35,7 @@ public class TableBuilder<ROW> {
     private final String name;
     private final PageService pageService;
     final RestCall<Page<ROW>> restCall;
-    final List<ROW> staticList;
+    final PageSupplier<ROW> pageSupplier;
     final EntityType entityType;
     private final MultiValueMap<String, String> staticQueryParams;
     final List<ColumnDefinition<ROW>> columns = new ArrayList<>();
@@ -58,7 +58,7 @@ public class TableBuilder<ROW> {
         this.name = name;
         this.pageService = pageService;
         this.restCall = restCall;
-        this.staticList = null;
+        this.pageSupplier = null;
         this.entityType = null;
         this.staticQueryParams = new LinkedMultiValueMap<>();
     }
@@ -72,8 +72,22 @@ public class TableBuilder<ROW> {
         this.name = name;
         this.pageService = pageService;
         this.restCall = null;
-        this.staticList = staticList;
         this.entityType = entityType;
+        this.pageSupplier = new StaticListPageSupplier<>(staticList, entityType);
+        this.staticQueryParams = new LinkedMultiValueMap<>();
+    }
+
+    public TableBuilder(
+            final String name,
+            final PageService pageService,
+            final PageSupplier<ROW> pageSupplier,
+            final EntityType entityType) {
+
+        this.name = name;
+        this.pageService = pageService;
+        this.restCall = null;
+        this.entityType = entityType;
+        this.pageSupplier = pageSupplier;
         this.staticQueryParams = new LinkedMultiValueMap<>();
     }
 
@@ -184,7 +198,7 @@ public class TableBuilder<ROW> {
                 pageContext,
                 (this.restCall != null)
                         ? new RestCallPageSupplier<>(this.restCall)
-                        : new StaticListPageSupplier<>(this.staticList, this.entityType),
+                        : this.pageSupplier,
                 this.restCallAdapter,
                 this.pageService,
                 this.columns,

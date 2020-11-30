@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.page;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -335,6 +336,8 @@ public interface PageService {
             RestCall<Page<T>> apiCall);
 
     <T> TableBuilder<T> staticListTableBuilder(final List<T> staticList, EntityType entityType);
+
+    <T> TableBuilder<T> remoteListTableBuilder(RestCall<Collection<T>> apiCall, EntityType entityType);
 
     /** Get a new PageActionBuilder for a given PageContext.
      *

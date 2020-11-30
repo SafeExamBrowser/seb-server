@@ -60,6 +60,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
+import ch.ethz.seb.sebserver.gui.table.RemoteListPageSupplier;
 import ch.ethz.seb.sebserver.gui.table.TableBuilder;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -381,6 +382,20 @@ public class PageServiceImpl implements PageService {
                         ? entityType.name()
                         : "",
                 this, staticList, entityType);
+    }
+
+    @Override
+    public <T> TableBuilder<T> remoteListTableBuilder(
+            final RestCall<Collection<T>> apiCall,
+            final EntityType entityType) {
+
+        return new TableBuilder<>(
+                (entityType != null)
+                        ? entityType.name()
+                        : "",
+                this,
+                new RemoteListPageSupplier<>(apiCall, entityType),
+                entityType);
     }
 
     @Override
