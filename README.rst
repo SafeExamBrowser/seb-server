@@ -7,6 +7,11 @@
     :target: https://seb-server.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+
+About
+-----
+The Safe Exam Browser Server web application simplifies and centralizes the configuration of SEB clients for exams. It interacts with a learning management or exam system for setting up and conducting e-assessments with Safe Exam Browser. It also improves security by allowing to monitor connected SEB clients in real time during e-assessments. 
+
 What is Safe Exam Browser (SEB)?
 --------------------------------
 
