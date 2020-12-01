@@ -52,6 +52,8 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
@@ -118,6 +120,8 @@ public class ResourceService {
             AttributeType.INLINE_TABLE);
 
     public static final String CLIENT_EVENT_TYPE_PREFIX = "sebserver.monitoring.exam.connection.event.type.";
+    public static final String CLIENT_NOTIFICATION_TYPE_PREFIX =
+            "sebserver.monitoring.exam.connection.notification.type.";
     public static final String USER_ACTIVITY_TYPE_PREFIX = "sebserver.overall.types.activityType.";
     public static final String ENTITY_TYPE_PREFIX = "sebserver.overall.types.entityType.";
     public static final String SEB_CONNECTION_STATUS_KEY_PREFIX = "sebserver.monitoring.exam.connection.status.";
@@ -198,6 +202,22 @@ public class ResourceService {
             return Constants.EMPTY_NOTE;
         }
         return this.i18nSupport.getText(CLIENT_EVENT_TYPE_PREFIX + eventType.name(), eventType.name());
+    }
+
+    public String getNotificationTypeName(final ClientNotification notification) {
+        if (notification == null) {
+            return getEventTypeName(EventType.UNKNOWN);
+        }
+        return getNotificationTypeName(notification.getNotificationType());
+    }
+
+    public String getNotificationTypeName(final NotificationType notificationType) {
+        if (notificationType == null) {
+            return Constants.EMPTY_NOTE;
+        }
+        return this.i18nSupport.getText(
+                CLIENT_NOTIFICATION_TYPE_PREFIX + notificationType.name(),
+                notificationType.name());
     }
 
     public List<Tuple<String>> indicatorTypeResources() {

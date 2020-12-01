@@ -19,20 +19,20 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetPendingClientNotifications extends RestCall<Collection<ClientEvent>> {
+public class GetPendingClientNotifications extends RestCall<Collection<ClientNotification>> {
 
     public GetPendingClientNotifications() {
         super(new TypeKey<>(
                 CallType.GET_LIST,
                 EntityType.CLIENT_EVENT,
-                new TypeReference<Collection<ClientEvent>>() {
+                new TypeReference<Collection<ClientNotification>>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,

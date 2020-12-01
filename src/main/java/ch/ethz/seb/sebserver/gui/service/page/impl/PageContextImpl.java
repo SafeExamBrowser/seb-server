@@ -339,6 +339,7 @@ public class PageContextImpl implements PageContext {
                 this.i18nSupport);
         messageBox.setMarkupEnabled(true);
         messageBox.open(null);
+        log.error("Unexpected error on GUI: ", error);
     }
 
     @Override

@@ -100,7 +100,6 @@ public final class Indicator implements Entity {
     public final String defaultIcon;
 
     @JsonProperty(INDICATOR.ATTR_TAGS)
-    @Size(min = 3, max = 255, message = "indicator:tag:size:{min}:{max}:${validatedValue}")
     public final String tags;
 
     @JsonProperty(THRESHOLD.REFERENCE_NAME)

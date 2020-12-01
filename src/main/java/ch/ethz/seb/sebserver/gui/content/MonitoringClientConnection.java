@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -88,7 +89,11 @@ public class MonitoringClientConnection implements TemplateComposer {
     private static final LocTextKey NOTIFICATION_LIST_TITLE_TOOLTIP_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.notificationlist.title.tooltip");
     private static final LocTextKey NOTIFICATION_LIST_CONFIRM_TEXT_KEY =
-            new LocTextKey("monitoring.exam.connection.action.confirm.notification.text");
+            new LocTextKey("sebserver.monitoring.exam.connection.action.confirm.notification.text");
+    private static final LocTextKey NOTIFICATION_LIST_NO_SELECTION_KEY =
+            new LocTextKey("sebserver.monitoring.exam.connection.notificationlist.pleaseSelect");
+    private static final LocTextKey NOTIFICATION_LIST_COLUMN_TYPE_KEY =
+            new LocTextKey("sebserver.monitoring.exam.connection.notificationlist.type");
 
     private static final LocTextKey EVENT_LIST_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.title");
@@ -98,6 +103,7 @@ public class MonitoringClientConnection implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.empty");
     private static final LocTextKey LIST_COLUMN_TYPE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.type");
+
     private static final LocTextKey LIST_COLUMN_CLIENT_TIME_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.clienttime");
     private static final LocTextKey LIST_COLUMN_SERVER_TIME_KEY =
@@ -212,6 +218,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                                 .clearAttributes()
                                 .clearEntityKeys());
 
+        // NOTIFICATIONS
         final boolean hasNotification = BooleanUtils.isTrue(connectionData.pendingNotification());
         if (hasNotification) {
             // add notification table
@@ -221,7 +228,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                     NOTIFICATION_LIST_TITLE_KEY,
                     NOTIFICATION_LIST_TITLE_TOOLTIP_KEY);
 
-            final EntityTable<ClientEvent> notificationTable = this.pageService.remoteListTableBuilder(
+            final EntityTable<ClientNotification> notificationTable = this.pageService.remoteListTableBuilder(
                     restService.getRestCall(GetPendingClientNotifications.class),
                     EntityType.CLIENT_EVENT)
                     .withRestCallAdapter(builder -> builder.withURIVariable(
@@ -230,22 +237,22 @@ public class MonitoringClientConnection implements TemplateComposer {
                             .withURIVariable(
                                     API.EXAM_API_SEB_CONNECTION_TOKEN,
                                     connectionToken))
-                    .withPaging(5)
-                    .withColumn(new ColumnDefinition<ClientEvent>(
-                            Domain.CLIENT_EVENT.ATTR_TYPE,
-                            LIST_COLUMN_TYPE_KEY,
-                            this.resourceService::getEventTypeName)
+                    .withPaging(-1)
+                    .withColumn(new ColumnDefinition<ClientNotification>(
+                            ClientNotification.ATTR_NOTIFICATION_TYPE,
+                            NOTIFICATION_LIST_COLUMN_TYPE_KEY,
+                            this.resourceService::getNotificationTypeName)
                                     .sortable()
                                     .widthProportion(2))
 
-                    .withColumn(new ColumnDefinition<>(
+                    .withColumn(new ColumnDefinition<ClientNotification>(
                             Domain.CLIENT_EVENT.ATTR_TEXT,
                             LIST_COLUMN_TEXT_KEY,
                             ClientEvent::getText)
                                     .sortable()
                                     .withCellTooltip()
                                     .widthProportion(4))
-                    .withColumn(new ColumnDefinition<>(
+                    .withColumn(new ColumnDefinition<ClientNotification>(
                             Domain.CLIENT_EVENT.ATTR_SERVER_TIME,
                             new LocTextKey(LIST_COLUMN_SERVER_TIME_KEY.name,
                                     this.i18nSupport.getUsersTimeZoneTitleSuffix()),
@@ -268,10 +275,15 @@ public class MonitoringClientConnection implements TemplateComposer {
                     .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_CONFIRM_NOTIFICATION)
                     .withParentEntityKey(parentEntityKey)
                     .withConfirm(() -> NOTIFICATION_LIST_CONFIRM_TEXT_KEY)
-                    .withExec(action -> this.confirmNotification(action, connectionData))
-                    .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER));
+                    .withSelect(
+                            () -> notificationTable.getSelection(),
+                            action -> this.confirmNotification(action, connectionData),
+                            NOTIFICATION_LIST_NO_SELECTION_KEY)
+
+                    .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER), false);
         }
 
+        // CLIENT EVENTS
         widgetFactory.addFormSubContextHeader(
                 content,
                 EVENT_LIST_TITLE_KEY,
@@ -401,7 +413,13 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .call()
                 .getOrThrow();
 
-        return pageAction;
+        return pageAction
+                .withEntityKey(
+                        new EntityKey(connectionData.getConnectionId(),
+                                EntityType.CLIENT_CONNECTION))
+                .withAttribute(
+                        Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
+                        connectionData.clientConnection.connectionToken);
     }
 
     private PageAction openExamCollectionProctorScreen(

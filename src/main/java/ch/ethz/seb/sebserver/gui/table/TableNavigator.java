@@ -26,6 +26,11 @@ public class TableNavigator {
     private final Composite composite;
     private final EntityTable<?> entityTable;
 
+    TableNavigator() {
+        this.composite = null;
+        this.entityTable = null;
+    }
+
     TableNavigator(final EntityTable<?> entityTable) {
         this.composite = new Composite(entityTable.composite, SWT.NONE);
         final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, true);
@@ -37,6 +42,10 @@ public class TableNavigator {
     }
 
     public Page<?> update(final Page<?> pageData) {
+        if (this.composite == null) {
+            return pageData;
+        }
+
         // clear all
         PageService.clearComposite(this.composite);
 

@@ -513,13 +513,9 @@ public final class ClientConnectionTable {
                 if (list != null && list.size() > 1) {
                     tableItem.setBackground(0, ClientConnectionTable.this.colorData.color3);
                     tableItem.setForeground(0, ClientConnectionTable.this.lightFontColor);
-                    tableItem.setImage(1,
-                            WidgetFactory.ImageIcon.ADD.getImage(ClientConnectionTable.this.table.getDisplay()));
                 } else {
                     tableItem.setBackground(0, null);
                     tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
-                    tableItem.setImage(0, null);
-
                 }
             }
         }

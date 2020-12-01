@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -187,21 +188,31 @@ public class ClientEventDAOImpl implements ClientEventDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<List<ClientEvent>> getPendingNotifications(final Long clientConnectionId) {
-        return Result.tryCatch(() -> this.clientEventRecordMapper.selectByExample()
+    public Result<ClientNotification> getPendingNotification(final Long notificationId) {
+        return Result.tryCatch(() -> this.clientEventRecordMapper
+                .selectByPrimaryKey(notificationId))
+                .flatMap(ClientEventDAOImpl::toClientNotificationModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<List<ClientNotification>> getPendingNotifications(final Long clientConnectionId) {
+        return Result.tryCatch(() -> this.clientEventRecordMapper
+                .selectByExample()
                 .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(clientConnectionId))
                 .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.NOTIFICATION.id))
                 .build()
                 .execute()
                 .stream()
-                .map(ClientEventDAOImpl::toDomainModel)
+                .map(ClientEventDAOImpl::toClientNotificationModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .collect(Collectors.toList()));
     }
 
     @Override
     @Transactional
-    public Result<ClientEvent> confirmPendingNotification(final Long notificationId, final Long clientConnectionId) {
+    public Result<ClientNotification> confirmPendingNotification(final Long notificationId,
+            final Long clientConnectionId) {
         return Result.tryCatch(() -> {
             final Long pk = this.clientEventRecordMapper.selectIdsByExample()
                     .where(ClientEventRecordDynamicSqlSupport.id, isEqualTo(notificationId))
@@ -218,7 +229,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
 
             return this.clientEventRecordMapper.selectByPrimaryKey(pk);
         })
-                .flatMap(ClientEventDAOImpl::toDomainModel)
+                .flatMap(ClientEventDAOImpl::toClientNotificationModel)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -283,6 +294,22 @@ public class ClientEventDAOImpl implements ClientEventDAO {
             }
 
             return record;
+        });
+    }
+
+    private static Result<ClientNotification> toClientNotificationModel(final ClientEventRecord record) {
+        return Result.tryCatch(() -> {
+
+            final Integer type = record.getType();
+            final BigDecimal numericValue = record.getNumericValue();
+            return new ClientNotification(
+                    record.getId(),
+                    record.getClientConnectionId(),
+                    (type != null) ? EventType.byId(type) : EventType.UNKNOWN,
+                    record.getClientTime(),
+                    record.getServerTime(),
+                    (numericValue != null) ? numericValue.doubleValue() : null,
+                    record.getText());
         });
     }
 

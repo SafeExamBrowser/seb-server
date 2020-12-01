@@ -41,8 +41,8 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -252,8 +252,9 @@ public class ExamMonitoringController {
                     API.EXAM_MONITORING_NOTIFICATION_ENDPOINT +
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Collection<ClientEvent> pendingNotifications(
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public Collection<ClientNotification> pendingNotifications(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -276,7 +277,7 @@ public class ExamMonitoringController {
                     API.MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void confirmNotification(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -286,13 +287,10 @@ public class ExamMonitoringController {
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long notificationId,
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
-        final ClientConnectionData connection = getConnectionDataForSingleConnection(
-                institutionId,
-                examId,
-                connectionToken);
         this.sebClientNotificationService.confirmPendingNotification(
                 notificationId,
-                connection.getConnectionId())
+                examId,
+                connectionToken)
                 .getOrThrow();
     }
 

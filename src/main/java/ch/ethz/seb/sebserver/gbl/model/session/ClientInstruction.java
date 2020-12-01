@@ -26,7 +26,8 @@ public final class ClientInstruction {
     public enum InstructionType {
         SEB_QUIT,
         SEB_PROCTORING,
-        SEB_RECONFIGURE_SETTINGS
+        SEB_RECONFIGURE_SETTINGS,
+        NOTIFICATION_CONFIRM
     }
 
     public enum ProctoringInstructionMethod {

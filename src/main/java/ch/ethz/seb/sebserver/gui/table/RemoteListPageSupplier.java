@@ -108,6 +108,10 @@ public class RemoteListPageSupplier<T> implements PageSupplier<T> {
                 }
 
                 final int numOfPages = list.size() / this.pageSize;
+                if (numOfPages <= 0) {
+                    return new Page<>(1, 1, this.column, list);
+                }
+
                 final List<T> subList = list.subList(this.pageNumber * this.pageSize,
                         this.pageNumber * this.pageSize + this.pageSize);
                 return new Page<>(numOfPages, this.pageNumber, this.column, subList);

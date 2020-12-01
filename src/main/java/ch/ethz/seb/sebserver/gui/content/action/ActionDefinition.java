@@ -644,7 +644,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.monitoring.exam.connection.action.confirm.notification"),
             ImageIcon.YES,
             PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
-            ActionCategory.FORM),
+            ActionCategory.EXAM_MONITORING_NOTIFICATION_LIST),
 
     MONITOR_EXAM_QUIT_SELECTED(
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.selected"),

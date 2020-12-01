@@ -33,14 +33,17 @@ public class ClientConnectionData {
     public final List<? extends IndicatorValue> indicatorValues;
 
     public final Boolean missingPing;
+    public final Boolean pendingNotification;
 
     @JsonCreator
     public ClientConnectionData(
             @JsonProperty(ATTR_MISSING_PING) final Boolean missingPing,
+            @JsonProperty(ATTR_PENDING_NOTIFICATION) final Boolean pendingNotification,
             @JsonProperty(ATTR_CLIENT_CONNECTION) final ClientConnection clientConnection,
             @JsonProperty(ATTR_INDICATOR_VALUE) final Collection<? extends SimpleIndicatorValue> indicatorValues) {
 
         this.missingPing = missingPing;
+        this.pendingNotification = pendingNotification;
         this.clientConnection = clientConnection;
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
     }
@@ -50,6 +53,7 @@ public class ClientConnectionData {
             final List<? extends IndicatorValue> indicatorValues) {
 
         this.missingPing = null;
+        this.pendingNotification = Boolean.FALSE;
         this.clientConnection = clientConnection;
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
     }
@@ -61,7 +65,7 @@ public class ClientConnectionData {
 
     @JsonProperty(ATTR_PENDING_NOTIFICATION)
     public Boolean pendingNotification() {
-        return false;
+        return this.pendingNotification;
     }
 
     @JsonIgnore

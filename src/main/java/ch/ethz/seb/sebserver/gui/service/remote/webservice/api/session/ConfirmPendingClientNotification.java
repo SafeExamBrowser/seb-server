@@ -32,7 +32,7 @@ public class ConfirmPendingClientNotification extends RestCall<Void> {
                 new TypeReference<Void>() {
                 }),
                 HttpMethod.POST,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_MONITORING_ENDPOINT
                         + API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                         + API.EXAM_MONITORING_NOTIFICATION_ENDPOINT

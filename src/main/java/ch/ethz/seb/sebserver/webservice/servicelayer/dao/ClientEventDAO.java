@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -27,8 +28,10 @@ public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
             FilterMap filterMap,
             Predicate<ExtendedClientEvent> predicate);
 
-    Result<List<ClientEvent>> getPendingNotifications(Long clientConnectionId);
+    Result<ClientNotification> getPendingNotification(Long notificationId);
 
-    Result<ClientEvent> confirmPendingNotification(Long notificationId, Long clientConnectionId);
+    Result<List<ClientNotification>> getPendingNotifications(Long clientConnectionId);
+
+    Result<ClientNotification> confirmPendingNotification(Long notificationId, Long clientConnectionId);
 
 }

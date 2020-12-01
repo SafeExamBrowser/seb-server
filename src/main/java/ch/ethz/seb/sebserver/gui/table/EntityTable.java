@@ -218,7 +218,7 @@ public class EntityTable<ROW> {
 
         this.table.addListener(SWT.Selection, event -> this.notifySelectionChange());
 
-        this.navigator = new TableNavigator(this);
+        this.navigator = (pageSize > 0) ? new TableNavigator(this) : new TableNavigator();
 
         createTableColumns();
         this.pageNumber = initCurrentPageFromUserAttr();

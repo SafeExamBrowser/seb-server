@@ -245,6 +245,7 @@ public class ModelObjectJSONGenerator {
 
         domainObject = new ClientConnectionData(
                 false,
+                false,
                 new ClientConnection(
                         1L, 1L, 1L, ConnectionStatus.ACTIVE, UUID.randomUUID().toString(),
                         "user-account-1", "86.119.30.213", "0.0.0.0", System.currentTimeMillis(), null, null),

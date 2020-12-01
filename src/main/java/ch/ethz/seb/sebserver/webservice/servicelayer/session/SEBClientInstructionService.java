@@ -36,8 +36,8 @@ public interface SEBClientInstructionService {
      *
      * @param clientInstruction the ClientInstruction instance to register
      * @return A Result refer to a void marker or to an error if happened */
-    default Result<Void> registerInstruction(final ClientInstruction clientInstructionn) {
-        return registerInstruction(clientInstructionn, false);
+    default Result<Void> registerInstruction(final ClientInstruction clientInstruction) {
+        return registerInstruction(clientInstruction, false);
     }
 
     /** Used to register a SEB client instruction for one or more active client connections
