@@ -571,7 +571,8 @@ public final class ClientConnectionTable {
 
         @Override
         public int compareTo(final UpdatableTableItem other) {
-            return Comparator.comparingInt(UpdatableTableItem::statusWeight)
+            return Comparator.comparingInt(UpdatableTableItem::notificationWeight)
+                    .thenComparingInt(UpdatableTableItem::statusWeight)
                     .thenComparingInt(UpdatableTableItem::thresholdsWeight)
                     .thenComparing(UpdatableTableItem::getConnectionIdentifier)
                     .compare(this, other);
@@ -598,6 +599,10 @@ public final class ClientConnectionTable {
             if (getOuterType() != other.getOuterType())
                 return false;
             return compareTo(other) == 0;
+        }
+
+        int notificationWeight() {
+            return BooleanUtils.isTrue(this.connectionData.pendingNotification) ? -1 : 0;
         }
 
         int statusWeight() {
@@ -653,9 +658,15 @@ public final class ClientConnectionTable {
                     final int indicatorWeight = IndicatorData.getWeight(indicatorData, value);
                     if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {
                         ClientConnectionTable.this.needsSort = true;
-                        this.thresholdsWeight -= this.indicatorWeights[indicatorData.index];
+                        this.thresholdsWeight -= (indicatorData.indicator.type.inverse)
+                                ? indicatorData.indicator.thresholds.size()
+                                        - this.indicatorWeights[indicatorData.index]
+                                : this.indicatorWeights[indicatorData.index];
                         this.indicatorWeights[indicatorData.index] = indicatorWeight;
-                        this.thresholdsWeight += this.indicatorWeights[indicatorData.index];
+                        this.thresholdsWeight += (indicatorData.indicator.type.inverse)
+                                ? indicatorData.indicator.thresholds.size()
+                                        - this.indicatorWeights[indicatorData.index]
+                                : this.indicatorWeights[indicatorData.index];
                     }
                 }
             }

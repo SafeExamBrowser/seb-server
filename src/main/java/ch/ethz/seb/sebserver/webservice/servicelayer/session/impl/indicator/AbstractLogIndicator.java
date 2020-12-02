@@ -39,7 +39,7 @@ public abstract class AbstractLogIndicator extends AbstractClientIndicator {
     @Override
     public void init(final Indicator indicatorDefinition, final Long connectionId, final boolean cachingEnabled) {
         super.init(indicatorDefinition, connectionId, cachingEnabled);
-        if (indicatorDefinition == null || indicatorDefinition.tags == null) {
+        if (indicatorDefinition == null || StringUtils.isBlank(indicatorDefinition.tags)) {
             this.tags = null;
         } else {
             this.tags = StringUtils.split(indicatorDefinition.tags, Constants.COMMA);

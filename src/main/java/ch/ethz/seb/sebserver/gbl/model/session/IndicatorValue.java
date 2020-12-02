@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.session;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 
 public interface IndicatorValue extends IndicatorValueHolder {
@@ -33,6 +34,9 @@ public interface IndicatorValue extends IndicatorValueHolder {
      * @param indicatorValue The indicator value instance
      * @return the display value of the given IndicatorValue */
     static String getDisplayValue(final IndicatorValue indicatorValue) {
+        if (Double.isNaN(indicatorValue.getValue())) {
+            return Constants.EMPTY_NOTE;
+        }
         if (indicatorValue.getType().integerValue) {
             return String.valueOf((int) indicatorValue.getValue());
         } else {

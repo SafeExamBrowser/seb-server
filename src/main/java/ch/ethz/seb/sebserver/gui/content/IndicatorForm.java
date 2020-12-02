@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import org.eclipse.swt.SWT;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -39,9 +39,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
-import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
-import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Component
@@ -174,7 +172,7 @@ public class IndicatorForm implements TemplateComposer {
                         Domain.INDICATOR.ATTR_TAGS,
                         FORM_TAGS_TEXT_KEY,
                         indicator.tags)
-                        .visibleIf(indicator.hasTags()))
+                        .visibleIf(indicator.type != null && indicator.type.tags && !indicator.type.tagsReadonly))
                 .addField(FormBuilder.thresholdList(
                         Domain.THRESHOLD.REFERENCE_NAME,
                         FORM_THRESHOLDS_TEXT_KEY,
@@ -183,14 +181,6 @@ public class IndicatorForm implements TemplateComposer {
                 .buildFor((isNew)
                         ? restService.getRestCall(NewIndicator.class)
                         : restService.getRestCall(SaveIndicator.class));
-
-        formHandle.getForm().getFieldInput(Domain.INDICATOR.ATTR_TYPE)
-                .addListener(SWT.Selection, event -> formHandle.process(
-                        name -> Domain.INDICATOR.ATTR_TAGS.equals(name),
-                        ffa -> {
-                            final String stringValue = ((Selection) event.widget).getSelectionValue();
-                            ffa.setVisible(stringValue == null || !stringValue.equals(IndicatorType.LAST_PING.name));
-                        }));
 
         // propagate content actions to action-pane
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
@@ -214,6 +204,11 @@ public class IndicatorForm implements TemplateComposer {
             form.setFieldValue(
                     TYPE_DESCRIPTION_FIELD_NAME,
                     this.i18nSupport.getText(INDICATOR_TYPE_DESC_PREFIX + typeValue));
+            final IndicatorType type = IndicatorType.valueOf(typeValue);
+            form.setFieldVisible(type.tags && !type.tagsReadonly, Domain.INDICATOR.ATTR_TAGS);
+            if (!type.tags || type.tagsReadonly) {
+                form.setFieldValue(Domain.INDICATOR.ATTR_TAGS, StringUtils.EMPTY);
+            }
         } else {
             form.setFieldValue(TYPE_DESCRIPTION_FIELD_NAME, Constants.EMPTY_NOTE);
         }

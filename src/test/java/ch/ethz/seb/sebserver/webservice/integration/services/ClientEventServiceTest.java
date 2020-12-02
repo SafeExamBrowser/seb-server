@@ -183,7 +183,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
         assertTrue(findFirst.isPresent());
         final IndicatorValue clientIndicator = findFirst.get();
 
-        assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("--", IndicatorValue.getDisplayValue(clientIndicator));
 
         this.sebClientConnectionService.notifyClientEvent(
                 "token3",
@@ -193,7 +193,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                 "token3",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "<vip> some info other"));
 
-        assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("--", IndicatorValue.getDisplayValue(clientIndicator));
 
         this.sebClientConnectionService.notifyClientEvent(
                 "token3",

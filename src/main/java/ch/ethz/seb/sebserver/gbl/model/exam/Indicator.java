@@ -17,7 +17,6 @@ import javax.validation.constraints.Size;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -35,14 +34,15 @@ public final class Indicator implements Entity {
     public static final String FILTER_ATTR_EXAM_ID = "examId";
 
     public enum IndicatorType {
-        LAST_PING(Names.LAST_PING, true, true, false, false),
-        ERROR_COUNT(Names.ERROR_COUNT, true, false, true, false),
-        WARN_COUNT(Names.WARN_COUNT, true, false, true, false),
-        INFO_COUNT(Names.INFO_COUNT, true, false, true, false),
-        BATTERY_STATUS(Names.BATTERY_STATUS, true, true, true, true),
-        WLAN_STATUS(Names.WLAN_STATUS, true, true, true, true);
+        LAST_PING(Names.LAST_PING, false, true, true, false, false),
+        ERROR_COUNT(Names.ERROR_COUNT, false, true, false, true, false),
+        WARN_COUNT(Names.WARN_COUNT, false, true, false, true, false),
+        INFO_COUNT(Names.INFO_COUNT, false, true, false, true, false),
+        BATTERY_STATUS(Names.BATTERY_STATUS, true, true, true, true, true),
+        WLAN_STATUS(Names.WLAN_STATUS, true, true, true, true, true);
 
         public final String name;
+        public final boolean inverse;
         public final boolean integerValue;
         public final boolean showOnlyInActiveState;
         public final boolean tags;
@@ -50,12 +50,14 @@ public final class Indicator implements Entity {
 
         IndicatorType(
                 final String name,
+                final boolean inverse,
                 final boolean integerValue,
                 final boolean showOnlyInActiveState,
                 final boolean tags,
                 final boolean tagsReadonly) {
 
             this.name = name;
+            this.inverse = inverse;
             this.integerValue = integerValue;
             this.showOnlyInActiveState = showOnlyInActiveState;
             this.tags = tags;
@@ -174,11 +176,6 @@ public final class Indicator implements Entity {
 
     public String getTags() {
         return this.tags;
-    }
-
-    @JsonIgnore
-    public boolean hasTags() {
-        return this.type != IndicatorType.LAST_PING;
     }
 
     public Collection<Threshold> getThresholds() {

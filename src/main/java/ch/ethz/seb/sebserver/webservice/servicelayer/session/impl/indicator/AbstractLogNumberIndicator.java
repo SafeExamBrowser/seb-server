@@ -59,9 +59,13 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
                             ClientEventRecordDynamicSqlSupport.text,
                             isLikeWhenPresent(getfirstTagSQL()),
                             getSubTagSQL())
-                    .orderBy(ClientEventRecordDynamicSqlSupport.serverTime.descending())
+                    .orderBy(ClientEventRecordDynamicSqlSupport.serverTime)
                     .build()
                     .execute();
+
+            if (execute == null || execute.isEmpty()) {
+                return this.currentValue;
+            }
 
             return execute.get(execute.size() - 1).getNumericValue().doubleValue();
         } catch (final Exception e) {
