@@ -13,12 +13,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -50,7 +50,6 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -67,6 +66,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 public final class ClientConnectionTable {
 
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionTable.class);
+
+    private static final int[] TABLE_PROPORTIONS = new int[] { 3, 1, 2, 1 };
 
     private static final int BOTTOM_PADDING = 20;
     private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
@@ -91,7 +92,7 @@ public final class ClientConnectionTable {
     private final ResourceService resourceService;
     private final Exam exam;
     private final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder;
-    private final EnumMap<IndicatorType, IndicatorData> indicatorMapping;
+    private final Map<Long, IndicatorData> indicatorMapping;
     private final Table table;
     private final ColorData colorData;
     private final EnumSet<ConnectionStatus> statusFilter;
@@ -355,9 +356,22 @@ public final class ClientConnectionTable {
     private void adaptTableWidth() {
         final Rectangle area = this.table.getParent().getClientArea();
         if (this.tableWidth != area.width) {
-            final int columnWidth = area.width / this.table.getColumnCount() - 5;
-            for (final TableColumn column : this.table.getColumns()) {
-                column.setWidth(columnWidth);
+
+            // proportions size
+            final int pSize = TABLE_PROPORTIONS[0] +
+                    TABLE_PROPORTIONS[1] +
+                    TABLE_PROPORTIONS[2] +
+                    TABLE_PROPORTIONS[3] * this.indicatorMapping.size();
+            final int columnUnitSize = (pSize > 0)
+                    ? area.width / pSize
+                    : area.width / TABLE_PROPORTIONS.length - 1 + this.indicatorMapping.size();
+
+            final TableColumn[] columns = this.table.getColumns();
+            for (int i = 0; i < columns.length; i++) {
+                final int proportionFactor = (i < TABLE_PROPORTIONS.length)
+                        ? TABLE_PROPORTIONS[i]
+                        : TABLE_PROPORTIONS[TABLE_PROPORTIONS.length - 1];
+                columns[i].setWidth(proportionFactor * columnUnitSize);
             }
             this.tableWidth = area.width;
         }
@@ -528,7 +542,7 @@ public final class ClientConnectionTable {
             for (int i = 0; i < this.connectionData.indicatorValues.size(); i++) {
                 final IndicatorValue indicatorValue = this.connectionData.indicatorValues.get(i);
                 final IndicatorData indicatorData =
-                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
+                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getIndicatorId());
                 if (indicatorData == null) {
                     continue;
                 }
@@ -632,7 +646,7 @@ public final class ClientConnectionTable {
             for (int i = 0; i < connectionData.indicatorValues.size(); i++) {
                 final IndicatorValue indicatorValue = connectionData.indicatorValues.get(i);
                 final IndicatorData indicatorData =
-                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
+                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getIndicatorId());
 
                 if (indicatorData != null) {
                     final double value = indicatorValue.getValue();

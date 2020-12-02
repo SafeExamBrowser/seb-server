@@ -8,17 +8,18 @@
 
 package ch.ethz.seb.sebserver.gui.service.session;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Display;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Display;
+
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 final class IndicatorData {
 
@@ -52,16 +53,16 @@ final class IndicatorData {
         }
     }
 
-    static EnumMap<IndicatorType, IndicatorData> createFormIndicators(
+    static Map<Long, IndicatorData> createFormIndicators(
             final Collection<Indicator> indicators,
             final Display display,
             final ColorData colorData,
             final int tableIndexOffset) {
 
-        final EnumMap<IndicatorType, IndicatorData> indicatorMapping = new EnumMap<>(IndicatorType.class);
+        final Map<Long, IndicatorData> indicatorMapping = new HashMap<>();
         int i = 0;
         for (final Indicator indicator : indicators) {
-            indicatorMapping.put(indicator.type, new IndicatorData(
+            indicatorMapping.put(indicator.id, new IndicatorData(
                     indicator,
                     i,
                     i + tableIndexOffset,

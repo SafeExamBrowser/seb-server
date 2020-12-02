@@ -9,7 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.session;
 
 import java.util.Collection;
-import java.util.EnumMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -22,7 +22,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
@@ -52,7 +51,7 @@ public class ClientConnectionDetails {
     private static final int NUMBER_OF_NONE_INDICATOR_ROWS = 3;
 
     private final ResourceService resourceService;
-    private final EnumMap<IndicatorType, IndicatorData> indicatorMapping;
+    private final Map<Long, IndicatorData> indicatorMapping;
     private final RestCall<ClientConnectionData>.RestCallBuilder restCallBuilder;
     private final FormHandle<?> formHandle;
     private final ColorData colorData;
@@ -167,7 +166,7 @@ public class ClientConnectionDetails {
         // update indicators
         this.connectionData.getIndicatorValues()
                 .forEach(indValue -> {
-                    final IndicatorData indData = this.indicatorMapping.get(indValue.getType());
+                    final IndicatorData indData = this.indicatorMapping.get(indValue.getIndicatorId());
                     final double value = indValue.getValue();
                     final String displayValue = IndicatorValue.getDisplayValue(indValue);
 

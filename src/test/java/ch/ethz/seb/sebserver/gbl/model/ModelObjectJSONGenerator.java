@@ -232,7 +232,7 @@ public class ModelObjectJSONGenerator {
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject =
-                new SimpleIndicatorValue(IndicatorType.LAST_PING, 1.0);
+                new SimpleIndicatorValue(1L, IndicatorType.LAST_PING, 1.0);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
@@ -250,9 +250,9 @@ public class ModelObjectJSONGenerator {
                         1L, 1L, 1L, ConnectionStatus.ACTIVE, UUID.randomUUID().toString(),
                         "user-account-1", "86.119.30.213", "0.0.0.0", System.currentTimeMillis(), null, null),
                 Arrays.asList(
-                        new SimpleIndicatorValue(IndicatorType.LAST_PING, 1.0),
-                        new SimpleIndicatorValue(IndicatorType.ERROR_COUNT, 2.0),
-                        new SimpleIndicatorValue(IndicatorType.WARN_COUNT, 3.0)));
+                        new SimpleIndicatorValue(1L, IndicatorType.LAST_PING, 1.0),
+                        new SimpleIndicatorValue(2L, IndicatorType.ERROR_COUNT, 2.0),
+                        new SimpleIndicatorValue(3L, IndicatorType.WARN_COUNT, 3.0)));
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 

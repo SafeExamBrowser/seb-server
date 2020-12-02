@@ -15,9 +15,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 
 public final class SimpleIndicatorValue implements IndicatorValue {
 
-    public static final String ATTR_INDICATOR_VALUE = "indicatorValue";
-    public static final String ATTR_INDICATOR_TYPE = "indicatorType";
-
+    @JsonProperty(ATTR_INDICATOR_ID)
+    public final Long indicatorId;
     @JsonProperty(ATTR_INDICATOR_TYPE)
     public final IndicatorType type;
     @JsonProperty(ATTR_INDICATOR_VALUE)
@@ -25,11 +24,18 @@ public final class SimpleIndicatorValue implements IndicatorValue {
 
     @JsonCreator
     public SimpleIndicatorValue(
+            @JsonProperty(ATTR_INDICATOR_ID) final Long indicatorId,
             @JsonProperty(ATTR_INDICATOR_TYPE) final IndicatorType type,
             @JsonProperty(ATTR_INDICATOR_VALUE) final double value) {
 
+        this.indicatorId = indicatorId;
         this.type = type;
         this.value = value;
+    }
+
+    @Override
+    public Long getIndicatorId() {
+        return this.indicatorId;
     }
 
     @Override
@@ -45,11 +51,14 @@ public final class SimpleIndicatorValue implements IndicatorValue {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("IndicatorValue [type=");
+        builder.append("SimpleIndicatorValue [indicatorId=");
+        builder.append(this.indicatorId);
+        builder.append(", type=");
         builder.append(this.type);
         builder.append(", value=");
         builder.append(this.value);
         builder.append("]");
         return builder.toString();
     }
+
 }
