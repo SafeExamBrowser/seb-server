@@ -65,6 +65,8 @@ public final class ClientConnectionTable {
 
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionTable.class);
 
+    private static final int[] TABLE_PROPORTIONS = new int[] { 3, 1, 2, 1 };
+
     private static final int BOTTOM_PADDING = 20;
     private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
     private static final String USER_SESSION_STATUS_FILTER_ATTRIBUTE = "USER_SESSION_STATUS_FILTER_ATTRIBUTE";
@@ -135,7 +137,7 @@ public final class ClientConnectionTable {
         loadStatusFilter();
 
         this.table = this.widgetFactory.tableLocalized(tableRoot, SWT.MULTI | SWT.V_SCROLL);
-        final GridLayout gridLayout = new GridLayout(3 + indicators.size(), true);
+        final GridLayout gridLayout = new GridLayout(3 + indicators.size(), false);
         gridLayout.horizontalSpacing = 100;
         gridLayout.marginWidth = 100;
         gridLayout.marginRight = 100;
@@ -351,9 +353,22 @@ public final class ClientConnectionTable {
     private void adaptTableWidth() {
         final Rectangle area = this.table.getParent().getClientArea();
         if (this.tableWidth != area.width) {
-            final int columnWidth = area.width / this.table.getColumnCount() - 5;
-            for (final TableColumn column : this.table.getColumns()) {
-                column.setWidth(columnWidth);
+
+            // proportions size
+            final int pSize = TABLE_PROPORTIONS[0] +
+                    TABLE_PROPORTIONS[1] +
+                    TABLE_PROPORTIONS[2] +
+                    TABLE_PROPORTIONS[3] * this.indicatorMapping.size();
+            final int columnUnitSize = (pSize > 0)
+                    ? area.width / pSize
+                    : area.width / TABLE_PROPORTIONS.length - 1 + this.indicatorMapping.size();
+
+            final TableColumn[] columns = this.table.getColumns();
+            for (int i = 0; i < columns.length; i++) {
+                final int proportionFactor = (i < TABLE_PROPORTIONS.length)
+                        ? TABLE_PROPORTIONS[i]
+                        : TABLE_PROPORTIONS[TABLE_PROPORTIONS.length - 1];
+                columns[i].setWidth(proportionFactor * columnUnitSize);
             }
             this.tableWidth = area.width;
         }
