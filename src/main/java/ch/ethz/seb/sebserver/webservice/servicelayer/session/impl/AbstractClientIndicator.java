@@ -16,6 +16,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 
 public abstract class AbstractClientIndicator implements ClientIndicator {
 
+    protected Long indicatorId;
     protected Long examId;
     protected Long connectionId;
     protected boolean cachingEnabled;
@@ -28,9 +29,15 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
             final Long connectionId,
             final boolean cachingEnabled) {
 
+        this.indicatorId = (indicatorDefinition != null) ? indicatorDefinition.id : -1;
         this.examId = (indicatorDefinition != null) ? indicatorDefinition.examId : null;
         this.connectionId = connectionId;
         this.cachingEnabled = cachingEnabled;
+    }
+
+    @Override
+    public Long getIndicatorId() {
+        return this.indicatorId;
     }
 
     @Override

@@ -13,12 +13,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -48,7 +48,6 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -89,7 +88,7 @@ public final class ClientConnectionTable {
     private final ResourceService resourceService;
     private final Exam exam;
     private final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder;
-    private final EnumMap<IndicatorType, IndicatorData> indicatorMapping;
+    private final Map<Long, IndicatorData> indicatorMapping;
     private final Table table;
     private final ColorData colorData;
     private final EnumSet<ConnectionStatus> statusFilter;
@@ -509,7 +508,7 @@ public final class ClientConnectionTable {
             for (int i = 0; i < this.connectionData.indicatorValues.size(); i++) {
                 final IndicatorValue indicatorValue = this.connectionData.indicatorValues.get(i);
                 final IndicatorData indicatorData =
-                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
+                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getIndicatorId());
                 if (indicatorData == null) {
                     continue;
                 }
@@ -613,7 +612,7 @@ public final class ClientConnectionTable {
             for (int i = 0; i < connectionData.indicatorValues.size(); i++) {
                 final IndicatorValue indicatorValue = connectionData.indicatorValues.get(i);
                 final IndicatorData indicatorData =
-                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getType());
+                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getIndicatorId());
 
                 if (indicatorData != null) {
                     final double value = indicatorValue.getValue();

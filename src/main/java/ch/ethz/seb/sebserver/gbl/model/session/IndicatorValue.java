@@ -14,6 +14,13 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 
 public interface IndicatorValue extends IndicatorValueHolder {
 
+    public static final String ATTR_INDICATOR_ID = "indicatorId";
+    public static final String ATTR_INDICATOR_VALUE = "indicatorValue";
+    public static final String ATTR_INDICATOR_TYPE = "indicatorType";
+
+    @JsonProperty(SimpleIndicatorValue.ATTR_INDICATOR_ID)
+    Long getIndicatorId();
+
     /** Use this to get the type of indicator this value was computed from.
      *
      * @return the type of indicator this value was computed from. */
