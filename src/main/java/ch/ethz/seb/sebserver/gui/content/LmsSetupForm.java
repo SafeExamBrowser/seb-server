@@ -198,7 +198,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .addField(FormBuilder.singleSelection(
                         Domain.LMS_SETUP.ATTR_LMS_TYPE,
                         FORM_TYPE_TEXT_KEY,
-                        (lmsType != null) ? lmsType.name() : LmsType.MOCKUP.name(),
+                        getLmsTypeDefaultSelection(lmsType),
                         this.resourceService::lmsTypeResources)
                         .readonlyIf(isNotNew)
                         .mandatory(!readonly))
@@ -348,6 +348,18 @@ public class LmsSetupForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !readonly);
+    }
+
+    private String getLmsTypeDefaultSelection(final LmsType lmsType) {
+        if (lmsType != null) {
+            return lmsType.name();
+        }
+
+        try {
+            return this.resourceService.lmsTypeResources().get(0)._1;
+        } catch (final Exception e) {
+            return null;
+        }
     }
 
     /** Save and test connection before activation */
