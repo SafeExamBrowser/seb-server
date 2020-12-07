@@ -18,6 +18,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
@@ -185,14 +187,26 @@ public class MoodleCourseAccess extends CourseAccess {
 
         try {
 
-            // first get courses form Moodle...
+            // first get courses from Moodle...
             final String coursesJSON = restTemplate.callMoodleAPIFunction(MOODLE_COURSE_API_FUNCTION_NAME);
-            final Map<String, CourseData> courseData = this.jsonMapper.<Collection<CourseData>> readValue(
+            Map<String, CourseData> courseData = this.jsonMapper.<Collection<CourseData>> readValue(
                     coursesJSON,
                     new TypeReference<Collection<CourseData>>() {
                     })
                     .stream()
                     .collect(Collectors.toMap(d -> d.id, Function.identity()));
+
+            if (courseData.size() > 100) {
+                log.warn(
+                        "Got more then 100 courses form Moodle: size {}. Trim it to the latest 100 courses",
+                        courseData.size());
+                final long nowInMillis = DateTime.now(DateTimeZone.UTC).getMillis();
+                courseData = courseData.values().stream()
+                        .filter(cd -> cd.end_date != null && cd.end_date.longValue() < nowInMillis)
+                        .sorted((cd1, cd2) -> cd1.start_date.compareTo(cd2.start_date))
+                        .limit(100)
+                        .collect(Collectors.toMap(cd -> cd.id, Function.identity()));
+            }
 
             // then get all quizzes of courses and filter
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
@@ -206,9 +220,10 @@ public class MoodleCourseAccess extends CourseAccess {
                     quizzesJSON,
                     CourseQuizData.class);
 
+            final Map<String, CourseData> finalCourseDataRef = courseData;
             courseQuizData.quizzes
                     .forEach(quiz -> {
-                        final CourseData course = courseData.get(quiz.course);
+                        final CourseData course = finalCourseDataRef.get(quiz.course);
                         if (course != null) {
                             course.quizzes.add(quiz);
                         }
