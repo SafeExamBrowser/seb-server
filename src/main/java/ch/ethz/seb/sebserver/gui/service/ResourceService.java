@@ -131,18 +131,30 @@ public class ResourceService {
     private final I18nSupport i18nSupport;
     private final RestService restService;
     private final CurrentUser currentUser;
-    private final boolean mock_lms_enabled;
+    private final EnumSet<LmsType> enabledLmsTypes;
 
     protected ResourceService(
             final I18nSupport i18nSupport,
             final RestService restService,
             final CurrentUser currentUser,
-            @Value("${sebserver.gui.webservice.mock-lms-enabled:true}") final boolean mock_lms_enabled) {
+            @Value("${sebserver.gui.webservice.mock-lms-enabled:true}") final boolean mock_lms_enabled,
+            @Value("${sebserver.gui.webservice.edx-lms-enabled:true}") final boolean edx_lms_enabled,
+            @Value("${sebserver.gui.webservice.moodle-lms-enabled:true}") final boolean moodle_lms_enabled) {
 
         this.i18nSupport = i18nSupport;
         this.restService = restService;
         this.currentUser = currentUser;
-        this.mock_lms_enabled = mock_lms_enabled;
+
+        this.enabledLmsTypes = EnumSet.noneOf(LmsType.class);
+        if (mock_lms_enabled) {
+            this.enabledLmsTypes.add(LmsType.MOCKUP);
+        }
+        if (edx_lms_enabled) {
+            this.enabledLmsTypes.add(LmsType.OPEN_EDX);
+        }
+        if (moodle_lms_enabled) {
+            this.enabledLmsTypes.add(LmsType.MOODLE);
+        }
     }
 
     public I18nSupport getI18nSupport() {
@@ -172,7 +184,7 @@ public class ResourceService {
 
     public List<Tuple<String>> lmsTypeResources() {
         return Arrays.stream(LmsType.values())
-                .filter(lmsType -> lmsType != LmsType.MOCKUP || this.mock_lms_enabled)
+                .filter(this.enabledLmsTypes::contains)
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
                         this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name(), lmsType.name())))

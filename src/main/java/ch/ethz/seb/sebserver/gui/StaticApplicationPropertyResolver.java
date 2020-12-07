@@ -22,7 +22,6 @@ public class StaticApplicationPropertyResolver implements ApplicationContextAwar
     private static ApplicationContext CONTEXT;
 
     public StaticApplicationPropertyResolver() {
-        // TODO Auto-generated constructor stub
     }
 
     @Override
