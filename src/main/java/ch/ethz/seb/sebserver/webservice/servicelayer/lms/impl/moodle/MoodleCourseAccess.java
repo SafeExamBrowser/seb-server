@@ -267,6 +267,8 @@ public class MoodleCourseAccess extends CourseAccess {
                     courseKeyPageJSON,
                     CoursePage.class);
 
+            log.info("Got course page with: {} items", keysPage.courseKeys.size());
+
             // get courses
             final Set<String> ids = keysPage.courseKeys
                     .stream()
@@ -274,7 +276,7 @@ public class MoodleCourseAccess extends CourseAccess {
                     .collect(Collectors.toSet());
 
             final long now = DateTime.now(DateTimeZone.UTC).getMillis();
-            return getCoursesForIds(restTemplate, ids)
+            final Collection<CourseData> result = getCoursesForIds(restTemplate, ids)
                     .stream()
                     .filter(course -> course.time_created == null
                             || course.time_created.longValue() > aYearAgo
@@ -282,6 +284,10 @@ public class MoodleCourseAccess extends CourseAccess {
                                     || (course.end_date <= 0
                                             || course.end_date > now)))
                     .collect(Collectors.toList());
+
+            log.info("After filtering {} left", result.size());
+
+            return result;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get courses page: ", e);
             return Collections.emptyList();
