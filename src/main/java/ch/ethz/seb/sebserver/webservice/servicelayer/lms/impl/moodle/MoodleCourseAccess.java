@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -208,11 +209,19 @@ public class MoodleCourseAccess extends CourseAccess {
 
     private List<CourseData> getAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
         final List<CourseData> result = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
 
-            log.info("************* page: {}", i);
+        int page = 0;
+        List<CourseData> quizzesBatch = getQuizzesBatch(restTemplate, page);
+        result.addAll(quizzesBatch);
 
-            result.addAll(getQuizzesBatch(restTemplate, i));
+        log.info("Got quiz page batch for page {} with {} items", page, quizzesBatch.size());
+
+        while (!quizzesBatch.isEmpty()) {
+            page++;
+            quizzesBatch = getQuizzesBatch(restTemplate, page);
+            result.addAll(quizzesBatch);
+
+            log.info("Got quiz page batch for page {} with {} items", page, quizzesBatch.size());
         }
         return result;
     }
@@ -256,6 +265,15 @@ public class MoodleCourseAccess extends CourseAccess {
         }
     }
 
+    private Predicate<CourseData> getCourseFilter(final long from) {
+        final long now = DateTime.now(DateTimeZone.UTC).getMillis();
+        return course -> course.time_created == null
+                || course.time_created.longValue() > from
+                || (course.end_date == null
+                        || (course.end_date <= 0
+                                || course.end_date > now));
+    }
+
     private Collection<CourseData> getCoursesPage(
             final MoodleAPIRestTemplate restTemplate,
             final int page,
@@ -281,20 +299,19 @@ public class MoodleCourseAccess extends CourseAccess {
             log.info("Got course page with: {} items", keysPage.courseKeys.size());
             log.info("course items:\n{} items", keysPage.courseKeys);
 
+            if (keysPage.courseKeys == null || keysPage.courseKeys.isEmpty()) {
+                return Collections.emptyList();
+            }
+
             // get courses
             final Set<String> ids = keysPage.courseKeys
                     .stream()
                     .map(key -> key.id)
                     .collect(Collectors.toSet());
 
-            final long now = DateTime.now(DateTimeZone.UTC).getMillis();
             final Collection<CourseData> result = getCoursesForIds(restTemplate, ids)
                     .stream()
-                    .filter(course -> course.time_created == null
-                            || course.time_created.longValue() > aYearAgo
-                            || (course.end_date == null
-                                    || (course.end_date <= 0
-                                            || course.end_date > now)))
+                    .filter(getCourseFilter(aYearAgo))
                     .collect(Collectors.toList());
 
             log.info("After filtering {} left", result.size());
