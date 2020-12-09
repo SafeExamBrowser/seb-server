@@ -207,11 +207,15 @@ public class MoodleCourseAccess extends CourseAccess {
     }
 
     private List<CourseData> getAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
+        return getQuizzesBatch(restTemplate, 0);
+    }
+
+    private List<CourseData> getQuizzesBatch(final MoodleAPIRestTemplate restTemplate, final int page) {
         try {
             // first get courses from Moodle per page
             final Map<String, CourseData> courseData = new HashMap<>();
 
-            final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, 0, 1000);
+            final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, page, 100);
             courseData.putAll(coursesPage.stream().collect(Collectors.toMap(cd -> cd.id, Function.identity())));
 
             // then get all quizzes of courses and filter
@@ -268,6 +272,7 @@ public class MoodleCourseAccess extends CourseAccess {
                     CoursePage.class);
 
             log.info("Got course page with: {} items", keysPage.courseKeys.size());
+            log.info("course items:\n{} items", keysPage.courseKeys);
 
             // get courses
             final Set<String> ids = keysPage.courseKeys
@@ -528,15 +533,37 @@ public class MoodleCourseAccess extends CourseAccess {
     static final class CourseKey {
         final String id;
         final String short_name;
+        final String category_name;
+        final String sort_order;
 
         @JsonCreator
         protected CourseKey(
                 @JsonProperty(value = "id") final String id,
-                @JsonProperty(value = "shortname") final String short_name) {
+                @JsonProperty(value = "shortname") final String short_name,
+                @JsonProperty(value = "categoryname") final String category_name,
+                @JsonProperty(value = "sortorder") final String sort_order) {
 
             this.id = id;
             this.short_name = short_name;
+            this.category_name = category_name;
+            this.sort_order = sort_order;
         }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("CourseKey [id=");
+            builder.append(this.id);
+            builder.append(", short_name=");
+            builder.append(this.short_name);
+            builder.append(", category_name=");
+            builder.append(this.category_name);
+            builder.append(", sort_order=");
+            builder.append(this.sort_order);
+            builder.append("]");
+            return builder.toString();
+        }
+
     }
 
     /** Maps the Moodle course API course data */
