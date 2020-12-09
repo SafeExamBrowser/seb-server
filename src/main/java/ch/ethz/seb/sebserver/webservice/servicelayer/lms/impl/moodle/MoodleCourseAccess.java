@@ -207,7 +207,14 @@ public class MoodleCourseAccess extends CourseAccess {
     }
 
     private List<CourseData> getAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
-        return getQuizzesBatch(restTemplate, 0);
+        final List<CourseData> result = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+
+            log.info("************* page: {}", i);
+
+            result.addAll(getQuizzesBatch(restTemplate, i));
+        }
+        return result;
     }
 
     private List<CourseData> getQuizzesBatch(final MoodleAPIRestTemplate restTemplate, final int page) {
