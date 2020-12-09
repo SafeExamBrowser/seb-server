@@ -12,7 +12,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +68,22 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     @Override
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
         return this.openEdxCourseAccess.getQuizzes(filterMap);
+    }
+
+    @Override
+    public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
+        final Map<String, QuizData> mapping = this.openEdxCourseAccess
+                .quizzesSupplier(ids)
+                .get()
+                .stream()
+                .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
+
+        return ids.stream()
+                .map(id -> {
+                    final QuizData data = mapping.get(id);
+                    return (data == null) ? Result.<QuizData> ofRuntimeError("Missing id: " + id) : Result.of(data);
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

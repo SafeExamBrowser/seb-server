@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -165,6 +166,13 @@ final class OpenEdxCourseAccess extends CourseAccess {
     }
 
     @Override
+    protected Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids) {
+        return () -> getRestTemplate()
+                .map(template -> this.collectQuizzes(template, ids))
+                .getOrThrow();
+    }
+
+    @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier() {
         return () -> getRestTemplate()
                 .map(this::collectAllQuizzes)
@@ -185,6 +193,25 @@ final class OpenEdxCourseAccess extends CourseAccess {
                             .map(block -> new Chapters.Chapter(block.display_name, block.block_id))
                             .collect(Collectors.toList()));
         };
+    }
+
+    private ArrayList<QuizData> collectQuizzes(final OAuth2RestTemplate restTemplate, final Set<String> ids) {
+        final String externalStartURI = getExternalLMSServerAddress(this.lmsSetup);
+        return collectCourses(
+                this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT,
+                restTemplate,
+                ids)
+                        .stream()
+                        .reduce(
+                                new ArrayList<>(),
+                                (list, courseData) -> {
+                                    list.add(quizDataOf(this.lmsSetup, courseData, externalStartURI));
+                                    return list;
+                                },
+                                (list1, list2) -> {
+                                    list1.addAll(list2);
+                                    return list1;
+                                });
     }
 
     private ArrayList<QuizData> collectAllQuizzes(final OAuth2RestTemplate restTemplate) {
@@ -227,6 +254,29 @@ final class OpenEdxCourseAccess extends CourseAccess {
             }
         }
         return _externalStartURI;
+    }
+
+    private List<CourseData> collectCourses(
+            final String pageURI,
+            final OAuth2RestTemplate restTemplate,
+            final Set<String> ids) {
+
+        final List<CourseData> collector = new ArrayList<>();
+        EdXPage page = getEdxPage(pageURI, restTemplate).getBody();
+        if (page != null) {
+            collector.addAll(page.results);
+            while (page != null && StringUtils.isNotBlank(page.next)) {
+                page = getEdxPage(page.next, restTemplate).getBody();
+                if (page != null) {
+                    page.results
+                            .stream()
+                            .filter(cd -> ids.contains(cd.id))
+                            .forEach(collector::add);
+                }
+            }
+        }
+
+        return collector;
     }
 
     private List<CourseData> collectAllCourses(final String pageURI, final OAuth2RestTemplate restTemplate) {

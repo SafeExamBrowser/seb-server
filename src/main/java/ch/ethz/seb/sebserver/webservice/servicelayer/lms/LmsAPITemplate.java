@@ -10,11 +10,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -72,14 +70,7 @@ public interface LmsAPITemplate {
      *
      * @param ids the Set of Quiz identifiers to get the QuizData for
      * @return Collection of all QuizData from the given id set */
-    default Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
-        return getQuizzes(new FilterMap())
-                .getOrElse(Collections::emptyList)
-                .stream()
-                .filter(quiz -> ids.contains(quiz.id))
-                .map(Result::of)
-                .collect(Collectors.toList());
-    }
+    Collection<Result<QuizData>> getQuizzes(Set<String> ids);
 
     /** Get all QuizData for the set of QuizData identifiers from LMS API in a collection
      * of Result. If particular Quiz cannot be loaded because of errors or deletion,

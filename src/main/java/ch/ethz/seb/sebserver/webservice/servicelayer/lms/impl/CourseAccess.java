@@ -37,6 +37,7 @@ public abstract class CourseAccess {
     private static final Logger log = LoggerFactory.getLogger(CourseAccess.class);
 
     protected final MemoizingCircuitBreaker<List<QuizData>> allQuizzesRequest;
+    protected final CircuitBreaker<List<QuizData>> quizzesRequest;
     protected final CircuitBreaker<Chapters> chaptersRequest;
     protected final CircuitBreaker<ExamineeAccountDetails> accountDetailRequest;
 
@@ -48,6 +49,11 @@ public abstract class CourseAccess {
                 Constants.MINUTE_IN_MILLIS,
                 true,
                 Constants.HOUR_IN_MILLIS);
+
+        this.quizzesRequest = asyncService.createCircuitBreaker(
+                3,
+                Constants.MINUTE_IN_MILLIS,
+                Constants.MINUTE_IN_MILLIS);
 
         this.chaptersRequest = asyncService.createCircuitBreaker(
                 3,
@@ -72,28 +78,40 @@ public abstract class CourseAccess {
     public Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
         return Result.tryCatch(() -> {
             final List<QuizData> cached = this.allQuizzesRequest.getCached();
-            if (cached == null) {
-                throw new RuntimeException("No cached quizzes");
-            }
+            final List<QuizData> available = (cached != null)
+                    ? cached
+                    : quizzesSupplier(ids).get();
 
-            final Map<String, QuizData> cacheMapping = cached
+            final Map<String, QuizData> quizMapping = available
                     .stream()
                     .collect(Collectors.toMap(q -> q.id, Function.identity()));
 
-            if (!cacheMapping.keySet().containsAll(ids)) {
-                throw new RuntimeException("Not all requested quizzes cached");
+            if (!quizMapping.keySet().containsAll(ids)) {
+
+                final Map<String, QuizData> collect = quizzesSupplier(ids).get()
+                        .stream()
+                        .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
+                if (collect != null) {
+                    quizMapping.clear();
+                    quizMapping.putAll(collect);
+                }
             }
 
             return ids
                     .stream()
                     .map(id -> {
-                        final QuizData q = cacheMapping.get(id);
+                        final QuizData q = quizMapping.get(id);
                         return (q == null)
                                 ? Result.<QuizData> ofError(new NoSuchElementException("Quiz with id: " + id))
                                 : Result.of(q);
                     })
                     .collect(Collectors.toList());
         });
+    }
+
+    /* Note: this can be overwritten to load missing requested quiz data from specified LMS by id */
+    protected Map<String, QuizData> loadMissingData(final Set<String> ids) {
+        throw new RuntimeException("Not all requested quizzes cached");
     }
 
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
@@ -129,6 +147,8 @@ public abstract class CourseAccess {
                 examineeSessionId,
                 Collections.emptyMap());
     }
+
+    protected abstract Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids);
 
     protected abstract Supplier<List<QuizData>> allQuizzesSupplier();
 

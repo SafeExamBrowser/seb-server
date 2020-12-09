@@ -8,11 +8,14 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -28,7 +31,9 @@ import org.springframework.util.MultiValueMap;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
@@ -51,10 +56,20 @@ public class MoodleCourseAccess extends CourseAccess {
     private static final Logger log = LoggerFactory.getLogger(MoodleCourseAccess.class);
 
     private static final String MOODLE_QUIZ_START_URL_PATH = "mod/quiz/view.php?id=";
+
     private static final String MOODLE_COURSE_API_FUNCTION_NAME = "core_course_get_courses";
     private static final String MOODLE_USER_PROFILE_API_FUNCTION_NAME = "core_user_get_users_by_field";
     private static final String MOODLE_QUIZ_API_FUNCTION_NAME = "mod_quiz_get_quizzes_by_courses";
     private static final String MOODLE_COURSE_API_COURSE_IDS = "courseids";
+    private static final String MOODLE_COURSE_API_IDS = "ids";
+    private static final String MOODLE_COURSE_SEARCH_API_FUNCTION_NAME = "core_course_search_courses";
+    private static final String MOODLE_COURSE_BY_FIELD_API_FUNCTION_NAME = "core_course_get_courses_by_field";
+    private static final String MOODLE_COURSE_API_FIELD_NAME = "field";
+    private static final String MOODLE_COURSE_API_FIELD_VALUE = "value";
+    private static final String MOODLE_COURSE_API_SEARCH_CRITERIA_NAME = "criterianame";
+    private static final String MOODLE_COURSE_API_SEARCH_CRITERIA_VALUE = "criteriavalue";
+    private static final String MOODLE_COURSE_API_SEARCH_PAGE = "page";
+    private static final String MOODLE_COURSE_API_SEARCH_PAGE_SIZE = "perpage";
 
     private final JSONMapper jsonMapper;
     private final LmsSetup lmsSetup;
@@ -151,6 +166,14 @@ public class MoodleCourseAccess extends CourseAccess {
     }
 
     @Override
+    protected Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids) {
+        return () -> getRestTemplate()
+                .map(template -> getQuizzesForIds(template, ids))
+                .getOrThrow();
+
+    }
+
+    @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier() {
         return () -> getRestTemplate()
                 .map(this::collectAllQuizzes)
@@ -166,7 +189,7 @@ public class MoodleCourseAccess extends CourseAccess {
         final String urlPrefix = (this.lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
                 ? this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
                 : this.lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
-        return collectAllCourses(restTemplate)
+        return getAllQuizzes(restTemplate)
                 .stream()
                 .reduce(
                         new ArrayList<>(),
@@ -183,30 +206,13 @@ public class MoodleCourseAccess extends CourseAccess {
                         });
     }
 
-    private List<CourseData> collectAllCourses(final MoodleAPIRestTemplate restTemplate) {
-
+    private List<CourseData> getAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
         try {
+            // first get courses from Moodle per page
+            final Map<String, CourseData> courseData = new HashMap<>();
 
-            // first get courses from Moodle...
-            final String coursesJSON = restTemplate.callMoodleAPIFunction(MOODLE_COURSE_API_FUNCTION_NAME);
-            Map<String, CourseData> courseData = this.jsonMapper.<Collection<CourseData>> readValue(
-                    coursesJSON,
-                    new TypeReference<Collection<CourseData>>() {
-                    })
-                    .stream()
-                    .collect(Collectors.toMap(d -> d.id, Function.identity()));
-
-            if (courseData.size() > 100) {
-                log.warn(
-                        "Got more then 100 courses form Moodle: size {}. Trim it to the latest 100 courses",
-                        courseData.size());
-                final long nowInMillis = DateTime.now(DateTimeZone.UTC).getMillis();
-                courseData = courseData.values().stream()
-                        .filter(cd -> cd.end_date != null && cd.end_date.longValue() < nowInMillis)
-                        .sorted((cd1, cd2) -> cd1.start_date.compareTo(cd2.start_date))
-                        .limit(100)
-                        .collect(Collectors.toMap(cd -> cd.id, Function.identity()));
-            }
+            final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, 0, 1000);
+            courseData.putAll(coursesPage.stream().collect(Collectors.toMap(cd -> cd.id, Function.identity())));
 
             // then get all quizzes of courses and filter
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
@@ -234,7 +240,154 @@ public class MoodleCourseAccess extends CourseAccess {
                     .filter(c -> !c.quizzes.isEmpty())
                     .collect(Collectors.toList());
         } catch (final Exception e) {
-            throw new RuntimeException("Unexpected exception while trying to get course data: ", e);
+            log.error("Unexpected exception while trying to get course data: ", e);
+            return Collections.emptyList();
+        }
+    }
+
+    private Collection<CourseData> getCoursesPage(
+            final MoodleAPIRestTemplate restTemplate,
+            final int page,
+            final int size) throws JsonParseException, JsonMappingException, IOException {
+
+        try {
+            final long aYearAgo = DateTime.now(DateTimeZone.UTC).minusYears(1).getMillis();
+            // get course ids per page
+            final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+            attributes.add(MOODLE_COURSE_API_SEARCH_CRITERIA_NAME, "search");
+            attributes.add(MOODLE_COURSE_API_SEARCH_CRITERIA_VALUE, "");
+            attributes.add(MOODLE_COURSE_API_SEARCH_PAGE, String.valueOf(page));
+            attributes.add(MOODLE_COURSE_API_SEARCH_PAGE_SIZE, String.valueOf(size));
+
+            final String courseKeyPageJSON = restTemplate.callMoodleAPIFunction(
+                    MOODLE_COURSE_SEARCH_API_FUNCTION_NAME,
+                    attributes);
+
+            final CoursePage keysPage = this.jsonMapper.readValue(
+                    courseKeyPageJSON,
+                    CoursePage.class);
+
+            // get courses
+            final Set<String> ids = keysPage.courseKeys
+                    .stream()
+                    .map(key -> key.id)
+                    .collect(Collectors.toSet());
+
+            final long now = DateTime.now(DateTimeZone.UTC).getMillis();
+            return getCoursesForIds(restTemplate, ids)
+                    .stream()
+                    .filter(course -> course.time_created == null
+                            || course.time_created.longValue() > aYearAgo
+                            || (course.end_date == null
+                                    || (course.end_date <= 0
+                                            || course.end_date > now)))
+                    .collect(Collectors.toList());
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to get courses page: ", e);
+            return Collections.emptyList();
+        }
+    }
+
+    private List<QuizData> getQuizzesForIds(
+            final MoodleAPIRestTemplate restTemplate,
+            final Set<String> quizIds) {
+
+        try {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Get quizzes for ids: {}", quizIds);
+            }
+
+            final Map<String, CourseData> courseData = getCoursesForIds(
+                    restTemplate,
+                    quizIds.stream()
+                            .map(MoodleCourseAccess::getCourseId)
+                            .collect(Collectors.toSet()))
+                                    .stream()
+                                    .collect(Collectors.toMap(cd -> cd.id, Function.identity()));
+
+            final List<String> courseIds = new ArrayList<>(courseData.keySet());
+            if (courseIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+            if (courseIds.size() == 1) {
+                // NOTE: This is a workaround because the Moodle API do not support lists with only one element.
+                courseIds.add("0");
+            }
+
+            // then get all quizzes of courses and filter
+            final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+            attributes.put(MOODLE_COURSE_API_COURSE_IDS, courseIds);
+
+            final String quizzesJSON = restTemplate.callMoodleAPIFunction(
+                    MOODLE_QUIZ_API_FUNCTION_NAME,
+                    attributes);
+
+            final CourseQuizData courseQuizData = this.jsonMapper.readValue(
+                    quizzesJSON,
+                    CourseQuizData.class);
+
+            final Map<String, CourseData> finalCourseDataRef = courseData;
+            courseQuizData.quizzes
+                    .forEach(quiz -> {
+                        final CourseData course = finalCourseDataRef.get(quiz.course);
+                        if (course != null) {
+                            course.quizzes.add(quiz);
+                        }
+                    });
+
+            final String urlPrefix = (this.lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
+                    ? this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
+                    : this.lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
+
+            return courseData.values()
+                    .stream()
+                    .filter(c -> !c.quizzes.isEmpty())
+                    .reduce(
+                            new ArrayList<>(),
+                            (list, cd) -> {
+                                list.addAll(quizDataOf(
+                                        this.lmsSetup,
+                                        cd,
+                                        urlPrefix));
+                                return list;
+                            },
+                            (list1, list2) -> {
+                                list1.addAll(list2);
+                                return list1;
+                            });
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to get quizzes for ids", e);
+            return Collections.emptyList();
+        }
+    }
+
+    private Collection<CourseData> getCoursesForIds(
+            final MoodleAPIRestTemplate restTemplate,
+            final Set<String> ids) {
+
+        try {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Get courses for ids: {}", ids);
+            }
+
+            final String joinedIds = StringUtils.join(ids, Constants.COMMA);
+
+            final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+            attributes.add(MOODLE_COURSE_API_FIELD_NAME, MOODLE_COURSE_API_IDS);
+            attributes.add(MOODLE_COURSE_API_FIELD_VALUE, joinedIds);
+            final String coursePageJSON = restTemplate.callMoodleAPIFunction(
+                    MOODLE_COURSE_BY_FIELD_API_FUNCTION_NAME,
+                    attributes);
+
+            return this.jsonMapper.<Courses> readValue(
+                    coursePageJSON,
+                    Courses.class).courses;
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to get courses for ids", e);
+            return Collections.emptyList();
         }
     }
 
@@ -259,7 +412,11 @@ public class MoodleCourseAccess extends CourseAccess {
                     final String startURI = uriPrefix + courseQuizData.course_module;
                     additionalAttrs.put(QuizData.ATTR_ADDITIONAL_TIME_LIMIT, String.valueOf(courseQuizData.time_limit));
                     return new QuizData(
-                            getInternalQuizId(courseQuizData.course_module, courseData.short_name, courseData.idnumber),
+                            getInternalQuizId(
+                                    courseQuizData.course_module,
+                                    courseData.id,
+                                    courseData.short_name,
+                                    courseData.idnumber),
                             lmsSetup.getInstitutionId(),
                             lmsSetup.id,
                             lmsSetup.getLmsType(),
@@ -287,6 +444,93 @@ public class MoodleCourseAccess extends CourseAccess {
         }
 
         return Result.of(this.restTemplate);
+    }
+
+    public static final String getInternalQuizId(
+            final String quizId,
+            final String courseId,
+            final String shortname,
+            final String idnumber) {
+
+        return StringUtils.join(
+                new String[] {
+                        quizId,
+                        courseId,
+                        StringUtils.isNotBlank(shortname) ? shortname : Constants.EMPTY_NOTE,
+                        StringUtils.isNotBlank(idnumber) ? idnumber : Constants.EMPTY_NOTE
+                },
+                Constants.COLON);
+    }
+
+    public static final String getQuizId(final String internalQuizId) {
+        if (StringUtils.isBlank(internalQuizId)) {
+            return null;
+        }
+
+        return StringUtils.split(internalQuizId, Constants.COLON)[0];
+    }
+
+    public static final String getCourseId(final String internalQuizId) {
+        if (StringUtils.isBlank(internalQuizId)) {
+            return null;
+        }
+
+        return StringUtils.split(internalQuizId, Constants.COLON)[1];
+    }
+
+    public static final String getShortname(final String internalQuizId) {
+        if (StringUtils.isBlank(internalQuizId)) {
+            return null;
+        }
+
+        final String[] split = StringUtils.split(internalQuizId, Constants.COLON);
+        if (split.length < 3) {
+            return null;
+        }
+
+        final String shortName = split[2];
+        return shortName.equals(Constants.EMPTY_NOTE) ? null : shortName;
+    }
+
+    public static final String getIdnumber(final String internalQuizId) {
+        if (StringUtils.isBlank(internalQuizId)) {
+            return null;
+        }
+        final String[] split = StringUtils.split(internalQuizId, Constants.COLON);
+        if (split.length < 4) {
+            return null;
+        }
+
+        final String idNumber = split[3];
+        return idNumber.equals(Constants.EMPTY_NOTE) ? null : idNumber;
+    }
+
+    // ---- Mapping Classes ---
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class CoursePage {
+        final Collection<CourseKey> courseKeys;
+
+        public CoursePage(
+                @JsonProperty(value = "courses") final Collection<CourseKey> courseKeys) {
+
+            this.courseKeys = courseKeys;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class CourseKey {
+        final String id;
+        final String short_name;
+
+        @JsonCreator
+        protected CourseKey(
+                @JsonProperty(value = "id") final String id,
+                @JsonProperty(value = "shortname") final String short_name) {
+
+            this.id = id;
+            this.short_name = short_name;
+        }
     }
 
     /** Maps the Moodle course API course data */
@@ -328,51 +572,14 @@ public class MoodleCourseAccess extends CourseAccess {
 
     }
 
-    public static final String getInternalQuizId(final String quizId, final String shortname, final String idnumber) {
-        final StringBuilder sb = new StringBuilder(quizId);
-        if (StringUtils.isNotEmpty(shortname)) {
-            sb.insert(0, ":").insert(0, shortname);
-        }
-        if (StringUtils.isNotEmpty(idnumber)) {
-            sb.insert(0, ":").insert(0, idnumber);
-        }
-        return sb.toString();
-    }
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class Courses {
+        final Collection<CourseData> courses;
 
-    public static final String getQuizId(final String internalQuizId) {
-        if (StringUtils.isBlank(internalQuizId)) {
-            return null;
-        }
-
-        final String[] ids = StringUtils.split(internalQuizId, Constants.COLON);
-        return ids[ids.length - 1];
-    }
-
-    public static final String getShortname(final String internalQuizId) {
-        if (StringUtils.isBlank(internalQuizId)) {
-            return null;
-        }
-
-        final String[] ids = StringUtils.split(internalQuizId, Constants.COLON);
-        if (ids.length == 3) {
-            return ids[1];
-        } else if (ids.length == 2) {
-            return ids[0];
-        } else {
-            return null;
-        }
-    }
-
-    public static final String getIdnumber(final String internalQuizId) {
-        if (StringUtils.isBlank(internalQuizId)) {
-            return null;
-        }
-
-        final String[] ids = StringUtils.split(internalQuizId, Constants.COLON);
-        if (ids.length == 3) {
-            return ids[0];
-        } else {
-            return null;
+        @JsonCreator
+        protected Courses(
+                @JsonProperty(value = "courses") final Collection<CourseData> courses) {
+            this.courses = courses;
         }
     }
 
