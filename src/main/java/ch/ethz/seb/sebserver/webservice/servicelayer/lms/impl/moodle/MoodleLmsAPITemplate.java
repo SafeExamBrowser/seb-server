@@ -91,12 +91,6 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Result<QuizData> getQuizFromCache(final String id) {
-        return this.moodleCourseAccess.getQuizFromCache(id)
-                .orElse(() -> getQuiz(id));
-    }
-
-    @Override
     public Result<Chapters> getCourseChapters(final String courseId) {
         return Result.tryCatch(() -> this.moodleCourseAccess
                 .getCourseChaptersSupplier(courseId)

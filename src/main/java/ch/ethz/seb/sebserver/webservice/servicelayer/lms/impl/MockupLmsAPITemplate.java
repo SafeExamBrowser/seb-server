@@ -170,11 +170,6 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Result<QuizData> getQuizFromCache(final String id) {
-        return getQuiz(id);
-    }
-
-    @Override
     public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
         return getQuizzes(ids);
     }

@@ -95,8 +95,6 @@ public interface LmsAPITemplate {
                 .orElse(Result.ofError(new ResourceNotFoundException(EntityType.EXAM, id)));
     }
 
-    Result<QuizData> getQuizFromCache(String id);
-
     /** Convert a an anonymous or temporary user session identifier from SEB Client into a user
      * account details.
      *

@@ -46,12 +46,10 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * @param <T> The of the result of the supplying function */
 public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
 
-    // TODO considering invalidation time for memoizing
-
     private static final Logger log = LoggerFactory.getLogger(MemoizingCircuitBreaker.class);
 
     private final CircuitBreaker<T> delegate;
-    private final Supplier<T> supplier;
+    private Supplier<T> supplier;
 
     private final boolean memoizing;
     private final long maxMemoizingTime;
@@ -119,6 +117,10 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
         this.supplier = supplier;
         this.memoizing = memoizing;
         this.maxMemoizingTime = maxMemoizingTime;
+    }
+
+    public void setSupplier(final Supplier<T> supplier) {
+        this.supplier = supplier;
     }
 
     @Override

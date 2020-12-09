@@ -43,7 +43,7 @@ public abstract class CourseAccess {
 
     protected CourseAccess(final AsyncService asyncService) {
         this.allQuizzesRequest = asyncService.createMemoizingCircuitBreaker(
-                allQuizzesSupplier(),
+                allQuizzesSupplier(null),
                 3,
                 Constants.MINUTE_IN_MILLIS,
                 Constants.MINUTE_IN_MILLIS,
@@ -64,15 +64,6 @@ public abstract class CourseAccess {
                 1,
                 Constants.SECOND_IN_MILLIS * 10,
                 Constants.SECOND_IN_MILLIS * 10);
-    }
-
-    public Result<QuizData> getQuizFromCache(final String id) {
-        return Result.tryCatch(() -> this.allQuizzesRequest
-                .getCached()
-                .stream()
-                .filter(qd -> id.equals(qd.id))
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("No cached quiz: " + id)));
     }
 
     public Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
@@ -109,12 +100,9 @@ public abstract class CourseAccess {
         });
     }
 
-    /* Note: this can be overwritten to load missing requested quiz data from specified LMS by id */
-    protected Map<String, QuizData> loadMissingData(final Set<String> ids) {
-        throw new RuntimeException("Not all requested quizzes cached");
-    }
-
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
+        // TODO deal with filter attributes
+
         return this.allQuizzesRequest.get()
                 .map(LmsAPIService.quizzesFilterFunction(filterMap));
     }
@@ -150,7 +138,7 @@ public abstract class CourseAccess {
 
     protected abstract Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids);
 
-    protected abstract Supplier<List<QuizData>> allQuizzesSupplier();
+    protected abstract Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap);
 
     protected abstract Supplier<Chapters> getCourseChaptersSupplier(final String courseId);
 

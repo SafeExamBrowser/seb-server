@@ -8,9 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,13 +82,6 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
                     return (data == null) ? Result.<QuizData> ofRuntimeError("Missing id: " + id) : Result.of(data);
                 })
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public Result<QuizData> getQuizFromCache(final String id) {
-        return getQuizzesFromCache(new HashSet<>(Arrays.asList(id)))
-                .iterator()
-                .next();
     }
 
     @Override

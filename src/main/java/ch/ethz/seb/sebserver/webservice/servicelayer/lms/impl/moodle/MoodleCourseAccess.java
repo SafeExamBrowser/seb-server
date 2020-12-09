@@ -46,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.CourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
 
@@ -175,7 +176,7 @@ public class MoodleCourseAccess extends CourseAccess {
     }
 
     @Override
-    protected Supplier<List<QuizData>> allQuizzesSupplier() {
+    protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
         return () -> getRestTemplate()
                 .map(this::collectAllQuizzes)
                 .getOrThrow();
@@ -228,9 +229,8 @@ public class MoodleCourseAccess extends CourseAccess {
 
     private List<CourseData> getQuizzesBatch(final MoodleAPIRestTemplate restTemplate, final int page) {
         try {
-            // first get courses from Moodle per page
+            // first get courses from Moodle for page
             final Map<String, CourseData> courseData = new HashMap<>();
-
             final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, page, 100);
 
             if (coursesPage.isEmpty()) {
