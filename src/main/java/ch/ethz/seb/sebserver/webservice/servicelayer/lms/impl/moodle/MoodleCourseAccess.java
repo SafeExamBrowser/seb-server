@@ -232,7 +232,14 @@ public class MoodleCourseAccess extends CourseAccess {
             final Map<String, CourseData> courseData = new HashMap<>();
 
             final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, page, 100);
-            courseData.putAll(coursesPage.stream().collect(Collectors.toMap(cd -> cd.id, Function.identity())));
+
+            if (coursesPage.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            courseData.putAll(coursesPage
+                    .stream()
+                    .collect(Collectors.toMap(cd -> cd.id, Function.identity())));
 
             // then get all quizzes of courses and filter
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
