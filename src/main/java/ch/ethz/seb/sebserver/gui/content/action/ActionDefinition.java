@@ -699,6 +699,17 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.FILTER),
 
+    MONITORING_EXAM_SEARCH_CONNECTIONS(
+            new LocTextKey("sebserver.monitoring.search.action"),
+            ImageIcon.SEARCH,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.FORM),
+    MONITORING_EXAM_SEARCH_VIEW_CONNECTION(
+            new LocTextKey("sebserver.monitoring.search.action.view"),
+            ImageIcon.SEARCH,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.CLIENT_EVENT_LIST),
+
     MONITOR_EXAM_NEW_PROCTOR_ROOM(
             new LocTextKey("sebserver.monitoring.exam.action.newroom"),
             ImageIcon.VISIBILITY,

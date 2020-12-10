@@ -20,6 +20,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -49,6 +51,8 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 class MoodleRestTemplateFactory {
+
+    private static final Logger log = LoggerFactory.getLogger(MoodleRestTemplateFactory.class);
 
     final JSONMapper jsonMapper;
     final LmsSetup lmsSetup;
@@ -113,6 +117,12 @@ class MoodleRestTemplateFactory {
         return this.knownTokenAccessPaths
                 .stream()
                 .map(this::createRestTemplate)
+                .map(result -> {
+                    if (result.hasError()) {
+                        log.error("Failed to get access token: ", result.getError());
+                    }
+                    return result;
+                })
                 .filter(Result::hasValue)
                 .findFirst()
                 .orElse(Result.ofRuntimeError(

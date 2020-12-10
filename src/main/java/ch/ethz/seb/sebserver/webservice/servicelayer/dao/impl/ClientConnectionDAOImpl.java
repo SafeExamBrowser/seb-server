@@ -99,6 +99,12 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.status,
                         isEqualToWhenPresent(filterMap.getClientConnectionStatus()))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.examUserSessionId,
+                        isLikeWhenPresent(filterMap.getClientConnectionUserId()))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.clientAddress,
+                        isLikeWhenPresent(filterMap.getClientConnectionIPAddress()))
                 .build()
                 .execute()
                 .stream()

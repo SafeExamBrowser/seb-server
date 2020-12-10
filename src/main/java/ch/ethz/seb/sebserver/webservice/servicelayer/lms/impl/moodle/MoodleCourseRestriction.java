@@ -64,7 +64,6 @@ public class MoodleCourseRestriction {
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_WS_FUNCTION_CREATE = "seb_restriction_create";
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_WS_FUNCTION_UPDATE = "seb_restriction_update";
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_WS_FUNCTION_DELETE = "seb_restriction_delete";
-    //private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_COURSE_ID = "courseId";
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_SHORT_NAME = "shortname";
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_ID_NUMBER = "idnumber";
     private static final String MOODLE_DEFAULT_COURSE_RESTRICTION_QUIZ_ID = "quizId";

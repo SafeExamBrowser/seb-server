@@ -474,7 +474,8 @@ public class ExamForm implements TemplateComposer {
         }
 
         final LmsSetupTestResult lmsSetupTestResult = result.get();
-        return !lmsSetupTestResult.hasError(ErrorType.QUIZ_RESTRICTION_API_REQUEST);
+        return !lmsSetupTestResult.hasError(ErrorType.QUIZ_RESTRICTION_API_REQUEST)
+                && !lmsSetupTestResult.hasError(ErrorType.FEATURE_NOT_AVAILABLE);
     }
 
     private void showConsistencyChecks(final Collection<APIMessage> result, final Composite parent) {

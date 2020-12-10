@@ -61,7 +61,7 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
             return errors.doubleValue();
         } catch (final Exception e) {
             log.error("Failed to get indicator count from persistent storage: ", e);
-            return this.currentValue;
+            return 0;
         }
     }
 

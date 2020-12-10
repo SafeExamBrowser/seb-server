@@ -170,16 +170,16 @@ public class ModalInputDialog<T> extends Dialog {
             final Consumer<PageContext> contentComposer) {
 
         // Create the info dialog window
-        final Shell shell = new Shell(getParent(), getStyle());
-        shell.setText(getText());
-        shell.setData(RWT.CUSTOM_VARIANT, CustomVariant.MESSAGE.key);
-        shell.setText(this.widgetFactory.getI18nSupport().getText(title));
-        shell.setLayout(new GridLayout());
+        this.shell = new Shell(getParent(), getStyle());
+        this.shell.setText(getText());
+        this.shell.setData(RWT.CUSTOM_VARIANT, CustomVariant.MESSAGE.key);
+        this.shell.setText(this.widgetFactory.getI18nSupport().getText(title));
+        this.shell.setLayout(new GridLayout());
         final GridData gridData2 = new GridData(SWT.FILL, SWT.TOP, true, true);
 
-        shell.setLayoutData(gridData2);
+        this.shell.setLayoutData(gridData2);
 
-        final Composite main = new Composite(shell, SWT.NONE);
+        final Composite main = new Composite(this.shell, SWT.NONE);
         main.setLayout(new GridLayout());
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
         gridData.widthHint = this.dialogWidth;
@@ -188,13 +188,19 @@ public class ModalInputDialog<T> extends Dialog {
         contentComposer.accept(pageContext.copyOf(main));
         gridData.heightHint = calcDialogHeight(main);
 
-        final Button close = this.widgetFactory.buttonLocalized(shell, CLOSE_TEXT_KEY);
+        final Button close = this.widgetFactory.buttonLocalized(this.shell, CLOSE_TEXT_KEY);
         final GridData data = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
         data.widthHint = this.buttonWidth;
         close.setLayoutData(data);
-        close.addListener(SWT.Selection, event -> shell.close());
+        close.addListener(SWT.Selection, event -> this.shell.close());
 
-        finishUp(shell);
+        finishUp(this.shell);
+    }
+
+    public void close() {
+        if (this.shell != null) {
+            this.shell.close();
+        }
     }
 
     private void finishUp(final Shell shell) {

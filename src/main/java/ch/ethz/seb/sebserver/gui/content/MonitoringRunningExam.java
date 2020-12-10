@@ -125,16 +125,18 @@ public class MonitoringRunningExam implements TemplateComposer {
     private final ResourceService resourceService;
     private final InstructionProcessor instructionProcessor;
     private final GuiServiceInfo guiServiceInfo;
+    private final MonitoringExamSearchPopup monitoringExamSearchPopup;
+    private final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup;
     private final long pollInterval;
     private final long proctoringRoomUpdateInterval;
     private final String remoteProctoringEndpoint;
-    private final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup;
 
     protected MonitoringRunningExam(
             final ServerPushService serverPushService,
             final PageService pageService,
             final InstructionProcessor instructionProcessor,
             final GuiServiceInfo guiServiceInfo,
+            final MonitoringExamSearchPopup monitoringExamSearchPopup,
             final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup,
             @Value("${sebserver.gui.webservice.poll-interval:1000}") final long pollInterval,
             @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint,
@@ -146,6 +148,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         this.instructionProcessor = instructionProcessor;
         this.guiServiceInfo = guiServiceInfo;
         this.pollInterval = pollInterval;
+        this.monitoringExamSearchPopup = monitoringExamSearchPopup;
         this.remoteProctoringEndpoint = remoteProctoringEndpoint;
         this.proctorRoomConnectionsPopup = proctorRoomConnectionsPopup;
         this.proctoringRoomUpdateInterval = proctoringRoomUpdateInterval;
@@ -240,6 +243,12 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withConfirm(() -> CONFIRM_QUIT_ALL)
                 .withExec(action -> this.quitSEBClients(action, clientTable, true))
+                .noEventPropagation()
+                .publishIf(privilege)
+
+                .newAction(ActionDefinition.MONITORING_EXAM_SEARCH_CONNECTIONS)
+                .withEntityKey(entityKey)
+                .withExec(this::openSearchPopup)
                 .noEventPropagation()
                 .publishIf(privilege)
 
@@ -389,6 +398,11 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .getOr(null);
 
         return townhall != null && townhall.id != null;
+    }
+
+    private PageAction openSearchPopup(final PageAction action) {
+        this.monitoringExamSearchPopup.show(action.pageContext());
+        return action;
     }
 
     private PageAction toggleTownhallRoom(final PageAction action) {

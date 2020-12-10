@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 
 public class MoodleLmsAPITemplate implements LmsAPITemplate {
 
@@ -60,7 +61,8 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
-        return this.moodleCourseRestriction.initAPIAccess();
+        throw new NoSEBRestrictionException();
+        //return this.moodleCourseRestriction.initAPIAccess();
     }
 
     @Override

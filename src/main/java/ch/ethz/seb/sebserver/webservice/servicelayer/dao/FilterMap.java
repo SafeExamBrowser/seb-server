@@ -205,6 +205,14 @@ public class FilterMap extends POSTMapper {
         return getString(ClientConnection.FILTER_ATTR_STATUS);
     }
 
+    public String getClientConnectionUserId() {
+        return getSQLWildcard(ClientConnection.FILTER_ATTR_SESSION_ID);
+    }
+
+    public String getClientConnectionIPAddress() {
+        return getSQLWildcard(ClientConnection.FILTER_ATTR_IP_STRING);
+    }
+
     public Long getClientEventConnectionId() {
         return getLong(ClientEvent.FILTER_ATTR_CONNECTION_ID);
     }

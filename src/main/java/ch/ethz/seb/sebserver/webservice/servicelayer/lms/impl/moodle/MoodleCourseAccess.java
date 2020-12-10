@@ -149,7 +149,7 @@ public class MoodleCourseAccess extends CourseAccess {
         if (restTemplateRequest.hasError()) {
             final String message = "Failed to gain access token from Moodle Rest API:\n tried token endpoints: " +
                     this.moodleRestTemplateFactory.knownTokenAccessPaths;
-            log.error(message, restTemplateRequest.getError().getMessage());
+            log.error(message + " cause: ", restTemplateRequest.getError());
             return LmsSetupTestResult.ofTokenRequestError(message);
         }
 
@@ -254,13 +254,15 @@ public class MoodleCourseAccess extends CourseAccess {
                     CourseQuizData.class);
 
             final Map<String, CourseData> finalCourseDataRef = courseData;
-            courseQuizData.quizzes
-                    .forEach(quiz -> {
-                        final CourseData course = finalCourseDataRef.get(quiz.course);
-                        if (course != null) {
-                            course.quizzes.add(quiz);
-                        }
-                    });
+            if (courseQuizData.quizzes != null) {
+                courseQuizData.quizzes
+                        .forEach(quiz -> {
+                            final CourseData course = finalCourseDataRef.get(quiz.course);
+                            if (course != null) {
+                                course.quizzes.add(quiz);
+                            }
+                        });
+            }
 
             return courseData.values()
                     .stream()
@@ -273,12 +275,17 @@ public class MoodleCourseAccess extends CourseAccess {
     }
 
     private Predicate<CourseData> getCourseFilter(final long from) {
-        final long now = DateTime.now(DateTimeZone.UTC).getMillis();
-        return course -> course.time_created == null
-                || course.time_created.longValue() > from
-                || (course.end_date == null
-                        || (course.end_date <= 0
-                                || course.end_date > now));
+        final long now = DateTime.now(DateTimeZone.UTC).getMillis() / 1000;
+        return course -> {
+            if (course.end_date != null && course.end_date > 0 && course.end_date < now) {
+                return false;
+            }
+            if (course.time_created != null && course.time_created.longValue() < from) {
+                return false;
+            }
+
+            return true;
+        };
     }
 
     private Collection<CourseData> getCoursesPage(
@@ -287,7 +294,7 @@ public class MoodleCourseAccess extends CourseAccess {
             final int size) throws JsonParseException, JsonMappingException, IOException {
 
         try {
-            final long aYearAgo = DateTime.now(DateTimeZone.UTC).minusYears(1).getMillis();
+            final long aYearAgo = DateTime.now(DateTimeZone.UTC).minusYears(1).getMillis() / 1000;
             // get course ids per page
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
             attributes.add(MOODLE_COURSE_API_SEARCH_CRITERIA_NAME, "search");

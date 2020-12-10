@@ -55,6 +55,7 @@ public final class ClientConnection implements GrantEntity {
     public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
     public static final String FILTER_ATTR_STATUS = Domain.CLIENT_CONNECTION.ATTR_STATUS;
     public static final String FILTER_ATTR_SESSION_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID;
+    public static final String FILTER_ATTR_IP_STRING = Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS;
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID)
     public final Long id;

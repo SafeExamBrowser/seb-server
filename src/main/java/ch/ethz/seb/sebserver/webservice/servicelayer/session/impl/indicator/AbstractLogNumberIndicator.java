@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -64,12 +65,17 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
                     .execute();
 
             if (execute == null || execute.isEmpty()) {
-                return this.currentValue;
+                return 0;
             }
 
-            return execute.get(execute.size() - 1).getNumericValue().doubleValue();
+            final BigDecimal numericValue = execute.get(execute.size() - 1).getNumericValue();
+            if (numericValue != null) {
+                return numericValue.doubleValue();
+            } else {
+                return 0;
+            }
         } catch (final Exception e) {
-            log.error("Failed to get indicator number from persistent storage: ", e);
+            log.error("Failed to get indicator number from persistent storage: {}", e.getMessage());
             return this.currentValue;
         }
     }
