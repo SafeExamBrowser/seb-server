@@ -21,6 +21,7 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
     protected Long connectionId;
     protected boolean cachingEnabled;
 
+    protected boolean valueInitializes = false;
     protected double currentValue = Double.NaN;
 
     @Override
@@ -52,12 +53,14 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
     public void reset() {
         this.currentValue = Double.NaN;
+        this.valueInitializes = false;
     }
 
     @Override
     public double getValue() {
-        if (Double.isNaN(this.currentValue) || !this.cachingEnabled) {
+        if (!this.valueInitializes || !this.cachingEnabled) {
             this.currentValue = computeValueAt(DateTime.now(DateTimeZone.UTC).getMillis());
+            this.valueInitializes = true;
         }
 
         return this.currentValue;

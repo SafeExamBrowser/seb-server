@@ -69,24 +69,23 @@ public class MonitoringExamSearchPopup {
         final PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(pageContext.clearEntityKeys());
 
-        final EntityTable<ClientConnection> table =
-                this.pageService.entityTableBuilder(restService.getRestCall(GetClientConnectionPage.class))
-                        .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
-                        .withPaging(10)
-                        .withStaticFilter(ClientConnection.FILTER_ATTR_EXAM_ID, examKey.modelId)
+        this.pageService.entityTableBuilder(restService.getRestCall(GetClientConnectionPage.class))
+                .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
+                .withPaging(10)
+                .withStaticFilter(ClientConnection.FILTER_ATTR_EXAM_ID, examKey.modelId)
 
-                        .withColumn(new ColumnDefinition<>(
-                                Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
-                                TABLE_COLUMN_NAME,
-                                ClientConnection::getUserSessionId)
-                                        .withFilter(this.nameFilter))
-                        .withDefaultAction(t -> actionBuilder
-                                .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
-                                .withParentEntityKey(examKey)
-                                .withExec(action -> showClientConnection(action, dialog, t))
-                                .create())
+                .withColumn(new ColumnDefinition<>(
+                        Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
+                        TABLE_COLUMN_NAME,
+                        ClientConnection::getUserSessionId)
+                                .withFilter(this.nameFilter))
+                .withDefaultAction(t -> actionBuilder
+                        .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
+                        .withParentEntityKey(examKey)
+                        .withExec(action -> showClientConnection(action, dialog, t))
+                        .create())
 
-                        .compose(pageContext);
+                .compose(pageContext);
     }
 
     private PageAction showClientConnection(

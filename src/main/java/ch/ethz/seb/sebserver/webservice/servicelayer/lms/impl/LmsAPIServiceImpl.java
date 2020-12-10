@@ -120,9 +120,9 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
         if (template.lmsSetup().getLmsType().features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
             return template.testCourseRestrictionAPI();
-        } else {
-            return LmsSetupTestResult.ofQuizRestrictionNotAvailable();
         }
+
+        return LmsSetupTestResult.ofOkay();
     }
 
     @Override

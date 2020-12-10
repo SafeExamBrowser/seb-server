@@ -36,6 +36,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -464,6 +466,14 @@ public class ExamForm implements TemplateComposer {
     }
 
     private boolean testSEBRestrictionAPI(final Exam exam) {
+        final Result<LmsSetup> lmsSetupCall = this.restService.getBuilder(GetLmsSetup.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
+                .call();
+
+        if (!lmsSetupCall.hasError() && !lmsSetupCall.get().lmsType.features.contains(Features.SEB_RESTRICTION)) {
+            return false;
+        }
+
         // Call the testing endpoint with the specified data to test
         final Result<LmsSetupTestResult> result = this.restService.getBuilder(TestLmsSetup.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
@@ -474,8 +484,7 @@ public class ExamForm implements TemplateComposer {
         }
 
         final LmsSetupTestResult lmsSetupTestResult = result.get();
-        return !lmsSetupTestResult.hasError(ErrorType.QUIZ_RESTRICTION_API_REQUEST)
-                && !lmsSetupTestResult.hasError(ErrorType.FEATURE_NOT_AVAILABLE);
+        return !lmsSetupTestResult.hasError(ErrorType.QUIZ_RESTRICTION_API_REQUEST);
     }
 
     private void showConsistencyChecks(final Collection<APIMessage> result, final Composite parent) {

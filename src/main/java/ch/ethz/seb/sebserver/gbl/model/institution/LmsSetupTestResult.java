@@ -27,7 +27,6 @@ public final class LmsSetupTestResult {
     public static final String ATTR_MISSING_ATTRIBUTE = "missingLMSSetupAttribute";
 
     public enum ErrorType {
-        FEATURE_NOT_AVAILABLE,
         MISSING_ATTRIBUTE,
         TOKEN_REQUEST,
         QUIZ_ACCESS_API_REQUEST,
@@ -117,10 +116,6 @@ public final class LmsSetupTestResult {
 
     public static LmsSetupTestResult ofQuizRestrictionAPIError(final String message) {
         return new LmsSetupTestResult(new Error(ErrorType.QUIZ_RESTRICTION_API_REQUEST, message));
-    }
-
-    public static LmsSetupTestResult ofQuizRestrictionNotAvailable() {
-        return new LmsSetupTestResult(new Error(ErrorType.FEATURE_NOT_AVAILABLE, "Restriction Feature Not Available"));
     }
 
     public final static class Error {

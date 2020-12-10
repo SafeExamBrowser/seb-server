@@ -65,14 +65,14 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
                     .execute();
 
             if (execute == null || execute.isEmpty()) {
-                return 0;
+                return super.currentValue;
             }
 
             final BigDecimal numericValue = execute.get(execute.size() - 1).getNumericValue();
             if (numericValue != null) {
                 return numericValue.doubleValue();
             } else {
-                return 0;
+                return super.currentValue;
             }
         } catch (final Exception e) {
             log.error("Failed to get indicator number from persistent storage: {}", e.getMessage());
