@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
@@ -25,6 +26,12 @@ public class BatteryStatusIndicator extends AbstractLogNumberIndicator {
 
     protected BatteryStatusIndicator(final ClientEventRecordMapper clientEventRecordMapper) {
         super(clientEventRecordMapper, EventType.INFO_LOG);
+        super.tags = new String[] { API.LOG_EVENT_TAG_BATTERY_STATUS };
+    }
+
+    @Override
+    public void init(final Indicator indicatorDefinition, final Long connectionId, final boolean cachingEnabled) {
+        super.init(indicatorDefinition, connectionId, cachingEnabled);
         super.tags = new String[] { API.LOG_EVENT_TAG_BATTERY_STATUS };
     }
 
