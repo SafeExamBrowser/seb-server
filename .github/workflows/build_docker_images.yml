@@ -5,7 +5,26 @@ on:
     branches: master
 
 jobs:
-  main:
+  build:
+    runs-on: maven:latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build with maven
+        run: mvn package -DskipTests -Dbuild-version="${SEBSERVER_VERSION}"
+      - run: mkdir staging && cp target/*.jar staging
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Package
+          path: staging
+
+  push:
     runs-on: ubuntu-latest
     steps:
       -
