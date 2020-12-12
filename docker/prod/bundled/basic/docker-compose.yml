@@ -1,0 +1,84 @@
+version: '3.5'
+services:
+  seb-server-setup:
+    build:
+        context: .
+        dockerfile: setup.Dockerfile
+    container_name: seb-server-setup
+    volumes:
+        - seb-server-config:/config
+        - ./config:/host/config
+
+  mariadb: 
+    image: "mariadb/server:10.3"
+    container_name: seb-server-mariadb
+    environment:
+        - MYSQL_ROOT_PASSWORD_FILE=/etc/mysql/conf.d/secret
+    ports:
+        - 3306:3306
+    volumes:
+        - seb-server-config:/etc/mysql/conf.d
+        - seb-server-mariadb:/var/lib/mysql
+        - ./config/mariadb/config.cnf:/etc/mysql/conf.d/config.cnf
+    networks:
+        - seb-server-network
+    depends_on:
+        - "seb-server-setup"
+    restart: unless-stopped
+
+  seb-server:
+      build:
+          context: .
+          dockerfile: sebserver.Dockerfile
+          args:
+              - SEBSERVER_VERSION=1.0-latest
+      container_name: seb-server
+      volumes:
+        - seb-server-config:/sebserver/config
+        - ./config/spring:/sebserver/config/spring
+        - seb-server-logs:/sebserver/log
+      environment:
+        - MONITORING_MODE=false
+      # - JMX_PORT=9090
+      # Connect this port to host if you want to use JMX (MONITORING_MODE=true)
+      #ports:
+      #  - 9090:9090
+      logging:
+        driver: "json-file"
+        options:
+            mode: "non-blocking"
+            max-size: "200k"
+            max-file: "10"
+      networks:
+          - seb-server-network
+      depends_on:
+          - "mariadb"
+          - "seb-server-setup"
+      restart: unless-stopped
+
+  reverse-proxy:
+    image: "nginx:latest"
+    container_name: seb-server-proxy
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d
+    ports:
+      - 80:80
+    networks:
+      - seb-server-network
+    depends_on:
+      - "mariadb"
+      - "seb-server"
+      - "seb-server-setup"
+    restart: unless-stopped
+
+networks:
+  seb-server-network:
+    name: seb-server-network
+
+volumes:
+  seb-server-config:
+    name: seb-server-config
+  seb-server-mariadb:
+    name: seb-server-mariadb
+  seb-server-logs:
+    name: seb-server-logs

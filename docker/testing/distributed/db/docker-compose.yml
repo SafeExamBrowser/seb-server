@@ -1,0 +1,26 @@
+version: '3.5'
+services:
+  mariadb: 
+    image: "mariadb/server:10.3"
+    container_name: seb-server-mariadb
+    environment:
+        - MYSQL_ROOT_PASSWORD=somePW
+        # workaround: https://github.com/docker-library/mariadb/issues/262 
+        # TODO this seems to be fixed now... try to remove and test
+        - MYSQL_INITDB_SKIP_TZINFO=1
+    volumes:
+        - mariadb-data:/var/lib/mysql
+        - ./mariadb:/etc/mysql/conf.d
+    ports:
+        - 3306:3306
+    networks:
+        - seb-server-network
+    restart: unless-stopped
+
+volumes:
+  mariadb-data:
+    name: seb-server-data
+  
+networks:
+  seb-server-network:
+    name: seb-server-network

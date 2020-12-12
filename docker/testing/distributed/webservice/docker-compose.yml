@@ -1,0 +1,93 @@
+version: '3.5'
+services:
+  seb-webservice1:
+      build:
+          context: .
+          dockerfile: sebwebservice.Dockerfile
+          args:
+              - GIT_TAG=development
+              - SEBSERVER_VERSION=1.0.1
+      container_name: seb-webservice1
+      volumes:
+        - seb-server-config:/sebserver/config
+        - ./config/spring:/sebserver/config/spring
+        - seb-server-logs:/sebserver/log
+      environment:
+        - SECRET=somePW
+      logging:
+        driver: "json-file"
+        options:
+            mode: "non-blocking"
+            max-size: "200k"
+            max-file: "10"
+      networks:
+        - seb-server-network
+      restart: unless-stopped
+      
+  seb-webservice2:
+      build:
+          context: .
+          dockerfile: sebwebservice.Dockerfile
+          args:
+              - GIT_TAG=development
+              - SEBSERVER_VERSION=1.0.1
+      container_name: seb-webservice2
+      volumes:
+        - seb-server-config:/sebserver/config
+        - ./config/spring:/sebserver/config/spring
+        - seb-server-logs:/sebserver/log
+      environment:
+        - SECRET=somePW
+      logging:
+        driver: "json-file"
+        options:
+            mode: "non-blocking"
+            max-size: "200k"
+            max-file: "10"
+      networks:
+        - seb-server-network
+      restart: unless-stopped
+      
+  seb-webservice3:
+      build:
+          context: .
+          dockerfile: sebwebservice.Dockerfile
+          args:
+              - GIT_TAG=development
+              - SEBSERVER_VERSION=1.0.1
+      container_name: seb-webservice3
+      volumes:
+        - seb-server-config:/sebserver/config
+        - ./config/spring:/sebserver/config/spring
+        - seb-server-logs:/sebserver/log
+      environment:
+        - SECRET=somePW
+      logging:
+        driver: "json-file"
+        options:
+            mode: "non-blocking"
+            max-size: "200k"
+            max-file: "10"
+      networks:
+        - seb-server-network
+      restart: unless-stopped
+      
+  reverse-proxy:
+    image: "nginx:latest"
+    container_name: seb-server-proxy
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d
+    ports:
+      - 8081:80
+    networks:
+      - seb-server-network
+    restart: unless-stopped
+
+volumes:
+  seb-server-config:
+  seb-server-logs:
+    name: seb-webservice-logs
+
+networks:
+  seb-server-network:
+    name: seb-server-network
