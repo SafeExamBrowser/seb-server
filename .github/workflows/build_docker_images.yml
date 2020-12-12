@@ -21,15 +21,15 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Build with maven
-        run: mvn package -DskipTests -Dbuild-version="${SEBSERVER_VERSION}"
-      - run: mkdir staging && cp target/*.jar staging
+        run: mvn package -DskipTests -Dbuild-version="auto"
       - uses: actions/upload-artifact@v2
         with:
           name: Package
-          path: staging
+          path: target/seb-server-.jar
 
   docker_push:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       -
         name: Set up QEMU
@@ -43,6 +43,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - 
+        name: Download a single artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: Package
       -
         name: Build and push
         id: docker_build

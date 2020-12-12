@@ -1,21 +1,3 @@
-FROM alpine/git
-
-ARG SEBSERVER_VERSION
-ARG GIT_TAG="v${SEBSERVER_VERSION}"
-
-WORKDIR /sebserver
-RUN if [ "x${GIT_TAG}" = "x" ] ; \
-    then git clone --depth 1 https://github.com/SafeExamBrowser/seb-server.git ; \
-    else git clone -b "$GIT_TAG" --depth 1 https://github.com/SafeExamBrowser/seb-server.git ; fi
-
-FROM maven:latest
-
-ARG SEBSERVER_VERSION
-
-WORKDIR /sebserver
-COPY --from=0 /sebserver/seb-server /sebserver
-RUN mvn clean install -DskipTests -Dbuild-version="${SEBSERVER_VERSION}"
-
 FROM openjdk:11-jre-stretch
 
 ARG SEBSERVER_VERSION
@@ -26,7 +8,7 @@ ENV SERVER_PWD=
 
 
 WORKDIR /sebserver
-COPY --from=1 /sebserver/target/seb-server-"${SEBSERVER_JAR}".jar /sebserver
+COPY --from=1 target/seb-server-auto.jar /sebserver
 
 ENTRYPOINT exec java \
     -Dcom.sun.management.jmxremote \
