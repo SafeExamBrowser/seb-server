@@ -25,7 +25,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: Package
-          path: target/seb-server-.jar
+          path: target/seb-server-auto.jar
 
   docker_push:
     runs-on: ubuntu-latest
