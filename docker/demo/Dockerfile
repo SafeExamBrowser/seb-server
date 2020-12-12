@@ -1,14 +1,13 @@
 FROM openjdk:11-jre-stretch
 
-ARG SEBSERVER_VERSION
-ENV SEBSERVER_JAR=${SEBSERVER_VERSION}
+ENV SEBSERVER_JAR=auto
 ENV SERVER_PORT="8080"
 ENV JMX_PORT="9090"
 ENV SERVER_PWD=
 
 
 WORKDIR /sebserver
-COPY --from=1 target/seb-server-auto.jar /sebserver
+COPY target/seb-server-auto.jar /sebserver
 
 ENTRYPOINT exec java \
     -Dcom.sun.management.jmxremote \
