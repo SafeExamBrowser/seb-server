@@ -5,7 +5,7 @@ ENV SERVER_PORT="8080"
 ENV JMX_PORT="9090"
 ENV SERVER_PWD=
 
-COPY ./seb-server-auto.jar /sebserver/seb-server-auto.jar
+COPY target/seb-server-auto.jar /sebserver/seb-server-auto.jar
 
 WORKDIR /sebserver
 

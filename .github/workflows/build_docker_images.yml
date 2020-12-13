@@ -21,7 +21,7 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Build with maven
-        run: mvn package -DskipTests -Dbuild-version="auto"
+        run: mvn clean package -DskipTests -Dbuild-version="auto"
       - uses: actions/upload-artifact@v2
         with:
           name: Package
@@ -48,9 +48,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: Package
-      - 
-        name: Show directory path
-        run: pwd
+          path: target/
       -
         name: Build and push
         id: docker_build
