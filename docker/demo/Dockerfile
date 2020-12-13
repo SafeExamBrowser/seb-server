@@ -5,9 +5,9 @@ ENV SERVER_PORT="8080"
 ENV JMX_PORT="9090"
 ENV SERVER_PWD=
 
+COPY ./seb-server-auto.jar /sebserver/seb-server-auto.jar
 
 WORKDIR /sebserver
-COPY /home/runner/work/seb-server/seb-server/seb-server-auto.jar /sebserver
 
 ENTRYPOINT exec java \
     -Dcom.sun.management.jmxremote \
