@@ -43,6 +43,8 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Checkout repository
+        uses: actions/checkout@v2
       - 
         name: Download a single artifact
         uses: actions/download-artifact@v2
