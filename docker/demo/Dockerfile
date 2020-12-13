@@ -7,7 +7,7 @@ ENV SERVER_PWD=
 
 
 WORKDIR /sebserver
-COPY /seb-server/seb-server-auto.jar /sebserver
+COPY ./seb-server/seb-server-auto.jar /sebserver
 
 ENTRYPOINT exec java \
     -Dcom.sun.management.jmxremote \
