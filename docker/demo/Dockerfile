@@ -8,6 +8,8 @@ ENV SERVER_PWD=demo_pwd
 COPY seb-server-$SEBSERVER_JAR.jar /sebserver/seb-server-$SEBSERVER_JAR.jar
 COPY docker/demo/config/ /sebserver/config/
 
+WORKDIR /sebserver
+
 ENTRYPOINT exec java \
     -Dcom.sun.management.jmxremote \
     -Dcom.sun.management.jmxremote.port=9090 \
