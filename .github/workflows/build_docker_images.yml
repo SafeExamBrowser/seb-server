@@ -49,8 +49,8 @@ jobs:
         with:
           name: Package
       - 
-        name: Show directory structure
-        run: ls -R
+        name: Show directory path
+        run: pwd
       -
         name: Build and push
         id: docker_build
