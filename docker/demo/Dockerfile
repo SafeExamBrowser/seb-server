@@ -10,7 +10,7 @@ COPY docker/demo/config/ /sebserver/config/
 
 WORKDIR /sebserver
 
-ENTRYPOINT exec java \
+CMD exec java \
     -Dcom.sun.management.jmxremote \
     -Dcom.sun.management.jmxremote.port=9090 \
     -Dcom.sun.management.jmxremote.rmi.port=9090 \
