@@ -3,7 +3,7 @@ FROM openjdk:11-jre-stretch
 ENV SEBSERVER_JAR=demo
 ENV SERVER_PORT="8080"
 ENV JMX_PORT="9090"
-ENV SERVER_PWD=demo_pwd
+ENV SERVER_PWD=somePW
 
 COPY seb-server-$SEBSERVER_JAR.jar /sebserver/seb-server-$SEBSERVER_JAR.jar
 COPY docker/demo/config/ /sebserver/config/
