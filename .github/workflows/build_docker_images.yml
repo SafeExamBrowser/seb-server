@@ -1,10 +1,31 @@
-name: ci
+services:
+  mysql:
+    image: mysql:8
+    env:
+      MYSQL_ROOT_PASSWORD: somePW
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+
+name: latest
 
 on:
   push:
     branches: master
 
 jobs:
+  # test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v2
+  #     - name: Set up JDK11
+  #       uses: actions/setup-java@v1
+  #       with:
+  #         java-version: 11
+  #     - name: Run tests
+  #       run: mvn clean test
+  #       env:
+  #         SERVER_PWD: somePW
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -21,11 +42,12 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Build with maven
-        run: mvn clean package -DskipTests -Dbuild-version="auto"
+        run: mvn clean package -DskipTests -Dbuild-version="demo"
       - uses: actions/upload-artifact@v2
         with:
           name: Package
-          path: target/seb-server-auto.jar
+          path: target/seb-server-demo.jar
+
 
   docker_push:
     runs-on: ubuntu-latest
@@ -58,7 +80,7 @@ jobs:
           context: .
           file: ./docker/demo/Dockerfile
           push: true
-          tags: bengig/seb-server:latest
+          tags: bengig/seb-server:demo
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
