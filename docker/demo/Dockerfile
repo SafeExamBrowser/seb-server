@@ -5,7 +5,7 @@ ENV SERVER_PORT="8080"
 ENV JMX_PORT="9090"
 ENV SERVER_PWD=somePW
 
-RUN addgroup --system spring && adduser --system spring --group spring
+RUN groupadd --system spring && useradd --system --gid spring spring
 USER spring:spring
 
 COPY docker/demo/config/ /sebserver/config/
