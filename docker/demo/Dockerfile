@@ -8,6 +8,9 @@ ENV SERVER_PWD=somePW
 COPY seb-server-$SEBSERVER_JAR.jar /sebserver/seb-server-$SEBSERVER_JAR.jar
 COPY docker/demo/config/ /sebserver/config/
 
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
 WORKDIR /sebserver
 
 CMD exec java \
