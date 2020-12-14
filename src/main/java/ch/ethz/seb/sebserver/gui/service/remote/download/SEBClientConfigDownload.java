@@ -16,7 +16,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -35,14 +34,11 @@ public class SEBClientConfigDownload extends AbstractDownloadServiceHandler {
     private static final Logger log = LoggerFactory.getLogger(SEBClientConfigDownload.class);
 
     private final RestService restService;
-    public final String downloadFileName;
 
     protected SEBClientConfigDownload(
-            final RestService restService,
-            @Value("${sebserver.gui.seb.client.config.download.filename}") final String downloadFileName) {
+            final RestService restService) {
 
         this.restService = restService;
-        this.downloadFileName = downloadFileName;
     }
 
     @Override

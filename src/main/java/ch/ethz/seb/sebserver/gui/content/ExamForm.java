@@ -22,7 +22,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -141,8 +140,7 @@ public class ExamForm implements TemplateComposer {
             final ExamDeletePopup examDeletePopup,
             final ExamFormConfigs examFormConfigs,
             final ExamFormIndicators examFormIndicators,
-            final ExamCreateClientConfigPopup examCreateClientConfigPopup,
-            @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
+            final ExamCreateClientConfigPopup examCreateClientConfigPopup) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
@@ -358,6 +356,7 @@ public class ExamForm implements TemplateComposer {
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(formContext
                 .clearEntityKeys()
                 .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
+
         // propagate content actions to action-pane
         actionBuilder
 
@@ -380,7 +379,9 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_SEB_CLIENT_CONFIG_EXPORT)
                 .withEntityKey(entityKey)
-                .withExec(this.examCreateClientConfigPopup.exportFunction(exam.institutionId))
+                .withExec(this.examCreateClientConfigPopup.exportFunction(
+                        exam.institutionId,
+                        exam.getName()))
                 .publishIf(() -> writeGrant && readonly)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)

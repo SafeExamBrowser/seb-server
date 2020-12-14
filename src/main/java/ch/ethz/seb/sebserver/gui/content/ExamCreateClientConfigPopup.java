@@ -14,11 +14,13 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.springframework.beans.factory.annotation.Value;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -57,21 +59,24 @@ public class ExamCreateClientConfigPopup {
 
     private final PageService pageService;
     private final DownloadService downloadService;
-    private final String downloadFileName;
 
     public ExamCreateClientConfigPopup(
             final PageService pageService,
-            final DownloadService downloadService,
-            @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
+            final DownloadService downloadService) {
 
         this.pageService = pageService;
         this.downloadService = downloadService;
-        this.downloadFileName = downloadFileName;
     }
 
-    public Function<PageAction, PageAction> exportFunction(final Long examInstitutionId) {
+    public Function<PageAction, PageAction> exportFunction(
+            final Long examInstitutionId,
+            final String examName) {
 
         return action -> {
+
+            final DateTime now = DateTime.now(DateTimeZone.UTC);
+            final String downloadFileName = StringUtils.remove(examName, " ") + "_" + now.getYear() + "-"
+                    + now.getMonthOfYear() + "-" + now.getDayOfMonth() + ".seb";
 
             final ModalInputDialog<FormHandle<?>> dialog =
                     new ModalInputDialog<FormHandle<?>>(
@@ -88,7 +93,8 @@ public class ExamCreateClientConfigPopup {
                     this.pageService,
                     action.pageContext(),
                     action.getEntityKey(),
-                    formHandle);
+                    formHandle,
+                    downloadFileName);
 
             dialog.open(
                     TITLE_KEY,
@@ -104,7 +110,8 @@ public class ExamCreateClientConfigPopup {
             final PageService pageService,
             final PageContext pageContext,
             final EntityKey examKey,
-            final FormHandle<?> formHandle) {
+            final FormHandle<?> formHandle,
+            final String downloadFileName) {
 
         if (formHandle == null) {
             return true;
@@ -116,7 +123,7 @@ public class ExamCreateClientConfigPopup {
                 modelId,
                 examKey.modelId,
                 SEBClientConfigDownload.class,
-                this.downloadFileName);
+                downloadFileName);
         urlLauncher.openURL(downloadURL);
 
         return true;
