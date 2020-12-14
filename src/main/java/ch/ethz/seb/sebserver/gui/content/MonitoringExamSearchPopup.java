@@ -41,11 +41,15 @@ public class MonitoringExamSearchPopup {
             new LocTextKey("sebserver.monitoring.search.list.empty");
     private static final LocTextKey TABLE_COLUMN_NAME =
             new LocTextKey("sebserver.monitoring.search.list.name");
+    private static final LocTextKey TABLE_COLUMN_IP_ADDRESS =
+            new LocTextKey("sebserver.monitoring.search.list.ip");
 
     private final PageService pageService;
 
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, ClientConnection.FILTER_ATTR_SESSION_ID);
+    private final TableFilterAttribute ipFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, ClientConnection.FILTER_ATTR_IP_STRING);
 
     protected MonitoringExamSearchPopup(final PageService pageService) {
         this.pageService = pageService;
@@ -79,6 +83,13 @@ public class MonitoringExamSearchPopup {
                         TABLE_COLUMN_NAME,
                         ClientConnection::getUserSessionId)
                                 .withFilter(this.nameFilter))
+
+                .withColumn(new ColumnDefinition<>(
+                        Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS,
+                        TABLE_COLUMN_IP_ADDRESS,
+                        ClientConnection::getClientAddress)
+                                .withFilter(this.ipFilter))
+
                 .withDefaultAction(t -> actionBuilder
                         .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
                         .withParentEntityKey(examKey)

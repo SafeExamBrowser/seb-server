@@ -277,7 +277,7 @@ public class MoodleCourseAccess extends CourseAccess {
     private Predicate<CourseData> getCourseFilter(final long from) {
         final long now = DateTime.now(DateTimeZone.UTC).getMillis() / 1000;
         return course -> {
-            if (course.end_date != null && course.end_date > 0 && course.end_date < now) {
+            if (course.end_date != null && course.end_date > now) {
                 return false;
             }
             if (course.time_created != null && course.time_created.longValue() < from) {
@@ -294,7 +294,8 @@ public class MoodleCourseAccess extends CourseAccess {
             final int size) throws JsonParseException, JsonMappingException, IOException {
 
         try {
-            final long aYearAgo = DateTime.now(DateTimeZone.UTC).minusYears(1).getMillis() / 1000;
+            // TODO use start date from filter
+            final long twoYearsAgo = DateTime.now(DateTimeZone.UTC).minusYears(3).getMillis() / 1000;
             // get course ids per page
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
             attributes.add(MOODLE_COURSE_API_SEARCH_CRITERIA_NAME, "search");
@@ -325,7 +326,7 @@ public class MoodleCourseAccess extends CourseAccess {
 
             final Collection<CourseData> result = getCoursesForIds(restTemplate, ids)
                     .stream()
-                    .filter(getCourseFilter(aYearAgo))
+                    .filter(getCourseFilter(twoYearsAgo))
                     .collect(Collectors.toList());
 
             log.info("After filtering {} left", result.size());
