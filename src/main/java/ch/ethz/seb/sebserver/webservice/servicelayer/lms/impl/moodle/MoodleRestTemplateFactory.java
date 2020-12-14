@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -378,9 +379,11 @@ class MoodleRestTemplateFactory {
 
             this.username = username;
             this.userid = userid;
-            this.functions = functions
-                    .stream()
-                    .collect(Collectors.toMap(fi -> fi.name, Function.identity()));
+            this.functions = (functions != null)
+                    ? functions
+                            .stream()
+                            .collect(Collectors.toMap(fi -> fi.name, Function.identity()))
+                    : Collections.emptyMap();
         }
     }
 

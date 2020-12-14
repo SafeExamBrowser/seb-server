@@ -295,6 +295,10 @@ public final class Utils {
         return new DateTime(timestamp * 1000, DateTimeZone.UTC);
     }
 
+    public static final long toUnixTimeInSeconds(final DateTime time) {
+        return time.getMillis() / 1000;
+    }
+
     public static Long toTimestamp(final String dateString) {
         if (StringUtils.isBlank(dateString)) {
             return null;

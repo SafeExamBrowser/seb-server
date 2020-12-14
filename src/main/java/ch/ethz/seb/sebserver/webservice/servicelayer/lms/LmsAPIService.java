@@ -152,7 +152,7 @@ public interface LmsAPIService {
             }
 
             return new Page<>(
-                    quizzes.size() / pageSize + 1,
+                    (quizzes.size() <= pageSize) ? 1 : quizzes.size() / pageSize + 1,
                     pageNumber,
                     sortAttribute,
                     quizzes.subList(start, end));

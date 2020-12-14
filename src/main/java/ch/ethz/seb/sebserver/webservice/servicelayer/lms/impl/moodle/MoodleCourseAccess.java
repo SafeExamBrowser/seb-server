@@ -73,6 +73,8 @@ public class MoodleCourseAccess extends CourseAccess {
     private static final String MOODLE_COURSE_API_SEARCH_PAGE = "page";
     private static final String MOODLE_COURSE_API_SEARCH_PAGE_SIZE = "perpage";
 
+    private static final int DEFAULT_FROM_YEARS = 3;
+
     private final JSONMapper jsonMapper;
     private final LmsSetup lmsSetup;
     private final MoodleRestTemplateFactory moodleRestTemplateFactory;
@@ -178,7 +180,7 @@ public class MoodleCourseAccess extends CourseAccess {
     @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
         return () -> getRestTemplate()
-                .map(this::collectAllQuizzes)
+                .map(template -> collectAllQuizzes(template, filterMap))
                 .getOrThrow();
     }
 
@@ -187,11 +189,14 @@ public class MoodleCourseAccess extends CourseAccess {
         throw new UnsupportedOperationException("not available yet");
     }
 
-    private ArrayList<QuizData> collectAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
+    private ArrayList<QuizData> collectAllQuizzes(
+            final MoodleAPIRestTemplate restTemplate,
+            final FilterMap filterMap) {
+
         final String urlPrefix = (this.lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
                 ? this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
                 : this.lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
-        return getAllQuizzes(restTemplate)
+        return getAllQuizzes(restTemplate, filterMap)
                 .stream()
                 .reduce(
                         new ArrayList<>(),
@@ -208,18 +213,21 @@ public class MoodleCourseAccess extends CourseAccess {
                         });
     }
 
-    private List<CourseData> getAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
+    private List<CourseData> getAllQuizzes(
+            final MoodleAPIRestTemplate restTemplate,
+            final FilterMap filterMap) {
+
         final List<CourseData> result = new ArrayList<>();
 
         int page = 0;
-        List<CourseData> quizzesBatch = getQuizzesBatch(restTemplate, page);
+        List<CourseData> quizzesBatch = getQuizzesBatch(restTemplate, filterMap, page);
         result.addAll(quizzesBatch);
 
         log.info("Got quiz page batch for page {} with {} items", page, quizzesBatch.size());
 
         while (!quizzesBatch.isEmpty()) {
             page++;
-            quizzesBatch = getQuizzesBatch(restTemplate, page);
+            quizzesBatch = getQuizzesBatch(restTemplate, filterMap, page);
             result.addAll(quizzesBatch);
 
             log.info("Got quiz page batch for page {} with {} items", page, quizzesBatch.size());
@@ -227,11 +235,20 @@ public class MoodleCourseAccess extends CourseAccess {
         return result;
     }
 
-    private List<CourseData> getQuizzesBatch(final MoodleAPIRestTemplate restTemplate, final int page) {
+    private List<CourseData> getQuizzesBatch(
+            final MoodleAPIRestTemplate restTemplate,
+            final FilterMap filterMap,
+            final int page) {
+
         try {
+
+            final long fromTime = (filterMap != null && filterMap.getQuizFromTime() != null)
+                    ? Utils.toUnixTimeInSeconds(filterMap.getQuizFromTime())
+                    : Utils.toUnixTimeInSeconds(DateTime.now(DateTimeZone.UTC).minusYears(DEFAULT_FROM_YEARS));
+
             // first get courses from Moodle for page
             final Map<String, CourseData> courseData = new HashMap<>();
-            final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, page, 100);
+            final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, fromTime, page, 100);
 
             if (coursesPage.isEmpty()) {
                 return Collections.emptyList();
@@ -290,12 +307,11 @@ public class MoodleCourseAccess extends CourseAccess {
 
     private Collection<CourseData> getCoursesPage(
             final MoodleAPIRestTemplate restTemplate,
+            final long startDate,
             final int page,
             final int size) throws JsonParseException, JsonMappingException, IOException {
 
         try {
-            // TODO use start date from filter
-            final long twoYearsAgo = DateTime.now(DateTimeZone.UTC).minusYears(3).getMillis() / 1000;
             // get course ids per page
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
             attributes.add(MOODLE_COURSE_API_SEARCH_CRITERIA_NAME, "search");
@@ -311,12 +327,13 @@ public class MoodleCourseAccess extends CourseAccess {
                     courseKeyPageJSON,
                     CoursePage.class);
 
-            log.info("Got course page with: {} items", keysPage.courseKeys.size());
-            log.info("course items:\n{} items", keysPage.courseKeys);
-
-            if (keysPage.courseKeys == null || keysPage.courseKeys.isEmpty()) {
+            if (keysPage == null || keysPage.courseKeys == null || keysPage.courseKeys.isEmpty()) {
+                log.info("No courses found on page: {}", page);
                 return Collections.emptyList();
             }
+
+            log.info("Got course page with: {} items", keysPage.courseKeys.size());
+            log.info("course items:\n{} items", keysPage.courseKeys);
 
             // get courses
             final Set<String> ids = keysPage.courseKeys
@@ -326,7 +343,7 @@ public class MoodleCourseAccess extends CourseAccess {
 
             final Collection<CourseData> result = getCoursesForIds(restTemplate, ids)
                     .stream()
-                    .filter(getCourseFilter(twoYearsAgo))
+                    .filter(getCourseFilter(startDate))
                     .collect(Collectors.toList());
 
             log.info("After filtering {} left", result.size());
@@ -472,8 +489,12 @@ public class MoodleCourseAccess extends CourseAccess {
                             lmsSetup.getLmsType(),
                             courseQuizData.name,
                             courseQuizData.intro,
-                            Utils.toDateTimeUTCUnix(courseData.start_date),
-                            Utils.toDateTimeUTCUnix(courseData.end_date),
+                            (courseQuizData.time_open != null && courseQuizData.time_open > 0)
+                                    ? Utils.toDateTimeUTCUnix(courseQuizData.time_open)
+                                    : Utils.toDateTimeUTCUnix(courseData.start_date),
+                            (courseQuizData.time_close != null && courseQuizData.time_close > 0)
+                                    ? Utils.toDateTimeUTCUnix(courseQuizData.time_close)
+                                    : Utils.toDateTimeUTCUnix(courseData.end_date),
                             startURI,
                             additionalAttrs);
                 })
@@ -614,9 +635,9 @@ public class MoodleCourseAccess extends CourseAccess {
         final String full_name;
         final String display_name;
         final String summary;
-        final Long start_date; // unix-time milliseconds UTC
-        final Long end_date; // unix-time milliseconds UTC
-        final Long time_created; // unix-time milliseconds UTC
+        final Long start_date; // unix-time seconds UTC
+        final Long end_date; // unix-time seconds UTC
+        final Long time_created; // unix-time seconds UTC
         final Collection<CourseQuiz> quizzes = new ArrayList<>();
 
         @JsonCreator
@@ -673,7 +694,9 @@ public class MoodleCourseAccess extends CourseAccess {
         final String course_module;
         final String name;
         final String intro; // HTML
-        final Long time_limit; // unix-time milliseconds UTC
+        final Long time_open;
+        final Long time_close;
+        final Long time_limit; // unix-time seconds UTC
 
         @JsonCreator
         protected CourseQuiz(
@@ -682,6 +705,8 @@ public class MoodleCourseAccess extends CourseAccess {
                 @JsonProperty(value = "coursemodule") final String course_module,
                 @JsonProperty(value = "name") final String name,
                 @JsonProperty(value = "intro") final String intro,
+                @JsonProperty(value = "timeopen") final Long time_open,
+                @JsonProperty(value = "timeclose") final Long time_close,
                 @JsonProperty(value = "timelimit") final Long time_limit) {
 
             this.id = id;
@@ -689,6 +714,8 @@ public class MoodleCourseAccess extends CourseAccess {
             this.course_module = course_module;
             this.name = name;
             this.intro = intro;
+            this.time_open = time_open;
+            this.time_close = time_close;
             this.time_limit = time_limit;
         }
     }
