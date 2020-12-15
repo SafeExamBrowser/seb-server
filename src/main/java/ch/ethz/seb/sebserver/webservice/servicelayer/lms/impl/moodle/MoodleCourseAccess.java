@@ -222,7 +222,7 @@ public class MoodleCourseAccess extends CourseAccess {
                 quizzesBatch.b,
                 quizzesBatch.a.size());
 
-        while (quizzesBatch.b != null && quizzesBatch.b > 0) {
+        if (quizzesBatch.b != null && quizzesBatch.b > 0) {
             page++;
             quizzesBatch = getQuizzesBatch(restTemplate, page);
             result.addAll(quizzesBatch.a);
@@ -232,6 +232,17 @@ public class MoodleCourseAccess extends CourseAccess {
                     quizzesBatch.b,
                     quizzesBatch.a.size());
         }
+
+//        while (quizzesBatch.b != null && quizzesBatch.b > 0) {
+//            page++;
+//            quizzesBatch = getQuizzesBatch(restTemplate, page);
+//            result.addAll(quizzesBatch.a);
+//
+//            log.info("Got quiz page batch for page {} of size {} with {} items",
+//                    page,
+//                    quizzesBatch.b,
+//                    quizzesBatch.a.size());
+//        }
         return result;
     }
 
