@@ -15,10 +15,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.eclipse.rap.rwt.RWT;
-import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +38,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
-import ch.ethz.seb.sebserver.gui.service.remote.download.SEBExamConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
@@ -75,8 +71,6 @@ public class ExamFormConfigs implements TemplateComposer {
     private final PageService pageService;
     private final ResourceService resourceService;
     private final ExamToConfigBindingForm examToConfigBindingForm;
-    private final DownloadService downloadService;
-    private final String downloadFileName;
     private final WidgetFactory widgetFactory;
     private final RestService restService;
 
@@ -84,14 +78,11 @@ public class ExamFormConfigs implements TemplateComposer {
             final PageService pageService,
             final ExamSEBRestrictionSettings examSEBRestrictionSettings,
             final ExamToConfigBindingForm examToConfigBindingForm,
-            final DownloadService downloadService,
-            @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
+            final DownloadService downloadService) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.examToConfigBindingForm = examToConfigBindingForm;
-        this.downloadService = downloadService;
-        this.downloadFileName = downloadFileName;
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = pageService.getRestService();
     }
@@ -192,15 +183,6 @@ public class ExamFormConfigs implements TemplateComposer {
                 })
                 .publishIf(() -> modifyGrant && configurationTable.hasAnyContent() && editable, false)
 
-//                .newAction(ActionDefinition.EXAM_CONFIGURATION_EXPORT)
-//                .withParentEntityKey(entityKey)
-//                .withSelect(
-//                        getConfigSelection(configurationTable),
-//                        this::downloadExamConfigAction,
-//                        CONFIG_EMPTY_SELECTION_TEXT_KEY)
-//                .noEventPropagation()
-//                .publishIf(() -> readGrant && configurationTable.hasAnyContent(), false)
-
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_GET_CONFIG_KEY)
                 .withSelect(
                         getConfigSelection(configurationTable),
@@ -209,20 +191,6 @@ public class ExamFormConfigs implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(() -> readGrant && configurationTable.hasAnyContent(), false);
 
-    }
-
-    private PageAction downloadExamConfigAction(final PageAction action) {
-        final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
-        final EntityKey selection = action.getSingleSelection();
-        if (selection != null) {
-            final String downloadURL = this.downloadService.createDownloadURL(
-                    selection.modelId,
-                    action.pageContext().getParentEntityKey().modelId,
-                    SEBExamConfigDownload.class,
-                    this.downloadFileName);
-            urlLauncher.openURL(downloadURL);
-        }
-        return action;
     }
 
     private Supplier<Set<EntityKey>> getConfigMappingSelection(
