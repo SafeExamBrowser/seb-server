@@ -73,6 +73,10 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: Package
+      - 
+        name: Generate tags
+        id: docker_tags
+        uses: dnaka91/action-docker-tags@v0.1
       -
         name: Build and push SHA
         id: docker_build
@@ -81,21 +85,4 @@ jobs:
           context: .
           file: ./docker/demo/Dockerfile
           push: true
-          tags: bengig/seb-server:${{ github.sha }}
-      - 
-        name: Retag image
-        if: github.ref != null
-        uses: flownative/action-docker-publish-semver@master
-        with:
-          tag_ref: ${{ github.ref }}
-          tag_latest: 'yes'
-
-          source_image_name: bengig/seb-server
-          source_registry_username: ${{ secrets.DOCKERHUB_USERNAME }}
-          source_registry_password: ${{ secrets.DOCKERHUB_TOKEN }}
-          source_registry_endpoint: https://index.docker.io/v2/
-
-          target_image_name: bengig/seb-server
-          target_registry_username: ${{ secrets.DOCKERHUB_USERNAME }}
-          target_registry_password: ${{ secrets.DOCKERHUB_TOKEN }}
-          target_registry_endpoint: https://index.docker.io/v2/
+          tags: ${{ steps.docker_tags.outputs.tags }}
