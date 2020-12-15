@@ -43,7 +43,7 @@ public abstract class CourseAccess {
 
     protected CourseAccess(final AsyncService asyncService) {
         this.allQuizzesRequest = asyncService.createMemoizingCircuitBreaker(
-                allQuizzesSupplier(null),
+                allQuizzesSupplier(),
                 3,
                 Constants.MINUTE_IN_MILLIS,
                 Constants.MINUTE_IN_MILLIS,
@@ -101,7 +101,6 @@ public abstract class CourseAccess {
     }
 
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        this.allQuizzesRequest.setSupplier(allQuizzesSupplier(filterMap));
         return this.allQuizzesRequest.get()
                 .map(LmsAPIService.quizzesFilterFunction(filterMap));
     }
@@ -137,7 +136,7 @@ public abstract class CourseAccess {
 
     protected abstract Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids);
 
-    protected abstract Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap);
+    protected abstract Supplier<List<QuizData>> allQuizzesSupplier();
 
     protected abstract Supplier<Chapters> getCourseChaptersSupplier(final String courseId);
 

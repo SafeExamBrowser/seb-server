@@ -49,7 +49,6 @@ import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.CourseAccess;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
@@ -174,7 +173,7 @@ final class OpenEdxCourseAccess extends CourseAccess {
     }
 
     @Override
-    protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
+    protected Supplier<List<QuizData>> allQuizzesSupplier() {
         return () -> getRestTemplate()
                 .map(this::collectAllQuizzes)
                 .getOrThrow();

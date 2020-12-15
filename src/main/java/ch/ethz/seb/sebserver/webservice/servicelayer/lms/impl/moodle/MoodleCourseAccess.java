@@ -47,7 +47,6 @@ import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.CourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
 
@@ -73,8 +72,6 @@ public class MoodleCourseAccess extends CourseAccess {
     private static final String MOODLE_COURSE_API_SEARCH_CRITERIA_VALUE = "criteriavalue";
     private static final String MOODLE_COURSE_API_SEARCH_PAGE = "page";
     private static final String MOODLE_COURSE_API_SEARCH_PAGE_SIZE = "perpage";
-
-    private static final int DEFAULT_FROM_YEARS = 3;
 
     private final JSONMapper jsonMapper;
     private final LmsSetup lmsSetup;
@@ -179,9 +176,9 @@ public class MoodleCourseAccess extends CourseAccess {
     }
 
     @Override
-    protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
+    protected Supplier<List<QuizData>> allQuizzesSupplier() {
         return () -> getRestTemplate()
-                .map(template -> collectAllQuizzes(template, filterMap))
+                .map(template -> collectAllQuizzes(template))
                 .getOrThrow();
     }
 
@@ -190,14 +187,12 @@ public class MoodleCourseAccess extends CourseAccess {
         throw new UnsupportedOperationException("not available yet");
     }
 
-    private ArrayList<QuizData> collectAllQuizzes(
-            final MoodleAPIRestTemplate restTemplate,
-            final FilterMap filterMap) {
+    private ArrayList<QuizData> collectAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
 
         final String urlPrefix = (this.lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
                 ? this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
                 : this.lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
-        return getAllQuizzes(restTemplate, filterMap)
+        return getAllQuizzes(restTemplate)
                 .stream()
                 .reduce(
                         new ArrayList<>(),
@@ -214,14 +209,12 @@ public class MoodleCourseAccess extends CourseAccess {
                         });
     }
 
-    private List<CourseData> getAllQuizzes(
-            final MoodleAPIRestTemplate restTemplate,
-            final FilterMap filterMap) {
+    private List<CourseData> getAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
 
         final List<CourseData> result = new ArrayList<>();
 
         int page = 0;
-        Pair<List<CourseData>, Integer> quizzesBatch = getQuizzesBatch(restTemplate, filterMap, page);
+        Pair<List<CourseData>, Integer> quizzesBatch = getQuizzesBatch(restTemplate, page);
         result.addAll(quizzesBatch.a);
 
         log.info("Got quiz page batch for page {} of size {} with {} items",
@@ -229,9 +222,9 @@ public class MoodleCourseAccess extends CourseAccess {
                 quizzesBatch.b,
                 quizzesBatch.a.size());
 
-        while (quizzesBatch.b == null || quizzesBatch.b == 0) {
+        while (quizzesBatch.b != null && quizzesBatch.b > 0) {
             page++;
-            quizzesBatch = getQuizzesBatch(restTemplate, filterMap, page);
+            quizzesBatch = getQuizzesBatch(restTemplate, page);
             result.addAll(quizzesBatch.a);
 
             log.info("Got quiz page batch for page {} of size {} with {} items",
@@ -244,18 +237,13 @@ public class MoodleCourseAccess extends CourseAccess {
 
     private Pair<List<CourseData>, Integer> getQuizzesBatch(
             final MoodleAPIRestTemplate restTemplate,
-            final FilterMap filterMap,
             final int page) {
 
         try {
 
-            final long fromTime = (filterMap != null && filterMap.getQuizFromTime() != null)
-                    ? Utils.toUnixTimeInSeconds(filterMap.getQuizFromTime())
-                    : Utils.toUnixTimeInSeconds(DateTime.now(DateTimeZone.UTC).minusYears(DEFAULT_FROM_YEARS));
-
             // first get courses from Moodle for page
             final Map<String, CourseData> courseData = new HashMap<>();
-            final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, fromTime, page, 100);
+            final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, page, 100);
 
             if (coursesPage.isEmpty()) {
                 return new Pair<>(Collections.emptyList(), 0);
@@ -280,6 +268,8 @@ public class MoodleCourseAccess extends CourseAccess {
             final Map<String, CourseData> finalCourseDataRef = courseData;
             if (courseQuizData.quizzes != null) {
                 courseQuizData.quizzes
+                        .stream()
+                        .filter(getQuizFilter())
                         .forEach(quiz -> {
                             final CourseData course = finalCourseDataRef.get(quiz.course);
                             if (course != null) {
@@ -299,27 +289,32 @@ public class MoodleCourseAccess extends CourseAccess {
         }
     }
 
-    private Predicate<CourseData> getCourseFilter(final long from) {
+    private Predicate<CourseQuiz> getQuizFilter() {
         final long now = DateTime.now(DateTimeZone.UTC).getMillis() / 1000;
-        return course -> {
-            if (course.end_date != null && course.end_date > now) {
-                log.info("(end)removed course: {} start {} end {}, from {}", course.short_name, course.start_date,
-                        course.end_date, from);
-                return false;
-            }
-            if (course.start_date != null && course.start_date.longValue() < from) {
-                log.info("(start)removed course: {} start {} end {}, from {}", course.short_name, course.start_date,
-                        course.end_date, from);
-                return false;
+        return quiz -> {
+            if (quiz.time_close == null || quiz.time_close == 0 || quiz.time_close > now) {
+                return true;
             }
 
-            return true;
+            log.info("remove quiz {} end_time {} now {}", quiz.name, quiz.time_close, now);
+            return false;
+        };
+    }
+
+    private Predicate<CourseData> getCourseFilter() {
+        final long now = DateTime.now(DateTimeZone.UTC).getMillis() / 1000;
+        return course -> {
+            if (course.end_date == null || course.end_date == 0 || course.end_date > now) {
+                return true;
+            }
+
+            log.info("remove course {} end_time {} now {}", course.short_name, course.end_date, now);
+            return false;
         };
     }
 
     private Collection<CourseData> getCoursesPage(
             final MoodleAPIRestTemplate restTemplate,
-            final long startDate,
             final int page,
             final int size) throws JsonParseException, JsonMappingException, IOException {
 
@@ -350,14 +345,16 @@ public class MoodleCourseAccess extends CourseAccess {
                     .map(key -> key.id)
                     .collect(Collectors.toSet());
 
-            final Collection<CourseData> result = getCoursesForIds(restTemplate, ids)
-                    .stream()
-                    .filter(getCourseFilter(startDate))
-                    .collect(Collectors.toList());
+            return getCoursesForIds(restTemplate, ids);
 
-            log.info("course page with {} courses, after filtering {} left", keysPage.courseKeys, result.size());
-
-            return result;
+//            final Collection<CourseData> result = getCoursesForIds(restTemplate, ids)
+//                    .stream()
+//                    .filter(getCourseFilter())
+//                    .collect(Collectors.toList());
+//
+//            log.info("course page with {} courses, after filtering {} left", keysPage.courseKeys, result.size());
+//
+//            return result;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get courses page: ", e);
             return Collections.emptyList();
