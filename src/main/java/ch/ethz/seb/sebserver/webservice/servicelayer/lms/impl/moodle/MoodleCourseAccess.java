@@ -345,16 +345,16 @@ public class MoodleCourseAccess extends CourseAccess {
                     .map(key -> key.id)
                     .collect(Collectors.toSet());
 
-            return getCoursesForIds(restTemplate, ids);
+//            return getCoursesForIds(restTemplate, ids);
 
-//            final Collection<CourseData> result = getCoursesForIds(restTemplate, ids)
-//                    .stream()
-//                    .filter(getCourseFilter())
-//                    .collect(Collectors.toList());
-//
-//            log.info("course page with {} courses, after filtering {} left", keysPage.courseKeys, result.size());
-//
-//            return result;
+            final Collection<CourseData> result = getCoursesForIds(restTemplate, ids)
+                    .stream()
+                    .filter(getCourseFilter())
+                    .collect(Collectors.toList());
+
+            log.info("course page with {} courses, after filtering {} left", keysPage.courseKeys, result.size());
+
+            return result;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get courses page: ", e);
             return Collections.emptyList();
