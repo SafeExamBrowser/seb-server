@@ -77,8 +77,6 @@ jobs:
         name: Generate tags
         id: docker_tags
         uses: dnaka91/action-docker-tags@v0.1
-        with:
-          actor: bengig
       -
         name: Show generated tags
         run: echo "${{ steps.docker_tags.outputs.tags }}"
@@ -90,4 +88,4 @@ jobs:
           context: .
           file: ./docker/demo/Dockerfile
           push: true
-          tags: "${{ steps.docker_tags.outputs.tags }}"
+          tags: "demo"
