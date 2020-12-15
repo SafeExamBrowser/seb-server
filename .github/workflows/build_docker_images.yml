@@ -96,6 +96,6 @@ jobs:
           source_registry_endpoint: https://index.docker.io/v2/
 
           target_image_name: bengig/seb-server
-          target_registry_username: ${{ secrets.DOCKERHUB_USER }}
+          target_registry_username: ${{ secrets.DOCKERHUB_USERNAME }}
           target_registry_password: ${{ secrets.DOCKERHUB_TOKEN }}
           target_registry_endpoint: https://index.docker.io/v2/
