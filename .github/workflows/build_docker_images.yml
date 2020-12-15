@@ -86,7 +86,7 @@ jobs:
         if: github.ref != null
         uses: javajawa/remote-docker-tag@v1
         with:
-          registry: registry.docker.io
+          registry: hub.docker.com
           repository: bengig
           existing-tag: ${{ github.sha }}
           new-tag: ${{ github.ref }}
