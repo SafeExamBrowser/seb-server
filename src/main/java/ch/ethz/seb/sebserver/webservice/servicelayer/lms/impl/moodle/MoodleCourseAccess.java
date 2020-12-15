@@ -307,7 +307,7 @@ public class MoodleCourseAccess extends CourseAccess {
                         course.end_date, from);
                 return false;
             }
-            if (course.time_created != null && course.time_created.longValue() < from) {
+            if (course.start_date != null && course.start_date.longValue() < from) {
                 log.info("(start)removed course: {} start {} end {}, from {}", course.short_name, course.start_date,
                         course.end_date, from);
                 return false;

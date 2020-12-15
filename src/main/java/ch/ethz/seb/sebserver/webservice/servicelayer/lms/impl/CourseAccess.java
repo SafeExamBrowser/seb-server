@@ -101,8 +101,7 @@ public abstract class CourseAccess {
     }
 
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        // TODO deal with filter attributes
-
+        this.allQuizzesRequest.setSupplier(allQuizzesSupplier(filterMap));
         return this.allQuizzesRequest.get()
                 .map(LmsAPIService.quizzesFilterFunction(filterMap));
     }
