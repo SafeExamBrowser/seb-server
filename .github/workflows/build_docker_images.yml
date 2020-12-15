@@ -80,7 +80,7 @@ jobs:
           context: .
           file: ./docker/demo/Dockerfile
           push: true
-          tags: bengig/seb-server:{{ github.sha }}
+          tags: bengig/seb-server:${{ github.sha }}
       - 
         name: Retag image
         if: github.ref != null
