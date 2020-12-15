@@ -65,7 +65,8 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Checkout repository
+      - 
+        name: Checkout repository
         uses: actions/checkout@v2
       - 
         name: Download a single artifact
@@ -84,9 +85,17 @@ jobs:
       - 
         name: Retag image
         if: github.ref != null
-        uses: javajawa/remote-docker-tag@v1
+        uses: flownative/action-docker-publish-semver@master
         with:
-          registry: hub.docker.com
-          repository: bengig
-          existing-tag: ${{ github.sha }}
-          new-tag: ${{ github.ref }}
+          tag_ref: ${{ github.ref }}
+          tag_latest: 'yes'
+
+          source_image_name: bengig/seb-server
+          source_registry_username: ${{ secrets.DOCKERHUB_USERNAME }}
+          source_registry_password: ${{ secrets.DOCKERHUB_TOKEN }}
+          source_registry_endpoint: https://index.docker.io/v2/
+
+          target_image_name: bengig/seb-server
+          target_registry_username: ${{ secrets.DOCKERHUB_USER }}
+          target_registry_password: ${{ secrets.DOCKERHUB_TOKEN }}
+          target_registry_endpoint: https://index.docker.io/v2/
