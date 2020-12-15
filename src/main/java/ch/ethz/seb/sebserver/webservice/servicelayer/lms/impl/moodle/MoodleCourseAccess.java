@@ -243,7 +243,7 @@ public class MoodleCourseAccess extends CourseAccess {
 
             // first get courses from Moodle for page
             final Map<String, CourseData> courseData = new HashMap<>();
-            final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, page, 100);
+            final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, page, 1000);
 
             if (coursesPage.isEmpty()) {
                 return new Pair<>(Collections.emptyList(), 0);
@@ -352,7 +352,7 @@ public class MoodleCourseAccess extends CourseAccess {
                     .filter(getCourseFilter())
                     .collect(Collectors.toList());
 
-            log.info("course page with {} courses, after filtering {} left", keysPage.courseKeys, result.size());
+//            log.info("course page with {} courses, after filtering {} left", keysPage.courseKeys, result.size());
 
             return result;
         } catch (final Exception e) {
