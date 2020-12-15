@@ -303,9 +303,13 @@ public class MoodleCourseAccess extends CourseAccess {
         final long now = DateTime.now(DateTimeZone.UTC).getMillis() / 1000;
         return course -> {
             if (course.end_date != null && course.end_date > now) {
+                log.info("(end)removed course: {} start {} end {}, from {}", course.short_name, course.start_date,
+                        course.end_date, from);
                 return false;
             }
             if (course.time_created != null && course.time_created.longValue() < from) {
+                log.info("(start)removed course: {} start {} end {}, from {}", course.short_name, course.start_date,
+                        course.end_date, from);
                 return false;
             }
 
@@ -340,9 +344,6 @@ public class MoodleCourseAccess extends CourseAccess {
                 return Collections.emptyList();
             }
 
-            log.info("Got course page with: {} items", keysPage.courseKeys.size());
-            log.info("course items:\n{} items", keysPage.courseKeys);
-
             // get courses
             final Set<String> ids = keysPage.courseKeys
                     .stream()
@@ -354,7 +355,7 @@ public class MoodleCourseAccess extends CourseAccess {
                     .filter(getCourseFilter(startDate))
                     .collect(Collectors.toList());
 
-            log.info("After filtering {} left", result.size());
+            log.info("course page with {} courses, after filtering {} left", keysPage.courseKeys, result.size());
 
             return result;
         } catch (final Exception e) {
