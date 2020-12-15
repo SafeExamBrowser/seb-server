@@ -238,7 +238,6 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                     tokenStore,
                     webServiceClientDetails,
                     authenticationManager,
-                    // TODO create a proper error handling here with also documentation on SEB Binding Specification
                     (request, response, exception) -> {
                         response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

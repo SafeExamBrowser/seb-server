@@ -246,6 +246,8 @@ public class MoodleCourseAccess extends CourseAccess {
                     ? Utils.toUnixTimeInSeconds(filterMap.getQuizFromTime())
                     : Utils.toUnixTimeInSeconds(DateTime.now(DateTimeZone.UTC).minusYears(DEFAULT_FROM_YEARS));
 
+            System.out.println("******************** fromTime=" + fromTime);
+
             // first get courses from Moodle for page
             final Map<String, CourseData> courseData = new HashMap<>();
             final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, fromTime, page, 100);
@@ -694,8 +696,8 @@ public class MoodleCourseAccess extends CourseAccess {
         final String course_module;
         final String name;
         final String intro; // HTML
-        final Long time_open;
-        final Long time_close;
+        final Long time_open; // unix-time seconds UTC
+        final Long time_close; // unix-time seconds UTC
         final Long time_limit; // unix-time seconds UTC
 
         @JsonCreator

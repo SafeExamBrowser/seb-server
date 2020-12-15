@@ -192,14 +192,14 @@ public class ExamFormConfigs implements TemplateComposer {
                 })
                 .publishIf(() -> modifyGrant && configurationTable.hasAnyContent() && editable, false)
 
-                .newAction(ActionDefinition.EXAM_CONFIGURATION_EXPORT)
-                .withParentEntityKey(entityKey)
-                .withSelect(
-                        getConfigSelection(configurationTable),
-                        this::downloadExamConfigAction,
-                        CONFIG_EMPTY_SELECTION_TEXT_KEY)
-                .noEventPropagation()
-                .publishIf(() -> readGrant && configurationTable.hasAnyContent(), false)
+//                .newAction(ActionDefinition.EXAM_CONFIGURATION_EXPORT)
+//                .withParentEntityKey(entityKey)
+//                .withSelect(
+//                        getConfigSelection(configurationTable),
+//                        this::downloadExamConfigAction,
+//                        CONFIG_EMPTY_SELECTION_TEXT_KEY)
+//                .noEventPropagation()
+//                .publishIf(() -> readGrant && configurationTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_GET_CONFIG_KEY)
                 .withSelect(

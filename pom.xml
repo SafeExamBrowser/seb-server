@@ -5,7 +5,7 @@
 
   <groupId>ch.ethz.seb</groupId>
   <artifactId>seb-server</artifactId>
-  <version>${sebserver-version}</version>
+  <version>${revision}</version>
   <name>seb-server</name>
   <description>web-service for SEB maintenance and monitoring active SEB sessions</description>
 
@@ -20,8 +20,10 @@
   <properties>
     <sebserver-version>1.1.0-SNAPSHOT</sebserver-version>
     <build-version>${sebserver-version}</build-version>
+    <revision>${sebserver-version}</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <file.encoding>UTF-8</file.encoding>
   </properties>
 
   <!-- NOTE: There currently are two profiles, a default one to build on 
@@ -77,6 +79,9 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+                <encoding>UTF-8</encoding>
+            </configuration>
           </plugin>
 
           <plugin>
