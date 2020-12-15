@@ -73,14 +73,20 @@ jobs:
         with:
           name: Package
       -
-        name: Build and push
+        name: Build and push SHA
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./docker/demo/Dockerfile
           push: true
-          tags: bengig/seb-server:demo
-      -
-        name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+          tags: bengig/seb-server:{{ github.sha }}
+      - 
+        name: Retag image
+        if: github.ref != null
+        uses: javajawa/remote-docker-tag@v1
+        with:
+          registry: ${{ needs.build.outputs.docker_registry }}
+          repository: ${{ needs.build.outputs.docker_repo }}
+          existing-tag: ${{ github.sha }}
+          new-tag: ${{ github.ref }}
