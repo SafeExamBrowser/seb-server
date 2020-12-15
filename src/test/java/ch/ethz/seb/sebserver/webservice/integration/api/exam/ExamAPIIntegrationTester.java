@@ -60,6 +60,7 @@ import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfigu
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
+        properties = "file.encoding=UTF-8",
         classes = { SEBServer.class },
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")

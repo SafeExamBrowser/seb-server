@@ -48,6 +48,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
+        properties = "file.encoding=UTF-8",
         classes = SEBServer.class,
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")

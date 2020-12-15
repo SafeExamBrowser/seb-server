@@ -44,6 +44,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -220,22 +221,28 @@ public class MoodleCourseAccess extends CourseAccess {
         final List<CourseData> result = new ArrayList<>();
 
         int page = 0;
-        List<CourseData> quizzesBatch = getQuizzesBatch(restTemplate, filterMap, page);
-        result.addAll(quizzesBatch);
+        Pair<List<CourseData>, Integer> quizzesBatch = getQuizzesBatch(restTemplate, filterMap, page);
+        result.addAll(quizzesBatch.a);
 
-        log.info("Got quiz page batch for page {} with {} items", page, quizzesBatch.size());
+        log.info("Got quiz page batch for page {} of size {} with {} items",
+                page,
+                quizzesBatch.b,
+                quizzesBatch.a.size());
 
-        while (!quizzesBatch.isEmpty()) {
+        while (quizzesBatch.b == null || quizzesBatch.b == 0) {
             page++;
             quizzesBatch = getQuizzesBatch(restTemplate, filterMap, page);
-            result.addAll(quizzesBatch);
+            result.addAll(quizzesBatch.a);
 
-            log.info("Got quiz page batch for page {} with {} items", page, quizzesBatch.size());
+            log.info("Got quiz page batch for page {} of size {} with {} items",
+                    page,
+                    quizzesBatch.b,
+                    quizzesBatch.a.size());
         }
         return result;
     }
 
-    private List<CourseData> getQuizzesBatch(
+    private Pair<List<CourseData>, Integer> getQuizzesBatch(
             final MoodleAPIRestTemplate restTemplate,
             final FilterMap filterMap,
             final int page) {
@@ -246,14 +253,12 @@ public class MoodleCourseAccess extends CourseAccess {
                     ? Utils.toUnixTimeInSeconds(filterMap.getQuizFromTime())
                     : Utils.toUnixTimeInSeconds(DateTime.now(DateTimeZone.UTC).minusYears(DEFAULT_FROM_YEARS));
 
-            System.out.println("******************** fromTime=" + fromTime);
-
             // first get courses from Moodle for page
             final Map<String, CourseData> courseData = new HashMap<>();
             final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, fromTime, page, 100);
 
             if (coursesPage.isEmpty()) {
-                return Collections.emptyList();
+                return new Pair<>(Collections.emptyList(), 0);
             }
 
             courseData.putAll(coursesPage
@@ -283,13 +288,14 @@ public class MoodleCourseAccess extends CourseAccess {
                         });
             }
 
-            return courseData.values()
+            return new Pair<>(courseData.values()
                     .stream()
                     .filter(c -> !c.quizzes.isEmpty())
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()),
+                    coursesPage.size());
         } catch (final Exception e) {
             log.error("Unexpected exception while trying to get course data: ", e);
-            return Collections.emptyList();
+            return new Pair<>(Collections.emptyList(), 0);
         }
     }
 

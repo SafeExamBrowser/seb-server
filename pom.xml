@@ -23,7 +23,6 @@
     <revision>${sebserver-version}</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <file.encoding>UTF-8</file.encoding>
   </properties>
 
   <!-- NOTE: There currently are two profiles, a default one to build on 
@@ -80,7 +79,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-                <encoding>UTF-8</encoding>
+              <encoding>UTF-8</encoding>
             </configuration>
           </plugin>
 

@@ -39,6 +39,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURISer
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
+        properties = "file.encoding=UTF-8",
         classes = SEBServer.class,
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
