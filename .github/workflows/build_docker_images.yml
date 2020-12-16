@@ -89,3 +89,12 @@ jobs:
           file: ./docker/demo/Dockerfile
           push: true
           tags: bengig/sebserver:demo
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./docker/demo/Dockerfile
+          push: true
+          tags: bengig/sebserver:${{ GITHUB_SHA }}
