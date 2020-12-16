@@ -9,6 +9,8 @@ RUN groupadd --system spring && useradd --system --gid spring spring
 USER spring:spring
 
 COPY docker/demo/config/ /sebserver/config/
+# TODO: this shouldn't be necessary, log to stdout instead
+RUN mkdir /sebserver/log && chown spring:spring /sebserver/log
 COPY seb-server-$SEBSERVER_JAR.jar /sebserver/seb-server-$SEBSERVER_JAR.jar
 
 WORKDIR /sebserver
