@@ -8,7 +8,7 @@ ENV SERVER_PWD=somePW
 RUN groupadd --system spring && useradd --system --gid spring spring
 
 # TODO: this shouldn't be necessary, log to stdout instead
-RUN mkdir -r /sebserver/log && chown spring:spring /sebserver/log
+RUN mkdir -p /sebserver/log && chown spring:spring /sebserver/log
 
 USER spring:spring
 
