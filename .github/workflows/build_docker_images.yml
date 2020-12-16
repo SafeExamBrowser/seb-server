@@ -97,4 +97,4 @@ jobs:
           context: .
           file: ./docker/demo/Dockerfile
           push: true
-          tags: bengig/sebserver:${{ GITHUB_SHA }}
+          tags: bengig/sebserver:${{ github.sha }}
