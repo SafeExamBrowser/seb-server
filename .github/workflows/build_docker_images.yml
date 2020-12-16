@@ -89,5 +89,5 @@ jobs:
           file: ./docker/demo/Dockerfile
           push: true
           tags: |
-            bengig/sebserver:demo
-            bengig/sebserver:${{ github.sha }}
+            bengig/seb-server:demo
+            bengig/seb-server:${{ github.sha }}
