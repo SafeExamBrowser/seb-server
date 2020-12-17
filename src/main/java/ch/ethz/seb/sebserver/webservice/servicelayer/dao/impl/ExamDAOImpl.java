@@ -756,9 +756,15 @@ public class ExamDAOImpl implements ExamDAO {
             return lmsSetupToRecordMapping
                     .entrySet()
                     .stream()
-                    .flatMap(entry -> toDomainModel(entry.getKey(), entry.getValue(), cached)
-                            .getOrThrow()
-                            .stream())
+                    .flatMap(entry -> toDomainModel(
+                            entry.getKey(),
+                            entry.getValue(),
+                            cached)
+                                    .onError(error -> log.error(
+                                            "Failed to get quizzes form LMS Setup: {}",
+                                            entry.getKey(), error))
+                                    .getOr(Collections.emptyList())
+                                    .stream())
                     .collect(Collectors.toList());
         });
     }
