@@ -102,6 +102,15 @@ jobs:
       # -
       #   name: Show generated tags
       #   run: echo "${{ steps.docker_tags.outputs.tags }}"
+      - 
+        name: Get short SHA
+        uses: benjlevesque/short-sha@v1.2
+        id: short-sha
+      - 
+        name: Store short SHA as environment variable
+        run: echo $SHA
+        env: 
+          SHA: ${{ steps.short-sha.outputs.sha }}
       -
         name: Build and push
         id: docker_build
