@@ -58,12 +58,12 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - 
         name: Build with maven
-        run: mvn clean package -DskipTests -Dbuild-version="${{ env.SHA }}"
+        run: export sebserver-version=${{ env.SHA }} mvn clean package -DskipTests -Dbuild-version="${{ env.SHA }}"
       - 
         uses: actions/upload-artifact@v2
         with:
           name: Package
-          path: target/seb-server-demo.jar
+          path: target/seb-server.jar
 
 
   docker_push:
