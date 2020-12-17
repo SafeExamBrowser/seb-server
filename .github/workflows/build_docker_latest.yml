@@ -58,7 +58,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - 
         name: Build with maven
-        run: export sebserver-version=${{ env.SHA }} mvn clean package -DskipTests -Dbuild-version="${{ env.SHA }}"
+        run: sebserver-version=${{ env.SHA }} mvn clean package -DskipTests -Dbuild-version="${{ env.SHA }}"
       - 
         uses: actions/upload-artifact@v2
         with:
