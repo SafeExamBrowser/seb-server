@@ -33,6 +33,7 @@ public class MoodleLmsAPITemplateFactory {
     private final AsyncService asyncService;
     private final ClientCredentialService clientCredentialService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
+    private final MoodleCourseDataLazyLoader moodleCourseDataLazyLoader;
     private final String[] alternativeTokenRequestPaths;
 
     protected MoodleLmsAPITemplateFactory(
@@ -40,12 +41,14 @@ public class MoodleLmsAPITemplateFactory {
             final AsyncService asyncService,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
+            final MoodleCourseDataLazyLoader moodleCourseDataLazyLoader,
             @Value("${sebserver.webservice.lms.moodle.api.token.request.paths:}") final String alternativeTokenRequestPaths) {
 
         this.jsonMapper = jsonMapper;
         this.asyncService = asyncService;
         this.clientCredentialService = clientCredentialService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
+        this.moodleCourseDataLazyLoader = moodleCourseDataLazyLoader;
         this.alternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
                 ? StringUtils.split(alternativeTokenRequestPaths, Constants.LIST_SEPARATOR)
                 : null;
@@ -71,6 +74,7 @@ public class MoodleLmsAPITemplateFactory {
                     this.jsonMapper,
                     lmsSetup,
                     moodleRestTemplateFactory,
+                    this.moodleCourseDataLazyLoader,
                     this.asyncService);
 
             final MoodleCourseRestriction moodleCourseRestriction = new MoodleCourseRestriction(

@@ -67,6 +67,7 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 null,
                 moodleRestTemplateFactory,
+                null,
                 mock(AsyncService.class));
 
         final String examId = "123";
@@ -114,6 +115,7 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 null,
                 moodleRestTemplateFactory,
+                null,
                 mock(AsyncService.class));
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.initAPIAccess();
@@ -135,6 +137,7 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 null,
                 moodleRestTemplateFactory,
+                null,
                 mock(AsyncService.class));
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.initAPIAccess();
@@ -155,6 +158,7 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 null,
                 moodleRestTemplateFactory,
+                null,
                 mock(AsyncService.class));
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.initAPIAccess();

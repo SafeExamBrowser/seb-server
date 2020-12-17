@@ -516,6 +516,10 @@ public final class Utils {
         return DateTime.now(DateTimeZone.UTC).getMillis();
     }
 
+    public static long getSecondsNow() {
+        return DateTime.now(DateTimeZone.UTC).getMillis() / 1000;
+    }
+
     public static RGB toRGB(final String rgbString) {
         if (StringUtils.isNotBlank(rgbString)) {
             return new RGB(
