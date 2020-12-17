@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
@@ -40,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.CourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
 
@@ -47,6 +49,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
  *
  * See also: https://docs.moodle.org/dev/Web_service_API_functions */
 public class MoodleCourseAccess extends CourseAccess {
+
+    private static final long INITIAL_WAIT_TIME = 3 * Constants.SECOND_IN_MILLIS;
 
     private static final Logger log = LoggerFactory.getLogger(MoodleCourseAccess.class);
 
@@ -172,9 +176,9 @@ public class MoodleCourseAccess extends CourseAccess {
     }
 
     @Override
-    protected Supplier<List<QuizData>> allQuizzesSupplier() {
+    protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
         return () -> getRestTemplate()
-                .map(template -> collectAllQuizzes(template))
+                .map(template -> collectAllQuizzes(template, filterMap))
                 .getOrThrow();
     }
 
@@ -183,34 +187,51 @@ public class MoodleCourseAccess extends CourseAccess {
         throw new UnsupportedOperationException("not available yet");
     }
 
-    private List<QuizData> collectAllQuizzes(final MoodleAPIRestTemplate restTemplate) {
+    private List<QuizData> collectAllQuizzes(
+            final MoodleAPIRestTemplate restTemplate,
+            final FilterMap filterMap) {
 
         final String urlPrefix = (this.lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
                 ? this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
                 : this.lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
 
+        final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
+        final long fromCutTime = (quizFromTime != null) ? Utils.toUnixTimeInSeconds(quizFromTime) : -1;
+
         Collection<CourseData> courseQuizData = Collections.emptyList();
         if (this.moodleCourseDataLazyLoader.isRunning()) {
             courseQuizData = this.moodleCourseDataLazyLoader.getPreFilteredCourseIds();
         } else if (this.moodleCourseDataLazyLoader.getLastRunTime() <= 0) {
+            // set cut time if available
+            if (fromCutTime >= 0) {
+                this.moodleCourseDataLazyLoader.setFromCutTime(fromCutTime);
+            }
             // first run async and wait some time, get what is there
             this.moodleCourseDataLazyLoader.loadAsync(restTemplate);
             try {
-                Thread.sleep(5 * Constants.SECOND_IN_MILLIS);
+                Thread.sleep(INITIAL_WAIT_TIME);
                 courseQuizData = this.moodleCourseDataLazyLoader.getPreFilteredCourseIds();
             } catch (final Exception e) {
                 log.error("Failed to wait for first load run: ", e);
                 return Collections.emptyList();
             }
         } else if (this.moodleCourseDataLazyLoader.isLongRunningTask()) {
-            // kick off the task again when old asynchronously and take back what is there instantly
-            if (Utils.getMillisecondsNow() - this.moodleCourseDataLazyLoader.getLastRunTime() > 10
+            // on long running tasks if we have a different fromCutTime as before
+            // kick off the lazy loadung task imeditially with the new time filter
+            if (fromCutTime > 0 && fromCutTime != this.moodleCourseDataLazyLoader.getFromCutTime()) {
+                this.moodleCourseDataLazyLoader.setFromCutTime(fromCutTime);
+                this.moodleCourseDataLazyLoader.loadAsync(restTemplate);
+                // otherwise kick off only if the last fetch task was then minutes ago
+            } else if (Utils.getMillisecondsNow() - this.moodleCourseDataLazyLoader.getLastRunTime() > 10
                     * Constants.MINUTE_IN_MILLIS) {
                 this.moodleCourseDataLazyLoader.loadAsync(restTemplate);
             }
             courseQuizData = this.moodleCourseDataLazyLoader.getPreFilteredCourseIds();
         } else {
             // just run the task in sync
+            if (fromCutTime >= 0) {
+                this.moodleCourseDataLazyLoader.setFromCutTime(fromCutTime);
+            }
             this.moodleCourseDataLazyLoader.loadSync(restTemplate);
             courseQuizData = this.moodleCourseDataLazyLoader.getPreFilteredCourseIds();
         }

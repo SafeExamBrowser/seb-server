@@ -65,7 +65,7 @@ public class MoodleCourseDataLazyLoader {
     private long lastLoadTime = 0;
     private boolean running = false;
 
-    private final long fromCutTime = DateTime.now(DateTimeZone.UTC).minusYears(3).getMillis() / 1000;
+    private long fromCutTime;
 
     public MoodleCourseDataLazyLoader(
             final JSONMapper jsonMapper,
@@ -73,6 +73,15 @@ public class MoodleCourseDataLazyLoader {
 
         this.jsonMapper = jsonMapper;
         this.asyncRunner = asyncRunner;
+        this.fromCutTime = Utils.toUnixTimeInSeconds(DateTime.now(DateTimeZone.UTC).minusYears(3));
+    }
+
+    public long getFromCutTime() {
+        return this.fromCutTime;
+    }
+
+    public void setFromCutTime(final long fromCutTime) {
+        this.fromCutTime = fromCutTime;
     }
 
     public Set<CourseData> getPreFilteredCourseIds() {
