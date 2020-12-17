@@ -157,17 +157,22 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             // case 1. if lmsSetupId is available only get quizzes from specified LmsSetup
             final Long lmsSetupId = filterMap.getLmsSetupId();
             if (lmsSetupId != null) {
-                final Long institutionId = filterMap.getInstitutionId();
+                try {
+                    final Long institutionId = filterMap.getInstitutionId();
 
-                final LmsAPITemplate template = getLmsAPITemplate(lmsSetupId)
-                        .getOrThrow();
+                    final LmsAPITemplate template = getLmsAPITemplate(lmsSetupId)
+                            .getOrThrow();
 
-                if (institutionId != null && template.lmsSetup().institutionId != institutionId) {
+                    if (institutionId != null && template.lmsSetup().institutionId != institutionId) {
+                        return Collections.emptyList();
+                    }
+                    return template
+                            .getQuizzes(filterMap)
+                            .getOrThrow();
+                } catch (final Exception e) {
+                    log.error("Failed to get quizzes from LMS Setup: {}", lmsSetupId, e);
                     return Collections.emptyList();
                 }
-                return template
-                        .getQuizzes(filterMap)
-                        .getOrThrow();
             }
 
             // case 2. get quizzes from all LmsSetups of specified institution
