@@ -8,7 +8,7 @@ RUN groupadd --system spring && useradd --system --gid spring spring
 USER spring:spring
 
 COPY docker/testing/distributed/webservice/config/ /sebserver/config/
-COPY  /sebserver/target/seb-server.jar /sebserver/seb-server.jar
+COPY  seb-server.jar /sebserver/seb-server.jar
 
 WORKDIR /sebserver
 
