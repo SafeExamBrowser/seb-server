@@ -246,7 +246,8 @@ public class QuizLookupList implements TemplateComposer {
     }
 
     private static Function<QuizData, String> quizDataLmsSetupNameFunction(final ResourceService resourceService) {
-        return quizData -> resourceService.getLmsSetupNameFunction()
+        final Function<String, String> lmsSetupNameFunction = resourceService.getLmsSetupNameFunction();
+        return quizData -> lmsSetupNameFunction
                 .apply(String.valueOf(quizData.lmsSetupId));
     }
 

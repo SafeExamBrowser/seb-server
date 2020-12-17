@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +34,7 @@ public class MoodleLmsAPITemplateFactory {
     private final AsyncService asyncService;
     private final ClientCredentialService clientCredentialService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
-    private final MoodleCourseDataLazyLoader moodleCourseDataLazyLoader;
+    private final ApplicationContext applicationContext;
     private final String[] alternativeTokenRequestPaths;
 
     protected MoodleLmsAPITemplateFactory(
@@ -41,14 +42,14 @@ public class MoodleLmsAPITemplateFactory {
             final AsyncService asyncService,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
-            final MoodleCourseDataLazyLoader moodleCourseDataLazyLoader,
+            final ApplicationContext applicationContext,
             @Value("${sebserver.webservice.lms.moodle.api.token.request.paths:}") final String alternativeTokenRequestPaths) {
 
         this.jsonMapper = jsonMapper;
         this.asyncService = asyncService;
         this.clientCredentialService = clientCredentialService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
-        this.moodleCourseDataLazyLoader = moodleCourseDataLazyLoader;
+        this.applicationContext = applicationContext;
         this.alternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
                 ? StringUtils.split(alternativeTokenRequestPaths, Constants.LIST_SEPARATOR)
                 : null;
@@ -60,6 +61,9 @@ public class MoodleLmsAPITemplateFactory {
             final ProxyData proxyData) {
 
         return Result.tryCatch(() -> {
+
+            final MoodleCourseDataLazyLoader lazyLoaderPrototype =
+                    this.applicationContext.getBean(MoodleCourseDataLazyLoader.class);
 
             final MoodleRestTemplateFactory moodleRestTemplateFactory = new MoodleRestTemplateFactory(
                     this.jsonMapper,
@@ -74,7 +78,7 @@ public class MoodleLmsAPITemplateFactory {
                     this.jsonMapper,
                     lmsSetup,
                     moodleRestTemplateFactory,
-                    this.moodleCourseDataLazyLoader,
+                    lazyLoaderPrototype,
                     this.asyncService);
 
             final MoodleCourseRestriction moodleCourseRestriction = new MoodleCourseRestriction(

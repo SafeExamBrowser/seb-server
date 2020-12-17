@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -156,8 +157,16 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             // case 1. if lmsSetupId is available only get quizzes from specified LmsSetup
             final Long lmsSetupId = filterMap.getLmsSetupId();
             if (lmsSetupId != null) {
-                return getLmsAPITemplate(lmsSetupId)
-                        .flatMap(template -> template.getQuizzes(filterMap))
+                final Long institutionId = filterMap.getInstitutionId();
+
+                final LmsAPITemplate template = getLmsAPITemplate(lmsSetupId)
+                        .getOrThrow();
+
+                if (institutionId != null && template.lmsSetup().institutionId != institutionId) {
+                    return Collections.emptyList();
+                }
+                return template
+                        .getQuizzes(filterMap)
                         .getOrThrow();
             }
 
