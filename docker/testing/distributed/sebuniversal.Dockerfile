@@ -3,7 +3,7 @@ FROM openjdk:11-jre-stretch
 ENV SEBSERVER_MODE="webservice"
 ENV SERVER_PORT="8080"
 ENV SECRET=somePW
-# ENV DB_USER=sebserver
+ENV DB_USER=sebserver
 ENV DB_PASSWORD=somePW
 ENV DB_HOST=sebserver-mariadb
 # ENV DB_DATABASE=SEBServer
@@ -33,6 +33,7 @@ CMD if [ ${SEBSERVER_MODE} == "gui" ]; then exec java \
     --spring.config.location=file:/sebserver/config/spring/,classpath:/config/ \
     --datastore.mariadb.server.address="${DB_HOST}" \
     --datastore.mariadb.server.port="${DB_PORT}" \
+    --spring.datasource.username="${DB_USER}" \
     --sebserver.mariadb.password="${DB_PASSWORD}" \
     --sebserver.password="${SECRET}" ; \
     fi;
