@@ -3,6 +3,11 @@ FROM openjdk:11-jre-stretch
 ENV SEBSERVER_MODE="webservice"
 ENV SERVER_PORT="8080"
 ENV SECRET=somePW
+# ENV DB_USER=sebserver
+ENV DB_PASSWORD=somePW
+ENV DB_HOST=sebserver-mariadb
+# ENV DB_DATABASE=SEBServer
+ENV DB_PORT=3306
 
 RUN groupadd --system spring && useradd --system --gid spring spring
 USER spring:spring
@@ -26,7 +31,9 @@ CMD if [ ${SEBSERVER_MODE} == "gui" ]; then exec java \
     -jar "${SEBSERVER_JAR}" \
     --spring.profiles.active=ws,prod,prod-ws \
     --spring.config.location=file:/sebserver/config/spring/,classpath:/config/ \
-    --sebserver.mariadb.password="${SECRET}" \
+    --datastore.mariadb.server.address="${DB_HOST}" \
+    --datastore.mariadb.server.port="${DB_PORT}" \
+    --sebserver.mariadb.password="${DB_PASSWORD}" \
     --sebserver.password="${SECRET}" ; \
     fi;
 
