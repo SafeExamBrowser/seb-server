@@ -13,10 +13,11 @@ RUN mkdir -p /sebserver/config/spring
 RUN groupadd --system spring && useradd --system --gid spring spring
 USER spring:spring
 
+RUN pwd >/dev/stderr && ls -l >/dev/stderr
+
 # Test if existing files prohibit mounting of Kubernetes ConfigMaps
 # COPY docker/testing/distributed/webservice/config/ /sebserver/config/
-COPY  seb-server.jar /sebserver/
-RUN cp docker/testing/distributed/start-sebserver.sh /sebserver/ && chmod 755 /sebserver/start-sebserver.sh
+COPY docker/testing/distributed/start-sebserver.sh seb-server.jar /sebserver/
 
 WORKDIR /sebserver
 
