@@ -129,4 +129,4 @@ jobs:
           tags: |
             bengig/seb-server:latest
             bengig/seb-server:${{ env.SHA }}
-            ghcr.io/BenGig/seb-server:latest
+            ghcr.io/bengig/seb-server:latest
