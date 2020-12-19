@@ -40,3 +40,4 @@ CMD if [ "${SEBSERVER_MODE}" == "gui" ]; then exec java \
     fi;
 
 EXPOSE 8080
+    
