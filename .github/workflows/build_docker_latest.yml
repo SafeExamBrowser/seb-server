@@ -87,6 +87,13 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v1 
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
       - 
         name: Checkout repository
         uses: actions/checkout@v2
@@ -122,3 +129,4 @@ jobs:
           tags: |
             bengig/seb-server:latest
             bengig/seb-server:${{ env.SHA }}
+            ghcr.io/BenGig/seb-server:latest
