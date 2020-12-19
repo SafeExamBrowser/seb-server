@@ -12,7 +12,8 @@ ENV DB_PORT=3306
 RUN groupadd --system spring && useradd --system --gid spring spring
 USER spring:spring
 
-COPY docker/testing/distributed/webservice/config/ /sebserver/config/
+# Test if existing files prohibit mounting of Kubernetes ConfigMaps
+# COPY docker/testing/distributed/webservice/config/ /sebserver/config/
 COPY  seb-server.jar /sebserver/seb-server.jar
 
 WORKDIR /sebserver
