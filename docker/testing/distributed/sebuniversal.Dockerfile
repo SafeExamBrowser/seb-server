@@ -18,7 +18,7 @@ COPY  seb-server.jar /sebserver/seb-server.jar
 
 WORKDIR /sebserver
 
-CMD if [ ${SEBSERVER_MODE} == "gui" ]; then exec java \
+CMD if [ "${SEBSERVER_MODE}" == "gui" ]; then exec java \
     -Xms64M \
     -Xmx1G \
     -jar "seb-server.jar" \
