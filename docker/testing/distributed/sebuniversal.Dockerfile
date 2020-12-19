@@ -9,35 +9,17 @@ ENV DB_HOST=sebserver-mariadb
 # ENV DB_DATABASE=SEBServer
 ENV DB_PORT=3306
 
+RUN mkdir -p /sebserver/config/spring
 RUN groupadd --system spring && useradd --system --gid spring spring
 USER spring:spring
 
 # Test if existing files prohibit mounting of Kubernetes ConfigMaps
 # COPY docker/testing/distributed/webservice/config/ /sebserver/config/
-COPY  seb-server.jar /sebserver/seb-server.jar
+COPY  seb-server.jar start-sebserver /sebserver/
+RUN chmod 755 /sebserver/start-sebserver.sh
 
 WORKDIR /sebserver
 
-CMD if [ "${SEBSERVER_MODE}" == "gui" ]; then exec java \
-    -Xms64M \
-    -Xmx1G \
-    -jar "seb-server.jar" \
-    --spring.profiles.active=gui,prod,prod-gui \
-    --spring.config.location=file:/sebserver/config/spring/,classpath:/config/ \
-    --sebserver.password="${SECRET}" ; \
-    else \
-    exec java \
-    -Xms64M \
-    -Xmx1G \
-    -jar "${SEBSERVER_JAR}" \
-    --spring.profiles.active=ws,prod,prod-ws \
-    --spring.config.location=file:/sebserver/config/spring/,classpath:/config/ \
-    --datastore.mariadb.server.address="${DB_HOST}" \
-    --datastore.mariadb.server.port="${DB_PORT}" \
-    --spring.datasource.username="${DB_USER}" \
-    --sebserver.mariadb.password="${DB_PASSWORD}" \
-    --sebserver.password="${SECRET}" ; \
-    fi;
+CMD /sebserver/start-sebserver.sh
 
 EXPOSE 8080
-    
