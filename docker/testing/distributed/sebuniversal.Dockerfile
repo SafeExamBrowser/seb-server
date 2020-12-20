@@ -21,6 +21,6 @@ COPY docker/testing/distributed/start-sebserver.sh seb-server.jar /sebserver/
 
 WORKDIR /sebserver
 
-CMD /sebserver/start-sebserver.sh
+CMD /bin/sh /sebserver/start-sebserver.sh
 
 EXPOSE 8080
