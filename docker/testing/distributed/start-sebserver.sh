@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ "${SEBSERVER_MODE}" == "gui" ]; then exec java \
+if [ "${SEBSERVER_MODE}" = "gui" ]; then exec java \
     -Xms64M \
     -Xmx1G \
     -jar "seb-server.jar" \
