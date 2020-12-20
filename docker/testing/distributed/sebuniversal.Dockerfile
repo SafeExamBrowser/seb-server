@@ -6,14 +6,15 @@ ENV SECRET=somePW
 ENV DB_USER=sebserver
 ENV DB_PASSWORD=somePW
 ENV DB_HOST=sebserver-mariadb
+# TODO: should database be configurable?
 # ENV DB_DATABASE=SEBServer
 ENV DB_PORT=3306
 
-RUN mkdir -p /sebserver/config/spring
+RUN mkdir -p /sebserver/config/spring/  /sebserver/log/
 RUN groupadd --system spring && useradd --system --gid spring spring
+# TODO: still needing a log directory
+RUN chown spring:spring /sebserver/log
 USER spring:spring
-
-RUN pwd >/dev/stderr && ls -l >/dev/stderr
 
 # Test if existing files prohibit mounting of Kubernetes ConfigMaps
 # COPY docker/testing/distributed/webservice/config/ /sebserver/config/
