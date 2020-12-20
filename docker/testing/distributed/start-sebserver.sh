@@ -10,7 +10,7 @@ if [ "${SEBSERVER_MODE}" = "gui" ]; then exec java \
     exec java \
     -Xms64M \
     -Xmx1G \
-    -jar "${SEBSERVER_JAR}" \
+    -jar "seb-server.jar" \
     --spring.profiles.active=ws,prod,prod-ws \
     --spring.config.location=file:/sebserver/config/spring/,classpath:/config/ \
     --datastore.mariadb.server.address="${DB_HOST}" \
