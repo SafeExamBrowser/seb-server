@@ -761,7 +761,7 @@ public class ExamDAOImpl implements ExamDAO {
                             entry.getValue(),
                             cached)
                                     .onError(error -> log.error(
-                                            "Failed to get quizzes form LMS Setup: {}",
+                                            "Failed to get quizzes from LMS Setup: {}",
                                             entry.getKey(), error))
                                     .getOr(Collections.emptyList())
                                     .stream())

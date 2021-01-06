@@ -15,9 +15,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
@@ -31,6 +34,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificati
 @Service
 @WebServiceProfile
 public class SEBClientNotificationServiceImpl implements SEBClientNotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(SEBClientNotificationServiceImpl.class);
 
     private static final String CONFIRM_INSTRUCTION_ATTR_ID = "id";
     private static final String CONFIRM_INSTRUCTION_ATTR_TYPE = "type";
@@ -67,6 +72,24 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     @Override
     public Result<List<ClientNotification>> getPendingNotifications(final Long clientConnectionId) {
         return this.clientEventDAO.getPendingNotifications(clientConnectionId);
+    }
+
+    @Override
+    public void confirmPendingNotification(final ClientEvent event, final String connectionToken) {
+        try {
+            final Long notificationId = (long) event.getValue();
+
+            this.clientEventDAO.getPendingNotification(notificationId)
+                    .flatMap(notification -> this.clientEventDAO.confirmPendingNotification(
+                            notificationId,
+                            notification.connectionId))
+                    .map(this::removeFromCache);
+
+        } catch (final Exception e) {
+            log.error(
+                    "Failed to confirm pending notification from SEB Client side. Connection token: {} confirm event: {}",
+                    connectionToken, event, e);
+        }
     }
 
     @Override

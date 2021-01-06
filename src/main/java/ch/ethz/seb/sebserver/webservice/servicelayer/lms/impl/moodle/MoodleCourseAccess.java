@@ -217,7 +217,7 @@ public class MoodleCourseAccess extends CourseAccess {
             }
         } else if (this.moodleCourseDataLazyLoader.isLongRunningTask()) {
             // on long running tasks if we have a different fromCutTime as before
-            // kick off the lazy loadung task imeditially with the new time filter
+            // kick off the lazy loading task immediately with the new time filter
             if (fromCutTime > 0 && fromCutTime != this.moodleCourseDataLazyLoader.getFromCutTime()) {
                 this.moodleCourseDataLazyLoader.setFromCutTime(fromCutTime);
                 this.moodleCourseDataLazyLoader.loadAsync(restTemplate);

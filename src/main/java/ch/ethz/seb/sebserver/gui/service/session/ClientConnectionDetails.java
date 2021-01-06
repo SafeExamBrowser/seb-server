@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.session;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.graphics.Color;
@@ -23,8 +24,11 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -32,8 +36,11 @@ import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.session.IndicatorData.ThresholdColor;
+import ch.ethz.seb.sebserver.gui.table.EntityTable;
 
 public class ClientConnectionDetails {
 
@@ -50,6 +57,7 @@ public class ClientConnectionDetails {
 
     private static final int NUMBER_OF_NONE_INDICATOR_ROWS = 3;
 
+    private final PageService pageService;
     private final ResourceService resourceService;
     private final Map<Long, IndicatorData> indicatorMapping;
     private final RestCall<ClientConnectionData>.RestCallBuilder restCallBuilder;
@@ -69,6 +77,7 @@ public class ClientConnectionDetails {
 
         final Display display = pageContext.getRoot().getDisplay();
 
+        this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.restCallBuilder = restCallBuilder;
         this.colorData = new ColorData(display);
@@ -132,9 +141,13 @@ public class ClientConnectionDetails {
                                     .toBoolean(connectionData.missingPing);
         }
         this.connectionData = connectionData;
+
     }
 
-    public void updateGUI() {
+    public void updateGUI(
+            final Supplier<EntityTable<ClientNotification>> notificationTableSupplier,
+            final PageContext pageContext) {
+
         if (this.connectionData == null) {
             return;
         }
@@ -192,6 +205,29 @@ public class ClientConnectionDetails {
                         }
                     }
                 });
+
+        // update notifications
+        final EntityTable<ClientNotification> notificationTable = notificationTableSupplier.get();
+        if (notificationTable != null && this.connectionData.clientConnection.status == ConnectionStatus.CLOSED) {
+            reloadPage(pageContext);
+        } else {
+            if (BooleanUtils.isTrue(this.connectionData.pendingNotification())) {
+                if (notificationTable == null) {
+                    reloadPage(pageContext);
+                } else {
+                    notificationTable.refreshPageSize();
+                }
+            }
+        }
+    }
+
+    private void reloadPage(final PageContext pageContext) {
+        final PageAction pageReloadAction = this.pageService.pageActionBuilder(pageContext)
+                .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
+                .create();
+        this.pageService.firePageEvent(
+                new ActionEvent(pageReloadAction),
+                pageContext);
     }
 
 }

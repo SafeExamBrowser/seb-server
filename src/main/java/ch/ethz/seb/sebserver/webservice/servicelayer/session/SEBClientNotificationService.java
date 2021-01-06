@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import java.util.List;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -26,6 +27,8 @@ public interface SEBClientNotificationService {
     Boolean hasAnyPendingNotification(Long clientConnectionId);
 
     Result<List<ClientNotification>> getPendingNotifications(Long clientConnectionId);
+
+    void confirmPendingNotification(ClientEvent event, String connectionToken);
 
     Result<ClientNotification> confirmPendingNotification(
             Long notificationId,

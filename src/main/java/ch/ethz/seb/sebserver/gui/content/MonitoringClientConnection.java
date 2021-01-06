@@ -12,6 +12,7 @@ import java.util.Base64;
 import java.util.Base64.Encoder;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -203,25 +204,15 @@ public class MonitoringClientConnection implements TemplateComposer {
                 getConnectionData,
                 indicators);
 
-        this.serverPushService.runServerPush(
-                new ServerPushContext(
-                        content,
-                        Utils.truePredicate(),
-                        MonitoringRunningExam.createServerPushUpdateErrorHandler(this.pageService, pageContext)),
-                this.pollInterval,
-                context1 -> clientConnectionDetails.updateData(),
-                context -> clientConnectionDetails.updateGUI());
-
-        final PageService.PageActionBuilder actionBuilder = this.pageService
-                .pageActionBuilder(
-                        pageContext
-                                .clearAttributes()
-                                .clearEntityKeys());
-
         // NOTIFICATIONS
-        final boolean hasNotification = BooleanUtils.isTrue(connectionData.pendingNotification());
-        if (hasNotification) {
-            // add notification table
+        final boolean hasNotifications = BooleanUtils.isTrue(connectionData.pendingNotification());
+        Supplier<EntityTable<ClientNotification>> _notificationTableSupplier = () -> null;
+        if (hasNotifications) {
+            final PageService.PageActionBuilder actionBuilder = this.pageService
+                    .pageActionBuilder(
+                            pageContext
+                                    .clearAttributes()
+                                    .clearEntityKeys());
 
             widgetFactory.addFormSubContextHeader(
                     content,
@@ -281,9 +272,28 @@ public class MonitoringClientConnection implements TemplateComposer {
                             NOTIFICATION_LIST_NO_SELECTION_KEY)
 
                     .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER), false);
+
+            _notificationTableSupplier = () -> notificationTable;
         }
 
+        final Supplier<EntityTable<ClientNotification>> notificationTableSupplier = _notificationTableSupplier;
+        // server push update
+        this.serverPushService.runServerPush(
+                new ServerPushContext(
+                        content,
+                        Utils.truePredicate(),
+                        MonitoringRunningExam.createServerPushUpdateErrorHandler(this.pageService, pageContext)),
+                this.pollInterval,
+                context -> clientConnectionDetails.updateData(),
+                context -> clientConnectionDetails.updateGUI(notificationTableSupplier, pageContext));
+
         // CLIENT EVENTS
+        final PageService.PageActionBuilder actionBuilder = this.pageService
+                .pageActionBuilder(
+                        pageContext
+                                .clearAttributes()
+                                .clearEntityKeys());
+
         widgetFactory.addFormSubContextHeader(
                 content,
                 EVENT_LIST_TITLE_KEY,

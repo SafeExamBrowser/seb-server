@@ -25,6 +25,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
 
+
   <!-- NOTE: There currently are two profiles, a default one to build on 
     Java 11 (from eclipse and command-line) and one to build still on Java 8 
     to support the Jenkins build on CI-Server that still no Java 11 installed -->
@@ -45,6 +46,17 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
               <release>${java.version}</release>
+              <encoding>UTF-8</encoding>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <encoding>UTF-8</encoding>
+              <systemPropertyVariables>
+                <file.encoding>UTF-8</file.encoding>
+              </systemPropertyVariables>
             </configuration>
           </plugin>
         </plugins>

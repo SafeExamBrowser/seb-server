@@ -28,7 +28,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -40,8 +39,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrate
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.PingHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
 
 @Lazy
@@ -524,14 +523,22 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     event,
                     activeClientConnection.getConnectionId()));
 
-            if (event.eventType == EventType.NOTIFICATION || event.eventType == EventType.NOTIFICATION_CONFIRMED) {
-                // notify notification service
-                this.sebClientNotificationService.notifyNewNotification(activeClientConnection.getConnectionId());
-            } else {
-                // update indicators
-                activeClientConnection.getIndicatorMapping(event.eventType)
-                        .forEach(indicator -> indicator.notifyValueChange(event));
+            switch (event.eventType) {
+                case NOTIFICATION: {
+                    this.sebClientNotificationService.notifyNewNotification(activeClientConnection.getConnectionId());
+                    break;
+                }
+                case NOTIFICATION_CONFIRMED: {
+                    this.sebClientNotificationService.confirmPendingNotification(event, connectionToken);
+                    break;
+                }
+                default: {
+                    // update indicators
+                    activeClientConnection.getIndicatorMapping(event.eventType)
+                            .forEach(indicator -> indicator.notifyValueChange(event));
+                }
             }
+
         } else {
             log.warn("No active ClientConnection found for connectionToken: {}", connectionToken);
         }

@@ -763,4 +763,19 @@ public class EntityTable<ROW> {
         }
     }
 
+    public void refreshPageSize() {
+        if (this.pageSupplier.newBuilder()
+                .withPaging(this.pageNumber, this.pageSize)
+                .withSorting(this.sortColumn, this.sortOrder)
+                .withQueryParams((this.filter != null) ? this.filter.getFilterParameter() : null)
+                .withQueryParams(this.staticQueryParams)
+                .apply(this.pageSupplierAdapter)
+                .getPage()
+                .map(page -> page.content.size())
+                .map(size -> size != this.table.getItems().length)
+                .getOr(false)) {
+            reset();
+        }
+    }
+
 }

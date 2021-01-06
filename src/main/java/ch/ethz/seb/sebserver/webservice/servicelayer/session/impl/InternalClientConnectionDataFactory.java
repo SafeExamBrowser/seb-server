@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
 
@@ -32,6 +33,17 @@ public class InternalClientConnectionDataFactory {
     }
 
     public ClientConnectionDataInternal createClientConnectionData(final ClientConnection clientConnection) {
+
+        if (clientConnection.status == ConnectionStatus.CLOSED
+                || clientConnection.status == ConnectionStatus.DISABLED) {
+
+            // dispose notification indication for closed or disabled connection
+            return new ClientConnectionDataInternal(
+                    clientConnection,
+                    () -> false,
+                    this.clientIndicatorFactory.createFor(clientConnection));
+        }
+
         return new ClientConnectionDataInternal(
                 clientConnection,
                 () -> this.sebClientNotificationService
