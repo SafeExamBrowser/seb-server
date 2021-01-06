@@ -45,11 +45,6 @@
   </springProfile>
   
   <springProfile name="prod">
-
-    <root level="WARN" additivity="true">
-      <appender-ref ref="FILE" />
-    </root>
-    
     <Logger name="ch.ethz.seb" level="WARN" additivity="true">
         <appender-ref ref="STDOUT" />
     </Logger>
