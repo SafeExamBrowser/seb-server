@@ -20,55 +20,81 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
-import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
 public abstract class CourseAccess {
 
     private static final Logger log = LoggerFactory.getLogger(CourseAccess.class);
 
-    protected final MemoizingCircuitBreaker<List<QuizData>> allQuizzesRequest;
+    public enum FetchStatus {
+        ALL_FETCHED,
+        ASYNC_FETCH_RUNNING,
+        FETCH_ERROR
+    }
+
     protected final CircuitBreaker<List<QuizData>> quizzesRequest;
     protected final CircuitBreaker<Chapters> chaptersRequest;
     protected final CircuitBreaker<ExamineeAccountDetails> accountDetailRequest;
 
-    protected CourseAccess(final AsyncService asyncService) {
-        this.allQuizzesRequest = asyncService.createMemoizingCircuitBreaker(
-                allQuizzesSupplier(null),
-                3,
-                Constants.MINUTE_IN_MILLIS,
-                Constants.MINUTE_IN_MILLIS,
-                true,
-                Constants.HOUR_IN_MILLIS);
+    protected CourseAccess(
+            final AsyncService asyncService,
+            final Environment environment) {
 
         this.quizzesRequest = asyncService.createCircuitBreaker(
-                3,
-                Constants.MINUTE_IN_MILLIS,
-                Constants.MINUTE_IN_MILLIS);
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
+                        Integer.class,
+                        3),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.blockingTime",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.timeToRecover",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS));
 
         this.chaptersRequest = asyncService.createCircuitBreaker(
-                3,
-                Constants.SECOND_IN_MILLIS * 10,
-                Constants.MINUTE_IN_MILLIS);
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.chaptersRequest.attempts",
+                        Integer.class,
+                        3),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.chaptersRequest.blockingTime",
+                        Long.class,
+                        Constants.SECOND_IN_MILLIS * 10),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.chaptersRequest.timeToRecover",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS));
 
         this.accountDetailRequest = asyncService.createCircuitBreaker(
-                1,
-                Constants.SECOND_IN_MILLIS * 10,
-                Constants.SECOND_IN_MILLIS * 10);
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.accountDetailRequest.attempts",
+                        Integer.class,
+                        2),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.accountDetailRequest.blockingTime",
+                        Long.class,
+                        Constants.SECOND_IN_MILLIS * 10),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.accountDetailRequest.timeToRecover",
+                        Long.class,
+                        Constants.SECOND_IN_MILLIS * 10));
     }
 
     public Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
         return Result.tryCatch(() -> {
-            final List<QuizData> cached = this.allQuizzesRequest.getCached();
+            final List<QuizData> cached = allQuizzesSupplier().getAllCached();
             final List<QuizData> available = (cached != null)
                     ? cached
                     : quizzesSupplier(ids).get();
@@ -101,11 +127,7 @@ public abstract class CourseAccess {
     }
 
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        if (filterMap != null) {
-            this.allQuizzesRequest.setSupplier(allQuizzesSupplier(filterMap));
-        }
-        return this.allQuizzesRequest.get()
-                .map(LmsAPIService.quizzesFilterFunction(filterMap));
+        return allQuizzesSupplier().getAll(filterMap);
     }
 
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
@@ -139,8 +161,16 @@ public abstract class CourseAccess {
 
     protected abstract Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids);
 
-    protected abstract Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap);
+    protected abstract AllQuizzesSupplier allQuizzesSupplier();
 
     protected abstract Supplier<Chapters> getCourseChaptersSupplier(final String courseId);
+
+    protected abstract FetchStatus getFetchStatus();
+
+    protected interface AllQuizzesSupplier {
+        List<QuizData> getAllCached();
+
+        Result<List<QuizData>> getAll(final FilterMap filterMap);
+    }
 
 }

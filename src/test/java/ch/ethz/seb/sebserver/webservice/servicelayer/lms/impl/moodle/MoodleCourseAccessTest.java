@@ -15,6 +15,9 @@ import static org.mockito.Mockito.*;
 import java.util.TreeMap;
 
 import org.junit.Test;
+import org.mockito.Mock;
+import org.springframework.core.env.Environment;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -27,6 +30,9 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
 
 public class MoodleCourseAccessTest {
+
+    @Mock
+    Environment env = new MockEnvironment();
 
     @Test
     public void testGetExamineeAccountDetails() {
@@ -68,7 +74,8 @@ public class MoodleCourseAccessTest {
                 null,
                 moodleRestTemplateFactory,
                 null,
-                mock(AsyncService.class));
+                mock(AsyncService.class),
+                this.env);
 
         final String examId = "123";
         final Result<ExamineeAccountDetails> examineeAccountDetails =
@@ -116,7 +123,8 @@ public class MoodleCourseAccessTest {
                 null,
                 moodleRestTemplateFactory,
                 null,
-                mock(AsyncService.class));
+                mock(AsyncService.class),
+                this.env);
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.initAPIAccess();
         assertNotNull(initAPIAccess);
@@ -138,7 +146,8 @@ public class MoodleCourseAccessTest {
                 null,
                 moodleRestTemplateFactory,
                 null,
-                mock(AsyncService.class));
+                mock(AsyncService.class),
+                this.env);
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.initAPIAccess();
         assertNotNull(initAPIAccess);
@@ -159,7 +168,8 @@ public class MoodleCourseAccessTest {
                 null,
                 moodleRestTemplateFactory,
                 null,
-                mock(AsyncService.class));
+                mock(AsyncService.class),
+                this.env);
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.initAPIAccess();
         assertNotNull(initAPIAccess);

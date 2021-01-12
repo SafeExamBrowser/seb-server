@@ -19,6 +19,7 @@
 
     <root level="DEBUG" additivity="true">
       <appender-ref ref="STDOUT" />
+      <appender-ref ref="FILE" />
     </root>
     <Logger name="ch.ethz.seb.SEB_SERVER_INIT" level="INFO" additivity="false">
         <appender-ref ref="STDOUT" />

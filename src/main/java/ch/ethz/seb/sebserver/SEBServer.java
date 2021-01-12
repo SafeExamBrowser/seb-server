@@ -15,7 +15,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -40,7 +39,6 @@ import ch.ethz.seb.sebserver.gbl.profile.ProdWebServiceProfile;
 @SpringBootApplication(exclude = {
         UserDetailsServiceAutoConfiguration.class,
 })
-@EnableCaching
 public class SEBServer {
 
     public static void main(final String[] args) {

@@ -42,7 +42,7 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
 
     private final ClientEventDAO clientEventDAO;
     private final SEBClientInstructionService sebClientInstructionService;
-    private final Set<Long> pendingNotifications;
+    private final Set<Long> pendingNotifications = new HashSet<>();
 
     public SEBClientNotificationServiceImpl(
             final ClientEventDAO clientEventDAO,
@@ -50,19 +50,25 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
 
         this.clientEventDAO = clientEventDAO;
         this.sebClientInstructionService = sebClientInstructionService;
-        this.pendingNotifications = new HashSet<>();
     }
 
     @Override
     public Boolean hasAnyPendingNotification(final Long clientConnectionId) {
-        if (this.pendingNotifications.contains(clientConnectionId)) {
+
+        if (this.pendingNotifications.add(clientConnectionId)) {
             return true;
         }
 
         final boolean hasAnyPendingNotification = !getPendingNotifications(clientConnectionId)
                 .getOr(Collections.emptyList())
                 .isEmpty();
+
         if (hasAnyPendingNotification) {
+            // NOTE this is a quick and dirty way to keep cache pendingNotifications cache size short.
+            // TODO find a better way to do this.
+            if (this.pendingNotifications.size() > 100) {
+                this.pendingNotifications.clear();
+            }
             this.pendingNotifications.add(clientConnectionId);
         }
 

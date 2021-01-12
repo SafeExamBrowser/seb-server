@@ -1,0 +1,85 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.ehcache.org/v3"
+    xmlns:jsr107="http://www.ehcache.org/v3/jsr107"
+    xsi:schemaLocation="
+            http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.0.xsd
+            http://www.ehcache.org/v3/jsr107 http://www.ehcache.org/schema/ehcache-107-ext-3.0.xsd">
+
+    <cache alias="RUNNING_EXAM">
+        <key-type>java.lang.Long</key-type>
+        <value-type>ch.ethz.seb.sebserver.gbl.model.exam.Exam</value-type>
+        <expiry>
+            <tti unit="hours">24</tti>
+        </expiry>
+        <resources>
+            <heap unit="entries">100</heap>
+        </resources>
+    </cache>
+    
+    <cache alias="ACTIVE_CLIENT_CONNECTION">
+        <key-type>java.lang.String</key-type>
+        <value-type>ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal</value-type>
+        <expiry>
+            <tti unit="hours">24</tti>
+        </expiry>
+        <resources>
+            <heap unit="entries">2000</heap>
+        </resources>
+    </cache>
+    
+    <cache alias="SEB_CONFIG_EXAM">
+        <key-type>java.lang.Long</key-type>
+        <value-type>ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.InMemorySEBConfig</value-type>
+        <expiry>
+            <tti unit="hours">24</tti>
+        </expiry>
+        <resources>
+            <heap unit="entries">20</heap>
+        </resources>
+    </cache>
+    
+    <cache alias="CACHE_NAME_PING_RECORD">
+        <key-type>java.lang.String</key-type>
+        <value-type>ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord</value-type>
+        <expiry>
+            <tti unit="hours">24</tti>
+        </expiry>
+        <resources>
+            <heap unit="entries">2000</heap>
+        </resources>
+    </cache>
+    
+    <cache alias="CONNECTION_TOKENS_CACHE">
+        <key-type>java.lang.Long</key-type>
+        <value-type>ch.ethz.seb.sebserver.gbl.util.Result</value-type>
+        <expiry>
+            <tti unit="hours">24</tti>
+        </expiry>
+        <resources>
+            <heap unit="entries">100</heap>
+        </resources>
+    </cache>
+    
+    <cache alias="ACCESS_TOKEN_STORE_CACHE">
+        <key-type>org.springframework.security.oauth2.common.OAuth2AccessToken</key-type>
+        <value-type>org.springframework.security.oauth2.provider.OAuth2Authentication</value-type>
+        <expiry>
+            <tti unit="hours">24</tti>
+        </expiry>
+        <resources>
+            <heap unit="entries">100</heap>
+        </resources>
+    </cache>
+    
+    <cache alias="EXAM_CLIENT_DETAILS_CACHE">
+        <key-type>java.lang.String</key-type>
+        <value-type>ch.ethz.seb.sebserver.gbl.util.Result</value-type>
+        <expiry>
+            <tti unit="hours">24</tti>
+        </expiry>
+        <resources>
+            <heap unit="entries">2000</heap>
+        </resources>
+    </cache>
+    
+</config>

@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
@@ -32,6 +33,7 @@ public class MoodleLmsAPITemplateFactory {
 
     private final JSONMapper jsonMapper;
     private final AsyncService asyncService;
+    private final Environment environment;
     private final ClientCredentialService clientCredentialService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final ApplicationContext applicationContext;
@@ -40,6 +42,7 @@ public class MoodleLmsAPITemplateFactory {
     protected MoodleLmsAPITemplateFactory(
             final JSONMapper jsonMapper,
             final AsyncService asyncService,
+            final Environment environment,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final ApplicationContext applicationContext,
@@ -47,6 +50,7 @@ public class MoodleLmsAPITemplateFactory {
 
         this.jsonMapper = jsonMapper;
         this.asyncService = asyncService;
+        this.environment = environment;
         this.clientCredentialService = clientCredentialService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.applicationContext = applicationContext;
@@ -62,8 +66,9 @@ public class MoodleLmsAPITemplateFactory {
 
         return Result.tryCatch(() -> {
 
-            final MoodleCourseDataLazyLoader lazyLoaderPrototype =
-                    this.applicationContext.getBean(MoodleCourseDataLazyLoader.class);
+            final MoodleCourseDataAsyncLoader asyncLoaderPrototype =
+                    this.applicationContext.getBean(MoodleCourseDataAsyncLoader.class);
+            asyncLoaderPrototype.init(lmsSetup.name);
 
             final MoodleRestTemplateFactory moodleRestTemplateFactory = new MoodleRestTemplateFactory(
                     this.jsonMapper,
@@ -78,8 +83,9 @@ public class MoodleLmsAPITemplateFactory {
                     this.jsonMapper,
                     lmsSetup,
                     moodleRestTemplateFactory,
-                    lazyLoaderPrototype,
-                    this.asyncService);
+                    asyncLoaderPrototype,
+                    this.asyncService,
+                    this.environment);
 
             final MoodleCourseRestriction moodleCourseRestriction = new MoodleCourseRestriction(
                     this.jsonMapper,

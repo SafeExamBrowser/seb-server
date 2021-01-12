@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -34,6 +35,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -43,6 +45,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.CourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseDataAsyncLoader.CourseDataShort;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
@@ -73,7 +76,9 @@ public class MoodleCourseAccess extends CourseAccess {
     private final JSONMapper jsonMapper;
     private final LmsSetup lmsSetup;
     private final MoodleRestTemplateFactory moodleRestTemplateFactory;
-    private final MoodleCourseDataLazyLoader moodleCourseDataLazyLoader;
+    private final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader;
+    private final CircuitBreaker<List<QuizData>> allQuizzesRequest;
+    private final AllQuizzesSupplier allQuizzesSupplier;
 
     private MoodleAPIRestTemplate restTemplate;
 
@@ -81,14 +86,42 @@ public class MoodleCourseAccess extends CourseAccess {
             final JSONMapper jsonMapper,
             final LmsSetup lmsSetup,
             final MoodleRestTemplateFactory moodleRestTemplateFactory,
-            final MoodleCourseDataLazyLoader moodleCourseDataLazyLoader,
-            final AsyncService asyncService) {
+            final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader,
+            final AsyncService asyncService,
+            final Environment environment) {
 
-        super(asyncService);
+        super(asyncService, environment);
         this.jsonMapper = jsonMapper;
         this.lmsSetup = lmsSetup;
-        this.moodleCourseDataLazyLoader = moodleCourseDataLazyLoader;
+        this.moodleCourseDataAsyncLoader = moodleCourseDataAsyncLoader;
         this.moodleRestTemplateFactory = moodleRestTemplateFactory;
+
+        this.allQuizzesRequest = asyncService.createCircuitBreaker(
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.attempts",
+                        Integer.class,
+                        3),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.blockingTime",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.timeToRecover",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS));
+
+        this.allQuizzesSupplier = new AllQuizzesSupplier() {
+
+            @Override
+            public List<QuizData> getAllCached() {
+                return getCached();
+            }
+
+            @Override
+            public Result<List<QuizData>> getAll(final FilterMap filterMap) {
+                return MoodleCourseAccess.this.allQuizzesRequest.protectedRun(allQuizzesSupplier(filterMap));
+            }
+        };
     }
 
     @Override
@@ -175,7 +208,6 @@ public class MoodleCourseAccess extends CourseAccess {
 
     }
 
-    @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
         return () -> getRestTemplate()
                 .map(template -> collectAllQuizzes(template, filterMap))
@@ -185,6 +217,20 @@ public class MoodleCourseAccess extends CourseAccess {
     @Override
     protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
         throw new UnsupportedOperationException("not available yet");
+    }
+
+    @Override
+    protected FetchStatus getFetchStatus() {
+        if (this.moodleCourseDataAsyncLoader.isRunning()) {
+            return FetchStatus.ASYNC_FETCH_RUNNING;
+        }
+
+        return FetchStatus.ALL_FETCHED;
+    }
+
+    @Override
+    protected AllQuizzesSupplier allQuizzesSupplier() {
+        return this.allQuizzesSupplier;
     }
 
     private List<QuizData> collectAllQuizzes(
@@ -198,48 +244,71 @@ public class MoodleCourseAccess extends CourseAccess {
         final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
         final long fromCutTime = (quizFromTime != null) ? Utils.toUnixTimeInSeconds(quizFromTime) : -1;
 
-        Collection<CourseData> courseQuizData = Collections.emptyList();
-        if (this.moodleCourseDataLazyLoader.isRunning()) {
-            courseQuizData = this.moodleCourseDataLazyLoader.getPreFilteredCourseIds();
-        } else if (this.moodleCourseDataLazyLoader.getLastRunTime() <= 0) {
+        Collection<CourseDataShort> courseQuizData = Collections.emptyList();
+        if (this.moodleCourseDataAsyncLoader.isRunning()) {
+            courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData();
+        } else if (this.moodleCourseDataAsyncLoader.getLastRunTime() <= 0) {
             // set cut time if available
             if (fromCutTime >= 0) {
-                this.moodleCourseDataLazyLoader.setFromCutTime(fromCutTime);
+                this.moodleCourseDataAsyncLoader.setFromCutTime(fromCutTime);
             }
             // first run async and wait some time, get what is there
-            this.moodleCourseDataLazyLoader.loadAsync(restTemplate);
+            this.moodleCourseDataAsyncLoader.loadAsync(restTemplate);
             try {
                 Thread.sleep(INITIAL_WAIT_TIME);
-                courseQuizData = this.moodleCourseDataLazyLoader.getPreFilteredCourseIds();
+                courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData();
             } catch (final Exception e) {
                 log.error("Failed to wait for first load run: ", e);
                 return Collections.emptyList();
             }
-        } else if (this.moodleCourseDataLazyLoader.isLongRunningTask()) {
+        } else if (this.moodleCourseDataAsyncLoader.isLongRunningTask()) {
             // on long running tasks if we have a different fromCutTime as before
             // kick off the lazy loading task immediately with the new time filter
-            if (fromCutTime > 0 && fromCutTime != this.moodleCourseDataLazyLoader.getFromCutTime()) {
-                this.moodleCourseDataLazyLoader.setFromCutTime(fromCutTime);
-                this.moodleCourseDataLazyLoader.loadAsync(restTemplate);
+            if (fromCutTime > 0 && fromCutTime != this.moodleCourseDataAsyncLoader.getFromCutTime()) {
+                this.moodleCourseDataAsyncLoader.setFromCutTime(fromCutTime);
+                this.moodleCourseDataAsyncLoader.loadAsync(restTemplate);
                 // otherwise kick off only if the last fetch task was then minutes ago
-            } else if (Utils.getMillisecondsNow() - this.moodleCourseDataLazyLoader.getLastRunTime() > 10
+            } else if (Utils.getMillisecondsNow() - this.moodleCourseDataAsyncLoader.getLastRunTime() > 10
                     * Constants.MINUTE_IN_MILLIS) {
-                this.moodleCourseDataLazyLoader.loadAsync(restTemplate);
+                this.moodleCourseDataAsyncLoader.loadAsync(restTemplate);
             }
-            courseQuizData = this.moodleCourseDataLazyLoader.getPreFilteredCourseIds();
+            courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData();
         } else {
             // just run the task in sync
             if (fromCutTime >= 0) {
-                this.moodleCourseDataLazyLoader.setFromCutTime(fromCutTime);
+                this.moodleCourseDataAsyncLoader.setFromCutTime(fromCutTime);
             }
-            this.moodleCourseDataLazyLoader.loadSync(restTemplate);
-            courseQuizData = this.moodleCourseDataLazyLoader.getPreFilteredCourseIds();
+            this.moodleCourseDataAsyncLoader.loadSync(restTemplate);
+            courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData();
         }
 
         if (courseQuizData.isEmpty()) {
             return Collections.emptyList();
         }
 
+        return courseQuizData
+                .stream()
+                .reduce(
+                        new ArrayList<>(),
+                        (list, courseData) -> {
+                            list.addAll(quizDataOf(
+                                    this.lmsSetup,
+                                    courseData,
+                                    urlPrefix));
+                            return list;
+                        },
+                        (list1, list2) -> {
+                            list1.addAll(list2);
+                            return list1;
+                        });
+    }
+
+    private List<QuizData> getCached() {
+        final Collection<CourseDataShort> courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData();
+
+        final String urlPrefix = (this.lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
+                ? this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
+                : this.lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
         return courseQuizData
                 .stream()
                 .reduce(
@@ -405,6 +474,46 @@ public class MoodleCourseAccess extends CourseAccess {
         return courseAndQuiz;
     }
 
+    private List<QuizData> quizDataOf(
+            final LmsSetup lmsSetup,
+            final CourseDataShort courseData,
+            final String uriPrefix) {
+
+        additionalAttrs.clear();
+        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_CREATION_TIME, String.valueOf(courseData.time_created));
+        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SHORT_NAME, courseData.short_name);
+        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_ID_NUMBER, courseData.idnumber);
+
+        final List<QuizData> courseAndQuiz = courseData.quizzes
+                .stream()
+                .map(courseQuizData -> {
+                    final String startURI = uriPrefix + courseQuizData.course_module;
+                    //additionalAttrs.put(QuizData.ATTR_ADDITIONAL_TIME_LIMIT, String.valueOf(courseQuizData.time_limit));
+                    return new QuizData(
+                            getInternalQuizId(
+                                    courseQuizData.course_module,
+                                    courseData.id,
+                                    courseData.short_name,
+                                    courseData.idnumber),
+                            lmsSetup.getInstitutionId(),
+                            lmsSetup.id,
+                            lmsSetup.getLmsType(),
+                            courseQuizData.name,
+                            Constants.EMPTY_NOTE,
+                            (courseQuizData.time_open != null && courseQuizData.time_open > 0)
+                                    ? Utils.toDateTimeUTCUnix(courseQuizData.time_open)
+                                    : Utils.toDateTimeUTCUnix(courseData.start_date),
+                            (courseQuizData.time_close != null && courseQuizData.time_close > 0)
+                                    ? Utils.toDateTimeUTCUnix(courseQuizData.time_close)
+                                    : Utils.toDateTimeUTCUnix(courseData.end_date),
+                            startURI,
+                            additionalAttrs);
+                })
+                .collect(Collectors.toList());
+
+        return courseAndQuiz;
+    }
+
     private Result<MoodleAPIRestTemplate> getRestTemplate() {
         if (this.restTemplate == null) {
             final Result<MoodleAPIRestTemplate> templateRequest = this.moodleRestTemplateFactory
@@ -482,7 +591,7 @@ public class MoodleCourseAccess extends CourseAccess {
 
     /** Maps the Moodle course API course data */
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class CourseData {
+    private static final class CourseData {
         final String id;
         final String short_name;
         final String idnumber;
@@ -516,35 +625,10 @@ public class MoodleCourseAccess extends CourseAccess {
             this.end_date = end_date;
             this.time_created = time_created;
         }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            final CourseData other = (CourseData) obj;
-            if (this.id == null) {
-                if (other.id != null)
-                    return false;
-            } else if (!this.id.equals(other.id))
-                return false;
-            return true;
-        }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class Courses {
+    private static final class Courses {
         final Collection<CourseData> courses;
 
         @JsonCreator
@@ -555,7 +639,7 @@ public class MoodleCourseAccess extends CourseAccess {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class CourseQuizData {
+    private static final class CourseQuizData {
         final Collection<CourseQuiz> quizzes;
 
         @JsonCreator

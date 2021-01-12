@@ -290,11 +290,15 @@
       <artifactId>flyway-core</artifactId>
     </dependency>
 
-    <!-- JMX -->
-    <!-- <dependency> -->
-    <!-- <groupId>org.jolokia</groupId> -->
-    <!-- <artifactId>jolokia-core</artifactId> -->
-    <!-- </dependency> -->
+    <!-- EHCache -->
+    <dependency>
+      <groupId>org.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.cache</groupId>
+      <artifactId>cache-api</artifactId>
+    </dependency>
 
     <!-- Apache HTTP -->
     <dependency>

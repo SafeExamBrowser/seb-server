@@ -45,6 +45,7 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamImported;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
@@ -297,7 +298,11 @@ public class QuizLookupList implements TemplateComposer {
             final QuizData quizData,
             final Function<String, String> institutionNameFunction) {
 
-        action.getSingleSelection();
+        final QuizData fullQuizData = this.pageService.getRestService().getBuilder(GetQuizData.class)
+                .withURIVariable(API.PARAM_MODEL_ID, quizData.getModelId())
+                .withQueryParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, String.valueOf(quizData.lmsSetupId))
+                .call()
+                .getOr(quizData);
 
         final ModalInputDialog<Void> dialog = new ModalInputDialog<Void>(
                 action.pageContext().getParent().getShell(),
@@ -307,7 +312,7 @@ public class QuizLookupList implements TemplateComposer {
         dialog.open(
                 DETAILS_TITLE_TEXT_KEY,
                 action.pageContext(),
-                pc -> createDetailsForm(quizData, pc, institutionNameFunction));
+                pc -> createDetailsForm(fullQuizData, pc, institutionNameFunction));
 
         return action;
     }

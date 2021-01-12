@@ -489,9 +489,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .filter(Objects::nonNull)
                     .filter(connection -> connection.pingIndicator != null &&
                             connection.clientConnection.status.establishedStatus)
-                    .map(connection -> connection.pingIndicator.updateLogEvent())
-                    .filter(Objects::nonNull)
-                    .forEach(this.eventHandlingStrategy);
+                    .forEach(connection -> connection.pingIndicator.updateLogEvent());
 
         } catch (final Exception e) {
             log.error("Failed to update ping events: ", e);

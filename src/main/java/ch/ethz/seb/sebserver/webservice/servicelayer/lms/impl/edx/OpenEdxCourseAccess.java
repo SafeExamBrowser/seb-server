@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -41,6 +42,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker.State;
+import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -70,6 +73,8 @@ final class OpenEdxCourseAccess extends CourseAccess {
     private final LmsSetup lmsSetup;
     private final OpenEdxRestTemplateFactory openEdxRestTemplateFactory;
     private final WebserviceInfo webserviceInfo;
+    private final MemoizingCircuitBreaker<List<QuizData>> allQuizzesRequest;
+    private final AllQuizzesSupplier allQuizzesSupplier;
 
     private OAuth2RestTemplate restTemplate;
 
@@ -78,13 +83,51 @@ final class OpenEdxCourseAccess extends CourseAccess {
             final LmsSetup lmsSetup,
             final OpenEdxRestTemplateFactory openEdxRestTemplateFactory,
             final WebserviceInfo webserviceInfo,
-            final AsyncService asyncService) {
+            final AsyncService asyncService,
+            final Environment environment) {
 
-        super(asyncService);
+        super(asyncService, environment);
         this.jsonMapper = jsonMapper;
         this.lmsSetup = lmsSetup;
         this.openEdxRestTemplateFactory = openEdxRestTemplateFactory;
         this.webserviceInfo = webserviceInfo;
+
+        this.allQuizzesRequest = asyncService.createMemoizingCircuitBreaker(
+                quizzesSupplier(),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.attempts",
+                        Integer.class,
+                        3),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.blockingTime",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.timeToRecover",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.memoize",
+                        Boolean.class,
+                        true),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.memoizingTime",
+                        Long.class,
+                        Constants.HOUR_IN_MILLIS));
+
+        this.allQuizzesSupplier = new AllQuizzesSupplier() {
+
+            @Override
+            public List<QuizData> getAllCached() {
+                return OpenEdxCourseAccess.this.allQuizzesRequest.getCached();
+            }
+
+            @Override
+            public Result<List<QuizData>> getAll(final FilterMap filterMap) {
+                return OpenEdxCourseAccess.this.allQuizzesRequest.get();
+            }
+
+        };
     }
 
     LmsSetupTestResult initAPIAccess() {
@@ -173,8 +216,7 @@ final class OpenEdxCourseAccess extends CourseAccess {
                 .getOrThrow();
     }
 
-    @Override
-    protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
+    private Supplier<List<QuizData>> quizzesSupplier() {
         return () -> getRestTemplate()
                 .map(this::collectAllQuizzes)
                 .getOrThrow();
@@ -449,6 +491,19 @@ final class OpenEdxCourseAccess extends CourseAccess {
         }
 
         return Result.of(this.restTemplate);
+    }
+
+    @Override
+    protected FetchStatus getFetchStatus() {
+        if (this.allQuizzesRequest.getState() != State.CLOSED) {
+            return FetchStatus.FETCH_ERROR;
+        }
+        return FetchStatus.ALL_FETCHED;
+    }
+
+    @Override
+    protected AllQuizzesSupplier allQuizzesSupplier() {
+        return this.allQuizzesSupplier;
     }
 
 }

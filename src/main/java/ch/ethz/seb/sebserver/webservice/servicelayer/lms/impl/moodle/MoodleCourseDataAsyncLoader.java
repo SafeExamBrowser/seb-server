@@ -28,8 +28,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -40,40 +42,72 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncRunner;
+import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseAccess.CourseData;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseAccess.CourseQuiz;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseAccess.CourseQuizData;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseAccess.Courses;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
 
 @Lazy
 @Component
 @WebServiceProfile
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class MoodleCourseDataLazyLoader {
+public class MoodleCourseDataAsyncLoader {
 
-    private static final Logger log = LoggerFactory.getLogger(MoodleCourseDataLazyLoader.class);
+    private static final Logger log = LoggerFactory.getLogger(MoodleCourseDataAsyncLoader.class);
 
     private final JSONMapper jsonMapper;
     private final AsyncRunner asyncRunner;
+    private final CircuitBreaker<String> moodleRestCall;
+    private final int maxSize;
+    private final int pageSize;
 
-    private final Set<CourseData> preFilteredCourseIds = new HashSet<>();
+    private final Set<CourseDataShort> cachedCourseData = new HashSet<>();
 
+    private String lmsSetup = Constants.EMPTY_NOTE;
     private long lastRunTime = 0;
     private long lastLoadTime = 0;
     private boolean running = false;
 
     private long fromCutTime;
 
-    public MoodleCourseDataLazyLoader(
+    public MoodleCourseDataAsyncLoader(
             final JSONMapper jsonMapper,
-            final AsyncRunner asyncRunner) {
+            final AsyncService asyncService,
+            final AsyncRunner asyncRunner,
+            final Environment environment) {
 
         this.jsonMapper = jsonMapper;
-        this.asyncRunner = asyncRunner;
         this.fromCutTime = Utils.toUnixTimeInSeconds(DateTime.now(DateTimeZone.UTC).minusYears(3));
+        this.asyncRunner = asyncRunner;
+
+        this.moodleRestCall = asyncService.createCircuitBreaker(
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.moodleRestCall.attempts",
+                        Integer.class,
+                        2),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.moodleRestCall.blockingTime",
+                        Long.class,
+                        Constants.SECOND_IN_MILLIS * 20),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.moodleRestCall.timeToRecover",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS));
+
+        this.maxSize =
+                environment.getProperty("sebserver.webservice.cache.moodle.course.maxSize", Integer.class, 10000);
+        this.pageSize =
+                environment.getProperty("sebserver.webservice.cache.moodle.course.pageSize", Integer.class, 500);
+    }
+
+    public void init(final String lmsSetupName) {
+        if (Constants.EMPTY_NOTE.equals(this.lmsSetup)) {
+            this.lmsSetup = lmsSetupName;
+        } else {
+            throw new IllegalStateException(
+                    "Invalid initialization of MoodleCourseDataAsyncLoader. It has already been initialized yet");
+        }
     }
 
     public long getFromCutTime() {
@@ -84,8 +118,8 @@ public class MoodleCourseDataLazyLoader {
         this.fromCutTime = fromCutTime;
     }
 
-    public Set<CourseData> getPreFilteredCourseIds() {
-        return this.preFilteredCourseIds;
+    public Set<CourseDataShort> getCachedCourseData() {
+        return new HashSet<>(this.cachedCourseData);
     }
 
     public long getLastRunTime() {
@@ -100,7 +134,7 @@ public class MoodleCourseDataLazyLoader {
         return this.lastLoadTime > 30 * Constants.SECOND_IN_MILLIS;
     }
 
-    public Set<CourseData> loadSync(final MoodleAPIRestTemplate restTemplate) {
+    public Set<CourseDataShort> loadSync(final MoodleAPIRestTemplate restTemplate) {
         if (this.running) {
             throw new IllegalStateException("Is already running asynchronously");
         }
@@ -109,9 +143,11 @@ public class MoodleCourseDataLazyLoader {
         loadAndCache(restTemplate).run();
         this.lastRunTime = Utils.getMillisecondsNow();
 
-        log.info("Loaded {} courses synchronously", this.preFilteredCourseIds.size());
+        log.info("LMS Setup: {} loaded {} courses synchronously",
+                this.lmsSetup,
+                this.cachedCourseData.size());
 
-        return this.preFilteredCourseIds;
+        return this.cachedCourseData;
     }
 
     public void loadAsync(final MoodleAPIRestTemplate restTemplate) {
@@ -126,6 +162,7 @@ public class MoodleCourseDataLazyLoader {
 
     private Runnable loadAndCache(final MoodleAPIRestTemplate restTemplate) {
         return () -> {
+            this.cachedCourseData.clear();
             final long startTime = Utils.getMillisecondsNow();
 
             loadAllQuizzes(restTemplate);
@@ -133,7 +170,9 @@ public class MoodleCourseDataLazyLoader {
             this.lastLoadTime = Utils.getMillisecondsNow() - startTime;
             this.running = false;
 
-            log.info("Loaded {} courses asynchronously", this.preFilteredCourseIds.size());
+            log.info("LMS Setup: {} loaded {} courses asynchronously",
+                    this.lmsSetup,
+                    this.cachedCourseData.size());
         };
     }
 
@@ -151,8 +190,8 @@ public class MoodleCourseDataLazyLoader {
         try {
 
             // first get courses from Moodle for page
-            final Map<String, CourseData> courseData = new HashMap<>();
-            final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, page, 1000);
+            final Map<String, CourseDataShort> courseData = new HashMap<>();
+            final Collection<CourseDataShort> coursesPage = getCoursesPage(restTemplate, page, this.pageSize);
 
             if (coursesPage == null || coursesPage.isEmpty()) {
                 return false;
@@ -168,7 +207,8 @@ public class MoodleCourseDataLazyLoader {
                     MoodleCourseAccess.MOODLE_COURSE_API_COURSE_IDS,
                     new ArrayList<>(courseData.keySet()));
 
-            final String quizzesJSON = restTemplate.callMoodleAPIFunction(
+            final String quizzesJSON = callMoodleRestAPI(
+                    restTemplate,
                     MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME,
                     attributes);
 
@@ -185,28 +225,36 @@ public class MoodleCourseDataLazyLoader {
                         .stream()
                         .filter(getQuizFilter())
                         .forEach(quiz -> {
-                            final CourseData data = courseData.get(quiz.course);
+                            final CourseDataShort data = courseData.get(quiz.course);
                             if (data != null) {
                                 data.quizzes.add(quiz);
                             }
                         });
 
-                this.preFilteredCourseIds.addAll(
-                        courseData.values().stream()
-                                .filter(c -> !c.quizzes.isEmpty())
-                                .collect(Collectors.toList()));
+                courseData.values().stream()
+                        .filter(c -> !c.quizzes.isEmpty())
+                        .forEach(c -> {
+                            if (this.cachedCourseData.size() >= this.maxSize) {
+                                log.error(
+                                        "LMS Setup: {} Cache is full and has reached its maximal size. Skip data: -> {}",
+                                        this.lmsSetup,
+                                        c);
+                            } else {
+                                this.cachedCourseData.add(c);
+                            }
+                        });
 
                 return true;
             } else {
                 return false;
             }
         } catch (final Exception e) {
-            log.error("Unexpected exception while trying to get course data: ", e);
+            log.error("LMS Setup: {} Unexpected exception while trying to get course data: ", this.lmsSetup, e);
             return false;
         }
     }
 
-    private Collection<CourseData> getCoursesPage(
+    private Collection<CourseDataShort> getCoursesPage(
             final MoodleAPIRestTemplate restTemplate,
             final int page,
             final int size) throws JsonParseException, JsonMappingException, IOException {
@@ -219,7 +267,8 @@ public class MoodleCourseDataLazyLoader {
             attributes.add(MoodleCourseAccess.MOODLE_COURSE_API_SEARCH_PAGE, String.valueOf(page));
             attributes.add(MoodleCourseAccess.MOODLE_COURSE_API_SEARCH_PAGE_SIZE, String.valueOf(size));
 
-            final String courseKeyPageJSON = restTemplate.callMoodleAPIFunction(
+            final String courseKeyPageJSON = callMoodleRestAPI(
+                    restTemplate,
                     MoodleCourseAccess.MOODLE_COURSE_SEARCH_API_FUNCTION_NAME,
                     attributes);
 
@@ -228,7 +277,9 @@ public class MoodleCourseDataLazyLoader {
                     CoursePage.class);
 
             if (keysPage == null || keysPage.courseKeys == null || keysPage.courseKeys.isEmpty()) {
-                log.info("No courses found on page: {}", page);
+                if (log.isDebugEnabled()) {
+                    log.debug("LMS Setup: {} No courses found on page: {}", this.lmsSetup, page);
+                }
                 return Collections.emptyList();
             }
 
@@ -238,7 +289,7 @@ public class MoodleCourseDataLazyLoader {
                     .map(key -> key.id)
                     .collect(Collectors.toSet());
 
-            final Collection<CourseData> result = getCoursesForIds(restTemplate, ids)
+            final Collection<CourseDataShort> result = getCoursesForIds(restTemplate, ids)
                     .stream()
                     .filter(getCourseFilter())
                     .collect(Collectors.toList());
@@ -247,19 +298,19 @@ public class MoodleCourseDataLazyLoader {
 
             return result;
         } catch (final Exception e) {
-            log.error("Unexpected error while trying to get courses page: ", e);
+            log.error("LMS Setup: {} Unexpected error while trying to get courses page: ", this.lmsSetup, e);
             return Collections.emptyList();
         }
     }
 
-    private Collection<CourseData> getCoursesForIds(
+    private Collection<CourseDataShort> getCoursesForIds(
             final MoodleAPIRestTemplate restTemplate,
             final Set<String> ids) {
 
         try {
 
             if (log.isDebugEnabled()) {
-                log.debug("Get courses for ids: {}", ids);
+                log.debug("LMS Setup: {} Get courses for ids: {}", this.lmsSetup, ids);
             }
 
             final String joinedIds = StringUtils.join(ids, Constants.COMMA);
@@ -267,32 +318,52 @@ public class MoodleCourseDataLazyLoader {
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
             attributes.add(MoodleCourseAccess.MOODLE_COURSE_API_FIELD_NAME, MoodleCourseAccess.MOODLE_COURSE_API_IDS);
             attributes.add(MoodleCourseAccess.MOODLE_COURSE_API_FIELD_VALUE, joinedIds);
-            final String coursePageJSON = restTemplate.callMoodleAPIFunction(
+            final String coursePageJSON = callMoodleRestAPI(
+                    restTemplate,
                     MoodleCourseAccess.MOODLE_COURSE_BY_FIELD_API_FUNCTION_NAME,
                     attributes);
 
-            return this.jsonMapper.<Courses> readValue(
+            return this.jsonMapper.readValue(
                     coursePageJSON,
                     Courses.class).courses;
         } catch (final Exception e) {
-            log.error("Unexpected error while trying to get courses for ids", e);
+            log.error("LMS Setup: {} Unexpected error while trying to get courses for ids", this.lmsSetup, e);
             return Collections.emptyList();
         }
     }
 
-    private Predicate<CourseQuiz> getQuizFilter() {
+    private String callMoodleRestAPI(
+            final MoodleAPIRestTemplate restTemplate,
+            final String function,
+            final MultiValueMap<String, String> queryAttributes) {
+
+        return this.moodleRestCall
+                .protectedRun(() -> restTemplate.callMoodleAPIFunction(
+                        function,
+                        queryAttributes))
+                .getOrThrow();
+
+    }
+
+    private Predicate<CourseQuizShort> getQuizFilter() {
         final long now = Utils.getSecondsNow();
         return quiz -> {
             if (quiz.time_close == null || quiz.time_close == 0 || quiz.time_close > now) {
                 return true;
             }
 
-            log.info("remove quiz {} end_time {} now {}", quiz.name, quiz.time_close, now);
+            if (log.isDebugEnabled()) {
+                log.debug("LMS Setup: {} remove quiz {} end_time {} now {}",
+                        this.lmsSetup,
+                        quiz.name,
+                        quiz.time_close,
+                        now);
+            }
             return false;
         };
     }
 
-    private Predicate<CourseData> getCourseFilter() {
+    private Predicate<CourseDataShort> getCourseFilter() {
         final long now = Utils.getSecondsNow();
         return course -> {
             if (course.start_date < this.fromCutTime) {
@@ -303,7 +374,13 @@ public class MoodleCourseDataLazyLoader {
                 return true;
             }
 
-            log.info("remove course {} end_time {} now {}", course.short_name, course.end_date, now);
+            if (log.isDebugEnabled()) {
+                log.info("LMS Setup: {} remove course {} end_time {} now {}",
+                        this.lmsSetup,
+                        course.short_name,
+                        course.end_date,
+                        now);
+            }
             return false;
         };
     }
@@ -356,77 +433,107 @@ public class MoodleCourseDataLazyLoader {
 
     }
 
-//    @JsonIgnoreProperties(ignoreUnknown = true)
-//    static final class CourseKeys {
-//        final Collection<CourseDataKey> courses;
-//
-//        @JsonCreator
-//        protected CourseKeys(
-//                @JsonProperty(value = "courses") final Collection<CourseDataKey> courses) {
-//            this.courses = courses;
-//        }
-//    }
+    /** Maps the Moodle course API course data */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class CourseDataShort {
+        final String id;
+        final String short_name;
+        final String idnumber;
+        final Long start_date; // unix-time seconds UTC
+        final Long end_date; // unix-time seconds UTC
+        final Long time_created; // unix-time seconds UTC
+        final Collection<CourseQuizShort> quizzes = new ArrayList<>();
 
-//    /** Maps the Moodle course API course data */
-//    @JsonIgnoreProperties(ignoreUnknown = true)
-//    static final class CourseDataKey {
-//        final String id;
-//        final String short_name;
-//        final Long start_date; // unix-time seconds UTC
-//        final Long end_date; // unix-time seconds UTC
-//        final Long time_created; // unix-time seconds UTC
-//        final Collection<CourseQuizKey> quizzes = new ArrayList<>();
-//
-//        @JsonCreator
-//        protected CourseDataKey(
-//                @JsonProperty(value = "id") final String id,
-//                @JsonProperty(value = "shortname") final String short_name,
-//                @JsonProperty(value = "startdate") final Long start_date,
-//                @JsonProperty(value = "enddate") final Long end_date,
-//                @JsonProperty(value = "timecreated") final Long time_created) {
-//
-//            this.id = id;
-//            this.short_name = short_name;
-//            this.start_date = start_date;
-//            this.end_date = end_date;
-//            this.time_created = time_created;
-//        }
-//
-//    }
+        @JsonCreator
+        protected CourseDataShort(
+                @JsonProperty(value = "id") final String id,
+                @JsonProperty(value = "shortname") final String short_name,
+                @JsonProperty(value = "idnumber") final String idnumber,
+                @JsonProperty(value = "startdate") final Long start_date,
+                @JsonProperty(value = "enddate") final Long end_date,
+                @JsonProperty(value = "timecreated") final Long time_created) {
 
-//    @JsonIgnoreProperties(ignoreUnknown = true)
-//    static final class CourseQuizKeys {
-//        final Collection<CourseQuizKey> quizzes;
-//
-//        @JsonCreator
-//        protected CourseQuizKeys(
-//                @JsonProperty(value = "quizzes") final Collection<CourseQuizKey> quizzes) {
-//            this.quizzes = quizzes;
-//        }
-//    }
-//
-//    @JsonIgnoreProperties(ignoreUnknown = true)
-//    static final class CourseQuizKey {
-//        final String id;
-//        final String course;
-//        final String name;
-//        final Long time_open; // unix-time seconds UTC
-//        final Long time_close; // unix-time seconds UTC
-//
-//        @JsonCreator
-//        protected CourseQuizKey(
-//                @JsonProperty(value = "id") final String id,
-//                @JsonProperty(value = "course") final String course,
-//                @JsonProperty(value = "name") final String name,
-//                @JsonProperty(value = "timeopen") final Long time_open,
-//                @JsonProperty(value = "timeclose") final Long time_close) {
-//
-//            this.id = id;
-//            this.course = course;
-//            this.name = name;
-//            this.time_open = time_open;
-//            this.time_close = time_close;
-//        }
-//    }
+            this.id = id;
+            this.short_name = short_name;
+            this.idnumber = idnumber;
+            this.start_date = start_date;
+            this.end_date = end_date;
+            this.time_created = time_created;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            final CourseDataShort other = (CourseDataShort) obj;
+            if (this.id == null) {
+                if (other.id != null)
+                    return false;
+            } else if (!this.id.equals(other.id))
+                return false;
+            return true;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static final class Courses {
+        final Collection<CourseDataShort> courses;
+
+        @JsonCreator
+        protected Courses(
+                @JsonProperty(value = "courses") final Collection<CourseDataShort> courses) {
+            this.courses = courses;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class CourseQuizData {
+        final Collection<CourseQuizShort> quizzes;
+
+        @JsonCreator
+        protected CourseQuizData(
+                @JsonProperty(value = "quizzes") final Collection<CourseQuizShort> quizzes) {
+            this.quizzes = quizzes;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class CourseQuizShort {
+        final String id;
+        final String course;
+        final String course_module;
+        final String name;
+        final Long time_open; // unix-time seconds UTC
+        final Long time_close; // unix-time seconds UTC
+
+        @JsonCreator
+        protected CourseQuizShort(
+                @JsonProperty(value = "id") final String id,
+                @JsonProperty(value = "course") final String course,
+                @JsonProperty(value = "coursemodule") final String course_module,
+                @JsonProperty(value = "name") final String name,
+                @JsonProperty(value = "timeopen") final Long time_open,
+                @JsonProperty(value = "timeclose") final Long time_close) {
+
+            this.id = id;
+            this.course = course;
+            this.course_module = course_module;
+            this.name = name;
+            this.time_open = time_open;
+            this.time_close = time_close;
+        }
+    }
 
 }

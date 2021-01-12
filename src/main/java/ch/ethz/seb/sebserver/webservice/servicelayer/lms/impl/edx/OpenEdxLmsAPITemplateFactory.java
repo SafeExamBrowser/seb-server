@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
@@ -33,6 +34,7 @@ public class OpenEdxLmsAPITemplateFactory {
     private final JSONMapper jsonMapper;
     private final WebserviceInfo webserviceInfo;
     private final AsyncService asyncService;
+    private final Environment environment;
     private final ClientCredentialService clientCredentialService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final String[] alternativeTokenRequestPaths;
@@ -42,6 +44,7 @@ public class OpenEdxLmsAPITemplateFactory {
             final JSONMapper jsonMapper,
             final WebserviceInfo webserviceInfo,
             final AsyncService asyncService,
+            final Environment environment,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             @Value("${sebserver.webservice.lms.openedx.api.token.request.paths}") final String alternativeTokenRequestPaths,
@@ -50,6 +53,7 @@ public class OpenEdxLmsAPITemplateFactory {
         this.jsonMapper = jsonMapper;
         this.webserviceInfo = webserviceInfo;
         this.asyncService = asyncService;
+        this.environment = environment;
         this.clientCredentialService = clientCredentialService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.alternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
@@ -78,7 +82,8 @@ public class OpenEdxLmsAPITemplateFactory {
                     lmsSetup,
                     openEdxRestTemplateFactory,
                     this.webserviceInfo,
-                    this.asyncService);
+                    this.asyncService,
+                    this.environment);
 
             final OpenEdxCourseRestriction openEdxCourseRestriction = new OpenEdxCourseRestriction(
                     lmsSetup,
