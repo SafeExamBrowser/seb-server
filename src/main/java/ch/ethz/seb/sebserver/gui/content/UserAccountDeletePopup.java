@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -69,6 +70,8 @@ public class UserAccountDeletePopup {
             new LocTextKey("sebserver.useraccount.delete.form.title");
     private final static LocTextKey FORM_INFO =
             new LocTextKey("sebserver.useraccount.delete.form.info");
+    private final static LocTextKey FORM_INFO_NO_DEPS =
+            new LocTextKey("sebserver.useraccount.delete.form.info.noDeps");
     private final static LocTextKey FORM_REPORT_INFO =
             new LocTextKey("sebserver.useraccount.delete.form.report.info");
     private final static LocTextKey FORM_REPORT_LIST_TYPE =
@@ -109,30 +112,55 @@ public class UserAccountDeletePopup {
                             this.pageService.getWidgetFactory())
                                     .setVeryLargeDialogWidth();
 
+            final EntityKey entityKey = pageContext.getEntityKey();
+            final UserInfo userInfo = this.pageService.getRestService()
+                    .getBuilder(GetUserAccount.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                    .call()
+                    .get();
+
+            final Set<String> roles = userInfo.getRoles();
+            final boolean showDeps = roles.contains(UserRole.EXAM_ADMIN.name())
+                    || roles.contains(UserRole.INSTITUTIONAL_ADMIN.name())
+                    || roles.contains(UserRole.SEB_SERVER_ADMIN.name());
+
             final String page1Id = "DELETE_PAGE";
             final String page2Id = "REPORT_PAGE";
             final Predicate<PageContext> callback = pc -> doDelete(this.pageService, pc);
             final BiFunction<PageContext, Composite, Supplier<PageContext>> composePage1 =
-                    (prefPageContext, content) -> composeDeleteDialog(content,
-                            (prefPageContext != null) ? prefPageContext : pageContext);
+                    (prefPageContext, content) -> composeDeleteDialog(
+                            content,
+                            (prefPageContext != null) ? prefPageContext : pageContext,
+                            userInfo,
+                            showDeps);
             final BiFunction<PageContext, Composite, Supplier<PageContext>> composePage2 =
                     (prefPageContext, content) -> composeReportDialog(content,
                             (prefPageContext != null) ? prefPageContext : pageContext);
 
-            final WizardPage<PageContext> page1 = new WizardPage<>(
-                    page1Id,
-                    true,
-                    composePage1,
-                    new WizardAction<>(ACTION_DELETE, callback),
-                    new WizardAction<>(ACTION_REPORT, page2Id));
+            if (showDeps) {
+                final WizardPage<PageContext> page1 = new WizardPage<>(
+                        page1Id,
+                        true,
+                        composePage1,
+                        new WizardAction<>(ACTION_DELETE, callback),
+                        new WizardAction<>(ACTION_REPORT, page2Id));
 
-            final WizardPage<PageContext> page2 = new WizardPage<>(
-                    page2Id,
-                    false,
-                    composePage2,
-                    new WizardAction<>(ACTION_DELETE, callback));
+                final WizardPage<PageContext> page2 = new WizardPage<>(
+                        page2Id,
+                        false,
+                        composePage2,
+                        new WizardAction<>(ACTION_DELETE, callback));
 
-            wizard.open(FORM_TITLE, Utils.EMPTY_EXECUTION, page1, page2);
+                wizard.open(FORM_TITLE, Utils.EMPTY_EXECUTION, page1, page2);
+            } else {
+                final WizardPage<PageContext> page1 = new WizardPage<>(
+                        page1Id,
+                        true,
+                        composePage1,
+                        new WizardAction<>(ACTION_DELETE, callback));
+
+                wizard.open(FORM_TITLE, Utils.EMPTY_EXECUTION, page1);
+            }
 
             return action;
         };
@@ -188,13 +216,22 @@ public class UserAccountDeletePopup {
             final List<EntityKey> dependencies = report.results.stream()
                     .filter(key -> !key.equals(entityKey))
                     .collect(Collectors.toList());
-            pageContext.publishPageMessage(
-                    DELETE_CONFIRM_TITLE,
-                    new LocTextKey(
-                            "sebserver.useraccount.delete.confirm.message",
-                            userName,
-                            dependencies.size(),
-                            (report.errors.isEmpty()) ? "no" : String.valueOf((report.errors.size()))));
+
+            if (dependencies.size() > 0) {
+                pageContext.publishPageMessage(
+                        DELETE_CONFIRM_TITLE,
+                        new LocTextKey(
+                                "sebserver.useraccount.delete.confirm.message",
+                                userName,
+                                dependencies.size(),
+                                (report.errors.isEmpty()) ? "no" : String.valueOf((report.errors.size()))));
+            } else {
+                pageContext.publishPageMessage(
+                        DELETE_CONFIRM_TITLE,
+                        new LocTextKey(
+                                "sebserver.useraccount.delete.confirm.message.noDeps",
+                                userName));
+            }
             return true;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to delete User Account:", e);
@@ -205,24 +242,19 @@ public class UserAccountDeletePopup {
 
     private Supplier<PageContext> composeDeleteDialog(
             final Composite parent,
-            final PageContext pageContext) {
+            final PageContext pageContext,
+            final UserInfo userInfo,
+            final boolean showDeps) {
 
         final Composite grid = this.pageService.getWidgetFactory()
                 .createPopupScrollComposite(parent);
 
         final Label title = this.pageService.getWidgetFactory()
-                .labelLocalized(grid, CustomVariant.TEXT_H3, FORM_INFO);
+                .labelLocalized(grid, CustomVariant.TEXT_H3, (showDeps) ? FORM_INFO : FORM_INFO_NO_DEPS);
         final GridData gridData = new GridData();
         gridData.horizontalIndent = 10;
         gridData.verticalIndent = 10;
         title.setLayoutData(gridData);
-
-        final EntityKey entityKey = pageContext.getEntityKey();
-        final UserInfo userInfo = this.pageService.getRestService()
-                .getBuilder(GetUserAccount.class)
-                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                .call()
-                .get();
 
         final FormHandle<?> formHandle = this.pageService.formBuilder(
                 pageContext.copyOf(grid))
@@ -235,13 +267,17 @@ public class UserAccountDeletePopup {
                         userInfo.toName().name)
                         .readonly(true))
 
-                .addField(FormBuilder.checkbox(
-                        ARG_WITH_CONFIGS,
-                        FORM_CONFIGS))
+                .addFieldIf(
+                        () -> showDeps,
+                        () -> FormBuilder.checkbox(
+                                ARG_WITH_CONFIGS,
+                                FORM_CONFIGS))
 
-                .addField(FormBuilder.checkbox(
-                        ARG_WITH_EXAMS,
-                        FORM_EXAMS))
+                .addFieldIf(
+                        () -> showDeps,
+                        () -> FormBuilder.checkbox(
+                                ARG_WITH_EXAMS,
+                                FORM_EXAMS))
                 .build();
 
         final Form form = formHandle.getForm();
