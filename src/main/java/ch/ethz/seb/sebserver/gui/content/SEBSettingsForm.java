@@ -14,6 +14,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -46,11 +47,13 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetSettingsPublished;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SEBExamConfigUndo;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -67,6 +70,8 @@ public class SEBSettingsForm implements TemplateComposer {
             "sebserver.examconfig.action.undo.success";
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.props.from.title");
+    private static final LocTextKey UNPUBLISHED_MESSAGE_KEY =
+            new LocTextKey("sebserver.examconfig.props.from.unpublished.message");
 
     private static final LocTextKey MESSAGE_SAVE_INTEGRITY_VIOLATION =
             new LocTextKey("sebserver.examconfig.action.saveToHistory.integrity-violation");
@@ -101,6 +106,28 @@ public class SEBSettingsForm implements TemplateComposer {
                 .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_NODE, error))
                 .getOrThrow();
 
+        final boolean settingsPublished = this.restService.getBuilder(GetSettingsPublished.class)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                .call()
+                .onError(error -> log.warn("Failed to verify published settings. Cause: ", error.getMessage()))
+                .map(result -> result.settingsPublished)
+                .getOr(false);
+
+        final boolean readonly = pageContext.isReadonly() || configNode.status == ConfigurationStatus.IN_USE;
+        final Composite warningPanelAnchor = new Composite(pageContext.getParent(), SWT.NONE);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        warningPanelAnchor.setLayoutData(gridData);
+        final GridLayout gridLayout = new GridLayout(1, true);
+        gridLayout.marginHeight = 0;
+        gridLayout.marginWidth = 0;
+        warningPanelAnchor.setLayout(gridLayout);
+        final Runnable publishedMessagePanelViewCallback = this.publishedMessagePanelViewCallback(
+                warningPanelAnchor,
+                entityKey.modelId);
+        if (!settingsPublished) {
+            publishedMessagePanelViewCallback.run();
+        }
+
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
                 new LocTextKey(TITLE_TEXT_KEY.name, Utils.truncateText(configNode.name, 30)));
@@ -120,7 +147,6 @@ public class SEBSettingsForm implements TemplateComposer {
                     .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_ATTRIBUTE, error))
                     .getOrThrow();
 
-            final boolean readonly = pageContext.isReadonly() || configNode.status == ConfigurationStatus.IN_USE;
             final List<View> views = this.examConfigurationService.getViews(attributes);
             final TabFolder tabFolder = widgetFactory.tabFolderLocalized(content);
             tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -133,7 +159,8 @@ public class SEBSettingsForm implements TemplateComposer {
                         view,
                         attributes,
                         20,
-                        readonly);
+                        readonly,
+                        publishedMessagePanelViewCallback);
                 viewContexts.add(viewContext);
 
                 final Composite viewGrid = this.examConfigurationService.createViewGrid(
@@ -216,6 +243,32 @@ public class SEBSettingsForm implements TemplateComposer {
             log.error("Unexpected error while trying to fetch exam configuration data and create views", e);
             pageContext.notifyError(SEBExamConfigForm.FORM_TITLE, e);
         }
+    }
+
+    private Runnable publishedMessagePanelViewCallback(final Composite parent, final String nodeId) {
+        return () -> {
+            if (parent.getChildren() != null && parent.getChildren().length > 0) {
+                return;
+            }
+
+            final boolean settingsPublished = this.restService.getBuilder(GetSettingsPublished.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, nodeId)
+                    .call()
+                    .onError(error -> log.warn("Failed to verify published settings. Cause: ", error.getMessage()))
+                    .map(result -> result.settingsPublished)
+                    .getOr(false);
+
+            if (!settingsPublished) {
+
+                final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
+                final Composite warningPanel = widgetFactory.createWarningPanel(parent);
+                widgetFactory.labelLocalized(
+                        warningPanel,
+                        CustomVariant.MESSAGE,
+                        UNPUBLISHED_MESSAGE_KEY);
+                parent.getParent().layout();
+            }
+        };
     }
 
     private void notifyErrorOnSave(final Exception error, final PageContext context) {

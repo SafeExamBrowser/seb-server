@@ -70,7 +70,7 @@ public interface ExamConfigurationService {
     /** Create to ViewContext to compose a exam configuration property page,
      * The ViewContext is the internal state of a exam configuration property page
      * and is passed through all composers while composing the page.
-     * 
+     *
      * @param pageContext The original PageContext that holds the state of the overall page.
      * @param configuration The configuration on which the exam configuration property page is based on.
      * @param view The View of the context
@@ -84,7 +84,8 @@ public interface ExamConfigurationService {
             View view,
             AttributeMapping attributeMapping,
             int rows,
-            boolean readonly);
+            boolean readonly,
+            Runnable valueChageCallback);
 
     Composite createViewGrid(
             Composite parent,

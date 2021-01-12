@@ -141,6 +141,7 @@ public final class API {
     public static final String CONFIGURATION_NODE_ENDPOINT = "/configuration-node";
     public static final String CONFIGURATION_FOLLOWUP_PATH_SEGMENT = "/followup";
     public static final String CONFIGURATION_CONFIG_KEY_PATH_SEGMENT = "/configkey";
+    public static final String CONFIGURATION_SETTINGS_PUBLISHED_PATH_SEGMENT = "/settings_published";
     public static final String CONFIGURATION_ENDPOINT = "/configuration";
     public static final String CONFIGURATION_SAVE_TO_HISTORY_PATH_SEGMENT = "/save-to-history";
     public static final String CONFIGURATION_UNDO_PATH_SEGMENT = "/undo";

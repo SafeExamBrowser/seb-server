@@ -330,12 +330,16 @@ public class WidgetFactory {
     }
 
     public Composite createWarningPanel(final Composite parent) {
+        return createWarningPanel(parent, 20);
+    }
+
+    public Composite createWarningPanel(final Composite parent, final int margin) {
         final Composite composite = new Composite(parent, SWT.NONE);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         composite.setLayoutData(gridData);
         final GridLayout gridLayout = new GridLayout(1, true);
-        gridLayout.marginWidth = 20;
-        gridLayout.marginHeight = 20;
+        gridLayout.marginWidth = margin;
+        gridLayout.marginHeight = margin;
         composite.setLayout(gridLayout);
         composite.setData(RWT.CUSTOM_VARIANT, CustomVariant.WARNING.key);
         return composite;

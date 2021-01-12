@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
@@ -61,6 +62,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
     private final ClientCredentialService clientCredentialService;
     private final ZipService zipService;
     private final SEBConfigEncryptionService sebConfigEncryptionService;
+    private final ConfigurationDAO configurationDAO;
 
     protected ExamConfigServiceImpl(
             final ExamConfigIO examConfigIO,
@@ -69,7 +71,8 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             final Collection<ConfigurationValueValidator> validators,
             final ClientCredentialService clientCredentialService,
             final ZipService zipService,
-            final SEBConfigEncryptionService sebConfigEncryptionService) {
+            final SEBConfigEncryptionService sebConfigEncryptionService,
+            final ConfigurationDAO configurationDAO) {
 
         this.examConfigIO = examConfigIO;
         this.configurationAttributeDAO = configurationAttributeDAO;
@@ -78,6 +81,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
         this.clientCredentialService = clientCredentialService;
         this.zipService = zipService;
         this.sebConfigEncryptionService = sebConfigEncryptionService;
+        this.configurationDAO = configurationDAO;
     }
 
     @Override
@@ -249,29 +253,39 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             final Long institutionId,
             final Long configurationNodeId) {
 
+        return this.configurationDAO
+                .getConfigurationLastStableVersion(configurationNodeId)
+                .flatMap(config -> generateConfigKey(institutionId, configurationNodeId, config.id));
+    }
+
+    private Result<String> generateConfigKey(
+            final Long institutionId,
+            final Long configurationNodeId,
+            final Long configId) {
+
         if (log.isDebugEnabled()) {
             log.debug("Start to stream plain JSON SEB Configuration data for Config-Key generation");
         }
 
-        if (true) {
-            PipedOutputStream pout;
-            PipedInputStream pin;
-            try {
-                pout = new PipedOutputStream();
-                pin = new PipedInputStream(pout);
-                this.examConfigIO.exportPlain(
-                        ConfigurationFormat.JSON,
-                        pout,
-                        institutionId,
-                        configurationNodeId);
-
-                final String json = IOUtils.toString(pin, "UTF-8");
-
-                log.trace("SEB Configuration JSON to create Config-Key: {}", json);
-            } catch (final Exception e) {
-                log.error("Failed to trace SEB Configuration JSON: ", e);
-            }
-        }
+//        if (true) {
+//            PipedOutputStream pout;
+//            PipedInputStream pin;
+//            try {
+//                pout = new PipedOutputStream();
+//                pin = new PipedInputStream(pout);
+//                this.examConfigIO.exportPlain(
+//                        ConfigurationFormat.JSON,
+//                        pout,
+//                        institutionId,
+//                        configurationNodeId);
+//
+//                final String json = IOUtils.toString(pin, "UTF-8");
+//
+//                log.trace("SEB Configuration JSON to create Config-Key: {}", json);
+//            } catch (final Exception e) {
+//                log.error("Failed to trace SEB Configuration JSON: ", e);
+//            }
+//        }
 
         PipedOutputStream pout = null;
         PipedInputStream pin = null;
@@ -279,11 +293,11 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             pout = new PipedOutputStream();
             pin = new PipedInputStream(pout);
 
-            this.examConfigIO.exportPlain(
-                    ConfigurationFormat.JSON,
+            this.examConfigIO.exportForConfigKeyGeneration(
                     pout,
                     institutionId,
-                    configurationNodeId);
+                    configurationNodeId,
+                    configId);
 
             final String configKey = DigestUtils.sha256Hex(pin);
 
@@ -377,6 +391,23 @@ public class ExamConfigServiceImpl implements ExamConfigService {
                 IOUtils.closeQuietly(cryptOut);
                 IOUtils.closeQuietly(unzippedIn);
             }
+        });
+    }
+
+    @Override
+    public Result<Boolean> hasUnpublishedChanged(final Long institutionId, final Long configurationNodeId) {
+        return Result.tryCatch(() -> {
+
+            final String followupKey = this.configurationDAO
+                    .getFollowupConfiguration(configurationNodeId)
+                    .flatMap(config -> generateConfigKey(institutionId, configurationNodeId, config.id))
+                    .getOrThrow();
+            final String stableKey = this.configurationDAO
+                    .getConfigurationLastStableVersion(configurationNodeId)
+                    .flatMap(config -> generateConfigKey(institutionId, configurationNodeId, config.id))
+                    .getOrThrow();
+
+            return !followupKey.equals(stableKey);
         });
     }
 

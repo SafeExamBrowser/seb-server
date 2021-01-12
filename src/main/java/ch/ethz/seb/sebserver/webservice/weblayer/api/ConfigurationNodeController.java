@@ -50,6 +50,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SettingsPublished;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -139,6 +140,28 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
         return this.configurationDAO
                 .getFollowupConfiguration(modelId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_SETTINGS_PUBLISHED_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public SettingsPublished settingsPublished(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable final Long modelId) {
+
+        this.entityDAO
+                .byPK(modelId)
+                .flatMap(this::checkReadAccess)
+                .getOrThrow();
+
+        return this.sebExamConfigService.hasUnpublishedChanged(institutionId, modelId)
+                .map(flag -> new SettingsPublished(!flag))
                 .getOrThrow();
     }
 

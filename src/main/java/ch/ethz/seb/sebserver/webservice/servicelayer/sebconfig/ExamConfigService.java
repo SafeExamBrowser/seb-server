@@ -124,4 +124,15 @@ public interface ExamConfigService {
      * @return The newly created Configuration instance */
     Result<Configuration> importFromSEBFile(Configuration config, InputStream input, CharSequence password);
 
+    /** Use this to check whether a specified ConfigurationNode has unpublished changes within the settings.
+     *
+     * This uses the Config Key of the actual and the follow-up settings to verify if there are changes made that
+     * are not published yet.
+     *
+     * @param institutionId the institutional id
+     * @param configurationNodeId the id if the ConfigurationNode
+     * @return true if there are unpublished changed in the SEB setting of the follow-up for the specified
+     *         ConfigurationNode */
+    Result<Boolean> hasUnpublishedChanged(Long institutionId, Long configurationNodeId);
+
 }

@@ -176,7 +176,8 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
             final View view,
             final AttributeMapping attributeMapping,
             final int rows,
-            final boolean readonly) {
+            final boolean readonly,
+            final Runnable valueChageCallback) {
 
         return new ViewContext(
                 configuration,
@@ -187,7 +188,8 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                         pageContext,
                         this.restService,
                         this.jsonMapper,
-                        this.valueChangeRules),
+                        this.valueChangeRules,
+                        valueChageCallback),
                 this.widgetFactory.getI18nSupport(),
                 readonly);
 
@@ -323,17 +325,20 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         private final RestService restService;
         private final JSONMapper jsonMapper;
         private final Collection<ValueChangeRule> valueChangeRules;
+        private final Runnable valueChageCallback;
 
         protected ValueChangeListenerImpl(
                 final PageContext pageContext,
                 final RestService restService,
                 final JSONMapper jsonMapper,
-                final Collection<ValueChangeRule> valueChangeRules) {
+                final Collection<ValueChangeRule> valueChangeRules,
+                final Runnable valueChageCallback) {
 
             this.pageContext = pageContext;
             this.restService = restService;
             this.jsonMapper = jsonMapper;
             this.valueChangeRules = valueChangeRules;
+            this.valueChageCallback = valueChageCallback;
         }
 
         @Override
@@ -366,6 +371,10 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
 
             } catch (final Exception e) {
                 this.pageContext.notifySaveError(EntityType.CONFIGURATION_VALUE, e);
+            }
+
+            if (this.valueChageCallback != null) {
+                this.valueChageCallback.run();
             }
         }
 

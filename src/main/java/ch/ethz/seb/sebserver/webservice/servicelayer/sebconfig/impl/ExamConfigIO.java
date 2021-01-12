@@ -98,11 +98,37 @@ public class ExamConfigIO {
             final Long institutionId,
             final Long configurationNodeId) throws Exception {
 
+        exportPlain(exportFormat, out, institutionId, configurationNodeId, null);
+    }
+
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
+    void exportForConfigKeyGeneration(
+            final OutputStream out,
+            final Long institutionId,
+            final Long configurationNodeId,
+            final Long configId) throws Exception {
+
+        exportPlain(ConfigurationFormat.JSON, out, institutionId, configurationNodeId, configId);
+    }
+
+    private void exportPlain(
+            final ConfigurationFormat exportFormat,
+            final OutputStream out,
+            final Long institutionId,
+            final Long configurationNodeId,
+            final Long configId) throws Exception {
+
         if (log.isDebugEnabled()) {
             log.debug("Start export SEB plain XML configuration asynconously");
         }
 
         try {
+            // get configurationId for given configId or configurationNodeId last stable if null
+            final Long configurationId = (configId == null)
+                    ? this.configurationDAO
+                            .getConfigurationLastStableVersion(configurationNodeId)
+                            .getOrThrow().id
+                    : configId;
 
             // get all defined root configuration attributes prepared and sorted
             final List<ConfigurationAttribute> sortedAttributes = this.configurationAttributeDAO.getAllRootAttributes()
@@ -112,11 +138,6 @@ public class ExamConfigIO {
                     .filter(exportFormatBasedAttributeFilter(exportFormat))
                     .sorted()
                     .collect(Collectors.toList());
-
-            // get follow-up configurationId for given configurationNodeId
-            final Long configurationId = this.configurationDAO
-                    .getConfigurationLastStableVersion(configurationNodeId)
-                    .getOrThrow().id;
 
             final Function<ConfigurationAttribute, ConfigurationValue> configurationValueSupplier =
                     getConfigurationValueSupplier(institutionId, configurationId);
