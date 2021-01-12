@@ -330,6 +330,7 @@ public class LmsSetupForm implements TemplateComposer {
                 .newAction(ActionDefinition.LMS_SETUP_TEST_EDIT)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.testAdHoc(action, formHandle))
+                .noEventPropagation()
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !readonly && !isNew.getAsBoolean())
 
