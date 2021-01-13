@@ -8,6 +8,10 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -16,6 +20,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -146,5 +151,20 @@ public interface LmsAPITemplate {
      * @param exam the Exam to release the restriction for
      * @return Result refer to the given Exam if successful or to an error if not */
     Result<Exam> releaseSEBClientRestriction(Exam exam);
+
+    /** This is used th verify if a given LMS Setup URL is available (valid)
+     *
+     * @param urlString the URL string given by the LMS Setup attribute
+     * @return true if SEB Server was able to ping the address. */
+    static boolean pingHost(final String urlString) {
+        try (Socket socket = new Socket()) {
+            final URL url = new URL(urlString);
+            final int port = (url.getPort() >= 0) ? url.getPort() : 80;
+            socket.connect(new InetSocketAddress(url.getHost(), port), (int) Constants.SECOND_IN_MILLIS * 5);
+            return true;
+        } catch (final IOException e) {
+            return false; // Either timeout or unreachable or failed DNS lookup.
+        }
+    }
 
 }

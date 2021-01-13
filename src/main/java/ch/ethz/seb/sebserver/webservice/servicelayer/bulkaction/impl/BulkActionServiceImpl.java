@@ -81,7 +81,7 @@ public class BulkActionServiceImpl implements BulkActionService {
                 EntityType.INDICATOR,
                 EntityType.CLIENT_CONNECTION));
         this.directDependancyMap.put(EntityType.CONFIGURATION_NODE,
-                EnumSet.noneOf(EntityType.class));
+                EnumSet.of(EntityType.EXAM_CONFIGURATION_MAP));
     }
 
     @Override

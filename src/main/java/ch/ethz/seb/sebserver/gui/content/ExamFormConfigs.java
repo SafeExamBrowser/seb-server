@@ -134,7 +134,7 @@ public class ExamFormConfigs implements TemplateComposer {
                                 this.resourceService::localizedExamConfigStatusName)
                                         .widthProportion(1))
                         .withDefaultActionIf(
-                                () -> modifyGrant,
+                                () -> true,
                                 this::viewExamConfigPageAction)
 
                         .withSelectionListener(this.pageService.getSelectionPublisher(

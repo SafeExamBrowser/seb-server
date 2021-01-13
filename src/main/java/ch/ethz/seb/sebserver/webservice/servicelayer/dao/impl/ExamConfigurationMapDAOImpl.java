@@ -531,8 +531,9 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
         return new EntityDependency(
                 parent,
                 new EntityKey(model.getId(), EntityType.EXAM_CONFIGURATION_MAP),
-                model.getExamName() + " / " + model.getConfigName(),
-                model.getExamDescription() + " / " + model.getConfigDescription());
+                Utils.valueOrEmptyNote(model.getExamName()) + " / " + Utils.valueOrEmptyNote(model.getConfigName()),
+                Utils.valueOrEmptyNote(model.getExamDescription()) + " / "
+                        + Utils.valueOrEmptyNote(model.getConfigDescription()));
     }
 
     private String getEncryptionPassword(final ExamConfigurationMap examConfigurationMap) {

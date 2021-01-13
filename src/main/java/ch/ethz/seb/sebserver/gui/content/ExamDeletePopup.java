@@ -194,8 +194,7 @@ public class ExamDeletePopup {
                             "FORM_REPORT_LIST_TYPE",
                             FORM_REPORT_LIST_TYPE,
                             dep -> i18nSupport
-                                    .getText("sebserver.overall.types.entityType." + dep.self.entityType.name()) +
-                                    " (" + dep.self.getModelId() + ")"))
+                                    .getText("sebserver.overall.types.entityType." + dep.self.entityType.name())))
                     .withColumn(new ColumnDefinition<>(
                             "FORM_REPORT_LIST_NAME",
                             FORM_REPORT_LIST_NAME,

@@ -411,13 +411,13 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_ON)
                 .withEntityKey(entityKey)
-                .withExec(this.examProctoringSettings.settingsFunction(this.pageService))
+                .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant))
                 .noEventPropagation()
                 .publishIf(() -> proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_OFF)
                 .withEntityKey(entityKey)
-                .withExec(this.examProctoringSettings.settingsFunction(this.pageService))
+                .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant))
                 .noEventPropagation()
                 .publishIf(() -> !proctoringEnabled && readonly)
 

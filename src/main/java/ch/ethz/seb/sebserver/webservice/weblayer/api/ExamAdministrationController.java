@@ -244,7 +244,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
 
-        checkModifyPrivilege(institutionId);
+        checkReadPrivilege(institutionId);
         return this.examSessionService
                 .checkRunningExamConsistency(modelId)
                 .getOrThrow();

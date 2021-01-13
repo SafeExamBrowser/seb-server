@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -63,8 +64,8 @@ public class UserAccountDeletePopup {
 
     private static final Logger log = LoggerFactory.getLogger(UserAccountDeletePopup.class);
 
-    private final static String ARG_WITH_CONFIGS = "WITH_CONFIGS";
-    private final static String ARG_WITH_EXAMS = "WITH_EXAMS";
+    private final static String ARG_ALL_DEPENDENCIES = "ALL_DEPENDENCIES";
+    private final static String ARG_EXAMS_AND_DEPENDENCIES = "EXAMS_AND_DEPENDENCIES";
 
     private final static LocTextKey FORM_TITLE =
             new LocTextKey("sebserver.useraccount.delete.form.title");
@@ -85,10 +86,10 @@ public class UserAccountDeletePopup {
             new LocTextKey("sebserver.useraccount.delete.form.report.empty");
     private final static LocTextKey FORM_NAME =
             new LocTextKey("sebserver.useraccount.delete.form.accountName");
-    private final static LocTextKey FORM_CONFIGS =
-            new LocTextKey("sebserver.useraccount.delete.form.deleteAlsoConfigs");
-    private final static LocTextKey FORM_EXAMS =
-            new LocTextKey("sebserver.useraccount.delete.form.deleteAlsoExams");
+    private final static LocTextKey FORM_ALL_DEPS =
+            new LocTextKey("sebserver.useraccount.delete.form.deleteAllDeps");
+    private final static LocTextKey FORM_EXAM_DEPS =
+            new LocTextKey("sebserver.useraccount.delete.form.deleteExams");
     private final static LocTextKey ACTION_DELETE =
             new LocTextKey("sebserver.useraccount.delete.form.action.delete");
     private final static LocTextKey ACTION_REPORT =
@@ -171,8 +172,8 @@ public class UserAccountDeletePopup {
             final PageContext pageContext) {
 
         try {
-            final boolean withConfigs = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_WITH_CONFIGS));
-            final boolean withExams = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_WITH_EXAMS));
+            final boolean allDeps = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_ALL_DEPENDENCIES));
+            final boolean examDepsOnly = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_EXAMS_AND_DEPENDENCIES));
             final EntityKey entityKey = pageContext.getEntityKey();
             final UserInfo currentUser = pageService.getCurrentUser().get();
             final boolean ownAccount = currentUser.getModelId().equals(entityKey.modelId);
@@ -187,12 +188,14 @@ public class UserAccountDeletePopup {
                     .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
                     .withQueryParam(API.PARAM_BULK_ACTION_ADD_INCLUDES, Constants.TRUE_STRING);
 
-            if (withConfigs) {
+            if (allDeps) {
                 restCallBuilder.withQueryParam(
                         API.PARAM_BULK_ACTION_INCLUDES,
                         EntityType.CONFIGURATION_NODE.name());
-            }
-            if (withExams) {
+                restCallBuilder.withQueryParam(
+                        API.PARAM_BULK_ACTION_INCLUDES,
+                        EntityType.EXAM.name());
+            } else if (examDepsOnly) {
                 restCallBuilder.withQueryParam(
                         API.PARAM_BULK_ACTION_INCLUDES,
                         EntityType.EXAM.name());
@@ -270,20 +273,35 @@ public class UserAccountDeletePopup {
                 .addFieldIf(
                         () -> showDeps,
                         () -> FormBuilder.checkbox(
-                                ARG_WITH_CONFIGS,
-                                FORM_CONFIGS))
+                                ARG_ALL_DEPENDENCIES,
+                                FORM_ALL_DEPS))
 
                 .addFieldIf(
                         () -> showDeps,
                         () -> FormBuilder.checkbox(
-                                ARG_WITH_EXAMS,
-                                FORM_EXAMS))
+                                ARG_EXAMS_AND_DEPENDENCIES,
+                                FORM_EXAM_DEPS))
+
                 .build();
 
         final Form form = formHandle.getForm();
+
+        form.getFieldInput(ARG_ALL_DEPENDENCIES)
+                .addListener(SWT.Selection, event -> {
+                    if (Constants.TRUE_STRING.equals(form.getFieldValue(ARG_ALL_DEPENDENCIES))) {
+                        form.setFieldValue(ARG_EXAMS_AND_DEPENDENCIES, Constants.FALSE_STRING);
+                    }
+                });
+        form.getFieldInput(ARG_EXAMS_AND_DEPENDENCIES)
+                .addListener(SWT.Selection, event -> {
+                    if (Constants.TRUE_STRING.equals(form.getFieldValue(ARG_EXAMS_AND_DEPENDENCIES))) {
+                        form.setFieldValue(ARG_ALL_DEPENDENCIES, Constants.FALSE_STRING);
+                    }
+                });
+
         return () -> pageContext
-                .withAttribute(ARG_WITH_CONFIGS, form.getFieldValue(ARG_WITH_CONFIGS))
-                .withAttribute(ARG_WITH_EXAMS, form.getFieldValue(ARG_WITH_EXAMS));
+                .withAttribute(ARG_ALL_DEPENDENCIES, form.getFieldValue(ARG_ALL_DEPENDENCIES))
+                .withAttribute(ARG_EXAMS_AND_DEPENDENCIES, form.getFieldValue(ARG_EXAMS_AND_DEPENDENCIES));
     }
 
     private Supplier<PageContext> composeReportDialog(
@@ -303,8 +321,8 @@ public class UserAccountDeletePopup {
 
         try {
             // get selection
-            final boolean withConfigs = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_WITH_CONFIGS));
-            final boolean withExams = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_WITH_EXAMS));
+            final boolean allDeps = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_ALL_DEPENDENCIES));
+            final boolean examDepsOnly = BooleanUtils.toBoolean(pageContext.getAttribute(ARG_EXAMS_AND_DEPENDENCIES));
 
             // get dependencies
             final EntityKey entityKey = pageContext.getEntityKey();
@@ -314,12 +332,14 @@ public class UserAccountDeletePopup {
                     .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
                     .withQueryParam(API.PARAM_BULK_ACTION_ADD_INCLUDES, Constants.TRUE_STRING);
 
-            if (withConfigs) {
+            if (allDeps) {
                 restCallBuilder.withQueryParam(
                         API.PARAM_BULK_ACTION_INCLUDES,
                         EntityType.CONFIGURATION_NODE.name());
-            }
-            if (withExams) {
+                restCallBuilder.withQueryParam(
+                        API.PARAM_BULK_ACTION_INCLUDES,
+                        EntityType.EXAM.name());
+            } else if (examDepsOnly) {
                 restCallBuilder.withQueryParam(
                         API.PARAM_BULK_ACTION_INCLUDES,
                         EntityType.EXAM.name());
@@ -333,8 +353,7 @@ public class UserAccountDeletePopup {
                             "FORM_REPORT_LIST_TYPE",
                             FORM_REPORT_LIST_TYPE,
                             dep -> i18nSupport
-                                    .getText("sebserver.overall.types.entityType." + dep.self.entityType.name()) +
-                                    " (" + dep.self.getModelId() + ")"))
+                                    .getText("sebserver.overall.types.entityType." + dep.self.entityType.name())))
                     .withColumn(new ColumnDefinition<>(
                             "FORM_REPORT_LIST_NAME",
                             FORM_REPORT_LIST_NAME,

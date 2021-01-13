@@ -2310,7 +2310,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "[CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE]",
+                        + "CONFIGURATION_NODE, "
+                        + "EXAM_CONFIGURATION_MAP]",
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // only with exam and configuration dependencies

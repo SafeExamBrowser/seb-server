@@ -683,4 +683,8 @@ public final class Utils {
         return StringUtils.truncate(text, toChars - 3) + "...";
     }
 
+    public static String valueOrEmptyNote(final String value) {
+        return StringUtils.isBlank(value) ? Constants.EMPTY_NOTE : value;
+    }
+
 }

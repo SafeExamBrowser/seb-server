@@ -229,7 +229,7 @@ public class SEBExamConfigForm implements TemplateComposer {
                         : ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
                 .withEntityKey(entityKey)
                 .withAttribute(PageContext.AttributeKeys.READ_ONLY, String.valueOf(!modifyGrant))
-                .publishIf(() -> modifyGrant && isReadonly)
+                .publishIf(() -> isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG)
                 .withEntityKey(entityKey)

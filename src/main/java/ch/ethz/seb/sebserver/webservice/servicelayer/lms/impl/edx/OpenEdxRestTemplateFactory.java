@@ -42,6 +42,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
 final class OpenEdxRestTemplateFactory {
 
@@ -81,6 +82,13 @@ final class OpenEdxRestTemplateFactory {
             missingAttrs.add(APIMessage.fieldValidationError(
                     LMS_SETUP.ATTR_LMS_URL,
                     "lmsSetup:lmsUrl:notNull"));
+        } else {
+            // try to connect to the url
+            if (!LmsAPITemplate.pingHost(this.lmsSetup.lmsApiUrl)) {
+                missingAttrs.add(APIMessage.fieldValidationError(
+                        LMS_SETUP.ATTR_LMS_URL,
+                        "lmsSetup:lmsUrl:url.invalid"));
+            }
         }
         if (!this.credentials.hasClientId()) {
             missingAttrs.add(APIMessage.fieldValidationError(

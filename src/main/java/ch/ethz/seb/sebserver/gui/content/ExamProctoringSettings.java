@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
@@ -67,11 +68,14 @@ public class ExamProctoringSettings {
     private final static LocTextKey SEB_PROCTORING_FORM_SECRET =
             new LocTextKey("sebserver.exam.proctoring.form.secret");
 
-    Function<PageAction, PageAction> settingsFunction(final PageService pageService) {
+    Function<PageAction, PageAction> settingsFunction(final PageService pageService, final boolean modifyGrant) {
 
         return action -> {
 
-            final PageContext pageContext = action.pageContext();
+            final PageContext pageContext = action.pageContext()
+                    .withAttribute(
+                            PageContext.AttributeKeys.FORCE_READ_ONLY,
+                            (modifyGrant) ? Constants.FALSE_STRING : Constants.TRUE_STRING);
             final ModalInputDialog<FormHandle<?>> dialog =
                     new ModalInputDialog<FormHandle<?>>(
                             action.pageContext().getParent().getShell(),
@@ -81,18 +85,25 @@ public class ExamProctoringSettings {
 
             final SEBProctoringPropertiesForm bindFormContext = new SEBProctoringPropertiesForm(
                     pageService,
-                    action.pageContext());
+                    pageContext);
 
             final Predicate<FormHandle<?>> doBind = formHandle -> doSaveSettings(
                     pageService,
                     pageContext,
                     formHandle);
 
-            dialog.open(
-                    SEB_PROCTORING_FORM_TITLE,
-                    doBind,
-                    Utils.EMPTY_EXECUTION,
-                    bindFormContext);
+            if (modifyGrant) {
+                dialog.open(
+                        SEB_PROCTORING_FORM_TITLE,
+                        doBind,
+                        Utils.EMPTY_EXECUTION,
+                        bindFormContext);
+            } else {
+                dialog.open(
+                        SEB_PROCTORING_FORM_TITLE,
+                        pageContext,
+                        pc -> bindFormContext.compose(pc.getParent()));
+            }
 
             return action;
         };
