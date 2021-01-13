@@ -197,6 +197,7 @@ public class ActionPane implements TemplateComposer {
         composite.setLayoutData(layout);
         final GridLayout gridLayout = new GridLayout();
         gridLayout.marginHeight = 0;
+        gridLayout.marginWidth = 0;
         composite.setLayout(gridLayout);
         composite.setData(RWT.CUSTOM_VARIANT, "actionPane");
         composite.setData("CATEGORY", category);
@@ -229,15 +230,15 @@ public class ActionPane implements TemplateComposer {
         actions.setLayoutData(gridData);
         final Template template = new Template();
         final ImageCell imageCell = new ImageCell(template);
-        imageCell.setLeft(0, 0)
-                .setWidth(40)
+        imageCell.setLeft(0, -8)
+                .setWidth(20)
                 .setTop(0)
                 .setBottom(0, 0)
                 .setHorizontalAlignment(SWT.LEFT)
                 .setBackground(null);
         imageCell.setBindingIndex(0);
         final TextCell textCell = new TextCell(template);
-        textCell.setLeft(0, 30)
+        textCell.setLeft(0, 20)
                 .setWidth(SWT.DEFAULT)
                 .setTop(7)
                 .setBottom(0, 0)
