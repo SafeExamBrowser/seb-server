@@ -158,6 +158,10 @@ public class MoodleCourseDataAsyncLoader {
         this.asyncRunner.runAsync(loadAndCache(restTemplate));
         this.lastRunTime = Utils.getMillisecondsNow();
 
+        log.info("LMS Setup: {} loaded {} courses asynchronously",
+                this.lmsSetup,
+                this.cachedCourseData.size());
+
     }
 
     private Runnable loadAndCache(final MoodleAPIRestTemplate restTemplate) {
@@ -169,10 +173,6 @@ public class MoodleCourseDataAsyncLoader {
 
             this.lastLoadTime = Utils.getMillisecondsNow() - startTime;
             this.running = false;
-
-            log.info("LMS Setup: {} loaded {} courses asynchronously",
-                    this.lmsSetup,
-                    this.cachedCourseData.size());
         };
     }
 
