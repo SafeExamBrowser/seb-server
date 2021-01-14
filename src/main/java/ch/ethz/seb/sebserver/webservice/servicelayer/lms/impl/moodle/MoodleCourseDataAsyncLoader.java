@@ -366,7 +366,7 @@ public class MoodleCourseDataAsyncLoader {
     private Predicate<CourseDataShort> getCourseFilter() {
         final long now = Utils.getSecondsNow();
         return course -> {
-            if (course.start_date < this.fromCutTime) {
+            if (course.start_date != null && course.start_date < this.fromCutTime) {
                 return false;
             }
 
