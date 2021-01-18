@@ -46,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseAccess.Warning;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
 
 @Lazy
@@ -216,8 +217,25 @@ public class MoodleCourseDataAsyncLoader {
                     quizzesJSON,
                     CourseQuizData.class);
 
-            if (courseQuizData == null || courseQuizData.quizzes == null || courseQuizData.quizzes.isEmpty()) {
+            if (courseQuizData == null) {
                 return false;
+            }
+
+            if (courseQuizData.warnings != null && !courseQuizData.warnings.isEmpty()) {
+                log.warn(
+                        "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
+                        this.lmsSetup,
+                        MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME,
+                        courseQuizData.warnings.size(),
+                        courseQuizData.warnings.iterator().next().toString());
+                if (log.isTraceEnabled()) {
+                    log.trace("All warnings from Moodle: {}", courseQuizData.warnings.toString());
+                }
+            }
+
+            if (courseQuizData.quizzes == null || courseQuizData.quizzes.isEmpty()) {
+                // no quizzes on this page
+                return true;
             }
 
             if (courseQuizData.quizzes != null) {
@@ -276,9 +294,29 @@ public class MoodleCourseDataAsyncLoader {
                     courseKeyPageJSON,
                     CoursePage.class);
 
-            if (keysPage == null || keysPage.courseKeys == null || keysPage.courseKeys.isEmpty()) {
+            if (keysPage == null) {
+                log.error("No CoursePage Response");
+                return Collections.emptyList();
+            }
+
+            if (keysPage.warnings != null && !keysPage.warnings.isEmpty()) {
+                log.warn(
+                        "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
+                        this.lmsSetup,
+                        MoodleCourseAccess.MOODLE_COURSE_SEARCH_API_FUNCTION_NAME,
+                        keysPage.warnings.size(),
+                        keysPage.warnings.iterator().next().toString());
+                if (log.isTraceEnabled()) {
+                    log.trace("All warnings from Moodle: {}", keysPage.warnings.toString());
+                }
+            }
+
+            if (keysPage.courseKeys == null || keysPage.courseKeys.isEmpty()) {
                 if (log.isDebugEnabled()) {
                     log.debug("LMS Setup: {} No courses found on page: {}", this.lmsSetup, page);
+                    if (log.isTraceEnabled()) {
+                        log.trace("Moodle response: {}", courseKeyPageJSON);
+                    }
                 }
                 return Collections.emptyList();
             }
@@ -294,7 +332,11 @@ public class MoodleCourseDataAsyncLoader {
                     .filter(getCourseFilter())
                     .collect(Collectors.toList());
 
-//            log.info("course page with {} courses, after filtering {} left", keysPage.courseKeys, result.size());
+            if (log.isDebugEnabled()) {
+                log.debug("course page with {} courses, after filtering {} left",
+                        keysPage.courseKeys.size(),
+                        result.size());
+            }
 
             return result;
         } catch (final Exception e) {
@@ -323,9 +365,35 @@ public class MoodleCourseDataAsyncLoader {
                     MoodleCourseAccess.MOODLE_COURSE_BY_FIELD_API_FUNCTION_NAME,
                     attributes);
 
-            return this.jsonMapper.readValue(
+            final Courses courses = this.jsonMapper.readValue(
                     coursePageJSON,
-                    Courses.class).courses;
+                    Courses.class);
+
+            if (courses == null) {
+                log.error("No Courses response: LMS: {} API call: {}", this.lmsSetup,
+                        MoodleCourseAccess.MOODLE_COURSE_BY_FIELD_API_FUNCTION_NAME);
+                return Collections.emptyList();
+            }
+
+            if (courses.warnings != null && !courses.warnings.isEmpty()) {
+                log.warn(
+                        "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
+                        this.lmsSetup,
+                        MoodleCourseAccess.MOODLE_COURSE_BY_FIELD_API_FUNCTION_NAME,
+                        courses.warnings.size(),
+                        courses.warnings.iterator().next().toString());
+                if (log.isTraceEnabled()) {
+                    log.trace("All warnings from Moodle: {}", courses.warnings.toString());
+                }
+            }
+
+            if (courses.courses == null || courses.courses.isEmpty()) {
+                log.warn("No courses found for ids: {} on LMS {}", ids, this.lmsSetup);
+                return Collections.emptyList();
+            }
+
+            return courses.courses;
+
         } catch (final Exception e) {
             log.error("LMS Setup: {} Unexpected error while trying to get courses for ids", this.lmsSetup, e);
             return Collections.emptyList();
@@ -388,11 +456,14 @@ public class MoodleCourseDataAsyncLoader {
     @JsonIgnoreProperties(ignoreUnknown = true)
     static final class CoursePage {
         final Collection<CourseKey> courseKeys;
+        final Collection<Warning> warnings;
 
         public CoursePage(
-                @JsonProperty(value = "courses") final Collection<CourseKey> courseKeys) {
+                @JsonProperty(value = "courses") final Collection<CourseKey> courseKeys,
+                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
 
             this.courseKeys = courseKeys;
+            this.warnings = warnings;
         }
     }
 
@@ -490,22 +561,28 @@ public class MoodleCourseDataAsyncLoader {
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static final class Courses {
         final Collection<CourseDataShort> courses;
+        final Collection<Warning> warnings;
 
         @JsonCreator
         protected Courses(
-                @JsonProperty(value = "courses") final Collection<CourseDataShort> courses) {
+                @JsonProperty(value = "courses") final Collection<CourseDataShort> courses,
+                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
             this.courses = courses;
+            this.warnings = warnings;
         }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     static final class CourseQuizData {
         final Collection<CourseQuizShort> quizzes;
+        final Collection<Warning> warnings;
 
         @JsonCreator
         protected CourseQuizData(
-                @JsonProperty(value = "quizzes") final Collection<CourseQuizShort> quizzes) {
+                @JsonProperty(value = "quizzes") final Collection<CourseQuizShort> quizzes,
+                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
             this.quizzes = quizzes;
+            this.warnings = warnings;
         }
     }
 

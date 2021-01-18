@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -137,6 +138,14 @@ public class MoodleCourseAccess extends CourseAccess {
             final String userDetailsJSON = template.callMoodleAPIFunction(
                     MOODLE_USER_PROFILE_API_FUNCTION_NAME,
                     queryAttributes);
+
+            if (checkAccessDeniedError(userDetailsJSON)) {
+                log.error("Get access denied error from Moodle: {} for API call: {}, response: {}",
+                        this.lmsSetup,
+                        MOODLE_USER_PROFILE_API_FUNCTION_NAME,
+                        Utils.truncateText(userDetailsJSON, 2000));
+                throw new RuntimeException("No user details on Moodle API request (access-denied)");
+            }
 
             final MoodleUserDetails[] userDetails = this.jsonMapper.<MoodleUserDetails[]> readValue(
                     userDetailsJSON,
@@ -365,6 +374,28 @@ public class MoodleCourseAccess extends CourseAccess {
                     quizzesJSON,
                     CourseQuizData.class);
 
+            if (courseQuizData == null) {
+                log.error("No quizzes found for  ids: {} on LMS; {}", quizIds, this.lmsSetup.name);
+                return Collections.emptyList();
+            }
+
+            if (courseQuizData.warnings != null && !courseQuizData.warnings.isEmpty()) {
+                log.warn(
+                        "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
+                        this.lmsSetup,
+                        MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME,
+                        courseQuizData.warnings.size(),
+                        courseQuizData.warnings.iterator().next().toString());
+                if (log.isTraceEnabled()) {
+                    log.trace("All warnings from Moodle: {}", courseQuizData.warnings.toString());
+                }
+            }
+
+            if (courseQuizData.quizzes == null || courseQuizData.quizzes.isEmpty()) {
+                log.error("No quizzes found for  ids: {} on LMS; {}", quizIds, this.lmsSetup.name);
+                return Collections.emptyList();
+            }
+
             final Map<String, CourseData> finalCourseDataRef = courseData;
             courseQuizData.quizzes
                     .forEach(quiz -> {
@@ -420,9 +451,33 @@ public class MoodleCourseAccess extends CourseAccess {
                     MOODLE_COURSE_BY_FIELD_API_FUNCTION_NAME,
                     attributes);
 
-            return this.jsonMapper.<Courses> readValue(
+            final Courses courses = this.jsonMapper.readValue(
                     coursePageJSON,
-                    Courses.class).courses;
+                    Courses.class);
+
+            if (courses == null) {
+                log.error("No courses found for ids: {} on LMS: {}", ids, this.lmsSetup.name);
+                Collections.emptyList();
+            }
+
+            if (courses.warnings != null && !courses.warnings.isEmpty()) {
+                log.warn(
+                        "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
+                        this.lmsSetup,
+                        MoodleCourseAccess.MOODLE_COURSE_BY_FIELD_API_FUNCTION_NAME,
+                        courses.warnings.size(),
+                        courses.warnings.iterator().next().toString());
+                if (log.isTraceEnabled()) {
+                    log.trace("All warnings from Moodle: {}", courses.warnings.toString());
+                }
+            }
+
+            if (courses.courses == null || courses.courses.isEmpty()) {
+                log.error("No courses found for ids: {} on LMS: {}", ids, this.lmsSetup.name);
+                Collections.emptyList();
+            }
+
+            return courses.courses;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get courses for ids", e);
             return Collections.emptyList();
@@ -587,6 +642,20 @@ public class MoodleCourseAccess extends CourseAccess {
         return idNumber.equals(Constants.EMPTY_NOTE) ? null : idNumber;
     }
 
+    private static final Pattern ACCESS_DENIED_PATTERN_1 =
+            Pattern.compile(Pattern.quote("No access rights"), Pattern.CASE_INSENSITIVE);
+    private static final Pattern ACCESS_DENIED_PATTERN_2 =
+            Pattern.compile(Pattern.quote("access denied"), Pattern.CASE_INSENSITIVE);
+
+    public static final boolean checkAccessDeniedError(final String courseKeyPageJSON) {
+        return ACCESS_DENIED_PATTERN_1
+                .matcher(courseKeyPageJSON)
+                .find() ||
+                ACCESS_DENIED_PATTERN_2
+                        .matcher(courseKeyPageJSON)
+                        .find();
+    }
+
     // ---- Mapping Classes ---
 
     /** Maps the Moodle course API course data */
@@ -630,22 +699,28 @@ public class MoodleCourseAccess extends CourseAccess {
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static final class Courses {
         final Collection<CourseData> courses;
+        final Collection<Warning> warnings;
 
         @JsonCreator
         protected Courses(
-                @JsonProperty(value = "courses") final Collection<CourseData> courses) {
+                @JsonProperty(value = "courses") final Collection<CourseData> courses,
+                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
             this.courses = courses;
+            this.warnings = warnings;
         }
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     private static final class CourseQuizData {
         final Collection<CourseQuiz> quizzes;
+        final Collection<Warning> warnings;
 
         @JsonCreator
         protected CourseQuizData(
-                @JsonProperty(value = "quizzes") final Collection<CourseQuiz> quizzes) {
+                @JsonProperty(value = "quizzes") final Collection<CourseQuiz> quizzes,
+                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
             this.quizzes = quizzes;
+            this.warnings = warnings;
         }
     }
 
@@ -742,6 +817,42 @@ public class MoodleCourseAccess extends CourseAccess {
             this.description = description;
             this.mailformat = mailformat;
             this.descriptionformat = descriptionformat;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class Warning {
+        final String item;
+        final String itemid;
+        final String warningcode;
+        final String message;
+
+        @JsonCreator
+        public Warning(
+                @JsonProperty(value = "item") final String item,
+                @JsonProperty(value = "itemid") final String itemid,
+                @JsonProperty(value = "warningcode") final String warningcode,
+                @JsonProperty(value = "message") final String message) {
+
+            this.item = item;
+            this.itemid = itemid;
+            this.warningcode = warningcode;
+            this.message = message;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Warning [item=");
+            builder.append(this.item);
+            builder.append(", itemid=");
+            builder.append(this.itemid);
+            builder.append(", warningcode=");
+            builder.append(this.warningcode);
+            builder.append(", message=");
+            builder.append(this.message);
+            builder.append("]");
+            return builder.toString();
         }
     }
 
