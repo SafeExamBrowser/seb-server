@@ -59,6 +59,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseAccess;
 
 @Lazy
@@ -791,9 +792,7 @@ public class ExamDAOImpl implements ExamDAO {
             // get and map quizzes
             final Map<String, QuizData> quizzes = this.lmsAPIService
                     .getLmsAPITemplate(lmsSetupId)
-                    .map(template -> (cached)
-                            ? template.getQuizzesFromCache(recordMapping.keySet())
-                            : template.getQuizzes(recordMapping.keySet()))
+                    .map(template -> getQuizzesFromLMS(template, recordMapping.keySet(), cached))
                     .getOrThrow()
                     .stream()
                     .flatMap(Result::skipOnError)
@@ -812,6 +811,18 @@ public class ExamDAOImpl implements ExamDAO {
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         });
+    }
+
+    private Collection<Result<QuizData>> getQuizzesFromLMS(final LmsAPITemplate template, final Set<String> ids,
+            final boolean cached) {
+        try {
+            return (cached)
+                    ? template.getQuizzesFromCache(ids)
+                    : template.getQuizzes(ids);
+        } catch (final Exception e) {
+            log.error("Unexpected error while using LmsAPITemplate to get quizzes: ", e);
+            return Collections.emptyList();
+        }
     }
 
     private QuizData getQuizData(

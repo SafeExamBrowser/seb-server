@@ -273,6 +273,7 @@ public class MoodleCourseAccess extends CourseAccess {
         } else if (this.moodleCourseDataAsyncLoader.isLongRunningTask()) {
             // on long running tasks if we have a different fromCutTime as before
             // kick off the lazy loading task immediately with the new time filter
+            courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData();
             if (fromCutTime > 0 && fromCutTime != this.moodleCourseDataAsyncLoader.getFromCutTime()) {
                 this.moodleCourseDataAsyncLoader.setFromCutTime(fromCutTime);
                 this.moodleCourseDataAsyncLoader.loadAsync(restTemplate);
@@ -281,7 +282,7 @@ public class MoodleCourseAccess extends CourseAccess {
                     * Constants.MINUTE_IN_MILLIS) {
                 this.moodleCourseDataAsyncLoader.loadAsync(restTemplate);
             }
-            courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData();
+
         } else {
             // just run the task in sync
             if (fromCutTime >= 0) {

@@ -87,6 +87,7 @@ public class BulkActionServiceImpl implements BulkActionService {
     @Override
     public void collectDependencies(final BulkAction action) {
         checkProcessing(action);
+        updateDependencyTypes(action);
         for (final BulkActionSupportDAO<?> sup : this.supporter.values()) {
             action.dependencies.addAll(sup.getDependencies(action));
         }
@@ -107,6 +108,7 @@ public class BulkActionServiceImpl implements BulkActionService {
                 throw new IllegalArgumentException("No bulk action support for: " + action);
             }
 
+            updateDependencyTypes(action);
             collectDependencies(action);
 
             if (!action.dependencies.isEmpty()) {
@@ -286,17 +288,21 @@ public class BulkActionServiceImpl implements BulkActionService {
     }
 
     private void checkProcessing(final BulkAction action) {
+        if (action.alreadyProcessed) {
+            throw new IllegalStateException("Given BulkAction has already been processed. Use a new one");
+        }
+
+    }
+
+    private void updateDependencyTypes(final BulkAction action) {
         // complete this.directDependancyMap if needed
-        if (action.includeDependencies != null) {
+        if (action.includeDependencies != null && !action.includeDependencies.isEmpty()) {
             this.directDependancyMap.entrySet().stream()
                     .forEach(entry -> {
                         if (action.includeDependencies.contains(entry.getKey())) {
                             action.includeDependencies.addAll(entry.getValue());
                         }
                     });
-        }
-        if (action.alreadyProcessed) {
-            throw new IllegalStateException("Given BulkAction has already been processed. Use a new one");
         }
     }
 

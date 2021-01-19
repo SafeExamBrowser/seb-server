@@ -147,10 +147,22 @@ public interface LmsAPIService {
                 return new Page<>(0, 1, sortAttribute, Collections.emptyList());
             }
 
-            final int start = (pageNumber - 1) * pageSize;
+            int start = (pageNumber - 1) * pageSize;
             int end = start + pageSize;
             if (end > quizzes.size()) {
                 end = quizzes.size();
+            }
+            if (start >= end) {
+                start = end - pageSize;
+                if (start < 0) {
+                    start = 0;
+                }
+
+                return new Page<>(
+                        (quizzes.size() <= pageSize) ? 1 : quizzes.size() / pageSize + 1,
+                        start / pageSize + 1,
+                        sortAttribute,
+                        quizzes.subList(start, end));
             }
 
             return new Page<>(

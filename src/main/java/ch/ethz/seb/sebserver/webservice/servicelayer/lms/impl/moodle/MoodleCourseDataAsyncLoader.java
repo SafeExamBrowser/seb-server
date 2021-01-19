@@ -64,6 +64,7 @@ public class MoodleCourseDataAsyncLoader {
     private final int pageSize;
 
     private final Set<CourseDataShort> cachedCourseData = new HashSet<>();
+    private final Set<String> newIds = new HashSet<>();
 
     private String lmsSetup = Constants.EMPTY_NOTE;
     private long lastRunTime = 0;
@@ -132,7 +133,7 @@ public class MoodleCourseDataAsyncLoader {
     }
 
     public boolean isLongRunningTask() {
-        return this.lastLoadTime > 30 * Constants.SECOND_IN_MILLIS;
+        return this.lastLoadTime > 3 * Constants.SECOND_IN_MILLIS;
     }
 
     public Set<CourseDataShort> loadSync(final MoodleAPIRestTemplate restTemplate) {
@@ -167,10 +168,12 @@ public class MoodleCourseDataAsyncLoader {
 
     private Runnable loadAndCache(final MoodleAPIRestTemplate restTemplate) {
         return () -> {
-            this.cachedCourseData.clear();
+            //this.cachedCourseData.clear();
+            this.newIds.clear();
             final long startTime = Utils.getMillisecondsNow();
 
             loadAllQuizzes(restTemplate);
+            syncCache();
 
             this.lastLoadTime = Utils.getMillisecondsNow() - startTime;
             this.running = false;
@@ -259,6 +262,7 @@ public class MoodleCourseDataAsyncLoader {
                                         c);
                             } else {
                                 this.cachedCourseData.add(c);
+                                this.newIds.add(c.id);
                             }
                         });
 
@@ -451,6 +455,20 @@ public class MoodleCourseDataAsyncLoader {
             }
             return false;
         };
+    }
+
+    private void syncCache() {
+        if (!this.cachedCourseData.isEmpty()) {
+            final Set<CourseDataShort> newData = this.cachedCourseData.stream()
+                    .filter(data -> this.newIds.contains(data.id))
+                    .collect(Collectors.toSet());
+
+            synchronized (this.cachedCourseData) {
+                this.cachedCourseData.clear();
+                this.cachedCourseData.addAll(newData);
+            }
+        }
+        this.newIds.clear();
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
