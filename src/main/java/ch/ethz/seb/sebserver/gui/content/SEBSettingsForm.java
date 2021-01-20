@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -20,6 +22,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessageError;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
@@ -44,7 +48,10 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
+import ch.ethz.seb.sebserver.gui.service.remote.download.SEBExamConfigPlaintextDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetSettingsPublished;
@@ -78,20 +85,26 @@ public class SEBSettingsForm implements TemplateComposer {
 
     private final PageService pageService;
     private final RestService restService;
-    private final SEBExamConfigCreationPopup sebExamConfigCreationPopup;
     private final CurrentUser currentUser;
     private final ExamConfigurationService examConfigurationService;
+    private final SEBExamConfigImportPopup sebExamConfigImportPopup;
+    private final DownloadService downloadService;
+    private final String downloadFileName;
 
     protected SEBSettingsForm(
             final PageService pageService,
-            final SEBExamConfigCreationPopup sebExamConfigCreationPopup,
-            final ExamConfigurationService examConfigurationService) {
+            final ExamConfigurationService examConfigurationService,
+            final SEBExamConfigImportPopup sebExamConfigImportPopup,
+            final DownloadService downloadService,
+            @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
         this.restService = pageService.getRestService();
-        this.sebExamConfigCreationPopup = sebExamConfigCreationPopup;
         this.currentUser = pageService.getCurrentUser();
         this.examConfigurationService = examConfigurationService;
+        this.sebExamConfigImportPopup = sebExamConfigImportPopup;
+        this.downloadService = downloadService;
+        this.downloadFileName = downloadFileName;
     }
 
     @Override
@@ -114,6 +127,13 @@ public class SEBSettingsForm implements TemplateComposer {
                 .getOr(false);
 
         final boolean readonly = pageContext.isReadonly() || configNode.status == ConfigurationStatus.IN_USE;
+        final boolean isAttachedToExam = !readonly && this.restService
+                .getBuilder(GetExamConfigMappingNames.class)
+                .withQueryParam(ExamConfigurationMap.FILTER_ATTR_CONFIG_ID, configNode.getModelId())
+                .call()
+                .map(names -> names != null && !names.isEmpty())
+                .getOr(Boolean.FALSE);
+
         final Composite warningPanelAnchor = new Composite(pageContext.getParent(), SWT.NONE);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         warningPanelAnchor.setLayoutData(gridData);
@@ -185,6 +205,7 @@ public class SEBSettingsForm implements TemplateComposer {
 
             this.examConfigurationService.initInputFieldValues(configuration.id, viewContexts);
 
+            final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
             final GrantCheck examConfigGrant = this.currentUser.grantCheck(EntityType.CONFIGURATION_NODE);
             this.pageService.pageActionBuilder(pageContext.clearEntityKeys())
 
@@ -218,18 +239,38 @@ public class SEBSettingsForm implements TemplateComposer {
                     .ignoreMoveAwayFromEdit()
                     .publishIf(() -> examConfigGrant.iw() && !readonly)
 
-                    .newAction(ActionDefinition.SEA_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE)
+//                    .newAction(ActionDefinition.SEA_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE)
+//                    .withEntityKey(entityKey)
+//                    .withExec(this.sebExamConfigCreationPopup.configCreationFunction(
+//                            pageContext
+//                                    .withAttribute(
+//                                            PageContext.AttributeKeys.COPY_AS_TEMPLATE,
+//                                            Constants.TRUE_STRING)
+//                                    .withAttribute(
+//                                            PageContext.AttributeKeys.CREATE_FROM_TEMPLATE,
+//                                            Constants.FALSE_STRING)))
+//                    .noEventPropagation()
+//                    .publishIf(examConfigGrant::iw)
+
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_EXPORT_PLAIN_XML)
                     .withEntityKey(entityKey)
-                    .withExec(this.sebExamConfigCreationPopup.configCreationFunction(
-                            pageContext
-                                    .withAttribute(
-                                            PageContext.AttributeKeys.COPY_AS_TEMPLATE,
-                                            Constants.TRUE_STRING)
-                                    .withAttribute(
-                                            PageContext.AttributeKeys.CREATE_FROM_TEMPLATE,
-                                            Constants.FALSE_STRING)))
+                    .withExec(action -> {
+                        final String downloadURL = this.downloadService.createDownloadURL(
+                                entityKey.modelId,
+                                SEBExamConfigPlaintextDownload.class,
+                                this.downloadFileName);
+                        urlLauncher.openURL(downloadURL);
+                        return action;
+                    })
                     .noEventPropagation()
-                    .publishIf(examConfigGrant::iw)
+                    .publishIf(() -> examConfigGrant.iw() && !readonly)
+
+                    // TODO shall this got to settings form?
+                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
+                    .withEntityKey(entityKey)
+                    .withExec(this.sebExamConfigImportPopup.importFunction(false))
+                    .noEventPropagation()
+                    .publishIf(() -> examConfigGrant.iw() && !readonly && !isAttachedToExam)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)
                     .withEntityKey(entityKey)

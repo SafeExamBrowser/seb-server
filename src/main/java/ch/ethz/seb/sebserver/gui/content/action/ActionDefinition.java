@@ -503,7 +503,7 @@ public enum ActionDefinition {
             ImageIcon.SECURE,
             ActionCategory.FORM),
     SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG(
-            new LocTextKey("sebserver.examconfig.action.import-config"),
+            new LocTextKey("sebserver.examconfig.action.import-settings"),
             ImageIcon.IMPORT,
             ActionCategory.FORM),
 
@@ -511,7 +511,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.examconfig.action.copy"),
             ImageIcon.COPY,
             ActionCategory.FORM),
-    SEA_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE(
+    SEB_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE(
             new LocTextKey("sebserver.examconfig.action.copy-as-template"),
             ImageIcon.TEMPLATE,
             ActionCategory.FORM),

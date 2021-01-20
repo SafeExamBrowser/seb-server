@@ -13,12 +13,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 
-import org.eclipse.rap.rwt.RWT;
-import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -48,8 +45,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
-import ch.ethz.seb.sebserver.gui.service.remote.download.SEBExamConfigPlaintextDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
@@ -84,7 +79,7 @@ public class SEBExamConfigForm implements TemplateComposer {
     static final LocTextKey FORM_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.status");
     static final LocTextKey FORM_IMPORT_TEXT_KEY =
-            new LocTextKey("sebserver.examconfig.action.import-config");
+            new LocTextKey("sebserver.examconfig.action.import-settings");
     static final LocTextKey FORM_IMPORT_SELECT_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.import-file-select");
     static final LocTextKey FORM_IMPORT_PASSWORD_TEXT_KEY =
@@ -104,25 +99,16 @@ public class SEBExamConfigForm implements TemplateComposer {
     private final PageService pageService;
     private final RestService restService;
     private final SEBExamConfigCreationPopup sebExamConfigCreationPopup;
-    private final SEBExamConfigImportPopup sebExamConfigImportPopup;
     private final CurrentUser currentUser;
-    private final DownloadService downloadService;
-    private final String downloadFileName;
 
     protected SEBExamConfigForm(
             final PageService pageService,
-            final SEBExamConfigCreationPopup sebExamConfigCreationPopup,
-            final SEBExamConfigImportPopup sebExamConfigImportPopup,
-            final DownloadService downloadService,
-            @Value("${sebserver.gui.seb.exam.config.download.filename}") final String downloadFileName) {
+            final SEBExamConfigCreationPopup sebExamConfigCreationPopup) {
 
         this.pageService = pageService;
         this.restService = pageService.getRestService();
         this.sebExamConfigCreationPopup = sebExamConfigCreationPopup;
-        this.sebExamConfigImportPopup = sebExamConfigImportPopup;
         this.currentUser = pageService.getCurrentUser();
-        this.downloadService = downloadService;
-        this.downloadFileName = downloadFileName;
     }
 
     @Override
@@ -211,7 +197,6 @@ public class SEBExamConfigForm implements TemplateComposer {
                         ? this.restService.getRestCall(NewExamConfig.class)
                         : this.restService.getRestCall(SaveExamConfig.class));
 
-        final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
         final PageContext actionContext = formContext.clearEntityKeys();
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(actionContext);
         actionBuilder
@@ -245,25 +230,12 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 
-                .newAction(ActionDefinition.SEA_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE)
                 .withEntityKey(entityKey)
                 .withExec(this.sebExamConfigCreationPopup.configCreationFunction(
                         pageContext.withAttribute(
                                 PageContext.AttributeKeys.COPY_AS_TEMPLATE,
                                 Constants.TRUE_STRING)))
-                .noEventPropagation()
-                .publishIf(() -> modifyGrant && isReadonly)
-
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_EXPORT_PLAIN_XML)
-                .withEntityKey(entityKey)
-                .withExec(action -> {
-                    final String downloadURL = this.downloadService.createDownloadURL(
-                            entityKey.modelId,
-                            SEBExamConfigPlaintextDownload.class,
-                            this.downloadFileName);
-                    urlLauncher.openURL(downloadURL);
-                    return action;
-                })
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 
@@ -273,11 +245,12 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
-                .withEntityKey(entityKey)
-                .withExec(this.sebExamConfigImportPopup.importFunction(false))
-                .noEventPropagation()
-                .publishIf(() -> modifyGrant && isReadonly && !isAttachedToExam)
+//                // TODO shall this got to settings form?
+//                .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
+//                .withEntityKey(entityKey)
+//                .withExec(this.sebExamConfigImportPopup.importFunction(false))
+//                .noEventPropagation()
+//                .publishIf(() -> modifyGrant && isReadonly && !isAttachedToExam)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_PROP_SAVE)
                 .withEntityKey(entityKey)
