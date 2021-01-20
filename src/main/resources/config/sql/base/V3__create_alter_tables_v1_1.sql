@@ -26,6 +26,7 @@ ADD COLUMN IF NOT EXISTS `townhall_room` INT(1) NOT NULL DEFAULT 0;
 -- Alter Table `client_connection`
 -- -----------------------------------------------------
 ALTER TABLE `client_connection`
+ADD COLUMN IF NOT EXISTS `update_time` BIGINT UNSIGNED NULL,
 ADD COLUMN IF NOT EXISTS `remote_proctoring_room_id` BIGINT UNSIGNED NULL,
 ADD COLUMN IF NOT EXISTS `remote_proctoring_room_update` INT(1) UNSIGNED NULL,
 ADD INDEX IF NOT EXISTS `clientConnectionProctorRoomRef_idx` (`remote_proctoring_room_id` ASC),

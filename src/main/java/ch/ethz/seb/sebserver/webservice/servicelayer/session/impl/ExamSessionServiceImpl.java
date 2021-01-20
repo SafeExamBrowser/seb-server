@@ -332,6 +332,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final Long examId,
             final Predicate<ClientConnectionData> filter) {
 
+        // TODO this will not work on a distributed env.
         return Result.tryCatch(() -> this.clientConnectionDAO
                 .getConnectionTokens(examId)
                 .getOrThrow()

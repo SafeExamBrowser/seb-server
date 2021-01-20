@@ -30,7 +30,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
@@ -148,7 +147,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     clientAddress,
                     null,
-                    Utils.getMillisecondsNow(),
+                    null,
+                    null,
                     null,
                     null))
                     .getOrThrow();
@@ -239,6 +239,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             virtualClientAddress,
                             null,
                             null,
+                            null,
                             null))
                     .getOrThrow();
 
@@ -319,6 +320,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     clientConnection.userSessionId,
                     null,
                     virtualClientAddress,
+                    null,
                     null,
                     null,
                     proctoringEnabled);
@@ -447,6 +449,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 if (proctoringEnabled) {
                     final ClientConnection updateClientConnection = new ClientConnection(
                             clientConnection.id,
+                            null,
                             null,
                             null,
                             null,
@@ -660,6 +663,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     null,
+                    null,
                     null);
 
             clientConnection = this.clientConnectionDAO
@@ -695,11 +699,12 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private ClientConnection saveInState(final ClientConnection clientConnection, final ConnectionStatus status) {
         return this.clientConnectionDAO.save(new ClientConnection(
                 clientConnection.id, null, null,
-                status, null, null, null, null, null, null,
+                status, null, null, null, null, null, null, null,
                 true))
                 .getOrThrow();
     }
 
+    // TODO this will not be enough in a distributed environment!?
     private ClientConnectionDataInternal reloadConnectionCache(final String connectionToken) {
         // evict cached ClientConnection
         this.examSessionCacheService.evictClientConnection(connectionToken);

@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `client_address` VARCHAR(45) NOT NULL,
   `virtual_client_address` VARCHAR(45) NULL,
   `creation_time` BIGINT UNSIGNED NOT NULL,
+  `update_time` BIGINT UNSIGNED NULL,
   `remote_proctoring_room_id` BIGINT UNSIGNED NULL,
   `remote_proctoring_room_update` INT(1) UNSIGNED NULL,
   PRIMARY KEY (`id`),

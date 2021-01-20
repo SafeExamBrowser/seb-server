@@ -53,19 +53,22 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
         if (this.cachingEnabled) {
             return timestamp;
         } else {
+            try {
 
-            final Long lastPing =
-                    this.clientEventExtensionMapper.maxByExample(ClientEventRecordDynamicSqlSupport.serverTime)
-                            .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
-                            .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
-                            .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
-                            .build()
-                            .execute();
+                // TODO to boost performance here within a distributed setup, invent a new cache for all client ping values
+                //      of the running exam. So all indicators get the values from cache and only one single SQL call
+                //      is needed for one update.
+                //      This cache then is only valid for one (GUI) update cycle and the cache must to be flushed before 
 
-            if (lastPing == null) {
-                return 0.0;
-            } else {
-                return lastPing.doubleValue();
+                return this.clientEventExtensionMapper.maxByExample(ClientEventRecordDynamicSqlSupport.serverTime)
+                        .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
+                        .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
+                        .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
+                        .build()
+                        .execute()
+                        .doubleValue();
+            } catch (final Exception e) {
+                return Double.NaN;
             }
         }
     }

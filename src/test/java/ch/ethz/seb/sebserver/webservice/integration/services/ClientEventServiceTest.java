@@ -46,8 +46,9 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
     public void testCreateLogEvents() {
 
         final ClientConnection connection = this.clientConnectionDAO
-                .createNew(new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token", "userId", "", "", 1L,
-                        null, false))
+                .createNew(
+                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token", "userId", "", "", 1L, 1L,
+                                null, false))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -68,8 +69,9 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
     public void testErrorLogCountIndicator() {
 
         final ClientConnection connection = this.clientConnectionDAO
-                .createNew(new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token1", "userId", "", "", 1L,
-                        null, false))
+                .createNew(
+                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token1", "userId", "", "", 1L, 1L,
+                                null, false))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -109,8 +111,9 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
     public void testInfoLogWithTagCountIndicator() {
 
         final ClientConnection connection = this.clientConnectionDAO
-                .createNew(new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token2", "userId", "", "", 1L,
-                        null, false))
+                .createNew(
+                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token2", "userId", "", "", 1L, 1L,
+                                null, false))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -165,8 +168,9 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
     public void testBatteryStatusIndicator() {
 
         final ClientConnection connection = this.clientConnectionDAO
-                .createNew(new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token3", "userId", "", "", 1L,
-                        null, false))
+                .createNew(
+                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token3", "userId", "", "", 1L, 1L,
+                                null, false))
                 .getOrThrow();
 
         assertNotNull(connection.id);

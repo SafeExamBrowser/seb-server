@@ -167,7 +167,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
             final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
                     null, null, null, null, null,
-                    null, null, null, null, null,
+                    null, null, null, null, null, null,
                     0);
 
             this.clientConnectionRecordMapper.updateByExampleSelective(updateRecord)
@@ -200,7 +200,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
             final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
                     null, null, null, null, null,
-                    null, null, null, null, null,
+                    null, null, null, null, null, null,
                     0);
 
             this.clientConnectionRecordMapper.updateByExampleSelective(updateRecord)
@@ -217,7 +217,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public void setNeedsRoomUpdate(final Long connectionId) {
         final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
                 connectionId,
-                null, null, null, null,
+                null, null, null, null, null,
                 null, null, null, null, null,
                 1);
         this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
@@ -258,6 +258,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public Result<ClientConnection> createNew(final ClientConnection data) {
         return Result.tryCatch(() -> {
 
+            final long millisecondsNow = Utils.getMillisecondsNow();
             final ClientConnectionRecord newRecord = new ClientConnectionRecord(
                     null,
                     data.institutionId,
@@ -267,7 +268,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     null,
                     data.clientAddress,
                     data.virtualClientAddress,
-                    Utils.getMillisecondsNow(),
+                    millisecondsNow,
+                    millisecondsNow,
                     data.remoteProctoringRoomId,
                     null);
 
@@ -283,6 +285,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public Result<ClientConnection> save(final ClientConnection data) {
         return Result.tryCatch(() -> {
 
+            final long millisecondsNow = Utils.getMillisecondsNow();
             final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
                     data.id,
                     null,
@@ -293,6 +296,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.clientAddress,
                     data.virtualClientAddress,
                     null,
+                    millisecondsNow,
                     data.remoteProctoringRoomId,
                     BooleanUtils.toIntegerObject(data.remoteProctoringRoomUpdate));
 
@@ -313,6 +317,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         return Result.tryCatch(() -> {
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
                     connectionId,
+                    null,
                     null,
                     null,
                     null,
@@ -342,6 +347,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         record.getClientAddress(),
                         record.getVirtualClientAddress(),
                         record.getCreationTime(),
+                        record.getUpdateTime(),
                         null,
                         0));
             } else {
@@ -530,6 +536,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getClientAddress(),
                     record.getVirtualClientAddress(),
                     record.getCreationTime(),
+                    record.getUpdateTime(),
                     record.getRemoteProctoringRoomId(),
                     BooleanUtils.toBooleanObject(record.getRemoteProctoringRoomUpdate()));
         });

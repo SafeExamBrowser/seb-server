@@ -50,6 +50,7 @@ public final class ClientConnection implements GrantEntity {
             null,
             null,
             null,
+            null,
             false);
 
     public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
@@ -84,6 +85,9 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME)
     public final Long creationTime;
 
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_UPDATE_TIME)
+    public final Long updateTime;
+
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID)
     public final Long remoteProctoringRoomId;
 
@@ -101,6 +105,7 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS) final String virtualClientAddress,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME) final Long creationTime,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_UPDATE_TIME) final Long updateTime,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_UPDATE) final Boolean remoteProctoringRoomUpdate) {
 
@@ -113,6 +118,7 @@ public final class ClientConnection implements GrantEntity {
         this.clientAddress = clientAddress;
         this.virtualClientAddress = virtualClientAddress;
         this.creationTime = creationTime;
+        this.updateTime = updateTime;
         this.remoteProctoringRoomId = remoteProctoringRoomId;
         this.remoteProctoringRoomUpdate = (remoteProctoringRoomUpdate != null) ? remoteProctoringRoomUpdate : false;
     }
@@ -169,6 +175,10 @@ public final class ClientConnection implements GrantEntity {
 
     public Long getCreationTime() {
         return this.creationTime;
+    }
+
+    public Long getUpdateTime() {
+        return this.updateTime;
     }
 
     public Long getRemoteProctoringRoomId() {
