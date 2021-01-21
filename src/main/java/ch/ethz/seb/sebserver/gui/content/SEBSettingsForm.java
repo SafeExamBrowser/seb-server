@@ -239,19 +239,6 @@ public class SEBSettingsForm implements TemplateComposer {
                     .ignoreMoveAwayFromEdit()
                     .publishIf(() -> examConfigGrant.iw() && !readonly)
 
-//                    .newAction(ActionDefinition.SEA_EXAM_CONFIG_COPY_CONFIG_AS_TEMPLATE)
-//                    .withEntityKey(entityKey)
-//                    .withExec(this.sebExamConfigCreationPopup.configCreationFunction(
-//                            pageContext
-//                                    .withAttribute(
-//                                            PageContext.AttributeKeys.COPY_AS_TEMPLATE,
-//                                            Constants.TRUE_STRING)
-//                                    .withAttribute(
-//                                            PageContext.AttributeKeys.CREATE_FROM_TEMPLATE,
-//                                            Constants.FALSE_STRING)))
-//                    .noEventPropagation()
-//                    .publishIf(examConfigGrant::iw)
-
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_EXPORT_PLAIN_XML)
                     .withEntityKey(entityKey)
                     .withExec(action -> {
@@ -263,9 +250,8 @@ public class SEBSettingsForm implements TemplateComposer {
                         return action;
                     })
                     .noEventPropagation()
-                    .publishIf(() -> examConfigGrant.iw() && !readonly)
+                    .publishIf(() -> examConfigGrant.iw())
 
-                    // TODO shall this got to settings form?
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
                     .withEntityKey(entityKey)
                     .withExec(this.sebExamConfigImportPopup.importFunction(false))
