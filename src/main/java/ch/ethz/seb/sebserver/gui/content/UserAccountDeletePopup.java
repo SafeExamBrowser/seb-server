@@ -286,18 +286,20 @@ public class UserAccountDeletePopup {
 
         final Form form = formHandle.getForm();
 
-        form.getFieldInput(ARG_ALL_DEPENDENCIES)
-                .addListener(SWT.Selection, event -> {
-                    if (Constants.TRUE_STRING.equals(form.getFieldValue(ARG_ALL_DEPENDENCIES))) {
-                        form.setFieldValue(ARG_EXAMS_AND_DEPENDENCIES, Constants.FALSE_STRING);
-                    }
-                });
-        form.getFieldInput(ARG_EXAMS_AND_DEPENDENCIES)
-                .addListener(SWT.Selection, event -> {
-                    if (Constants.TRUE_STRING.equals(form.getFieldValue(ARG_EXAMS_AND_DEPENDENCIES))) {
-                        form.setFieldValue(ARG_ALL_DEPENDENCIES, Constants.FALSE_STRING);
-                    }
-                });
+        if (showDeps) {
+            form.getFieldInput(ARG_ALL_DEPENDENCIES)
+                    .addListener(SWT.Selection, event -> {
+                        if (Constants.TRUE_STRING.equals(form.getFieldValue(ARG_ALL_DEPENDENCIES))) {
+                            form.setFieldValue(ARG_EXAMS_AND_DEPENDENCIES, Constants.FALSE_STRING);
+                        }
+                    });
+            form.getFieldInput(ARG_EXAMS_AND_DEPENDENCIES)
+                    .addListener(SWT.Selection, event -> {
+                        if (Constants.TRUE_STRING.equals(form.getFieldValue(ARG_EXAMS_AND_DEPENDENCIES))) {
+                            form.setFieldValue(ARG_ALL_DEPENDENCIES, Constants.FALSE_STRING);
+                        }
+                    });
+        }
 
         return () -> pageContext
                 .withAttribute(ARG_ALL_DEPENDENCIES, form.getFieldValue(ARG_ALL_DEPENDENCIES))

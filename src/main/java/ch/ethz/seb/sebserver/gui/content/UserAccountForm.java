@@ -271,7 +271,7 @@ public class UserAccountForm implements TemplateComposer {
                 .newAction(ActionDefinition.USER_ACCOUNT_DELETE)
                 .withEntityKey(entityKey)
                 .withExec(this.userAccountDeletePopup.deleteWizardFunction(pageContext))
-                .publishIf(() -> (writeGrant || ownAccount) && readonly && institutionActive)
+                .publishIf(() -> writeGrant && readonly && institutionActive)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_SAVE)
                 .withEntityKey(entityKey)

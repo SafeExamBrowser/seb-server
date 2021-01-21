@@ -77,7 +77,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .andForRole(UserRole.EXAM_SUPPORTER)
-                .withOwnerPrivilege(PrivilegeType.WRITE)
+                .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .create();
 
         // grants for seb client config
