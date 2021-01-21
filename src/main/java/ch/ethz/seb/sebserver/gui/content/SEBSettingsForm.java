@@ -250,7 +250,7 @@ public class SEBSettingsForm implements TemplateComposer {
                         return action;
                     })
                     .noEventPropagation()
-                    .publishIf(() -> examConfigGrant.iw())
+                    .publishIf(() -> examConfigGrant.im())
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
                     .withEntityKey(entityKey)
