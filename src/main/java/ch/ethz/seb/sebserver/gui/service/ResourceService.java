@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
@@ -502,22 +503,26 @@ public class ResourceService {
                 .getText(ResourceService.EXAMCONFIG_STATUS_PREFIX + config.configStatus.name());
     }
 
-    public String localizedClientConnectionStatusName(final ClientConnectionData connectionData) {
-        if (connectionData == null) {
-            final String name = ConnectionStatus.UNDEFINED.name();
-            return this.i18nSupport.getText(
-                    SEB_CONNECTION_STATUS_KEY_PREFIX + name,
-                    name);
-        }
-        if (connectionData.missingPing) {
-            return this.i18nSupport.getText(
-                    SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_PING_NAME_KEY,
-                    MISSING_CLIENT_PING_NAME_KEY);
-        } else {
-            return localizedClientConnectionStatusName((connectionData.clientConnection != null)
-                    ? connectionData.clientConnection.status
-                    : ConnectionStatus.UNDEFINED);
-        }
+    public Function<ClientConnectionData, String> localizedClientConnectionStatusNameFunction() {
+
+        // Memoizing
+        final String missing = this.i18nSupport.getText(
+                SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_PING_NAME_KEY,
+                MISSING_CLIENT_PING_NAME_KEY);
+        final EnumMap<ConnectionStatus, String> localizedNames = new EnumMap<>(ConnectionStatus.class);
+        Arrays.asList(ConnectionStatus.values()).stream().forEach(state -> localizedNames.put(state, this.i18nSupport
+                .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + state.name(), state.name())));
+
+        return connectionData -> {
+            if (connectionData == null) {
+                localizedNames.get(ConnectionStatus.UNDEFINED);
+            }
+            if (connectionData.missingPing && connectionData.clientConnection.status.establishedStatus) {
+                return missing;
+            } else {
+                return localizedNames.get(connectionData.clientConnection.status);
+            }
+        };
     }
 
     public String localizedClientConnectionStatusName(final ConnectionStatus status) {

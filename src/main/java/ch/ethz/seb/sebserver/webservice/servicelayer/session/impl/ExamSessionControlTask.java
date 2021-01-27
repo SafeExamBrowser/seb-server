@@ -25,7 +25,9 @@ import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 
@@ -39,18 +41,13 @@ class ExamSessionControlTask implements DisposableBean {
     private final SEBClientConnectionService sebClientConnectionService;
     private final ExamUpdateHandler examUpdateHandler;
     private final ExamProctoringRoomService examProcotringRoomService;
+    private final WebserviceInfo webserviceInfo;
+    private final WebserviceInfoDAO webserviceInfoDAO;
+
     private final Long examTimePrefix;
     private final Long examTimeSuffix;
     private final String examTaskCron;
     private final long pingUpdateRate;
-
-    private boolean examRunUpdateActive = false;
-    private boolean lostPingUpdateActive = false;
-
-    // TODO for distributed systems we need a data-base based priority and flag that the individual
-    //      tasks can check and set so that only one task is actually processing and the other just checks
-    //      if a task is still processing and backup of not.
-    //      Possibly this can be done with a overall master service setting on the DB in table webservice_server_info
 
     // TODO considering to have some caching of running exams end dates here to improve performance
     //      the end check task has than only to first update missing running exams and then
@@ -63,6 +60,8 @@ class ExamSessionControlTask implements DisposableBean {
             final SEBClientConnectionService sebClientConnectionService,
             final ExamUpdateHandler examUpdateHandler,
             final ExamProctoringRoomService examProcotringRoomService,
+            final WebserviceInfo webserviceInfo,
+            final WebserviceInfoDAO webserviceInfoDAO,
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,
             @Value("${sebserver.webservice.api.exam.update-interval:1 * * * * *}") final String examTaskCron,
@@ -71,6 +70,8 @@ class ExamSessionControlTask implements DisposableBean {
         this.examDAO = examDAO;
         this.sebClientConnectionService = sebClientConnectionService;
         this.examUpdateHandler = examUpdateHandler;
+        this.webserviceInfo = webserviceInfo;
+        this.webserviceInfoDAO = webserviceInfoDAO;
         this.examTimePrefix = examTimePrefix;
         this.examTimeSuffix = examTimeSuffix;
         this.examTaskCron = examTaskCron;
@@ -88,21 +89,17 @@ class ExamSessionControlTask implements DisposableBean {
                 this.examTimePrefix,
                 this.examTimeSuffix);
 
-        this.examRunUpdateActive = true;
-
         SEBServerInit.INIT_LOGGER.info("------>");
         SEBServerInit.INIT_LOGGER.info(
                 "------> Activate SEB lost-ping-event update background task on a fix rate of: {} milliseconds",
                 this.pingUpdateRate);
-
-        this.lostPingUpdateActive = true;
 
     }
 
     @Scheduled(cron = "${sebserver.webservice.api.exam.update-interval:1 * * * * *}")
     public void examRunUpdateTask() {
 
-        if (!this.examRunUpdateActive) {
+        if (!this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID())) {
             return;
         }
 
@@ -119,7 +116,7 @@ class ExamSessionControlTask implements DisposableBean {
     @Scheduled(fixedRateString = "${sebserver.webservice.api.seb.lostping.update:5000}")
     public void pingEventUpdateTask() {
 
-        if (!this.lostPingUpdateActive) {
+        if (!this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID())) {
             return;
         }
 
@@ -178,8 +175,7 @@ class ExamSessionControlTask implements DisposableBean {
 
     @Override
     public void destroy() {
-        this.examRunUpdateActive = false;
-        this.lostPingUpdateActive = false;
+        // TODO try to reset master
     }
 
 }

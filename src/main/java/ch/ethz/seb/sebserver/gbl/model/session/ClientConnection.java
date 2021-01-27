@@ -13,6 +13,7 @@ import java.util.EnumSet;
 import java.util.function.Predicate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -82,16 +83,11 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS)
     public final String virtualClientAddress;
 
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME)
-    public final Long creationTime;
-
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_UPDATE_TIME)
-    public final Long updateTime;
-
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID)
     public final Long remoteProctoringRoomId;
 
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_UPDATE)
+    public final Long creationTime;
+    public final Long updateTime;
     public final Boolean remoteProctoringRoomUpdate;
 
     @JsonCreator
@@ -104,10 +100,35 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID) final String userSessionId,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS) final String virtualClientAddress,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME) final Long creationTime,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_UPDATE_TIME) final Long updateTime,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_UPDATE) final Boolean remoteProctoringRoomUpdate) {
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId) {
+
+        this.id = id;
+        this.institutionId = institutionId;
+        this.examId = examId;
+        this.status = status;
+        this.connectionToken = connectionToken;
+        this.userSessionId = userSessionId;
+        this.clientAddress = clientAddress;
+        this.virtualClientAddress = virtualClientAddress;
+        this.creationTime = 0L;
+        this.updateTime = 0L;
+        this.remoteProctoringRoomId = remoteProctoringRoomId;
+        this.remoteProctoringRoomUpdate = false;
+    }
+
+    public ClientConnection(
+            final Long id,
+            final Long institutionId,
+            final Long examId,
+            final ConnectionStatus status,
+            final String connectionToken,
+            final String userSessionId,
+            final String clientAddress,
+            final String virtualClientAddress,
+            final Long creationTime,
+            final Long updateTime,
+            final Long remoteProctoringRoomId,
+            final Boolean remoteProctoringRoomUpdate) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -120,7 +141,8 @@ public final class ClientConnection implements GrantEntity {
         this.creationTime = creationTime;
         this.updateTime = updateTime;
         this.remoteProctoringRoomId = remoteProctoringRoomId;
-        this.remoteProctoringRoomUpdate = (remoteProctoringRoomUpdate != null) ? remoteProctoringRoomUpdate : false;
+        this.remoteProctoringRoomUpdate =
+                (remoteProctoringRoomUpdate != null) ? remoteProctoringRoomUpdate : false;
     }
 
     @Override
@@ -173,10 +195,12 @@ public final class ClientConnection implements GrantEntity {
         return this.virtualClientAddress;
     }
 
+    @JsonIgnore
     public Long getCreationTime() {
         return this.creationTime;
     }
 
+    @JsonIgnore
     public Long getUpdateTime() {
         return this.updateTime;
     }
@@ -185,6 +209,7 @@ public final class ClientConnection implements GrantEntity {
         return this.remoteProctoringRoomId;
     }
 
+    @JsonIgnore
     public Boolean getRemoteProctoringRoomUpdate() {
         return this.remoteProctoringRoomUpdate;
     }

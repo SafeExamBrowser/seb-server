@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.session;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -63,6 +64,7 @@ public class ClientConnectionDetails {
     private final RestCall<ClientConnectionData>.RestCallBuilder restCallBuilder;
     private final FormHandle<?> formHandle;
     private final ColorData colorData;
+    private final Function<ClientConnectionData, String> localizedClientConnectionStatusNameFunction;
 
     private ClientConnectionData connectionData = null;
     private boolean statusChanged = true;
@@ -120,6 +122,8 @@ public class ClientConnectionDetails {
                         .addEmptyCell());
 
         this.formHandle = formBuilder.build();
+        this.localizedClientConnectionStatusNameFunction =
+                this.resourceService.localizedClientConnectionStatusNameFunction();
     }
 
     public void setStatusChangeListener(final Consumer<ClientConnectionData> statusChangeListener) {
@@ -165,7 +169,7 @@ public class ClientConnectionDetails {
             // update status
             form.setFieldValue(
                     Domain.CLIENT_CONNECTION.ATTR_STATUS,
-                    this.resourceService.localizedClientConnectionStatusName(this.connectionData));
+                    this.localizedClientConnectionStatusNameFunction.apply(this.connectionData));
             final Color statusColor = this.colorData.getStatusColor(this.connectionData);
             final Color statusTextColor = this.colorData.getStatusTextColor(statusColor);
             form.setFieldColor(Domain.CLIENT_CONNECTION.ATTR_STATUS, statusColor);

@@ -11,10 +11,13 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 import java.security.Principal;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
@@ -31,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
@@ -479,20 +483,26 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         try {
 
             final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
+            final long now = DateTime.now(DateTimeZone.UTC).getMillis();
             this.examSessionService
                     .getExamDAO()
                     .allRunningExamIds()
                     .getOrThrow()
                     .stream()
-                    .flatMap(examId -> this.clientConnectionDAO
-                            .getConnectionTokens(examId)
-                            .getOrThrow()
-                            .stream())
+                    .flatMap(examId -> (this.webserviceInfo.isDistributed())
+                            ? this.clientConnectionDAO
+                                    .getConnectionTokensNoCache(examId)
+                                    .getOrThrow()
+                                    .stream()
+                            : this.clientConnectionDAO
+                                    .getConnectionTokens(examId)
+                                    .getOrThrow()
+                                    .stream())
                     .map(token -> cache.get(token, ClientConnectionDataInternal.class))
                     .filter(Objects::nonNull)
                     .filter(connection -> connection.pingIndicator != null &&
                             connection.clientConnection.status.establishedStatus)
-                    .forEach(connection -> connection.pingIndicator.updateLogEvent());
+                    .forEach(missingPingUpdate(now));
 
         } catch (final Exception e) {
             log.error("Failed to update ping events: ", e);
@@ -704,7 +714,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 .getOrThrow();
     }
 
-    // TODO this will not be enough in a distributed environment!?
     private ClientConnectionDataInternal reloadConnectionCache(final String connectionToken) {
         // evict cached ClientConnection
         this.examSessionCacheService.evictClientConnection(connectionToken);
@@ -712,6 +721,22 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.examSessionCacheService.evictPingRecord(connectionToken);
         // and load updated ClientConnection into cache
         return this.examSessionCacheService.getClientConnection(connectionToken);
+    }
+
+    private Consumer<ClientConnectionDataInternal> missingPingUpdate(final long now) {
+        return connection -> {
+            final ClientEventRecord clientEventRecord = connection.pingIndicator.updateLogEvent(now);
+            if (clientEventRecord != null) {
+                // store event and and flush cache
+                this.eventHandlingStrategy.accept(clientEventRecord);
+                if (this.webserviceInfo.isDistributed()) {
+                    // mark for update and flush the cache
+                    this.clientConnectionDAO.save(connection.clientConnection);
+                    this.examSessionCacheService.evictClientConnection(
+                            connection.clientConnection.connectionToken);
+                }
+            }
+        };
     }
 
 }

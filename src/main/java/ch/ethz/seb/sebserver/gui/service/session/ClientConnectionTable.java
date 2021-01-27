@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,7 @@ import org.springframework.util.MultiValueMap;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.async.AsyncRunner;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -90,11 +92,13 @@ public final class ClientConnectionTable {
 
     private final WidgetFactory widgetFactory;
     private final ResourceService resourceService;
+    private final AsyncRunner asyncRunner;
     private final Exam exam;
     private final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder;
     private final Map<Long, IndicatorData> indicatorMapping;
     private final Table table;
     private final ColorData colorData;
+    private final Function<ClientConnectionData, String> localizedClientConnectionStatusNameFunction;
     private final EnumSet<ConnectionStatus> statusFilter;
     private String statusFilterParam = "";
     private boolean statusFilterChanged = false;
@@ -110,16 +114,19 @@ public final class ClientConnectionTable {
     private final Color lightFontColor;
 
     private boolean forceUpdateAll = false;
+    private boolean updateInProgress = false;
 
     public ClientConnectionTable(
             final PageService pageService,
             final Composite tableRoot,
+            final AsyncRunner asyncRunner,
             final Exam exam,
             final Collection<Indicator> indicators,
             final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder) {
 
         this.widgetFactory = pageService.getWidgetFactory();
         this.resourceService = pageService.getResourceService();
+        this.asyncRunner = asyncRunner;
         this.exam = exam;
         this.restCallBuilder = restCallBuilder;
 
@@ -135,6 +142,8 @@ public final class ClientConnectionTable {
                 this.colorData,
                 NUMBER_OF_NONE_INDICATOR_COLUMNS);
 
+        this.localizedClientConnectionStatusNameFunction =
+                this.resourceService.localizedClientConnectionStatusNameFunction();
         this.statusFilter = EnumSet.noneOf(ConnectionStatus.class);
         loadStatusFilter();
 
@@ -300,6 +309,15 @@ public final class ClientConnectionTable {
     }
 
     public void updateValues() {
+        if (this.updateInProgress) {
+            return;
+        }
+
+        this.updateInProgress = true;
+        this.asyncRunner.runAsync(this::updateValuesAsync);
+    }
+
+    private void updateValuesAsync() {
         if (this.statusFilterChanged || this.forceUpdateAll) {
             this.toDelete.clear();
             this.toDelete.addAll(this.tableMapping.keySet());
@@ -333,14 +351,15 @@ public final class ClientConnectionTable {
         }
 
         this.forceUpdateAll = false;
+        this.updateInProgress = false;
     }
 
     public void updateGUI() {
-        fillTable();
         if (this.needsSort) {
             sortTable();
         }
 
+        fillTable();
         final TableItem[] items = this.table.getItems();
         final Iterator<Entry<Long, UpdatableTableItem>> iterator = this.tableMapping.entrySet().iterator();
         for (int i = 0; i < items.length; i++) {
@@ -351,6 +370,7 @@ public final class ClientConnectionTable {
         this.needsSort = false;
         adaptTableWidth();
         this.table.layout(true, true);
+
     }
 
     private void adaptTableWidth() {
@@ -464,6 +484,7 @@ public final class ClientConnectionTable {
 
         UpdatableTableItem(final Long connectionId) {
             this.connectionId = connectionId;
+            ClientConnectionTable.this.needsSort = true;
         }
 
         private void update(final TableItem tableItem, final boolean force) {
@@ -501,7 +522,9 @@ public final class ClientConnectionTable {
         private void updateData(final TableItem tableItem) {
             tableItem.setText(0, getConnectionIdentifier());
             tableItem.setText(1, getConnectionAddress());
-            tableItem.setText(2, getStatusName());
+            tableItem.setText(
+                    2,
+                    ClientConnectionTable.this.localizedClientConnectionStatusNameFunction.apply(this.connectionData));
         }
 
         private void updateConnectionStatusColor(final TableItem tableItem) {
@@ -613,11 +636,6 @@ public final class ClientConnectionTable {
             return -this.thresholdsWeight;
         }
 
-        String getStatusName() {
-            return ClientConnectionTable.this.resourceService
-                    .localizedClientConnectionStatusName(this.connectionData);
-        }
-
         String getConnectionAddress() {
             if (this.connectionData != null && this.connectionData.clientConnection.clientAddress != null) {
                 return this.connectionData.clientConnection.clientAddress;
@@ -636,7 +654,6 @@ public final class ClientConnectionTable {
         void push(final ClientConnectionData connectionData) {
             this.changed = this.connectionData == null ||
                     !this.connectionData.dataEquals(connectionData);
-
             final boolean statusChanged = this.connectionData == null ||
                     this.connectionData.clientConnection.status != connectionData.clientConnection.status;
 

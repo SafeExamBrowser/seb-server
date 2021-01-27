@@ -310,7 +310,7 @@
     <dependency>
       <groupId>org.eclipse.rap</groupId>
       <artifactId>org.eclipse.rap.rwt</artifactId>
-      <version>3.5.0</version>
+      <version>3.15.0</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.rap</groupId>

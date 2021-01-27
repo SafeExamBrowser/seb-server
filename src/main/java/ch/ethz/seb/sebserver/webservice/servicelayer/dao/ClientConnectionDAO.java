@@ -42,6 +42,16 @@ public interface ClientConnectionDAO extends
             unless = "#result.hasError()")
     Result<Collection<String>> getConnectionTokens(Long examId);
 
+    /** Get a list of all connection tokens of all connections (no matter what state)
+     * of an exam.
+     *
+     * @param examId The exam identifier
+     * @return list of all connection tokens of all connections (no matter what state)
+     *         of an exam */
+    default Result<Collection<String>> getConnectionTokensNoCache(final Long examId) {
+        return getConnectionTokens(examId);
+    }
+
     /** Get a collection of all client connections records that needs a room update
      * and that are in the status ACTIVE.
      * This also flags the involved connections for no update needed within the
@@ -89,7 +99,6 @@ public interface ClientConnectionDAO extends
     Result<ClientConnection> createNew(ClientConnection data);
 
     @Override
-    // TODO check if it is possible to remove with examId
     @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
     Result<ClientConnection> save(ClientConnection data);
 

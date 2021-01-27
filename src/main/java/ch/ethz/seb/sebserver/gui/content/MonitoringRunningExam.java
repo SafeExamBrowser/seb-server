@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.async.AsyncRunner;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -123,6 +124,7 @@ public class MonitoringRunningExam implements TemplateComposer {
     private final ServerPushService serverPushService;
     private final PageService pageService;
     private final ResourceService resourceService;
+    private final AsyncRunner asyncRunner;
     private final InstructionProcessor instructionProcessor;
     private final GuiServiceInfo guiServiceInfo;
     private final MonitoringExamSearchPopup monitoringExamSearchPopup;
@@ -134,6 +136,7 @@ public class MonitoringRunningExam implements TemplateComposer {
     protected MonitoringRunningExam(
             final ServerPushService serverPushService,
             final PageService pageService,
+            final AsyncRunner asyncRunner,
             final InstructionProcessor instructionProcessor,
             final GuiServiceInfo guiServiceInfo,
             final MonitoringExamSearchPopup monitoringExamSearchPopup,
@@ -145,6 +148,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         this.serverPushService = serverPushService;
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
+        this.asyncRunner = asyncRunner;
         this.instructionProcessor = instructionProcessor;
         this.guiServiceInfo = guiServiceInfo;
         this.pollInterval = pollInterval;
@@ -189,6 +193,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         final ClientConnectionTable clientTable = new ClientConnectionTable(
                 this.pageService,
                 tablePane,
+                this.asyncRunner,
                 exam,
                 indicators,
                 restCall);

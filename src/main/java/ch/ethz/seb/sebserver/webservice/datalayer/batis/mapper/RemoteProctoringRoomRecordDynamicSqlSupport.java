@@ -6,28 +6,28 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class RemoteProctoringRoomRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.322+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.290+01:00", comments="Source Table: remote_proctoring_room")
     public static final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.322+01:00", comments="Source field: remote_proctoring_room.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.290+01:00", comments="Source field: remote_proctoring_room.id")
     public static final SqlColumn<Long> id = remoteProctoringRoomRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.322+01:00", comments="Source field: remote_proctoring_room.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.290+01:00", comments="Source field: remote_proctoring_room.exam_id")
     public static final SqlColumn<Long> examId = remoteProctoringRoomRecord.examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.322+01:00", comments="Source field: remote_proctoring_room.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.290+01:00", comments="Source field: remote_proctoring_room.name")
     public static final SqlColumn<String> name = remoteProctoringRoomRecord.name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.322+01:00", comments="Source field: remote_proctoring_room.size")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.290+01:00", comments="Source field: remote_proctoring_room.size")
     public static final SqlColumn<Integer> size = remoteProctoringRoomRecord.size;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.322+01:00", comments="Source field: remote_proctoring_room.subject")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.290+01:00", comments="Source field: remote_proctoring_room.subject")
     public static final SqlColumn<String> subject = remoteProctoringRoomRecord.subject;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.323+01:00", comments="Source field: remote_proctoring_room.townhall_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.290+01:00", comments="Source field: remote_proctoring_room.townhall_room")
     public static final SqlColumn<Integer> townhallRoom = remoteProctoringRoomRecord.townhallRoom;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.322+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.290+01:00", comments="Source Table: remote_proctoring_room")
     public static final class RemoteProctoringRoomRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

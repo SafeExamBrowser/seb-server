@@ -82,4 +82,18 @@
         </resources>
     </cache>
     
+    <cache alias="LAST_PING_TIME_CACHE">
+        <key-type>java.lang.Long</key-type>
+        <value-type>org.ehcache.impl.internal.concurrent.ConcurrentHashMap</value-type>
+        <expiry>
+            <tti unit="hours">24</tti>
+        </expiry>
+        <resources>
+            <heap unit="entries">10</heap>
+        </resources>
+    </cache>
+    
+    
+    
+    
 </config>

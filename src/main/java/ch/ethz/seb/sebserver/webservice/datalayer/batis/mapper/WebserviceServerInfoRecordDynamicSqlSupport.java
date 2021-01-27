@@ -6,25 +6,35 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class WebserviceServerInfoRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.393+01:00", comments="Source Table: webservice_server_info")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.327+01:00", comments="Source Table: webservice_server_info")
     public static final WebserviceServerInfoRecord webserviceServerInfoRecord = new WebserviceServerInfoRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.394+01:00", comments="Source field: webservice_server_info.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.327+01:00", comments="Source field: webservice_server_info.id")
     public static final SqlColumn<Long> id = webserviceServerInfoRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.394+01:00", comments="Source field: webservice_server_info.uuid")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.327+01:00", comments="Source field: webservice_server_info.uuid")
     public static final SqlColumn<String> uuid = webserviceServerInfoRecord.uuid;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.394+01:00", comments="Source field: webservice_server_info.service_address")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.327+01:00", comments="Source field: webservice_server_info.service_address")
     public static final SqlColumn<String> serviceAddress = webserviceServerInfoRecord.serviceAddress;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.394+01:00", comments="Source Table: webservice_server_info")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.327+01:00", comments="Source field: webservice_server_info.master")
+    public static final SqlColumn<Integer> master = webserviceServerInfoRecord.master;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.327+01:00", comments="Source field: webservice_server_info.update_time")
+    public static final SqlColumn<Long> updateTime = webserviceServerInfoRecord.updateTime;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-25T18:11:31.327+01:00", comments="Source Table: webservice_server_info")
     public static final class WebserviceServerInfoRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 
         public final SqlColumn<String> uuid = column("uuid", JDBCType.VARCHAR);
 
         public final SqlColumn<String> serviceAddress = column("service_address", JDBCType.VARCHAR);
+
+        public final SqlColumn<Integer> master = column("master", JDBCType.INTEGER);
+
+        public final SqlColumn<Long> updateTime = column("update_time", JDBCType.BIGINT);
 
         public WebserviceServerInfoRecord() {
             super("webservice_server_info");

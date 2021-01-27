@@ -22,16 +22,40 @@ import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
  * indicator for a defined client connection. */
 public interface ClientIndicator extends IndicatorValue {
 
+    /** This is used to initialize a ClientIndicator.
+     *
+     * @param indicatorDefinition The indicator definition that defines type and thresholds of the indicator
+     * @param connectionId the connection identifier to that this ClientIndicator is associated to
+     * @param cachingEnabled defines whether indicator value caching is enabled or not. */
     void init(Indicator indicatorDefinition, Long connectionId, boolean cachingEnabled);
 
+    /** Get the exam identifier of the client connection of this ClientIndicator
+     *
+     * @return the exam identifier of the client connection of this ClientIndicator */
     Long examId();
 
+    /** Get the client connection identifier to that this ClientIndicator is associated to
+     *
+     * @return the client connection identifier to that this ClientIndicator is associated to */
     Long connectionId();
 
+    /** This is mostly internally used to compute the value for a certain time in the past or for the present time
+     * If caching is not enabled this is called on every value read access otherwise it is called only if the
+     * the value is not cached already.
+     *
+     * @param timestamp The time on that the indicator value shall be computed.
+     * @return The computed indicator value on certain time */
     double computeValueAt(long timestamp);
 
+    /** Get a set of EventTypes where this ClientIndicator is interested in
+     *
+     * @return a set of EventTypes where this ClientIndicator is interested in */
     Set<EventType> observedEvents();
 
+    /** This gets called on a value change e.g.: when a ClientEvent was received.
+     * NOTE: that this is called only on the same machine (server-instance) on that the ClientEvent was received.
+     *
+     * @param event The ClientEvent instance */
     void notifyValueChange(ClientEvent event);
 
 }
