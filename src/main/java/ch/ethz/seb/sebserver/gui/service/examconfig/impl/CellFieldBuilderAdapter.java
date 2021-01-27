@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
 import java.util.Collection;
 
-import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Group;
@@ -83,9 +82,8 @@ interface CellFieldBuilderAdapter {
                 final Label label = widgetFactory.labelLocalized(
                         builder.parent,
                         new LocTextKey(ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name,
-                                attribute.name));
-                label.setData(RWT.MARKUP_ENABLED, true);
-
+                                attribute.name),
+                        true);
                 final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
                 switch (orientation.title) {
                     case LEFT:
@@ -97,7 +95,7 @@ interface CellFieldBuilderAdapter {
                     case RIGHT_SPAN:
                     case LEFT_SPAN: {
                         label.setAlignment(SWT.LEFT);
-                        gridData.horizontalSpan = (span > 1) ? span : orientation.width;
+                        gridData.horizontalSpan = (this.span > 1) ? this.span : orientation.width;
                         gridData.verticalIndent = 5;
                         break;
                     }
@@ -123,7 +121,7 @@ interface CellFieldBuilderAdapter {
                 }
                 if (orientation.title == TitleOrientation.LEFT_SPAN) {
                     int xpos = x - 1;
-                    while (xpos >= 0 && grid[y][xpos] == null && span < orientation.width) {
+                    while (xpos >= 0 && grid[y][xpos] == null && this.span < orientation.width) {
                         grid[y][xpos] = this;
                         grid[y][xpos + 1] = DUMMY_BUILDER_ADAPTER;
                         this.span++;

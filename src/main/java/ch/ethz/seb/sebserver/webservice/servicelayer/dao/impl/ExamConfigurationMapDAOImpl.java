@@ -528,12 +528,14 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     }
 
     private EntityDependency getDependency(final ExamConfigurationMap model, final EntityKey parent) {
+        final String description = (Utils.valueOrEmptyNote(model.getExamDescription()) + " / "
+                + Utils.valueOrEmptyNote(model.getConfigDescription())).replaceAll("(?s)<[^>]*>(\\s*<[^>]*>)*",
+                        " ");
         return new EntityDependency(
                 parent,
                 new EntityKey(model.getId(), EntityType.EXAM_CONFIGURATION_MAP),
                 Utils.valueOrEmptyNote(model.getExamName()) + " / " + Utils.valueOrEmptyNote(model.getConfigName()),
-                Utils.valueOrEmptyNote(model.getExamDescription()) + " / "
-                        + Utils.valueOrEmptyNote(model.getConfigDescription()));
+                description);
     }
 
     private String getEncryptionPassword(final ExamConfigurationMap examConfigurationMap) {

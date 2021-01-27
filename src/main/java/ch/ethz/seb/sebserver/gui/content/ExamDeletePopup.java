@@ -199,7 +199,7 @@ public class ExamDeletePopup {
                             "FORM_REPORT_LIST_NAME",
                             FORM_REPORT_LIST_NAME,
                             dep -> dep.name))
-                    .withColumn(new ColumnDefinition<>(
+                    .withColumn(new ColumnDefinition<EntityDependency>(
                             "FORM_REPORT_LIST_DESC",
                             FORM_REPORT_LIST_DESC,
                             dep -> dep.description))
