@@ -195,6 +195,8 @@ public class FormBuilder {
         final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, false, false, hspan, vspan);
         gridData.minimumWidth = 0;
         gridData.widthHint = 0;
+        gridData.heightHint = 0;
+        gridData.minimumHeight = 0;
         empty.setLayoutData(gridData);
     }
 

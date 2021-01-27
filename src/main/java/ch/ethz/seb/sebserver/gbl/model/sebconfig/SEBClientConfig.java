@@ -31,6 +31,12 @@ import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 public final class SEBClientConfig implements GrantEntity, Activatable {
 
     public static final String ATTR_CONFIG_PURPOSE = "sebConfigPurpose";
+    public static final String ATTR_PING_INTERVAL = "sebServerPingTime";
+    public static final String ATTR_VDI_TYPE = "vdiSetup";
+    public static final String ATTR_VDI_EXECUTABLE = "vdiExecutable";
+    public static final String ATTR_VDI_PATH = "vdiPath";
+    public static final String ATTR_VDI_ARGUMENTS = "vdiArguments";
+
     public static final String ATTR_FALLBACK = "sebServerFallback ";
     public static final String ATTR_FALLBACK_START_URL = "startURL";
     public static final String ATTR_FALLBACK_TIMEOUT = "sebServerFallbackTimeout";
@@ -49,6 +55,40 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         CONFIGURE_CLIENT
     }
 
+    public enum VDIType {
+        NO,
+        VM_WARE(
+                "VMware View",
+                "vmware-view.exe",
+                "VMware\\VMware Horizon View Client",
+                "--LoginAsCurrentUser true\n--serverurl view.example.com\n--desktopLayout fullscreen\n--desktopProtocol PCOIP\n--desktopName \"let-vdi-1-exam");
+
+        public final String title;
+        public final String defaultExecutable;
+        public final String defaultPath;
+        public final String defaultArguments;
+
+        private VDIType() {
+            this.title = "NONE";
+            this.defaultExecutable = null;
+            this.defaultPath = null;
+            this.defaultArguments = null;
+        }
+
+        private VDIType(
+                final String title,
+                final String defaultExecutable,
+                final String defaultPath,
+                final String defaultArguments) {
+
+            this.title = title;
+            this.defaultExecutable = defaultExecutable;
+            this.defaultPath = defaultPath;
+            this.defaultArguments = defaultArguments;
+        }
+
+    }
+
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ID)
     public final Long id;
 
@@ -64,6 +104,21 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     @NotNull(message = "clientconfig:sebConfigPurpose:notNull")
     @JsonProperty(ATTR_CONFIG_PURPOSE)
     public final ConfigPurpose configPurpose;
+
+    @JsonProperty(ATTR_PING_INTERVAL)
+    public final Long sebServerPingTime;
+
+    @JsonProperty(ATTR_VDI_TYPE)
+    public final VDIType vdiType;
+
+    @JsonProperty(ATTR_VDI_EXECUTABLE)
+    public final String vdiExecutable;
+
+    @JsonProperty(ATTR_VDI_PATH)
+    public final String vdiPath;
+
+    @JsonProperty(ATTR_VDI_ARGUMENTS)
+    public final String vdiArguments;
 
     @JsonProperty(ATTR_FALLBACK)
     public final Boolean fallback;
@@ -111,6 +166,13 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_NAME) final String name,
             @JsonProperty(ATTR_CONFIG_PURPOSE) final ConfigPurpose configPurpose,
+
+            @JsonProperty(ATTR_PING_INTERVAL) final Long sebServerPingTime,
+            @JsonProperty(ATTR_VDI_TYPE) final VDIType vdiType,
+            @JsonProperty(ATTR_VDI_EXECUTABLE) final String vdiExecutable,
+            @JsonProperty(ATTR_VDI_PATH) final String vdiPath,
+            @JsonProperty(ATTR_VDI_ARGUMENTS) final String vdiArguments,
+
             @JsonProperty(ATTR_FALLBACK) final Boolean fallback,
             @JsonProperty(ATTR_FALLBACK_START_URL) final String fallbackStartURL,
             @JsonProperty(ATTR_FALLBACK_TIMEOUT) final Long fallbackTimeout,
@@ -129,6 +191,13 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         this.institutionId = institutionId;
         this.name = name;
         this.configPurpose = configPurpose;
+
+        this.sebServerPingTime = sebServerPingTime;
+        this.vdiType = vdiType;
+        this.vdiExecutable = vdiExecutable != null ? vdiExecutable : vdiType.defaultExecutable;
+        this.vdiPath = vdiPath != null ? vdiPath : vdiType.defaultPath;
+        this.vdiArguments = vdiArguments != null ? vdiArguments : vdiType.defaultArguments;
+
         this.fallback = fallback;
         this.fallbackStartURL = fallbackStartURL;
         this.fallbackTimeout = fallbackTimeout;
@@ -149,6 +218,23 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         this.institutionId = institutionId;
         this.name = postParams.getString(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME);
         this.configPurpose = postParams.getEnum(ATTR_CONFIG_PURPOSE, ConfigPurpose.class);
+
+        this.sebServerPingTime = postParams.getLong(ATTR_PING_INTERVAL) != null
+                ? postParams.getLong(ATTR_PING_INTERVAL)
+                : 1000;
+        this.vdiType = postParams.getEnum(ATTR_VDI_TYPE, VDIType.class) != null
+                ? postParams.getEnum(ATTR_VDI_TYPE, VDIType.class)
+                : VDIType.NO;
+        this.vdiExecutable = postParams.getString(ATTR_VDI_EXECUTABLE) != null
+                ? postParams.getString(ATTR_VDI_EXECUTABLE)
+                : this.vdiType.defaultExecutable;
+        this.vdiPath = postParams.getString(ATTR_VDI_PATH) != null
+                ? postParams.getString(ATTR_VDI_PATH)
+                : this.vdiType.defaultPath;
+        this.vdiArguments = postParams.getString(ATTR_VDI_ARGUMENTS) != null
+                ? postParams.getString(ATTR_VDI_ARGUMENTS)
+                : this.vdiType.defaultArguments;
+
         this.fallback = postParams.getBoolean(ATTR_FALLBACK);
         this.fallbackStartURL = postParams.getString(ATTR_FALLBACK_START_URL);
         this.fallbackTimeout = postParams.getLong(ATTR_FALLBACK_TIMEOUT);
@@ -269,26 +355,77 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         return this.active;
     }
 
+//    @Override
+//    public String toString() {
+//        final StringBuilder sb = new StringBuilder("SEBClientConfig{");
+//        sb.append("id=").append(this.id);
+//        sb.append(", institutionId=").append(this.institutionId);
+//        sb.append(", name='").append(this.name).append('\'');
+//        sb.append(", configPurpose=").append(this.configPurpose);
+//        sb.append(", fallback=").append(this.fallback);
+//        sb.append(", fallbackStartURL='").append(this.fallbackStartURL).append('\'');
+//        sb.append(", fallbackTimeout=").append(this.fallbackTimeout);
+//        sb.append(", fallbackAttempts=").append(this.fallbackAttempts);
+//        sb.append(", fallbackAttemptInterval=").append(this.fallbackAttemptInterval);
+//        sb.append(", fallbackPassword=").append(this.fallbackPassword);
+//        sb.append(", fallbackPasswordConfirm=").append(this.fallbackPasswordConfirm);
+//        sb.append(", date=").append(this.date);
+//        sb.append(", encryptSecret=").append(this.encryptSecret);
+//        sb.append(", encryptSecretConfirm=").append(this.encryptSecretConfirm);
+//        sb.append(", active=").append(this.active);
+//        sb.append('}');
+//        return sb.toString();
+//    }
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("SEBClientConfig{");
-        sb.append("id=").append(this.id);
-        sb.append(", institutionId=").append(this.institutionId);
-        sb.append(", name='").append(this.name).append('\'');
-        sb.append(", configPurpose=").append(this.configPurpose);
-        sb.append(", fallback=").append(this.fallback);
-        sb.append(", fallbackStartURL='").append(this.fallbackStartURL).append('\'');
-        sb.append(", fallbackTimeout=").append(this.fallbackTimeout);
-        sb.append(", fallbackAttempts=").append(this.fallbackAttempts);
-        sb.append(", fallbackAttemptInterval=").append(this.fallbackAttemptInterval);
-        sb.append(", fallbackPassword=").append(this.fallbackPassword);
-        sb.append(", fallbackPasswordConfirm=").append(this.fallbackPasswordConfirm);
-        sb.append(", date=").append(this.date);
-        sb.append(", encryptSecret=").append(this.encryptSecret);
-        sb.append(", encryptSecretConfirm=").append(this.encryptSecretConfirm);
-        sb.append(", active=").append(this.active);
-        sb.append('}');
-        return sb.toString();
+        final StringBuilder builder = new StringBuilder();
+        builder.append("SEBClientConfig [id=");
+        builder.append(this.id);
+        builder.append(", institutionId=");
+        builder.append(this.institutionId);
+        builder.append(", name=");
+        builder.append(this.name);
+        builder.append(", configPurpose=");
+        builder.append(this.configPurpose);
+        builder.append(", sebServerPingTime=");
+        builder.append(this.sebServerPingTime);
+        builder.append(", vdiType=");
+        builder.append(this.vdiType);
+        builder.append(", vdiExecutable=");
+        builder.append(this.vdiExecutable);
+        builder.append(", vdiPath=");
+        builder.append(this.vdiPath);
+        builder.append(", vdiArguments=");
+        builder.append(this.vdiArguments);
+        builder.append(", fallback=");
+        builder.append(this.fallback);
+        builder.append(", fallbackStartURL=");
+        builder.append(this.fallbackStartURL);
+        builder.append(", fallbackTimeout=");
+        builder.append(this.fallbackTimeout);
+        builder.append(", fallbackAttempts=");
+        builder.append(this.fallbackAttempts);
+        builder.append(", fallbackAttemptInterval=");
+        builder.append(this.fallbackAttemptInterval);
+        builder.append(", fallbackPassword=");
+        builder.append(this.fallbackPassword);
+        builder.append(", fallbackPasswordConfirm=");
+        builder.append(this.fallbackPasswordConfirm);
+        builder.append(", quitPassword=");
+        builder.append(this.quitPassword);
+        builder.append(", quitPasswordConfirm=");
+        builder.append(this.quitPasswordConfirm);
+        builder.append(", date=");
+        builder.append(this.date);
+        builder.append(", encryptSecret=");
+        builder.append(this.encryptSecret);
+        builder.append(", encryptSecretConfirm=");
+        builder.append(this.encryptSecretConfirm);
+        builder.append(", active=");
+        builder.append(this.active);
+        builder.append("]");
+        return builder.toString();
     }
 
     @Override
@@ -298,6 +435,11 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
                 this.institutionId,
                 this.name,
                 this.configPurpose,
+                this.sebServerPingTime,
+                this.vdiType,
+                this.vdiExecutable,
+                this.vdiPath,
+                this.vdiArguments,
                 this.fallback,
                 this.fallbackStartURL,
                 this.fallbackTimeout,
@@ -319,6 +461,11 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
                 institutionId,
                 null,
                 ConfigPurpose.CONFIGURE_CLIENT,
+                1000L,
+                VDIType.NO,
+                null,
+                null,
+                null,
                 false,
                 null,
                 null,

@@ -39,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.ConfigPurpose;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -384,6 +385,23 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                         ? ConfigPurpose
                                 .valueOf(additionalAttributes.get(SEBClientConfig.ATTR_CONFIG_PURPOSE).getValue())
                         : ConfigPurpose.START_EXAM,
+                additionalAttributes.containsKey(SEBClientConfig.ATTR_PING_INTERVAL)
+                        ? Long
+                                .valueOf(additionalAttributes.get(SEBClientConfig.ATTR_PING_INTERVAL).getValue())
+                        : 1000L,
+                additionalAttributes.containsKey(SEBClientConfig.ATTR_VDI_TYPE)
+                        ? VDIType
+                                .valueOf(additionalAttributes.get(SEBClientConfig.ATTR_VDI_TYPE).getValue())
+                        : VDIType.NO,
+                additionalAttributes.containsKey(SEBClientConfig.ATTR_VDI_EXECUTABLE)
+                        ? additionalAttributes.get(SEBClientConfig.ATTR_VDI_EXECUTABLE).getValue()
+                        : null,
+                additionalAttributes.containsKey(SEBClientConfig.ATTR_VDI_PATH)
+                        ? additionalAttributes.get(SEBClientConfig.ATTR_VDI_PATH).getValue()
+                        : null,
+                additionalAttributes.containsKey(SEBClientConfig.ATTR_VDI_ARGUMENTS)
+                        ? additionalAttributes.get(SEBClientConfig.ATTR_VDI_ARGUMENTS).getValue()
+                        : null,
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK) &&
                         BooleanUtils.toBoolean(additionalAttributes.get(SEBClientConfig.ATTR_FALLBACK).getValue()),
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_FALLBACK_START_URL)
@@ -452,6 +470,42 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 (sebClientConfig.configPurpose != null)
                         ? sebClientConfig.configPurpose.name()
                         : ConfigPurpose.CONFIGURE_CLIENT.name());
+
+        this.additionalAttributesDAO.saveAdditionalAttribute(
+                EntityType.SEB_CLIENT_CONFIGURATION,
+                configId,
+                SEBClientConfig.ATTR_PING_INTERVAL,
+                sebClientConfig.sebServerPingTime.toString());
+
+        this.additionalAttributesDAO.saveAdditionalAttribute(
+                EntityType.SEB_CLIENT_CONFIGURATION,
+                configId,
+                SEBClientConfig.ATTR_VDI_TYPE,
+                sebClientConfig.vdiType.name());
+
+        if (sebClientConfig.vdiExecutable != null) {
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SEBClientConfig.ATTR_VDI_EXECUTABLE,
+                    sebClientConfig.vdiExecutable);
+        }
+
+        if (sebClientConfig.vdiExecutable != null) {
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SEBClientConfig.ATTR_VDI_PATH,
+                    sebClientConfig.vdiPath);
+        }
+
+        if (sebClientConfig.vdiExecutable != null) {
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SEBClientConfig.ATTR_VDI_ARGUMENTS,
+                    sebClientConfig.vdiArguments);
+        }
 
         this.additionalAttributesDAO.saveAdditionalAttribute(
                 EntityType.SEB_CLIENT_CONFIGURATION,

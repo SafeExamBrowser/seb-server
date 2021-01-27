@@ -18,8 +18,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
-import ch.ethz.seb.sebserver.gui.widget.PasswordInput;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -38,11 +36,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
 import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
 import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
+import ch.ethz.seb.sebserver.gui.widget.PasswordInput;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
 import ch.ethz.seb.sebserver.gui.widget.ThresholdList;
@@ -166,7 +166,8 @@ public final class Form implements FormBinding {
         return this;
     }
 
-    Form putField(final String name, final Control label, final FileUploadSelection fileUpload, final Label errorLabel) {
+    Form putField(final String name, final Control label, final FileUploadSelection fileUpload,
+            final Label errorLabel) {
         final FormFieldAccessor createAccessor = createAccessor(label, fileUpload, errorLabel);
         fileUpload.setErrorHandler(createAccessor::setError);
         this.formFields.add(name, createAccessor);
@@ -319,7 +320,7 @@ public final class Form implements FormBinding {
             @Override public String getStringValue() {return pwdInput.getValue() != null ? pwdInput.getValue().toString() : null;}
             @Override public void setStringValue(final String value) {
                 if (StringUtils.isNotBlank(value)) {
-                    pwdInput.setValue(cryptor.decrypt(value));
+                    pwdInput.setValue(Form.this.cryptor.decrypt(value));
                 } else {
                     pwdInput.setValue(value);
                 }
@@ -506,6 +507,13 @@ public final class Form implements FormBinding {
                 this.label.setVisible(visible);
             }
             this.input.setVisible(visible);
+        }
+
+        public void setEnabled(final boolean enable) {
+            if (this.label != null) {
+                this.label.setEnabled(enable);
+            }
+            this.input.setEnabled(enable);
         }
 
         public void putJsonValue(final String key, final ObjectNode objectRoot) {

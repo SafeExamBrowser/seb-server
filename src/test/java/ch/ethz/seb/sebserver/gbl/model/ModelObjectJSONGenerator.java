@@ -50,6 +50,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.ConfigPurpose;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TitleOrientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -114,6 +115,8 @@ public class ModelObjectJSONGenerator {
 
         domainObject = new SEBClientConfig(
                 1L, 1L, "name", ConfigPurpose.CONFIGURE_CLIENT,
+                1000L,
+                VDIType.NO, null, null, null,
                 true, "fallbackStartURL", 20000L, (short) 3, (short) 1000, "fallbackPassword",
                 "fallbackPasswordConfirm",
                 "quitPassword", "quitPasswordConfirm", DateTime.now(), "encryptSecret", "encryptSecretConfirm", true);

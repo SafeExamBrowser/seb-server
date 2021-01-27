@@ -18,7 +18,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -47,14 +46,12 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
-import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.ConfigPurpose;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService;
@@ -103,7 +100,6 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             "    <key>%s</key>%n" +
                     "    <string>%s</string>%n";
 
-    private final InstitutionDAO institutionDAO;
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final ClientCredentialService clientCredentialService;
     private final SEBConfigEncryptionService sebConfigEncryptionService;
@@ -112,7 +108,6 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     private final WebserviceInfo webserviceInfo;
 
     protected ClientConfigServiceImpl(
-            final InstitutionDAO institutionDAO,
             final SEBClientConfigDAO sebClientConfigDAO,
             final ClientCredentialService clientCredentialService,
             final SEBConfigEncryptionService sebConfigEncryptionService,
@@ -120,7 +115,6 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
             final WebserviceInfo webserviceInfo) {
 
-        this.institutionDAO = institutionDAO;
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.clientCredentialService = clientCredentialService;
         this.sebConfigEncryptionService = sebConfigEncryptionService;
@@ -133,35 +127,6 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     public boolean hasSEBClientConfigurationForInstitution(final Long institutionId) {
         final Result<Collection<SEBClientConfig>> all = this.sebClientConfigDAO.all(institutionId, true);
         return all != null && !all.hasError() && !all.getOrThrow().isEmpty();
-    }
-
-    @Override
-    public Result<SEBClientConfig> autoCreateSEBClientConfigurationForInstitution(final Long institutionId) {
-        return Result.tryCatch(() -> {
-            final Institution institution = this.institutionDAO
-                    .byPK(institutionId)
-                    .getOrThrow();
-
-            return new SEBClientConfig(
-                    null,
-                    institutionId,
-                    institution.name + "_" + UUID.randomUUID(),
-                    null,
-                    false,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    true);
-        })
-                .flatMap(this.sebClientConfigDAO::createNew);
     }
 
     @Override

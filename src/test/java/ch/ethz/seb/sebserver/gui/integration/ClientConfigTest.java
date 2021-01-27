@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ActivateClientConfig;
@@ -109,6 +110,8 @@ public class ClientConfigTest extends GuiIntegrationTest {
                         config.institutionId,
                         "new client config",
                         SEBClientConfig.ConfigPurpose.START_EXAM,
+                        1000L,
+                        VDIType.NO, null, null, null,
                         null,
                         null,
                         null,
@@ -136,6 +139,8 @@ public class ClientConfigTest extends GuiIntegrationTest {
                         config.institutionId,
                         "new client config",
                         SEBClientConfig.ConfigPurpose.START_EXAM,
+                        1000L,
+                        VDIType.NO, null, null, null,
                         null,
                         null,
                         null,

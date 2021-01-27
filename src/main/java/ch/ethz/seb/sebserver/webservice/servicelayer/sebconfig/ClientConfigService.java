@@ -33,20 +33,14 @@ public interface ClientConfigService {
      * @return true if there is any SEBClientConfiguration for a specified institution. False otherwise */
     boolean hasSEBClientConfigurationForInstitution(Long institutionId);
 
-    /** Use this to auto-generate a SEBClientConfiguration for a specified institution.
-     * clientName and clientSecret are randomly generated.
-     *
-     * @param institutionId the institution identifier
-     * @return the created SEBClientConfiguration */
-    Result<SEBClientConfig> autoCreateSEBClientConfigurationForInstitution(Long institutionId);
-
     /** Use this to export a specified SEBClientConfiguration within a given OutputStream.
      * The SEB Client Configuration is exported in the defined SEB Configuration format
      * as described here: https://www.safeexambrowser.org/developer/seb-file-format.html
      *
      * @param out OutputStream to write the export to
-     * @param modelId the model identifier of the SEBClientConfiguration to export 
-     * @param examId The exam identifier. May be null, if not the exported client config will contain the exam information*/
+     * @param modelId the model identifier of the SEBClientConfiguration to export
+     * @param examId The exam identifier. May be null, if not the exported client config will contain the exam
+     *            information */
     void exportSEBClientConfiguration(
             OutputStream out,
             final String modelId,

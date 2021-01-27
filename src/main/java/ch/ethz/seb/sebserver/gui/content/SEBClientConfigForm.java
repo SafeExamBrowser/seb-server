@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -50,6 +51,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
+import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
@@ -66,9 +68,20 @@ public class SEBClientConfigForm implements TemplateComposer {
 
     private static final LocTextKey FORM_DATE_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.date");
-
     private static final LocTextKey CLIENT_PURPOSE_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.sebConfigPurpose");
+
+    private static final LocTextKey PING_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.pinginterval");
+    private static final LocTextKey VDI_TYPE_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.vditype");
+    private static final LocTextKey VDI_EXEC_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.vdi.executable");
+    private static final LocTextKey VDI_PATH_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.vdi.path");
+    private static final LocTextKey VDI_ARGS_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.vdi.args");
+
     private static final LocTextKey FALLBACK_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.fallback");
     private static final LocTextKey FALLBACK_URL_TEXT_KEY =
@@ -93,6 +106,10 @@ public class SEBClientConfigForm implements TemplateComposer {
     private static final LocTextKey FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.encryptSecret.confirm");
 
+    private static final Set<String> VDI_ATTRIBUTES = new HashSet<>(Arrays.asList(
+            SEBClientConfig.ATTR_VDI_EXECUTABLE,
+            SEBClientConfig.ATTR_VDI_PATH,
+            SEBClientConfig.ATTR_VDI_ARGUMENTS));
     private static final Set<String> FALLBACK_ATTRIBUTES = new HashSet<>(Arrays.asList(
             SEBClientConfig.ATTR_FALLBACK_START_URL,
             SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL,
@@ -103,6 +120,7 @@ public class SEBClientConfigForm implements TemplateComposer {
             SEBClientConfig.ATTR_QUIT_PASSWORD,
             SEBClientConfig.ATTR_QUIT_PASSWORD_CONFIRM));
 
+    private static final String DEFAULT_PING_INTERVAL = String.valueOf(1000);
     private static final String FALLBACK_DEFAULT_TIME = String.valueOf(30 * Constants.SECOND_IN_MILLIS);
     private static final String FALLBACK_DEFAULT_ATTEMPTS = String.valueOf(5);
     private static final String FALLBACK_DEFAULT_ATTEMPT_INTERVAL = String.valueOf(2 * Constants.SECOND_IN_MILLIS);
@@ -211,6 +229,51 @@ public class SEBClientConfigForm implements TemplateComposer {
                                 FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY,
                                 clientConfig.getEncryptSecret()))
 
+                .withDefaultSpanInput(1)
+                .addField(FormBuilder.text(
+                        SEBClientConfig.ATTR_PING_INTERVAL,
+                        PING_TEXT_KEY,
+                        clientConfig.sebServerPingTime != null
+                                ? String.valueOf(clientConfig.sebServerPingTime)
+                                : DEFAULT_PING_INTERVAL)
+                        .asNumber(this::checkNaturalNumber)
+                        .mandatory(!isReadonly))
+                .withDefaultSpanEmptyCell(4)
+                .withDefaultSpanInput(2)
+                .addField(FormBuilder.singleSelection(
+                        SEBClientConfig.ATTR_VDI_TYPE,
+                        VDI_TYPE_TEXT_KEY,
+                        clientConfig.vdiType != null
+                                ? clientConfig.vdiType.name()
+                                : SEBClientConfig.VDIType.NO.name(),
+                        () -> this.pageService.getResourceService().vdiTypeResources())
+                        .mandatory(!isReadonly))
+                .withDefaultSpanEmptyCell(3)
+                .withDefaultSpanInput(3)
+                .addField(FormBuilder.text(
+                        SEBClientConfig.ATTR_VDI_EXECUTABLE,
+                        VDI_EXEC_TEXT_KEY,
+                        clientConfig.vdiExecutable)
+                        .mandatory(!isReadonly))
+                .withDefaultSpanEmptyCell(2)
+
+                .withDefaultSpanInput(4)
+                .addField(FormBuilder.text(
+                        SEBClientConfig.ATTR_VDI_PATH,
+                        VDI_PATH_TEXT_KEY,
+                        clientConfig.vdiPath)
+                        .mandatory(!isReadonly))
+                .withDefaultSpanEmptyCell(1)
+
+                .withDefaultSpanInput(4)
+                .addField(FormBuilder.text(
+                        SEBClientConfig.ATTR_VDI_ARGUMENTS,
+                        VDI_ARGS_TEXT_KEY,
+                        clientConfig.vdiArguments)
+                        .asArea()
+                        .mandatory(!isReadonly))
+                .withDefaultSpanEmptyCell(1)
+
                 .addField(FormBuilder.checkbox(
                         SEBClientConfig.ATTR_FALLBACK,
                         FALLBACK_TEXT_KEY,
@@ -304,6 +367,10 @@ public class SEBClientConfigForm implements TemplateComposer {
                 FALLBACK_ATTRIBUTES::contains,
                 ffa -> ffa.setVisible(BooleanUtils.isTrue(clientConfig.fallback)));
 
+        formHandle.process(
+                VDI_ATTRIBUTES::contains,
+                ffa -> ffa.setVisible(BooleanUtils.isTrue(clientConfig.vdiType != VDIType.NO)));
+
         if (!isReadonly) {
             formHandle.getForm().getFieldInput(SEBClientConfig.ATTR_FALLBACK)
                     .addListener(SWT.Selection, event -> formHandle.process(
@@ -312,6 +379,18 @@ public class SEBClientConfigForm implements TemplateComposer {
                                 final boolean selected = ((Button) event.widget).getSelection();
                                 ffa.setVisible(selected);
                                 if (!selected && ffa.hasError()) {
+                                    ffa.resetError();
+                                    ffa.setStringValue(StringUtils.EMPTY);
+                                }
+                            }));
+            formHandle.getForm().getFieldInput(SEBClientConfig.ATTR_VDI_TYPE)
+                    .addListener(SWT.Selection, event -> formHandle.process(
+                            VDI_ATTRIBUTES::contains,
+                            ffa -> {
+                                final boolean show =
+                                        !VDIType.NO.name().equals(((Selection) event.widget).getSelectionValue());
+                                ffa.setVisible(show);
+                                if (!show && ffa.hasError()) {
                                     ffa.resetError();
                                     ffa.setStringValue(StringUtils.EMPTY);
                                 }

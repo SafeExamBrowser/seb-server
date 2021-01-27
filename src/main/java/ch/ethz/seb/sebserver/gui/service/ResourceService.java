@@ -46,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
@@ -113,6 +114,7 @@ public class ResourceService {
     public static final String SEB_RESTRICTION_PERMISSIONS_PREFIX = "sebserver.exam.form.sebrestriction.permissions.";
     public static final String SEB_CLIENT_CONFIG_PURPOSE_PREFIX = "sebserver.clientconfig.config.purpose.";
     public static final String EXAM_PROCTORING_TYPE_PREFIX = "sebserver.exam.proctoring.type.servertype.";
+    public static final String VDI_TYPE_PREFIX = "sebserver.clientconfig.form.vditype.";
 
     public static final EnumSet<AttributeType> ATTRIBUTE_TYPES_NOT_DISPLAYED = EnumSet.of(
             AttributeType.LABEL,
@@ -411,6 +413,18 @@ public class ResourceService {
                         this.i18nSupport.getText(EXAM_PROCTORING_TYPE_PREFIX + type.name()),
                         Utils.formatLineBreaks(this.i18nSupport.getText(
                                 EXAM_PROCTORING_TYPE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> vdiTypeResources() {
+        return Arrays.stream(VDIType.values())
+                .map(type -> new Tuple3<>(
+                        type.name(),
+                        this.i18nSupport.getText(VDI_TYPE_PREFIX + type.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                VDI_TYPE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
                                 StringUtils.EMPTY))))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
