@@ -659,7 +659,7 @@ public class ResourceService {
 
     public List<Tuple<String>> getExamConfigTemplateResources() {
         final UserInfo userInfo = this.currentUser.get();
-        return this.restService.getBuilder(GetExamConfigNodes.class)
+        final List<Tuple<String>> collect = this.restService.getBuilder(GetExamConfigNodes.class)
                 .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
                 .withQueryParam(ConfigurationNode.FILTER_ATTR_TYPE, ConfigurationType.TEMPLATE.name())
                 .call()
@@ -668,6 +668,8 @@ public class ResourceService {
                 .map(node -> new Tuple<>(node.getModelId(), node.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
+        collect.add(0, new Tuple<>(null, ""));
+        return collect;
     }
 
     public List<Tuple<String>> sebRestrictionWhiteListResources() {

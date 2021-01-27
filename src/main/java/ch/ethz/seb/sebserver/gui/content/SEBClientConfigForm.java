@@ -102,6 +102,12 @@ public class SEBClientConfigForm implements TemplateComposer {
             SEBClientConfig.ATTR_FALLBACK_PASSWORD_CONFIRM,
             SEBClientConfig.ATTR_QUIT_PASSWORD,
             SEBClientConfig.ATTR_QUIT_PASSWORD_CONFIRM));
+    private static final Set<String> FALLBACK_RESET_ATTRIBUTES = new HashSet<>(Arrays.asList(
+            SEBClientConfig.ATTR_FALLBACK_START_URL,
+            SEBClientConfig.ATTR_FALLBACK_PASSWORD,
+            SEBClientConfig.ATTR_FALLBACK_PASSWORD_CONFIRM,
+            SEBClientConfig.ATTR_QUIT_PASSWORD,
+            SEBClientConfig.ATTR_QUIT_PASSWORD_CONFIRM));
 
     private static final String FALLBACK_DEFAULT_TIME = String.valueOf(30 * Constants.SECOND_IN_MILLIS);
     private static final String FALLBACK_DEFAULT_ATTEMPTS = String.valueOf(5);
@@ -306,16 +312,23 @@ public class SEBClientConfigForm implements TemplateComposer {
 
         if (!isReadonly) {
             formHandle.getForm().getFieldInput(SEBClientConfig.ATTR_FALLBACK)
-                    .addListener(SWT.Selection, event -> formHandle.process(
-                            FALLBACK_ATTRIBUTES::contains,
-                            ffa -> {
-                                final boolean selected = ((Button) event.widget).getSelection();
-                                ffa.setVisible(selected);
-                                if (!selected && ffa.hasError()) {
-                                    ffa.resetError();
-                                    ffa.setStringValue(StringUtils.EMPTY);
-                                }
-                            }));
+                    .addListener(SWT.Selection, event -> {
+                        formHandle.process(
+                                FALLBACK_ATTRIBUTES::contains,
+                                ffa -> {
+                                    final boolean selected = ((Button) event.widget).getSelection();
+                                    ffa.setVisible(selected);
+                                });
+                        formHandle.process(
+                                FALLBACK_RESET_ATTRIBUTES::contains,
+                                ffa -> {
+                                    final boolean selected = ((Button) event.widget).getSelection();
+                                    if (!selected) {
+                                        ffa.resetError();
+                                        ffa.setStringValue(StringUtils.EMPTY);
+                                    }
+                                });
+                    });
         }
 
         final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
