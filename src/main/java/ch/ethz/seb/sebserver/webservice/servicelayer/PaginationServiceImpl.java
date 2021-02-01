@@ -306,8 +306,8 @@ public class PaginationServiceImpl implements PaginationService {
         // User Activity Log Table
         final Map<String, String> userActivityLogTableMap = new HashMap<>();
         userActivityLogTableMap.put(
-                Domain.USER_ACTIVITY_LOG.ATTR_USER_UUID,
-                UserActivityLogRecordDynamicSqlSupport.userUuid.name());
+                Domain.USER.ATTR_USERNAME,
+                UserRecordDynamicSqlSupport.username.name());
         userActivityLogTableMap.put(
                 Domain.USER_ACTIVITY_LOG.ATTR_ACTIVITY_TYPE,
                 UserActivityLogRecordDynamicSqlSupport.activityType.name());
