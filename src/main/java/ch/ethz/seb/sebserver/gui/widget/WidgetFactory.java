@@ -230,6 +230,17 @@ public class WidgetFactory {
         return this.i18nSupport;
     }
 
+    public Composite voidComposite(final Composite parent) {
+        final Composite content = new Composite(parent, SWT.NONE);
+        final GridLayout contentLayout = new GridLayout();
+        contentLayout.marginLeft = 0;
+        contentLayout.marginHeight = 0;
+        content.setLayout(contentLayout);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        content.setLayoutData(gridData);
+        return content;
+    }
+
     public Composite defaultPageLayout(final Composite parent) {
         final Composite content = new Composite(parent, SWT.NONE);
         final GridLayout contentLayout = new GridLayout();

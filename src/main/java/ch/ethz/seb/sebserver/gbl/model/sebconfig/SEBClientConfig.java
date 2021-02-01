@@ -61,7 +61,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
                 "VMware View",
                 "vmware-view.exe",
                 "VMware\\VMware Horizon View Client",
-                "--LoginAsCurrentUser true\n--serverurl view.example.com\n--desktopLayout fullscreen\n--desktopProtocol PCOIP\n--desktopName \"let-vdi-1-exam");
+                "--LoginAsCurrentUser true\n--desktopLayout fullscreen\n--desktopProtocol PCOIP");
 
         public final String title;
         public final String defaultExecutable;
@@ -354,28 +354,6 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     public Boolean getActive() {
         return this.active;
     }
-
-//    @Override
-//    public String toString() {
-//        final StringBuilder sb = new StringBuilder("SEBClientConfig{");
-//        sb.append("id=").append(this.id);
-//        sb.append(", institutionId=").append(this.institutionId);
-//        sb.append(", name='").append(this.name).append('\'');
-//        sb.append(", configPurpose=").append(this.configPurpose);
-//        sb.append(", fallback=").append(this.fallback);
-//        sb.append(", fallbackStartURL='").append(this.fallbackStartURL).append('\'');
-//        sb.append(", fallbackTimeout=").append(this.fallbackTimeout);
-//        sb.append(", fallbackAttempts=").append(this.fallbackAttempts);
-//        sb.append(", fallbackAttemptInterval=").append(this.fallbackAttemptInterval);
-//        sb.append(", fallbackPassword=").append(this.fallbackPassword);
-//        sb.append(", fallbackPasswordConfirm=").append(this.fallbackPasswordConfirm);
-//        sb.append(", date=").append(this.date);
-//        sb.append(", encryptSecret=").append(this.encryptSecret);
-//        sb.append(", encryptSecretConfirm=").append(this.encryptSecretConfirm);
-//        sb.append(", active=").append(this.active);
-//        sb.append('}');
-//        return sb.toString();
-//    }
 
     @Override
     public String toString() {

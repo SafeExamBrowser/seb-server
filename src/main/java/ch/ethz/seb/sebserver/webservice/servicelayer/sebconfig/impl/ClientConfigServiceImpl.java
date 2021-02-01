@@ -48,6 +48,7 @@ import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.ConfigPurpose;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -67,38 +68,91 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
     private static final Logger log = LoggerFactory.getLogger(ClientConfigServiceImpl.class);
 
+    //@formatter:off
     private static final String SEB_CLIENT_CONFIG_EXAM_PROP_NAME = "exam";
     private static final String SEB_CLIENT_CONFIG_TEMPLATE_XML =
             "  <dict>%n" +
-                    "    <key>sebMode</key>%n" +
-                    "    <integer>1</integer>%n" +
-                    "    <key>sebConfigPurpose</key>%n" +
-                    "    <integer>%s</integer>%n" +
-                    "    <key>sebServerFallback</key>%n" +
-                    "    <%s />%n" +
-                    "%s" +
-                    "    <key>sebServerURL</key>%n" +
-                    "    <string>%s</string>%n" +
-                    "    <key>sebServerConfiguration</key>%n" +
-                    "    <dict>%n" +
-                    "        <key>institution</key>%n" +
-                    "        <string>%s</string>%n%s" +
-                    "        <key>clientName</key>%n" +
-                    "        <string>%s</string>%n" +
-                    "        <key>clientSecret</key>%n" +
-                    "        <string>%s</string>%n" +
-                    "        <key>apiDiscovery</key>%n" +
-                    "        <string>%s</string>%n" +
-                    "    </dict>%n" +
-                    "  </dict>%n";
+            "    <key>sebMode</key>%n" +
+            "    <integer>%s</integer>%n" +                     // sebMode value
+            "    <key>sebConfigPurpose</key>%n" +
+            "    <integer>%s</integer>%n" +                     // sebConfigPurpose value
+            "    <key>sebServerFallback</key>%n" +
+            "    <%s />%n" +
+            "%s" +                                              // fallback addition
+            "    <key>sebServerURL</key>%n" +
+            "    <string>%s</string>%n" +                       // sebServerURL value
+            "    <key>sebServerConfiguration</key>%n" +
+            "    <dict>%n" +
+            "        <key>institution</key>%n" +
+            "        <string>%s</string>%n%s" +                 // institution value
+            "        <key>clientName</key>%n" +
+            "        <string>%s</string>%n" +                   // client name value
+            "        <key>clientSecret</key>%n" +
+            "        <string>%s</string>%n" +                   // client secret value
+            "        <key>apiDiscovery</key>%n" +
+            "        <string>%s</string>%n" +                   // apiDiscovery value
+            "    </dict>%n" +
+            "%s" +                                              // VDI additions
+            "  </dict>%n";
 
     private final static String SEB_CLIENT_CONFIG_INTEGER_TEMPLATE =
             "    <key>%s</key>%n" +
-                    "    <integer>%s</integer>%n";
+            "    <integer>%s</integer>%n";
 
     private final static String SEB_CLIENT_CONFIG_STRING_TEMPLATE =
             "    <key>%s</key>%n" +
-                    "    <string>%s</string>%n";
+            "    <string>%s</string>%n";
+
+    private final static String SEB_CLIENT_CONFIG_VDI_TEMPLATE =
+            "    <key>enableSebBrowser</key>%n" +
+            "    <false/>%n" +
+            "    <key>permittedProcesses</key>%n" +
+            "    <array>%n" +
+            "        <dict>%n" +
+            "            <key>active</key>%n" +
+            "            <true/>%n" +
+            "            <key>allowUserToChooseApp</key>%n" +
+            "            <false/>%n" +
+            "            <key>allowedExecutables</key>%n" +
+            "            <string></string>%n" +
+            "            <key>arguments</key>%n" +
+            "            <array>%n" +
+            "%s" +                                              // VDI argument additions
+            "            </array>%n" +
+            "            <key>autohide</key>%n" +
+            "            <true/>%n" +
+            "            <key>autostart</key>%n" +
+            "            <true/>%n" +
+            "            <key>description</key>%n" +
+            "            <string>VDI View</string>%n" +
+            "            <key>executable</key>%n" +
+            "            <string>%s</string>%n" +               // VDI executable value
+            "            <key>iconInTaskbar</key>%n" +
+            "            <true/>%n" +
+            "            <key>identifier</key>%n" +
+            "            <string></string>%n" +
+            "            <key>path</key>%n" +
+            "            <string>%s</string>%n" +               // VDI path value
+            "            <key>runInBackground</key>%n" +
+            "            <false/>%n" +
+            "            <key>strongKill</key>%n" +
+            "            <false/>%n" +
+            "            <key>title</key>%n" +
+            "            <string>VDI View</string>%n" +
+            "            <key>windowHandlingProcess</key>%n" +
+            "            <string></string>"
+
+            ;
+
+    private final static String SEB_CLIENT_CONFIG_VDI_ATTRIBUTE_TEMPLATE =
+            "                <dict>%n" +
+            "                    <key>active</key>%n "+
+            "                    <true/>%n" +
+            "                    <key>argument</key>%n" +
+            "                    <string>%s</string>%n" +
+            "                </dict>";
+
+    //@formatter:on
 
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final ClientCredentialService clientCredentialService;
@@ -221,8 +275,81 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
     private String extractXMLContent(final SEBClientConfig config, final Long examId) {
 
+        final String fallbackAddition = getFallbackAddition(config);
+        final String vdiAddition = getVDIAddition(config);
+        final boolean hasVDI = config.vdiType != VDIType.NO;
+
+        String examIdAddition = "";
+        if (examId != null) {
+            examIdAddition = String.format(
+                    SEB_CLIENT_CONFIG_STRING_TEMPLATE,
+                    SEB_CLIENT_CONFIG_EXAM_PROP_NAME,
+                    examId);
+        }
+
+        final ClientCredentials sebClientCredentials = this.sebClientConfigDAO
+                .getSEBClientCredentials(config.getModelId())
+                .getOrThrow();
+        final CharSequence plainClientId = sebClientCredentials.clientId;
+        final CharSequence plainClientSecret = this.clientCredentialService
+                .getPlainClientSecret(sebClientCredentials);
+
+        final String plainTextConfig = String.format(
+                SEB_CLIENT_CONFIG_TEMPLATE_XML,
+                hasVDI ? "1" : "2",
+                config.configPurpose.ordinal(),
+                (StringUtils.isNotBlank(config.fallbackStartURL))
+                        ? "true"
+                        : "false",
+                fallbackAddition,
+                this.webserviceInfo.getExternalServerURL(),
+                config.institutionId,
+                examIdAddition,
+                plainClientId,
+                plainClientSecret,
+                this.webserviceInfo.getDiscoveryEndpoint(),
+                vdiAddition);
+
+        if (log.isDebugEnabled()) {
+            log.debug("SEB client configuration export:\n {}", plainTextConfig);
+        }
+
+        return plainTextConfig;
+    }
+
+    private String getVDIAddition(final SEBClientConfig config) {
+        String vdiAddition = "";
+        if (config.vdiType != VDIType.NO) {
+            vdiAddition = String.format(
+                    SEB_CLIENT_CONFIG_VDI_TEMPLATE,
+                    getVDIArguments(config),
+                    config.vdiExecutable,
+                    config.vdiPath);
+        }
+        return vdiAddition;
+    }
+
+    private String getVDIArguments(final SEBClientConfig config) {
+        String arguments = "";
+        if (StringUtils.isNotBlank(config.vdiArguments)) {
+            final String[] args = StringUtils.split(config.vdiArguments, "\n");
+            for (int i = 0; i < 0; i++) {
+                arguments += getVDIArgument(args[i]);
+            }
+        }
+        return arguments;
+    }
+
+    private String getVDIArgument(final String attributeValue) {
+        return String.format(
+                SEB_CLIENT_CONFIG_VDI_ATTRIBUTE_TEMPLATE,
+                attributeValue);
+    }
+
+    private String getFallbackAddition(final SEBClientConfig config) {
         String fallbackAddition = "";
         if (BooleanUtils.isTrue(config.fallback)) {
+
             fallbackAddition += String.format(
                     SEB_CLIENT_CONFIG_STRING_TEMPLATE,
                     SEBClientConfig.ATTR_FALLBACK_START_URL,
@@ -259,41 +386,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                         Utils.hash_SHA_256_Base_16(decrypt));
             }
         }
-
-        String examIdAddition = "";
-        if (examId != null) {
-            examIdAddition = String.format(
-                    SEB_CLIENT_CONFIG_STRING_TEMPLATE,
-                    SEB_CLIENT_CONFIG_EXAM_PROP_NAME,
-                    examId);
-        }
-
-        final ClientCredentials sebClientCredentials = this.sebClientConfigDAO
-                .getSEBClientCredentials(config.getModelId())
-                .getOrThrow();
-        final CharSequence plainClientId = sebClientCredentials.clientId;
-        final CharSequence plainClientSecret = this.clientCredentialService
-                .getPlainClientSecret(sebClientCredentials);
-
-        final String plainTextConfig = String.format(
-                SEB_CLIENT_CONFIG_TEMPLATE_XML,
-                config.configPurpose.ordinal(),
-                (StringUtils.isNotBlank(config.fallbackStartURL))
-                        ? "true"
-                        : "false",
-                fallbackAddition,
-                this.webserviceInfo.getExternalServerURL(),
-                config.institutionId,
-                examIdAddition,
-                plainClientId,
-                plainClientSecret,
-                this.webserviceInfo.getDiscoveryEndpoint());
-
-        if (log.isDebugEnabled()) {
-            log.debug("SEB client configuration export:\n {}", plainTextConfig);
-        }
-
-        return plainTextConfig;
+        return fallbackAddition;
     }
 
     @Override

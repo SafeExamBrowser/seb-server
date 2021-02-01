@@ -8,17 +8,17 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.IOException;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Listener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -32,7 +32,9 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
@@ -51,13 +53,14 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
-import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
 @Component
 @GuiProfile
 public class SEBClientConfigForm implements TemplateComposer {
+
+    private static final Logger log = LoggerFactory.getLogger(SEBClientConfigForm.class);
 
     private static final LocTextKey FORM_TITLE_NEW =
             new LocTextKey("sebserver.clientconfig.form.title.new");
@@ -106,20 +109,6 @@ public class SEBClientConfigForm implements TemplateComposer {
     private static final LocTextKey FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.encryptSecret.confirm");
 
-    private static final Set<String> VDI_ATTRIBUTES = new HashSet<>(Arrays.asList(
-            SEBClientConfig.ATTR_VDI_EXECUTABLE,
-            SEBClientConfig.ATTR_VDI_PATH,
-            SEBClientConfig.ATTR_VDI_ARGUMENTS));
-    private static final Set<String> FALLBACK_ATTRIBUTES = new HashSet<>(Arrays.asList(
-            SEBClientConfig.ATTR_FALLBACK_START_URL,
-            SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL,
-            SEBClientConfig.ATTR_FALLBACK_ATTEMPTS,
-            SEBClientConfig.ATTR_FALLBACK_TIMEOUT,
-            SEBClientConfig.ATTR_FALLBACK_PASSWORD,
-            SEBClientConfig.ATTR_FALLBACK_PASSWORD_CONFIRM,
-            SEBClientConfig.ATTR_QUIT_PASSWORD,
-            SEBClientConfig.ATTR_QUIT_PASSWORD_CONFIRM));
-
     private static final String DEFAULT_PING_INTERVAL = String.valueOf(1000);
     private static final String FALLBACK_DEFAULT_TIME = String.valueOf(30 * Constants.SECOND_IN_MILLIS);
     private static final String FALLBACK_DEFAULT_ATTEMPTS = String.valueOf(5);
@@ -130,14 +119,17 @@ public class SEBClientConfigForm implements TemplateComposer {
     private final CurrentUser currentUser;
     private final DownloadService downloadService;
     private final String downloadFileName;
+    private final Cryptor cryptor;
 
     protected SEBClientConfigForm(
             final PageService pageService,
             final DownloadService downloadService,
+            final Cryptor cryptor,
             @Value("${sebserver.gui.seb.client.config.download.filename}") final String downloadFileName) {
 
         this.pageService = pageService;
         this.restService = pageService.getRestService();
+        this.cryptor = cryptor;
         this.currentUser = pageService.getCurrentUser();
         this.downloadService = downloadService;
         this.downloadFileName = downloadFileName;
@@ -146,7 +138,6 @@ public class SEBClientConfigForm implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
-        final I18nSupport i18nSupport = this.pageService.getI18nSupport();
 
         final UserInfo user = this.currentUser.get();
         final EntityKey entityKey = pageContext.getEntityKey();
@@ -182,220 +173,10 @@ public class SEBClientConfigForm implements TemplateComposer {
                 formContext.getParent(),
                 titleKey);
 
-        // The SEBClientConfig form
-        final FormHandle<SEBClientConfig> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content))
-                .readonly(isReadonly)
-                .putStaticValueIf(() -> !isNew,
-                        Domain.SEB_CLIENT_CONFIGURATION.ATTR_ID,
-                        clientConfig.getModelId())
-                .putStaticValue(
-                        Domain.SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID,
-                        String.valueOf(clientConfig.getInstitutionId()))
+        final Composite formContent = widgetFactory.voidComposite(content);
 
-                .addFieldIf(() -> !isNew,
-                        () -> FormBuilder.text(
-                                Domain.SEB_CLIENT_CONFIGURATION.ATTR_DATE,
-                                FORM_DATE_TEXT_KEY,
-                                i18nSupport.formatDisplayDateWithTimeZone(clientConfig.date))
-                                .readonly(true))
-
-                .addField(FormBuilder.text(
-                        Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME,
-                        FORM_NAME_TEXT_KEY,
-                        clientConfig.name)
-                        .mandatory(!isReadonly))
-
-                .addField(FormBuilder.singleSelection(
-                        SEBClientConfig.ATTR_CONFIG_PURPOSE,
-                        CLIENT_PURPOSE_TEXT_KEY,
-                        clientConfig.configPurpose != null
-                                ? clientConfig.configPurpose.name()
-                                : SEBClientConfig.ConfigPurpose.START_EXAM.name(),
-                        () -> this.pageService.getResourceService().sebClientConfigPurposeResources())
-                        .mandatory(!isReadonly))
-
-                .withDefaultSpanInput(3)
-                .addField(FormBuilder.password(
-                        Domain.SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET,
-                        FORM_ENCRYPT_SECRET_TEXT_KEY,
-                        clientConfig.getEncryptSecret()))
-
-                .withDefaultSpanEmptyCell(3)
-                .addFieldIf(
-                        () -> !isReadonly,
-                        () -> FormBuilder.password(
-                                SEBClientConfig.ATTR_ENCRYPT_SECRET_CONFIRM,
-                                FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY,
-                                clientConfig.getEncryptSecret()))
-
-                .withDefaultSpanInput(1)
-                .addField(FormBuilder.text(
-                        SEBClientConfig.ATTR_PING_INTERVAL,
-                        PING_TEXT_KEY,
-                        clientConfig.sebServerPingTime != null
-                                ? String.valueOf(clientConfig.sebServerPingTime)
-                                : DEFAULT_PING_INTERVAL)
-                        .asNumber(this::checkNaturalNumber)
-                        .mandatory(!isReadonly))
-                .withDefaultSpanEmptyCell(4)
-                .withDefaultSpanInput(2)
-                .addField(FormBuilder.singleSelection(
-                        SEBClientConfig.ATTR_VDI_TYPE,
-                        VDI_TYPE_TEXT_KEY,
-                        clientConfig.vdiType != null
-                                ? clientConfig.vdiType.name()
-                                : SEBClientConfig.VDIType.NO.name(),
-                        () -> this.pageService.getResourceService().vdiTypeResources())
-                        .mandatory(!isReadonly))
-                .withDefaultSpanEmptyCell(3)
-                .withDefaultSpanInput(3)
-                .addField(FormBuilder.text(
-                        SEBClientConfig.ATTR_VDI_EXECUTABLE,
-                        VDI_EXEC_TEXT_KEY,
-                        clientConfig.vdiExecutable)
-                        .mandatory(!isReadonly))
-                .withDefaultSpanEmptyCell(2)
-
-                .withDefaultSpanInput(4)
-                .addField(FormBuilder.text(
-                        SEBClientConfig.ATTR_VDI_PATH,
-                        VDI_PATH_TEXT_KEY,
-                        clientConfig.vdiPath)
-                        .mandatory(!isReadonly))
-                .withDefaultSpanEmptyCell(1)
-
-                .withDefaultSpanInput(4)
-                .addField(FormBuilder.text(
-                        SEBClientConfig.ATTR_VDI_ARGUMENTS,
-                        VDI_ARGS_TEXT_KEY,
-                        clientConfig.vdiArguments)
-                        .asArea()
-                        .mandatory(!isReadonly))
-                .withDefaultSpanEmptyCell(1)
-
-                .addField(FormBuilder.checkbox(
-                        SEBClientConfig.ATTR_FALLBACK,
-                        FALLBACK_TEXT_KEY,
-                        clientConfig.fallback != null
-                                ? clientConfig.fallback.toString()
-                                : Constants.FALSE_STRING))
-
-                .withDefaultSpanInput(5)
-                .addField(FormBuilder.text(
-                        SEBClientConfig.ATTR_FALLBACK_START_URL,
-                        FALLBACK_URL_TEXT_KEY,
-                        clientConfig.fallbackStartURL)
-                        .mandatory(!isReadonly))
-
-                .withDefaultSpanEmptyCell(1)
-                .withDefaultSpanInput(2)
-                .addField(FormBuilder.text(
-                        SEBClientConfig.ATTR_FALLBACK_ATTEMPTS,
-                        FALLBACK_ATTEMPTS_TEXT_KEY,
-                        clientConfig.fallbackAttempts != null
-                                ? String.valueOf(clientConfig.fallbackAttempts)
-                                : FALLBACK_DEFAULT_ATTEMPTS)
-                        .asNumber(this::checkNaturalNumber)
-                        .mandatory(!isReadonly))
-
-                .withDefaultSpanEmptyCell(0)
-                .withEmptyCellSeparation(false)
-                .withDefaultSpanLabel(1)
-                .addField(FormBuilder.text(
-                        SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL,
-                        FALLBACK_ATTEMPT_INTERVAL_TEXT_KEY,
-                        clientConfig.fallbackAttemptInterval != null
-                                ? String.valueOf(clientConfig.fallbackAttemptInterval)
-                                : FALLBACK_DEFAULT_ATTEMPT_INTERVAL)
-                        .asNumber(this::checkNaturalNumber)
-                        .mandatory(!isReadonly))
-
-                .withEmptyCellSeparation(true)
-                .withDefaultSpanEmptyCell(1)
-                .withDefaultSpanLabel(2)
-                .addField(FormBuilder.text(
-                        SEBClientConfig.ATTR_FALLBACK_TIMEOUT,
-                        FALLBACK_TIMEOUT_TEXT_KEY,
-                        clientConfig.fallbackTimeout != null
-                                ? String.valueOf(clientConfig.fallbackTimeout)
-                                : FALLBACK_DEFAULT_TIME)
-                        .asNumber(this::checkNaturalNumber)
-                        .mandatory(!isReadonly))
-
-                .withEmptyCellSeparation(true)
-                .withDefaultSpanEmptyCell(4)
-                .withDefaultSpanInput(2)
-                .withDefaultSpanLabel(2)
-                .addField(FormBuilder.password(
-                        SEBClientConfig.ATTR_FALLBACK_PASSWORD,
-                        FALLBACK_PASSWORD_TEXT_KEY,
-                        clientConfig.getFallbackPassword()))
-
-                .withEmptyCellSeparation(false)
-                .withDefaultSpanLabel(1)
-                .addField(FormBuilder.password(
-                        SEBClientConfig.ATTR_QUIT_PASSWORD,
-                        QUIT_PASSWORD_TEXT_KEY,
-                        clientConfig.getQuitPassword()))
-
-                .withEmptyCellSeparation(true)
-                .withDefaultSpanEmptyCell(1)
-                .withDefaultSpanInput(2)
-                .withDefaultSpanLabel(2)
-                .addFieldIf(
-                        () -> !isReadonly,
-                        () -> FormBuilder.password(
-                                SEBClientConfig.ATTR_FALLBACK_PASSWORD_CONFIRM,
-                                FALLBACK_PASSWORD_CONFIRM_TEXT_KEY,
-                                clientConfig.getFallbackPasswordConfirm()))
-
-                .withEmptyCellSeparation(false)
-                .withDefaultSpanLabel(1)
-                .addFieldIf(
-                        () -> !isReadonly,
-                        () -> FormBuilder.password(
-                                SEBClientConfig.ATTR_QUIT_PASSWORD_CONFIRM,
-                                QUIT_PASSWORD_CONFIRM_TEXT_KEY,
-                                clientConfig.getQuitPasswordConfirm()))
-
-                .buildFor((isNew)
-                        ? this.restService.getRestCall(NewClientConfig.class)
-                        : this.restService.getRestCall(SaveClientConfig.class));
-
-        formHandle.process(
-                FALLBACK_ATTRIBUTES::contains,
-                ffa -> ffa.setVisible(BooleanUtils.isTrue(clientConfig.fallback)));
-
-        formHandle.process(
-                VDI_ATTRIBUTES::contains,
-                ffa -> ffa.setVisible(BooleanUtils.isTrue(clientConfig.vdiType != VDIType.NO)));
-
-        if (!isReadonly) {
-            formHandle.getForm().getFieldInput(SEBClientConfig.ATTR_FALLBACK)
-                    .addListener(SWT.Selection, event -> formHandle.process(
-                            FALLBACK_ATTRIBUTES::contains,
-                            ffa -> {
-                                final boolean selected = ((Button) event.widget).getSelection();
-                                ffa.setVisible(selected);
-                                if (!selected && ffa.hasError()) {
-                                    ffa.resetError();
-                                    ffa.setStringValue(StringUtils.EMPTY);
-                                }
-                            }));
-            formHandle.getForm().getFieldInput(SEBClientConfig.ATTR_VDI_TYPE)
-                    .addListener(SWT.Selection, event -> formHandle.process(
-                            VDI_ATTRIBUTES::contains,
-                            ffa -> {
-                                final boolean show =
-                                        !VDIType.NO.name().equals(((Selection) event.widget).getSelectionValue());
-                                ffa.setVisible(show);
-                                if (!show && ffa.hasError()) {
-                                    ffa.resetError();
-                                    ffa.setStringValue(StringUtils.EMPTY);
-                                }
-                            }));
-        }
+        final FormHandleAnchor formHandleAnchor = new FormHandleAnchor();
+        buildForm(clientConfig, formContext, formContent, formHandleAnchor);
 
         final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
@@ -432,13 +213,13 @@ public class SEBClientConfigForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_SAVE)
                 .withEntityKey(entityKey)
-                .withExec(formHandle::processFormSave)
+                .withExec(action -> formHandleAnchor.formHandle.processFormSave(action))
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !isReadonly)
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_SAVE_AND_ACTIVATE)
                 .withEntityKey(entityKey)
-                .withExec(formHandle::saveAndActivate)
+                .withExec(action -> formHandleAnchor.formHandle.saveAndActivate(action))
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !isReadonly && !clientConfig.isActive())
 
@@ -446,6 +227,237 @@ public class SEBClientConfigForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
+    }
+
+    private void buildForm(
+            final SEBClientConfig clientConfig,
+            final PageContext formContext,
+            final Composite formContent,
+            final FormHandleAnchor formHandleAnchor) {
+
+        final I18nSupport i18nSupport = this.pageService.getI18nSupport();
+        final boolean isReadonly = formContext.isReadonly();
+        final EntityKey entityKey = formContext.getEntityKey();
+        final boolean isNew = entityKey == null;
+        final boolean showVDIAttrs = clientConfig.vdiType == VDIType.VM_WARE;
+        final boolean showFallbackAttrs = BooleanUtils.isTrue(clientConfig.fallback);
+
+        PageService.clearComposite(formContent);
+
+        final FormBuilder formBuilder = this.pageService.formBuilder(
+                formContext.copyOf(formContent))
+                .readonly(isReadonly)
+                .putStaticValueIf(() -> !isNew,
+                        Domain.SEB_CLIENT_CONFIGURATION.ATTR_ID,
+                        clientConfig.getModelId())
+                .putStaticValue(
+                        Domain.SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID,
+                        String.valueOf(clientConfig.getInstitutionId()))
+
+                .addFieldIf(() -> !isNew,
+                        () -> FormBuilder.text(
+                                Domain.SEB_CLIENT_CONFIGURATION.ATTR_DATE,
+                                FORM_DATE_TEXT_KEY,
+                                i18nSupport.formatDisplayDateWithTimeZone(clientConfig.date))
+                                .readonly(true))
+
+                .addField(FormBuilder.text(
+                        Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME,
+                        FORM_NAME_TEXT_KEY,
+                        clientConfig.name)
+                        .mandatory(!isReadonly))
+
+                .withDefaultSpanInput(3)
+                .addField(FormBuilder.singleSelection(
+                        SEBClientConfig.ATTR_CONFIG_PURPOSE,
+                        CLIENT_PURPOSE_TEXT_KEY,
+                        clientConfig.configPurpose != null
+                                ? clientConfig.configPurpose.name()
+                                : SEBClientConfig.ConfigPurpose.START_EXAM.name(),
+                        () -> this.pageService.getResourceService().sebClientConfigPurposeResources())
+                        .mandatory(!isReadonly))
+                .withDefaultSpanEmptyCell(3)
+
+                .withDefaultSpanInput(3)
+                .addField(FormBuilder.password(
+                        Domain.SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET,
+                        FORM_ENCRYPT_SECRET_TEXT_KEY,
+                        (formHandleAnchor.formHandle == null)
+                                ? clientConfig.getEncryptSecret()
+                                : this.cryptor.encrypt(clientConfig.getEncryptSecret())))
+
+                .withDefaultSpanEmptyCell(3)
+                .addFieldIf(
+                        () -> !isReadonly,
+                        () -> FormBuilder.password(
+                                SEBClientConfig.ATTR_ENCRYPT_SECRET_CONFIRM,
+                                FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY,
+                                (formHandleAnchor.formHandle == null)
+                                        ? clientConfig.getEncryptSecret()
+                                        : this.cryptor.encrypt(clientConfig.getEncryptSecretConfirm())))
+
+                .withDefaultSpanInput(2)
+                .addField(FormBuilder.text(
+                        SEBClientConfig.ATTR_PING_INTERVAL,
+                        PING_TEXT_KEY,
+                        clientConfig.sebServerPingTime != null
+                                ? String.valueOf(clientConfig.sebServerPingTime)
+                                : DEFAULT_PING_INTERVAL)
+                        .asNumber(this::checkNaturalNumber)
+                        .mandatory(!isReadonly))
+                .withDefaultSpanEmptyCell(3)
+
+                // VDI
+
+                .withDefaultSpanInput(2)
+                .addField(FormBuilder.singleSelection(
+                        SEBClientConfig.ATTR_VDI_TYPE,
+                        VDI_TYPE_TEXT_KEY,
+                        clientConfig.vdiType != null
+                                ? clientConfig.vdiType.name()
+                                : SEBClientConfig.VDIType.NO.name(),
+                        () -> this.pageService.getResourceService().vdiTypeResources())
+                        .mandatory(!isReadonly))
+                .withDefaultSpanEmptyCell(3);
+
+        // VDI Attributes
+
+        if (showVDIAttrs) {
+            formBuilder.withDefaultSpanInput(2)
+                    .addField(FormBuilder.text(
+                            SEBClientConfig.ATTR_VDI_EXECUTABLE,
+                            VDI_EXEC_TEXT_KEY,
+                            clientConfig.vdiExecutable)
+                            .mandatory(!isReadonly))
+                    .withDefaultSpanEmptyCell(3)
+
+                    .withDefaultSpanInput(4)
+                    .addField(FormBuilder.text(
+                            SEBClientConfig.ATTR_VDI_PATH,
+                            VDI_PATH_TEXT_KEY,
+                            clientConfig.vdiPath)
+                            .mandatory(!isReadonly))
+                    .withDefaultSpanEmptyCell(1)
+
+                    .withDefaultSpanInput(4)
+                    .addField(FormBuilder.text(
+                            SEBClientConfig.ATTR_VDI_ARGUMENTS,
+                            VDI_ARGS_TEXT_KEY,
+                            clientConfig.vdiArguments)
+                            .asArea()
+                            .mandatory(!isReadonly))
+                    .withDefaultSpanEmptyCell(1);
+        }
+
+        // Fallback
+
+        formBuilder.addField(FormBuilder.checkbox(
+                SEBClientConfig.ATTR_FALLBACK,
+                FALLBACK_TEXT_KEY,
+                clientConfig.fallback != null
+                        ? clientConfig.fallback.toString()
+                        : Constants.FALSE_STRING));
+
+        // Fallback Attributes
+
+        if (showFallbackAttrs) {
+            formBuilder.withDefaultSpanInput(5)
+                    .addField(FormBuilder.text(
+                            SEBClientConfig.ATTR_FALLBACK_START_URL,
+                            FALLBACK_URL_TEXT_KEY,
+                            clientConfig.fallbackStartURL)
+                            .mandatory(!isReadonly))
+
+                    .withDefaultSpanEmptyCell(1)
+                    .withDefaultSpanInput(2)
+                    .addField(FormBuilder.text(
+                            SEBClientConfig.ATTR_FALLBACK_ATTEMPTS,
+                            FALLBACK_ATTEMPTS_TEXT_KEY,
+                            clientConfig.fallbackAttempts != null
+                                    ? String.valueOf(clientConfig.fallbackAttempts)
+                                    : FALLBACK_DEFAULT_ATTEMPTS)
+                            .asNumber(this::checkNaturalNumber)
+                            .mandatory(!isReadonly))
+
+                    .withDefaultSpanEmptyCell(4)
+                    .addField(FormBuilder.text(
+                            SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL,
+                            FALLBACK_ATTEMPT_INTERVAL_TEXT_KEY,
+                            clientConfig.fallbackAttemptInterval != null
+                                    ? String.valueOf(clientConfig.fallbackAttemptInterval)
+                                    : FALLBACK_DEFAULT_ATTEMPT_INTERVAL)
+                            .asNumber(this::checkNaturalNumber)
+                            .mandatory(!isReadonly))
+
+                    .withDefaultSpanEmptyCell(4)
+                    .withDefaultSpanLabel(2)
+                    .addField(FormBuilder.text(
+                            SEBClientConfig.ATTR_FALLBACK_TIMEOUT,
+                            FALLBACK_TIMEOUT_TEXT_KEY,
+                            clientConfig.fallbackTimeout != null
+                                    ? String.valueOf(clientConfig.fallbackTimeout)
+                                    : FALLBACK_DEFAULT_TIME)
+                            .asNumber(this::checkNaturalNumber)
+                            .mandatory(!isReadonly))
+
+                    .withDefaultSpanEmptyCell(4)
+                    .withDefaultSpanInput(3)
+                    .withDefaultSpanLabel(2)
+                    .addField(FormBuilder.password(
+                            SEBClientConfig.ATTR_FALLBACK_PASSWORD,
+                            FALLBACK_PASSWORD_TEXT_KEY,
+                            clientConfig.getFallbackPassword()))
+                    .withDefaultSpanEmptyCell(2)
+                    .addFieldIf(
+                            () -> !isReadonly,
+                            () -> FormBuilder.password(
+                                    SEBClientConfig.ATTR_FALLBACK_PASSWORD_CONFIRM,
+                                    FALLBACK_PASSWORD_CONFIRM_TEXT_KEY,
+                                    clientConfig.getFallbackPasswordConfirm()))
+
+                    .addField(FormBuilder.password(
+                            SEBClientConfig.ATTR_QUIT_PASSWORD,
+                            QUIT_PASSWORD_TEXT_KEY,
+                            clientConfig.getQuitPassword()))
+
+                    .withDefaultSpanEmptyCell(2)
+                    .withDefaultSpanInput(3)
+                    .withDefaultSpanLabel(2)
+
+                    .addFieldIf(
+                            () -> !isReadonly,
+                            () -> FormBuilder.password(
+                                    SEBClientConfig.ATTR_QUIT_PASSWORD_CONFIRM,
+                                    QUIT_PASSWORD_CONFIRM_TEXT_KEY,
+                                    clientConfig.getQuitPasswordConfirm()));
+        }
+
+        formHandleAnchor.formHandle = formBuilder.buildFor((isNew)
+                ? this.restService.getRestCall(NewClientConfig.class)
+                : this.restService.getRestCall(SaveClientConfig.class));
+
+        final Listener selectionListener = event -> {
+            try {
+
+                final Form formBinding = formHandleAnchor.formHandle.getForm();
+                final String formAsJson = formBinding.getFormAsJson();
+                final SEBClientConfig newClientConfig = this.pageService.getJSONMapper()
+                        .readValue(formAsJson, SEBClientConfig.class);
+                buildForm(newClientConfig, formContext, formContent, formHandleAnchor);
+            } catch (final IOException e) {
+                log.error("Failed to create new SEBClientConfig from form data: ", e);
+            }
+        };
+
+        if (!isReadonly) {
+            formHandleAnchor.formHandle.getForm().getFieldInput(SEBClientConfig.ATTR_FALLBACK)
+                    .addListener(SWT.Selection, selectionListener);
+            formHandleAnchor.formHandle.getForm().getFieldInput(SEBClientConfig.ATTR_VDI_TYPE)
+                    .addListener(SWT.Selection, selectionListener);
+        }
+
+        formContent.layout();
+        PageService.updateScrolledComposite(formContent);
     }
 
     private void checkNaturalNumber(final String value) {
@@ -456,6 +468,12 @@ public class SEBClientConfigForm implements TemplateComposer {
         if (num < 0) {
             throw new PageMessageException("Number must be positive");
         }
+    }
+
+    private static final class FormHandleAnchor {
+
+        FormHandle<SEBClientConfig> formHandle;
+
     }
 
 }
