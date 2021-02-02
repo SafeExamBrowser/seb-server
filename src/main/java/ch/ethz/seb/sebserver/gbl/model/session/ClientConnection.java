@@ -79,8 +79,8 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS)
     public final String clientAddress;
 
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS)
-    public final String virtualClientAddress;
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_CONNECTION_ID)
+    public final String vdiConnectionId;
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME)
     public final Long creationTime;
@@ -103,7 +103,7 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN) final String connectionToken,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID) final String userSessionId,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VIRTUAL_CLIENT_ADDRESS) final String virtualClientAddress,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_CONNECTION_ID) final String vdiConnectionId,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CREATION_TIME) final Long creationTime,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_UPDATE_TIME) final Long updateTime,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId,
@@ -116,7 +116,7 @@ public final class ClientConnection implements GrantEntity {
         this.connectionToken = connectionToken;
         this.userSessionId = userSessionId;
         this.clientAddress = clientAddress;
-        this.virtualClientAddress = virtualClientAddress;
+        this.vdiConnectionId = vdiConnectionId;
         this.creationTime = creationTime;
         this.updateTime = updateTime;
         this.remoteProctoringRoomId = remoteProctoringRoomId;
@@ -169,8 +169,8 @@ public final class ClientConnection implements GrantEntity {
         return this.userSessionId;
     }
 
-    public String getVirtualClientAddress() {
-        return this.virtualClientAddress;
+    public String getVdiConnectionId() {
+        return this.vdiConnectionId;
     }
 
     public Long getCreationTime() {
@@ -230,10 +230,10 @@ public final class ClientConnection implements GrantEntity {
                 return false;
         } else if (!this.userSessionId.equals(other.userSessionId))
             return false;
-        if (this.virtualClientAddress == null) {
-            if (other.virtualClientAddress != null)
+        if (this.vdiConnectionId == null) {
+            if (other.vdiConnectionId != null)
                 return false;
-        } else if (!this.virtualClientAddress.equals(other.virtualClientAddress))
+        } else if (!this.vdiConnectionId.equals(other.vdiConnectionId))
             return false;
         return true;
     }
@@ -255,8 +255,8 @@ public final class ClientConnection implements GrantEntity {
         builder.append(this.userSessionId);
         builder.append(", clientAddress=");
         builder.append(this.clientAddress);
-        builder.append(", virtualClientAddress=");
-        builder.append(this.virtualClientAddress);
+        builder.append(", vdiConnectionId=");
+        builder.append(this.vdiConnectionId);
         builder.append(", creationTime=");
         builder.append(this.creationTime);
         builder.append(", remoteProctoringRoomId=");

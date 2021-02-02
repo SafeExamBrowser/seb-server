@@ -7,28 +7,28 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ConfigurationRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.278+01:00", comments="Source Table: configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.223+01:00", comments="Source Table: configuration")
     public static final ConfigurationRecord configurationRecord = new ConfigurationRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.278+01:00", comments="Source field: configuration.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.223+01:00", comments="Source field: configuration.id")
     public static final SqlColumn<Long> id = configurationRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.278+01:00", comments="Source field: configuration.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.223+01:00", comments="Source field: configuration.institution_id")
     public static final SqlColumn<Long> institutionId = configurationRecord.institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.278+01:00", comments="Source field: configuration.configuration_node_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.223+01:00", comments="Source field: configuration.configuration_node_id")
     public static final SqlColumn<Long> configurationNodeId = configurationRecord.configurationNodeId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.279+01:00", comments="Source field: configuration.version")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.224+01:00", comments="Source field: configuration.version")
     public static final SqlColumn<String> version = configurationRecord.version;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.279+01:00", comments="Source field: configuration.version_date")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.224+01:00", comments="Source field: configuration.version_date")
     public static final SqlColumn<DateTime> versionDate = configurationRecord.versionDate;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.279+01:00", comments="Source field: configuration.followup")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.224+01:00", comments="Source field: configuration.followup")
     public static final SqlColumn<Integer> followup = configurationRecord.followup;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-01-20T09:50:29.278+01:00", comments="Source Table: configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.223+01:00", comments="Source Table: configuration")
     public static final class ConfigurationRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

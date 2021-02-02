@@ -140,7 +140,9 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             "            <key>title</key>%n" +
             "            <string>VDI View</string>%n" +
             "            <key>windowHandlingProcess</key>%n" +
-            "            <string></string>"
+            "            <string></string>%n" +
+            "        </dict>%n" +
+            "    </array>%n"
 
             ;
 
@@ -150,7 +152,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             "                    <true/>%n" +
             "                    <key>argument</key>%n" +
             "                    <string>%s</string>%n" +
-            "                </dict>";
+            "                </dict>%n";
 
     //@formatter:on
 
@@ -230,9 +232,9 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         try {
 
             final InputStream plainIn = IOUtils.toInputStream(
-                    Constants.XML_VERSION_HEADER +
-                            Constants.XML_DOCTYPE_HEADER +
-                            Constants.XML_PLIST_START_V1 +
+                    Constants.XML_VERSION_HEADER + "\n" +
+                            Constants.XML_DOCTYPE_HEADER + "\n" +
+                            Constants.XML_PLIST_START_V1 + "\n" +
                             plainTextXMLContent +
                             Constants.XML_PLIST_END,
                     StandardCharsets.UTF_8.name());
@@ -296,7 +298,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
         final String plainTextConfig = String.format(
                 SEB_CLIENT_CONFIG_TEMPLATE_XML,
-                hasVDI ? "1" : "2",
+                hasVDI ? "2" : "1",
                 config.configPurpose.ordinal(),
                 (StringUtils.isNotBlank(config.fallbackStartURL))
                         ? "true"
@@ -333,7 +335,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         String arguments = "";
         if (StringUtils.isNotBlank(config.vdiArguments)) {
             final String[] args = StringUtils.split(config.vdiArguments, "\n");
-            for (int i = 0; i < 0; i++) {
+            for (int i = 0; i < args.length; i++) {
                 arguments += getVDIArgument(args[i]);
             }
         }

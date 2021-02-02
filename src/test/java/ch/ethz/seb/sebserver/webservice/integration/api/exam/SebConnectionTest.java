@@ -84,7 +84,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertEquals(connectionToken, clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
         assertNull(clientConnectionRecord.getExamUserSessionId());
-        assertNull(clientConnectionRecord.getVirtualClientAddress());
+        assertNull(clientConnectionRecord.getVdiConnectionId());
 
         // check caching
         final Cache examCache = this.cacheManager
@@ -132,7 +132,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertEquals(connectionToken, clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
         assertNull(clientConnectionRecord.getExamUserSessionId());
-        assertNull(clientConnectionRecord.getVirtualClientAddress());
+        assertNull(clientConnectionRecord.getVdiConnectionId());
     }
 
     @Test
@@ -220,7 +220,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
         assertEquals("userSessionId", clientConnectionRecord.getExamUserSessionId());
-        assertNull(clientConnectionRecord.getVirtualClientAddress());
+        assertNull(clientConnectionRecord.getVdiConnectionId());
 
         // check cache after update
         connectionCache = this.cacheManager
@@ -299,7 +299,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
         assertEquals("-- (userSessionId)", clientConnectionRecord.getExamUserSessionId());
-        assertNull(clientConnectionRecord.getVirtualClientAddress());
+        assertNull(clientConnectionRecord.getVdiConnectionId());
 
         // check cache after update
         ccdi = (ClientConnectionDataInternal) connectionCache.get(connectionToken).get();
@@ -360,7 +360,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
         assertNull(clientConnectionRecord.getExamUserSessionId());
-        assertNull(clientConnectionRecord.getVirtualClientAddress());
+        assertNull(clientConnectionRecord.getVdiConnectionId());
 
         // check cache fail remains the same
         ccdi = (ClientConnectionDataInternal) connectionCache.get(connectionToken).get();
@@ -421,7 +421,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
         assertNull(clientConnectionRecord.getExamUserSessionId());
-        assertNull(clientConnectionRecord.getVirtualClientAddress());
+        assertNull(clientConnectionRecord.getVdiConnectionId());
 
         // check cache after update
         ccdi = (ClientConnectionDataInternal) connectionCache.get(connectionToken).get();

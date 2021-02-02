@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `connection_token` VARCHAR(255) NOT NULL,
   `exam_user_session_id` VARCHAR(255) NULL,
   `client_address` VARCHAR(45) NOT NULL,
-  `virtual_client_address` VARCHAR(45) NULL,
+  `vdi_connection_id` VARCHAR(45) NULL,
   `creation_time` BIGINT UNSIGNED NOT NULL,
   `update_time` BIGINT UNSIGNED NULL,
   `remote_proctoring_room_id` BIGINT UNSIGNED NULL,
