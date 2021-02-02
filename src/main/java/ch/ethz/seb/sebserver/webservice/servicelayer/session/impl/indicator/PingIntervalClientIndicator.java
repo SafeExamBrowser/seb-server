@@ -42,8 +42,11 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     boolean missingPing = false;
     boolean hidden = false;
 
-    public PingIntervalClientIndicator(final ClientEventExtensionMapper clientEventExtensionMapper) {
-        super(clientEventExtensionMapper);
+    public PingIntervalClientIndicator(
+            final ClientEventExtensionMapper clientEventExtensionMapper,
+            final IndicatorDistributedRequestCache indicatorDistributedRequestCache) {
+
+        super(clientEventExtensionMapper, indicatorDistributedRequestCache);
         this.cachingEnabled = true;
         this.currentValue = computeValueAt(Utils.getMillisecondsNow());
     }
@@ -58,10 +61,21 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
                     .stream()
                     .max(Comparator.naturalOrder())
                     .ifPresent(t -> this.pingErrorThreshold = t.value.longValue());
+
         } catch (final Exception e) {
             log.error("Failed to initialize pingErrorThreshold: {}", e.getMessage());
             this.pingErrorThreshold = Constants.SECOND_IN_MILLIS * 5;
         }
+
+        if (!cachingEnabled) {
+            try {
+                this.missingPing = this.pingErrorThreshold < getValue();
+            } catch (final Exception e) {
+                log.error("Failed to initialize missingPing: {}", e.getMessage());
+                this.missingPing = false;
+            }
+        }
+
     }
 
     @JsonIgnore
@@ -96,8 +110,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     }
 
     @Override
-    public ClientEventRecord updateLogEvent() {
-        final long now = DateTime.now(DateTimeZone.UTC).getMillis();
+    public ClientEventRecord updateLogEvent(final long now) {
         final long value = now - (long) super.currentValue;
         if (this.missingPing) {
             if (this.pingErrorThreshold > value) {

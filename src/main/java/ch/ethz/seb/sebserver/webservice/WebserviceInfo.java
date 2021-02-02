@@ -13,6 +13,7 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,10 +56,12 @@ public class WebserviceInfo {
 
     private final String serverURLPrefix;
     private final boolean isDistributed;
+    private final String webserviceUUID;
 
     private Map<String, String> lmsExternalAddressAlias;
 
     public WebserviceInfo(final Environment environment) {
+        this.webserviceUUID = UUID.randomUUID().toString();
         this.sebServerVersion = environment.getRequiredProperty(VERSION_KEY);
         this.testProperty = environment.getProperty(WEB_SERVICE_TEST_PROPERTY, "NOT_AVAILABLE");
         this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
@@ -106,6 +109,10 @@ public class WebserviceInfo {
         } else {
             this.lmsExternalAddressAlias = Collections.emptyMap();
         }
+    }
+
+    public String getWebserviceUUID() {
+        return this.webserviceUUID;
     }
 
     public String getSEBServerVersion() {

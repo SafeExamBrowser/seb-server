@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
 @Component
 @WebServiceProfile
@@ -35,19 +36,22 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     private final WebserviceInfo webserviceInfo;
     private final AdminUserInitializer adminUserInitializer;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final WebserviceInfoDAO webserviceInfoDAO;
 
     protected WebserviceInit(
             final SEBServerInit sebServerInit,
             final Environment environment,
             final WebserviceInfo webserviceInfo,
             final AdminUserInitializer adminUserInitializer,
-            final ApplicationEventPublisher applicationEventPublisher) {
+            final ApplicationEventPublisher applicationEventPublisher,
+            final WebserviceInfoDAO webserviceInfoDAO) {
 
         this.sebServerInit = sebServerInit;
         this.environment = environment;
         this.webserviceInfo = webserviceInfo;
         this.adminUserInitializer = adminUserInitializer;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.webserviceInfoDAO = webserviceInfoDAO;
     }
 
     @Override
@@ -56,6 +60,17 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         this.sebServerInit.init();
 
         SEBServerInit.INIT_LOGGER.info("---->  **** Webservice starting up... ****");
+
+        SEBServerInit.INIT_LOGGER.info("----> ");
+        SEBServerInit.INIT_LOGGER.info("----> Register Webservice: {}", this.webserviceInfo.getWebserviceUUID());
+
+        try {
+            this.webserviceInfoDAO.register(
+                    this.webserviceInfo.getWebserviceUUID(),
+                    InetAddress.getLocalHost().getHostAddress());
+        } catch (final Exception e) {
+            SEBServerInit.INIT_LOGGER.error("Failed to register webservice: ", e);
+        }
 
         SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Initialize Services...");
@@ -101,6 +116,13 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     public void gracefulShutdown() {
         SEBServerInit.INIT_LOGGER.info("**** Gracefully Shutdown of SEB Server instance {} ****",
                 this.webserviceInfo.getHostAddress());
+
+        SEBServerInit.INIT_LOGGER.info("---->");
+        SEBServerInit.INIT_LOGGER.info("----> Unregister Webservice: {}", this.webserviceInfo.getWebserviceUUID());
+        this.webserviceInfoDAO.unregister(this.webserviceInfo.getWebserviceUUID());
+
+        SEBServerInit.INIT_LOGGER.info("---->");
+        SEBServerInit.INIT_LOGGER.info("----> Webservice down");
     }
 
 }

@@ -4,25 +4,25 @@ import javax.annotation.Generated;
 import org.joda.time.DateTime;
 
 public class ConfigurationRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.222+01:00", comments="Source field: configuration.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.222+01:00", comments="Source field: configuration.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.222+01:00", comments="Source field: configuration.configuration_node_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.configuration_node_id")
     private Long configurationNodeId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.222+01:00", comments="Source field: configuration.version")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.version")
     private String version;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.223+01:00", comments="Source field: configuration.version_date")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.version_date")
     private DateTime versionDate;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.223+01:00", comments="Source field: configuration.followup")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.followup")
     private Integer followup;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.222+01:00", comments="Source Table: configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source Table: configuration")
     public ConfigurationRecord(Long id, Long institutionId, Long configurationNodeId, String version, DateTime versionDate, Integer followup) {
         this.id = id;
         this.institutionId = institutionId;
@@ -32,32 +32,32 @@ public class ConfigurationRecord {
         this.followup = followup;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.222+01:00", comments="Source field: configuration.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.222+01:00", comments="Source field: configuration.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.222+01:00", comments="Source field: configuration.configuration_node_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.configuration_node_id")
     public Long getConfigurationNodeId() {
         return configurationNodeId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.223+01:00", comments="Source field: configuration.version")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.version")
     public String getVersion() {
         return version;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.223+01:00", comments="Source field: configuration.version_date")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.version_date")
     public DateTime getVersionDate() {
         return versionDate;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:23:46.223+01:00", comments="Source field: configuration.followup")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-02T10:33:07.855+01:00", comments="Source field: configuration.followup")
     public Integer getFollowup() {
         return followup;
     }
@@ -66,7 +66,7 @@ public class ConfigurationRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration
      *
-     * @mbg.generated Tue Feb 02 10:23:46 CET 2021
+     * @mbg.generated Tue Feb 02 10:33:07 CET 2021
      */
     @Override
     public String toString() {
@@ -88,7 +88,7 @@ public class ConfigurationRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration
      *
-     * @mbg.generated Tue Feb 02 10:23:46 CET 2021
+     * @mbg.generated Tue Feb 02 10:33:07 CET 2021
      */
     @Override
     public boolean equals(Object that) {
@@ -114,7 +114,7 @@ public class ConfigurationRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration
      *
-     * @mbg.generated Tue Feb 02 10:23:46 CET 2021
+     * @mbg.generated Tue Feb 02 10:33:07 CET 2021
      */
     @Override
     public int hashCode() {

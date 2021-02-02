@@ -45,11 +45,12 @@ public class ClientIndicatorFactory {
     public ClientIndicatorFactory(
             final ApplicationContext applicationContext,
             final IndicatorDAO indicatorDAO,
+            @Value("${sebserver.webservice.distributed:false}") final boolean distributedSetup,
             @Value("${sebserver.webservice.api.exam.enable-indicator-cache:true}") final boolean enableCaching) {
 
         this.applicationContext = applicationContext;
         this.indicatorDAO = indicatorDAO;
-        this.enableCaching = enableCaching;
+        this.enableCaching = distributedSetup ? false : enableCaching;
     }
 
     public List<ClientIndicator> createFor(final ClientConnection clientConnection) {

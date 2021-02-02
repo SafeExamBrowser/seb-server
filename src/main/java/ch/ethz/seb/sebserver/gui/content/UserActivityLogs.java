@@ -196,6 +196,7 @@ public class UserActivityLogs implements TemplateComposer {
                         UserActivityLog.ATTR_USER_NAME,
                         USER_TEXT_KEY,
                         UserActivityLog::getUsername)
+                                .sortable()
                                 .withFilter(this.userNameFilter))
 
                 .withColumn(new ColumnDefinition<UserActivityLog>(

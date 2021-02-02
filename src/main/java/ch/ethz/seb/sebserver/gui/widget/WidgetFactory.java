@@ -399,16 +399,23 @@ public class WidgetFactory {
     }
 
     public Label labelLocalized(final Composite parent, final LocTextKey locTextKey) {
+        return labelLocalized(parent, locTextKey, false);
+    }
+
+    public Label labelLocalized(final Composite parent, final LocTextKey locTextKey, final boolean enableMarkup) {
         final Label label = new Label(parent, SWT.NONE);
+        if (enableMarkup) {
+            label.setData(RWT.MARKUP_ENABLED, true);
+        }
         this.polyglotPageService.injectI18n(label, locTextKey);
         return label;
     }
 
     public Label labelLocalized(final Composite parent, final CustomVariant variant, final LocTextKey locTextKey) {
         final Label label = new Label(parent, SWT.NONE);
+        label.setData(RWT.MARKUP_ENABLED, true);
         this.polyglotPageService.injectI18n(label, locTextKey);
         label.setData(RWT.CUSTOM_VARIANT, variant.key);
-        label.setData(RWT.MARKUP_ENABLED, true);
         return label;
     }
 

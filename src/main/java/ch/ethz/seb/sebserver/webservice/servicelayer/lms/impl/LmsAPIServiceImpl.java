@@ -104,7 +104,9 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     @Override
     public Result<LmsAPITemplate> getLmsAPITemplate(final String lmsSetupId) {
 
-        log.debug("Get LmsAPITemplate for id: {}", lmsSetupId);
+        if (log.isDebugEnabled()) {
+            log.debug("Get LmsAPITemplate for id: {}", lmsSetupId);
+        }
 
         return Result.tryCatch(() -> this.lmsSetupDAO
                 .byModelId(lmsSetupId)
@@ -196,8 +198,6 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             if (lmsAPITemplate == null) {
                 lmsAPITemplate = createLmsSetupTemplate(lmsSetup);
                 this.cache.put(new CacheKey(lmsSetup.getModelId(), System.currentTimeMillis()), lmsAPITemplate);
-            } else {
-                log.debug("Get cached LmsAPITemplate with id: {}", lmsSetup.getModelId());
             }
             return lmsAPITemplate;
         });
@@ -217,7 +217,9 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
     private LmsAPITemplate createLmsSetupTemplate(final LmsSetup lmsSetup) {
 
-        log.debug("Create new LmsAPITemplate for id: {}", lmsSetup.getModelId());
+        if (log.isDebugEnabled()) {
+            log.debug("Create new LmsAPITemplate for id: {}", lmsSetup.getModelId());
+        }
 
         final ClientCredentials credentials = this.lmsSetupDAO
                 .getLmsAPIAccessCredentials(lmsSetup.getModelId())

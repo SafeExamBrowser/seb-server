@@ -18,7 +18,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <sebserver-version>1.1.0-SNAPSHOT</sebserver-version>
+    <sebserver-version>1.1.0-rc1</sebserver-version>
     <build-version>${sebserver-version}</build-version>
     <revision>${sebserver-version}</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -310,7 +310,7 @@
     <dependency>
       <groupId>org.eclipse.rap</groupId>
       <artifactId>org.eclipse.rap.rwt</artifactId>
-      <version>3.5.0</version>
+      <version>3.15.0</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.rap</groupId>

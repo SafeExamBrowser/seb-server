@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS `client_event` (
   `type` INT(2) UNSIGNED NOT NULL,
   `client_time` BIGINT UNSIGNED NOT NULL,
   `server_time` BIGINT NOT NULL,
-  `numeric_value` DECIMAL(10,4) NULL,
+  `numeric_value` DECIMAL(18,4) NULL,
   `text` VARCHAR(512) NULL,
   PRIMARY KEY (`id`),
   INDEX `eventConnectionRef_idx` (`client_connection_id` ASC),
@@ -537,9 +537,11 @@ CREATE TABLE IF NOT EXISTS `seb_client_configuration` (
 DROP TABLE IF EXISTS `webservice_server_info` ;
 
 CREATE TABLE IF NOT EXISTS `webservice_server_info` (
-  `id` BIGINT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `uuid` VARCHAR(255) NOT NULL,
   `service_address` VARCHAR(255) NOT NULL,
+  `master` INT(1) UNSIGNED NOT NULL DEFAULT 0,
+  `update_time` BIGINT NULL,
   PRIMARY KEY (`id`))
 ;
 

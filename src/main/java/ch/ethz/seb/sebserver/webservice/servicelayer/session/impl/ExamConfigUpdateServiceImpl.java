@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -285,10 +284,10 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
         // check if the configuration is attached to a running exams with active client connections
         final long activeConnections = involvedExams
                 .stream()
-                .flatMap(examId -> this.examSessionService.getConnectionData(examId, Objects::nonNull)
+                .flatMap(examId -> this.examSessionService
+                        .getConnectionData(examId, ExamSessionService::isActiveConnection)
                         .getOrThrow()
                         .stream())
-                .filter(ExamSessionService::isActiveConnection)
                 .count();
 
         // if we have active SEB client connection on any running exam that

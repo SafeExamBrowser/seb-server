@@ -18,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.context.annotation.Lazy;
@@ -159,17 +158,15 @@ public class ExamCreateClientConfigPopup {
                     .collect(Collectors.toList());
 
             if (configs.isEmpty()) {
-                final Label text = this.pageService
+                this.pageService
                         .getWidgetFactory()
-                        .labelLocalized(parent, NO_CONFIG_TEXT_KEY);
-                text.setData(RWT.MARKUP_ENABLED, true);
+                        .labelLocalized(parent, NO_CONFIG_TEXT_KEY, true);
                 return null;
             } else {
 
-                final Label text = this.pageService
+                this.pageService
                         .getWidgetFactory()
-                        .labelLocalized(parent, CONFIG_TEXT_KEY);
-                text.setData(RWT.MARKUP_ENABLED, true);
+                        .labelLocalized(parent, CONFIG_TEXT_KEY, true);
 
                 final FormHandle<ConfigCreationInfo> formHandle = this.pageService.formBuilder(
                         this.pageContext.copyOf(parent))

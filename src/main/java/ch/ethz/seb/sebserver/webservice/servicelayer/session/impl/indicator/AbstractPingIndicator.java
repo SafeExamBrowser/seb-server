@@ -8,9 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
-import static org.mybatis.dynamic.sql.SqlBuilder.isLessThan;
-
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
@@ -22,22 +19,26 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
     private final Set<EventType> EMPTY_SET = Collections.unmodifiableSet(EnumSet.noneOf(EventType.class));
 
-    private final ClientEventExtensionMapper clientEventExtensionMapper;
+    protected final ClientEventExtensionMapper clientEventExtensionMapper;
+    protected final IndicatorDistributedRequestCache indicatorDistributedRequestCache;
 
     protected long pingLatency;
     protected int pingCount = 0;
     protected int pingNumber = 0;
 
-    protected AbstractPingIndicator(final ClientEventExtensionMapper clientEventExtensionMapper) {
+    protected AbstractPingIndicator(
+            final ClientEventExtensionMapper clientEventExtensionMapper,
+            final IndicatorDistributedRequestCache indicatorDistributedRequestCache) {
+
         super();
         this.clientEventExtensionMapper = clientEventExtensionMapper;
+        this.indicatorDistributedRequestCache = indicatorDistributedRequestCache;
     }
 
     public final void notifyPing(final long timestamp, final int pingNumber) {
@@ -54,19 +55,10 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
             return timestamp;
         } else {
             try {
+                return this.indicatorDistributedRequestCache
+                        .getPingTimes(this.examId)
+                        .getOrDefault(this.connectionId, 0L);
 
-                // TODO to boost performance here within a distributed setup, invent a new cache for all client ping values
-                //      of the running exam. So all indicators get the values from cache and only one single SQL call
-                //      is needed for one update.
-                //      This cache then is only valid for one (GUI) update cycle and the cache must to be flushed before 
-
-                return this.clientEventExtensionMapper.maxByExample(ClientEventRecordDynamicSqlSupport.serverTime)
-                        .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
-                        .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
-                        .and(ClientEventRecordDynamicSqlSupport.serverTime, isLessThan(timestamp))
-                        .build()
-                        .execute()
-                        .doubleValue();
             } catch (final Exception e) {
                 return Double.NaN;
             }
@@ -88,6 +80,6 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
         return this.pingNumber;
     }
 
-    public abstract ClientEventRecord updateLogEvent();
+    public abstract ClientEventRecord updateLogEvent(final long now);
 
 }
