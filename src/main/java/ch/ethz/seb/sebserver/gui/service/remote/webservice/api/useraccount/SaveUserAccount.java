@@ -34,7 +34,7 @@ public class SaveUserAccount extends RestCall<UserInfo> {
                 new TypeReference<UserInfo>() {
                 }),
                 HttpMethod.PUT,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.USER_ACCOUNT_ENDPOINT);
     }
 

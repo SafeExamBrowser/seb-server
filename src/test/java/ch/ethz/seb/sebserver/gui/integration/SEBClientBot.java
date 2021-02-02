@@ -195,7 +195,7 @@ public class SEBClientBot {
             headers.set(EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
 
             final MultiValueMap<String, String> eventHeaders = new LinkedMultiValueMap<>();
-            eventHeaders.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE);
+            eventHeaders.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
             eventHeaders.set(EXAM_API_SEB_CONNECTION_TOKEN, connectionToken);
 
             if (connectionToken != null) {

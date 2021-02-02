@@ -33,7 +33,7 @@ public class TestLmsSetupAdHoc extends RestCall<LmsSetupTestResult> {
                 new TypeReference<LmsSetupTestResult>() {
                 }),
                 HttpMethod.PUT,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.LMS_SETUP_TEST_AD_HOC_ENDPOINT);
     }
 

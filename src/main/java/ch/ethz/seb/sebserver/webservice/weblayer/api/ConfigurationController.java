@@ -70,7 +70,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
             path = API.CONFIGURATION_SAVE_TO_HISTORY_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration saveToHistory(@PathVariable final Long modelId) {
 
         return this.entityDAO.byPK(modelId)
@@ -85,7 +85,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
             path = API.CONFIGURATION_UNDO_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration undo(@PathVariable final String modelId) {
 
         return this.entityDAO.byModelId(modelId)
@@ -99,7 +99,7 @@ public class ConfigurationController extends ReadonlyEntityController<Configurat
             path = API.CONFIGURATION_RESTORE_FROM_HISTORY_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration restoreFormHistory(
             @PathVariable final String modelId,
             @RequestParam(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long configurationNodeId) {

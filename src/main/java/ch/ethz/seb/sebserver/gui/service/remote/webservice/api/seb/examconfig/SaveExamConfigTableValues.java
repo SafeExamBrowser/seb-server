@@ -33,7 +33,7 @@ public class SaveExamConfigTableValues extends RestCall<ConfigurationTableValues
                 new TypeReference<ConfigurationTableValues>() {
                 }),
                 HttpMethod.PUT,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.CONFIGURATION_VALUE_ENDPOINT + API.CONFIGURATION_TABLE_VALUE_PATH_SEGMENT);
     }
 

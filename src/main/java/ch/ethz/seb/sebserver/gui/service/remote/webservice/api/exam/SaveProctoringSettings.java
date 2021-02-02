@@ -33,7 +33,7 @@ public class SaveProctoringSettings extends RestCall<Exam> {
                 new TypeReference<Exam>() {
                 }),
                 HttpMethod.POST,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.EXAM_ADMINISTRATION_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
                         + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT);

@@ -67,22 +67,41 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
         super.setConfigurers(configurers);
     }
 
-    protected void addConfiguration(final String apiEndpoint, final HttpSecurity http) throws Exception {
+    protected void addConfiguration(final ConfigurerAdapter configurerAdapter, final HttpSecurity http)
+            throws Exception {
         // To override of additional configuration is needed
+        http
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .antMatcher(configurerAdapter.apiEndpoint + "/**")
+                .authorizeRequests()
+                .anyRequest()
+                .authenticated()
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(configurerAdapter.authenticationEntryPoint)
+                .and()
+                .formLogin().disable()
+                .httpBasic().disable()
+                .logout().disable()
+                .headers().frameOptions().disable()
+                .and()
+                .csrf().disable();
     }
 
-    private static final class ConfigurerAdapter extends ResourceServerConfigurerAdapter {
+    protected static final class ConfigurerAdapter extends ResourceServerConfigurerAdapter {
 
-        private final WebserviceResourceConfiguration webserviceResourceConfiguration;
-        private final TokenStore tokenStore;
-        private final WebClientDetailsService webServiceClientDetails;
-        private final AuthenticationManager authenticationManager;
-        private final AuthenticationEntryPoint authenticationEntryPoint;
-        private final String resourceId;
-        private final String apiEndpoint;
-        private final boolean supportRefreshToken;
-        private final int accessTokenValiditySeconds;
-        private final int refreshTokenValiditySeconds;
+        public final WebserviceResourceConfiguration webserviceResourceConfiguration;
+        public final TokenStore tokenStore;
+        public final WebClientDetailsService webServiceClientDetails;
+        public final AuthenticationManager authenticationManager;
+        public final AuthenticationEntryPoint authenticationEntryPoint;
+        public final String resourceId;
+        public final String apiEndpoint;
+        public final boolean supportRefreshToken;
+        public final int accessTokenValiditySeconds;
+        public final int refreshTokenValiditySeconds;
 
         public ConfigurerAdapter(
                 final WebserviceResourceConfiguration webserviceResourceConfiguration,
@@ -124,26 +143,7 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
 
         @Override
         public void configure(final HttpSecurity http) throws Exception {
-            http
-                    .sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                    .and()
-                    .antMatcher(this.apiEndpoint + "/**")
-                    .authorizeRequests()
-                    .anyRequest()
-                    .authenticated()
-                    .and()
-                    .exceptionHandling()
-                    .authenticationEntryPoint(this.authenticationEntryPoint)
-                    .and()
-                    .formLogin().disable()
-                    .httpBasic().disable()
-                    .logout().disable()
-                    .headers().frameOptions().disable()
-                    .and()
-                    .csrf().disable();
-
-            this.webserviceResourceConfiguration.addConfiguration(this.apiEndpoint, http);
+            this.webserviceResourceConfiguration.addConfiguration(this, http);
         }
     }
 

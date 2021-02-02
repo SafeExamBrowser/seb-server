@@ -86,7 +86,7 @@ public class ExamAPI_V1_Controller {
             path = API.EXAM_API_HANDSHAKE_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public CompletableFuture<Collection<RunningExamInfo>> handshakeCreate(
             @RequestParam(name = API.PARAM_INSTITUTION_ID, required = false) final Long instIdRequestParam,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examIdRequestParam,
@@ -274,7 +274,7 @@ public class ExamAPI_V1_Controller {
             path = API.EXAM_API_PING_ENDPOINT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public void ping(final HttpServletRequest request, final HttpServletResponse response) {
 
         final String connectionToken = request.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
@@ -308,7 +308,7 @@ public class ExamAPI_V1_Controller {
     @RequestMapping(
             path = API.EXAM_API_EVENT_ENDPOINT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void event(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,

@@ -87,7 +87,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
             path = API.SEB_CLIENT_EVENT_SEARCH_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<ExtendedClientEvent> getExtendedPage(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -129,7 +129,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
     @RequestMapping(
             method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityProcessingReport hardDeleteAll(
             @RequestParam(name = API.PARAM_MODEL_ID_LIST) final List<String> ids,
             @RequestParam(name = API.PARAM_BULK_ACTION_ADD_INCLUDES, defaultValue = "false") final boolean addIncludes,

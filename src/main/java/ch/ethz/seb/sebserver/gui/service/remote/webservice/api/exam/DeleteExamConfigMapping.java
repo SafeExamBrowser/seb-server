@@ -33,7 +33,7 @@ public class DeleteExamConfigMapping extends RestCall<EntityProcessingReport> {
                 new TypeReference<EntityProcessingReport>() {
                 }),
                 HttpMethod.DELETE,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.EXAM_CONFIGURATION_MAP_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT);
     }
 }

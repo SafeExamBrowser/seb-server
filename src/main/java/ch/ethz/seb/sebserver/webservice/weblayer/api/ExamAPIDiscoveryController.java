@@ -81,7 +81,7 @@ public class ExamAPIDiscoveryController {
 
     @RequestMapping(
             method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ExamAPIDiscovery getDiscovery() {
         return this.DISCOVERY_INFO;
     }

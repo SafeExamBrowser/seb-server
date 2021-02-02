@@ -90,7 +90,7 @@ public class ExamProctoringController {
                     + API.EXAM_PROCTORING_ROOMS_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<RemoteProctoringRoom> getProcotringCollectingRoomsOfExam(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -107,7 +107,7 @@ public class ExamProctoringController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBProctoringConnectionData getProctorRoomData(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -136,7 +136,7 @@ public class ExamProctoringController {
                     + API.EXAM_PROCTORING_ROOM_CONNECTIONS_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ClientConnection> getProctorRoomConnectionData(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -157,7 +157,7 @@ public class ExamProctoringController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_BROADCAST_SEND_ATTRIBUTES,
             method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public void sendBroadcastAttributes(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -204,7 +204,7 @@ public class ExamProctoringController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_REJOIN_COLLECTING_ROOM_PATH_SEGMENT,
             method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public void sendRejoinExamCollectingRoomToClients(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -244,7 +244,7 @@ public class ExamProctoringController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_JOIN_ROOM_PATH_SEGMENT,
             method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBProctoringConnectionData sendJoinProctoringRoomToClients(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -319,7 +319,7 @@ public class ExamProctoringController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_TOWNHALL_ROOM_DATA,
             method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public RemoteProctoringRoom getTownhallRoomData(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -337,7 +337,7 @@ public class ExamProctoringController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_ACTIVATE_TOWNHALL_ROOM,
             method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBProctoringConnectionData activateTownhall(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -401,7 +401,7 @@ public class ExamProctoringController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_DEACTIVATE_TOWNHALL_ROOM,
             method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public void deactivateTownhall(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,

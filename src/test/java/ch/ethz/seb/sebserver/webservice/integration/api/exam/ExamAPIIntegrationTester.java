@@ -126,7 +126,7 @@ public abstract class ExamAPIIntegrationTester {
         final ResultActions result = this.mockMvc.perform(post("/oauth/token")
                 .params(params)
                 .with(httpBasic(clientId, clientSecret))
-                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .accept(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
 
@@ -144,7 +144,7 @@ public abstract class ExamAPIIntegrationTester {
         final MockHttpServletRequestBuilder builder = post(this.endpoint + "/handshake")
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("Authorization", "Bearer " + accessToken)
-                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE);
+                .accept(MediaType.APPLICATION_JSON_VALUE);
 
         String body = "";
 
@@ -163,7 +163,7 @@ public abstract class ExamAPIIntegrationTester {
                 .andReturn();
 
         final ResultActions result = this.mockMvc.perform(asyncDispatch(mvcResult))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
 
         return result.andReturn().getResponse();
     }
@@ -198,12 +198,12 @@ public abstract class ExamAPIIntegrationTester {
                         .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .header("Authorization", "Bearer " + accessToken)
                         .header(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
-                        .accept(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                        .accept(MediaType.APPLICATION_JSON_VALUE)
                 : patch(this.endpoint + "/handshake")
                         .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                         .header("Authorization", "Bearer " + accessToken)
                         .header(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
-                        .accept(MediaType.APPLICATION_JSON_UTF8_VALUE);
+                        .accept(MediaType.APPLICATION_JSON_VALUE);
 
         String body = "";
         if (examId != null) {
@@ -235,7 +235,7 @@ public abstract class ExamAPIIntegrationTester {
                 .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                 .header("Authorization", "Bearer " + accessToken)
                 .header(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
-                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE);
+                .accept(MediaType.APPLICATION_JSON_VALUE);
 
         final MvcResult mvcResult = this.mockMvc
                 .perform(builder)
@@ -254,7 +254,7 @@ public abstract class ExamAPIIntegrationTester {
                 .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                 .header("Authorization", "Bearer " + accessToken)
                 .header(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
-                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE);
+                .accept(MediaType.APPLICATION_JSON_VALUE);
 
         final String body = API.EXAM_API_PING_TIMESTAMP + "=" + DateTime.now(DateTimeZone.UTC).getMillis()
                 + "&" + API.EXAM_API_PING_NUMBER + "=" + num;
@@ -274,10 +274,10 @@ public abstract class ExamAPIIntegrationTester {
             final String text) throws Exception {
 
         final MockHttpServletRequestBuilder builder = post(this.endpoint + API.EXAM_API_EVENT_ENDPOINT)
-                .header("Content-Type", MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .header("Authorization", "Bearer " + accessToken)
                 .header(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
-                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE);
+                .accept(MediaType.APPLICATION_JSON_VALUE);
 
         final String body = "{ \"type\": \"%s\", \"timestamp\": %s, \"numericValue\": %s, \"text\": \"%s\" }";
         builder.content(String.format(body, type, timestamp, value, text));

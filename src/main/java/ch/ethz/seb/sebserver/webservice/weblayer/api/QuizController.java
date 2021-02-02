@@ -71,7 +71,7 @@ public class QuizController {
     @RequestMapping(
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<QuizData> getQuizPage(
             @RequestParam(
                     name = Entity.FILTER_ATTR_INSTITUTION,
@@ -113,7 +113,7 @@ public class QuizController {
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public QuizData getQuiz(
             @PathVariable final String modelId,
             @RequestParam(name = QuizData.QUIZ_ATTR_LMS_SETUP_ID, required = true) final Long lmsSetupId) {

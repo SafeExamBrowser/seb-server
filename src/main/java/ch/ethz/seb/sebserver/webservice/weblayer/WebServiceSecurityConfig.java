@@ -239,7 +239,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                     webServiceClientDetails,
                     authenticationManager,
                     (request, response, exception) -> {
-                        response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+                        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         log.warn("Unauthorized Request: {}", request, exception);
                         log.info("Redirect to login after unauthorized request");
@@ -279,13 +279,16 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
         }
 
         @Override
-        protected void addConfiguration(final String apiEndpoint, final HttpSecurity http) throws Exception {
-            http.antMatcher(apiEndpoint + "/**")
+        protected void addConfiguration(
+                final ConfigurerAdapter configurerAdapter,
+                final HttpSecurity http) throws Exception {
+
+            http.antMatcher(configurerAdapter.apiEndpoint + "/**")
                     .authorizeRequests()
+
                     .anyRequest()
                     .hasAuthority(UserRole.SEB_SERVER_ADMIN.name());
         }
-
     }
 
     private static class LoginRedirectOnUnauthorized implements AuthenticationEntryPoint {

@@ -156,7 +156,7 @@ public abstract class AdministrationAPIIntegrationTester {
         }
 
         public RestAPITestHelper withBodyJson(final Object object) throws Exception {
-            this.contentType = MediaType.APPLICATION_JSON_UTF8;
+            this.contentType = MediaType.APPLICATION_JSON;
             this.body = AdministrationAPIIntegrationTester.this.jsonMapper.writeValueAsString(object);
             return this;
         }

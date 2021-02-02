@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.servlet.RequestDispatcher;
@@ -18,7 +19,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -93,7 +93,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
                 final Resource resource = resourceLoader.getResource(defaultLogoFileName);
                 final Reader reader = new InputStreamReader(
                         new Base64InputStream(resource.getInputStream(), true),
-                        Charsets.UTF_8);
+                        StandardCharsets.UTF_8);
 
                 _defaultLogo = FileCopyUtils.copyToString(reader);
 

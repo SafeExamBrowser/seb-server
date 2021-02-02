@@ -33,7 +33,7 @@ public class SaveLmsSetup extends RestCall<LmsSetup> {
                 new TypeReference<LmsSetup>() {
                 }),
                 HttpMethod.PUT,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.LMS_SETUP_ENDPOINT);
     }
 }

@@ -33,7 +33,7 @@ public class SaveSEBRestriction extends RestCall<Exam> {
                 new TypeReference<Exam>() {
                 }),
                 HttpMethod.POST,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.EXAM_ADMINISTRATION_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
                         + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT);

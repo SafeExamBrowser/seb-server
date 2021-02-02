@@ -535,7 +535,7 @@ public final class Utils {
         final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.set(
                 HttpHeaders.CONTENT_TYPE,
-                org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE);
+                org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
         return headers;
     }
 

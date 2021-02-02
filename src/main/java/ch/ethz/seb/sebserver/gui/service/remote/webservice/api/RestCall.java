@@ -364,7 +364,8 @@ public abstract class RestCall<T> {
                     .cloneBuilder()
                     .path(RestCall.this.path)
                     .queryParams(this.queryParams)
-                    .toUriString();
+                    .build(false)
+                    .toString();
         }
 
         public HttpEntity<?> buildRequestEntity() {

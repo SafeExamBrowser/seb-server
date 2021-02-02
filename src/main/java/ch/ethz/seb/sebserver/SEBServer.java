@@ -18,6 +18,8 @@ import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.ProdGuiProfile;
@@ -73,6 +75,13 @@ public class SEBServer {
         final TomcatServletWebServerFactory tomcat = new HTTPSRedirectServerFactory();
         tomcat.addAdditionalTomcatConnectors(redirectConnector(env));
         return tomcat;
+    }
+
+    @Bean
+    public HttpFirewall allowEncodedParamsFirewall() {
+        final StrictHttpFirewall firewall = new StrictHttpFirewall();
+        firewall.setAllowUrlEncodedPercent(true);
+        return firewall;
     }
 
     private Connector redirectConnector(final Environment env) {

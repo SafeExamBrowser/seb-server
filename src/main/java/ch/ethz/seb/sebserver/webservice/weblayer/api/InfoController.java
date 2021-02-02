@@ -93,7 +93,7 @@ public class InfoController {
     @RequestMapping(
             path = API.PRIVILEGES_PATH_SEGMENT,
             method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<Privilege> privileges() {
         return this.authorizationGrantService.getAllPrivileges();
     }

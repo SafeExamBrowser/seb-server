@@ -63,7 +63,7 @@ public class RegisterUserController {
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public UserInfo registerNewUser(
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {

@@ -133,7 +133,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ExamConfigurationMap create(
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             @RequestParam(
@@ -163,7 +163,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityProcessingReport hardDelete(
             @PathVariable final String modelId,
             @RequestParam(name = API.PARAM_BULK_ACTION_ADD_INCLUDES, defaultValue = "false") final boolean addIncludes,

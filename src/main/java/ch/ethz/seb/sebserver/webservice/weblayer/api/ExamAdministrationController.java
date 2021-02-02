@@ -128,7 +128,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     @RequestMapping(
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @Override
     public Page<Exam> getPage(
             @RequestParam(
@@ -215,7 +215,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT,
             method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityKey> checkImported(
             @PathVariable final String modelId,
             @RequestParam(
@@ -236,7 +236,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CONSISTENCY_CHECK_PATH_SEGMENT,
             method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<APIMessage> checkExamConsistency(
             @PathVariable final Long modelId,
             @RequestParam(
@@ -257,7 +257,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CHECK_RESTRICTION_PATH_SEGMENT,
             method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Boolean checkSEBRestriction(
             @PathVariable final Long modelId,
             @RequestParam(
@@ -275,7 +275,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
             method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public SEBRestriction getSEBRestriction(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -294,7 +294,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
             method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam saveSEBRestrictionData(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -317,7 +317,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
             method = RequestMethod.PUT,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam applySEBRestriction(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -337,7 +337,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT,
             method = RequestMethod.DELETE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam deleteSEBRestriction(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -357,7 +357,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_RESTRICTION_CHAPTERS_PATH_SEGMENT,
             method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Chapters getChapters(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -385,7 +385,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
             method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ProctoringSettings getExamProctoring(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -404,7 +404,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
             method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Exam saveExamProctoring(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,

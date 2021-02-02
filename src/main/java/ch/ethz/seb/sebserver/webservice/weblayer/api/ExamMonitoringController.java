@@ -116,7 +116,7 @@ public class ExamMonitoringController {
     @RequestMapping(
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<Exam> getPage(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -158,7 +158,7 @@ public class ExamMonitoringController {
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ClientConnectionData> getConnectionData(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -203,7 +203,7 @@ public class ExamMonitoringController {
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ClientConnectionData getConnectionDataForSingleConnection(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -235,7 +235,7 @@ public class ExamMonitoringController {
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_INSTRUCTION_ENDPOINT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            consumes = MediaType.APPLICATION_JSON_VALUE)
     public void registerInstruction(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -253,7 +253,7 @@ public class ExamMonitoringController {
                     API.EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<ClientNotification> pendingNotifications(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,

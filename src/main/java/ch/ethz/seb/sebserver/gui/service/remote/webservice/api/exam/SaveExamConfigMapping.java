@@ -33,7 +33,7 @@ public class SaveExamConfigMapping extends RestCall<ExamConfigurationMap> {
                 new TypeReference<ExamConfigurationMap>() {
                 }),
                 HttpMethod.PUT,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.EXAM_CONFIGURATION_MAP_ENDPOINT);
     }
 

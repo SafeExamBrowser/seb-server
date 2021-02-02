@@ -70,7 +70,7 @@ public class UserActivityLogController extends ReadonlyEntityController<UserActi
     @RequestMapping(
             method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityProcessingReport hardDeleteAll(
             @RequestParam(name = API.PARAM_MODEL_ID_LIST) final List<String> ids,
             @RequestParam(name = API.PARAM_BULK_ACTION_ADD_INCLUDES, defaultValue = "false") final boolean addIncludes,

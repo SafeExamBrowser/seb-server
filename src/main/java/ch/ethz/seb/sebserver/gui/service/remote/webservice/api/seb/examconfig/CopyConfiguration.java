@@ -33,7 +33,7 @@ public class CopyConfiguration extends RestCall<ConfigurationNode> {
                 new TypeReference<ConfigurationNode>() {
                 }),
                 HttpMethod.PUT,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.CONFIGURATION_NODE_ENDPOINT
                         + API.CONFIGURATION_COPY_PATH_SEGMENT);
     }

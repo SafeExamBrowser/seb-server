@@ -1,3 +1,6 @@
+
+DROP ALL OBJECTS;
+
 -- -----------------------------------------------------
 -- Table `institution`
 -- -----------------------------------------------------
@@ -573,5 +576,4 @@ CREATE TABLE IF NOT EXISTS `client_instruction` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
-
 

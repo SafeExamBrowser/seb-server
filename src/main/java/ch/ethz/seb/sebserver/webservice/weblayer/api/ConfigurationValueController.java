@@ -99,7 +99,7 @@ public class ConfigurationValueController extends EntityController<Configuration
             path = API.CONFIGURATION_TABLE_VALUE_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ConfigurationTableValues getTableValue(
             @RequestParam(
                     name = Domain.CONFIGURATION_VALUE.ATTR_CONFIGURATION_ATTRIBUTE_ID,
@@ -120,8 +120,8 @@ public class ConfigurationValueController extends EntityController<Configuration
     @RequestMapping(
             path = API.CONFIGURATION_TABLE_VALUE_PATH_SEGMENT,
             method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ConfigurationTableValues savePut(
             @Valid @RequestBody final ConfigurationTableValues tableValue) {
 

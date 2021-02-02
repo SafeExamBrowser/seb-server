@@ -130,7 +130,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_FOLLOWUP_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration getFollowup(@PathVariable final Long modelId) {
 
         this.entityDAO
@@ -147,7 +147,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_SETTINGS_PUBLISHED_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public SettingsPublished settingsPublished(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -168,8 +168,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     @RequestMapping(
             path = API.CONFIGURATION_COPY_PATH_SEGMENT,
             method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ConfigurationNode copyConfiguration(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -202,7 +202,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_CONFIG_KEY_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ConfigKey getConfigKey(
             @PathVariable final Long modelId,
             @RequestParam(
@@ -258,7 +258,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             path = API.CONFIGURATION_IMPORT_PATH_SEGMENT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration importExamConfig(
             @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_NAME, required = false) final String name,
             @RequestHeader(name = Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
@@ -311,7 +311,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_IMPORT_PATH_SEGMENT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Configuration importExamConfigOnExistingConfig(
             @PathVariable final Long modelId,
             @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final String password,
@@ -345,7 +345,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT + API.TEMPLATE_ATTRIBUTE_ENDPOINT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<TemplateAttribute> getTemplateAttributePage(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
             @RequestParam(
@@ -397,7 +397,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public TemplateAttribute getTemplateAttribute(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
@@ -423,7 +423,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     + API.TEMPLATE_ATTRIBUTE_RESET_VALUES,
             method = RequestMethod.PATCH,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public TemplateAttribute resetTemplateAttributeValues(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
@@ -449,7 +449,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     + API.TEMPLATE_ATTRIBUTE_ATTACH_DEFAULT_ORIENTATION,
             method = RequestMethod.PATCH,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public TemplateAttribute attachDefaultTemplateAttributeOrientation(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,
@@ -478,7 +478,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     + API.TEMPLATE_ATTRIBUTE_REMOVE_ORIENTATION,
             method = RequestMethod.PATCH,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public TemplateAttribute removeTemplateAttributeOrientation(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long parentModelId,
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long modelId,

@@ -148,8 +148,8 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     @RequestMapping(
             path = API.PASSWORD_PATH_SEGMENT,
             method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public UserInfo changePassword(@Valid @RequestBody final PasswordChange passwordChange) {
 
         final String modelId = passwordChange.getModelId();

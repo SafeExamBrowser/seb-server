@@ -92,8 +92,8 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final RuntimeException ex,
             final WebRequest request) {
 
-        log.error("Unexpected generic error catched at the API endpoint: ", ex);
-        final List<APIMessage> errors = Arrays.asList(APIMessage.ErrorMessage.GENERIC.of(ex.getMessage()));
+        log.error("Unexpected internal error catched at the API endpoint: ", ex);
+        final List<APIMessage> errors = Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of(ex.getMessage()));
         return new ResponseEntity<>(
                 errors,
                 Utils.createJsonContentHeader(),
@@ -188,12 +188,12 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleUnexpected(
+    public ResponseEntity<Object> handleGeneric(
             final Exception ex,
             final WebRequest request) {
 
-        log.error("Unexpected internal error catched at the API endpoint: ", ex);
-        return APIMessage.ErrorMessage.UNEXPECTED
+        log.error("Unexpected generic error catched at the API endpoint: ", ex);
+        return APIMessage.ErrorMessage.GENERIC
                 .createErrorResponse(ex.getMessage());
     }
 

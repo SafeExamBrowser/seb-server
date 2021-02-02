@@ -79,7 +79,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             path = API.LMS_SETUP_TEST_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public LmsSetupTestResult testLms(
             @RequestParam(
                     name = Entity.FILTER_ATTR_INSTITUTION,
@@ -106,8 +106,8 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
     @RequestMapping(
             path = API.LMS_SETUP_TEST_PATH_SEGMENT + API.LMS_SETUP_TEST_AD_HOC_PATH_SEGMENT,
             method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public LmsSetupTestResult testLmsAdHoc(@Valid @RequestBody final LmsSetup lmsSetup) {
 
         this.authorization.checkModify(lmsSetup);

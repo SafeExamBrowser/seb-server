@@ -32,7 +32,7 @@ public class PropagateInstruction extends RestCall<String> {
                 new TypeReference<String>() {
                 }),
                 HttpMethod.POST,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.EXAM_MONITORING_ENDPOINT
                         + API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                         + API.EXAM_MONITORING_INSTRUCTION_ENDPOINT);

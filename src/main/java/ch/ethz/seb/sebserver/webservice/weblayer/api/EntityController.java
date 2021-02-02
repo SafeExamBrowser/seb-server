@@ -132,7 +132,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     @RequestMapping(
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<T> getPage(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -172,7 +172,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             path = API.NAMES_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityName> getNames(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -209,7 +209,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.DEPENDENCY_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<EntityDependency> getDependencies(
             @PathVariable final String modelId,
             @RequestParam(name = API.PARAM_BULK_ACTION_TYPE, required = true) final BulkActionType bulkActionType,
@@ -238,7 +238,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public T getBy(@PathVariable final String modelId) {
 
         return this.entityDAO
@@ -255,7 +255,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             path = API.LIST_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public List<T> getForIds(@RequestParam(name = API.PARAM_MODEL_ID_LIST, required = true) final String modelIds) {
 
         return Result.tryCatch(() -> Arrays.stream(StringUtils.split(modelIds, Constants.LIST_SEPARATOR_CHAR))
@@ -275,7 +275,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public T create(
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             @RequestParam(
@@ -306,8 +306,8 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
 
     @RequestMapping(
             method = RequestMethod.PUT,
-            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public T savePut(@Valid @RequestBody final T modifyData) {
         return this.checkModifyAccess(modifyData)
                 .flatMap(this::validForSave)
@@ -324,7 +324,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityProcessingReport hardDelete(
             @PathVariable final String modelId,
             @RequestParam(name = API.PARAM_BULK_ACTION_ADD_INCLUDES, defaultValue = "false") final boolean addIncludes,
@@ -346,7 +346,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     @RequestMapping(
             method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityProcessingReport hardDeleteAll(
             @RequestParam(name = API.PARAM_MODEL_ID_LIST) final List<String> ids,
             @RequestParam(name = API.PARAM_BULK_ACTION_ADD_INCLUDES, defaultValue = "false") final boolean addIncludes,

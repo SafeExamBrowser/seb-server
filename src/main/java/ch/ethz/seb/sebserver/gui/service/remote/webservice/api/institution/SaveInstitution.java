@@ -33,7 +33,7 @@ public class SaveInstitution extends RestCall<Institution> {
                 new TypeReference<Institution>() {
                 }),
                 HttpMethod.PUT,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.INSTITUTION_ENDPOINT);
     }
 

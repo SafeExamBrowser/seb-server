@@ -547,7 +547,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 //        final String contentAsString = this.mockMvc
 //                .perform(post(this.endpoint + RestAPI.ENDPOINT_USER_ACCOUNT + "/save")
 //                        .header("Authorization", "Bearer " + token)
-//                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+//                        .contentType(MediaType.APPLICATION_JSON)
 //                        .content(modifyUserJson))
 //                .andReturn().getResponse().getContentAsString();
 //
@@ -603,7 +603,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         UserInfo modifiedUserResult = this.jsonMapper.readValue(
                 this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
                         .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(modifyUserJson))
                         .andExpect(status().isOk())
                         .andReturn().getResponse().getContentAsString(),
@@ -732,7 +732,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
 
         this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
                 .header("Authorization", "Bearer " + examAdminToken1)
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .contentType(MediaType.APPLICATION_JSON)
                 .content(modifiedUserJson))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
@@ -759,7 +759,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final String newUserJson = this.jsonMapper.writeValueAsString(userInfo);
         this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
                 .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .contentType(MediaType.APPLICATION_JSON)
                 .content(newUserJson))
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
@@ -787,7 +787,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final String newUserJson = this.jsonMapper.writeValueAsString(userInfo);
         this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
                 .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .contentType(MediaType.APPLICATION_JSON)
                 .content(newUserJson))
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
@@ -819,7 +819,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         this.mockMvc.perform(
                 put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + API.PASSWORD_PATH_SEGMENT)
                         .header("Authorization", "Bearer " + sebAdminToken)
-                        .contentType(MediaType.APPLICATION_JSON_UTF8)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(modifiedUserJson))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
@@ -870,7 +870,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc.perform(
                         put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + API.PASSWORD_PATH_SEGMENT)
                                 .header("Authorization", "Bearer " + sebAdminToken)
-                                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                                .contentType(MediaType.APPLICATION_JSON)
                                 .content(modifiedUserJson))
                         .andExpect(status().isBadRequest())
                         .andReturn().getResponse().getContentAsString(),
@@ -894,7 +894,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 this.mockMvc.perform(
                         put(this.endpoint + API.USER_ACCOUNT_ENDPOINT + API.PASSWORD_PATH_SEGMENT)
                                 .header("Authorization", "Bearer " + sebAdminToken)
-                                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                                .contentType(MediaType.APPLICATION_JSON)
                                 .content(modifiedUserJson))
                         .andExpect(status().isBadRequest())
                         .andReturn().getResponse().getContentAsString(),

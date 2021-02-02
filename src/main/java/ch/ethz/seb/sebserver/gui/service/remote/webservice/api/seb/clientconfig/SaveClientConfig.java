@@ -33,7 +33,7 @@ public class SaveClientConfig extends RestCall<SEBClientConfig> {
                 new TypeReference<SEBClientConfig>() {
                 }),
                 HttpMethod.PUT,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.SEB_CLIENT_CONFIG_ENDPOINT);
     }
 

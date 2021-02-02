@@ -32,7 +32,7 @@ public class CheckSEBRestriction extends RestCall<Boolean> {
                 new TypeReference<Boolean>() {
                 }),
                 HttpMethod.GET,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.EXAM_ADMINISTRATION_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
                         + API.EXAM_ADMINISTRATION_CHECK_RESTRICTION_PATH_SEGMENT);

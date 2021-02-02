@@ -33,7 +33,7 @@ public class SaveIndicator extends RestCall<Indicator> {
                 new TypeReference<Indicator>() {
                 }),
                 HttpMethod.PUT,
-                MediaType.APPLICATION_JSON_UTF8,
+                MediaType.APPLICATION_JSON,
                 API.EXAM_INDICATOR_ENDPOINT);
     }
 
