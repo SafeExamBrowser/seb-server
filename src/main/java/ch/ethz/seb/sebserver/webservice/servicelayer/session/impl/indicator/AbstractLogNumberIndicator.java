@@ -41,10 +41,22 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
 
     @Override
     public void notifyValueChange(final ClientEvent event) {
+        valueChanged(event.text, event.getValue());
+    }
+
+    @Override
+    public void notifyValueChange(final ClientEventRecord clientEventRecord) {
+        final BigDecimal numericValue = clientEventRecord.getNumericValue();
+        if (numericValue != null) {
+            valueChanged(clientEventRecord.getText(), numericValue.doubleValue());
+        }
+    }
+
+    private void valueChanged(final String text, final double value) {
         if (this.tags == null || this.tags.length == 0) {
-            this.currentValue = event.getValue();
-        } else if (hasTag(event.text)) {
-            this.currentValue = event.getValue();
+            this.currentValue = value;
+        } else if (hasTag(text)) {
+            this.currentValue = value;
         }
     }
 
@@ -55,7 +67,7 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
             // TODO to boost performance here within a distributed setup, invent a new cache for all log count values
             //      of the running exam. So all indicators get the values from cache and only one single SQL call
             //      is needed for one update.
-            //      This cache then is only valid for one (GUI) update cycle and the cache must to be flushed before 
+            //      This cache then is only valid for one (GUI) update cycle and the cache must to be flushed before
 
             final List<ClientEventRecord> execute = this.clientEventRecordMapper.selectByExample()
                     .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
