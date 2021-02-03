@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicator {
 
@@ -37,9 +38,18 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
 
     @Override
     public void notifyValueChange(final ClientEvent event) {
+        valueChanged(event.text);
+    }
+
+    @Override
+    public void notifyValueChange(final ClientEventRecord clientEventRecord) {
+        valueChanged(clientEventRecord.getText());
+    }
+
+    private void valueChanged(final String eventText) {
         if (this.tags == null || this.tags.length == 0) {
             this.currentValue = getValue() + 1d;
-        } else if (hasTag(event.text)) {
+        } else if (hasTag(eventText)) {
             this.currentValue = getValue() + 1d;
         }
     }
@@ -51,7 +61,7 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
             // TODO to boost performance here within a distributed setup, invent a new cache for all log count values
             //      of the running exam. So all indicators get the values from cache and only one single SQL call
             //      is needed for one update.
-            //      This cache then is only valid for one (GUI) update cycle and the cache must to be flushed before 
+            //      This cache then is only valid for one (GUI) update cycle and the cache must to be flushed before
 
             final Long errors = this.clientEventRecordMapper.countByExample()
                     .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))

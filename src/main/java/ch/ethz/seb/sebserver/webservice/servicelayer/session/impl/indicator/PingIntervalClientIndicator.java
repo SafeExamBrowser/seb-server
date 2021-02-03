@@ -110,6 +110,11 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     }
 
     @Override
+    public void notifyValueChange(final ClientEventRecord clientEventRecord) {
+
+    }
+
+    @Override
     public ClientEventRecord updateLogEvent(final long now) {
         final long value = now - (long) super.currentValue;
         if (this.missingPing) {

@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
@@ -524,34 +525,39 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final String connectionToken,
             final ClientEvent event) {
 
-        final ClientConnectionDataInternal activeClientConnection =
-                this.examSessionCacheService.getClientConnection(connectionToken);
+        try {
+            final ClientConnectionDataInternal activeClientConnection =
+                    this.examSessionCacheService.getClientConnection(connectionToken);
 
-        if (activeClientConnection != null) {
+            if (activeClientConnection != null) {
 
-            // store event
-            this.eventHandlingStrategy.accept(ClientEvent.toRecord(
-                    event,
-                    activeClientConnection.getConnectionId()));
+                // store event
+                this.eventHandlingStrategy.accept(ClientEvent.toRecord(
+                        event,
+                        activeClientConnection.getConnectionId()));
 
-            switch (event.eventType) {
-                case NOTIFICATION: {
-                    this.sebClientNotificationService.notifyNewNotification(activeClientConnection.getConnectionId());
-                    break;
+                switch (event.eventType) {
+                    case NOTIFICATION: {
+                        this.sebClientNotificationService
+                                .notifyNewNotification(activeClientConnection.getConnectionId());
+                        break;
+                    }
+                    case NOTIFICATION_CONFIRMED: {
+                        this.sebClientNotificationService.confirmPendingNotification(event, connectionToken);
+                        break;
+                    }
+                    default: {
+                        // update indicators
+                        activeClientConnection.getIndicatorMapping(event.eventType)
+                                .forEach(indicator -> indicator.notifyValueChange(event));
+                    }
                 }
-                case NOTIFICATION_CONFIRMED: {
-                    this.sebClientNotificationService.confirmPendingNotification(event, connectionToken);
-                    break;
-                }
-                default: {
-                    // update indicators
-                    activeClientConnection.getIndicatorMapping(event.eventType)
-                            .forEach(indicator -> indicator.notifyValueChange(event));
-                }
+
+            } else {
+                log.warn("No active ClientConnection found for connectionToken: {}", connectionToken);
             }
-
-        } else {
-            log.warn("No active ClientConnection found for connectionToken: {}", connectionToken);
+        } catch (final Exception e) {
+            log.error("Failed to process SEB client event: ", e);
         }
     }
 
@@ -734,6 +740,12 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     this.clientConnectionDAO.save(connection.clientConnection);
                     this.examSessionCacheService.evictClientConnection(
                             connection.clientConnection.connectionToken);
+                } else {
+                    // update indicators
+                    if (clientEventRecord.getType() != null && EventType.ERROR_LOG.id == clientEventRecord.getType()) {
+                        connection.getIndicatorMapping(EventType.ERROR_LOG)
+                                .forEach(indicator -> indicator.notifyValueChange(clientEventRecord));
+                    }
                 }
             }
         };

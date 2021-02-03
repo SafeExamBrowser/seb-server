@@ -215,7 +215,9 @@ public class SEBClientEventDetailsPopup {
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_DESCRIPTION,
                         FORM_DESC_TEXT_KEY,
-                        exam.description))
+                        exam.description)
+                        .asArea()
+                        .asHTML(true))
                 .addField(FormBuilder.text(
                         Domain.EXAM.ATTR_TYPE,
                         FORM_EXAM_TYPE_TEXT_KEY,
