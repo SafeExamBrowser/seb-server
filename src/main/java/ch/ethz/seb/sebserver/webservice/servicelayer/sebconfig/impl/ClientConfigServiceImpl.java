@@ -26,6 +26,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -91,6 +92,8 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             "        <string>%s</string>%n" +                   // client secret value
             "        <key>apiDiscovery</key>%n" +
             "        <string>%s</string>%n" +                   // apiDiscovery value
+            "        <key>pingInterval</key>%n" +
+            "        <integer>%s</integer>%n" +                 // ping interval value
             "    </dict>%n" +
             "%s" +                                              // VDI additions
             "  </dict>%n";
@@ -162,6 +165,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     private final PasswordEncoder clientPasswordEncoder;
     private final ZipService zipService;
     private final WebserviceInfo webserviceInfo;
+    private final long defaultPingInterval;
 
     protected ClientConfigServiceImpl(
             final SEBClientConfigDAO sebClientConfigDAO,
@@ -169,7 +173,8 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             final SEBConfigEncryptionService sebConfigEncryptionService,
             final ZipService zipService,
             @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
-            final WebserviceInfo webserviceInfo) {
+            final WebserviceInfo webserviceInfo,
+            @Value("${sebserver.webservice.api.exam.defaultPingInterval:1000}") final long defaultPingInterval) {
 
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.clientCredentialService = clientCredentialService;
@@ -177,6 +182,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         this.zipService = zipService;
         this.clientPasswordEncoder = clientPasswordEncoder;
         this.webserviceInfo = webserviceInfo;
+        this.defaultPingInterval = defaultPingInterval;
     }
 
     @Override
@@ -221,6 +227,15 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         final CharSequence encryptionPassword = this.sebClientConfigDAO
                 .getConfigPasswordCipher(config.getModelId())
                 .getOr((config.getConfigPurpose() == ConfigPurpose.START_EXAM) ? null : StringUtils.EMPTY);
+
+        exportSEBClientConfiguration(output, examId, config, encryptionPassword);
+    }
+
+    protected void exportSEBClientConfiguration(
+            final OutputStream output,
+            final Long examId,
+            final SEBClientConfig config,
+            final CharSequence encryptionPassword) {
 
         final String plainTextXMLContent = extractXMLContent(config, examId);
 
@@ -310,6 +325,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                 plainClientId,
                 plainClientSecret,
                 this.webserviceInfo.getDiscoveryEndpoint(),
+                (config.sebServerPingTime != null) ? config.sebServerPingTime : this.defaultPingInterval,
                 vdiAddition);
 
         if (log.isDebugEnabled()) {

@@ -26,7 +26,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -35,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
@@ -105,15 +107,19 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final Principal principal,
             final Long institutionId,
             final String clientAddress,
-            final Long examId) {
+            final Long examId,
+            final String clientId) {
 
         return Result.tryCatch(() -> {
 
-            final Long clientsInstitution = getInstitutionId(principal);
-            if (!clientsInstitution.equals(institutionId)) {
+            final SEBClientConfig clientConfig = this.sebClientConfigDAO
+                    .byClientName(principal.getName())
+                    .getOrThrow();
+
+            if (!clientConfig.institutionId.equals(institutionId)) {
                 log.error("Institutional integrity violation: requested institution: {} authenticated institution: {}",
                         institutionId,
-                        clientsInstitution);
+                        clientConfig.institutionId);
                 throw new APIConstraintViolationException("Institutional integrity violation");
             }
 
@@ -121,20 +127,12 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 log.debug("Request received on Exam Client Connection create endpoint: "
                         + "institution: {} "
                         + "exam: {} "
-                        + "client-address: {}",
+                        + "client-address: {}"
+                        + "clientId: {}",
                         institutionId,
                         examId,
-                        clientAddress);
-            }
-
-            if (log.isDebugEnabled()) {
-                log.debug("SEB client connection attempt, create ClientConnection for "
-                        + "institution {} "
-                        + "exam: {} "
-                        + "client address: {}",
-                        institutionId,
-                        examId,
-                        clientAddress);
+                        clientAddress,
+                        clientId);
             }
 
             if (examId != null) {
@@ -145,12 +143,14 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final String connectionToken = createToken();
             final ClientConnection clientConnection = this.clientConnectionDAO.createNew(new ClientConnection(
                     null,
-                    institutionId,
-                    examId,
-                    ConnectionStatus.CONNECTION_REQUESTED,
-                    connectionToken,
+                    institutionId, // Set the institution identifier that was checked against integrity before
+                    examId, // Set the exam identifier if available otherwise it is null
+                    ConnectionStatus.CONNECTION_REQUESTED, // Initial state
+                    connectionToken, // The generated connection token that identifies this connection
                     null,
-                    clientAddress,
+                    clientAddress, // The IP address of the connecting client, verified on SEB Server side
+                    clientId, // The client identifier sent by the SEB client if available
+                    clientConfig.vdiType != VDIType.NO, // The VDI flag to indicate if this is a VDI prime connection
                     null,
                     null,
                     null,
@@ -180,7 +180,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final Long institutionId,
             final Long examId,
             final String clientAddress,
-            final String userSessionId) {
+            final String userSessionId,
+            final String clientId) {
 
         return Result.tryCatch(() -> {
             if (log.isDebugEnabled()) {
@@ -190,12 +191,14 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                                 + "institutionId: {}"
                                 + "exam: {} "
                                 + "client address: {} "
-                                + "userSessionId: {}",
+                                + "userSessionId: {}"
+                                + "clientId: {}",
                         connectionToken,
                         institutionId,
                         examId,
                         clientAddress,
-                        userSessionId);
+                        userSessionId,
+                        clientId);
             }
 
             final ClientConnection clientConnection = getClientConnection(connectionToken);
@@ -227,11 +230,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         "User session identifier integrity violation: another User session identifier is already set for the connection");
             }
 
-            final String virtualClientAddress = getVirtualClientAddress(
-                    (examId != null) ? examId : clientConnection.examId,
-                    clientAddress,
-                    clientConnection.clientAddress);
-
             final ClientConnection updatedClientConnection = this.clientConnectionDAO
                     .save(new ClientConnection(
                             clientConnection.id,
@@ -241,7 +239,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             null,
                             userSessionId,
                             null,
-                            virtualClientAddress,
+                            clientId,
+                            null,
+                            null,
                             null,
                             null,
                             null,
@@ -268,7 +268,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final Long institutionId,
             final Long examId,
             final String clientAddress,
-            final String userSessionId) {
+            final String userSessionId,
+            final String clientId) {
 
         return Result.tryCatch(() -> {
 
@@ -279,12 +280,14 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                                 + "institutionId: {}"
                                 + "exam: {} "
                                 + "client address: {} "
-                                + "userSessionId: {}",
+                                + "userSessionId: {}"
+                                + "clientId: {}",
                         connectionToken,
                         institutionId,
                         examId,
                         clientAddress,
-                        userSessionId);
+                        userSessionId,
+                        clientId);
             }
 
             ClientConnection clientConnection = getClientConnection(connectionToken);
@@ -294,8 +297,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // connection integrity check
             if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
-                // TODO discuss if we need a flag on exam domain level that indicates whether unauthenticated connection
-                //      are allowed or not
                 log.warn("ClientConnection integrity warning: client connection is not authenticated: {}",
                         clientConnection);
             } else if (clientConnection.status != ConnectionStatus.AUTHENTICATED) {
@@ -305,15 +306,13 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         "ClientConnection integrity violation: client connection is not in expected state");
             }
 
-            final String virtualClientAddress = getVirtualClientAddress(
-                    (examId != null) ? examId : clientConnection.examId,
-                    clientAddress,
-                    clientConnection.clientAddress);
-
             final Boolean proctoringEnabled = this.examAdminService
                     .isExamProctoringEnabled(clientConnection.examId)
                     .getOr(false);
             final Long currentExamId = (examId != null) ? examId : clientConnection.examId;
+            final String currentVdiConnectionId = (clientId != null)
+                    ? clientId
+                    : clientConnection.clientName;
 
             // create new ClientConnection for update
             final ClientConnection establishedClientConnection = new ClientConnection(
@@ -324,18 +323,24 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     clientConnection.userSessionId,
                     null,
-                    virtualClientAddress,
+                    clientId,
+                    null,
+                    null,
                     null,
                     null,
                     null,
                     proctoringEnabled);
 
-            // ClientConnection integrity
+            // ClientConnection integrity check
+            // institutionId, connectionToken and clientAddress must be set
+            // The status ins not already active
+            // and if this is not a VDI prime connection, the examId must also be set
             if (clientConnection.institutionId == null ||
                     clientConnection.connectionToken == null ||
                     establishedClientConnection.examId == null ||
                     clientConnection.clientAddress == null ||
-                    establishedClientConnection.status != ConnectionStatus.ACTIVE) {
+                    establishedClientConnection.status != ConnectionStatus.ACTIVE ||
+                    (!BooleanUtils.isTrue(clientConnection.vdi) && currentExamId == null)) {
 
                 log.error("ClientConnection integrity violation, clientConnection: {}, establishedClientConnection: {}",
                         clientConnection,
@@ -343,11 +348,15 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 throw new IllegalStateException("ClientConnection integrity violation");
             }
 
+            final ClientConnection connectionToSave = handleVDISetup(
+                    currentVdiConnectionId,
+                    establishedClientConnection);
+
             final ClientConnection updatedClientConnection = this.clientConnectionDAO
-                    .save(establishedClientConnection)
+                    .save(connectionToSave)
                     .getOrThrow();
 
-            checkExamIntegrity(updatedClientConnection.examId);
+            checkExamIntegrity(establishedClientConnection.examId);
 
             final ClientConnectionDataInternal activeClientConnection =
                     reloadConnectionCache(connectionToken);
@@ -366,6 +375,54 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             return updatedClientConnection;
         });
+    }
+
+    private ClientConnection handleVDISetup(
+            final String currentVdiConnectionId,
+            final ClientConnection establishedClientConnection) {
+
+        if (currentVdiConnectionId == null) {
+            return establishedClientConnection;
+        }
+
+        final Result<ClientConnectionRecord> vdiPairConnectionResult =
+                this.clientConnectionDAO.getVDIPairCompanion(
+                        establishedClientConnection.examId,
+                        establishedClientConnection.clientName);
+
+        if (!vdiPairConnectionResult.hasValue()) {
+            return establishedClientConnection;
+        }
+
+        final ClientConnectionRecord vdiPairCompanion = vdiPairConnectionResult.get();
+        final Long vdiExamId = (establishedClientConnection.examId != null)
+                ? establishedClientConnection.examId
+                : vdiPairCompanion.getExamId();
+        final ClientConnection updatedConnection = new ClientConnection(
+                establishedClientConnection.id,
+                null,
+                vdiExamId,
+                establishedClientConnection.status,
+                null,
+                establishedClientConnection.userSessionId,
+                null,
+                establishedClientConnection.clientName,
+                null,
+                vdiPairCompanion.getConnectionToken(),
+                null,
+                null,
+                null,
+                establishedClientConnection.remoteProctoringRoomUpdate);
+
+        // Update other connection with token and exam id
+        this.clientConnectionDAO
+                .save(new ClientConnection(
+                        vdiPairCompanion.getId(), null,
+                        vdiExamId, null, null, null, null, null, null,
+                        establishedClientConnection.connectionToken, null, null, null, null))
+                .getOrThrow();
+        reloadConnectionCache(vdiPairCompanion.getConnectionToken());
+        return updatedConnection;
     }
 
     @Override
@@ -448,27 +505,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             clientConnection);
                 }
 
-                final Boolean proctoringEnabled = this.examAdminService
-                        .isExamProctoringEnabled(clientConnection.examId)
-                        .getOr(false);
-                if (proctoringEnabled) {
-                    final ClientConnection updateClientConnection = new ClientConnection(
-                            clientConnection.id,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            true);
-                    this.clientConnectionDAO
-                            .save(updateClientConnection)
-                            .getOrThrow();
-                }
             } else {
                 log.warn("SEB client connection in invalid state for disabling: {}", clientConnection);
                 updatedClientConnection = clientConnection;
@@ -599,33 +635,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         throw new IllegalStateException("The exam " + examId + " is not running");
     }
 
-    private String getVirtualClientAddress(
-            final Long examId,
-            final String requestClientAddress,
-            final String existingClientAddress) {
-
-        if (examId == null ||
-                requestClientAddress == null ||
-                requestClientAddress.equals(existingClientAddress) ||
-                !isVDI(examId)) {
-            return null;
-        }
-
-        return requestClientAddress;
-    }
-
-    private boolean isVDI(final Long examId) {
-        return this.examSessionService.getRunningExam(examId)
-                .getOrThrow()
-                .getType() == ExamType.VDI;
-    }
-
-    private Long getInstitutionId(final Principal principal) {
-        final String clientId = principal.getName();
-        return this.sebClientConfigDAO.byClientName(clientId)
-                .getOrThrow().institutionId;
-    }
-
     private void checkExamIntegrity(final Long examId, final ClientConnection clientConnection) {
         if (examId != null &&
                 clientConnection.examId != null &&
@@ -669,18 +678,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // create new ClientConnection for update
             final ClientConnection authenticatedClientConnection = new ClientConnection(
-                    clientConnection.id,
-                    null,
-                    null,
-                    ConnectionStatus.AUTHENTICATED,
-                    null,
-                    accountId,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null);
+                    clientConnection.id, null, null,
+                    ConnectionStatus.AUTHENTICATED, null,
+                    accountId, null, null, null, null, null, null, null, null);
 
             clientConnection = this.clientConnectionDAO
                     .save(authenticatedClientConnection)
@@ -705,7 +705,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     "Exam is currently on update and locked for new SEB Client connections");
         }
 
-        // check Exam has an default SEB Exam configuration attached
+        // check Exam has a default SEB Exam configuration attached
         if (!this.examSessionService.hasDefaultConfigurationAttached(examId)) {
             throw new APIConstraintViolationException(
                     "Exam is currently running but has no default SEB Exam configuration attached");
@@ -713,10 +713,14 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     }
 
     private ClientConnection saveInState(final ClientConnection clientConnection, final ConnectionStatus status) {
+        final Boolean proctoringEnabled = this.examAdminService
+                .isExamProctoringEnabled(clientConnection.examId)
+                .getOr(false);
+
         return this.clientConnectionDAO.save(new ClientConnection(
-                clientConnection.id, null, null,
-                status, null, null, null, null, null, null, null,
-                true))
+                clientConnection.id, null, null, status,
+                null, null, null, null, null, null, null, null, null,
+                proctoringEnabled))
                 .getOrThrow();
     }
 

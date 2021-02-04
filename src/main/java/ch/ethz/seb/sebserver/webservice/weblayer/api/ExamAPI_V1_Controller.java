@@ -90,6 +90,7 @@ public class ExamAPI_V1_Controller {
     public CompletableFuture<Collection<RunningExamInfo>> handshakeCreate(
             @RequestParam(name = API.PARAM_INSTITUTION_ID, required = false) final Long instIdRequestParam,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examIdRequestParam,
+            @RequestParam(name = API.EXAM_API_PARAM_CLIENT_ID, required = false) final String clientIdRequestParam,
             @RequestBody(required = false) final MultiValueMap<String, String> formParams,
             final Principal principal,
             final HttpServletRequest request,
@@ -107,10 +108,13 @@ public class ExamAPI_V1_Controller {
                     final Long examId = (examIdRequestParam != null)
                             ? examIdRequestParam
                             : mapper.getLong(API.EXAM_API_PARAM_EXAM_ID);
+                    final String clientId = (clientIdRequestParam != null)
+                            ? clientIdRequestParam
+                            : mapper.getString(API.EXAM_API_PARAM_CLIENT_ID);
 
                     // Create and get new ClientConnection if all integrity checks passes
                     final ClientConnection clientConnection = this.sebClientConnectionService
-                            .createClientConnection(principal, institutionId, remoteAddr, examId)
+                            .createClientConnection(principal, institutionId, remoteAddr, examId, clientId)
                             .getOrThrow();
 
                     response.setHeader(
@@ -152,6 +156,7 @@ public class ExamAPI_V1_Controller {
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examId,
             @RequestParam(name = API.EXAM_API_USER_SESSION_ID, required = false) final String userSessionId,
+            @RequestParam(name = API.EXAM_API_PARAM_CLIENT_ID, required = false) final String clientId,
             final Principal principal,
             final HttpServletRequest request) {
 
@@ -161,24 +166,13 @@ public class ExamAPI_V1_Controller {
                     final String remoteAddr = request.getRemoteAddr();
                     final Long institutionId = getInstitutionId(principal);
 
-                    if (log.isDebugEnabled()) {
-                        log.debug("Request received on SEB Client Connection update endpoint: "
-                                + "institution: {} "
-                                + "exam: {} "
-                                + "userSessionId: {} "
-                                + "client-address: {}",
-                                institutionId,
-                                examId,
-                                userSessionId,
-                                remoteAddr);
-                    }
-
                     this.sebClientConnectionService.updateClientConnection(
                             connectionToken,
                             institutionId,
                             examId,
                             remoteAddr,
-                            userSessionId)
+                            userSessionId,
+                            clientId)
                             .getOrThrow();
                 },
                 this.executor);
@@ -192,6 +186,7 @@ public class ExamAPI_V1_Controller {
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examId,
             @RequestParam(name = API.EXAM_API_USER_SESSION_ID, required = false) final String userSessionId,
+            @RequestParam(name = API.EXAM_API_PARAM_CLIENT_ID, required = false) final String clientId,
             final Principal principal,
             final HttpServletRequest request) {
 
@@ -201,22 +196,13 @@ public class ExamAPI_V1_Controller {
                     final String remoteAddr = request.getRemoteAddr();
                     final Long institutionId = getInstitutionId(principal);
 
-                    if (log.isDebugEnabled()) {
-                        log.debug("Request received on SEB Client Connection establish endpoint: "
-                                + "institution: {} "
-                                + "exam: {} "
-                                + "client-address: {}",
-                                institutionId,
-                                examId,
-                                remoteAddr);
-                    }
-
                     this.sebClientConnectionService.establishClientConnection(
                             connectionToken,
                             institutionId,
                             examId,
                             remoteAddr,
-                            userSessionId)
+                            userSessionId,
+                            clientId)
                             .getOrThrow();
                 },
                 this.executor);
@@ -348,6 +334,7 @@ public class ExamAPI_V1_Controller {
                         connectionToken,
                         institutionId,
                         Long.valueOf(examId),
+                        null,
                         null,
                         null)
                         .getOrThrow();

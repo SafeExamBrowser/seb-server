@@ -150,7 +150,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Transactional
     public Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateActive() {
         return Result.tryCatch(() -> {
-            final Collection<ClientConnectionRecord> records = this.clientConnectionRecordMapper.selectByExample()
+            final Collection<ClientConnectionRecord> records = this.clientConnectionRecordMapper
+                    .selectByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate, isNotEqualTo(0))
                     .and(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.ACTIVE.name()))
                     .build()
@@ -165,11 +166,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .map(rec -> rec.getId())
                     .collect(Collectors.toList());
 
-            final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
-                    null, null, null, null, null,
-                    null, null, null, null, null, null,
-                    0);
-
+            final ClientConnectionRecord updateRecord = createProctoringRoomUpdateRecord(0);
             this.clientConnectionRecordMapper.updateByExampleSelective(updateRecord)
                     .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
@@ -177,6 +174,14 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
             return records;
         });
+    }
+
+    private ClientConnectionRecord createProctoringRoomUpdateRecord(final int remoteProctoringRoomUpdate) {
+        final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
+                null, null, null, null, null, null,
+                null, null, null, null, null, null, null,
+                remoteProctoringRoomUpdate);
+        return updateRecord;
     }
 
     @Override
@@ -198,11 +203,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .map(rec -> rec.getId())
                     .collect(Collectors.toList());
 
-            final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
-                    null, null, null, null, null,
-                    null, null, null, null, null, null,
-                    0);
-
+            final ClientConnectionRecord updateRecord = createProctoringRoomUpdateRecord(0);
             this.clientConnectionRecordMapper.updateByExampleSelective(updateRecord)
                     .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
@@ -215,11 +216,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Override
     @Transactional
     public void setNeedsRoomUpdate(final Long connectionId) {
-        final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
-                connectionId,
-                null, null, null, null, null,
-                null, null, null, null, null,
-                1);
+        final ClientConnectionRecord updateRecord = createProctoringRoomUpdateRecord(1);
         this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
     }
 
@@ -267,7 +264,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.connectionToken,
                     null,
                     data.clientAddress,
-                    data.vdiConnectionId,
+                    data.clientName,
+                    BooleanUtils.toInteger(data.vdi, 1, 0, 0),
+                    data.vdiPairToken,
                     millisecondsNow,
                     millisecondsNow,
                     data.remoteProctoringRoomId,
@@ -294,7 +293,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     null,
                     data.userSessionId,
                     data.clientAddress,
-                    data.vdiConnectionId,
+                    data.clientName,
+                    BooleanUtils.toInteger(data.vdi, 1, 0, 0),
+                    data.vdiPairToken,
                     null,
                     millisecondsNow,
                     data.remoteProctoringRoomId,
@@ -317,15 +318,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         return Result.tryCatch(() -> {
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
                     connectionId,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
+                    null, null, null, null, null,
+                    null, null, null, null, null, null,
                     roomId,
                     0));
         });
@@ -345,7 +339,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         record.getConnectionToken(),
                         record.getExamUserSessionId(),
                         record.getClientAddress(),
-                        record.getVdiConnectionId(),
+                        record.getClientName(),
+                        record.getVdi(),
+                        record.getVdiPairToken(),
                         record.getCreationTime(),
                         record.getUpdateTime(),
                         null,
@@ -357,6 +353,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         // only for deletion
         if (bulkAction.type == BulkActionType.ACTIVATE || bulkAction.type == BulkActionType.DEACTIVATE) {
@@ -444,6 +441,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<ClientConnection> byConnectionToken(final String connectionToken) {
         return Result.tryCatch(() -> {
             final List<ClientConnectionRecord> list = this.clientConnectionRecordMapper
@@ -469,6 +467,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<Boolean> isActiveConnection(final Long examId, final String connectionToken) {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper
                 .selectByExample()
@@ -486,6 +485,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<Set<String>> filterActive(final Long examId, final Set<String> connectionToken) {
         if (connectionToken == null || connectionToken.isEmpty()) {
             return Result.ofRuntimeError("Null or empty set reference");
@@ -504,6 +504,32 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .filter(cc -> ConnectionStatus.ACTIVE.name().equals(cc.getStatus()))
                 .map(ClientConnectionRecord::getConnectionToken)
                 .collect(Collectors.toSet()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<ClientConnectionRecord> getVDIPairCompanion(
+            final Long examId,
+            final String clientName) {
+
+        return Result.tryCatch(() -> {
+            final List<ClientConnectionRecord> records = this.clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.examId,
+                            SqlBuilder.isEqualTo(examId))
+                    .and(
+                            ClientConnectionRecordDynamicSqlSupport.clientName,
+                            SqlBuilder.isEqualTo(clientName))
+                    .build()
+                    .execute();
+
+            if (records == null || records.isEmpty() || records.size() > 1) {
+                throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, clientName);
+            }
+
+            return records.get(0);
+        });
     }
 
     private Result<ClientConnectionRecord> recordById(final Long id) {
@@ -534,7 +560,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getConnectionToken(),
                     record.getExamUserSessionId(),
                     record.getClientAddress(),
-                    record.getVdiConnectionId(),
+                    record.getClientName(),
+                    BooleanUtils.toBooleanObject(record.getVdi()),
+                    record.getVdiPairToken(),
                     record.getCreationTime(),
                     record.getUpdateTime(),
                     record.getRemoteProctoringRoomId(),

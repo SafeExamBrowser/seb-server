@@ -21,14 +21,12 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.MediaType;
@@ -55,7 +53,6 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminAPIClientDetails;
-import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebClientDetailsService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
 
 @RunWith(SpringRunner.class)
@@ -83,15 +80,15 @@ public abstract class ExamAPIIntegrationTester {
     @Autowired
     protected CacheManager cacheManager;
 
-    @MockBean
-    public WebClientDetailsService webClientDetailsService;
+//    @MockBean
+//    public WebClientDetailsService webClientDetailsService;
 
     @Before
     public void setup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
                 .addFilter(this.springSecurityFilterChain).build();
-        Mockito.when(this.webClientDetailsService.loadClientByClientId(Mockito.anyString())).thenReturn(
-                getForExamClientAPI());
+//        Mockito.when(this.webClientDetailsService.loadClientByClientId(Mockito.anyString())).thenReturn(
+//                getForExamClientAPI());
 
         // clear all caches before a test
         this.cacheManager.getCacheNames()
@@ -120,7 +117,7 @@ public abstract class ExamAPIIntegrationTester {
 
         final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "client_credentials");
-        params.add("client_id", clientId);
+        //params.add("client_id", clientId);
         params.add("scope", scope);
 
         final ResultActions result = this.mockMvc.perform(post("/oauth/token")

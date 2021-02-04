@@ -89,6 +89,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
@@ -183,6 +184,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
+
+    @Autowired
+    private Cryptor cryptor;
 
     @Before
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
@@ -2117,7 +2121,11 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         // simulate a SEB connection
         try {
-            new SEBClientBot(credentials, exam.getModelId(), String.valueOf(exam.institutionId));
+            new SEBClientBot(
+                    credentials.clientIdAsString(),
+                    this.cryptor.decrypt(credentials.secret).toString(),
+                    exam.getModelId(),
+                    String.valueOf(exam.institutionId));
             Thread.sleep(1000);
             // send quit instruction
             connectionsCall =

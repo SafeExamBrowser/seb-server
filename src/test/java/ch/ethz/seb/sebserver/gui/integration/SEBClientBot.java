@@ -43,7 +43,6 @@ import org.springframework.util.MultiValueMap;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
 
 public class SEBClientBot {
@@ -99,11 +98,11 @@ public class SEBClientBot {
     long runtime = ONE_SECOND * 2;
     int connectionAttempts = 1;
 
-    public SEBClientBot(final ClientCredentials credentials, final String examId, final String instId)
+    public SEBClientBot(final String clientId, final String clientSecret, final String examId, final String instId)
             throws Exception {
 
-        this.clientId = credentials.clientIdAsString();
-        this.clientSecret = credentials.secretAsString();
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
         this.examId = examId;
         this.institutionId = instId;
 

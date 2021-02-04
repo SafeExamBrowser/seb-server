@@ -147,4 +147,10 @@ public interface ClientConnectionDAO extends
      * @return */
     Result<Set<String>> filterActive(Long examId, Set<String> connectionToken);
 
+    /** Used to get the VDI paired connection if it already exsits.
+     *
+     * @param clientName the VDI connection identifier sent by the SEB client on connect
+     * @return Result refer to the relevant VDI pair connection if exists or to an error if not */
+    Result<ClientConnectionRecord> getVDIPairCompanion(Long examId, String clientName);
+
 }

@@ -36,13 +36,15 @@ public interface SEBClientConnectionService {
      * @param institutionId The institution identifier
      * @param clientAddress The clients remote IP address
      * @param examId the exam identifier (can be null)
+     * @param clientId The client identifier sent by the SEB client (used to identify VDI client pair)
      * @return A Result refer to the newly created ClientConnection in state: CONNECTION_REQUESTED, or refer to an error
      *         if happened */
     Result<ClientConnection> createClientConnection(
             Principal principal,
             Long institutionId,
             String clientAddress,
-            Long examId);
+            Long examId,
+            String clientId);
 
     /** This updates an already existing ClientConnection with the given connectionToken.
      * <p>
@@ -60,13 +62,15 @@ public interface SEBClientConnectionService {
      * @param clientAddress The clients remote IP address
      * @param examId The exam identifier
      * @param userSessionId The user session identifier of the users http-session with the LMS
+     * @param clientId The client identifier sent by the SEB client (used to identify VDI client pair)
      * @return A Result refer to the updated ClientConnection instance, or refer to an error if happened */
     Result<ClientConnection> updateClientConnection(
             String connectionToken,
             Long institutionId,
             Long examId,
             String clientAddress,
-            String userSessionId);
+            String userSessionId,
+            String clientId);
 
     /** This is used to establish a already created ClientConnection and set it to sate: ESTABLISHED
      * The connectionToken identifies the ClientConnection and the given clientAddress must match with
@@ -86,13 +90,15 @@ public interface SEBClientConnectionService {
      * @param examId The exam identifier (may be null of already known)
      * @param clientAddress The clients remote IP address
      * @param userSessionId The user session identifier of the users http-session with the LMS
+     * @param clientId The client identifier sent by the SEB client (used to identify VDI client pair)
      * @return A Result refer to the established ClientConnection instance, or refer to an error if happened */
     Result<ClientConnection> establishClientConnection(
             String connectionToken,
             Long institutionId,
             Long examId,
             String clientAddress,
-            String userSessionId);
+            String userSessionId,
+            String clientId);
 
     /** This is used to regular close an established ClientConnection from SEB Client side.
      * <p>

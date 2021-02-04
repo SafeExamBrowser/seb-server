@@ -22,11 +22,12 @@ public class ClientCredentialServiceTest {
 //    @Test
 //    public void testEncryptSimpleSecret() {
 //        final Environment envMock = mock(Environment.class);
-//        when(envMock.getProperty(ClientCredentialServiceImpl.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
-//                .thenReturn("somePW");
+//        when(envMock.getProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
+//                .thenReturn("internalSecret");
 //
-//        final ClientCredentialService service = new ClientCredentialServiceImpl(envMock);
-//        final CharSequence encrypt = service.encrypt("test");
+//        final Cryptor cryptor = new Cryptor(envMock);
+//
+//        final CharSequence encrypt = cryptor.encrypt("testVDI");
 //        assertEquals("", encrypt.toString());
 //    }
 

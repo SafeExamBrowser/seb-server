@@ -41,17 +41,11 @@ public final class ClientConnection implements GrantEntity {
     }
 
     public static final ClientConnection EMPTY_CLIENT_CONNECTION = new ClientConnection(
-            -1L,
-            -1L,
-            -1L,
+            -1L, -1L, -1L,
             ConnectionStatus.UNDEFINED,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
+            null, null, null, null,
+            false,
+            null, null, null, null,
             false);
 
     public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
@@ -80,12 +74,16 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS)
     public final String clientAddress;
 
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_CONNECTION_ID)
-    public final String vdiConnectionId;
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI)
+    public final Boolean vdi;
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN)
+    public final String vdiPairToken;
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID)
     public final Long remoteProctoringRoomId;
 
+    public final String clientName;
     public final Long creationTime;
     public final Long updateTime;
     public final Boolean remoteProctoringRoomUpdate;
@@ -99,7 +97,8 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN) final String connectionToken,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID) final String userSessionId,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_CONNECTION_ID) final String vdiConnectionId,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI) final Boolean vdi,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN) final String vdiPairToken,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId) {
 
         this.id = id;
@@ -109,7 +108,9 @@ public final class ClientConnection implements GrantEntity {
         this.connectionToken = connectionToken;
         this.userSessionId = userSessionId;
         this.clientAddress = clientAddress;
-        this.vdiConnectionId = vdiConnectionId;
+        this.vdi = vdi;
+        this.clientName = null;
+        this.vdiPairToken = vdiPairToken;
         this.creationTime = 0L;
         this.updateTime = 0L;
         this.remoteProctoringRoomId = remoteProctoringRoomId;
@@ -124,7 +125,9 @@ public final class ClientConnection implements GrantEntity {
             final String connectionToken,
             final String userSessionId,
             final String clientAddress,
-            final String vdiConnectionId,
+            final String clientName,
+            final Boolean vdi,
+            final String vdiPairToken,
             final Long creationTime,
             final Long updateTime,
             final Long remoteProctoringRoomId,
@@ -137,7 +140,9 @@ public final class ClientConnection implements GrantEntity {
         this.connectionToken = connectionToken;
         this.userSessionId = userSessionId;
         this.clientAddress = clientAddress;
-        this.vdiConnectionId = vdiConnectionId;
+        this.clientName = clientName;
+        this.vdi = vdi;
+        this.vdiPairToken = vdiPairToken;
         this.creationTime = creationTime;
         this.updateTime = updateTime;
         this.remoteProctoringRoomId = remoteProctoringRoomId;
@@ -191,8 +196,17 @@ public final class ClientConnection implements GrantEntity {
         return this.userSessionId;
     }
 
-    public String getVdiConnectionId() {
-        return this.vdiConnectionId;
+    @JsonIgnore
+    public String getClientName() {
+        return this.clientName;
+    }
+
+    public Boolean getVdi() {
+        return this.vdi;
+    }
+
+    public String getVdiPairToken() {
+        return this.vdiPairToken;
     }
 
     @JsonIgnore
@@ -253,13 +267,10 @@ public final class ClientConnection implements GrantEntity {
         if (this.userSessionId == null) {
             if (other.userSessionId != null)
                 return false;
-        } else if (!this.userSessionId.equals(other.userSessionId))
+        } else if (!this.userSessionId.equals(other.userSessionId)) {
             return false;
-        if (this.vdiConnectionId == null) {
-            if (other.vdiConnectionId != null)
-                return false;
-        } else if (!this.vdiConnectionId.equals(other.vdiConnectionId))
-            return false;
+        }
+
         return true;
     }
 
@@ -280,12 +291,20 @@ public final class ClientConnection implements GrantEntity {
         builder.append(this.userSessionId);
         builder.append(", clientAddress=");
         builder.append(this.clientAddress);
-        builder.append(", vdiConnectionId=");
-        builder.append(this.vdiConnectionId);
-        builder.append(", creationTime=");
-        builder.append(this.creationTime);
+        builder.append(", vdi=");
+        builder.append(this.vdi);
+        builder.append(", vdiPairToken=");
+        builder.append(this.vdiPairToken);
         builder.append(", remoteProctoringRoomId=");
         builder.append(this.remoteProctoringRoomId);
+        builder.append(", clientName=");
+        builder.append(this.clientName);
+        builder.append(", creationTime=");
+        builder.append(this.creationTime);
+        builder.append(", updateTime=");
+        builder.append(this.updateTime);
+        builder.append(", remoteProctoringRoomUpdate=");
+        builder.append(this.remoteProctoringRoomUpdate);
         builder.append("]");
         return builder.toString();
     }
