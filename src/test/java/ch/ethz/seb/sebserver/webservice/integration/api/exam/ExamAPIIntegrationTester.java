@@ -80,16 +80,10 @@ public abstract class ExamAPIIntegrationTester {
     @Autowired
     protected CacheManager cacheManager;
 
-//    @MockBean
-//    public WebClientDetailsService webClientDetailsService;
-
     @Before
     public void setup() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
                 .addFilter(this.springSecurityFilterChain).build();
-//        Mockito.when(this.webClientDetailsService.loadClientByClientId(Mockito.anyString())).thenReturn(
-//                getForExamClientAPI());
-
         // clear all caches before a test
         this.cacheManager.getCacheNames()
                 .stream()

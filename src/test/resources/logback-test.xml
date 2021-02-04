@@ -11,5 +11,5 @@
     </root>
     
     <Logger name="ch.ethz.seb.sebserver.HTTPClientBot" level="INFO" additivity="true" />
-    <Logger name="ch.ethz.seb.sebserver" level="DEBUG" additivity="true" />
+    <!--<Logger name="ch.ethz.seb.sebserver" level="DEBUG" additivity="true" /> -->
 </configuration>
