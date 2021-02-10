@@ -15,13 +15,13 @@ CREATE TABLE IF NOT EXISTS `remote_proctoring_room` (
     REFERENCES `exam` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
-    
+
 -- -----------------------------------------------------
 -- Alter Table `remote_proctoring_room`
 -- -----------------------------------------------------
 ALTER TABLE `remote_proctoring_room`
 ADD COLUMN IF NOT EXISTS `townhall_room` INT(1) NOT NULL DEFAULT 0;
-    
+
 -- -----------------------------------------------------
 -- Alter Table `client_connection`
 -- -----------------------------------------------------
