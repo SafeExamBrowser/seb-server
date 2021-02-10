@@ -1,6 +1,6 @@
 INSERT INTO view (name, columns, position, template_id) VALUES 
     ('proctoring', 12, 12, 0);
-    
+
 SET @proct_view_id = LAST_INSERT_ID();
 
 
@@ -39,9 +39,9 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (1132, 'jitsiMeetSendAudio', 'CHECKBOX', null, null, null, null, 'true'),
     (1133, 'jitsiMeetSendVideo', 'CHECKBOX', null, null, null, null, 'true')
     ;
-    
+
 UPDATE orientation SET width='4' WHERE id='68';
-    
+
 INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
     (942, 0, 5, 'quitLink', 4, 5, 4, 1, 'NONE'),
     
@@ -75,6 +75,3 @@ INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group
     (1124, 0,  @proct_view_id, 'ai_faces_angle', 0, 12, 6, 1, 'NONE'),
     (1121, 0,  @proct_view_id, 'ai_faces_angle', 0, 13, 6, 1, 'NONE')
     ;
-    
-    
-    
