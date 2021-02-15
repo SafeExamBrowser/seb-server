@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
 final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
@@ -65,7 +66,11 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return this.openEdxCourseAccess.getQuizzes(filterMap);
+        return this.openEdxCourseAccess
+                .getQuizzes(filterMap)
+                .map(quizzes -> quizzes.stream()
+                        .filter(LmsAPIService.quizFilterPredicate(filterMap))
+                        .collect(Collectors.toList()));
     }
 
     @Override

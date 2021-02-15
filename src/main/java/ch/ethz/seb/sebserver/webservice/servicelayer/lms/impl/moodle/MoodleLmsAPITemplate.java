@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 
@@ -67,7 +68,11 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return this.moodleCourseAccess.getQuizzes(filterMap);
+        return this.moodleCourseAccess
+                .getQuizzes(filterMap)
+                .map(quizzes -> quizzes.stream()
+                        .filter(LmsAPIService.quizFilterPredicate(filterMap))
+                        .collect(Collectors.toList()));
     }
 
     @Override

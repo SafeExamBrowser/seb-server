@@ -115,15 +115,21 @@ public class QuizLookupList implements TemplateComposer {
     private final ResourceService resourceService;
     private final PageService pageService;
     private final int pageSize;
+    private final DateTime filterStartDate;
 
     protected QuizLookupList(
             final PageService pageService,
+            @Value("${sebserver.gui.filter.date.from.years:2}") final Integer startYearFromNow,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.widgetFactory = pageService.getWidgetFactory();
         this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
+
+        this.filterStartDate = Utils
+                .toDateTimeUTC(Utils.getMillisecondsNow())
+                .minusYears(startYearFromNow);
 
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -194,9 +200,7 @@ public class QuizLookupList implements TemplateComposer {
                                         .withFilter(new TableFilterAttribute(
                                                 CriteriaType.DATE,
                                                 QuizData.FILTER_ATTR_START_TIME,
-                                                Utils.toDateTimeUTC(Utils.getMillisecondsNow())
-                                                        .minusYears(1)
-                                                        .toString()))
+                                                this.filterStartDate.toString()))
                                         .sortable())
 
                         .withColumn(new ColumnDefinition<>(
