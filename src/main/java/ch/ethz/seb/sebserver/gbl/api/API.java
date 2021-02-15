@@ -83,7 +83,7 @@ public final class API {
 
     public static final String EXAM_API_PARAM_EXAM_ID = "examId";
 
-    public static final String EXAM_API_PARAM_CLIENT_ID = "clientId";
+    public static final String EXAM_API_PARAM_CLIENT_ID = "client_id";
 
     public static final String EXAM_API_SEB_CONNECTION_TOKEN = "SEBConnectionToken";
 
