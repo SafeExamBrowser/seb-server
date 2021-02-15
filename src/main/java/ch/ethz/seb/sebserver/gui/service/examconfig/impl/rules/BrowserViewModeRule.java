@@ -56,7 +56,9 @@ public class BrowserViewModeRule implements ValueChangeRule {
             if (KEY_TOUCH_OPTIMIZED.equals(attribute.name)) {
                 if (BooleanUtils.toBoolean(value.value)) {
                     context.disableGroup(KEY_MAIN_WINDOW_GROUP);
-                    context.setValue(KEY_BROWSER_VIEW_MODE, "2");
+                    context.setValue(
+                            KEY_BROWSER_VIEW_MODE,
+                            context.getAttributeByName(KEY_BROWSER_VIEW_MODE).defaultValue);
                 } else {
                     context.setValue(KEY_TOUCH_EXIT, Constants.FALSE_STRING);
                     context.disable(KEY_TOUCH_EXIT);
@@ -70,7 +72,9 @@ public class BrowserViewModeRule implements ValueChangeRule {
                     case 1: {
                         context.disable(KEY_TOUCH_EXIT);
                         context.disableGroup(KEY_MAIN_WINDOW_GROUP);
-                        context.setValue(KEY_TOUCH_OPTIMIZED, Constants.FALSE_STRING);
+                        context.setValue(
+                                KEY_TOUCH_OPTIMIZED,
+                                context.getAttributeByName(KEY_TOUCH_OPTIMIZED).defaultValue);
                         break;
                     }
                     case 2: {
@@ -79,7 +83,9 @@ public class BrowserViewModeRule implements ValueChangeRule {
                     }
                     default: {
                         context.disable(KEY_TOUCH_EXIT);
-                        context.setValue(KEY_TOUCH_OPTIMIZED, Constants.FALSE_STRING);
+                        context.setValue(
+                                KEY_TOUCH_OPTIMIZED,
+                                context.getAttributeByName(KEY_TOUCH_OPTIMIZED).defaultValue);
                         break;
                     }
                 }
