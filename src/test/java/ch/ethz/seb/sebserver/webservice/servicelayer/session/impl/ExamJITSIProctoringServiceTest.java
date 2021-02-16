@@ -18,7 +18,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnection;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 
 public class ExamJITSIProctoringServiceTest {
@@ -63,7 +63,7 @@ public class ExamJITSIProctoringServiceTest {
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn("fbvgeghergrgrthrehreg123");
         final ExamJITSIProctoringService examJITSIProctoringService =
                 new ExamJITSIProctoringService(null, null, null, cryptorMock);
-        final SEBProctoringConnectionData data = examJITSIProctoringService.createProctoringConnectionData(
+        final SEBProctoringConnection data = examJITSIProctoringService.createProctoringConnection(
                 ProctoringServerType.JITSI_MEET,
                 "connectionToken",
                 "https://seb-jitsi.example.ch",

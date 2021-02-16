@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
@@ -196,9 +196,9 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getExamProctoring(examId)
                     .getOrThrow();
 
-            final SEBProctoringConnectionData proctoringData =
+            final SEBProctoringConnection proctoringData =
                     this.examAdminService.getExamProctoringService(proctoringSettings.serverType)
-                            .flatMap(s -> s.getClientExamCollectingRoomConnectionData(
+                            .flatMap(s -> s.getClientExamCollectingRoomConnection(
                                     proctoringSettings,
                                     connectionToken,
                                     roomName,

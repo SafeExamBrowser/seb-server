@@ -10,7 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -33,36 +33,28 @@ public interface ExamProctoringService {
      * @param roomName the name of the room
      * @param subject name of the room
      * @return SEBProctoringConnectionData that contains all connection data */
-    Result<SEBProctoringConnectionData> createProctorPublicRoomConnection(
+    Result<SEBProctoringConnection> createProctorPublicRoomConnection(
             final ProctoringSettings proctoringSettings,
             final String roomName,
             final String subject);
 
-    Result<SEBProctoringConnectionData> getClientExamCollectingRoomConnectionData(
-            final ProctoringSettings proctoringSettings,
-            final String connectionToken);
-
-    Result<SEBProctoringConnectionData> getClientExamCollectingRoomConnectionData(
+    Result<SEBProctoringConnection> getClientExamCollectingRoomConnection(
             final ProctoringSettings proctoringSettings,
             final ClientConnection connection);
 
-    Result<SEBProctoringConnectionData> getClientExamCollectingRoomConnectionData(
+    Result<SEBProctoringConnection> getClientExamCollectingRoomConnection(
             final ProctoringSettings proctoringSettings,
             final String connectionToken,
             final String roomName,
             final String subject);
 
-    Result<SEBProctoringConnectionData> getClientRoomConnectionData(
-            final ProctoringSettings proctoringSettings,
-            final String connectionToken);
-
-    Result<SEBProctoringConnectionData> getClientRoomConnectionData(
+    Result<SEBProctoringConnection> getClientRoomConnection(
             final ProctoringSettings examProctoring,
             final String connectionToken,
             final String roomName,
             final String subject);
 
-    Result<SEBProctoringConnectionData> createProctoringConnectionData(
+    Result<SEBProctoringConnection> createProctoringConnection(
             final ProctoringServerType proctoringServerType,
             final String connectionToken,
             final String url,
