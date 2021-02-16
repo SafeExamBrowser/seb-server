@@ -104,133 +104,92 @@ public class SEBExamConfigImportPopup {
             final Control fieldControl = form.getFieldInput(API.IMPORT_FILE_ATTR_NAME);
             final PageContext context = formHandle.getContext();
 
-            // Ad-hoc field validation
-            if (newConfig) {
-                formHandle.process(name -> true, Form.FormFieldAccessor::resetError);
-                final String fieldValue = form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_NAME);
-                if (StringUtils.isBlank(fieldValue)) {
-                    form.setFieldError(
-                            Domain.CONFIGURATION_NODE.ATTR_NAME,
-                            this.pageService
-                                    .getI18nSupport()
-                                    .getText(new LocTextKey("sebserver.form.validation.fieldError.notNull")));
-                    return false;
-                } else if (fieldValue.length() < 3 || fieldValue.length() > 255) {
-                    form.setFieldError(
-                            Domain.CONFIGURATION_NODE.ATTR_NAME,
-                            this.pageService
-                                    .getI18nSupport()
-                                    .getText(new LocTextKey("sebserver.form.validation.fieldError.size",
-                                            null,
-                                            null,
-                                            null,
-                                            3,
-                                            255)));
-                    return false;
-                } else {
-                    // check if name already exists
-                    try {
-                        if (this.pageService.getRestService()
-                                .getBuilder(GetExamConfigNodeNames.class)
-                                .call()
-                                .getOrThrow()
-                                .stream()
-                                .filter(n -> n.name.equals(fieldValue))
-                                .findFirst()
-                                .isPresent()) {
-
-                            form.setFieldError(
-                                    Domain.CONFIGURATION_NODE.ATTR_NAME,
-                                    this.pageService
-                                            .getI18nSupport()
-                                            .getText(new LocTextKey(
-                                                    "sebserver.form.validation.fieldError.name.notunique")));
-                            return false;
-                        }
-                    } catch (final Exception e) {
-                        log.error("Failed to verify unique name: {}", e.getMessage());
-                    }
-                }
+            if (!(fieldControl instanceof FileUploadSelection)) {
+                return false;
             }
 
-            if (fieldControl instanceof FileUploadSelection) {
-                final FileUploadSelection fileUpload = (FileUploadSelection) fieldControl;
-                final InputStream inputStream = fileUpload.getInputStream();
-                if (inputStream != null) {
-                    final RestCall<Configuration>.RestCallBuilder restCall = (newConfig)
-                            ? this.pageService.getRestService()
-                                    .getBuilder(ImportNewExamConfig.class)
-                            : this.pageService.getRestService()
-                                    .getBuilder(ImportExamConfigOnExistingConfig.class);
+            if (!checkInput(formHandle, newConfig, form)) {
+                return false;
+            }
 
+            final FileUploadSelection fileUpload = (FileUploadSelection) fieldControl;
+            final InputStream inputStream = fileUpload.getInputStream();
+            if (inputStream != null) {
+                final RestCall<Configuration>.RestCallBuilder restCall = (newConfig)
+                        ? this.pageService.getRestService()
+                                .getBuilder(ImportNewExamConfig.class)
+                        : this.pageService.getRestService()
+                                .getBuilder(ImportExamConfigOnExistingConfig.class);
+
+                restCall
+                        .withHeader(
+                                API.IMPORT_PASSWORD_ATTR_NAME,
+                                form.getFieldValue(API.IMPORT_PASSWORD_ATTR_NAME))
+                        .withBody(inputStream);
+
+                if (newConfig) {
                     restCall
                             .withHeader(
-                                    API.IMPORT_PASSWORD_ATTR_NAME,
-                                    form.getFieldValue(API.IMPORT_PASSWORD_ATTR_NAME))
-                            .withBody(inputStream);
+                                    Domain.CONFIGURATION_NODE.ATTR_NAME,
+                                    form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_NAME))
+                            .withHeader(
+                                    Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
+                                    form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION))
+                            .withHeader(
+                                    Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
+                                    form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID));
+                } else {
+                    restCall.withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId);
+                }
 
-                    if (newConfig) {
-                        restCall
-                                .withHeader(
-                                        Domain.CONFIGURATION_NODE.ATTR_NAME,
-                                        form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_NAME))
-                                .withHeader(
-                                        Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION,
-                                        form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION))
-                                .withHeader(
-                                        Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
-                                        form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID));
-                    } else {
-                        restCall.withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId);
-                    }
+                final Result<Configuration> configuration = restCall
+                        .call();
 
-                    final Result<Configuration> configuration = restCall
-                            .call();
-
-                    if (!configuration.hasError()) {
-                        context.publishInfo(SEBExamConfigForm.FORM_IMPORT_CONFIRM_TEXT_KEY);
-                        if (newConfig) {
-
-                            final PageAction action = this.pageService.pageActionBuilder(context)
+                if (!configuration.hasError()) {
+                    context.publishInfo(SEBExamConfigForm.FORM_IMPORT_CONFIRM_TEXT_KEY);
+                    final PageAction action = (newConfig)
+                            ? this.pageService.pageActionBuilder(context)
                                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
+                                    .create()
+                            : this.pageService.pageActionBuilder(context)
+                                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
                                     .create();
 
-                            this.pageService.firePageEvent(
-                                    new ActionEvent(action),
-                                    action.pageContext());
-                        }
-                    } else {
-                        final Exception error = configuration.getError();
-                        if (error instanceof RestCallError) {
-                            ((RestCallError) error)
-                                    .getErrorMessages()
-                                    .stream()
-                                    .findFirst()
-                                    .ifPresent(message -> {
-                                        if (APIMessage.ErrorMessage.MISSING_PASSWORD.isOf(message)) {
-                                            formHandle
-                                                    .getContext()
-                                                    .publishPageMessage(MISSING_PASSWORD);
-                                        } else {
-                                            formHandle
-                                                    .getContext()
-                                                    .notifyImportError(EntityType.CONFIGURATION_NODE, error);
-                                        }
-                                    });
-                            return true;
-                        }
+                    this.pageService.firePageEvent(
+                            new ActionEvent(action),
+                            action.pageContext());
 
-                        formHandle.getContext().notifyError(
-                                SEBExamConfigForm.FORM_TITLE,
-                                configuration.getError());
-
-                    }
-                    return true;
                 } else {
-                    formHandle.getContext().publishPageMessage(
-                            new LocTextKey("sebserver.error.unexpected"),
-                            new LocTextKey("Please select a valid SEB Exam Configuration File"));
+                    final Exception error = configuration.getError();
+                    if (error instanceof RestCallError) {
+                        ((RestCallError) error)
+                                .getErrorMessages()
+                                .stream()
+                                .findFirst()
+                                .ifPresent(message -> {
+                                    if (APIMessage.ErrorMessage.MISSING_PASSWORD.isOf(message)) {
+                                        formHandle
+                                                .getContext()
+                                                .publishPageMessage(MISSING_PASSWORD);
+                                    } else {
+                                        formHandle
+                                                .getContext()
+                                                .notifyImportError(EntityType.CONFIGURATION_NODE, error);
+                                    }
+                                });
+                        return true;
+                    }
+
+                    formHandle.getContext().notifyError(
+                            SEBExamConfigForm.FORM_TITLE,
+                            configuration.getError());
+
                 }
+                return true;
+            } else {
+                formHandle.getContext().publishPageMessage(
+                        new LocTextKey("sebserver.error.unexpected"),
+                        new LocTextKey("Please select a valid SEB Exam Configuration File"));
             }
 
             return false;
@@ -238,6 +197,58 @@ public class SEBExamConfigImportPopup {
             formHandle.getContext().notifyError(SEBExamConfigForm.FORM_TITLE, e);
             return true;
         }
+    }
+
+    private boolean checkInput(final FormHandle<ConfigurationNode> formHandle, final boolean newConfig,
+            final Form form) {
+        if (newConfig) {
+            formHandle.process(name -> true, Form.FormFieldAccessor::resetError);
+            final String fieldValue = form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_NAME);
+            if (StringUtils.isBlank(fieldValue)) {
+                form.setFieldError(
+                        Domain.CONFIGURATION_NODE.ATTR_NAME,
+                        this.pageService
+                                .getI18nSupport()
+                                .getText(new LocTextKey("sebserver.form.validation.fieldError.notNull")));
+                return false;
+            } else if (fieldValue.length() < 3 || fieldValue.length() > 255) {
+                form.setFieldError(
+                        Domain.CONFIGURATION_NODE.ATTR_NAME,
+                        this.pageService
+                                .getI18nSupport()
+                                .getText(new LocTextKey("sebserver.form.validation.fieldError.size",
+                                        null,
+                                        null,
+                                        null,
+                                        3,
+                                        255)));
+                return false;
+            } else {
+                // check if name already exists
+                try {
+                    if (this.pageService.getRestService()
+                            .getBuilder(GetExamConfigNodeNames.class)
+                            .call()
+                            .getOrThrow()
+                            .stream()
+                            .filter(n -> n.name.equals(fieldValue))
+                            .findFirst()
+                            .isPresent()) {
+
+                        form.setFieldError(
+                                Domain.CONFIGURATION_NODE.ATTR_NAME,
+                                this.pageService
+                                        .getI18nSupport()
+                                        .getText(new LocTextKey(
+                                                "sebserver.form.validation.fieldError.name.notunique")));
+                        return false;
+                    }
+                } catch (final Exception e) {
+                    log.error("Failed to verify unique name: {}", e.getMessage());
+                }
+            }
+        }
+        return true;
     }
 
     private final class ImportFormContext implements ModalInputDialogComposer<FormHandle<ConfigurationNode>> {

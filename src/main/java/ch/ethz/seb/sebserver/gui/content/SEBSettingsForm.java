@@ -255,7 +255,6 @@ public class SEBSettingsForm implements TemplateComposer {
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
                     .withEntityKey(entityKey)
                     .withExec(this.sebExamConfigImportPopup.importFunction(false))
-                    .noEventPropagation()
                     .publishIf(() -> examConfigGrant.iw() && !readonly && !isAttachedToExam)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)
