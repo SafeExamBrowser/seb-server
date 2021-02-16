@@ -245,13 +245,6 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 
-//                // TODO shall this got to settings form?
-//                .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
-//                .withEntityKey(entityKey)
-//                .withExec(this.sebExamConfigImportPopup.importFunction(false))
-//                .noEventPropagation()
-//                .publishIf(() -> modifyGrant && isReadonly && !isAttachedToExam)
-
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_PROP_SAVE)
                 .withEntityKey(entityKey)
                 .withExec(formHandle::processFormSave)

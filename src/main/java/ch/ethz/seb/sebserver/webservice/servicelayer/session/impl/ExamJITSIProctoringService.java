@@ -25,7 +25,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -46,7 +46,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
             "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
 
     private static final String JITSI_ACCESS_TOKEN_PAYLOAD =
-            "{\"context\":{\"user\":{\"name\":\"%s\"}},\"iss\":\"%s\",\"aud\":\"%s\",\"sub\":\"%s\",\"room\":\"%s\"%s}";
+            "{\"context\":{\"user\":{\"name\":\"%s\"}},\"iss\":\"%s\",\"aud\":\"%s\",\"sub\":\"%s\",\"room\":\"%s\"%s%s}";
 
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final AuthorizationService authorizationService;
@@ -77,13 +77,13 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
     }
 
     @Override
-    public Result<SEBProctoringConnectionData> createProctorPublicRoomConnection(
+    public Result<SEBProctoringConnection> createProctorPublicRoomConnection(
             final ProctoringSettings proctoringSettings,
             final String roomName,
             final String subject) {
 
         return Result.tryCatch(() -> {
-            return createProctoringConnectionData(
+            return createProctoringConnection(
                     proctoringSettings.serverType,
                     null,
                     proctoringSettings.serverURL,
@@ -93,25 +93,14 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     "seb-server",
                     roomName,
                     subject,
-                    forExam(proctoringSettings))
+                    forExam(proctoringSettings),
+                    true)
                             .getOrThrow();
         });
     }
 
     @Override
-    public Result<SEBProctoringConnectionData> getClientExamCollectingRoomConnectionData(
-            final ProctoringSettings proctoringSettings,
-            final String connectionToken) {
-
-        return this.examSessionService
-                .getConnectionData(connectionToken)
-                .flatMap(connection -> getClientExamCollectingRoomConnectionData(
-                        proctoringSettings,
-                        connection.clientConnection));
-    }
-
-    @Override
-    public Result<SEBProctoringConnectionData> getClientExamCollectingRoomConnectionData(
+    public Result<SEBProctoringConnection> getClientExamCollectingRoomConnection(
             final ProctoringSettings proctoringSettings,
             final ClientConnection connection) {
 
@@ -121,7 +110,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     .getRoomName(connection.getRemoteProctoringRoomId())
                     .getOrThrow();
 
-            return createProctoringConnectionData(
+            return createProctoringConnection(
                     proctoringSettings.serverType,
                     null,
                     proctoringSettings.serverURL,
@@ -131,13 +120,14 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     "seb-client",
                     roomName,
                     connection.userSessionId,
-                    forExam(proctoringSettings))
+                    forExam(proctoringSettings),
+                    false)
                             .getOrThrow();
         });
     }
 
     @Override
-    public Result<SEBProctoringConnectionData> getClientExamCollectingRoomConnectionData(
+    public Result<SEBProctoringConnection> getClientExamCollectingRoomConnection(
             final ProctoringSettings proctoringSettings,
             final String connectionToken,
             final String roomName,
@@ -148,7 +138,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     .getConnectionData(connectionToken)
                     .getOrThrow();
 
-            return createProctoringConnectionData(
+            return createProctoringConnection(
                     proctoringSettings.serverType,
                     null,
                     proctoringSettings.serverURL,
@@ -158,35 +148,14 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     "seb-client",
                     roomName,
                     subject,
-                    forExam(proctoringSettings))
+                    forExam(proctoringSettings),
+                    false)
                             .getOrThrow();
         });
     }
 
     @Override
-    public Result<SEBProctoringConnectionData> getClientRoomConnectionData(
-            final ProctoringSettings proctoringSettings,
-            final String connectionToken) {
-
-        return Result.tryCatch(() -> this.examSessionService
-                .getConnectionData(connectionToken)
-                .getOrThrow()
-
-        ).flatMap(clientConnection -> {
-            final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
-            final String roomName = urlEncoder.encodeToString(
-                    Utils.toByteArray(clientConnection.clientConnection.connectionToken));
-
-            return getClientRoomConnectionData(
-                    proctoringSettings,
-                    connectionToken,
-                    roomName,
-                    clientConnection.clientConnection.userSessionId);
-        });
-    }
-
-    @Override
-    public Result<SEBProctoringConnectionData> getClientRoomConnectionData(
+    public Result<SEBProctoringConnection> getClientRoomConnection(
             final ProctoringSettings proctoringSettings,
             final String connectionToken,
             final String roomName,
@@ -199,7 +168,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     .getConnectionData(connectionToken)
                     .getOrThrow();
 
-            return createProctoringConnectionData(
+            return createProctoringConnection(
                     proctoringSettings.serverType,
                     connectionToken,
                     proctoringSettings.serverURL,
@@ -209,14 +178,15 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     "seb-client",
                     roomName,
                     subject,
-                    expTime)
+                    expTime,
+                    false)
                             .getOrThrow();
         });
 
     }
 
     @Override
-    public Result<SEBProctoringConnectionData> createProctoringConnectionData(
+    public Result<SEBProctoringConnection> createProctoringConnection(
             final ProctoringServerType proctoringServerType,
             final String connectionToken,
             final String url,
@@ -226,7 +196,8 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
             final String clientKey,
             final String roomName,
             final String subject,
-            final Long expTime) {
+            final Long expTime,
+            final boolean moderator) {
 
         return Result.tryCatch(() -> {
 
@@ -242,9 +213,10 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     clientKey,
                     roomName,
                     expTime,
-                    host);
+                    host,
+                    moderator);
 
-            return new SEBProctoringConnectionData(
+            return new SEBProctoringConnection(
                     proctoringServerType,
                     connectionToken,
                     host,
@@ -279,34 +251,27 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     "seb-client",
                     roomName,
                     forExam(proctoringSettings),
-                    host);
+                    host,
+                    false);
         });
     }
 
-    private String internalCreateAccessToken(
+    protected String internalCreateAccessToken(
             final String appKey,
             final CharSequence appSecret,
             final String clientName,
             final String clientKey,
             final String roomName,
             final Long expTime,
-            final String host) throws NoSuchAlgorithmException, InvalidKeyException {
+            final String host,
+            final boolean moderator) throws NoSuchAlgorithmException, InvalidKeyException {
 
         final StringBuilder builder = new StringBuilder();
         final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
 
         final String jwtHeaderPart = urlEncoder
                 .encodeToString(JITSI_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
-        final String jwtPayload = String.format(
-                JITSI_ACCESS_TOKEN_PAYLOAD.replaceAll(" ", "").replaceAll("\n", ""),
-                clientName,
-                appKey,
-                clientKey,
-                host,
-                roomName,
-                (expTime != null)
-                        ? String.format(",\"exp\":%s", String.valueOf(expTime))
-                        : "");
+        final String jwtPayload = createPayload(appKey, clientName, clientKey, roomName, expTime, host, moderator);
         final String jwtPayloadPart = urlEncoder
                 .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
         final String message = jwtHeaderPart + "." + jwtPayloadPart;
@@ -322,6 +287,31 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                 .append(hash);
 
         return builder.toString();
+    }
+
+    protected String createPayload(
+            final String appKey,
+            final String clientName,
+            final String clientKey,
+            final String roomName,
+            final Long expTime,
+            final String host,
+            final boolean moderator) {
+
+        final String jwtPayload = String.format(
+                JITSI_ACCESS_TOKEN_PAYLOAD.replaceAll(" ", "").replaceAll("\n", ""),
+                clientName,
+                appKey,
+                clientKey,
+                host,
+                roomName,
+                (moderator)
+                        ? ",\"moderator\":true"
+                        : ",\"moderator\":false",
+                (expTime != null)
+                        ? String.format(",\"exp\":%s", String.valueOf(expTime))
+                        : "");
+        return jwtPayload;
     }
 
     private long forExam(final ProctoringSettings examProctoring) {

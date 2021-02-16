@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SEBProctoringConnectionData {
+public class SEBProctoringConnection {
 
     public static final String ATTR_CONNECTION_TOKEN = "connectionToken";
     public static final String ATTR_SERVER_HOST = "serverHost";
@@ -47,7 +47,7 @@ public class SEBProctoringConnectionData {
     public final String accessToken;
 
     @JsonCreator
-    public SEBProctoringConnectionData(
+    public SEBProctoringConnection(
             @JsonProperty(ProctoringSettings.ATTR_SERVER_TYPE) final ProctoringServerType proctoringServerType,
             @JsonProperty(ATTR_CONNECTION_TOKEN) final String connectionToken,
             @JsonProperty(ATTR_SERVER_HOST) final String serverHost,

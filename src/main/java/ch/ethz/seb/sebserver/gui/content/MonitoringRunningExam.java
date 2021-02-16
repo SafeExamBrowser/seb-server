@@ -44,7 +44,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -445,7 +445,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             String activeAllRoomName = proctoringGUIService.getTownhallRoom(examId.modelId);
 
             if (activeAllRoomName == null) {
-                final SEBProctoringConnectionData proctoringConnectionData = proctoringGUIService
+                final SEBProctoringConnection proctoringConnectionData = proctoringGUIService
                         .registerTownhallRoom(
                                 examId.modelId,
                                 this.pageService.getI18nSupport().getText(EXAM_ROOM_NAME))
@@ -642,12 +642,12 @@ public class MonitoringRunningExam implements TemplateComposer {
             final RemoteProctoringRoom room,
             final PageAction action) {
 
-        final SEBProctoringConnectionData proctoringConnectionData = this.pageService
+        final SEBProctoringConnection proctoringConnectionData = this.pageService
                 .getRestService()
                 .getBuilder(GetProctorRoomConnectionData.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
-                .withQueryParam(SEBProctoringConnectionData.ATTR_ROOM_NAME, room.name)
-                .withQueryParam(SEBProctoringConnectionData.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
+                .withQueryParam(SEBProctoringConnection.ATTR_ROOM_NAME, room.name)
+                .withQueryParam(SEBProctoringConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
                 .call()
                 .getOrThrow();
 
