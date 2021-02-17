@@ -33,7 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
@@ -350,7 +350,7 @@ public class ExamForm implements TemplateComposer {
                 .getBuilder(GetProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
-                .map(ProctoringSettings::getEnableProctoring)
+                .map(ProctoringServiceSettings::getEnableProctoring)
                 .getOr(false);
 
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(formContext

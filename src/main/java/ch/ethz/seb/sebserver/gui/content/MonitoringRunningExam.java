@@ -43,8 +43,8 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnection;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -76,7 +76,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProcotringRooms;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnectionData;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetTownhallRoom;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
@@ -349,7 +349,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         }
 
-        final ProctoringSettings proctoringSettings = restService
+        final ProctoringServiceSettings proctoringSettings = restService
                 .getBuilder(GetProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
@@ -445,7 +445,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             String activeAllRoomName = proctoringGUIService.getTownhallRoom(examId.modelId);
 
             if (activeAllRoomName == null) {
-                final SEBProctoringConnection proctoringConnectionData = proctoringGUIService
+                final ProctoringRoomConnection proctoringConnectionData = proctoringGUIService
                         .registerTownhallRoom(
                                 examId.modelId,
                                 this.pageService.getI18nSupport().getText(EXAM_ROOM_NAME))
@@ -528,7 +528,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             final PageContext pageContext,
             final Map<String, Pair<RemoteProctoringRoom, TreeItem>> rooms,
             final PageActionBuilder actionBuilder,
-            final ProctoringSettings proctoringSettings) {
+            final ProctoringServiceSettings proctoringSettings) {
 
         updateTownhallButton(entityKey, pageContext);
         final I18nSupport i18nSupport = this.pageService.getI18nSupport();
@@ -638,16 +638,16 @@ public class MonitoringRunningExam implements TemplateComposer {
     }
 
     private PageAction showExamProctoringRoom(
-            final ProctoringSettings proctoringSettings,
+            final ProctoringServiceSettings proctoringSettings,
             final RemoteProctoringRoom room,
             final PageAction action) {
 
-        final SEBProctoringConnection proctoringConnectionData = this.pageService
+        final ProctoringRoomConnection proctoringConnectionData = this.pageService
                 .getRestService()
-                .getBuilder(GetProctorRoomConnectionData.class)
+                .getBuilder(GetProctorRoomConnection.class)
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
-                .withQueryParam(SEBProctoringConnection.ATTR_ROOM_NAME, room.name)
-                .withQueryParam(SEBProctoringConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
+                .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
+                .withQueryParam(ProctoringRoomConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
                 .call()
                 .getOrThrow();
 

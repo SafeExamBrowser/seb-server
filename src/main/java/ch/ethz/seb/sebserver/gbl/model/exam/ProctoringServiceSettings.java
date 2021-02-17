@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.ValidProctoringS
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @ValidProctoringSettings
-public class ProctoringSettings implements Entity {
+public class ProctoringServiceSettings implements Entity {
 
     public enum ProctoringServerType {
         JITSI_MEET
@@ -59,7 +59,7 @@ public class ProctoringSettings implements Entity {
     public final Integer collectingRoomSize;
 
     @JsonCreator
-    public ProctoringSettings(
+    public ProctoringServiceSettings(
             @JsonProperty(Domain.EXAM.ATTR_ID) final Long examId,
             @JsonProperty(ATTR_ENABLE_PROCTORING) final Boolean enableProctoring,
             @JsonProperty(ATTR_SERVER_TYPE) final ProctoringServerType serverType,
@@ -137,7 +137,7 @@ public class ProctoringSettings implements Entity {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final ProctoringSettings other = (ProctoringSettings) obj;
+        final ProctoringServiceSettings other = (ProctoringServiceSettings) obj;
         if (this.examId == null) {
             if (other.examId != null)
                 return false;

@@ -9,8 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 
@@ -41,46 +41,48 @@ public interface ExamAdminService {
      * @return Result refer to the restriction flag or to an error when happened */
     Result<Boolean> isRestricted(Exam exam);
 
-    /** Get ExamProctoring data for a certain exam to an error when happened.
+    /** Get the proctoring service settings for a certain exam to an error when happened.
      *
      * @param examId the exam instance
-     * @return Result refer to ExamProctoring data for the exam. */
-    default Result<ProctoringSettings> getExamProctoringSettings(final Exam exam) {
+     * @return Result refer to proctoring service settings for the exam. */
+    default Result<ProctoringServiceSettings> getProctoringServiceSettings(final Exam exam) {
         if (exam == null || exam.id == null) {
             return Result.ofRuntimeError("Invalid Exam model");
         }
-        return getExamProctoringSettings(exam.id);
+        return getProctoringServiceSettings(exam.id);
     }
 
-    /** Get ExamProctoring data for a certain exam to an error when happened.
+    /** Get proctoring service settings for a certain exam to an error when happened.
      *
      * @param examId the exam identifier
-     * @return Result refer to ExamProctoring data for the exam. */
-    Result<ProctoringSettings> getExamProctoringSettings(Long examId);
+     * @return Result refer to proctoring service settings for the exam. */
+    Result<ProctoringServiceSettings> getProctoringServiceSettings(Long examId);
 
-    /** Save the given ExamProctoring data for an existing Exam.
+    /** Save the given proctoring service settings for an existing Exam.
      *
      * @param examId the exam identifier
-     * @param examProctoring The ExamProctoring data to save for the exam
-     * @return Result refer to saved ExamProctoring data or to an error when happened. */
-    Result<ProctoringSettings> saveExamProctoringSettings(Long examId, ProctoringSettings examProctoring);
+     * @param examProctoring The proctoring service settings to save for the exam
+     * @return Result refer to saved proctoring service settings or to an error when happened. */
+    Result<ProctoringServiceSettings> saveProctoringServiceSettings(
+            Long examId,
+            ProctoringServiceSettings examProctoring);
 
     /** This indicates if proctoring is set and enabled for a certain exam.
      *
      * @param examId the exam instance
      * @return Result refer to proctoring is enabled flag or to an error when happened. */
-    default Result<Boolean> isExamProctoringEnabled(final Exam exam) {
+    default Result<Boolean> isProctoringEnabled(final Exam exam) {
         if (exam == null || exam.id == null) {
             return Result.ofRuntimeError("Invalid Exam model");
         }
-        return isExamProctoringEnabled(exam.id);
+        return isProctoringEnabled(exam.id);
     }
 
     /** This indicates if proctoring is set and enabled for a certain exam.
      *
      * @param examId the exam identifier
      * @return Result refer to proctoring is enabled flag or to an error when happened. */
-    Result<Boolean> isExamProctoringEnabled(final Long examId);
+    Result<Boolean> isProctoringEnabled(final Long examId);
 
     /** Get the exam proctoring service implementation of specified type.
      *
@@ -92,18 +94,25 @@ public interface ExamAdminService {
      *
      * @param settings the ProctoringSettings that defines the ProctoringServerType
      * @return ExamProctoringService instance */
-    default Result<ExamProctoringService> getExamProctoringService(final ProctoringSettings settings) {
+    default Result<ExamProctoringService> getExamProctoringService(final ProctoringServiceSettings settings) {
         return Result.tryCatch(() -> getExamProctoringService(settings.serverType).getOrThrow());
     }
 
+    /** Get the exam proctoring service implementation for specified exam.
+     *
+     * @param exam the exam instance
+     * @return ExamProctoringService instance */
     default Result<ExamProctoringService> getExamProctoringService(final Exam exam) {
         return Result.tryCatch(() -> getExamProctoringService(exam.id).getOrThrow());
     }
 
+    /** Get the exam proctoring service implementation for specified exam.
+     *
+     * @param examId the exam identifier
+     * @return ExamProctoringService instance */
     default Result<ExamProctoringService> getExamProctoringService(final Long examId) {
-        return getExamProctoringSettings(examId)
+        return getProctoringServiceSettings(examId)
                 .flatMap(this::getExamProctoringService);
-
     }
 
 }

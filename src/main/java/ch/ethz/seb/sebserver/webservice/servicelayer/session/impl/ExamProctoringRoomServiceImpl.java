@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -71,11 +71,13 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     @Override
     public void updateProctoringCollectingRooms() {
         try {
+            // Applying to collecting room
             this.clientConnectionDAO.getAllConnectionIdsForRoomUpdateActive()
                     .getOrThrow()
                     .stream()
                     .forEach(this::assignToCollectingRoom);
 
+            // Dispose form collecting room
             this.clientConnectionDAO.getAllConnectionIdsForRoomUpdateInactive()
                     .getOrThrow()
                     .stream()
@@ -156,8 +158,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
     private RemoteProctoringRoom getProctoringRoom(final Long examId, final String connectionToken) {
         try {
-            final ProctoringSettings proctoringSettings = this.examAdminService
-                    .getExamProctoringSettings(examId)
+            final ProctoringServiceSettings proctoringSettings = this.examAdminService
+                    .getProctoringServiceSettings(examId)
                     .getOrThrow();
             return this.remoteProctoringRoomDAO.reservePlaceInCollectingRoom(
                     examId,
@@ -181,7 +183,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final String subject) {
 
         return this.examAdminService
-                .getExamProctoringSettings(examId)
+                .getProctoringServiceSettings(examId)
                 .flatMap(proctoringSettings -> this.examAdminService
                         .getExamProctoringService(proctoringSettings.serverType)
                         .getOrThrow()

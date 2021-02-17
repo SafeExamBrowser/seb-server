@@ -50,7 +50,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -386,7 +386,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ProctoringSettings getExamProctoring(
+    public ProctoringServiceSettings getProctoringServiceSettings(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -396,7 +396,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         checkReadPrivilege(institutionId);
         return this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkRead)
-                .flatMap(this.examAdminService::getExamProctoringSettings)
+                .flatMap(this.examAdminService::getProctoringServiceSettings)
                 .getOrThrow();
     }
 
@@ -405,19 +405,19 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Exam saveExamProctoring(
+    public Exam saveProctoringServiceSettings(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-            @Valid @RequestBody final ProctoringSettings examProctoring) {
+            @Valid @RequestBody final ProctoringServiceSettings examProctoring) {
 
         checkModifyPrivilege(institutionId);
         return this.entityDAO.byPK(examId)
                 .flatMap(this.authorization::checkModify)
                 .map(exam -> {
-                    this.examAdminService.saveExamProctoringSettings(examId, examProctoring);
+                    this.examAdminService.saveProctoringServiceSettings(examId, examProctoring);
                     return exam;
                 })
                 .flatMap(this.userActivityLogDAO::logModify)

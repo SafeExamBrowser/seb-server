@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.page;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 
 public interface RemoteProctoringView extends TemplateComposer {
 

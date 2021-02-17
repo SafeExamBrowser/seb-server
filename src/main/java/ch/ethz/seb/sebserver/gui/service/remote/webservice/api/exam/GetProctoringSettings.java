@@ -17,20 +17,20 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetProctoringSettings extends RestCall<ProctoringSettings> {
+public class GetProctoringSettings extends RestCall<ProctoringServiceSettings> {
 
     public GetProctoringSettings() {
         super(new TypeKey<>(
                 CallType.GET_SINGLE,
                 EntityType.EXAM_PROCTOR_DATA,
-                new TypeReference<ProctoringSettings>() {
+                new TypeReference<ProctoringServiceSettings>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_JSON,

@@ -307,7 +307,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             final Boolean proctoringEnabled = this.examAdminService
-                    .isExamProctoringEnabled(clientConnection.examId)
+                    .isProctoringEnabled(clientConnection.examId)
                     .getOr(false);
             final Long currentExamId = (examId != null) ? examId : clientConnection.examId;
             final String currentVdiConnectionId = (clientId != null)
@@ -714,7 +714,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
     private ClientConnection saveInState(final ClientConnection clientConnection, final ConnectionStatus status) {
         final Boolean proctoringEnabled = this.examAdminService
-                .isExamProctoringEnabled(clientConnection.examId)
+                .isProctoringEnabled(clientConnection.examId)
                 .getOr(false);
 
         return this.clientConnectionDAO.save(new ClientConnection(

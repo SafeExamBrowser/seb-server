@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnection;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ActivateTownhallRoom;
@@ -82,7 +82,7 @@ public class ProctoringGUIService {
 
     public static void setCurrentProctoringWindowData(
             final String examId,
-            final SEBProctoringConnection data) {
+            final ProctoringRoomConnection data) {
 
         RWT.getUISession().getHttpSession().setAttribute(
                 SESSION_ATTR_PROCTORING_DATA,
@@ -103,7 +103,7 @@ public class ProctoringGUIService {
                 .orElseGet(() -> null);
     }
 
-    public Result<SEBProctoringConnection> registerNewSingleProcotringRoom(
+    public Result<ProctoringRoomConnection> registerNewSingleProcotringRoom(
             final String examId,
             final String roomName,
             final String subject,
@@ -111,8 +111,8 @@ public class ProctoringGUIService {
 
         return this.restService.getBuilder(SendJoinRemoteProctoringRoom.class)
                 .withURIVariable(API.PARAM_MODEL_ID, examId)
-                .withFormParam(SEBProctoringConnection.ATTR_ROOM_NAME, roomName)
-                .withFormParam(SEBProctoringConnection.ATTR_SUBJECT, subject)
+                .withFormParam(ProctoringRoomConnection.ATTR_ROOM_NAME, roomName)
+                .withFormParam(ProctoringRoomConnection.ATTR_SUBJECT, subject)
                 .withFormParam(API.EXAM_API_SEB_CONNECTION_TOKEN, connectionToken)
                 .call()
                 .map(connection -> {
@@ -122,13 +122,13 @@ public class ProctoringGUIService {
                 });
     }
 
-    public Result<SEBProctoringConnection> registerTownhallRoom(
+    public Result<ProctoringRoomConnection> registerTownhallRoom(
             final String examId,
             final String subject) {
 
         return this.restService.getBuilder(ActivateTownhallRoom.class)
                 .withURIVariable(API.PARAM_MODEL_ID, examId)
-                .withFormParam(SEBProctoringConnection.ATTR_SUBJECT, subject)
+                .withFormParam(ProctoringRoomConnection.ATTR_SUBJECT, subject)
                 .call()
                 .map(connection -> {
                     this.rooms.put(
@@ -139,7 +139,7 @@ public class ProctoringGUIService {
                 });
     }
 
-    public Result<SEBProctoringConnection> registerNewProcotringRoom(
+    public Result<ProctoringRoomConnection> registerNewProcotringRoom(
             final String examId,
             final String roomName,
             final String subject,
@@ -147,8 +147,8 @@ public class ProctoringGUIService {
 
         return this.restService.getBuilder(SendJoinRemoteProctoringRoom.class)
                 .withURIVariable(API.PARAM_MODEL_ID, examId)
-                .withFormParam(SEBProctoringConnection.ATTR_ROOM_NAME, roomName)
-                .withFormParam(SEBProctoringConnection.ATTR_SUBJECT, subject)
+                .withFormParam(ProctoringRoomConnection.ATTR_ROOM_NAME, roomName)
+                .withFormParam(ProctoringRoomConnection.ATTR_SUBJECT, subject)
                 .withFormParam(
                         API.EXAM_API_SEB_CONNECTION_TOKEN,
                         StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR_CHAR))
@@ -172,7 +172,7 @@ public class ProctoringGUIService {
             }
             this.restService.getBuilder(SendJoinRemoteProctoringRoom.class)
                     .withURIVariable(API.PARAM_MODEL_ID, examId)
-                    .withFormParam(SEBProctoringConnection.ATTR_ROOM_NAME, room)
+                    .withFormParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room)
                     .withFormParam(
                             API.EXAM_API_SEB_CONNECTION_TOKEN,
                             StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR_CHAR))
@@ -288,11 +288,11 @@ public class ProctoringGUIService {
 
     public static class ProctoringWindowData {
         public final String examId;
-        public final SEBProctoringConnection connectionData;
+        public final ProctoringRoomConnection connectionData;
 
         protected ProctoringWindowData(
                 final String examId,
-                final SEBProctoringConnection connectionData) {
+                final ProctoringRoomConnection connectionData) {
             this.examId = examId;
             this.connectionData = connectionData;
         }

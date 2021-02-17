@@ -31,8 +31,8 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnection;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -64,7 +64,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPe
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetPendingClientNotifications;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProcotringRooms;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnectionData;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionDetails;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
@@ -374,7 +374,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                         connectionData.clientConnection.status == ConnectionStatus.ACTIVE);
 
         if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {
-            final ProctoringSettings procotringSettings = restService
+            final ProctoringServiceSettings procotringSettings = restService
                     .getBuilder(GetProctoringSettings.class)
                     .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
                     .call()
@@ -438,7 +438,7 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         final String examId = action.getEntityKey().modelId;
 
-        final ProctoringSettings proctoringSettings = this.pageService.getRestService()
+        final ProctoringServiceSettings proctoringSettings = this.pageService.getRestService()
                 .getBuilder(GetProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, examId)
                 .call()
@@ -455,12 +455,12 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         if (roomOptional.isPresent()) {
             final RemoteProctoringRoom room = roomOptional.get();
-            final SEBProctoringConnection proctoringConnectionData = this.pageService
+            final ProctoringRoomConnection proctoringConnectionData = this.pageService
                     .getRestService()
-                    .getBuilder(GetProctorRoomConnectionData.class)
+                    .getBuilder(GetProctorRoomConnection.class)
                     .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
-                    .withQueryParam(SEBProctoringConnection.ATTR_ROOM_NAME, room.name)
-                    .withQueryParam(SEBProctoringConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
+                    .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
+                    .withQueryParam(ProctoringRoomConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
                     .call()
                     .getOrThrow();
 
@@ -499,7 +499,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .getProctoringGUIService();
 
         if (!proctoringGUIService.hasRoom(roomName)) {
-            final SEBProctoringConnection proctoringConnectionData = proctoringGUIService
+            final ProctoringRoomConnection proctoringConnectionData = proctoringGUIService
                     .registerNewSingleProcotringRoom(
                             examId,
                             roomName,

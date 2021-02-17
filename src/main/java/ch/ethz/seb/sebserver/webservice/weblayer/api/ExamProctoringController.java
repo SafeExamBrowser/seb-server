@@ -30,8 +30,8 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnection;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
@@ -90,7 +90,7 @@ public class ExamProctoringController {
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<RemoteProctoringRoom> getProcotringCollectingRoomsOfExam(
+    public Collection<RemoteProctoringRoom> getCollectingRoomsOfExam(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -108,14 +108,14 @@ public class ExamProctoringController {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public SEBProctoringConnection getProctorRoomConnection(
+    public ProctoringRoomConnection getProctorRoomConnection(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
-            @RequestParam(name = SEBProctoringConnection.ATTR_ROOM_NAME, required = true) final String roomName,
-            @RequestParam(name = SEBProctoringConnection.ATTR_SUBJECT, required = false) final String subject) {
+            @RequestParam(name = ProctoringRoomConnection.ATTR_ROOM_NAME, required = true) final String roomName,
+            @RequestParam(name = ProctoringRoomConnection.ATTR_SUBJECT, required = false) final String subject) {
 
         checkAccess(institutionId, examId);
 
@@ -123,7 +123,7 @@ public class ExamProctoringController {
                 .flatMap(this.authorization::checkRead)
                 .flatMap(this.examAdminService::getExamProctoringService)
                 .flatMap(service -> service.getProctorRoomConnection(
-                        this.examAdminService.getExamProctoringSettings(examId).getOrThrow(),
+                        this.examAdminService.getProctoringServiceSettings(examId).getOrThrow(),
                         roomName,
                         StringUtils.isNoneBlank(subject) ? subject : roomName))
                 .getOrThrow();
@@ -135,7 +135,7 @@ public class ExamProctoringController {
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<ClientConnection> getProctorRoomConnectionData(
+    public Collection<ClientConnection> getAllClientConnectionsInRoom(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -147,7 +147,8 @@ public class ExamProctoringController {
 
         checkAccess(institutionId, examId);
 
-        return this.examProcotringRoomService.getRoomConnections(examId, roomName)
+        return this.examProcotringRoomService
+                .getRoomConnections(examId, roomName)
                 .getOrThrow();
     }
 
@@ -215,9 +216,9 @@ public class ExamProctoringController {
 
         checkAccess(institutionId, examId);
 
-        final ProctoringSettings proctoringSettings = this.examSessionService
+        final ProctoringServiceSettings proctoringSettings = this.examSessionService
                 .getRunningExam(examId)
-                .flatMap(this.examAdminService::getExamProctoringSettings)
+                .flatMap(this.examAdminService::getProctoringServiceSettings)
                 .getOrThrow();
 
         this.examAdminService
@@ -235,17 +236,17 @@ public class ExamProctoringController {
                     + API.EXAM_PROCTORING_JOIN_ROOM_PATH_SEGMENT,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public SEBProctoringConnection sendJoinProctoringRoomToClients(
+    public ProctoringRoomConnection sendJoinProctoringRoomToClients(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
             @RequestParam(
-                    name = SEBProctoringConnection.ATTR_ROOM_NAME,
+                    name = ProctoringRoomConnection.ATTR_ROOM_NAME,
                     required = true) final String roomName,
             @RequestParam(
-                    name = SEBProctoringConnection.ATTR_SUBJECT,
+                    name = ProctoringRoomConnection.ATTR_SUBJECT,
                     required = false) final String subject,
             @RequestParam(
                     name = API.EXAM_API_SEB_CONNECTION_TOKEN,
@@ -253,9 +254,9 @@ public class ExamProctoringController {
 
         checkAccess(institutionId, examId);
 
-        final ProctoringSettings settings = this.examSessionService
+        final ProctoringServiceSettings settings = this.examSessionService
                 .getRunningExam(examId)
-                .flatMap(this.examAdminService::getExamProctoringSettings)
+                .flatMap(this.examAdminService::getProctoringServiceSettings)
                 .getOrThrow();
 
         return this.examAdminService
@@ -275,7 +276,7 @@ public class ExamProctoringController {
                     + API.EXAM_PROCTORING_TOWNHALL_ROOM_DATA,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public RemoteProctoringRoom getTownhallRoomData(
+    public RemoteProctoringRoom getTownhallRoom(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -293,21 +294,21 @@ public class ExamProctoringController {
                     + API.EXAM_PROCTORING_ACTIVATE_TOWNHALL_ROOM,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public SEBProctoringConnection activateTownhall(
+    public ProctoringRoomConnection activateTownhall(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
             @RequestParam(
-                    name = SEBProctoringConnection.ATTR_SUBJECT,
+                    name = ProctoringRoomConnection.ATTR_SUBJECT,
                     required = false) final String subject) {
 
         checkAccess(institutionId, examId);
 
-        final ProctoringSettings settings = this.examSessionService
+        final ProctoringServiceSettings settings = this.examSessionService
                 .getRunningExam(examId)
-                .flatMap(this.examAdminService::getExamProctoringSettings)
+                .flatMap(this.examAdminService::getProctoringServiceSettings)
                 .getOrThrow();
 
         // First create and get the town-hall room for specified exam
@@ -345,9 +346,9 @@ public class ExamProctoringController {
 
         checkAccess(institutionId, examId);
 
-        final ProctoringSettings settings = this.examSessionService
+        final ProctoringServiceSettings settings = this.examSessionService
                 .getRunningExam(examId)
-                .flatMap(this.examAdminService::getExamProctoringSettings)
+                .flatMap(this.examAdminService::getProctoringServiceSettings)
                 .getOrThrow();
 
         final ExamProctoringService examProctoringService = this.examAdminService

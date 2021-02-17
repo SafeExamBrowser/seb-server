@@ -22,8 +22,8 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -121,24 +121,24 @@ public class ExamProctoringSettings {
         }
 
         final EntityKey entityKey = pageContext.getEntityKey();
-        ProctoringSettings examProctoring = null;
+        ProctoringServiceSettings examProctoring = null;
         try {
             final Form form = formHandle.getForm();
             form.clearErrors();
 
             final boolean enabled = BooleanUtils.toBoolean(
-                    form.getFieldValue(ProctoringSettings.ATTR_ENABLE_PROCTORING));
+                    form.getFieldValue(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING));
             final ProctoringServerType serverType = ProctoringServerType.valueOf(
-                    form.getFieldValue(ProctoringSettings.ATTR_SERVER_TYPE));
+                    form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE));
 
-            examProctoring = new ProctoringSettings(
+            examProctoring = new ProctoringServiceSettings(
                     Long.parseLong(entityKey.modelId),
                     enabled,
                     serverType,
-                    form.getFieldValue(ProctoringSettings.ATTR_SERVER_URL),
-                    Integer.parseInt(form.getFieldValue(ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE)),
-                    form.getFieldValue(ProctoringSettings.ATTR_APP_KEY),
-                    form.getFieldValue(ProctoringSettings.ATTR_APP_SECRET));
+                    form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_URL),
+                    Integer.parseInt(form.getFieldValue(ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE)),
+                    form.getFieldValue(ProctoringServiceSettings.ATTR_APP_KEY),
+                    form.getFieldValue(ProctoringServiceSettings.ATTR_APP_SECRET));
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get settings from form: ", e);
@@ -198,7 +198,7 @@ public class ExamProctoringSettings {
                     .getWidgetFactory()
                     .createPopupScrollComposite(parent);
 
-            final ProctoringSettings proctoringSettings = restService
+            final ProctoringServiceSettings proctoringSettings = restService
                     .getBuilder(GetProctoringSettings.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .call()
@@ -208,7 +208,7 @@ public class ExamProctoringSettings {
                     .copyOf(content)
                     .clearEntityKeys();
 
-            final FormHandle<ProctoringSettings> formHandle = this.pageService.formBuilder(
+            final FormHandle<ProctoringServiceSettings> formHandle = this.pageService.formBuilder(
                     formContext)
                     .withDefaultSpanInput(5)
                     .withEmptyCellSeparation(true)
@@ -224,24 +224,24 @@ public class ExamProctoringSettings {
                             .readonly(true))
 
                     .addField(FormBuilder.checkbox(
-                            ProctoringSettings.ATTR_ENABLE_PROCTORING,
+                            ProctoringServiceSettings.ATTR_ENABLE_PROCTORING,
                             SEB_PROCTORING_FORM_ENABLE,
                             String.valueOf(proctoringSettings.enableProctoring)))
 
                     .addField(FormBuilder.singleSelection(
-                            ProctoringSettings.ATTR_SERVER_TYPE,
+                            ProctoringServiceSettings.ATTR_SERVER_TYPE,
                             SEB_PROCTORING_FORM_TYPE,
                             proctoringSettings.serverType.name(),
                             resourceService::examProctoringTypeResources))
 
                     .addField(FormBuilder.text(
-                            ProctoringSettings.ATTR_SERVER_URL,
+                            ProctoringServiceSettings.ATTR_SERVER_URL,
                             SEB_PROCTORING_FORM_URL,
                             proctoringSettings.serverURL))
                     .withDefaultSpanInput(1)
 
                     .addField(FormBuilder.text(
-                            ProctoringSettings.ATTR_COLLECTING_ROOM_SIZE,
+                            ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE,
                             SEB_PROCTORING_FORM_ROOM_SIZE,
                             String.valueOf(proctoringSettings.getCollectingRoomSize()))
                             .asNumber(numString -> Long.parseLong(numString)))
@@ -249,13 +249,13 @@ public class ExamProctoringSettings {
                     .withDefaultSpanEmptyCell(4)
 
                     .addField(FormBuilder.text(
-                            ProctoringSettings.ATTR_APP_KEY,
+                            ProctoringServiceSettings.ATTR_APP_KEY,
                             SEB_PROCTORING_FORM_APPKEY,
                             proctoringSettings.appKey))
                     .withEmptyCellSeparation(false)
 
                     .addField(FormBuilder.password(
-                            ProctoringSettings.ATTR_APP_SECRET,
+                            ProctoringServiceSettings.ATTR_APP_SECRET,
                             SEB_PROCTORING_FORM_SECRET,
                             (proctoringSettings.appSecret != null)
                                     ? String.valueOf(proctoringSettings.appSecret)

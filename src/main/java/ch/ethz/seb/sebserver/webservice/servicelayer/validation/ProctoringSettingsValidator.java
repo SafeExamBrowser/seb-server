@@ -13,13 +13,13 @@ import javax.validation.ConstraintValidatorContext;
 
 import org.apache.commons.lang3.StringUtils;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 
-public class ProctoringSettingsValidator implements ConstraintValidator<ValidProctoringSettings, ProctoringSettings> {
+public class ProctoringSettingsValidator implements ConstraintValidator<ValidProctoringSettings, ProctoringServiceSettings> {
 
     @Override
-    public boolean isValid(final ProctoringSettings value, final ConstraintValidatorContext context) {
+    public boolean isValid(final ProctoringServiceSettings value, final ConstraintValidatorContext context) {
         if (value == null) {
             return false;
         }
