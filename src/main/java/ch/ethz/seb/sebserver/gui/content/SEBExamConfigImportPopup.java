@@ -68,8 +68,18 @@ public class SEBExamConfigImportPopup {
         this.pageService = pageService;
     }
 
-    public Function<PageAction, PageAction> importFunction(final boolean newConfig) {
+    public Function<PageAction, PageAction> importFunction() {
+        return importFunction(null);
+    }
+
+    public Function<PageAction, PageAction> importFunction(final Supplier<String> tabSelectionSupplier) {
         return action -> {
+
+            final boolean newConfig = tabSelectionSupplier == null || tabSelectionSupplier.get() == null;
+            final PageContext context = (tabSelectionSupplier != null)
+                    ? action.pageContext()
+                            .withAttribute(SEBSettingsForm.ATTR_VIEW_INDEX, tabSelectionSupplier.get())
+                    : action.pageContext();
 
             final ModalInputDialog<FormHandle<ConfigurationNode>> dialog =
                     new ModalInputDialog<FormHandle<ConfigurationNode>>(
@@ -79,7 +89,7 @@ public class SEBExamConfigImportPopup {
 
             final ImportFormContext importFormContext = new ImportFormContext(
                     this.pageService,
-                    action.pageContext(),
+                    context,
                     newConfig);
 
             dialog.open(
@@ -147,18 +157,6 @@ public class SEBExamConfigImportPopup {
 
                 if (!configuration.hasError()) {
                     context.publishInfo(SEBExamConfigForm.FORM_IMPORT_CONFIRM_TEXT_KEY);
-                    final PageAction action = (newConfig)
-                            ? this.pageService.pageActionBuilder(context)
-                                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
-                                    .create()
-                            : this.pageService.pageActionBuilder(context)
-                                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
-                                    .create();
-
-                    this.pageService.firePageEvent(
-                            new ActionEvent(action),
-                            action.pageContext());
-
                 } else {
                     final Exception error = configuration.getError();
                     if (error instanceof RestCallError) {
@@ -177,14 +175,15 @@ public class SEBExamConfigImportPopup {
                                                 .notifyImportError(EntityType.CONFIGURATION_NODE, error);
                                     }
                                 });
-                        return true;
+
+                    } else {
+                        formHandle.getContext().notifyError(
+                                SEBExamConfigForm.FORM_TITLE,
+                                configuration.getError());
                     }
 
-                    formHandle.getContext().notifyError(
-                            SEBExamConfigForm.FORM_TITLE,
-                            configuration.getError());
-
                 }
+                reloadPage(newConfig, context);
                 return true;
             } else {
                 formHandle.getContext().publishPageMessage(
@@ -194,9 +193,24 @@ public class SEBExamConfigImportPopup {
 
             return false;
         } catch (final Exception e) {
+            reloadPage(newConfig, formHandle.getContext());
             formHandle.getContext().notifyError(SEBExamConfigForm.FORM_TITLE, e);
             return true;
         }
+    }
+
+    private void reloadPage(final boolean newConfig, final PageContext context) {
+        final PageAction action = (newConfig)
+                ? this.pageService.pageActionBuilder(context)
+                        .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
+                        .create()
+                : this.pageService.pageActionBuilder(context)
+                        .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY)
+                        .create();
+
+        this.pageService.firePageEvent(
+                new ActionEvent(action),
+                action.pageContext());
     }
 
     private boolean checkInput(final FormHandle<ConfigurationNode> formHandle, final boolean newConfig,

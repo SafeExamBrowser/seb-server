@@ -53,6 +53,8 @@ import ch.ethz.seb.sebserver.SEBServer;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.AdminAPIClientDetails;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebClientDetailsService;
@@ -77,6 +79,10 @@ public abstract class ExamAPIIntegrationTester {
     protected JSONMapper jsonMapper;
     @Autowired
     protected FilterChainProxy springSecurityFilterChain;
+    @Autowired
+    private WebserviceInfoDAO webserviceInfoDAO;
+    @Autowired
+    private WebserviceInfo webserviceInfo;
 
     protected MockMvc mockMvc;
 
@@ -88,6 +94,7 @@ public abstract class ExamAPIIntegrationTester {
 
     @Before
     public void setup() {
+        this.webserviceInfoDAO.unregister(this.webserviceInfo.getWebserviceUUID());
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
                 .addFilter(this.springSecurityFilterChain).build();
         Mockito.when(this.webClientDetailsService.loadClientByClientId(Mockito.anyString())).thenReturn(

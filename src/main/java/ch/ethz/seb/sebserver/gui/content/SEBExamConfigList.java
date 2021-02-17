@@ -170,7 +170,7 @@ public class SEBExamConfigList implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
                 .withSelect(
                         configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
-                        this.sebExamConfigImportPopup.importFunction(true),
+                        this.sebExamConfigImportPopup.importFunction(),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
                 .publishIf(examConfigGrant::im);
