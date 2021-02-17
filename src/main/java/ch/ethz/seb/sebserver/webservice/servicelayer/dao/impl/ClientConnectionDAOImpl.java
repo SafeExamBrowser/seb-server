@@ -147,6 +147,25 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<String>> getActiveConnctionTokens(final Long examId) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+                .selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()))
+                .build()
+                .execute()
+                .stream()
+                .map(ClientConnectionRecord::getConnectionToken)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
     @Transactional
     public Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateActive() {
         return Result.tryCatch(() -> {

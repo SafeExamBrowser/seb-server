@@ -52,6 +52,13 @@ public interface ClientConnectionDAO extends
         return getConnectionTokens(examId);
     }
 
+    /** Get a list of all connection tokens of all connections of an exam
+     * that are in state active
+     *
+     * @param examId The exam identifier
+     * @return Result refer to the collection of connection tokens or to an error when happened */
+    Result<Collection<String>> getActiveConnctionTokens(Long examId);
+
     /** Get a collection of all client connections records that needs a room update
      * and that are in the status ACTIVE.
      * This also flags the involved connections for no update needed within the

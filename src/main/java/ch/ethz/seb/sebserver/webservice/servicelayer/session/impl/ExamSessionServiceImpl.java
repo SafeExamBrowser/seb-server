@@ -380,6 +380,12 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
+    public Result<Collection<String>> getActiveConnectionTokens(final Long examId) {
+        return this.clientConnectionDAO
+                .getActiveConnctionTokens(examId);
+    }
+
+    @Override
     public Result<Exam> updateExamCache(final Long examId) {
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
         if (exam == null) {

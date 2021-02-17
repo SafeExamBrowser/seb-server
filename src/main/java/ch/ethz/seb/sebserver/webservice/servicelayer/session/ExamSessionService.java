@@ -155,9 +155,12 @@ public interface ExamSessionService {
             Long examId,
             Predicate<ClientConnectionData> filter);
 
-    default Result<Collection<ClientConnectionData>> getAllActiveConnectionData(final Long examId) {
-        return getConnectionData(examId, ACTIVE_CONNECTION_DATA_FILTER);
-    }
+    /** Gets all connection tokens of active client connection that are related to a specified exam
+     * from persistence storage without caching involved.
+     *
+     * @param examId the exam identifier
+     * @return Result refer to the collection of connection tokens or to an error when happened. */
+    Result<Collection<String>> getActiveConnectionTokens(final Long examId);
 
     /** Use this to check if the current cached running exam is up to date
      * and if not to flush the cache.

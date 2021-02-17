@@ -396,7 +396,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         checkReadPrivilege(institutionId);
         return this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkRead)
-                .flatMap(this.examAdminService::getExamProctoring)
+                .flatMap(this.examAdminService::getExamProctoringSettings)
                 .getOrThrow();
     }
 
@@ -417,7 +417,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return this.entityDAO.byPK(examId)
                 .flatMap(this.authorization::checkModify)
                 .map(exam -> {
-                    this.examAdminService.saveExamProctoring(examId, examProctoring);
+                    this.examAdminService.saveExamProctoringSettings(examId, examProctoring);
                     return exam;
                 })
                 .flatMap(this.userActivityLogDAO::logModify)

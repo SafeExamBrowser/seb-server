@@ -8,9 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -19,12 +18,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings.ProctoringServerType;
-import ch.ethz.seb.sebserver.gbl.model.exam.SEBProctoringConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.ProctoringInstructionMethod;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -34,7 +28,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 
 @Lazy
 @Service
@@ -45,20 +38,17 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final ClientConnectionDAO clientConnectionDAO;
-    private final SEBClientInstructionService sebInstructionService;
     private final ExamAdminService examAdminService;
     private final ExamSessionService examSessionService;
 
     public ExamProctoringRoomServiceImpl(
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
             final ClientConnectionDAO clientConnectionDAO,
-            final SEBClientInstructionService sebInstructionService,
             final ExamAdminService examAdminService,
             final ExamSessionService examSessionService) {
 
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
         this.clientConnectionDAO = clientConnectionDAO;
-        this.sebInstructionService = sebInstructionService;
         this.examAdminService = examAdminService;
         this.examSessionService = examSessionService;
     }
@@ -84,7 +74,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             this.clientConnectionDAO.getAllConnectionIdsForRoomUpdateActive()
                     .getOrThrow()
                     .stream()
-                    .forEach(this::assignToRoom);
+                    .forEach(this::assignToCollectingRoom);
 
             this.clientConnectionDAO.getAllConnectionIdsForRoomUpdateInactive()
                     .getOrThrow()
@@ -114,40 +104,40 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         this.remoteProctoringRoomDAO.deleteTownhallRoom(examId);
     }
 
-    private void assignToRoom(final ClientConnectionRecord cc) {
+    private void assignToCollectingRoom(final ClientConnectionRecord cc) {
         try {
+
             final RemoteProctoringRoom proctoringRoom = getProctoringRoom(
                     cc.getExamId(),
                     cc.getConnectionToken());
 
-            if (proctoringRoom != null) {
-                this.clientConnectionDAO.assignToProctoringRoom(
-                        cc.getId(),
-                        cc.getConnectionToken(),
-                        proctoringRoom.id)
-                        .onError(error -> log.error("Failed to assign to proctoring room: ", error))
-                        .getOrThrow();
+            this.clientConnectionDAO.assignToProctoringRoom(
+                    cc.getId(),
+                    cc.getConnectionToken(),
+                    proctoringRoom.id)
+                    .getOrThrow();
 
-                final Result<RemoteProctoringRoom> townhallRoomResult = this.remoteProctoringRoomDAO
-                        .getTownhallRoom(cc.getExamId());
-                if (townhallRoomResult.hasValue()) {
-                    final RemoteProctoringRoom townhallRoom = townhallRoomResult.get();
-                    applyProcotringInstruction(
-                            cc.getExamId(),
-                            cc.getConnectionToken(),
-                            townhallRoom.name,
-                            townhallRoom.subject);
-                } else {
-                    applyProcotringInstruction(
-                            cc.getExamId(),
-                            cc.getConnectionToken(),
-                            proctoringRoom.name,
-                            proctoringRoom.subject);
-                }
+            final Result<RemoteProctoringRoom> townhallRoomResult = this.remoteProctoringRoomDAO
+                    .getTownhallRoom(cc.getExamId());
+
+            if (townhallRoomResult.hasValue()) {
+                final RemoteProctoringRoom townhallRoom = townhallRoomResult.get();
+                applyProcotringInstruction(
+                        cc.getExamId(),
+                        cc.getConnectionToken(),
+                        townhallRoom.name,
+                        townhallRoom.subject)
+                                .getOrThrow();
+            } else {
+                applyProcotringInstruction(
+                        cc.getExamId(),
+                        cc.getConnectionToken(),
+                        proctoringRoom.name,
+                        proctoringRoom.subject)
+                                .getOrThrow();
             }
         } catch (final Exception e) {
-            log.error("Failed to update client connection for proctoring room: ", e);
-            this.clientConnectionDAO.setNeedsRoomUpdate(cc.getId());
+            log.error("Failed to assign connection to collecting room: {}", cc, e);
         }
     }
 
@@ -167,7 +157,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     private RemoteProctoringRoom getProctoringRoom(final Long examId, final String connectionToken) {
         try {
             final ProctoringSettings proctoringSettings = this.examAdminService
-                    .getExamProctoring(examId)
+                    .getExamProctoringSettings(examId)
                     .getOrThrow();
             return this.remoteProctoringRoomDAO.reservePlaceInCollectingRoom(
                     examId,
@@ -184,63 +174,21 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         }
     }
 
-    private void applyProcotringInstruction(
+    private Result<Void> applyProcotringInstruction(
             final Long examId,
             final String connectionToken,
             final String roomName,
             final String subject) {
 
-        try {
-            // apply a SEB_PROCOTIRNG instruction for the specified SEB client connection
-            final ProctoringSettings proctoringSettings = this.examAdminService
-                    .getExamProctoring(examId)
-                    .getOrThrow();
+        return this.examAdminService
+                .getExamProctoringSettings(examId)
+                .flatMap(proctoringSettings -> this.examAdminService
+                        .getExamProctoringService(proctoringSettings.serverType)
+                        .getOrThrow()
+                        .sendJoinCollectingRoomToClients(
+                                proctoringSettings,
+                                Arrays.asList(connectionToken)));
 
-            final SEBProctoringConnection proctoringData =
-                    this.examAdminService.getExamProctoringService(proctoringSettings.serverType)
-                            .flatMap(s -> s.getClientExamCollectingRoomConnection(
-                                    proctoringSettings,
-                                    connectionToken,
-                                    roomName,
-                                    subject))
-                            .getOrThrow();
-
-            final Map<String, String> attributes = new HashMap<>();
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.SERVICE_TYPE,
-                    ProctoringServerType.JITSI_MEET.name());
-            attributes.put(
-                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.METHOD,
-                    ProctoringInstructionMethod.JOIN.name());
-
-            if (proctoringSettings.serverType == ProctoringServerType.JITSI_MEET) {
-
-                attributes.put(
-                        ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_ROOM,
-                        proctoringData.roomName);
-                attributes.put(
-                        ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_ROOM_SUBJECT,
-                        proctoringData.subject);
-                attributes.put(
-                        ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_URL,
-                        proctoringData.serverURL);
-                attributes.put(
-                        ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_TOKEN,
-                        proctoringData.accessToken);
-            }
-
-            this.sebInstructionService.registerInstruction(
-                    examId,
-                    InstructionType.SEB_PROCTORING,
-                    attributes,
-                    connectionToken,
-                    true);
-
-        } catch (final Exception e) {
-            log.error(
-                    "Failed to process proctoring initialization for established SEB client connection: {}",
-                    connectionToken, e);
-        }
     }
 
 }

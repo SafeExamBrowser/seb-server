@@ -45,25 +45,25 @@ public interface ExamAdminService {
      *
      * @param examId the exam instance
      * @return Result refer to ExamProctoring data for the exam. */
-    default Result<ProctoringSettings> getExamProctoring(final Exam exam) {
+    default Result<ProctoringSettings> getExamProctoringSettings(final Exam exam) {
         if (exam == null || exam.id == null) {
             return Result.ofRuntimeError("Invalid Exam model");
         }
-        return getExamProctoring(exam.id);
+        return getExamProctoringSettings(exam.id);
     }
 
     /** Get ExamProctoring data for a certain exam to an error when happened.
      *
      * @param examId the exam identifier
      * @return Result refer to ExamProctoring data for the exam. */
-    Result<ProctoringSettings> getExamProctoring(Long examId);
+    Result<ProctoringSettings> getExamProctoringSettings(Long examId);
 
     /** Save the given ExamProctoring data for an existing Exam.
      *
      * @param examId the exam identifier
      * @param examProctoring The ExamProctoring data to save for the exam
      * @return Result refer to saved ExamProctoring data or to an error when happened. */
-    Result<ProctoringSettings> saveExamProctoring(Long examId, ProctoringSettings examProctoring);
+    Result<ProctoringSettings> saveExamProctoringSettings(Long examId, ProctoringSettings examProctoring);
 
     /** This indicates if proctoring is set and enabled for a certain exam.
      *
@@ -85,7 +85,25 @@ public interface ExamAdminService {
     /** Get the exam proctoring service implementation of specified type.
      *
      * @param type exam proctoring service server type
-     * @return Result refer to the ExamProctoringService or to an error when happened */
-    public Result<ExamProctoringService> getExamProctoringService(final ProctoringServerType type);
+     * @return ExamProctoringService instance */
+    Result<ExamProctoringService> getExamProctoringService(final ProctoringServerType type);
+
+    /** Get the exam proctoring service implementation of specified type.
+     *
+     * @param settings the ProctoringSettings that defines the ProctoringServerType
+     * @return ExamProctoringService instance */
+    default Result<ExamProctoringService> getExamProctoringService(final ProctoringSettings settings) {
+        return Result.tryCatch(() -> getExamProctoringService(settings.serverType).getOrThrow());
+    }
+
+    default Result<ExamProctoringService> getExamProctoringService(final Exam exam) {
+        return Result.tryCatch(() -> getExamProctoringService(exam.id).getOrThrow());
+    }
+
+    default Result<ExamProctoringService> getExamProctoringService(final Long examId) {
+        return getExamProctoringSettings(examId)
+                .flatMap(this::getExamProctoringService);
+
+    }
 
 }

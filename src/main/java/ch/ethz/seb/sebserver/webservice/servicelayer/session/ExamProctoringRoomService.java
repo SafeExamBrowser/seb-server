@@ -14,6 +14,8 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
+/** Defines functionality to deal with proctoring rooms in a generic way (independent from meeting service) */
+
 public interface ExamProctoringRoomService {
 
     /** Get all existing default proctoring rooms of an exam.
@@ -40,8 +42,10 @@ public interface ExamProctoringRoomService {
      * This attaches or detaches client connections from or to proctoring rooms of an exam in one batch.
      * New client connections that are coming in and are established only mark itself for
      * proctoring room update if proctoring is enabled for the specified exam. This batch processing
-     * then makes the update synchronous to not create to to many rooms or several rooms with the same
-     * name of an exam. */
+     * then makes the update synchronously to keep track on room creation and naming
+     *
+     * If for a specified exam the town-hall room is active incoming client connection are instructed to
+     * join the town-hall room. If not, incoming client connection are instructed to join a collecting room. */
     void updateProctoringCollectingRooms();
 
     /** This creates a town-hall room for a specific exam. The exam must be active and running

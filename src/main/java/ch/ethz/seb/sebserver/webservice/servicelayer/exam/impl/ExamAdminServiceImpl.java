@@ -186,7 +186,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
-    public Result<ProctoringSettings> getExamProctoring(final Long examId) {
+    public Result<ProctoringSettings> getExamProctoringSettings(final Long examId) {
         return this.additionalAttributesDAO.getAdditionalAttributes(EntityType.EXAM, examId)
                 .map(attrs -> attrs.stream()
                         .collect(Collectors.toMap(
@@ -206,7 +206,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     @Transactional
-    public Result<ProctoringSettings> saveExamProctoring(final Long examId, final ProctoringSettings examProctoring) {
+    public Result<ProctoringSettings> saveExamProctoringSettings(final Long examId,
+            final ProctoringSettings examProctoring) {
         return Result.tryCatch(() -> {
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
@@ -264,7 +265,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     public Result<ExamProctoringService> getExamProctoringService(final ProctoringServerType type) {
-        return this.examProctoringServiceFactory.getExamProctoringService(type);
+        return this.examProctoringServiceFactory
+                .getExamProctoringService(type);
     }
 
     private Boolean getEnabled(final Map<String, AdditionalAttributeRecord> mapping) {

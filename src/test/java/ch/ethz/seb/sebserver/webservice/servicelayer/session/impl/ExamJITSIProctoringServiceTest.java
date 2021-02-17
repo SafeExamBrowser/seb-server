@@ -28,7 +28,7 @@ public class ExamJITSIProctoringServiceTest {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn("fbvgeghergrgrthrehreg123");
         final ExamJITSIProctoringService examJITSIProctoringService =
-                new ExamJITSIProctoringService(null, null, null, cryptorMock);
+                new ExamJITSIProctoringService(null, null, null, null, cryptorMock);
 
         String accessToken = examJITSIProctoringService.createPayload(
                 "test-app",
@@ -62,7 +62,7 @@ public class ExamJITSIProctoringServiceTest {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn("fbvgeghergrgrthrehreg123");
         final ExamJITSIProctoringService examJITSIProctoringService =
-                new ExamJITSIProctoringService(null, null, null, cryptorMock);
+                new ExamJITSIProctoringService(null, null, null, null, cryptorMock);
         final SEBProctoringConnection data = examJITSIProctoringService.createProctoringConnection(
                 ProctoringServerType.JITSI_MEET,
                 "connectionToken",
