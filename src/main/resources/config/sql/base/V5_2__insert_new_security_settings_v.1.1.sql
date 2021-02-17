@@ -8,8 +8,8 @@ INSERT IGNORE INTO configuration_attribute VALUES
 
 
 UPDATE orientation SET y_position='13', width='12' WHERE id='305';
-UPDATE orientation SET y_position='16', width='10' WHERE id='306';
-UPDATE orientation SET y_position='17', width='10' WHERE id='307';
+UPDATE orientation SET y_position='16', width='9' WHERE id='306';
+UPDATE orientation SET y_position='17', width='9' WHERE id='307';
 UPDATE orientation SET y_position='18' WHERE id='317';
 UPDATE orientation SET x_position='0', y_position='9' WHERE id='301';
 UPDATE orientation SET x_position='3', y_position='10', width='4' WHERE id='501';
