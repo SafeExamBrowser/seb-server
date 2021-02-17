@@ -69,6 +69,8 @@ public class SEBSettingsForm implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(SEBSettingsForm.class);
 
+    public static final String ATTR_VIEW_INDEX = "VIEW_INDEX";
+
     private static final String VIEW_TEXT_KEY_PREFIX =
             "sebserver.examconfig.props.form.views.";
     private static final String KEY_SAVE_TO_HISTORY_SUCCESS =
@@ -194,7 +196,7 @@ public class SEBSettingsForm implements TemplateComposer {
             }
 
             // set selection if available
-            final String viewIndex = pageContext.getAttribute("VIEW_INDEX");
+            final String viewIndex = pageContext.getAttribute(ATTR_VIEW_INDEX);
             if (StringUtils.isNotBlank(viewIndex)) {
                 try {
                     tabFolder.setSelection(Integer.parseInt(viewIndex));
@@ -217,7 +219,7 @@ public class SEBSettingsForm implements TemplateComposer {
                                 .call()
                                 .onError(t -> notifyErrorOnSave(t, pageContext));
                         return action.withAttribute(
-                                "VIEW_INDEX",
+                                ATTR_VIEW_INDEX,
                                 String.valueOf(tabFolder.getSelectionIndex()));
                     })
                     .withSuccess(KEY_SAVE_TO_HISTORY_SUCCESS)
@@ -232,7 +234,7 @@ public class SEBSettingsForm implements TemplateComposer {
                                 .call()
                                 .getOrThrow();
                         return action.withAttribute(
-                                "VIEW_INDEX",
+                                ATTR_VIEW_INDEX,
                                 String.valueOf(tabFolder.getSelectionIndex()));
                     })
                     .withSuccess(KEY_UNDO_SUCCESS)
@@ -254,7 +256,9 @@ public class SEBSettingsForm implements TemplateComposer {
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_EXISTING_CONFIG)
                     .withEntityKey(entityKey)
-                    .withExec(this.sebExamConfigImportPopup.importFunction(false))
+                    .withExec(this.sebExamConfigImportPopup.importFunction(
+                            () -> String.valueOf(tabFolder.getSelectionIndex())))
+                    .noEventPropagation()
                     .publishIf(() -> examConfigGrant.iw() && !readonly && !isAttachedToExam)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)

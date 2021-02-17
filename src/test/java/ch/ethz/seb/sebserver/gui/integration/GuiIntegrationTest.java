@@ -36,6 +36,8 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.OAuth2AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -59,13 +61,19 @@ public abstract class GuiIntegrationTest {
     protected JSONMapper jsonMapper;
     @Autowired
     protected FilterChainProxy springSecurityFilterChain;
+    @Autowired
+    private WebserviceInfoDAO webserviceInfoDAO;
+    @Autowired
+    private WebserviceInfo webserviceInfo;
 
     protected MockMvc mockMvc;
 
     @Before
     public void setup() {
+        this.webserviceInfoDAO.unregister(this.webserviceInfo.getWebserviceUUID());
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
                 .addFilter(this.springSecurityFilterChain).build();
+
     }
 
     protected OAuth2AuthorizationContextHolder getAuthorizationContextHolder() {
