@@ -35,13 +35,16 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
 
     private final WebserviceServerInfoRecordMapper webserviceServerInfoRecordMapper;
     private final long masterDelayTimeThreshold;
+    private final boolean forceMaster;
 
     public WebserviceInfoDAOImpl(
             final WebserviceServerInfoRecordMapper webserviceServerInfoRecordMapper,
+            @Value("${sebserver.webservice.forceMaster:false}") final boolean forceMaster,
             @Value("${sebserver.webservice.master.delay.threshold:10000}") final long masterDelayTimeThreshold) {
 
         this.webserviceServerInfoRecordMapper = webserviceServerInfoRecordMapper;
         this.masterDelayTimeThreshold = masterDelayTimeThreshold;
+        this.forceMaster = forceMaster;
     }
 
     @Transactional
@@ -68,18 +71,24 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
 
             if (masters != null && !masters.isEmpty()) {
                 if (masters.size() > 1) {
+
                     log.error("There are more then one master registered: ", masters);
                     log.info("Reset masters and set this webservice as new master");
-                    masters.stream()
-                            .forEach(masterRec -> this.webserviceServerInfoRecordMapper.updateByPrimaryKeySelective(
-                                    new WebserviceServerInfoRecord(masterRec.getId(), null, null, 0, 0L)));
-                    this.setMasterTo(uuid);
-                    return true;
+
+                    masters.stream().forEach(masterRec -> this.webserviceServerInfoRecordMapper
+                            .updateByPrimaryKeySelective(
+                                    new WebserviceServerInfoRecord(
+                                            masterRec.getId(),
+                                            null,
+                                            null,
+                                            0,
+                                            0L)));
+                    return this.setMasterTo(uuid);
                 }
 
                 final WebserviceServerInfoRecord masterRec = masters.get(0);
                 if (masterRec.getUuid().equals(uuid)) {
-                    // this webservice was the master and update time to remain being master
+                    // This webservice is the master. Update time-stamp to remain being master
                     final long now = Utils.getMillisecondsNow();
                     this.webserviceServerInfoRecordMapper.updateByPrimaryKeySelective(
                             new WebserviceServerInfoRecord(masterRec.getId(), null, null, null, now));
@@ -91,20 +100,18 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
                     return true;
                 } else {
                     // Another webservice is master. Check if still alive...
+                    // Force this service to become master if the other master is not alive anymore
+                    // Or if this service is forced to be the master service
                     final long now = Utils.getMillisecondsNow();
                     final long lastUpdateSince = now - masterRec.getUpdateTime();
-                    if (lastUpdateSince > this.masterDelayTimeThreshold) {
-                        log.info("Change webservice master form uuid: {} to uuid: {}", masterRec.getUuid(), uuid);
-                        this.webserviceServerInfoRecordMapper.updateByPrimaryKeySelective(
-                                new WebserviceServerInfoRecord(masterRec.getId(), null, null, 0, 0L));
-                        setMasterTo(uuid);
+                    if (lastUpdateSince > this.masterDelayTimeThreshold || this.forceMaster) {
+                        forceMaster(uuid, masterRec.getUuid(), masterRec.getId());
                         return true;
                     }
                 }
             } else {
-                // if we have no master yet
-                setMasterTo(uuid);
-                return true;
+                // We have no master yet so set this as master service
+                return setMasterTo(uuid);
             }
 
             return false;
@@ -115,14 +122,41 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
         }
     }
 
-    private void setMasterTo(final String uuid) {
+    private void forceMaster(final String uuid, final String otherUUID, final Long otherId) {
+
+        log.info("Change webservice master form uuid: {} to uuid: {}", otherUUID, uuid);
+
+        this.webserviceServerInfoRecordMapper.updateByPrimaryKeySelective(
+                new WebserviceServerInfoRecord(otherId, null, null, 0, 0L));
+        setMasterTo(uuid);
+    }
+
+    private boolean setMasterTo(final String uuid) {
         log.info("Set webservice {} as master", uuid);
         final long now = Utils.getMillisecondsNow();
-        this.webserviceServerInfoRecordMapper.updateByExampleSelective(
+
+        // check if this is registered
+        final List<WebserviceServerInfoRecord> entries = this.webserviceServerInfoRecordMapper.selectByExample()
+                .where(WebserviceServerInfoRecordDynamicSqlSupport.uuid, SqlBuilder.isEqualTo(uuid))
+                .build()
+                .execute();
+
+        if (entries == null || entries.isEmpty()) {
+            log.warn("The webservice with uuid: {} is not registered and cannot become a master", uuid);
+            return false;
+        }
+
+        final Integer execute = this.webserviceServerInfoRecordMapper.updateByExampleSelective(
                 new WebserviceServerInfoRecord(null, null, null, 1, now))
                 .where(WebserviceServerInfoRecordDynamicSqlSupport.uuid, SqlBuilder.isEqualTo(uuid))
                 .build()
                 .execute();
+        if (execute == null || execute.intValue() <= 0) {
+            log.error("Failed to update webservice with uuid: {} to become master", uuid);
+            return false;
+        }
+
+        return true;
     }
 
     @Transactional

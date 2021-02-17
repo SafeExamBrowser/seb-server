@@ -49,12 +49,6 @@ class ExamSessionControlTask implements DisposableBean {
     private final String examTaskCron;
     private final long pingUpdateRate;
 
-    // TODO considering to have some caching of running exams end dates here to improve performance
-    //      the end check task has than only to first update missing running exams and then
-    //      check the exam ending within the cached end date of the exam. if an exam has ended by
-    //      applying the check to the cached value, the process can double-check if the end date has
-    //      no change and update if needed or end the exam and remove from cache.
-
     protected ExamSessionControlTask(
             final ExamDAO examDAO,
             final SEBClientConnectionService sebClientConnectionService,
