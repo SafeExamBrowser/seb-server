@@ -294,8 +294,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // connection integrity check
             if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
-                // TODO discuss if we need a flag on exam domain level that indicates whether unauthenticated connection
-                //      are allowed or not
                 log.warn("ClientConnection integrity warning: client connection is not authenticated: {}",
                         clientConnection);
             } else if (clientConnection.status != ConnectionStatus.AUTHENTICATED) {

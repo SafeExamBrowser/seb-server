@@ -113,7 +113,8 @@ public class TableConverter implements AttributeValueConverter {
                 value.institutionId,
                 value.configurationId,
                 attribute.id)
-                .getOrThrow();
+                .onError(error -> log.error("Failed to get table values for attribute: {}", attribute.name, error))
+                .getOrElse(() -> Collections.emptyList());
 
         final boolean noValues = CollectionUtils.isEmpty(values);
 
