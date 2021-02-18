@@ -73,6 +73,11 @@ public class TableConverter implements AttributeValueConverter {
 
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
+
+        if (configurationValueDAO == null) {
+            log.error("Failed to inject ConfigurationValueDAO is {} configurationAttributeDAO is {}",
+                    configurationValueDAO, configurationAttributeDAO);
+        }
     }
 
     @Override
@@ -108,6 +113,8 @@ public class TableConverter implements AttributeValueConverter {
             final ConfigurationAttribute attribute,
             final ConfigurationValue value,
             final boolean xml) throws IOException {
+
+        log.debug("Convert: {} -- {} -- {}", attribute.name, this.configurationValueDAO, value);
 
         final List<List<ConfigurationValue>> values = this.configurationValueDAO.getOrderedTableValues(
                 value.institutionId,
