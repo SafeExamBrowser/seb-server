@@ -114,7 +114,8 @@ public class TableConverter implements AttributeValueConverter {
             final ConfigurationValue value,
             final boolean xml) throws IOException {
 
-        log.debug("Convert: {} -- {} -- {}", attribute.name, this.configurationValueDAO, value);
+        log.debug("******************************** Convert: {} -- {} -- {}", attribute, this.configurationValueDAO,
+                value);
 
         final List<List<ConfigurationValue>> values = this.configurationValueDAO.getOrderedTableValues(
                 value.institutionId,
