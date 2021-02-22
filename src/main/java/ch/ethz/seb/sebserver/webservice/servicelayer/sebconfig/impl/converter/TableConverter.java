@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.converter;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -73,9 +74,6 @@ public class TableConverter implements AttributeValueConverter {
 
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
-
-        log.info("******************************* inject ConfigurationValueDAO is {} configurationAttributeDAO is {}",
-                configurationValueDAO, configurationAttributeDAO);
     }
 
     @Override
@@ -112,15 +110,17 @@ public class TableConverter implements AttributeValueConverter {
             final ConfigurationValue value,
             final boolean xml) throws IOException {
 
-        log.info("******************************** Convert: {} -- {} -- {}", attribute, this.configurationValueDAO,
-                value);
-
-        final List<List<ConfigurationValue>> values = this.configurationValueDAO.getOrderedTableValues(
-                value.institutionId,
-                value.configurationId,
-                attribute.id)
-                .onError(error -> log.error("Failed to get table values for attribute: {}", attribute.name, error))
-                .getOrElse(() -> Collections.emptyList());
+        final List<List<ConfigurationValue>> values = new ArrayList<>();
+        if (value != null) {
+            values.addAll(this.configurationValueDAO.getOrderedTableValues(
+                    value.institutionId,
+                    value.configurationId,
+                    attribute.id)
+                    .onError(error -> log.error("Failed to get table values for attribute: {}", attribute.name, error))
+                    .getOrElse(() -> Collections.emptyList()));
+        } else {
+            log.warn("No ConfigurationValue for table: {}. Convert to empty table", attribute);
+        }
 
         final boolean noValues = CollectionUtils.isEmpty(values);
 

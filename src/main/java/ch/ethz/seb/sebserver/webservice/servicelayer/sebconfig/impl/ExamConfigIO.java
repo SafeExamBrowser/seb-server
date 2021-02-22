@@ -37,6 +37,7 @@ import org.xml.sax.SAXException;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -140,7 +141,7 @@ public class ExamConfigIO {
                     .collect(Collectors.toList());
 
             final Function<ConfigurationAttribute, ConfigurationValue> configurationValueSupplier =
-                    getConfigurationValueSupplier(institutionId, configurationId);
+                    getConfigurationValueSupplier(configurationId);
 
             writeHeader(exportFormat, out);
 
@@ -316,11 +317,13 @@ public class ExamConfigIO {
     }
 
     private Function<ConfigurationAttribute, ConfigurationValue> getConfigurationValueSupplier(
-            final Long institutionId,
             final Long configurationId) {
 
+        final Configuration configuration = this.configurationDAO.byPK(configurationId)
+                .getOrThrow();
+
         final Map<Long, ConfigurationValue> mapping = this.configurationValueDAO
-                .allRootAttributeValues(institutionId, configurationId)
+                .allRootAttributeValues(configuration.institutionId, configurationId)
                 .getOrThrow()
                 .stream()
                 .collect(Collectors.toMap(

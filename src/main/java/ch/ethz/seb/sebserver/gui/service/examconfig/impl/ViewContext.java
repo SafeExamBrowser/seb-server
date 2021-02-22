@@ -64,6 +64,10 @@ public final class ViewContext {
         this.readonly = readonly;
     }
 
+    public boolean isReadonly() {
+        return this.readonly;
+    }
+
     public I18nSupport getI18nSupport() {
         return this.i18nSupport;
     }
