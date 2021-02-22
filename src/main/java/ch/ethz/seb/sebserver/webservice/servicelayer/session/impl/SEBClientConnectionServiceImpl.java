@@ -201,7 +201,12 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final ClientConnection clientConnection = getClientConnection(connectionToken);
 
             checkInstitutionalIntegrity(institutionId, clientConnection);
-            checkExamIntegrity(examId, clientConnection);
+            checkExamIdIntegrity(examId, clientConnection);
+
+            // If we have an active connection, update the connection data if requested
+            if (clientConnection.status == ConnectionStatus.ACTIVE) {
+                return updateActiveConnection(clientConnection, clientAddress, userSessionId);
+            }
 
             // connection integrity check
             if (clientConnection.status != ConnectionStatus.CONNECTION_REQUESTED) {
@@ -262,6 +267,45 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         });
     }
 
+    private ClientConnection updateActiveConnection(
+            final ClientConnection clientConnection,
+            final String clientAddress,
+            final String userSessionId) {
+
+        final String virtualClientAddress = getVirtualClientAddress(
+                clientConnection.examId,
+                clientAddress,
+                clientConnection.clientAddress);
+
+        final ClientConnection updatedClientConnection = this.clientConnectionDAO
+                .save(new ClientConnection(
+                        clientConnection.id,
+                        null,
+                        null,
+                        null,
+                        null,
+                        (StringUtils.isNotBlank(userSessionId)) ? userSessionId : null,
+                        (StringUtils.isNotBlank(clientAddress)) ? clientAddress : null,
+                        virtualClientAddress,
+                        null,
+                        null,
+                        null,
+                        null))
+                .getOrThrow();
+
+        final ClientConnectionDataInternal activeClientConnection =
+                reloadConnectionCache(clientConnection.connectionToken);
+
+        if (activeClientConnection == null) {
+            log.warn("Failed to load ClientConnectionDataInternal into cache on update");
+        } else if (log.isDebugEnabled()) {
+            log.debug("SEB client connection, successfully updated ClientConnection: {}",
+                    updatedClientConnection);
+        }
+
+        return updatedClientConnection;
+    }
+
     @Override
     public Result<ClientConnection> establishClientConnection(
             final String connectionToken,
@@ -289,7 +333,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             ClientConnection clientConnection = getClientConnection(connectionToken);
             checkInstitutionalIntegrity(institutionId, clientConnection);
-            checkExamIntegrity(examId, clientConnection);
+            checkExamIdIntegrity(examId, clientConnection);
             clientConnection = updateUserSessionId(userSessionId, clientConnection, examId);
 
             // connection integrity check
@@ -624,7 +668,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 .getOrThrow().institutionId;
     }
 
-    private void checkExamIntegrity(final Long examId, final ClientConnection clientConnection) {
+    private void checkExamIdIntegrity(final Long examId, final ClientConnection clientConnection) {
         if (examId != null &&
                 clientConnection.examId != null &&
                 !examId.equals(clientConnection.examId)) {
@@ -703,7 +747,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     "Exam is currently on update and locked for new SEB Client connections");
         }
 
-        // check Exam has an default SEB Exam configuration attached
+        // check Exam has a default SEB Exam configuration attached
         if (!this.examSessionService.hasDefaultConfigurationAttached(examId)) {
             throw new APIConstraintViolationException(
                     "Exam is currently running but has no default SEB Exam configuration attached");
