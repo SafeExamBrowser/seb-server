@@ -17,8 +17,8 @@ import java.security.NoSuchAlgorithmException;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 
 public class ExamJITSIProctoringServiceTest {
@@ -28,7 +28,7 @@ public class ExamJITSIProctoringServiceTest {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn("fbvgeghergrgrthrehreg123");
         final ExamJITSIProctoringService examJITSIProctoringService =
-                new ExamJITSIProctoringService(null, null, null, null, cryptorMock);
+                new ExamJITSIProctoringService(null, null, null, null, cryptorMock, null);
 
         String accessToken = examJITSIProctoringService.createPayload(
                 "test-app",
@@ -62,7 +62,7 @@ public class ExamJITSIProctoringServiceTest {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn("fbvgeghergrgrthrehreg123");
         final ExamJITSIProctoringService examJITSIProctoringService =
-                new ExamJITSIProctoringService(null, null, null, null, cryptorMock);
+                new ExamJITSIProctoringService(null, null, null, null, cryptorMock, null);
         final ProctoringRoomConnection data = examJITSIProctoringService.createProctoringConnection(
                 ProctoringServerType.JITSI_MEET,
                 "connectionToken",

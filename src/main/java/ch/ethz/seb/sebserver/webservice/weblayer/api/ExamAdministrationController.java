@@ -411,13 +411,16 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(API.PARAM_MODEL_ID) final Long examId,
-            @Valid @RequestBody final ProctoringServiceSettings examProctoring) {
+            @Valid @RequestBody final ProctoringServiceSettings proctoringServiceSettings) {
 
         checkModifyPrivilege(institutionId);
         return this.entityDAO.byPK(examId)
                 .flatMap(this.authorization::checkModify)
                 .map(exam -> {
-                    this.examAdminService.saveProctoringServiceSettings(examId, examProctoring);
+                    this.examAdminService.getExamProctoringService(proctoringServiceSettings.serverType)
+                            .flatMap(service -> service.testExamProctoring(proctoringServiceSettings))
+                            .getOrThrow();
+                    this.examAdminService.saveProctoringServiceSettings(examId, proctoringServiceSettings);
                     return exam;
                 })
                 .flatMap(this.userActivityLogDAO::logModify)

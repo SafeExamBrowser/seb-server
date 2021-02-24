@@ -26,9 +26,9 @@ public interface ExamProctoringService {
 
     /** Use this to test the proctoring service settings against the remote proctoring server.
      *
-     * @param examProctoring the settings to test
+     * @param proctoringSettings the settings to test
      * @return Result refer to true if the settings are correct and the proctoring server can be accessed. */
-    Result<Boolean> testExamProctoring(final ProctoringServiceSettings examProctoring);
+    Result<Boolean> testExamProctoring(final ProctoringServiceSettings proctoringSettings);
 
     /** Gets the room connection data for a certain room for the proctor.
      *

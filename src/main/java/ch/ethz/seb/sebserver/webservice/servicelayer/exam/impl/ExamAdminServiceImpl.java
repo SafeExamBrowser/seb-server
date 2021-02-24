@@ -206,47 +206,49 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     @Transactional
-    public Result<ProctoringServiceSettings> saveProctoringServiceSettings(final Long examId,
-            final ProctoringServiceSettings examProctoring) {
+    public Result<ProctoringServiceSettings> saveProctoringServiceSettings(
+            final Long examId,
+            final ProctoringServiceSettings proctoringServiceSettings) {
+
         return Result.tryCatch(() -> {
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
                     ProctoringServiceSettings.ATTR_ENABLE_PROCTORING,
-                    String.valueOf(examProctoring.enableProctoring));
+                    String.valueOf(proctoringServiceSettings.enableProctoring));
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
                     ProctoringServiceSettings.ATTR_SERVER_TYPE,
-                    examProctoring.serverType.name());
+                    proctoringServiceSettings.serverType.name());
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
                     ProctoringServiceSettings.ATTR_SERVER_URL,
-                    examProctoring.serverURL);
+                    proctoringServiceSettings.serverURL);
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
                     ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE,
-                    String.valueOf(examProctoring.collectingRoomSize));
+                    String.valueOf(proctoringServiceSettings.collectingRoomSize));
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
                     ProctoringServiceSettings.ATTR_APP_KEY,
-                    examProctoring.appKey);
+                    proctoringServiceSettings.appKey);
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
                     ProctoringServiceSettings.ATTR_APP_SECRET,
-                    this.cryptor.encrypt(examProctoring.appSecret).toString());
+                    this.cryptor.encrypt(proctoringServiceSettings.appSecret).toString());
 
-            return examProctoring;
+            return proctoringServiceSettings;
         });
     }
 

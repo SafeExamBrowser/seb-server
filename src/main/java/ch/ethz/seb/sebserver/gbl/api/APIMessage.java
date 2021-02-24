@@ -52,7 +52,9 @@ public class APIMessage implements Serializable {
         EXAM_CONSISTENCY_VALIDATION_CONFIG("1401", HttpStatus.OK, "No SEB Exam Configuration defined for the Exam"),
         EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION("1402", HttpStatus.OK,
                 "SEB restriction API available but Exam not restricted on LMS side yet"),
-        EXAM_CONSISTENCY_VALIDATION_INDICATOR("1403", HttpStatus.OK, "No Indicator defined for the Exam");
+        EXAM_CONSISTENCY_VALIDATION_INDICATOR("1403", HttpStatus.OK, "No Indicator defined for the Exam"),
+
+        BINDING_ERROR("1500", HttpStatus.BAD_REQUEST, "External binding error");
 
         public final String messageCode;
         public final HttpStatus httpStatus;

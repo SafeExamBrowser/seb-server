@@ -24,14 +24,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
@@ -50,6 +58,10 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructio
 @WebServiceProfile
 public class ExamJITSIProctoringService implements ExamProctoringService {
 
+    private static final String SEB_SERVER_KEY = "seb-server";
+
+    private static final String SEB_CLIENT_KEY = "seb-client";
+
     private static final Logger log = LoggerFactory.getLogger(ExamJITSIProctoringService.class);
 
     private static final String JITSI_ACCESS_TOKEN_HEADER =
@@ -63,19 +75,22 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
     private final ExamSessionService examSessionService;
     private final SEBClientInstructionService sebClientInstructionService;
     private final Cryptor cryptor;
+    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
 
     protected ExamJITSIProctoringService(
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
             final AuthorizationService authorizationService,
             final ExamSessionService examSessionService,
             final SEBClientInstructionService sebClientInstructionService,
-            final Cryptor cryptor) {
+            final Cryptor cryptor,
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService) {
 
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
         this.authorizationService = authorizationService;
         this.examSessionService = examSessionService;
         this.sebClientInstructionService = sebClientInstructionService;
         this.cryptor = cryptor;
+        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
     }
 
     @Override
@@ -84,9 +99,31 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
     }
 
     @Override
-    public Result<Boolean> testExamProctoring(final ProctoringServiceSettings examProctoring) {
-        // TODO Auto-generated method stub
-        return null;
+    public Result<Boolean> testExamProctoring(final ProctoringServiceSettings proctoringSettings) {
+        return Result.tryCatch(() -> {
+            if (proctoringSettings.serverURL != null && proctoringSettings.serverURL.contains("?")) {
+                throw new FieldValidationException(
+                        "serverURL",
+                        "proctoringSettings:serverURL:invalidURL");
+            }
+
+            final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                    .getClientHttpRequestFactory()
+                    .getOrThrow();
+
+            try {
+                final RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
+                final ResponseEntity<String> result =
+                        restTemplate.getForEntity(proctoringSettings.serverURL, String.class);
+                if (result.getStatusCode() != HttpStatus.OK) {
+                    throw new APIMessageException(APIMessage.ErrorMessage.BINDING_ERROR);
+                }
+            } catch (final Exception e) {
+                throw new APIMessageException(APIMessage.ErrorMessage.BINDING_ERROR, e.getMessage());
+            }
+
+            return true;
+        });
     }
 
     @Override
@@ -220,7 +257,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     proctoringSettings.appKey,
                     proctoringSettings.getAppSecret(),
                     this.authorizationService.getUserService().getCurrentUser().getUsername(),
-                    "seb-server",
+                    SEB_SERVER_KEY,
                     roomName,
                     subject,
                     forExam(proctoringSettings),
@@ -247,7 +284,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     proctoringSettings.appKey,
                     proctoringSettings.getAppSecret(),
                     clientConnection.clientConnection.userSessionId,
-                    "seb-client",
+                    SEB_CLIENT_KEY,
                     roomName,
                     subject,
                     forExam(proctoringSettings),
@@ -276,7 +313,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     proctoringSettings.appKey,
                     proctoringSettings.getAppSecret(),
                     connectionData.clientConnection.userSessionId,
-                    "seb-client",
+                    SEB_CLIENT_KEY,
                     roomName,
                     subject,
                     expTime,

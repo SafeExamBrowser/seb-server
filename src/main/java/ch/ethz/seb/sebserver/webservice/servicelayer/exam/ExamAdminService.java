@@ -61,11 +61,11 @@ public interface ExamAdminService {
     /** Save the given proctoring service settings for an existing Exam.
      *
      * @param examId the exam identifier
-     * @param examProctoring The proctoring service settings to save for the exam
+     * @param proctoringServiceSettings The proctoring service settings to save for the exam
      * @return Result refer to saved proctoring service settings or to an error when happened. */
     Result<ProctoringServiceSettings> saveProctoringServiceSettings(
             Long examId,
-            ProctoringServiceSettings examProctoring);
+            ProctoringServiceSettings proctoringServiceSettings);
 
     /** This indicates if proctoring is set and enabled for a certain exam.
      *

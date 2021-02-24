@@ -35,7 +35,7 @@ public class ProctoringServlet extends HttpServlet {
     private static final long serialVersionUID = 3475978419653411800L;
 
     // @formatter:off
-    private static final String HTML =
+    private static final String JITSI_WINDOW_HTML =
             "<!DOCTYPE html>" +
                     "<html>" +
                     "<head>" +
@@ -103,15 +103,22 @@ public class ProctoringServlet extends HttpServlet {
                 (ProctoringWindowData) httpSession
                         .getAttribute(ProctoringGUIService.SESSION_ATTR_PROCTORING_DATA);
 
-        final String script = String.format(
-                HTML,
-                proctoringData.connectionData.serverHost,
-                proctoringData.connectionData.roomName,
-                proctoringData.connectionData.accessToken,
-                proctoringData.connectionData.serverHost,
-                proctoringData.connectionData.subject);
-        resp.getOutputStream().println(script);
-
+        switch (proctoringData.connectionData.proctoringServerType) {
+            case JITSI_MEET: {
+                final String script = String.format(
+                        JITSI_WINDOW_HTML,
+                        proctoringData.connectionData.serverHost,
+                        proctoringData.connectionData.roomName,
+                        proctoringData.connectionData.accessToken,
+                        proctoringData.connectionData.serverHost,
+                        proctoringData.connectionData.subject);
+                resp.getOutputStream().println(script);
+                break;
+            }
+            default:
+                throw new RuntimeException(
+                        "Unsupported proctoring server type: " + proctoringData.connectionData.proctoringServerType);
+        }
     }
 
     private boolean isAuthenticated(

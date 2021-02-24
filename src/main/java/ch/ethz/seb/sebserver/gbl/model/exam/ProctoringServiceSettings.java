@@ -25,7 +25,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.ValidProctoringS
 public class ProctoringServiceSettings implements Entity {
 
     public enum ProctoringServerType {
-        JITSI_MEET
+        JITSI_MEET,
+        ZOOM
     }
 
     public static final String ATTR_ENABLE_PROCTORING = "enableProctoring";
