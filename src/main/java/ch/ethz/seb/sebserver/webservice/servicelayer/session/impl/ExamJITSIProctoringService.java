@@ -58,8 +58,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructio
 @WebServiceProfile
 public class ExamJITSIProctoringService implements ExamProctoringService {
 
+    private static final String TOKEN_ENCODE_ALG = "HmacSHA256";
     private static final String SEB_SERVER_KEY = "seb-server";
-
     private static final String SEB_CLIENT_KEY = "seb-client";
 
     private static final Logger log = LoggerFactory.getLogger(ExamJITSIProctoringService.class);
@@ -384,9 +384,9 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                 .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
         final String message = jwtHeaderPart + "." + jwtPayloadPart;
 
-        final Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+        final Mac sha256_HMAC = Mac.getInstance(TOKEN_ENCODE_ALG);
         final SecretKeySpec secret_key =
-                new SecretKeySpec(Utils.toByteArray(appSecret), "HmacSHA256");
+                new SecretKeySpec(Utils.toByteArray(appSecret), TOKEN_ENCODE_ALG);
         sha256_HMAC.init(secret_key);
         final String hash = urlEncoder.encodeToString(sha256_HMAC.doFinal(Utils.toByteArray(message)));
 
