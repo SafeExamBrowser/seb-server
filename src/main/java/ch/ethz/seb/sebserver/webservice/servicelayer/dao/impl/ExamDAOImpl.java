@@ -431,7 +431,7 @@ public class ExamDAOImpl implements ExamDAO {
                             isEqualTo(BooleanUtils.toInteger(true)))
                     .and(
                             ExamRecordDynamicSqlSupport.status,
-                            isEqualTo(ExamStatus.UP_COMING.name()))
+                            isNotEqualTo(ExamStatus.RUNNING.name()))
                     .and(
                             ExamRecordDynamicSqlSupport.updating,
                             isEqualTo(BooleanUtils.toInteger(false)))
