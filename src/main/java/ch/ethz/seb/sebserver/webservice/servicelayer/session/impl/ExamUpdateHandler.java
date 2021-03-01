@@ -45,7 +45,7 @@ class ExamUpdateHandler {
 
         this.examDAO = examDAO;
         this.sebRestrictionService = sebRestrictionService;
-        this.updatePrefix = webserviceInfo.getHostAddress()
+        this.updatePrefix = webserviceInfo.getLocalHostAddress()
                 + "_" + webserviceInfo.getServerPort() + "_";
         this.examTimeSuffix = examTimeSuffix;
     }
