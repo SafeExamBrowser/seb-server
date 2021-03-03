@@ -51,6 +51,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeactivateSE
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetCourseChapters;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetSEBRestrictionSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveSEBRestriction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
 
 @Lazy
 @Component
@@ -81,7 +82,7 @@ public class ExamSEBRestrictionSettings {
     private final static LocTextKey SEB_RESTRICTION_FORM_EDX_USER_BANNING_ENABLED =
             new LocTextKey("sebserver.exam.form.sebrestriction.USER_BANNING_ENABLED");
 
-    static final String PAGE_CONTEXT_ATTR_LMS_TYPE = "ATTR_LMS_TYPE";
+    static final String PAGE_CONTEXT_ATTR_LMS_ID = "ATTR_LMS_ID";
 
     Function<PageAction, PageAction> settingsFunction(final PageService pageService) {
 
@@ -126,7 +127,7 @@ public class ExamSEBRestrictionSettings {
         }
 
         final EntityKey entityKey = pageContext.getEntityKey();
-        final LmsType lmsType = getLmsType(pageContext);
+        final LmsType lmsType = getLmsType(pageService, pageContext.getAttribute(PAGE_CONTEXT_ATTR_LMS_ID));
         SEBRestriction bodyValue = null;
         try {
             final Form form = formHandle.getForm();
@@ -194,7 +195,9 @@ public class ExamSEBRestrictionSettings {
             final RestService restService = this.pageService.getRestService();
             final ResourceService resourceService = this.pageService.getResourceService();
             final EntityKey entityKey = this.pageContext.getEntityKey();
-            final LmsType lmsType = getLmsType(this.pageContext);
+            final LmsType lmsType = getLmsType(
+                    this.pageService,
+                    this.pageContext.getAttribute(PAGE_CONTEXT_ATTR_LMS_ID));
             final boolean isReadonly = BooleanUtils.toBoolean(
                     this.pageContext.getAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY));
 
@@ -305,9 +308,16 @@ public class ExamSEBRestrictionSettings {
 
     }
 
-    private LmsType getLmsType(final PageContext pageContext) {
+    private LmsType getLmsType(final PageService pageService, final String lmsSetupId) {
         try {
-            return LmsType.valueOf(pageContext.getAttribute(PAGE_CONTEXT_ATTR_LMS_TYPE));
+
+            return pageService
+                    .getRestService()
+                    .getBuilder(GetLmsSetup.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, lmsSetupId)
+                    .call()
+                    .getOrThrow().lmsType;
+
         } catch (final Exception e) {
             return null;
         }

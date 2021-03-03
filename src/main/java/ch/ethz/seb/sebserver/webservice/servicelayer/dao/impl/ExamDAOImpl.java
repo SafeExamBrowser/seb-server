@@ -102,7 +102,7 @@ public class ExamDAOImpl implements ExamDAO {
     @Transactional(readOnly = true)
     public Result<GrantEntity> examGrantEntityByPK(final Long id) {
         return recordById(id)
-                .map(record -> toDomainModel(record, null).getOrThrow());
+                .map(record -> toDomainModel(record, null, null).getOrThrow());
     }
 
     @Override
@@ -111,7 +111,7 @@ public class ExamDAOImpl implements ExamDAO {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper
                 .selectByPrimaryKey(connectionId))
                 .flatMap(ccRecord -> recordById(ccRecord.getExamId()))
-                .map(record -> toDomainModel(record, null).getOrThrow());
+                .map(record -> toDomainModel(record, null, null).getOrThrow());
     }
 
     @Override
@@ -793,17 +793,48 @@ public class ExamDAOImpl implements ExamDAO {
             final Map<String, QuizData> quizzes = this.lmsAPIService
                     .getLmsAPITemplate(lmsSetupId)
                     .map(template -> getQuizzesFromLMS(template, recordMapping.keySet(), cached))
-                    .getOrThrow()
+                    .onError(error -> log.error("Failed to get quizzes for exams: ", error))
+                    .getOr(Collections.emptyList())
                     .stream()
                     .flatMap(Result::skipOnError)
                     .collect(Collectors.toMap(q -> q.id, Function.identity()));
+
+            if (records.size() != quizzes.size()) {
+
+                // Check if we have LMS connection to verify the source of the exam quiz mismatch
+                final LmsAPITemplate lmsSetup = this.lmsAPIService
+                        .getLmsAPITemplate(lmsSetupId)
+                        .getOrThrow();
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Quizzes size mismatch detected by getting exams quiz data from LMS: {}", lmsSetup);
+                }
+
+                if (lmsSetup.testCourseAccessAPI().hasAnyError()) {
+                    // No course access on the LMS. This means we can't get any quizzes from this LMSSetup at the moment
+                    // All exams are marked as corrupt because of LMS Setup failure
+
+                    log.warn("Failed to get quizzes form LMS Setup. No access to LMS {}", lmsSetup);
+
+                    return recordMapping.entrySet()
+                            .stream()
+                            .map(entry -> toDomainModel(
+                                    entry.getValue(),
+                                    null,
+                                    ExamStatus.CORRUPT_NO_LMS_CONNECTION)
+                                            .getOr(null))
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
+                }
+            }
 
             // collect Exam's
             return recordMapping.entrySet()
                     .stream()
                     .map(entry -> toDomainModel(
                             entry.getValue(),
-                            getQuizData(quizzes, entry.getKey(), entry.getValue()))
+                            getQuizData(quizzes, entry.getKey(), entry.getValue()),
+                            ExamStatus.CORRUPT_INVALID_ID)
                                     .onError(error -> log.error(
                                             "Failed to get quiz data from remote LMS for exam: ",
                                             error))
@@ -813,8 +844,11 @@ public class ExamDAOImpl implements ExamDAO {
         });
     }
 
-    private Collection<Result<QuizData>> getQuizzesFromLMS(final LmsAPITemplate template, final Set<String> ids,
+    private Collection<Result<QuizData>> getQuizzesFromLMS(
+            final LmsAPITemplate template,
+            final Set<String> ids,
             final boolean cached) {
+
         try {
             return (cached)
                     ? template.getQuizzesFromCache(ids)
@@ -840,6 +874,7 @@ public class ExamDAOImpl implements ExamDAO {
             //       a case by using the short name of the quiz and search for the quiz within the course with this
             //       short name. If one quiz has been found that matches all criteria, we adapt the internal id
             //       mapping to this quiz.
+            //       If recovering fails, this returns null and the calling side must handle the lack of quiz data
             try {
                 final LmsSetup lmsSetup = this.lmsAPIService
                         .getLmsSetup(record.getLmsSetupId())
@@ -914,7 +949,8 @@ public class ExamDAOImpl implements ExamDAO {
 
     private Result<Exam> toDomainModel(
             final ExamRecord record,
-            final QuizData quizData) {
+            final QuizData quizData,
+            final ExamStatus statusOverride) {
 
         return Result.tryCatch(() -> {
 
@@ -943,7 +979,7 @@ public class ExamDAOImpl implements ExamDAO {
                     ExamType.valueOf(record.getType()),
                     record.getOwner(),
                     supporter,
-                    status,
+                    (quizData != null) ? status : (statusOverride != null) ? statusOverride : status,
                     record.getBrowserKeys(),
                     BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : null),
                     record.getLastupdate());

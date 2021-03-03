@@ -128,14 +128,18 @@ class MoodleRestTemplateFactory {
                 .map(this::createRestTemplate)
                 .map(result -> {
                     if (result.hasError()) {
-                        log.error("Failed to get access token: ", result.getError());
+                        log.warn("Failed to get access token for LMS: {}({})",
+                                this.lmsSetup.name,
+                                this.lmsSetup.id);
                     }
                     return result;
                 })
                 .filter(Result::hasValue)
                 .findFirst()
                 .orElse(Result.ofRuntimeError(
-                        "Failed to gain any access on paths: " + this.knownTokenAccessPaths));
+                        "Failed to gain any access for LMS " +
+                                this.lmsSetup.name + "(" + this.lmsSetup.id +
+                                ") on paths: " + this.knownTokenAccessPaths));
     }
 
     Result<MoodleAPIRestTemplate> createRestTemplate(final String accessTokenPath) {
@@ -146,7 +150,9 @@ class MoodleRestTemplateFactory {
 
             final CharSequence accessToken = template.getAccessToken();
             if (accessToken == null) {
-                throw new RuntimeException("Failed to gain access token on path: " + accessTokenPath);
+                throw new RuntimeException("Failed to get access token for LMS " +
+                        this.lmsSetup.name + "(" + this.lmsSetup.id +
+                        ") on path: " + accessTokenPath);
             }
 
             return template;

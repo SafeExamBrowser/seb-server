@@ -191,7 +191,7 @@ public class MoodleCourseAccess extends CourseAccess {
         if (restTemplateRequest.hasError()) {
             final String message = "Failed to gain access token from Moodle Rest API:\n tried token endpoints: " +
                     this.moodleRestTemplateFactory.knownTokenAccessPaths;
-            log.error(message + " cause: ", restTemplateRequest.getError());
+            log.error(message + " cause: {}", restTemplateRequest.getError().getMessage());
             return LmsSetupTestResult.ofTokenRequestError(message);
         }
 
@@ -213,14 +213,14 @@ public class MoodleCourseAccess extends CourseAccess {
     protected Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids) {
         return () -> getRestTemplate()
                 .map(template -> getQuizzesForIds(template, ids))
-                .getOrThrow();
+                .getOr(Collections.emptyList());
 
     }
 
     protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
         return () -> getRestTemplate()
                 .map(template -> collectAllQuizzes(template, filterMap))
-                .getOrThrow();
+                .getOr(Collections.emptyList());
     }
 
     @Override
@@ -380,17 +380,7 @@ public class MoodleCourseAccess extends CourseAccess {
                 return Collections.emptyList();
             }
 
-            if (courseQuizData.warnings != null && !courseQuizData.warnings.isEmpty()) {
-                log.warn(
-                        "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
-                        this.lmsSetup,
-                        MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME,
-                        courseQuizData.warnings.size(),
-                        courseQuizData.warnings.iterator().next().toString());
-                if (log.isTraceEnabled()) {
-                    log.trace("All warnings from Moodle: {}", courseQuizData.warnings.toString());
-                }
-            }
+            logMoodleWarnings(courseQuizData.warnings);
 
             if (courseQuizData.quizzes == null || courseQuizData.quizzes.isEmpty()) {
                 log.error("No quizzes found for  ids: {} on LMS; {}", quizIds, this.lmsSetup.name);
@@ -461,17 +451,7 @@ public class MoodleCourseAccess extends CourseAccess {
                 Collections.emptyList();
             }
 
-            if (courses.warnings != null && !courses.warnings.isEmpty()) {
-                log.warn(
-                        "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
-                        this.lmsSetup,
-                        MoodleCourseAccess.MOODLE_COURSE_BY_FIELD_API_FUNCTION_NAME,
-                        courses.warnings.size(),
-                        courses.warnings.iterator().next().toString());
-                if (log.isTraceEnabled()) {
-                    log.trace("All warnings from Moodle: {}", courses.warnings.toString());
-                }
-            }
+            logMoodleWarnings(courses.warnings);
 
             if (courses.courses == null || courses.courses.isEmpty()) {
                 log.error("No courses found for ids: {} on LMS: {}", ids, this.lmsSetup.name);
@@ -641,6 +621,21 @@ public class MoodleCourseAccess extends CourseAccess {
 
         final String idNumber = split[3];
         return idNumber.equals(Constants.EMPTY_NOTE) ? null : idNumber;
+    }
+
+    private void logMoodleWarnings(final Collection<Warning> warnings) {
+        if (warnings != null && !warnings.isEmpty()) {
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
+                        this.lmsSetup,
+                        MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME,
+                        warnings.size(),
+                        warnings.iterator().next().toString());
+            } else if (log.isTraceEnabled()) {
+                log.trace("All warnings from Moodle: {}", warnings.toString());
+            }
+        }
     }
 
     private static final Pattern ACCESS_DENIED_PATTERN_1 =

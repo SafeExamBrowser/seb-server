@@ -35,11 +35,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -62,7 +59,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRest
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
@@ -79,7 +75,7 @@ public class ExamForm implements TemplateComposer {
     private static final Logger log = LoggerFactory.getLogger(ExamForm.class);
 
     protected static final String ATTR_READ_GRANT = "ATTR_READ_GRANT";
-    protected static final String ATTR_MODIFY_GRANT = "ATTR_MODIFY_GRANT";
+    protected static final String ATTR_EDITABLE = "ATTR_EDITABLE";
     protected static final String ATTR_EXAM_STATUS = "ATTR_EXAM_STATUS";
 
     public static final LocTextKey EXAM_FORM_TITLE_KEY =
@@ -118,6 +114,10 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.consistency.missing-config");
     private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_SEB_RESTRICTION =
             new LocTextKey("sebserver.exam.consistency.missing-seb-restriction");
+    private final static LocTextKey CONSISTENCY_MESSAGE_VALIDATION_LMS_CONNECTION =
+            new LocTextKey("sebserver.exam.consistency.no-lms-connection");
+    private final static LocTextKey CONSISTENCY_MESSAGEINVALID_ID_REFERENCE =
+            new LocTextKey("sebserver.exam.consistency.invalid-lms-id");
 
     private final Map<String, LocTextKey> consistencyMessageMapping;
     private final PageService pageService;
@@ -166,6 +166,12 @@ public class ExamForm implements TemplateComposer {
         this.consistencyMessageMapping.put(
                 APIMessage.ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION.messageCode,
                 CONSISTENCY_MESSAGE_MISSING_SEB_RESTRICTION);
+        this.consistencyMessageMapping.put(
+                APIMessage.ErrorMessage.EXAM_CONSISTENCY_VALIDATION_LMS_CONNECTION.messageCode,
+                CONSISTENCY_MESSAGE_VALIDATION_LMS_CONNECTION);
+        this.consistencyMessageMapping.put(
+                APIMessage.ErrorMessage.EXAM_CONSISTENCY_VALIDATION_INVALID_ID_REFERENCE.messageCode,
+                CONSISTENCY_MESSAGEINVALID_ID_REFERENCE);
     }
 
     @Override
@@ -218,9 +224,8 @@ public class ExamForm implements TemplateComposer {
         final boolean modifyGrant = userGrantCheck.m();
         final boolean writeGrant = userGrantCheck.w();
         final ExamStatus examStatus = exam.getStatus();
-        final boolean editable = examStatus == ExamStatus.UP_COMING
-                || examStatus == ExamStatus.RUNNING
-                        && currentUser.get().hasRole(UserRole.EXAM_ADMIN);
+        final boolean editable = modifyGrant && (examStatus == ExamStatus.UP_COMING ||
+                examStatus == ExamStatus.RUNNING);
         final boolean sebRestrictionAvailable = testSEBRestrictionAPI(exam);
         final boolean isRestricted = readonly && sebRestrictionAvailable && this.restService
                 .getBuilder(CheckSEBRestriction.class)
@@ -387,12 +392,7 @@ public class ExamForm implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
                 .withEntityKey(entityKey)
                 .withExec(this.examSEBRestrictionSettings.settingsFunction(this.pageService))
-                .withAttribute(
-                        ExamSEBRestrictionSettings.PAGE_CONTEXT_ATTR_LMS_TYPE,
-                        this.restService.getBuilder(GetLmsSetup.class)
-                                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
-                                .call()
-                                .getOrThrow().lmsType.name())
+                .withAttribute(ExamSEBRestrictionSettings.PAGE_CONTEXT_ATTR_LMS_ID, String.valueOf(exam.lmsSetupId))
                 .withAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY, String.valueOf(!modifyGrant))
                 .noEventPropagation()
                 .publishIf(() -> sebRestrictionAvailable && readonly)
@@ -433,7 +433,7 @@ public class ExamForm implements TemplateComposer {
                     formContext
                             .copyOf(content)
                             .withAttribute(ATTR_READ_GRANT, String.valueOf(userGrantCheck.r()))
-                            .withAttribute(ATTR_MODIFY_GRANT, String.valueOf(modifyGrant))
+                            .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
                             .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
 
             // Indicators
@@ -441,7 +441,7 @@ public class ExamForm implements TemplateComposer {
                     formContext
                             .copyOf(content)
                             .withAttribute(ATTR_READ_GRANT, String.valueOf(userGrantCheck.r()))
-                            .withAttribute(ATTR_MODIFY_GRANT, String.valueOf(modifyGrant))
+                            .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
                             .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
         }
     }
@@ -467,11 +467,7 @@ public class ExamForm implements TemplateComposer {
     }
 
     private boolean testSEBRestrictionAPI(final Exam exam) {
-        final Result<LmsSetup> lmsSetupCall = this.restService.getBuilder(GetLmsSetup.class)
-                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(exam.lmsSetupId))
-                .call();
-
-        if (!lmsSetupCall.hasError() && !lmsSetupCall.get().lmsType.features.contains(Features.SEB_RESTRICTION)) {
+        if (exam.status == ExamStatus.CORRUPT_NO_LMS_CONNECTION || exam.status == ExamStatus.CORRUPT_INVALID_ID) {
             return false;
         }
 

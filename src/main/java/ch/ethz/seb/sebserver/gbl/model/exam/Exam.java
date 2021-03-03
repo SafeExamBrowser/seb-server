@@ -59,7 +59,9 @@ public final class Exam implements GrantEntity {
     public enum ExamStatus {
         UP_COMING,
         RUNNING,
-        FINISHED
+        FINISHED,
+        CORRUPT_NO_LMS_CONNECTION,
+        CORRUPT_INVALID_ID
     }
 
     public enum ExamType {

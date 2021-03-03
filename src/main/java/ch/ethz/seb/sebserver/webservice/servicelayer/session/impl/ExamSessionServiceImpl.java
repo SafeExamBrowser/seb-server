@@ -121,14 +121,22 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
-    public Result<Collection<APIMessage>> checkRunningExamConsistency(final Long examId) {
+    public Result<Collection<APIMessage>> checkExamConsistency(final Long examId) {
         return Result.tryCatch(() -> {
             final Collection<APIMessage> result = new ArrayList<>();
 
-            if (isExamRunning(examId)) {
-                final Exam exam = getRunningExam(examId)
-                        .getOrThrow();
+            final Exam exam = this.examDAO.byPK(examId)
+                    .getOrThrow();
 
+            // check lms connection
+            if (exam.status == ExamStatus.CORRUPT_NO_LMS_CONNECTION) {
+                result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_LMS_CONNECTION.of(exam.getModelId()));
+            }
+            if (exam.status == ExamStatus.CORRUPT_INVALID_ID) {
+                result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_INVALID_ID_REFERENCE.of(exam.getModelId()));
+            }
+
+            if (exam.status == ExamStatus.RUNNING) {
                 // check exam supporter
                 if (exam.getSupporter().isEmpty()) {
                     result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SUPPORTER.of(exam.getModelId()));

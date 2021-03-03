@@ -246,7 +246,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
         checkReadPrivilege(institutionId);
         return this.examSessionService
-                .checkRunningExamConsistency(modelId)
+                .checkExamConsistency(modelId)
                 .getOrThrow();
     }
 

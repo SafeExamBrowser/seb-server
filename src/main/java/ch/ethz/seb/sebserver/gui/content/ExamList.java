@@ -254,7 +254,7 @@ public class ExamList implements TemplateComposer {
             final Exam exam,
             final PageService pageService) {
 
-        if (exam.getStatus() != ExamStatus.RUNNING) {
+        if (exam.getStatus() == ExamStatus.UP_COMING || exam.getStatus() == ExamStatus.FINISHED) {
             return;
         }
 
