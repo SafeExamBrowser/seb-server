@@ -267,26 +267,6 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             log.debug("Start to stream plain JSON SEB Configuration data for Config-Key generation");
         }
 
-//        if (true) {
-//            PipedOutputStream pout;
-//            PipedInputStream pin;
-//            try {
-//                pout = new PipedOutputStream();
-//                pin = new PipedInputStream(pout);
-//                this.examConfigIO.exportPlain(
-//                        ConfigurationFormat.JSON,
-//                        pout,
-//                        institutionId,
-//                        configurationNodeId);
-//
-//                final String json = IOUtils.toString(pin, "UTF-8");
-//
-//                log.trace("SEB Configuration JSON to create Config-Key: {}", json);
-//            } catch (final Exception e) {
-//                log.error("Failed to trace SEB Configuration JSON: ", e);
-//            }
-//        }
-
         PipedOutputStream pout = null;
         PipedInputStream pin = null;
         try {

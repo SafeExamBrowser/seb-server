@@ -64,6 +64,7 @@ public interface ExamSessionService {
     /** Use this to check the consistency of a running Exam.
      * Current consistency checks are:
      * - Check if there is at least one Exam supporter attached to the Exam
+     * - Check if we have access to LMS for the exam
      * - Check if there is one default SEB Exam Configuration attached to the Exam
      * - Check if SEB restriction API is available and the exam is running but not yet restricted on LMS side
      * - Check if there is at least one Indicator defined for the monitoring of the Exam
@@ -71,7 +72,7 @@ public interface ExamSessionService {
      * @param examId the identifier of the Exam to check
      * @return Result of one APIMessage per consistency check if the check failed. An empty Collection of everything is
      *         okay. */
-    Result<Collection<APIMessage>> checkRunningExamConsistency(Long examId);
+    Result<Collection<APIMessage>> checkExamConsistency(Long examId);
 
     /** Use this to check if a specified Exam has currently active SEB Client connections.
      *

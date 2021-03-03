@@ -41,6 +41,10 @@ public class IgnoreSEBService implements ValueChangeRule {
             final ConfigurationAttribute attribute,
             final ConfigurationValue value) {
 
+        if (context.isReadonly()) {
+            return;
+        }
+
         if (KEY_IGNORE_SEB_SERVICE.equals(attribute.name)) {
             if (BooleanUtils.toBoolean(value.value)) {
                 context.disable(KEY_SEB_SERVICE_POLICY);

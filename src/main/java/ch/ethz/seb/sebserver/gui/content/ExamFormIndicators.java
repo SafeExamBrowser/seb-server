@@ -72,8 +72,8 @@ public class ExamFormIndicators implements TemplateComposer {
     public void compose(final PageContext pageContext) {
         final Composite content = pageContext.getParent();
         final EntityKey entityKey = pageContext.getEntityKey();
-        final boolean modifyGrant = BooleanUtils.toBoolean(
-                pageContext.getAttribute(ExamForm.ATTR_MODIFY_GRANT));
+        final boolean editable = BooleanUtils.toBoolean(
+                pageContext.getAttribute(ExamForm.ATTR_EDITABLE));
 
         // List of Indicators
         this.widgetFactory.addFormSubContextHeader(
@@ -111,7 +111,7 @@ public class ExamFormIndicators implements TemplateComposer {
                                         .asMarkup()
                                         .widthProportion(4))
                         .withDefaultActionIf(
-                                () -> modifyGrant,
+                                () -> editable,
                                 () -> actionBuilder
                                         .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
                                         .withParentEntityKey(entityKey)
@@ -132,7 +132,7 @@ public class ExamFormIndicators implements TemplateComposer {
                         indicatorTable::getSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent(), false)
+                .publishIf(() -> editable && indicatorTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
                 .withEntityKey(entityKey)
@@ -140,11 +140,11 @@ public class ExamFormIndicators implements TemplateComposer {
                         indicatorTable::getSelection,
                         this::deleteSelectedIndicator,
                         INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> modifyGrant && indicatorTable.hasAnyContent(), false)
+                .publishIf(() -> editable && indicatorTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_INDICATOR_NEW)
                 .withParentEntityKey(entityKey)
-                .publishIf(() -> modifyGrant);
+                .publishIf(() -> editable);
 
     }
 

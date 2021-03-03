@@ -117,7 +117,7 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
     @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
         if (log.isDebugEnabled()) {
-            log.debug("Get SEB Client restriction for Exam: {}", exam);
+            log.debug("Get SEB Client restriction for Exam: {}", exam.externalId);
         }
 
         return this.moodleCourseRestriction

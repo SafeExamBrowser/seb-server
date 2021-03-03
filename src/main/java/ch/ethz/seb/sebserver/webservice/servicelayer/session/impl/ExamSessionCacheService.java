@@ -133,7 +133,8 @@ public class ExamSessionCacheService {
             case RUNNING: {
                 return true;
             }
-            case UP_COMING: {
+            case UP_COMING:
+            case FINISHED: {
                 return this.examUpdateHandler.updateRunning(exam.id)
                         .map(e -> e.status == ExamStatus.RUNNING)
                         .getOr(false);

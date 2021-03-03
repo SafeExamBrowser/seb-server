@@ -26,7 +26,6 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -41,7 +40,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -89,20 +87,15 @@ public class ExamFormConfigs implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-        final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final Composite content = pageContext.getParent();
-
         final EntityKey entityKey = pageContext.getEntityKey();
-        final boolean modifyGrant = BooleanUtils.toBoolean(
-                pageContext.getAttribute(ExamForm.ATTR_MODIFY_GRANT));
+        final boolean editable = BooleanUtils.toBoolean(
+                pageContext.getAttribute(ExamForm.ATTR_EDITABLE));
         final boolean readGrant = BooleanUtils.toBoolean(
                 pageContext.getAttribute(ExamForm.ATTR_READ_GRANT));
         final ExamStatus examStatus = ExamStatus.valueOf(
                 pageContext.getAttribute(ExamForm.ATTR_EXAM_STATUS));
         final boolean isExamRunning = examStatus == ExamStatus.RUNNING;
-        final boolean editable = examStatus == ExamStatus.UP_COMING
-                || examStatus == ExamStatus.RUNNING
-                        && currentUser.get().hasRole(UserRole.EXAM_ADMIN);
 
         // List of SEB Configuration
         this.widgetFactory.addFormSubContextHeader(
@@ -134,7 +127,7 @@ public class ExamFormConfigs implements TemplateComposer {
                                 this.resourceService::localizedExamConfigStatusName)
                                         .widthProportion(1))
                         .withDefaultActionIf(
-                                () -> true,
+                                () -> readGrant,
                                 this::viewExamConfigPageAction)
 
                         .withSelectionListener(this.pageService.getSelectionPublisher(
@@ -162,12 +155,12 @@ public class ExamFormConfigs implements TemplateComposer {
                 .withParentEntityKey(entityKey)
                 .withExec(this.examToConfigBindingForm.bindFunction())
                 .noEventPropagation()
-                .publishIf(() -> modifyGrant && editable && !configurationTable.hasAnyContent())
+                .publishIf(() -> editable && !configurationTable.hasAnyContent())
 
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_EXAM_CONFIG_VIEW_PROP)
                 .withParentEntityKey(entityKey)
                 .withEntityKey(configMapKey)
-                .publishIf(() -> modifyGrant && configurationTable.hasAnyContent(), false)
+                .publishIf(() -> readGrant && configurationTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_DELETE_FROM_LIST)
                 .withEntityKey(entityKey)
@@ -181,7 +174,7 @@ public class ExamFormConfigs implements TemplateComposer {
                     }
                     return null;
                 })
-                .publishIf(() -> modifyGrant && configurationTable.hasAnyContent() && editable, false)
+                .publishIf(() -> editable && configurationTable.hasAnyContent() && editable, false)
 
                 .newAction(ActionDefinition.EXAM_CONFIGURATION_GET_CONFIG_KEY)
                 .withSelect(

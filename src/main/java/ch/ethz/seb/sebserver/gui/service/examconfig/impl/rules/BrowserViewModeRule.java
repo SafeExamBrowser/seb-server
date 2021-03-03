@@ -45,7 +45,7 @@ public class BrowserViewModeRule implements ValueChangeRule {
             final ConfigurationAttribute attribute,
             final ConfigurationValue value) {
 
-        if (StringUtils.isBlank(value.value)) {
+        if (context.isReadonly() || StringUtils.isBlank(value.value)) {
             return;
         }
 

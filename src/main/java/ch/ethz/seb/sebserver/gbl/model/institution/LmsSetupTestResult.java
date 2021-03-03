@@ -82,6 +82,10 @@ public final class LmsSetupTestResult {
                 .anyMatch(error -> error.errorType == type);
     }
 
+    public boolean hasAnyError() {
+        return !this.errors.isEmpty();
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
