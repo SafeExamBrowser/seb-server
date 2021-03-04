@@ -300,7 +300,10 @@ public class MonitoringClientConnection implements TemplateComposer {
                 EVENT_LIST_TITLE_TOOLTIP_KEY);
 
         // client event table for this connection
-        this.pageService.entityTableBuilder(restService.getRestCall(GetExtendedClientEventPage.class))
+        this.pageService
+                .entityTableBuilder(
+                        "seb-client-" + connectionToken,
+                        restService.getRestCall(GetExtendedClientEventPage.class))
                 .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                 .withPaging(this.pageSize)
                 .withRestCallAdapter(restCallBuilder -> restCallBuilder.withQueryParam(
