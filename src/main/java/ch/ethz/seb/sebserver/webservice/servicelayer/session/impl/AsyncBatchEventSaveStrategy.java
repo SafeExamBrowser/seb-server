@@ -135,6 +135,7 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
             SEBServerInit.INIT_LOGGER.info("> Worker Thread {} running", Thread.currentThread());
 
             final Collection<ClientEventRecord> events = new ArrayList<>();
+            @SuppressWarnings("resource")
             final SqlSessionTemplate sqlSessionTemplate = new SqlSessionTemplate(
                     this.sqlSessionFactory,
                     ExecutorType.BATCH);
@@ -172,7 +173,11 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
                     }
                 }
             } finally {
-                sqlSessionTemplate.close();
+                try {
+                    sqlSessionTemplate.destroy();
+                } catch (final Exception e) {
+                    log.error("Failed to dispose SqlSessionTemplate", e);
+                }
                 log.debug("Worker Thread {} stopped", Thread.currentThread());
             }
         };
