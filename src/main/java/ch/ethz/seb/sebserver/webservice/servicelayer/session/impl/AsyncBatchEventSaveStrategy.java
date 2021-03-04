@@ -59,6 +59,9 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
 
     private static final int NUMBER_OF_WORKER_THREADS = 4;
     private static final int BATCH_SIZE = 100;
+    private static final int MIN_SLEEP_TIME = 100;
+    private static final int SLEEP_TIME_EXPAND = 100;
+    private static final int MAX_SLEEP_TIME = 5000;
 
     private final SqlSessionFactory sqlSessionFactory;
     private final Executor executor;
@@ -150,7 +153,7 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
 
                     try {
                         if (!events.isEmpty()) {
-                            sleepTime = 100;
+                            sleepTime = MIN_SLEEP_TIME;
                             this.transactionTemplate
                                     .execute(status -> {
                                         events.forEach(clientEventMapper::insert);
@@ -158,8 +161,8 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
                                     });
 
                             sqlSessionTemplate.flushStatements();
-                        } else {
-                            sleepTime += 100;
+                        } else if (sleepTime < MAX_SLEEP_TIME) {
+                            sleepTime += SLEEP_TIME_EXPAND;
                         }
                     } catch (final Exception e) {
                         log.error("unexpected Error while trying to batch store client-events: ", e);
