@@ -161,7 +161,7 @@ Composite.logo {
 
 Composite.bgLogo {
     background-color: #1F407A;
-    background-image: url(static/images/ethz_logo_white.png);
+    background-image: url(static/images/sebserver-logo.png);
     background-repeat: no-repeat;
     background-position: left center;
 }
