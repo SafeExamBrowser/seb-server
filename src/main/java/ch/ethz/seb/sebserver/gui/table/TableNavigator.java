@@ -22,6 +22,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 public class TableNavigator {
 
     private final static int PAGE_NAV_SIZE = 9;
+    private final static int NAV_BUTTON_WIDTH = 35;
+    private final static int NAV_BUTON_HEIGHT = 16;
 
     private final Composite composite;
     private final EntityTable<?> entityTable;
@@ -114,7 +116,11 @@ public class TableNavigator {
             final boolean selectable,
             final Composite parent) {
 
-        final GridData rowData = new GridData(22, 16);
+        final GridData rowData = new GridData(NAV_BUTTON_WIDTH, NAV_BUTON_HEIGHT);
+        rowData.verticalAlignment = SWT.CENTER;
+        rowData.horizontalAlignment = SWT.CENTER;
+        rowData.verticalIndent = 0;
+
         final Label pageLabel = new Label(parent, SWT.NONE);
         pageLabel.setText(" " + page + " ");
         pageLabel.setLayoutData(rowData);
@@ -131,7 +137,7 @@ public class TableNavigator {
             final int numberOfPages,
             final Composite parent) {
 
-        final GridData rowData = new GridData(22, 16);
+        final GridData rowData = new GridData(NAV_BUTTON_WIDTH, NAV_BUTON_HEIGHT);
         final Label forward = new Label(parent, SWT.NONE);
         forward.setText(">");
         forward.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIST_NAVIGATION.key);
@@ -160,7 +166,7 @@ public class TableNavigator {
             final int pageNumber,
             final Composite parent) {
 
-        final GridData rowData = new GridData(22, 16);
+        final GridData rowData = new GridData(NAV_BUTTON_WIDTH, NAV_BUTON_HEIGHT);
         final Label start = new Label(parent, SWT.NONE);
         start.setText("<<");
         start.setLayoutData(rowData);
