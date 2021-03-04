@@ -138,13 +138,14 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
             SEBServerInit.INIT_LOGGER.info("> Worker Thread {} running", Thread.currentThread());
 
             final Collection<ClientEventRecord> events = new ArrayList<>();
+            @SuppressWarnings("resource")
             final SqlSessionTemplate sqlSessionTemplate = new SqlSessionTemplate(
                     this.sqlSessionFactory,
                     ExecutorType.BATCH);
             final ClientEventRecordMapper clientEventMapper = sqlSessionTemplate.getMapper(
                     ClientEventRecordMapper.class);
 
-            long sleepTime = 100;
+            long sleepTime = MIN_SLEEP_TIME;
 
             try {
                 while (this.workersRunning) {
@@ -175,7 +176,13 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
                     }
                 }
             } finally {
-                sqlSessionTemplate.close();
+                try {
+                    sqlSessionTemplate.destroy();
+                } catch (final Exception e) {
+                    log.error("Failed to close and destroy the SqlSessionTemplate for this thread: {}",
+                            Thread.currentThread(),
+                            e);
+                }
                 log.debug("Worker Thread {} stopped", Thread.currentThread());
             }
         };
