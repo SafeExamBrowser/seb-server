@@ -176,8 +176,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
 
         final String requestURI = request.getRequestURI();
         if (requestURI.startsWith(this.remoteProctoringEndpoint)) {
-            // TODO try to verify if this is only the remoteProctoringEndpoint or with addition
-            //      if there is addition, try redirect otherwise forward as is
+
             final RequestDispatcher dispatcher = request
                     .getServletContext()
                     .getRequestDispatcher(this.remoteProctoringEndpoint);
@@ -262,28 +261,5 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
 
         return null;
     }
-
-    /** TODO this seems not to work as expected. Different Theme is only possible in RAP on different
-     * entry-points and since entry-points are statically defined within the RAPConfiguration
-     * there is no possibility to apply them dynamically within an institution so far.
-     *
-     * @param institutionalEndpoint
-     * @return */
-//    private boolean initInstitutionalBasedThemeEntryPoint(final String institutionalEndpoint) {
-//        try {
-//            final ApplicationContextImpl appContext = (ApplicationContextImpl) RWT.getApplicationContext();
-//            final Map<String, String> properties = new HashMap<>();
-//            properties.put(WebClient.THEME_ID, "sms");
-//            appContext.getEntryPointManager().register(
-//                    institutionalEndpoint,
-//                    new RAPSpringEntryPointFactory(),
-//                    properties);
-//
-//            return true;
-//        } catch (final Exception e) {
-//            log.warn("Failed to dynamically set entry point for institution: {}", institutionalEndpoint, e);
-//            return false;
-//        }
-//    }
 
 }
