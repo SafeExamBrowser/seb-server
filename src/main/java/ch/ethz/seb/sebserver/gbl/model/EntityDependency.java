@@ -23,7 +23,7 @@ public class EntityDependency implements Comparable<EntityDependency> {
     public final EntityKey parent;
     @JsonProperty(value = ATTR_SELF, required = true)
     public final EntityKey self;
-    @JsonProperty(value = ATTR_NAME, required = true)
+    @JsonProperty(value = ATTR_NAME)
     public final String name;
     @JsonProperty(ATTR_DESCRIPTION)
     public final String description;
