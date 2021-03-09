@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface RemoteProctoringRoomRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<RemoteProctoringRoomRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -53,11 +53,12 @@ public interface RemoteProctoringRoomRecordMapper {
         @Arg(column="name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="size", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
         @Arg(column="subject", javaType=String.class, jdbcType=JdbcType.VARCHAR),
-        @Arg(column="townhall_room", javaType=Integer.class, jdbcType=JdbcType.INTEGER)
+        @Arg(column="townhall_room", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
+        @Arg(column="break_out_connections", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
     RemoteProctoringRoomRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -65,26 +66,27 @@ public interface RemoteProctoringRoomRecordMapper {
         @Arg(column="name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="size", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
         @Arg(column="subject", javaType=String.class, jdbcType=JdbcType.VARCHAR),
-        @Arg(column="townhall_room", javaType=Integer.class, jdbcType=JdbcType.INTEGER)
+        @Arg(column="townhall_room", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
+        @Arg(column="break_out_connections", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
     List<RemoteProctoringRoomRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(remoteProctoringRoomRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, remoteProctoringRoomRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, remoteProctoringRoomRecord)
                 .where(id, isEqualTo(id_))
@@ -92,7 +94,7 @@ public interface RemoteProctoringRoomRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     default int insert(RemoteProctoringRoomRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(remoteProctoringRoomRecord)
@@ -101,11 +103,12 @@ public interface RemoteProctoringRoomRecordMapper {
                 .map(size).toProperty("size")
                 .map(subject).toProperty("subject")
                 .map(townhallRoom).toProperty("townhallRoom")
+                .map(breakOutConnections).toProperty("breakOutConnections")
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     default int insertSelective(RemoteProctoringRoomRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(remoteProctoringRoomRecord)
@@ -114,52 +117,55 @@ public interface RemoteProctoringRoomRecordMapper {
                 .map(size).toPropertyWhenPresent("size", record::getSize)
                 .map(subject).toPropertyWhenPresent("subject", record::getSubject)
                 .map(townhallRoom).toPropertyWhenPresent("townhallRoom", record::getTownhallRoom)
+                .map(breakOutConnections).toPropertyWhenPresent("breakOutConnections", record::getBreakOutConnections)
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.125+01:00", comments="Source Table: remote_proctoring_room")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<RemoteProctoringRoomRecord>>> selectByExample() {
-        return SelectDSL.selectWithMapper(this::selectMany, id, examId, name, size, subject, townhallRoom)
+        return SelectDSL.selectWithMapper(this::selectMany, id, examId, name, size, subject, townhallRoom, breakOutConnections)
                 .from(remoteProctoringRoomRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.126+01:00", comments="Source Table: remote_proctoring_room")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<RemoteProctoringRoomRecord>>> selectDistinctByExample() {
-        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, examId, name, size, subject, townhallRoom)
+        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, examId, name, size, subject, townhallRoom, breakOutConnections)
                 .from(remoteProctoringRoomRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.126+01:00", comments="Source Table: remote_proctoring_room")
     default RemoteProctoringRoomRecord selectByPrimaryKey(Long id_) {
-        return SelectDSL.selectWithMapper(this::selectOne, id, examId, name, size, subject, townhallRoom)
+        return SelectDSL.selectWithMapper(this::selectOne, id, examId, name, size, subject, townhallRoom, breakOutConnections)
                 .from(remoteProctoringRoomRecord)
                 .where(id, isEqualTo(id_))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.126+01:00", comments="Source Table: remote_proctoring_room")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(RemoteProctoringRoomRecord record) {
         return UpdateDSL.updateWithMapper(this::update, remoteProctoringRoomRecord)
                 .set(examId).equalTo(record::getExamId)
                 .set(name).equalTo(record::getName)
                 .set(size).equalTo(record::getSize)
                 .set(subject).equalTo(record::getSubject)
-                .set(townhallRoom).equalTo(record::getTownhallRoom);
+                .set(townhallRoom).equalTo(record::getTownhallRoom)
+                .set(breakOutConnections).equalTo(record::getBreakOutConnections);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.126+01:00", comments="Source Table: remote_proctoring_room")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(RemoteProctoringRoomRecord record) {
         return UpdateDSL.updateWithMapper(this::update, remoteProctoringRoomRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)
                 .set(name).equalToWhenPresent(record::getName)
                 .set(size).equalToWhenPresent(record::getSize)
                 .set(subject).equalToWhenPresent(record::getSubject)
-                .set(townhallRoom).equalToWhenPresent(record::getTownhallRoom);
+                .set(townhallRoom).equalToWhenPresent(record::getTownhallRoom)
+                .set(breakOutConnections).equalToWhenPresent(record::getBreakOutConnections);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.126+01:00", comments="Source Table: remote_proctoring_room")
     default int updateByPrimaryKey(RemoteProctoringRoomRecord record) {
         return UpdateDSL.updateWithMapper(this::update, remoteProctoringRoomRecord)
                 .set(examId).equalTo(record::getExamId)
@@ -167,12 +173,13 @@ public interface RemoteProctoringRoomRecordMapper {
                 .set(size).equalTo(record::getSize)
                 .set(subject).equalTo(record::getSubject)
                 .set(townhallRoom).equalTo(record::getTownhallRoom)
+                .set(breakOutConnections).equalTo(record::getBreakOutConnections)
                 .where(id, isEqualTo(record::getId))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-02-03T17:08:18.583+01:00", comments="Source Table: remote_proctoring_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.126+01:00", comments="Source Table: remote_proctoring_room")
     default int updateByPrimaryKeySelective(RemoteProctoringRoomRecord record) {
         return UpdateDSL.updateWithMapper(this::update, remoteProctoringRoomRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)
@@ -180,6 +187,7 @@ public interface RemoteProctoringRoomRecordMapper {
                 .set(size).equalToWhenPresent(record::getSize)
                 .set(subject).equalToWhenPresent(record::getSubject)
                 .set(townhallRoom).equalToWhenPresent(record::getTownhallRoom)
+                .set(breakOutConnections).equalToWhenPresent(record::getBreakOutConnections)
                 .where(id, isEqualTo(record::getId))
                 .build()
                 .execute();

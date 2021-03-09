@@ -43,8 +43,8 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -75,7 +75,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProcotringRooms;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetTownhallRoom;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -442,12 +442,12 @@ public class MonitoringRunningExam implements TemplateComposer {
                     .getCurrentUser()
                     .getProctoringGUIService();
 
-            String activeAllRoomName = proctoringGUIService.getTownhallRoom(examId.modelId);
-
-            if (activeAllRoomName == null) {
+            final String windowName = getTownhallWindowName(examId.modelId);
+            if (!proctoringGUIService.hasWindow(windowName)) {
                 final ProctoringRoomConnection proctoringConnectionData = proctoringGUIService
-                        .registerTownhallRoom(
+                        .openTownhallRoom(
                                 examId.modelId,
+                                windowName,
                                 this.pageService.getI18nSupport().getText(EXAM_ROOM_NAME))
                         .onError(error -> log.error(
                                 "Failed to open all collecting room for exam {} {}", examId.modelId,
@@ -455,50 +455,41 @@ public class MonitoringRunningExam implements TemplateComposer {
                         .getOrThrow();
                 ProctoringGUIService.setCurrentProctoringWindowData(
                         examId.modelId,
+                        windowName,
                         proctoringConnectionData);
-                activeAllRoomName = proctoringConnectionData.roomName;
             }
 
             final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
             final String script = String.format(
                     OPEN_ROOM_SCRIPT,
-                    activeAllRoomName,
+                    windowName,
                     800,
                     1200,
                     this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
                     this.remoteProctoringEndpoint);
             javaScriptExecutor.execute(script);
-            proctoringGUIService.registerProctoringWindow(activeAllRoomName);
 
         } catch (final Exception e) {
-            log.error("Failed to open popup for townhall room: ", e);
+            log.error("Failed to open popup for town-hall room: ", e);
         }
         return action;
     }
 
+    private String getTownhallWindowName(final String examId) {
+        return examId + "_townhall";
+    }
+
     private PageAction closeTownhallRoom(final PageAction action) {
         final String examId = action.getEntityKey().modelId;
-        final RemoteProctoringRoom townhall = this.pageService.getRestService()
-                .getBuilder(GetTownhallRoom.class)
-                .withURIVariable(API.PARAM_MODEL_ID, examId)
-                .call()
-                .getOr(null);
-
-        if (townhall == null || townhall.id == null) {
-            log.warn(
-                    "Close townhall action cannot get active townhall form webservice for exam: {}",
-                    examId);
-            return action;
-        }
-
         try {
-            final ProctoringGUIService proctoringGUIService = this.pageService
-                    .getCurrentUser()
-                    .getProctoringGUIService();
 
-            proctoringGUIService.closeRoom(townhall.name);
+            this.pageService
+                    .getCurrentUser()
+                    .getProctoringGUIService()
+                    .closeRoomWindow(getTownhallWindowName(examId));
+
         } catch (final Exception e) {
-            log.error("Failed to close procotring townhall room for exam: {}", examId);
+            log.error("Failed to close proctoring town-hall room for exam: {}", examId);
         }
         return action;
     }
@@ -532,7 +523,9 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         updateTownhallButton(entityKey, pageContext);
         final I18nSupport i18nSupport = this.pageService.getI18nSupport();
-        this.pageService.getRestService().getBuilder(GetProcotringRooms.class)
+        this.pageService
+                .getRestService()
+                .getBuilder(GetCollectingRooms.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
                 .onError(error -> log.error("Failed to update proctoring rooms on GUI {}", error.getMessage()))
@@ -669,7 +662,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         this.pageService.getCurrentUser()
                 .getProctoringGUIService()
-                .registerProctoringWindow(room.name);
+                .registerProctoringWindow(String.valueOf(room.examId), room.name, room.name);
 
         return action;
     }

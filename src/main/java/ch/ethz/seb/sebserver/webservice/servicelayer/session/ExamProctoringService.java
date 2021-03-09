@@ -9,9 +9,11 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import java.util.Collection;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
@@ -74,6 +76,8 @@ public interface ExamProctoringService {
             ProctoringServiceSettings proctoringSettings,
             Collection<String> clientConnectionTokens);
 
+    Result<Void> disposeServiceRoomsForExam(Exam exam);
+
     default String verifyRoomName(final String requestedRoomName, final String connectionToken) {
         if (StringUtils.isNotBlank(requestedRoomName)) {
             return requestedRoomName;
@@ -81,5 +85,17 @@ public interface ExamProctoringService {
 
         throw new RuntimeException("Test Why: " + connectionToken);
     }
+
+    String newCollectingRoom(Long roomNumber);
+
+    String newCollectingRoomSubject(Long roomNumber);
+
+    String openBreakOutRoom();
+
+    Result<ExamProctoringService> closeBreakOutRoom(String roomName);
+
+    Map<String, String> getDefaultInstructionAttributes();
+
+    Map<String, String> getInstructionAttributes(Map<String, String> attributes);
 
 }

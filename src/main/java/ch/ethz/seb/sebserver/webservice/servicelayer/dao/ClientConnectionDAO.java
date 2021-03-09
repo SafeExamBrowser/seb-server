@@ -91,7 +91,7 @@ public interface ClientConnectionDAO extends
      * @param examId The exam identifier
      * @param roomName the room name
      * @return Result refer to a collection of all ClientConnection of the room or to an error if happened */
-    Result<Collection<ClientConnection>> getRoomConnections(final Long examId, final String roomName);
+    Result<Collection<ClientConnection>> getCollectingRoomConnections(final Long examId, final String roomName);
 
     /** Creates new ClientConnection from the given ClientConnection data.
      *

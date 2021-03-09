@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnections;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRoomConnections;
 
 @Lazy
 @Component
@@ -55,7 +55,8 @@ public class ProctorRoomConnectionsPopup {
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
 
-        this.pageService.getRestService().getBuilder(GetProctorRoomConnections.class)
+        this.pageService.getRestService()
+                .getBuilder(GetCollectingRoomConnections.class)
                 .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
                 .withQueryParam(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID, entityKey.modelId)
                 .call()

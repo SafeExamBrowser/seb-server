@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS `remote_proctoring_room` (
   `size` INT NULL,
   `subject` VARCHAR(255) NULL,
   `townhall_room` INT(1) NOT NULL DEFAULT 0,
+  `break_out_connections` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`),
   INDEX `proctor_room_exam_id_idx` (`exam_id` ASC),
   CONSTRAINT `proctorRoomExamRef`
@@ -116,7 +117,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `connection_token` VARCHAR(255) NOT NULL,
   `exam_user_session_id` VARCHAR(255) NULL,
   `client_address` VARCHAR(45) NOT NULL,
-  `client_name` VARCHAR(45) NULL,
+  `virtual_client_address` VARCHAR(45) NULL,
   `vdi` INT(1) UNSIGNED NULL DEFAULT 0,
   `vdi_pair_token` VARCHAR(255) NULL,
   `creation_time` BIGINT UNSIGNED NOT NULL,

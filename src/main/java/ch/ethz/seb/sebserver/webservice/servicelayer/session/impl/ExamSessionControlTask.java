@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
@@ -156,6 +157,9 @@ class ExamSessionControlTask implements DisposableBean {
                     .stream()
                     .filter(exam -> exam.endTime != null && exam.endTime.plus(this.examTimeSuffix).isBefore(now))
                     .map(exam -> this.examUpdateHandler.setFinished(exam, updateId))
+                    .map(this.examProcotringRoomService::disposeRoomsForExam)
+                    .filter(result -> !result.hasError())
+                    .map(Result::get)
                     .collect(Collectors.toMap(Exam::getId, Exam::getName));
 
             if (!updated.isEmpty()) {

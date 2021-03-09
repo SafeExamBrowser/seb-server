@@ -254,7 +254,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<ClientConnection>> getRoomConnections(final Long examId, final String roomName) {
+    public Result<Collection<ClientConnection>> getCollectingRoomConnections(final Long examId, final String roomName) {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()
                 .leftJoin(RemoteProctoringRoomRecordDynamicSqlSupport.remoteProctoringRoomRecord)
                 .on(RemoteProctoringRoomRecordDynamicSqlSupport.id,
@@ -283,7 +283,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.connectionToken,
                     null,
                     data.clientAddress,
-                    data.clientName,
+                    data.virtualClientId,
                     BooleanUtils.toInteger(data.vdi, 1, 0, 0),
                     data.vdiPairToken,
                     millisecondsNow,
@@ -312,7 +312,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     null,
                     data.userSessionId,
                     data.clientAddress,
-                    data.clientName,
+                    data.virtualClientId,
                     BooleanUtils.toInteger(data.vdi, 1, 0, 0),
                     data.vdiPairToken,
                     null,
@@ -358,7 +358,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         record.getConnectionToken(),
                         record.getExamUserSessionId(),
                         record.getClientAddress(),
-                        record.getClientName(),
+                        record.getVirtualClientAddress(),
                         record.getVdi(),
                         record.getVdiPairToken(),
                         record.getCreationTime(),
@@ -538,7 +538,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                             ClientConnectionRecordDynamicSqlSupport.examId,
                             SqlBuilder.isEqualTo(examId))
                     .and(
-                            ClientConnectionRecordDynamicSqlSupport.clientName,
+                            ClientConnectionRecordDynamicSqlSupport.virtualClientAddress,
                             SqlBuilder.isEqualTo(clientName))
                     .build()
                     .execute();
@@ -579,7 +579,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getConnectionToken(),
                     record.getExamUserSessionId(),
                     record.getClientAddress(),
-                    record.getClientName(),
+                    record.getVirtualClientAddress(),
                     BooleanUtils.toBooleanObject(record.getVdi()),
                     record.getVdiPairToken(),
                     record.getCreationTime(),

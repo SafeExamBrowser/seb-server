@@ -137,7 +137,8 @@ public class ExamZOOMProctoringService implements ExamProctoringService {
     public Result<ProctoringRoomConnection> sendJoinRoomToClients(
             final ProctoringServiceSettings proctoringSettings,
             final Collection<String> clientConnectionTokens,
-            final String roomName, final String subject) {
+            final String roomName,
+            final String subject) {
 
         // TODO Auto-generated method stub
         return null;
@@ -152,36 +153,6 @@ public class ExamZOOMProctoringService implements ExamProctoringService {
         return null;
     }
 
-    protected String createJWT(
-            final String appKey,
-            final CharSequence appSecret,
-            final Long expTime) throws NoSuchAlgorithmException, InvalidKeyException {
-
-        final StringBuilder builder = new StringBuilder();
-        final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
-
-        final String jwtHeaderPart = urlEncoder.encodeToString(
-                ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
-        final String jwtPayload = createPayload(appKey, expTime);
-        final String jwtPayloadPart = urlEncoder.encodeToString(
-                jwtPayload.getBytes(StandardCharsets.UTF_8));
-        final String message = jwtHeaderPart + "." + jwtPayloadPart;
-
-        final Mac sha256_HMAC = Mac.getInstance(TOKEN_ENCODE_ALG);
-        final SecretKeySpec secret_key = new SecretKeySpec(
-                Utils.toByteArray(appSecret),
-                TOKEN_ENCODE_ALG);
-        sha256_HMAC.init(secret_key);
-        final String hash = urlEncoder.encodeToString(
-                sha256_HMAC.doFinal(Utils.toByteArray(message)));
-
-        builder.append(message)
-                .append(".")
-                .append(hash);
-
-        return builder.toString();
-    }
-
     protected String createPayload(
             final String clientKey,
             final Long expTime) {
@@ -192,21 +163,21 @@ public class ExamZOOMProctoringService implements ExamProctoringService {
                 expTime);
     }
 
-    private long forExam(final ProctoringServiceSettings examProctoring) {
-        if (examProctoring.examId == null) {
-            throw new IllegalStateException("Missing exam identifier from ExamProctoring data");
-        }
-
-        long expTime = System.currentTimeMillis() + Constants.DAY_IN_MILLIS;
-        if (this.examSessionService.isExamRunning(examProctoring.examId)) {
-            final Exam exam = this.examSessionService.getRunningExam(examProctoring.examId)
-                    .getOrThrow();
-            if (exam.endTime != null) {
-                expTime = exam.endTime.getMillis();
-            }
-        }
-        return expTime;
-    }
+//    private long forExam(final ProctoringServiceSettings examProctoring) {
+//        if (examProctoring.examId == null) {
+//            throw new IllegalStateException("Missing exam identifier from ExamProctoring data");
+//        }
+//
+//        long expTime = System.currentTimeMillis() + Constants.DAY_IN_MILLIS;
+//        if (this.examSessionService.isExamRunning(examProctoring.examId)) {
+//            final Exam exam = this.examSessionService.getRunningExam(examProctoring.examId)
+//                    .getOrThrow();
+//            if (exam.endTime != null) {
+//                expTime = exam.endTime.getMillis();
+//            }
+//        }
+//        return expTime;
+//    }
 
     private class ZoomRestCallTemplate {
 
@@ -278,6 +249,78 @@ public class ExamZOOMProctoringService implements ExamProctoringService {
             });
             return protectedRunResult.getOrThrow();
         }
+
+        private String createJWT(
+                final String appKey,
+                final CharSequence appSecret,
+                final Long expTime) throws NoSuchAlgorithmException, InvalidKeyException {
+
+            final StringBuilder builder = new StringBuilder();
+            final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
+
+            final String jwtHeaderPart = urlEncoder.encodeToString(
+                    ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
+            final String jwtPayload = createPayload(appKey, expTime);
+            final String jwtPayloadPart = urlEncoder.encodeToString(
+                    jwtPayload.getBytes(StandardCharsets.UTF_8));
+            final String message = jwtHeaderPart + "." + jwtPayloadPart;
+
+            final Mac sha256_HMAC = Mac.getInstance(TOKEN_ENCODE_ALG);
+            final SecretKeySpec secret_key = new SecretKeySpec(
+                    Utils.toByteArray(appSecret),
+                    TOKEN_ENCODE_ALG);
+            sha256_HMAC.init(secret_key);
+            final String hash = urlEncoder.encodeToString(
+                    sha256_HMAC.doFinal(Utils.toByteArray(message)));
+
+            builder.append(message)
+                    .append(".")
+                    .append(hash);
+
+            return builder.toString();
+        }
+    }
+
+    @Override
+    public Result<Void> disposeServiceRoomsForExam(final Exam exam) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String newCollectingRoom(final Long roomNumber) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String newCollectingRoomSubject(final Long roomNumber) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public String openBreakOutRoom() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Result<ExamProctoringService> closeBreakOutRoom(final String roomName) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Map<String, String> getDefaultInstructionAttributes() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public Map<String, String> getInstructionAttributes(final Map<String, String> attributes) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

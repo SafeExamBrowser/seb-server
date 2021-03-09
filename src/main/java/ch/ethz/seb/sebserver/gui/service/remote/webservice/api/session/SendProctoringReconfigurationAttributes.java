@@ -23,9 +23,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class SendRejoinExamCollectionRoom extends RestCall<Void> {
+public class SendProctoringReconfigurationAttributes extends RestCall<Void> {
 
-    public SendRejoinExamCollectionRoom() {
+    public SendProctoringReconfigurationAttributes() {
         super(new TypeKey<>(
                 CallType.UNDEFINED,
                 EntityType.EXAM_PROCTOR_DATA,
@@ -35,7 +35,7 @@ public class SendRejoinExamCollectionRoom extends RestCall<Void> {
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_PROCTORING_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.EXAM_PROCTORING_REJOIN_COLLECTING_ROOM_PATH_SEGMENT);
+                        + API.EXAM_PROCTORING_RECONFIGURATION_ATTRIBUTES);
     }
 
 }

@@ -83,7 +83,7 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID)
     public final Long remoteProctoringRoomId;
 
-    public final String clientName;
+    public final String virtualClientId;
     public final Long creationTime;
     public final Long updateTime;
     public final Boolean remoteProctoringRoomUpdate;
@@ -109,7 +109,7 @@ public final class ClientConnection implements GrantEntity {
         this.userSessionId = userSessionId;
         this.clientAddress = clientAddress;
         this.vdi = vdi;
-        this.clientName = null;
+        this.virtualClientId = null;
         this.vdiPairToken = vdiPairToken;
         this.creationTime = 0L;
         this.updateTime = 0L;
@@ -125,7 +125,7 @@ public final class ClientConnection implements GrantEntity {
             final String connectionToken,
             final String userSessionId,
             final String clientAddress,
-            final String clientName,
+            final String virtualClientId,
             final Boolean vdi,
             final String vdiPairToken,
             final Long creationTime,
@@ -140,7 +140,7 @@ public final class ClientConnection implements GrantEntity {
         this.connectionToken = connectionToken;
         this.userSessionId = userSessionId;
         this.clientAddress = clientAddress;
-        this.clientName = clientName;
+        this.virtualClientId = virtualClientId;
         this.vdi = vdi;
         this.vdiPairToken = vdiPairToken;
         this.creationTime = creationTime;
@@ -197,8 +197,8 @@ public final class ClientConnection implements GrantEntity {
     }
 
     @JsonIgnore
-    public String getClientName() {
-        return this.clientName;
+    public String getVirtualClientId() {
+        return this.virtualClientId;
     }
 
     public Boolean getVdi() {
@@ -297,8 +297,8 @@ public final class ClientConnection implements GrantEntity {
         builder.append(this.vdiPairToken);
         builder.append(", remoteProctoringRoomId=");
         builder.append(this.remoteProctoringRoomId);
-        builder.append(", clientName=");
-        builder.append(this.clientName);
+        builder.append(", virtualClientId=");
+        builder.append(this.virtualClientId);
         builder.append(", creationTime=");
         builder.append(this.creationTime);
         builder.append(", updateTime=");

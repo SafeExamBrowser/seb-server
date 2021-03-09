@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session;
 
-import java.util.Collection;
-
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -19,26 +17,26 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetProctorRoomConnections extends RestCall<Collection<ClientConnection>> {
+public class OpenTownhallRoom extends RestCall<ProctoringRoomConnection> {
 
-    public GetProctorRoomConnections() {
+    public OpenTownhallRoom() {
         super(new TypeKey<>(
-                CallType.GET_LIST,
-                EntityType.CLIENT_CONNECTION,
-                new TypeReference<Collection<ClientConnection>>() {
+                CallType.UNDEFINED,
+                EntityType.EXAM_PROCTOR_DATA,
+                new TypeReference<ProctoringRoomConnection>() {
                 }),
-                HttpMethod.GET,
+                HttpMethod.POST,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_PROCTORING_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.EXAM_PROCTORING_ROOM_CONNECTIONS_PATH_SEGMENT);
+                        + API.EXAM_PROCTORING_ACTIVATE_TOWNHALL_ROOM);
     }
 
 }

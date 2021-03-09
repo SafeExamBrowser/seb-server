@@ -21,15 +21,26 @@ public interface RemoteProctoringRoomDAO {
 
     Result<RemoteProctoringRoom> getRoom(Long roomId);
 
+    Result<RemoteProctoringRoom> getRoom(Long examId, String roomName);
+
     Result<String> getRoomName(Long roomId);
+
+    Result<RemoteProctoringRoom> createTownhallRoom(
+            Long examId,
+            String roomName,
+            String subject);
 
     Result<RemoteProctoringRoom> getTownhallRoom(Long examId);
 
-    Result<RemoteProctoringRoom> createTownhallRoom(Long examId, String subject);
-
-    Result<RemoteProctoringRoom> saveRoom(final Long examId, RemoteProctoringRoom room);
-
     Result<EntityKey> deleteTownhallRoom(Long examId);
+
+    Result<RemoteProctoringRoom> createBreakOutRoom(
+            Long examId,
+            String roomName,
+            String subject,
+            String connectionTokens);
+
+    Result<EntityKey> deleteRoom(Long roomId);
 
     Result<Collection<EntityKey>> deleteRooms(Long examId);
 

@@ -10,10 +10,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
@@ -53,6 +55,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
         return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper.selectByExample()
                 .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
                 .and(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isEqualTo(0))
+                .and(RemoteProctoringRoomRecordDynamicSqlSupport.breakOutConnections, isNull())
                 .build()
                 .execute()
                 .stream()
@@ -65,6 +68,19 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     public Result<RemoteProctoringRoom> getRoom(final Long roomId) {
         return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper
                 .selectByPrimaryKey(roomId))
+                .map(this::toDomainModel);
+    }
+
+    @Override
+    public Result<RemoteProctoringRoom> getRoom(final Long examId, final String roomName) {
+        return Result.tryCatch(() -> {
+            return this.remoteProctoringRoomRecordMapper.selectByExample()
+                    .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                    .and(RemoteProctoringRoomRecordDynamicSqlSupport.name, isEqualTo(roomName))
+                    .build()
+                    .execute()
+                    .get(0);
+        })
                 .map(this::toDomainModel);
     }
 
@@ -92,7 +108,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
 
     @Override
     @Transactional
-    public Result<RemoteProctoringRoom> createTownhallRoom(final Long examId, final String subject) {
+    public Result<RemoteProctoringRoom> createTownhallRoom(final Long examId, final String roomName,
+            final String subject) {
         return Result.tryCatch(() -> {
             // check first if town-hall room is not already active
             final long active = this.remoteProctoringRoomRecordMapper.countByExample()
@@ -105,38 +122,18 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 throw new IllegalStateException("Townhall, for exam: " + examId + " already existis");
             }
 
-            final String newCollectingRoomName = UUID.randomUUID().toString();
             final RemoteProctoringRoomRecord townhallRoomRecord = new RemoteProctoringRoomRecord(
                     null,
                     examId,
-                    newCollectingRoomName,
+                    roomName,
                     0,
-                    StringUtils.isNotBlank(subject) ? subject : newCollectingRoomName,
-                    1);
+                    StringUtils.isNotBlank(subject) ? subject : roomName,
+                    1,
+                    null);
 
             this.remoteProctoringRoomRecordMapper.insert(townhallRoomRecord);
             return this.remoteProctoringRoomRecordMapper
                     .selectByPrimaryKey(townhallRoomRecord.getId());
-        })
-                .map(this::toDomainModel)
-                .onError(TransactionHandler::rollback);
-    }
-
-    @Override
-    @Transactional
-    public Result<RemoteProctoringRoom> saveRoom(final Long examId, final RemoteProctoringRoom room) {
-        return Result.tryCatch(() -> {
-            final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord(
-                    room.id,
-                    examId,
-                    room.name,
-                    room.roomSize,
-                    room.subject,
-                    BooleanUtils.toInteger(room.townhallRoom, 1, 0, 0));
-
-            this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
-            return this.remoteProctoringRoomRecordMapper
-                    .selectByPrimaryKey(remoteProctoringRoomRecord.getId());
         })
                 .map(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
@@ -150,6 +147,44 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     this.remoteProctoringRoomRecordMapper.deleteByPrimaryKey(room.id);
                     return new EntityKey(room.id, EntityType.REMOTE_PROCTORING_ROOM);
                 });
+    }
+
+    @Override
+    @Transactional
+    public Result<RemoteProctoringRoom> createBreakOutRoom(
+            final Long examId,
+            final String roomName,
+            final String subject,
+            final String connectionTokens) {
+
+        return Result.tryCatch(() -> {
+
+            final RemoteProctoringRoomRecord record = new RemoteProctoringRoomRecord(
+                    null,
+                    examId,
+                    roomName,
+                    0,
+                    StringUtils.isNotBlank(subject) ? subject : roomName,
+                    0,
+                    connectionTokens);
+
+            this.remoteProctoringRoomRecordMapper.insert(record);
+            return this.remoteProctoringRoomRecordMapper
+                    .selectByPrimaryKey(record.getId());
+        })
+                .map(this::toDomainModel)
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<EntityKey> deleteRoom(final Long roomId) {
+        return Result.tryCatch(() -> {
+            this.remoteProctoringRoomRecordMapper
+                    .deleteByPrimaryKey(roomId);
+
+            return new EntityKey(roomId, EntityType.REMOTE_PROCTORING_ROOM);
+        });
     }
 
     @Override
@@ -199,6 +234,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                             null,
                             r.getSize() + 1,
                             null,
+                            null,
                             null);
 
                     this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
@@ -218,7 +254,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                         newRoomNameFunction.apply(roomNumber),
                         1,
                         newRommSubjectFunction.apply(roomNumber),
-                        0);
+                        0,
+                        null);
                 this.remoteProctoringRoomRecordMapper.insert(remoteProctoringRoomRecord);
                 return remoteProctoringRoomRecord;
             }
@@ -240,6 +277,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     null,
                     record.getSize() - 1,
                     null,
+                    null,
                     null);
 
             this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
@@ -252,13 +290,19 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     }
 
     private RemoteProctoringRoom toDomainModel(final RemoteProctoringRoomRecord record) {
+        final String breakOutConnections = record.getBreakOutConnections();
+        final Collection<String> connections = StringUtils.isNotBlank(breakOutConnections)
+                ? Arrays.asList(StringUtils.split(breakOutConnections, Constants.LIST_SEPARATOR_CHAR))
+                : Collections.emptyList();
+
         return new RemoteProctoringRoom(
                 record.getId(),
                 record.getExamId(),
                 record.getName(),
                 record.getSize(),
                 record.getSubject(),
-                BooleanUtils.toBooleanObject(record.getTownhallRoom()));
+                BooleanUtils.toBooleanObject(record.getTownhallRoom()),
+                connections);
     }
 
 }

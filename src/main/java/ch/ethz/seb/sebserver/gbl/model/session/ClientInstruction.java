@@ -39,6 +39,7 @@ public final class ClientInstruction {
         public interface SEB_PROCTORING {
             public static final String SERVICE_TYPE = "service-type";
             public static final String METHOD = "method";
+
             public static final String JITSI_URL = "jitsiMeetServerURL";
             public static final String JITSI_ROOM = "jitsiMeetRoom";
             public static final String JITSI_ROOM_SUBJECT = "jitsiMeetSubject";
@@ -46,12 +47,24 @@ public final class ClientInstruction {
             public static final String JITSI_RECEIVE_AUDIO = "jitsiMeetReceiveAudio";
             public static final String JITSI_RECEIVE_VIDEO = "jitsiMeetReceiveVideo";
             public static final String JITSI_ALLOW_CHAT = "jitsiMeetFeatureFlagChat";
+
+            public static final String ZOOM_URL = "zoomMeetServerURL";
+            public static final String ZOOM_ROOM = "zoomMeetRoom";
+            public static final String ZOOM_ROOM_SUBJECT = "zoomMeetSubject";
+            public static final String ZOOM_TOKEN = "zoomMeetToken";
+            public static final String ZOOM_RECEIVE_AUDIO = "zoomMeetReceiveAudio";
+            public static final String ZOOM_RECEIVE_VIDEO = "zoomMeetReceiveVideo";
+            public static final String ZOOM_ALLOW_CHAT = "zoomMeetFeatureFlagChat";
         }
 
         public interface SEB_RECONFIGURE_SETTINGS {
             public static final String JITSI_RECEIVE_AUDIO = "jitsiMeetReceiveAudio";
             public static final String JITSI_RECEIVE_VIDEO = "jitsiMeetReceiveVideo";
             public static final String JITSI_ALLOW_CHAT = "jitsiMeetFeatureFlagChat";
+
+            public static final String ZOOM_RECEIVE_AUDIO = "zoomMeetReceiveAudio";
+            public static final String ZOOM_RECEIVE_VIDEO = "zoomMeetReceiveVideo";
+            public static final String ZOOM_ALLOW_CHAT = "zoomMeetFeatureFlagChat";
         }
     }
 

@@ -11,11 +11,14 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Base64.Encoder;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -33,6 +36,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
@@ -46,6 +50,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
@@ -69,6 +74,30 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
 
     private static final String JITSI_ACCESS_TOKEN_PAYLOAD =
             "{\"context\":{\"user\":{\"name\":\"%s\"}},\"iss\":\"%s\",\"aud\":\"%s\",\"sub\":\"%s\",\"room\":\"%s\"%s%s}";
+
+    private static final Map<String, String> SEB_API_NAME_INSTRUCTION_NAME_MAPPING = Utils.immutableMapOf(Arrays.asList(
+            new Tuple<>(
+                    API.EXAM_PROCTORING_ATTR_RECEIVE_AUDIO,
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_RECEIVE_AUDIO),
+            new Tuple<>(
+                    API.EXAM_PROCTORING_ATTR_RECEIVE_VIDEO,
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_RECEIVE_VIDEO),
+            new Tuple<>(
+                    API.EXAM_PROCTORING_ATTR_ALLOW_CHAT,
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_ALLOW_CHAT))
+            .stream().collect(Collectors.toMap(Tuple::get_1, Tuple::get_2)));
+
+    private static final Map<String, String> SEB_INSTRUCTION_DEFAULTS = Utils.immutableMapOf(Arrays.asList(
+            new Tuple<>(
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_RECEIVE_AUDIO,
+                    Constants.FALSE_STRING),
+            new Tuple<>(
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_RECEIVE_VIDEO,
+                    Constants.FALSE_STRING),
+            new Tuple<>(
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_ALLOW_CHAT,
+                    Constants.FALSE_STRING))
+            .stream().collect(Collectors.toMap(Tuple::get_1, Tuple::get_2)));
 
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final AuthorizationService authorizationService;
@@ -207,6 +236,46 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
         });
     }
 
+    @Override
+    public Result<Void> disposeServiceRoomsForExam(final Exam exam) {
+        // NOTE: Since Jitsi rooms are generated and disposed automatically we don't need to do anything here
+        return Result.EMPTY;
+    }
+
+    @Override
+    public String newCollectingRoom(final Long roomNumber) {
+        return UUID.randomUUID().toString();
+    }
+
+    @Override
+    public String newCollectingRoomSubject(final Long roomNumber) {
+        return "Room " + (roomNumber + 1);
+    }
+
+    @Override
+    public String openBreakOutRoom() {
+        return UUID.randomUUID().toString();
+    }
+
+    @Override
+    public Result<ExamProctoringService> closeBreakOutRoom(final String roomName) {
+        return Result.of(this);
+    }
+
+    @Override
+    public Map<String, String> getDefaultInstructionAttributes() {
+        return SEB_INSTRUCTION_DEFAULTS;
+    }
+
+    @Override
+    public Map<String, String> getInstructionAttributes(final Map<String, String> attributes) {
+        return attributes.entrySet().stream()
+                .map(entry -> new Tuple<>(
+                        SEB_API_NAME_INSTRUCTION_NAME_MAPPING.getOrDefault(entry.getKey(), entry.getKey()),
+                        entry.getValue()))
+                .collect(Collectors.toMap(Tuple::get_1, Tuple::get_2));
+    }
+
     private void sendJoinInstruction(
             final Long examId,
             final String connectionToken,
@@ -320,7 +389,6 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     false)
                             .getOrThrow();
         });
-
     }
 
     protected Result<ProctoringRoomConnection> createProctoringConnection(

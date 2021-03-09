@@ -72,7 +72,7 @@ public class SebVdiConnectionTest extends ExamAPIIntegrationTester {
         assertNotNull(clientConnectionRecord.getClientAddress());
         assertNull(clientConnectionRecord.getExamUserSessionId());
         assertTrue(clientConnectionRecord.getVdi() == 1);
-        assertNull(clientConnectionRecord.getClientName());
+        assertNull(clientConnectionRecord.getVirtualClientAddress());
 
         // check caching
         final Cache examCache = this.cacheManager

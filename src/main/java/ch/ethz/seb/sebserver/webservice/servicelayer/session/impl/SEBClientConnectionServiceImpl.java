@@ -312,7 +312,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final Long currentExamId = (examId != null) ? examId : clientConnection.examId;
             final String currentVdiConnectionId = (clientId != null)
                     ? clientId
-                    : clientConnection.clientName;
+                    : clientConnection.virtualClientId;
 
             // create new ClientConnection for update
             final ClientConnection establishedClientConnection = new ClientConnection(
@@ -388,7 +388,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         final Result<ClientConnectionRecord> vdiPairConnectionResult =
                 this.clientConnectionDAO.getVDIPairCompanion(
                         establishedClientConnection.examId,
-                        establishedClientConnection.clientName);
+                        establishedClientConnection.virtualClientId);
 
         if (!vdiPairConnectionResult.hasValue()) {
             return establishedClientConnection;
@@ -406,7 +406,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 null,
                 establishedClientConnection.userSessionId,
                 null,
-                establishedClientConnection.clientName,
+                establishedClientConnection.virtualClientId,
                 null,
                 vdiPairCompanion.getConnectionToken(),
                 null,

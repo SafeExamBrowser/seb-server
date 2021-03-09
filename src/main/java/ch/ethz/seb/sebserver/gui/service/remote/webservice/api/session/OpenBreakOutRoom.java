@@ -17,25 +17,26 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class SendProctoringBroadcastAttributes extends RestCall<Void> {
+public class OpenBreakOutRoom extends RestCall<ProctoringRoomConnection> {
 
-    public SendProctoringBroadcastAttributes() {
+    public OpenBreakOutRoom() {
         super(new TypeKey<>(
                 CallType.UNDEFINED,
                 EntityType.EXAM_PROCTOR_DATA,
-                new TypeReference<Void>() {
+                new TypeReference<ProctoringRoomConnection>() {
                 }),
                 HttpMethod.POST,
                 MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_PROCTORING_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.EXAM_PROCTORING_BROADCAST_SEND_ATTRIBUTES);
+                        + API.EXAM_PROCTORING_OPEN_BREAK_OUT_ROOM_SEGMENT);
     }
 
 }
