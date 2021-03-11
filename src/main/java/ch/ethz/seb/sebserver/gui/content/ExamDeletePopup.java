@@ -186,8 +186,14 @@ public class ExamDeletePopup {
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name());
 
-            final Set<EntityDependency> dependencies = restCallBuilder.call().getOrThrow();
-            final List<EntityDependency> list = dependencies.stream().sorted().collect(Collectors.toList());
+            final Set<EntityDependency> dependencies = restCallBuilder
+                    .call()
+                    .getOrThrow();
+            final List<EntityDependency> list = dependencies
+                    .stream()
+                    .sorted()
+                    .collect(Collectors.toList());
+
             this.pageService.<EntityDependency> staticListTableBuilder(list, null)
                     .withEmptyMessage(FORM_REPORT_NONE)
                     .withColumn(new ColumnDefinition<>(

@@ -600,7 +600,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .map(rec -> new EntityDependency(
                         institutionKey,
                         new EntityKey(rec.getId(), EntityType.CLIENT_CONNECTION),
-                        rec.getExamUserSessionId(),
+                        getDependencyName(rec),
                         rec.getClientAddress()))
                 .collect(Collectors.toList()));
     }
@@ -620,7 +620,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .map(rec -> new EntityDependency(
                         lmsSetupKey,
                         new EntityKey(rec.getId(), EntityType.CLIENT_CONNECTION),
-                        rec.getExamUserSessionId(),
+                        getDependencyName(rec),
                         rec.getClientAddress()))
                 .collect(Collectors.toList()));
     }
@@ -640,7 +640,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .map(rec -> new EntityDependency(
                         userKey,
                         new EntityKey(rec.getId(), EntityType.CLIENT_CONNECTION),
-                        rec.getExamUserSessionId(),
+                        getDependencyName(rec),
                         rec.getClientAddress()))
                 .collect(Collectors.toList()));
     }
@@ -656,9 +656,18 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .map(rec -> new EntityDependency(
                         examKey,
                         new EntityKey(rec.getId(), EntityType.CLIENT_CONNECTION),
-                        rec.getExamUserSessionId(),
+                        getDependencyName(rec),
                         rec.getClientAddress()))
                 .collect(Collectors.toList()));
+    }
+
+    private String getDependencyName(final ClientConnectionRecord record) {
+        final String examUserSessionId = record.getExamUserSessionId();
+        if (StringUtils.isNotBlank(examUserSessionId)) {
+            return examUserSessionId;
+        }
+
+        return record.getConnectionToken();
     }
 
 }
