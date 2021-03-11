@@ -224,9 +224,14 @@ public class SEBClientEvents implements TemplateComposer {
                 .publishIf(() -> writeGrant, table.hasAnyContent());
     }
 
-    private PageAction getOpenDelete(final PageAction pageAction, final MultiValueMap<String, String> filterCriteria) {
+    private PageAction getOpenDelete(
+            final PageAction pageAction,
+            final MultiValueMap<String, String> filterCriteria) {
+
         try {
-            final List<String> ids = this.restService.getBuilder(GetClientEventNames.class)
+
+            final List<String> ids = this.restService
+                    .getBuilder(GetClientEventNames.class)
                     .withQueryParams(filterCriteria)
                     .call()
                     .getOrThrow()
@@ -234,9 +239,10 @@ public class SEBClientEvents implements TemplateComposer {
                     .map(EntityName::getModelId)
                     .collect(Collectors.toList());
 
-            final PageAction deleteAction = pageAction.withAttribute(
-                    PageContext.AttributeKeys.ENTITY_ID_LIST,
-                    StringUtils.join(ids, Constants.COMMA))
+            final PageAction deleteAction = pageAction
+                    .withAttribute(
+                            PageContext.AttributeKeys.ENTITY_ID_LIST,
+                            StringUtils.join(ids, Constants.COMMA))
                     .withAttribute(
                             PageContext.AttributeKeys.ENTITY_LIST_TYPE,
                             EntityType.CLIENT_EVENT.name());
