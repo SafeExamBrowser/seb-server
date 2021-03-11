@@ -232,7 +232,7 @@ public class RegisterPage implements TemplateComposer {
         registerButton.addListener(SWT.Selection, event -> {
 
             registerForm.getForm().clearErrors();
-            final Result<UserInfo> onError = this.pageService
+            final Result<UserInfo> result = this.pageService
                     .getRestService()
                     .getBuilder(RegisterNewUser.class)
                     .withRestTemplate(this.restTemplate)
@@ -240,7 +240,7 @@ public class RegisterPage implements TemplateComposer {
                     .call()
                     .onError(registerForm::handleError);
 
-            if (onError.hasError()) {
+            if (result.hasError()) {
                 return;
             }
 

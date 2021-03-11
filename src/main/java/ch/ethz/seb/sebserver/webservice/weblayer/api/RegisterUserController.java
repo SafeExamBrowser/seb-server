@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.api.TooManyRequests;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -38,6 +39,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
+import io.github.bucket4j.local.LocalBucket;
 
 @WebServiceProfile
 @RestController
@@ -47,17 +49,23 @@ public class RegisterUserController {
     private final UserActivityLogDAO userActivityLogDAO;
     private final UserDAO userDAO;
     private final BeanValidationService beanValidationService;
+    private final LocalBucket requestRateLimitBucket;
+    private final LocalBucket createRateLimitBucket;
 
     protected RegisterUserController(
             final InstitutionDAO institutionDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final UserDAO userDAO,
             final BeanValidationService beanValidationService,
+            final RateLimitService rateLimitService,
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
 
         this.userActivityLogDAO = userActivityLogDAO;
         this.userDAO = userDAO;
         this.beanValidationService = beanValidationService;
+
+        this.requestRateLimitBucket = rateLimitService.createRequestLimitBucker();
+        this.createRateLimitBucket = rateLimitService.createCreationLimitBucker();
     }
 
     @RequestMapping(
@@ -67,6 +75,10 @@ public class RegisterUserController {
     public UserInfo registerNewUser(
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request) {
+
+        if (!this.requestRateLimitBucket.tryConsume(1)) {
+            throw new TooManyRequests();
+        }
 
         final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
                 .putIfAbsent(USER_ROLE.REFERENCE_NAME, UserRole.EXAM_SUPPORTER.name());
@@ -88,8 +100,11 @@ public class RegisterUserController {
                         throw new APIMessageException(errors);
                     }
 
-                    return userAccount;
+                    if (!this.createRateLimitBucket.tryConsume(1)) {
+                        throw new TooManyRequests(TooManyRequests.Code.REGISTRATION);
+                    }
 
+                    return userAccount;
                 })
                 .flatMap(this.userDAO::createNew)
                 .flatMap(account -> this.userDAO.setActive(account, true))

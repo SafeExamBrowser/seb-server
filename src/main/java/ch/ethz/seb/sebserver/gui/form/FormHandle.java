@@ -14,10 +14,13 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.TooManyRequests;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -35,7 +38,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 
 public class FormHandle<T extends Entity> {
 
+    private static final Logger log = LoggerFactory.getLogger(FormHandle.class);
+
     public static final String FIELD_VALIDATION_LOCTEXT_PREFIX = "sebserver.form.validation.fieldError.";
+    static final LocTextKey MESSAGE_TOO_MANY_REQUESTS_TEXT =
+            new LocTextKey("sebserver.error.tooManyRequests");
 
     private final PageService pageService;
     private final PageContext pageContext;
@@ -169,12 +176,27 @@ public class FormHandle<T extends Entity> {
     }
 
     private void handleUnexpectedError(final Exception error) {
-        if (this.post != null && this.post.getEntityType() != null) {
-            this.pageContext.notifySaveError(this.post.getEntityType(), error);
-        } else {
-            this.pageContext.notifyError(
-                    new LocTextKey(PageContext.GENERIC_SAVE_ERROR_TEXT_KEY, StringUtils.EMPTY),
-                    error);
+        try {
+            if (error instanceof TooManyRequests) {
+                final TooManyRequests.Code code = ((TooManyRequests) error).code;
+                if (code != null) {
+                    this.pageContext.publishInfo(new LocTextKey(MESSAGE_TOO_MANY_REQUESTS_TEXT.name + "." + code));
+                } else {
+                    this.pageContext.publishInfo(MESSAGE_TOO_MANY_REQUESTS_TEXT);
+                }
+
+                return;
+            }
+
+            if (this.post != null && this.post.getEntityType() != null) {
+                this.pageContext.notifySaveError(this.post.getEntityType(), error);
+            } else {
+                this.pageContext.notifyError(
+                        new LocTextKey(PageContext.GENERIC_SAVE_ERROR_TEXT_KEY, StringUtils.EMPTY),
+                        error);
+            }
+        } catch (final Exception e) {
+            log.error("Failed to handle unexpected error: ", e);
         }
     }
 

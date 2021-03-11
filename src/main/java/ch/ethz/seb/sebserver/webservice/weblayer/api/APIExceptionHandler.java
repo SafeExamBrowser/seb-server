@@ -33,6 +33,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
+import ch.ethz.seb.sebserver.gbl.api.TooManyRequests;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
@@ -85,6 +86,15 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 valErrors,
                 Utils.createJsonContentHeader(),
                 HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(TooManyRequests.class)
+    public ResponseEntity<Object> handleToManyRequests(
+            final TooManyRequests ex,
+            final WebRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(String.valueOf(ex.code));
     }
 
     @ExceptionHandler(RuntimeException.class)
