@@ -4,31 +4,31 @@ import javax.annotation.Generated;
 import org.joda.time.DateTime;
 
 public class SebClientConfigRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.185+01:00", comments="Source field: seb_client_configuration.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.name")
     private String name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.date")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.date")
     private DateTime date;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.client_name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.client_name")
     private String clientName;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.client_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.client_secret")
     private String clientSecret;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.encrypt_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.encrypt_secret")
     private String encryptSecret;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.active")
     private Integer active;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.185+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source Table: seb_client_configuration")
     public SebClientConfigRecord(Long id, Long institutionId, String name, DateTime date, String clientName, String clientSecret, String encryptSecret, Integer active) {
         this.id = id;
         this.institutionId = institutionId;
@@ -40,42 +40,42 @@ public class SebClientConfigRecord {
         this.active = active;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.185+01:00", comments="Source field: seb_client_configuration.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.name")
     public String getName() {
         return name;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.date")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.date")
     public DateTime getDate() {
         return date;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.client_name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.client_name")
     public String getClientName() {
         return clientName;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.client_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.client_secret")
     public String getClientSecret() {
         return clientSecret;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.encrypt_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.encrypt_secret")
     public String getEncryptSecret() {
         return encryptSecret;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.186+01:00", comments="Source field: seb_client_configuration.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.826+01:00", comments="Source field: seb_client_configuration.active")
     public Integer getActive() {
         return active;
     }
@@ -84,7 +84,7 @@ public class SebClientConfigRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table seb_client_configuration
      *
-     * @mbg.generated Wed Mar 10 09:15:01 CET 2021
+     * @mbg.generated Thu Mar 11 14:43:22 CET 2021
      */
     @Override
     public String toString() {
@@ -108,7 +108,7 @@ public class SebClientConfigRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table seb_client_configuration
      *
-     * @mbg.generated Wed Mar 10 09:15:01 CET 2021
+     * @mbg.generated Thu Mar 11 14:43:22 CET 2021
      */
     @Override
     public boolean equals(Object that) {
@@ -136,7 +136,7 @@ public class SebClientConfigRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table seb_client_configuration
      *
-     * @mbg.generated Wed Mar 10 09:15:01 CET 2021
+     * @mbg.generated Thu Mar 11 14:43:22 CET 2021
      */
     @Override
     public int hashCode() {

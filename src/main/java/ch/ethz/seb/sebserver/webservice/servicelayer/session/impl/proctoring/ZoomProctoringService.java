@@ -30,6 +30,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -51,6 +53,7 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ZoomRoomRequestResponse.CreateUserRequest;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ZoomRoomRequestResponse.UserPageResponse;
 
 @Lazy
@@ -140,6 +143,11 @@ public class ZoomProctoringService implements ExamProctoringService {
                     final UserPageResponse response = this.jsonMapper.readValue(
                             result.getBody(),
                             UserPageResponse.class);
+
+                    System.out.println(response);
+
+                    final ResponseEntity<String> createUser = this.zoomRestTemplate
+                            .createUser(proctoringSettings);
 
                     System.out.println(response);
                 }
@@ -280,6 +288,24 @@ public class ZoomProctoringService implements ExamProctoringService {
                     ? proctoringSettings.serverURL + API_TEST_ENDPOINT
                     : proctoringSettings.serverURL + "/" + API_TEST_ENDPOINT;
             return exchange(url, HttpMethod.GET, proctoringSettings);
+        }
+
+        public ResponseEntity<String> createUser(final ProctoringServiceSettings proctoringSettings)
+                throws JsonProcessingException {
+            final String url = proctoringSettings.serverURL.endsWith(Constants.SLASH.toString())
+                    ? proctoringSettings.serverURL + "v2/users"
+                    : proctoringSettings.serverURL + "/" + "v2/users";
+            final CreateUserRequest createUserRequest = new CreateUserRequest(
+                    "custCreate",
+                    new CreateUserRequest.UserInfo(
+                            "andreas.hefti@let.ethz.ch",
+                            1,
+                            "Andreas",
+                            "Hefti"));
+            final String body = ZoomProctoringService.this.jsonMapper.writeValueAsString(createUserRequest);
+            final HttpHeaders headers = getHeaders(proctoringSettings);
+            headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            return exchange(url, HttpMethod.POST, body, headers, null);
         }
 
         private HttpHeaders getHeaders(final ProctoringServiceSettings proctoringSettings) {

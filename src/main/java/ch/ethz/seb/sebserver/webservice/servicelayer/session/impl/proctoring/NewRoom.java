@@ -8,17 +8,30 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 
-public class NewRoom {
+public final class NewRoom {
 
     public final String name;
     public final String subject;
     public final CharSequence joinKey;
+    public final String additionalRoomData;
 
-    public NewRoom(final String name, final String subject, final CharSequence joinKey) {
-        super();
+    public NewRoom(
+            final String name,
+            final String subject) {
+
+        this(name, subject, null, null);
+    }
+
+    public NewRoom(
+            final String name,
+            final String subject,
+            final CharSequence joinKey,
+            final String additionalRoomData) {
+
         this.name = name;
         this.subject = subject;
         this.joinKey = joinKey;
+        this.additionalRoomData = additionalRoomData;
     }
 
     public String getName() {
@@ -32,4 +45,9 @@ public class NewRoom {
     public CharSequence getJoinKey() {
         return this.joinKey;
     }
+
+    public String getAdditionalRoomData() {
+        return this.additionalRoomData;
+    }
+
 }

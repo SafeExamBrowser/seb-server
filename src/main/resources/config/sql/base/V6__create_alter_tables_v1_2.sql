@@ -10,4 +10,5 @@ ADD COLUMN IF NOT EXISTS `vdi_pair_token` VARCHAR(255) NULL AFTER `vdi`;
 -- -----------------------------------------------------
 ALTER TABLE `remote_proctoring_room`
 ADD COLUMN IF NOT EXISTS `break_out_connections` VARCHAR(10000) NULL,
-ADD COLUMN IF NOT EXISTS `join_key` VARCHAR(255) NULL;
+ADD COLUMN IF NOT EXISTS `join_key` VARCHAR(255) NULL,
+ADD COLUMN IF NOT EXISTS `room_data` VARCHAR(10000) NULL;

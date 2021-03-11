@@ -64,6 +64,50 @@ public interface ZoomRoomRequestResponse {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static class CreateUserRequest {
+        @JsonProperty final String action;
+        @JsonProperty final UserInfo user_info;
+        public CreateUserRequest(final String action, final UserInfo user_info) {
+            this.action = action;
+            this.user_info = user_info;
+        }
+
+        static class UserInfo {
+            @JsonProperty final String email;
+            @JsonProperty final int type;
+            @JsonProperty final String first_name;
+            @JsonProperty final String lasr_name;
+            public UserInfo(final String email, final int type, final String first_name, final String lasr_name) {
+                this.email = email;
+                this.type = type;
+                this.first_name = first_name;
+                this.lasr_name = lasr_name;
+            }
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static class CreateUserResponse {
+        final String id;
+        final String email;
+        final int type;
+        final String first_name;
+        final String lasr_name;
+        @JsonCreator
+        public CreateUserResponse(
+                @JsonProperty("id") final String id,
+                @JsonProperty("email") final String email,
+                @JsonProperty("type") final int type,
+                @JsonProperty("first_name") final String first_name,
+                @JsonProperty("lasr_name") final String lasr_name) {
+            this.id = id;
+            this.email = email;
+            this.type = type;
+            this.first_name = first_name;
+            this.lasr_name = lasr_name;
+        }
+    }
 
     // https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     @JsonIgnoreProperties(ignoreUnknown = true)

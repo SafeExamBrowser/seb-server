@@ -135,7 +135,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     StringUtils.isNotBlank(room.subject) ? room.subject : room.name,
                     1,
                     null,
-                    (room.joinKey != null) ? room.joinKey.toString() : null);
+                    (room.joinKey != null) ? room.joinKey.toString() : null,
+                    room.additionalRoomData);
 
             this.remoteProctoringRoomRecordMapper.insert(townhallRoomRecord);
             return this.remoteProctoringRoomRecordMapper
@@ -172,7 +173,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     StringUtils.isNotBlank(room.subject) ? room.subject : room.name,
                     0,
                     connectionTokens,
-                    (room.joinKey != null) ? room.joinKey.toString() : null);
+                    (room.joinKey != null) ? room.joinKey.toString() : null,
+                    room.additionalRoomData);
 
             this.remoteProctoringRoomRecordMapper.insert(record);
             return this.remoteProctoringRoomRecordMapper
@@ -253,14 +255,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                         .selectByPrimaryKey(roomId);
 
                 final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord(
-                        record.getId(),
-                        null,
-                        null,
-                        record.getSize() - 1,
-                        null,
-                        null,
-                        null,
-                        null);
+                        record.getId(), null, null,
+                        record.getSize() - 1, null, null, null, null, null);
 
                 this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
                 return this.remoteProctoringRoomRecordMapper
@@ -285,7 +281,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 record.getSubject(),
                 BooleanUtils.toBooleanObject(record.getTownhallRoom()),
                 connections,
-                record.getJoinKey());
+                record.getJoinKey(),
+                record.getRoomData());
     }
 
     private RemoteProctoringRoomRecord createNewCollectingRoom(
@@ -296,9 +293,11 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
                 .build()
                 .execute();
+
         final NewRoom newRoom = newRoomFunction
                 .apply(roomNumber)
                 .getOrThrow();
+
         final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord(
                 null,
                 examId,
@@ -307,21 +306,17 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 StringUtils.isNotBlank(newRoom.subject) ? newRoom.subject : newRoom.name,
                 0,
                 null,
-                (newRoom.joinKey != null) ? newRoom.joinKey.toString() : null);
+                (newRoom.joinKey != null) ? newRoom.joinKey.toString() : null,
+                newRoom.additionalRoomData);
+
         this.remoteProctoringRoomRecordMapper.insert(remoteProctoringRoomRecord);
         return remoteProctoringRoomRecord;
     }
 
     private RemoteProctoringRoomRecord updateCollectingRoom(final RemoteProctoringRoomRecord room) {
         final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord(
-                room.getId(),
-                null,
-                null,
-                room.getSize() + 1,
-                null,
-                null,
-                null,
-                null);
+                room.getId(), null, null,
+                room.getSize() + 1, null, null, null, null, null);
 
         this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
         return this.remoteProctoringRoomRecordMapper

@@ -23,7 +23,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 public class RemoteProctoringRoom {
 
     public static final RemoteProctoringRoom NULL_ROOM = new RemoteProctoringRoom(
-            null, null, null, null, null, false, null, null);
+            null, null, null, null, null, false, null, null, null);
 
     @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID)
     public final Long id;
@@ -49,6 +49,9 @@ public class RemoteProctoringRoom {
     @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_JOIN_KEY)
     public final CharSequence joinKey;
 
+    @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ROOM_DATA)
+    public final String additionalRoomData;
+
     @JsonCreator
     public RemoteProctoringRoom(
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID) final Long id,
@@ -58,7 +61,8 @@ public class RemoteProctoringRoom {
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_SUBJECT) final String subject,
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_TOWNHALL_ROOM) final Boolean townhallRoom,
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_BREAK_OUT_CONNECTIONS) final Collection<String> breakOutConnections,
-            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_JOIN_KEY) final CharSequence joinKey) {
+            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_JOIN_KEY) final CharSequence joinKey,
+            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ROOM_DATA) final String additionalRoomData) {
 
         this.id = id;
         this.examId = examId;
@@ -68,6 +72,7 @@ public class RemoteProctoringRoom {
         this.townhallRoom = BooleanUtils.isTrue(townhallRoom);
         this.breakOutConnections = Utils.immutableCollectionOf(breakOutConnections);
         this.joinKey = joinKey;
+        this.additionalRoomData = additionalRoomData;
     }
 
     public Long getId() {
@@ -100,6 +105,10 @@ public class RemoteProctoringRoom {
 
     public CharSequence getJoinKey() {
         return this.joinKey;
+    }
+
+    public String getAdditionalRoomData() {
+        return this.additionalRoomData;
     }
 
     @Override

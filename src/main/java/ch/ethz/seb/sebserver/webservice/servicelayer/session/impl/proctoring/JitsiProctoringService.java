@@ -173,16 +173,14 @@ public class JitsiProctoringService implements ExamProctoringService {
     public Result<NewRoom> newCollectingRoom(final Long roomNumber) {
         return Result.of(new NewRoom(
                 UUID.randomUUID().toString(),
-                "Room " + (roomNumber + 1),
-                null));
+                "Room " + (roomNumber + 1)));
     }
 
     @Override
     public Result<NewRoom> newBreakOutRoom(final String subject) {
         return Result.of(new NewRoom(
                 UUID.randomUUID().toString(),
-                subject,
-                null));
+                subject));
     }
 
     @Override

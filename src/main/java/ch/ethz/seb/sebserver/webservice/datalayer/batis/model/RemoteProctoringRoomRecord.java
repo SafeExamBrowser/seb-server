@@ -3,32 +3,35 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class RemoteProctoringRoomRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.159+01:00", comments="Source field: remote_proctoring_room.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.801+01:00", comments="Source field: remote_proctoring_room.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.exam_id")
     private Long examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.name")
     private String name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.size")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.size")
     private Integer size;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.subject")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.subject")
     private String subject;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.townhall_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.townhall_room")
     private Integer townhallRoom;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.break_out_connections")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.break_out_connections")
     private String breakOutConnections;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.join_key")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.join_key")
     private String joinKey;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.159+01:00", comments="Source Table: remote_proctoring_room")
-    public RemoteProctoringRoomRecord(Long id, Long examId, String name, Integer size, String subject, Integer townhallRoom, String breakOutConnections, String joinKey) {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.room_data")
+    private String roomData;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.800+01:00", comments="Source Table: remote_proctoring_room")
+    public RemoteProctoringRoomRecord(Long id, Long examId, String name, Integer size, String subject, Integer townhallRoom, String breakOutConnections, String joinKey, String roomData) {
         this.id = id;
         this.examId = examId;
         this.name = name;
@@ -37,53 +40,59 @@ public class RemoteProctoringRoomRecord {
         this.townhallRoom = townhallRoom;
         this.breakOutConnections = breakOutConnections;
         this.joinKey = joinKey;
+        this.roomData = roomData;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.159+01:00", comments="Source field: remote_proctoring_room.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.exam_id")
     public Long getExamId() {
         return examId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.name")
     public String getName() {
         return name;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.size")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.size")
     public Integer getSize() {
         return size;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.subject")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.subject")
     public String getSubject() {
         return subject;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.townhall_room")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.townhall_room")
     public Integer getTownhallRoom() {
         return townhallRoom;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.break_out_connections")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.break_out_connections")
     public String getBreakOutConnections() {
         return breakOutConnections;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.160+01:00", comments="Source field: remote_proctoring_room.join_key")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.join_key")
     public String getJoinKey() {
         return joinKey;
+    }
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.802+01:00", comments="Source field: remote_proctoring_room.room_data")
+    public String getRoomData() {
+        return roomData;
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table remote_proctoring_room
      *
-     * @mbg.generated Wed Mar 10 09:15:01 CET 2021
+     * @mbg.generated Thu Mar 11 14:43:22 CET 2021
      */
     @Override
     public String toString() {
@@ -99,6 +108,7 @@ public class RemoteProctoringRoomRecord {
         sb.append(", townhallRoom=").append(townhallRoom);
         sb.append(", breakOutConnections=").append(breakOutConnections);
         sb.append(", joinKey=").append(joinKey);
+        sb.append(", roomData=").append(roomData);
         sb.append("]");
         return sb.toString();
     }
@@ -107,7 +117,7 @@ public class RemoteProctoringRoomRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table remote_proctoring_room
      *
-     * @mbg.generated Wed Mar 10 09:15:01 CET 2021
+     * @mbg.generated Thu Mar 11 14:43:22 CET 2021
      */
     @Override
     public boolean equals(Object that) {
@@ -128,14 +138,15 @@ public class RemoteProctoringRoomRecord {
             && (this.getSubject() == null ? other.getSubject() == null : this.getSubject().equals(other.getSubject()))
             && (this.getTownhallRoom() == null ? other.getTownhallRoom() == null : this.getTownhallRoom().equals(other.getTownhallRoom()))
             && (this.getBreakOutConnections() == null ? other.getBreakOutConnections() == null : this.getBreakOutConnections().equals(other.getBreakOutConnections()))
-            && (this.getJoinKey() == null ? other.getJoinKey() == null : this.getJoinKey().equals(other.getJoinKey()));
+            && (this.getJoinKey() == null ? other.getJoinKey() == null : this.getJoinKey().equals(other.getJoinKey()))
+            && (this.getRoomData() == null ? other.getRoomData() == null : this.getRoomData().equals(other.getRoomData()));
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table remote_proctoring_room
      *
-     * @mbg.generated Wed Mar 10 09:15:01 CET 2021
+     * @mbg.generated Thu Mar 11 14:43:22 CET 2021
      */
     @Override
     public int hashCode() {
@@ -149,6 +160,7 @@ public class RemoteProctoringRoomRecord {
         result = prime * result + ((getTownhallRoom() == null) ? 0 : getTownhallRoom().hashCode());
         result = prime * result + ((getBreakOutConnections() == null) ? 0 : getBreakOutConnections().hashCode());
         result = prime * result + ((getJoinKey() == null) ? 0 : getJoinKey().hashCode());
+        result = prime * result + ((getRoomData() == null) ? 0 : getRoomData().hashCode());
         return result;
     }
 }
