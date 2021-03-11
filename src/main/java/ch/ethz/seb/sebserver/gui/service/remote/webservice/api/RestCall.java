@@ -40,6 +40,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.api.TooManyRequests;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
@@ -133,6 +134,15 @@ public abstract class RestCall<T> {
                 return handleRestCallError(responseEntity);
             }
         } catch (final RestClientResponseException responseError) {
+
+            if (responseError.getRawStatusCode() == HttpStatus.TOO_MANY_REQUESTS.value()) {
+                final String code = responseError.getResponseBodyAsString();
+                if (StringUtils.isNotBlank(code)) {
+                    return Result.ofError(new TooManyRequests(TooManyRequests.Code.valueOf(code)));
+                } else {
+                    return Result.ofError(new TooManyRequests());
+                }
+            }
 
             final RestCallError restCallError = new RestCallError("Unexpected error while rest call", responseError);
             try {
