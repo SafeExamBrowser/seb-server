@@ -269,7 +269,7 @@ public class ExamProctoringController {
 
         checkAccess(institutionId, examId);
         return this.examProcotringRoomService
-                .createTownhallRoom(examId, subject)
+                .openTownhallRoom(examId, subject)
                 .getOrThrow();
     }
 

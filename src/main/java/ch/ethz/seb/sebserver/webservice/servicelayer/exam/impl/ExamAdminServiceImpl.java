@@ -48,7 +48,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamProctoringServiceFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ExamProctoringServiceFactory;
 
 @Lazy
 @Service

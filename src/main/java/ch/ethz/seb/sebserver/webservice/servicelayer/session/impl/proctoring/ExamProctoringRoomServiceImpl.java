@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -128,11 +129,10 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
             return exam;
         });
-
     }
 
     @Override
-    public Result<ProctoringRoomConnection> createTownhallRoom(final Long examId, final String subject) {
+    public Result<ProctoringRoomConnection> openTownhallRoom(final Long examId, final String subject) {
         if (!this.examSessionService.isExamRunning(examId)) {
             return Result.ofRuntimeError("Exam with id: " + examId + " is not currently running");
         }
@@ -148,27 +148,88 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getOrThrow();
 
             // First create and get the town-hall room for specified exam
-            final String roomName = examProctoringService.openBreakOutRoom();
-            final RemoteProctoringRoom townhallRoom = this.remoteProctoringRoomDAO
-                    .createTownhallRoom(examId, roomName, subject)
+            final RemoteProctoringRoom townhallRoom = examProctoringService
+                    .newBreakOutRoom(subject)
+                    .flatMap(room -> this.remoteProctoringRoomDAO.createTownhallRoom(examId, room))
                     .getOrThrow();
 
             // Then send a join instruction to all active clients of the exam to join the town-hall
-            return this.examAdminService
-                    .getExamProctoringService(settings.serverType)
-                    .flatMap(service -> service.sendJoinRoomToClients(
-                            settings,
-                            this.examSessionService.getActiveConnectionTokens(examId)
-                                    .getOrThrow(),
-                            townhallRoom.name,
-                            townhallRoom.subject))
-                    .getOrThrow();
+            return this.sendJoinRoomBreakOutInstructions(
+                    settings,
+                    this.examSessionService
+                            .getActiveConnectionTokens(examId)
+                            .getOrThrow(),
+                    townhallRoom.name,
+                    townhallRoom.subject);
         });
     }
 
     @Override
     public Result<RemoteProctoringRoom> getTownhallRoomData(final Long examId) {
         return this.remoteProctoringRoomDAO.getTownhallRoom(examId);
+    }
+
+    @Override
+    public Result<ProctoringRoomConnection> createBreakOutRoom(
+            final Long examId,
+            final String subject,
+            final String connectionTokens) {
+
+        return Result.tryCatch(() -> {
+
+            final ProctoringServiceSettings settings = this.examSessionService
+                    .getRunningExam(examId)
+                    .flatMap(this.examAdminService::getProctoringServiceSettings)
+                    .getOrThrow();
+
+            final ExamProctoringService examProctoringService = this.examAdminService
+                    .getExamProctoringService(settings.serverType)
+                    .getOrThrow();
+
+            final RemoteProctoringRoom breakOutRoom = examProctoringService
+                    .newBreakOutRoom(subject)
+                    .flatMap(room -> this.remoteProctoringRoomDAO.createBreakOutRoom(examId, room, connectionTokens))
+                    .getOrThrow();
+
+            return this.examAdminService
+                    .getExamProctoringService(settings.serverType)
+                    .map(service -> sendJoinRoomBreakOutInstructions(
+                            settings,
+                            Arrays.asList(StringUtils.split(
+                                    connectionTokens,
+                                    Constants.LIST_SEPARATOR_CHAR)),
+                            breakOutRoom.name,
+                            subject))
+                    .getOrThrow();
+        });
+    }
+
+    @Override
+    public Result<Void> closeProctoringRoom(final Long examId, final String roomName) {
+        return Result.tryCatch(() -> {
+
+            final ProctoringServiceSettings proctoringSettings = this.examSessionService
+                    .getRunningExam(examId)
+                    .flatMap(this.examAdminService::getProctoringServiceSettings)
+                    .getOrThrow();
+
+            final ExamProctoringService examProctoringService = this.examAdminService
+                    .getExamProctoringService(proctoringSettings.serverType)
+                    .getOrThrow();
+
+            // Get room
+            final RemoteProctoringRoom remoteProctoringRoom = this.remoteProctoringRoomDAO
+                    .getRoom(examId, roomName)
+                    .getOrThrow();
+
+            if (!remoteProctoringRoom.breakOutConnections.isEmpty()) {
+                closeBreakOutRoom(examId, proctoringSettings, examProctoringService, remoteProctoringRoom);
+            } else if (remoteProctoringRoom.townhallRoom) {
+                closeTownhall(examId, proctoringSettings, examProctoringService);
+            } else {
+                closeCollectingRoom(examId, roomName, examProctoringService);
+            }
+        });
     }
 
     private void assignToCollectingRoom(final ClientConnectionRecord cc) {
@@ -241,8 +302,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             return this.remoteProctoringRoomDAO.reservePlaceInCollectingRoom(
                     examId,
                     proctoringSettings.collectingRoomSize,
-                    examProctoringService::newCollectingRoom,
-                    examProctoringService::newCollectingRoomSubject)
+                    examProctoringService::newCollectingRoom)
                     .getOrThrow();
 
         } catch (final Exception e) {
@@ -252,79 +312,6 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     e);
             return null;
         }
-    }
-
-    private Result<Void> applyProcotringInstruction(
-            final Long examId,
-            final String connectionToken,
-            final String roomName,
-            final String subject) {
-
-        return this.examAdminService
-                .getProctoringServiceSettings(examId)
-                .flatMap(proctoringSettings -> this.examAdminService
-                        .getExamProctoringService(proctoringSettings.serverType)
-                        .getOrThrow()
-                        .sendJoinCollectingRoomToClients(
-                                proctoringSettings,
-                                Arrays.asList(connectionToken)));
-    }
-
-    @Override
-    public Result<ProctoringRoomConnection> createBreakOutRoom(
-            final Long examId,
-            final String subject,
-            final String connectionTokens) {
-
-        final ProctoringServiceSettings settings = this.examSessionService
-                .getRunningExam(examId)
-                .flatMap(this.examAdminService::getProctoringServiceSettings)
-                .getOrThrow();
-
-        final ExamProctoringService examProctoringService = this.examAdminService
-                .getExamProctoringService(settings.serverType)
-                .getOrThrow();
-
-        final RemoteProctoringRoom breakOutRoom = this.remoteProctoringRoomDAO
-                .createBreakOutRoom(examId, examProctoringService.openBreakOutRoom(), subject, connectionTokens)
-                .getOrThrow();
-
-        return this.examAdminService
-                .getExamProctoringService(settings.serverType)
-                .flatMap(service -> service.sendJoinRoomToClients(
-                        settings,
-                        Arrays.asList(StringUtils.split(
-                                connectionTokens,
-                                Constants.LIST_SEPARATOR_CHAR)),
-                        breakOutRoom.name,
-                        subject));
-    }
-
-    @Override
-    public Result<Void> closeProctoringRoom(final Long examId, final String roomName) {
-        return Result.tryCatch(() -> {
-            final ProctoringServiceSettings proctoringSettings = this.examSessionService
-                    .getRunningExam(examId)
-                    .flatMap(this.examAdminService::getProctoringServiceSettings)
-                    .getOrThrow();
-
-            final ExamProctoringService examProctoringService = this.examAdminService
-                    .getExamProctoringService(proctoringSettings.serverType)
-                    .getOrThrow();
-
-            // Get room
-            final RemoteProctoringRoom remoteProctoringRoom = this.remoteProctoringRoomDAO
-                    .getRoom(examId, roomName)
-                    .getOrThrow();
-
-            if (!remoteProctoringRoom.breakOutConnections.isEmpty()) {
-                closeBreakOutRoom(examId, proctoringSettings, examProctoringService, remoteProctoringRoom);
-            } else if (remoteProctoringRoom.townhallRoom) {
-                closeTownhall(examId, proctoringSettings, examProctoringService);
-            } else {
-                closeCollectingRoom(examId, roomName, examProctoringService);
-            }
-        });
     }
 
     private void closeTownhall(
@@ -338,7 +325,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 .getOrThrow();
 
         // Send default settings to clients
-        this.sendBroadcastInstructionsToClients(
+        this.sendReconfigurationInstructions(
                 examId,
                 connectionTokens,
                 examProctoringService.getDefaultInstructionAttributes());
@@ -347,14 +334,15 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         this.remoteProctoringRoomDAO
                 .getTownhallRoom(examId)
                 .map(RemoteProctoringRoom::getName)
-                .flatMap(examProctoringService::closeBreakOutRoom)
+                .flatMap(examProctoringService::disposeBreakOutRoom)
                 .flatMap(service -> this.remoteProctoringRoomDAO.deleteTownhallRoom(examId))
                 .getOrThrow();
 
         // Send the rejoin to collecting room instruction to all involved clients
-        examProctoringService.sendJoinCollectingRoomToClients(
+        sendJoinCollectingRoomInstructions(
                 proctoringSettings,
-                connectionTokens);
+                connectionTokens,
+                examProctoringService);
     }
 
     private void closeCollectingRoom(
@@ -370,7 +358,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 .collect(Collectors.toList());
 
         // Send default settings to clients
-        this.sendBroadcastInstructionsToClients(
+        this.sendReconfigurationInstructions(
                 examId,
                 connectionTokens,
                 examProctoringService.getDefaultInstructionAttributes());
@@ -383,7 +371,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final RemoteProctoringRoom remoteProctoringRoom) {
 
         // Send default settings to clients
-        this.sendBroadcastInstructionsToClients(
+        this.sendReconfigurationInstructions(
                 examId,
                 remoteProctoringRoom.breakOutConnections,
                 examProctoringService.getDefaultInstructionAttributes());
@@ -393,14 +381,15 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 .deleteRoom(remoteProctoringRoom.id)
                 .getOrThrow();
 
+        // Dispose the proctoring room on service side
+        examProctoringService.disposeBreakOutRoom(remoteProctoringRoom.name)
+                .getOrThrow();
+
         // Send join collecting rooms to involving clients
-        examProctoringService.closeBreakOutRoom(remoteProctoringRoom.name)
-                .flatMap(service -> service.sendJoinCollectingRoomToClients(
-                        proctoringSettings,
-                        remoteProctoringRoom.breakOutConnections))
-                .onError(error -> log.error("Failed to send rejoin collecting room to: {}",
-                        remoteProctoringRoom.breakOutConnections,
-                        error));
+        sendJoinCollectingRoomInstructions(
+                proctoringSettings,
+                remoteProctoringRoom.breakOutConnections,
+                examProctoringService);
     }
 
     @Override
@@ -444,14 +433,14 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                         .collect(Collectors.toList()));
             }
 
-            sendBroadcastInstructionsToClients(
+            sendReconfigurationInstructions(
                     examId,
                     connectionTokens,
                     examProctoringService.getInstructionAttributes(attributes));
         });
     }
 
-    private void sendBroadcastInstructionsToClients(
+    private void sendReconfigurationInstructions(
             final Long examId,
             final Collection<String> connectionTokens,
             final Map<String, String> attributes) {
@@ -470,5 +459,130 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                                     connectionToken,
                                     error));
                 });
+    }
+
+    private Result<Void> applyProcotringInstruction(
+            final Long examId,
+            final String connectionToken,
+            final String roomName,
+            final String subject) {
+
+        return Result.tryCatch(() -> {
+            final ProctoringServiceSettings settings = this.examAdminService
+                    .getProctoringServiceSettings(examId)
+                    .getOrThrow();
+
+            final ExamProctoringService examProctoringService = this.examAdminService
+                    .getExamProctoringService(settings.serverType)
+                    .getOrThrow();
+
+            sendJoinCollectingRoomInstructions(
+                    settings,
+                    Arrays.asList(connectionToken),
+                    examProctoringService);
+        });
+    }
+
+    private ProctoringRoomConnection sendJoinRoomBreakOutInstructions(
+            final ProctoringServiceSettings proctoringSettings,
+            final Collection<String> clientConnectionTokens,
+            final String roomName,
+            final String subject) {
+
+        final ExamProctoringService examProctoringService = this.examAdminService
+                .getExamProctoringService(proctoringSettings.serverType)
+                .getOrThrow();
+
+        clientConnectionTokens
+                .stream()
+                .forEach(connectionToken -> {
+                    final ProctoringRoomConnection proctoringConnection =
+                            examProctoringService.getClientBreakOutRoomConnection(
+                                    proctoringSettings,
+                                    connectionToken,
+                                    examProctoringService.verifyRoomName(roomName, connectionToken),
+                                    (StringUtils.isNotBlank(subject)) ? subject : roomName)
+                                    .onError(error -> log.error(
+                                            "Failed to get client room connection data for {} cause: {}",
+                                            connectionToken,
+                                            error.getMessage()))
+                                    .get();
+                    if (proctoringConnection != null) {
+                        sendJoinInstruction(
+                                proctoringSettings.examId,
+                                connectionToken,
+                                proctoringConnection,
+                                examProctoringService);
+                    }
+                });
+
+        return examProctoringService.getProctorRoomConnection(
+                proctoringSettings,
+                roomName,
+                (StringUtils.isNotBlank(subject)) ? subject : roomName)
+                .getOrThrow();
+
+    }
+
+    private void sendJoinCollectingRoomInstructions(
+            final ProctoringServiceSettings proctoringSettings,
+            final Collection<String> clientConnectionTokens,
+            final ExamProctoringService examProctoringService) {
+
+        clientConnectionTokens
+                .stream()
+                .forEach(connectionToken -> sendJoinCollectingRoomInstruction(
+                        proctoringSettings,
+                        examProctoringService,
+                        connectionToken));
+    }
+
+    private void sendJoinCollectingRoomInstruction(
+            final ProctoringServiceSettings proctoringSettings,
+            final ExamProctoringService examProctoringService,
+            final String connectionToken) {
+
+        try {
+            final ClientConnectionData clientConnection = this.examSessionService
+                    .getConnectionData(connectionToken)
+                    .getOrThrow();
+            final String roomName = this.remoteProctoringRoomDAO
+                    .getRoomName(clientConnection.clientConnection.getRemoteProctoringRoomId())
+                    .getOrThrow();
+
+            final ProctoringRoomConnection proctoringConnection = examProctoringService
+                    .getClientCollectingRoomConnection(
+                            proctoringSettings,
+                            clientConnection.clientConnection.connectionToken,
+                            roomName,
+                            clientConnection.clientConnection.userSessionId)
+                    .getOrThrow();
+
+            sendJoinInstruction(
+                    proctoringSettings.examId,
+                    clientConnection.clientConnection.connectionToken,
+                    proctoringConnection,
+                    examProctoringService);
+        } catch (final Exception e) {
+            log.error("Failed to send proctoring room join instruction to client: {}", connectionToken, e);
+        }
+    }
+
+    private void sendJoinInstruction(
+            final Long examId,
+            final String connectionToken,
+            final ProctoringRoomConnection proctoringConnection,
+            final ExamProctoringService examProctoringService) {
+
+        final Map<String, String> attributes = examProctoringService
+                .createJoinInstructionAttributes(proctoringConnection);
+
+        this.sebInstructionService.registerInstruction(
+                examId,
+                InstructionType.SEB_PROCTORING,
+                attributes,
+                connectionToken,
+                true)
+                .onError(error -> log.error("Failed to send join instruction: {}", connectionToken, error));
     }
 }

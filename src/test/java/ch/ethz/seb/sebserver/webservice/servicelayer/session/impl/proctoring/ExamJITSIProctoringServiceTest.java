@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,8 +27,8 @@ public class ExamJITSIProctoringServiceTest {
     public void testTokenPayload() throws InvalidKeyException, NoSuchAlgorithmException {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn("fbvgeghergrgrthrehreg123");
-        final ExamJITSIProctoringService examJITSIProctoringService =
-                new ExamJITSIProctoringService(null, null, null, null, cryptorMock, null);
+        final JitsiProctoringService examJITSIProctoringService =
+                new JitsiProctoringService(null, null, cryptorMock, null);
 
         String accessToken = examJITSIProctoringService.createPayload(
                 "test-app",
@@ -61,8 +61,8 @@ public class ExamJITSIProctoringServiceTest {
     public void testCreateProctoringURL() {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn("fbvgeghergrgrthrehreg123");
-        final ExamJITSIProctoringService examJITSIProctoringService =
-                new ExamJITSIProctoringService(null, null, null, null, cryptorMock, null);
+        final JitsiProctoringService examJITSIProctoringService =
+                new JitsiProctoringService(null, null, cryptorMock, null);
         final ProctoringRoomConnection data = examJITSIProctoringService.createProctoringConnection(
                 ProctoringServerType.JITSI_MEET,
                 "connectionToken",

@@ -3,25 +3,25 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ExamConfigurationMapRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.exam_id")
     private Long examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.configuration_node_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.configuration_node_id")
     private Long configurationNodeId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.user_names")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.user_names")
     private String userNames;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.encrypt_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.encrypt_secret")
     private String encryptSecret;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.105+01:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.141+01:00", comments="Source Table: exam_configuration_map")
     public ExamConfigurationMapRecord(Long id, Long institutionId, Long examId, Long configurationNodeId, String userNames, String encryptSecret) {
         this.id = id;
         this.institutionId = institutionId;
@@ -31,32 +31,32 @@ public class ExamConfigurationMapRecord {
         this.encryptSecret = encryptSecret;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.exam_id")
     public Long getExamId() {
         return examId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.configuration_node_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.configuration_node_id")
     public Long getConfigurationNodeId() {
         return configurationNodeId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.user_names")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.user_names")
     public String getUserNames() {
         return userNames;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-09T08:24:51.107+01:00", comments="Source field: exam_configuration_map.encrypt_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-10T09:15:01.142+01:00", comments="Source field: exam_configuration_map.encrypt_secret")
     public String getEncryptSecret() {
         return encryptSecret;
     }
@@ -65,7 +65,7 @@ public class ExamConfigurationMapRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table exam_configuration_map
      *
-     * @mbg.generated Tue Mar 09 08:24:51 CET 2021
+     * @mbg.generated Wed Mar 10 09:15:01 CET 2021
      */
     @Override
     public String toString() {
@@ -87,7 +87,7 @@ public class ExamConfigurationMapRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table exam_configuration_map
      *
-     * @mbg.generated Tue Mar 09 08:24:51 CET 2021
+     * @mbg.generated Wed Mar 10 09:15:01 CET 2021
      */
     @Override
     public boolean equals(Object that) {
@@ -113,7 +113,7 @@ public class ExamConfigurationMapRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table exam_configuration_map
      *
-     * @mbg.generated Tue Mar 09 08:24:51 CET 2021
+     * @mbg.generated Wed Mar 10 09:15:01 CET 2021
      */
     @Override
     public int hashCode() {

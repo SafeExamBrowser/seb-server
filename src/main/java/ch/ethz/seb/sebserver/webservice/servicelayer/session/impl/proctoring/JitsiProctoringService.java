@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -14,7 +14,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Base64.Encoder;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -46,28 +45,25 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 
 @Lazy
 @Service
 @WebServiceProfile
-public class ExamJITSIProctoringService implements ExamProctoringService {
+public class JitsiProctoringService implements ExamProctoringService {
+
+    private static final Logger log = LoggerFactory.getLogger(JitsiProctoringService.class);
 
     private static final String TOKEN_ENCODE_ALG = "HmacSHA256";
     private static final String SEB_SERVER_KEY = "seb-server";
     private static final String SEB_CLIENT_KEY = "seb-client";
-
-    private static final Logger log = LoggerFactory.getLogger(ExamJITSIProctoringService.class);
 
     private static final String JITSI_ACCESS_TOKEN_HEADER =
             "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
@@ -99,25 +95,19 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     Constants.FALSE_STRING))
             .stream().collect(Collectors.toMap(Tuple::get_1, Tuple::get_2)));
 
-    private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final AuthorizationService authorizationService;
     private final ExamSessionService examSessionService;
-    private final SEBClientInstructionService sebClientInstructionService;
     private final Cryptor cryptor;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
 
-    protected ExamJITSIProctoringService(
-            final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
+    protected JitsiProctoringService(
             final AuthorizationService authorizationService,
             final ExamSessionService examSessionService,
-            final SEBClientInstructionService sebClientInstructionService,
             final Cryptor cryptor,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService) {
 
-        this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
         this.authorizationService = authorizationService;
         this.examSessionService = examSessionService;
-        this.sebClientInstructionService = sebClientInstructionService;
         this.cryptor = cryptor;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
     }
@@ -129,6 +119,11 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
 
     @Override
     public Result<Boolean> testExamProctoring(final ProctoringServiceSettings proctoringSettings) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Test proctoring service connection: {}", proctoringSettings);
+        }
+
         return Result.tryCatch(() -> {
             if (proctoringSettings.serverURL != null && proctoringSettings.serverURL.contains("?")) {
                 throw new FieldValidationException(
@@ -148,6 +143,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                     throw new APIMessageException(APIMessage.ErrorMessage.BINDING_ERROR);
                 }
             } catch (final Exception e) {
+                log.error("Failed to access proctoring service: {}", e.getMessage());
                 throw new APIMessageException(APIMessage.ErrorMessage.BINDING_ERROR, e.getMessage());
             }
 
@@ -168,98 +164,30 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
     }
 
     @Override
-    public Result<ProctoringRoomConnection> sendJoinRoomToClients(
-            final ProctoringServiceSettings proctoringSettings,
-            final Collection<String> clientConnectionTokens,
-            final String roomName,
-            final String subject) {
-
-        return Result.tryCatch(() -> {
-            clientConnectionTokens
-                    .stream()
-                    .forEach(connectionToken -> {
-                        final ProctoringRoomConnection proctoringConnection =
-                                getClientRoomConnection(
-                                        proctoringSettings,
-                                        connectionToken,
-                                        verifyRoomName(roomName, connectionToken),
-                                        (StringUtils.isNotBlank(subject)) ? subject : roomName)
-                                                .onError(error -> log.error(
-                                                        "Failed to get client room connection data for {} cause: {}",
-                                                        connectionToken,
-                                                        error.getMessage()))
-                                                .get();
-                        if (proctoringConnection != null) {
-                            sendJoinInstruction(
-                                    proctoringSettings.examId,
-                                    connectionToken,
-                                    proctoringConnection);
-                        }
-                    });
-
-            return createProctorPublicRoomConnection(
-                    proctoringSettings,
-                    roomName,
-                    (StringUtils.isNotBlank(subject)) ? subject : roomName)
-                            .getOrThrow();
-        });
-    }
-
-    @Override
-    public Result<Void> sendJoinCollectingRoomToClients(
-            final ProctoringServiceSettings proctoringSettings,
-            final Collection<String> clientConnectionTokens) {
-
-        return Result.tryCatch(() -> {
-            clientConnectionTokens
-                    .stream()
-                    .forEach(connectionToken -> {
-                        final ClientConnectionData clientConnection = this.examSessionService
-                                .getConnectionData(connectionToken)
-                                .getOrThrow();
-                        final String roomName = this.remoteProctoringRoomDAO
-                                .getRoomName(clientConnection.clientConnection.getRemoteProctoringRoomId())
-                                .getOrThrow();
-
-                        final ProctoringRoomConnection proctoringConnection = getClientExamCollectingRoomConnection(
-                                proctoringSettings,
-                                clientConnection.clientConnection.connectionToken,
-                                roomName,
-                                clientConnection.clientConnection.userSessionId)
-                                        .getOrThrow();
-
-                        sendJoinInstruction(
-                                proctoringSettings.examId,
-                                clientConnection.clientConnection.connectionToken,
-                                proctoringConnection);
-                    });
-        });
-    }
-
-    @Override
     public Result<Void> disposeServiceRoomsForExam(final Exam exam) {
         // NOTE: Since Jitsi rooms are generated and disposed automatically we don't need to do anything here
         return Result.EMPTY;
     }
 
     @Override
-    public String newCollectingRoom(final Long roomNumber) {
-        return UUID.randomUUID().toString();
+    public Result<NewRoom> newCollectingRoom(final Long roomNumber) {
+        return Result.of(new NewRoom(
+                UUID.randomUUID().toString(),
+                "Room " + (roomNumber + 1),
+                null));
     }
 
     @Override
-    public String newCollectingRoomSubject(final Long roomNumber) {
-        return "Room " + (roomNumber + 1);
+    public Result<NewRoom> newBreakOutRoom(final String subject) {
+        return Result.of(new NewRoom(
+                UUID.randomUUID().toString(),
+                subject,
+                null));
     }
 
     @Override
-    public String openBreakOutRoom() {
-        return UUID.randomUUID().toString();
-    }
-
-    @Override
-    public Result<ExamProctoringService> closeBreakOutRoom(final String roomName) {
-        return Result.of(this);
+    public Result<Void> disposeBreakOutRoom(final String roomName) {
+        return Result.EMPTY;
     }
 
     @Override
@@ -276,11 +204,8 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                 .collect(Collectors.toMap(Tuple::get_1, Tuple::get_2));
     }
 
-    private void sendJoinInstruction(
-            final Long examId,
-            final String connectionToken,
-            final ProctoringRoomConnection proctoringConnection) {
-
+    @Override
+    public Map<String, String> createJoinInstructionAttributes(final ProctoringRoomConnection proctoringConnection) {
         final Map<String, String> attributes = new HashMap<>();
 
         attributes.put(
@@ -304,13 +229,7 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
                 ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_TOKEN,
                 proctoringConnection.accessToken);
 
-        this.sebClientInstructionService.registerInstruction(
-                examId,
-                InstructionType.SEB_PROCTORING,
-                attributes,
-                connectionToken,
-                true)
-                .onError(error -> log.error("Failed to send join instruction: {}", connectionToken, error));
+        return attributes;
     }
 
     private Result<ProctoringRoomConnection> createProctorPublicRoomConnection(
@@ -335,7 +254,8 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
         });
     }
 
-    private Result<ProctoringRoomConnection> getClientExamCollectingRoomConnection(
+    @Override
+    public Result<ProctoringRoomConnection> getClientCollectingRoomConnection(
             final ProctoringServiceSettings proctoringSettings,
             final String connectionToken,
             final String roomName,
@@ -362,7 +282,8 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
         });
     }
 
-    private Result<ProctoringRoomConnection> getClientRoomConnection(
+    @Override
+    public Result<ProctoringRoomConnection> getClientBreakOutRoomConnection(
             final ProctoringServiceSettings proctoringSettings,
             final String connectionToken,
             final String roomName,
