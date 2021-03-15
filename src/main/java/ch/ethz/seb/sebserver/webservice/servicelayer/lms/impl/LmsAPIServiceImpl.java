@@ -9,10 +9,13 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,16 +32,15 @@ import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx.OpenEdxLmsAPITemplateFactory;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleLmsAPITemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
 
 @Lazy
 @Service
@@ -49,24 +51,23 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
     private final LmsSetupDAO lmsSetupDAO;
     private final ClientCredentialService clientCredentialService;
-    private final WebserviceInfo webserviceInfo;
-    private final OpenEdxLmsAPITemplateFactory openEdxLmsAPITemplateFactory;
-    private final MoodleLmsAPITemplateFactory moodleLmsAPITemplateFactory;
+    private final EnumMap<LmsType, LmsAPITemplateFactory> templateFactories;
 
     private final Map<CacheKey, LmsAPITemplate> cache = new ConcurrentHashMap<>();
 
     public LmsAPIServiceImpl(
-            final OpenEdxLmsAPITemplateFactory openEdxLmsAPITemplateFactory,
-            final MoodleLmsAPITemplateFactory moodleLmsAPITemplateFactory,
             final LmsSetupDAO lmsSetupDAO,
             final ClientCredentialService clientCredentialService,
-            final WebserviceInfo webserviceInfo) {
+            final Collection<LmsAPITemplateFactory> lmsAPITemplateFactories) {
 
-        this.openEdxLmsAPITemplateFactory = openEdxLmsAPITemplateFactory;
-        this.moodleLmsAPITemplateFactory = moodleLmsAPITemplateFactory;
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientCredentialService = clientCredentialService;
-        this.webserviceInfo = webserviceInfo;
+
+        this.templateFactories = new EnumMap<>(lmsAPITemplateFactories
+                .stream()
+                .collect(Collectors.toMap(
+                        t -> t.lmsType(),
+                        Function.identity())));
     }
 
     /** Listen to LmsSetupChangeEvent to release an affected LmsAPITemplate from cache
@@ -237,24 +238,13 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             final ClientCredentials credentials,
             final ProxyData proxyData) {
 
-        switch (lmsSetup.lmsType) {
-            case MOCKUP:
-                return new MockupLmsAPITemplate(
-                        lmsSetup,
-                        credentials,
-                        this.webserviceInfo);
-            case OPEN_EDX:
-                return this.openEdxLmsAPITemplateFactory
-                        .create(lmsSetup, credentials, proxyData)
-                        .getOrThrow();
-            case MOODLE:
-                return this.moodleLmsAPITemplateFactory
-                        .create(lmsSetup, credentials, proxyData)
-                        .getOrThrow();
-
-            default:
-                throw new UnsupportedOperationException("No support for LMS Type: " + lmsSetup.lmsType);
+        if (!this.templateFactories.containsKey(lmsSetup.lmsType)) {
+            throw new UnsupportedOperationException("No support for LMS Type: " + lmsSetup.lmsType);
         }
+
+        final LmsAPITemplateFactory lmsAPITemplateFactory = this.templateFactories.get(lmsSetup.lmsType);
+        return lmsAPITemplateFactory.create(lmsSetup, credentials, proxyData)
+                .getOrThrow();
     }
 
     private static final class CacheKey {

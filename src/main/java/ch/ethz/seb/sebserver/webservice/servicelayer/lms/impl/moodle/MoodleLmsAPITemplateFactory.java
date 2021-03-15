@@ -23,13 +23,16 @@ import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
 
 @Lazy
 @Service
 @WebServiceProfile
-public class MoodleLmsAPITemplateFactory {
+public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
     private final JSONMapper jsonMapper;
     private final AsyncService asyncService;
@@ -59,7 +62,13 @@ public class MoodleLmsAPITemplateFactory {
                 : null;
     }
 
-    public Result<MoodleLmsAPITemplate> create(
+    @Override
+    public LmsType lmsType() {
+        return LmsType.MOODLE;
+    }
+
+    @Override
+    public Result<LmsAPITemplate> create(
             final LmsSetup lmsSetup,
             final ClientCredentials credentials,
             final ProxyData proxyData) {

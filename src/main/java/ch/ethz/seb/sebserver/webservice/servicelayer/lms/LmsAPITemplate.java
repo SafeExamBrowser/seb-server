@@ -152,7 +152,7 @@ public interface LmsAPITemplate {
      * @return Result refer to the given Exam if successful or to an error if not */
     Result<Exam> releaseSEBClientRestriction(Exam exam);
 
-    /** This is used th verify if a given LMS Setup URL is available (valid)
+    /** This is used to verify if a given LMS Setup URL is available (valid)
      *
      * @param urlString the URL string given by the LMS Setup attribute
      * @return true if SEB Server was able to ping the address. */
