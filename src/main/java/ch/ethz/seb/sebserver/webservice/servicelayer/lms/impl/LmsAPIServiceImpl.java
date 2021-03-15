@@ -63,11 +63,12 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientCredentialService = clientCredentialService;
 
-        this.templateFactories = new EnumMap<>(lmsAPITemplateFactories
+        final Map<LmsType, LmsAPITemplateFactory> factories = lmsAPITemplateFactories
                 .stream()
                 .collect(Collectors.toMap(
                         t -> t.lmsType(),
-                        Function.identity())));
+                        Function.identity()));
+        this.templateFactories = new EnumMap<>(factories);
     }
 
     /** Listen to LmsSetupChangeEvent to release an affected LmsAPITemplate from cache
