@@ -118,6 +118,11 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
 
         if (StringUtils.isNoneBlank(institutionalEndpoint) && log.isDebugEnabled()) {
             log.debug("No default gui entrypoint requested: {}", institutionalEndpoint);
+        } else {
+            request.getSession().setAttribute(INST_SUFFIX_ATTRIBUTE, null);
+            request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);
+            forwardToEntryPoint(request, response, this.guiEntryPoint, false);
+            return;
         }
 
         try {
@@ -198,6 +203,9 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
 
     public static String extractInstitutionalEndpoint(final HttpServletRequest request) {
         final String requestURI = request.getRequestURI();
+        if (StringUtils.isBlank(requestURI) || requestURI.equals(Constants.SLASH.toString())) {
+            return null;
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("Trying to verify institution from requested entrypoint url: {}", requestURI);
