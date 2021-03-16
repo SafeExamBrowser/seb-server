@@ -88,14 +88,14 @@ public interface ZoomRoomRequestResponse {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static class CreateUserResponse {
+    static class UserResponse {
         final String id;
         final String email;
         final int type;
         final String first_name;
         final String lasr_name;
         @JsonCreator
-        public CreateUserResponse(
+        public UserResponse(
                 @JsonProperty("id") final String id,
                 @JsonProperty("email") final String email,
                 @JsonProperty("type") final int type,
@@ -111,34 +111,34 @@ public interface ZoomRoomRequestResponse {
 
     // https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static class NewRoomRequest {
+    static class CreateMeetingRequest {
         @JsonProperty final String topic;
         @JsonProperty final int type = 1; // Instant meeting
         @JsonProperty final String start_time = DateTime.now(DateTimeZone.UTC).toString("yyyy-MM-dd`T`HH:mm:ssZ");
-        @JsonProperty final String password;
+        @JsonProperty final CharSequence password;
         @JsonProperty final Settings settings;
 
-        public NewRoomRequest(final String topic, final String password, final Settings settings) {
+        public CreateMeetingRequest(final String topic, final CharSequence password) {
             this.topic = topic;
             this.password = password;
-            this.settings = settings;
+            this.settings = new Settings();
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)
         static class Settings {
-            final boolean host_video = false;
-            final boolean participant_video = true;
-            final boolean join_before_host = true;
-            final int jbh_time = 0;
-            final boolean use_pmi = false;
-            final String audio = "voip";
+            @JsonProperty final boolean host_video = false;
+            @JsonProperty final boolean participant_video = true;
+            @JsonProperty final boolean join_before_host = true;
+            @JsonProperty final int jbh_time = 0;
+            @JsonProperty final boolean use_pmi = false;
+            @JsonProperty final String audio = "voip";
         }
     }
 
     // https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static class NewRoomResponse {
-        final Integer id;
+    static class MeetingResponse {
+        final Long id;
         final String join_url;
         final String start_url;
         final String start_time;
@@ -148,8 +148,8 @@ public interface ZoomRoomRequestResponse {
         final String host_id;
 
         @JsonCreator
-        public NewRoomResponse(
-                @JsonProperty("id") final Integer id,
+        public MeetingResponse(
+                @JsonProperty("id") final Long id,
                 @JsonProperty("join_url") final String join_url,
                 @JsonProperty("start_url") final String start_url,
                 @JsonProperty("start_time") final String start_time,

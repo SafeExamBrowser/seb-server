@@ -149,7 +149,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
             // First create and get the town-hall room for specified exam
             final RemoteProctoringRoom townhallRoom = examProctoringService
-                    .newBreakOutRoom(subject)
+                    .newBreakOutRoom(settings, subject)
                     .flatMap(room -> this.remoteProctoringRoomDAO.createTownhallRoom(examId, room))
                     .getOrThrow();
 
@@ -187,7 +187,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getOrThrow();
 
             final RemoteProctoringRoom breakOutRoom = examProctoringService
-                    .newBreakOutRoom(subject)
+                    .newBreakOutRoom(settings, subject)
                     .flatMap(room -> this.remoteProctoringRoomDAO.createBreakOutRoom(examId, room, connectionTokens))
                     .getOrThrow();
 
@@ -302,7 +302,9 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             return this.remoteProctoringRoomDAO.reservePlaceInCollectingRoom(
                     examId,
                     proctoringSettings.collectingRoomSize,
-                    examProctoringService::newCollectingRoom)
+                    roomNumber -> examProctoringService.newCollectingRoom(
+                            proctoringSettings,
+                            roomNumber))
                     .getOrThrow();
 
         } catch (final Exception e) {
@@ -334,7 +336,9 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         this.remoteProctoringRoomDAO
                 .getTownhallRoom(examId)
                 .map(RemoteProctoringRoom::getName)
-                .flatMap(examProctoringService::disposeBreakOutRoom)
+                .flatMap(roomName -> examProctoringService.disposeBreakOutRoom(
+                        proctoringSettings,
+                        roomName))
                 .flatMap(service -> this.remoteProctoringRoomDAO.deleteTownhallRoom(examId))
                 .getOrThrow();
 
@@ -382,7 +386,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 .getOrThrow();
 
         // Dispose the proctoring room on service side
-        examProctoringService.disposeBreakOutRoom(remoteProctoringRoom.name)
+        examProctoringService
+                .disposeBreakOutRoom(proctoringSettings, remoteProctoringRoom.name)
                 .getOrThrow();
 
         // Send join collecting rooms to involving clients
@@ -448,12 +453,13 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         connectionTokens
                 .stream()
                 .forEach(connectionToken -> {
-                    this.sebInstructionService.registerInstruction(
-                            examId,
-                            InstructionType.SEB_RECONFIGURE_SETTINGS,
-                            attributes,
-                            connectionToken,
-                            true)
+                    this.sebInstructionService
+                            .registerInstruction(
+                                    examId,
+                                    InstructionType.SEB_RECONFIGURE_SETTINGS,
+                                    attributes,
+                                    connectionToken,
+                                    true)
                             .onError(error -> log.error(
                                     "Failed to register reconfiguring instruction for connection: {}",
                                     connectionToken,
@@ -496,17 +502,17 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         clientConnectionTokens
                 .stream()
                 .forEach(connectionToken -> {
-                    final ProctoringRoomConnection proctoringConnection =
-                            examProctoringService.getClientBreakOutRoomConnection(
+                    final ProctoringRoomConnection proctoringConnection = examProctoringService
+                            .getClientRoomConnection(
                                     proctoringSettings,
                                     connectionToken,
                                     examProctoringService.verifyRoomName(roomName, connectionToken),
                                     (StringUtils.isNotBlank(subject)) ? subject : roomName)
-                                    .onError(error -> log.error(
-                                            "Failed to get client room connection data for {} cause: {}",
-                                            connectionToken,
-                                            error.getMessage()))
-                                    .get();
+                            .onError(error -> log.error(
+                                    "Failed to get client room connection data for {} cause: {}",
+                                    connectionToken,
+                                    error.getMessage()))
+                            .get();
                     if (proctoringConnection != null) {
                         sendJoinInstruction(
                                 proctoringSettings.examId,
@@ -551,7 +557,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getOrThrow();
 
             final ProctoringRoomConnection proctoringConnection = examProctoringService
-                    .getClientCollectingRoomConnection(
+                    .getClientRoomConnection(
                             proctoringSettings,
                             clientConnection.clientConnection.connectionToken,
                             roomName,
@@ -577,12 +583,13 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         final Map<String, String> attributes = examProctoringService
                 .createJoinInstructionAttributes(proctoringConnection);
 
-        this.sebInstructionService.registerInstruction(
-                examId,
-                InstructionType.SEB_PROCTORING,
-                attributes,
-                connectionToken,
-                true)
+        this.sebInstructionService
+                .registerInstruction(
+                        examId,
+                        InstructionType.SEB_PROCTORING,
+                        attributes,
+                        connectionToken,
+                        true)
                 .onError(error -> log.error("Failed to send join instruction: {}", connectionToken, error));
     }
 }

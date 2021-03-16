@@ -170,21 +170,30 @@ public class JitsiProctoringService implements ExamProctoringService {
     }
 
     @Override
-    public Result<NewRoom> newCollectingRoom(final Long roomNumber) {
+    public Result<NewRoom> newCollectingRoom(
+            final ProctoringServiceSettings proctoringSettings,
+            final Long roomNumber) {
+
         return Result.of(new NewRoom(
                 UUID.randomUUID().toString(),
                 "Room " + (roomNumber + 1)));
     }
 
     @Override
-    public Result<NewRoom> newBreakOutRoom(final String subject) {
+    public Result<NewRoom> newBreakOutRoom(
+            final ProctoringServiceSettings proctoringSettings,
+            final String subject) {
+
         return Result.of(new NewRoom(
                 UUID.randomUUID().toString(),
                 subject));
     }
 
     @Override
-    public Result<Void> disposeBreakOutRoom(final String roomName) {
+    public Result<Void> disposeBreakOutRoom(
+            final ProctoringServiceSettings proctoringSettings,
+            final String roomName) {
+
         return Result.EMPTY;
     }
 
@@ -237,7 +246,6 @@ public class JitsiProctoringService implements ExamProctoringService {
 
         return Result.tryCatch(() -> {
             return createProctoringConnection(
-                    proctoringSettings.serverType,
                     null,
                     proctoringSettings.serverURL,
                     proctoringSettings.appKey,
@@ -253,7 +261,7 @@ public class JitsiProctoringService implements ExamProctoringService {
     }
 
     @Override
-    public Result<ProctoringRoomConnection> getClientCollectingRoomConnection(
+    public Result<ProctoringRoomConnection> getClientRoomConnection(
             final ProctoringServiceSettings proctoringSettings,
             final String connectionToken,
             final String roomName,
@@ -265,7 +273,6 @@ public class JitsiProctoringService implements ExamProctoringService {
                     .getOrThrow();
 
             return createProctoringConnection(
-                    proctoringSettings.serverType,
                     null,
                     proctoringSettings.serverURL,
                     proctoringSettings.appKey,
@@ -280,38 +287,7 @@ public class JitsiProctoringService implements ExamProctoringService {
         });
     }
 
-    @Override
-    public Result<ProctoringRoomConnection> getClientBreakOutRoomConnection(
-            final ProctoringServiceSettings proctoringSettings,
-            final String connectionToken,
-            final String roomName,
-            final String subject) {
-
-        return Result.tryCatch(() -> {
-            final long expTime = forExam(proctoringSettings);
-
-            final ClientConnectionData connectionData = this.examSessionService
-                    .getConnectionData(connectionToken)
-                    .getOrThrow();
-
-            return createProctoringConnection(
-                    proctoringSettings.serverType,
-                    connectionToken,
-                    proctoringSettings.serverURL,
-                    proctoringSettings.appKey,
-                    proctoringSettings.getAppSecret(),
-                    connectionData.clientConnection.userSessionId,
-                    SEB_CLIENT_KEY,
-                    roomName,
-                    subject,
-                    expTime,
-                    false)
-                            .getOrThrow();
-        });
-    }
-
     protected Result<ProctoringRoomConnection> createProctoringConnection(
-            final ProctoringServerType proctoringServerType,
             final String connectionToken,
             final String url,
             final String appKey,
@@ -341,13 +317,14 @@ public class JitsiProctoringService implements ExamProctoringService {
                     moderator);
 
             return new ProctoringRoomConnection(
-                    proctoringServerType,
+                    ProctoringServerType.JITSI_MEET,
                     connectionToken,
                     host,
                     url,
                     roomName,
                     subject,
-                    token);
+                    token,
+                    clientName);
         });
     }
 

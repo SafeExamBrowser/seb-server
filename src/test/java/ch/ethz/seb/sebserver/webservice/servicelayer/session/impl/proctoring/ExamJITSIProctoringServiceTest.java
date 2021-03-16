@@ -18,7 +18,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 
 public class ExamJITSIProctoringServiceTest {
@@ -64,7 +63,6 @@ public class ExamJITSIProctoringServiceTest {
         final JitsiProctoringService examJITSIProctoringService =
                 new JitsiProctoringService(null, null, cryptorMock, null);
         final ProctoringRoomConnection data = examJITSIProctoringService.createProctoringConnection(
-                ProctoringServerType.JITSI_MEET,
                 "connectionToken",
                 "https://seb-jitsi.example.ch",
                 "test-app",

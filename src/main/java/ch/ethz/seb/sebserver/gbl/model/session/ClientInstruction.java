@@ -51,6 +51,7 @@ public final class ClientInstruction {
             public static final String ZOOM_URL = "zoomMeetServerURL";
             public static final String ZOOM_ROOM = "zoomMeetRoom";
             public static final String ZOOM_ROOM_SUBJECT = "zoomMeetSubject";
+            public static final String ZOOM_USER_NAME = "zoomUserName";
             public static final String ZOOM_TOKEN = "zoomMeetToken";
             public static final String ZOOM_RECEIVE_AUDIO = "zoomMeetReceiveAudio";
             public static final String ZOOM_RECEIVE_VIDEO = "zoomMeetReceiveVideo";

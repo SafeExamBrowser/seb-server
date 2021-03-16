@@ -24,6 +24,7 @@ public class ProctoringRoomConnection {
     public static final String ATTR_SUBJECT = "subject";
     public static final String ATTR_ACCESS_TOKEN = "accessToken";
     public static final String ATTR_CONNECTION_URL = "connectionURL";
+    public static final String ATTR_USER_NAME = "userName";
 
     @JsonProperty(ProctoringServiceSettings.ATTR_SERVER_TYPE)
     public final ProctoringServerType proctoringServerType;
@@ -46,6 +47,9 @@ public class ProctoringRoomConnection {
     @JsonProperty(ATTR_ACCESS_TOKEN)
     public final String accessToken;
 
+    @JsonProperty(ATTR_USER_NAME)
+    public final String userName;
+
     @JsonCreator
     public ProctoringRoomConnection(
             @JsonProperty(ProctoringServiceSettings.ATTR_SERVER_TYPE) final ProctoringServerType proctoringServerType,
@@ -54,7 +58,8 @@ public class ProctoringRoomConnection {
             @JsonProperty(ATTR_SERVER_URL) final String serverURL,
             @JsonProperty(ATTR_ROOM_NAME) final String roomName,
             @JsonProperty(ATTR_SUBJECT) final String subject,
-            @JsonProperty(ATTR_ACCESS_TOKEN) final String accessToken) {
+            @JsonProperty(ATTR_ACCESS_TOKEN) final String accessToken,
+            @JsonProperty(ATTR_USER_NAME) final String userName) {
 
         this.proctoringServerType = proctoringServerType;
         this.connectionToken = connectionToken;
@@ -63,6 +68,7 @@ public class ProctoringRoomConnection {
         this.roomName = roomName;
         this.subject = subject;
         this.accessToken = accessToken;
+        this.userName = userName;
     }
 
     public ProctoringServerType getProctoringServerType() {

@@ -686,5 +686,4 @@ public final class Utils {
     public static String valueOrEmptyNote(final String value) {
         return StringUtils.isBlank(value) ? Constants.EMPTY_NOTE : value;
     }
-
 }

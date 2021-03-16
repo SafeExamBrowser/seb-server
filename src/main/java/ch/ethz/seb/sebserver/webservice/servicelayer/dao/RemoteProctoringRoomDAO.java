@@ -20,6 +20,8 @@ public interface RemoteProctoringRoomDAO {
 
     Result<Collection<RemoteProctoringRoom>> getCollectingRoomsForExam(Long examId);
 
+    //Result<Collection<RemoteProctoringRoom>> getRoomsOfExam(Long examId);
+
     Result<RemoteProctoringRoom> getRoom(Long roomId);
 
     Result<RemoteProctoringRoom> getRoom(Long examId, String roomName);
