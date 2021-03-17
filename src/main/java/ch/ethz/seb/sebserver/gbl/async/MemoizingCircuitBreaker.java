@@ -90,7 +90,7 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
         return this.lastMemoizingTime;
     }
 
-    /** Create new CircuitBreakerSupplier.
+    /** Create new MemoizingCircuitBreaker.
      *
      * @param asyncRunner the AsyncRunner used to create asynchronous calls on the given supplier function
      * @param supplier The Supplier function that can fail or block for a long time

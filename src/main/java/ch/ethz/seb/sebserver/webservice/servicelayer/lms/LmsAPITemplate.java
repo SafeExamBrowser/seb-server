@@ -104,9 +104,9 @@ public interface LmsAPITemplate {
     /** Convert a an anonymous or temporary user session identifier from SEB Client into a user
      * account details.
      *
-     * @param examineeSessionId the user session identifier from SEB Client
+     * @param examineeUserId the user-account identifier derived from SEB Client
      * @return a Result refer to the ExamineeAccountDetails instance or to an error when happened or not supported */
-    Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeSessionId);
+    Result<ExamineeAccountDetails> getExamineeAccountDetails(String examineeUserId);
 
     /** Used to convert an anonymous or temporary user session identifier from SEB Client into a user
      * account name for displaying on monitoring page.
@@ -114,9 +114,9 @@ public interface LmsAPITemplate {
      * If the underling concrete template implementation does not support this user name conversion,
      * the given examineeSessionId shall be returned.
      *
-     * @param examineeSessionId the user session identifier from SEB Client
+     * @param examineeUserId the user-account identifier derived from SEB Client
      * @return a user account display name if supported or the given examineeSessionId if not. */
-    String getExamineeName(String examineeSessionId);
+    String getExamineeName(String examineeUserId);
 
     /** Used to get a list of chapters (display name and chapter-identifier) that can be used to
      * apply chapter-based SEB restriction for a specified course.
