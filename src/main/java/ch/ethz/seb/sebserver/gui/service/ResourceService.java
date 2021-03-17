@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -184,7 +183,7 @@ public class ResourceService {
 
     public List<Tuple<String>> lmsTypeResources() {
         return Arrays.stream(LmsType.values())
-                .filter(Predicate.not(this.disabledLmsTypes::contains))
+                .filter(lmsType -> !this.disabledLmsTypes.contains(lmsType))
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
                         this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name(), lmsType.name())))
