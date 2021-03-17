@@ -130,7 +130,8 @@ class MoodleRestTemplateFactory {
                     if (result.hasError()) {
                         log.warn("Failed to get access token for LMS: {}({})",
                                 this.lmsSetup.name,
-                                this.lmsSetup.id);
+                                this.lmsSetup.id,
+                                result.getError());
                     }
                     return result;
                 })
@@ -336,27 +337,51 @@ class MoodleRestTemplateFactory {
 
         private void requestAccessToken() {
 
-            final ResponseEntity<String> response = super.exchange(
-                    this.serverURL + this.tokenPath,
-                    HttpMethod.GET,
-                    this.tokenReqEntity,
-                    String.class,
-                    this.tokenReqURIVars);
-
-            if (response.getStatusCode() != HttpStatus.OK) {
-                throw new RuntimeException("Failed to gain access token for LMS (Moodle): lmsSetup: " +
-                        MoodleRestTemplateFactory.this.lmsSetup + " response: " + response.getBody());
-            }
-
             try {
-                final MoodleToken moodleToken = MoodleRestTemplateFactory.this.jsonMapper.readValue(
-                        response.getBody(),
-                        MoodleToken.class);
+                final ResponseEntity<String> response = super.exchange(
+                        this.serverURL + this.tokenPath,
+                        HttpMethod.GET,
+                        this.tokenReqEntity,
+                        String.class,
+                        this.tokenReqURIVars);
 
-                this.accessToken = moodleToken.token;
+                if (response.getStatusCode() != HttpStatus.OK) {
+                    log.error("Failed to gain access token for LMS (Moodle): lmsSetup: {} response: {} : {}",
+                            MoodleRestTemplateFactory.this.lmsSetup,
+                            response.getStatusCode(),
+                            response.getBody());
+                    throw new RuntimeException("Failed to gain access token for LMS (Moodle): lmsSetup: " +
+                            MoodleRestTemplateFactory.this.lmsSetup + " response: " + response.getBody());
+                }
+
+                try {
+                    final MoodleToken moodleToken = MoodleRestTemplateFactory.this.jsonMapper.readValue(
+                            response.getBody(),
+                            MoodleToken.class);
+
+                    if (moodleToken == null || moodleToken.token == null) {
+                        throw new RuntimeException("Access Token request with 200 but no or invalid token body");
+                    } else {
+                        log.info("Successfully get access token from Moodle: {}",
+                                MoodleRestTemplateFactory.this.lmsSetup);
+                    }
+
+                    this.accessToken = moodleToken.token;
+                } catch (final Exception e) {
+                    log.error("Failed to gain access token for LMS (Moodle): lmsSetup: {} response: {} : {}",
+                            MoodleRestTemplateFactory.this.lmsSetup,
+                            response.getStatusCode(),
+                            response.getBody());
+                    throw new RuntimeException("Failed to gain access token for LMS (Moodle): lmsSetup: " +
+                            MoodleRestTemplateFactory.this.lmsSetup + " response: " + response.getBody(), e);
+                }
+
             } catch (final Exception e) {
+                log.error("Failed to gain access token for LMS (Moodle): lmsSetup: {} :",
+                        MoodleRestTemplateFactory.this.lmsSetup,
+                        e);
                 throw new RuntimeException("Failed to gain access token for LMS (Moodle): lmsSetup: " +
-                        MoodleRestTemplateFactory.this.lmsSetup + " response: " + response.getBody(), e);
+                        MoodleRestTemplateFactory.this.lmsSetup + " cause: " + e.getMessage());
             }
         }
 
