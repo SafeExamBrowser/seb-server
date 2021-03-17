@@ -18,13 +18,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -117,6 +118,8 @@ public class ResourceService {
     public static final String EXAM_PROCTORING_TYPE_PREFIX = "sebserver.exam.proctoring.type.servertype.";
     public static final String VDI_TYPE_PREFIX = "sebserver.clientconfig.form.vditype.";
 
+    private static final String DISABLE_LMS_FLAG = "sebserver.gui.webservice.lms.disable.";
+
     public static final EnumSet<AttributeType> ATTRIBUTE_TYPES_NOT_DISPLAYED = EnumSet.of(
             AttributeType.LABEL,
             AttributeType.COMPOSITE_TABLE,
@@ -134,30 +137,24 @@ public class ResourceService {
     private final I18nSupport i18nSupport;
     private final RestService restService;
     private final CurrentUser currentUser;
-    private final EnumSet<LmsType> enabledLmsTypes;
+    private final EnumSet<LmsType> disabledLmsTypes;
 
     protected ResourceService(
             final I18nSupport i18nSupport,
             final RestService restService,
             final CurrentUser currentUser,
-            @Value("${sebserver.gui.webservice.mock-lms-enabled:true}") final boolean mock_lms_enabled,
-            @Value("${sebserver.gui.webservice.edx-lms-enabled:true}") final boolean edx_lms_enabled,
-            @Value("${sebserver.gui.webservice.moodle-lms-enabled:true}") final boolean moodle_lms_enabled) {
+            final Environment environment) {
 
         this.i18nSupport = i18nSupport;
         this.restService = restService;
         this.currentUser = currentUser;
 
-        this.enabledLmsTypes = EnumSet.noneOf(LmsType.class);
-        if (mock_lms_enabled) {
-            this.enabledLmsTypes.add(LmsType.MOCKUP);
-        }
-        if (edx_lms_enabled) {
-            this.enabledLmsTypes.add(LmsType.OPEN_EDX);
-        }
-        if (moodle_lms_enabled) {
-            this.enabledLmsTypes.add(LmsType.MOODLE);
-        }
+        this.disabledLmsTypes = EnumSet.noneOf(LmsType.class);
+        final List<LmsType> disabled = Arrays.asList(LmsType.values()).stream()
+                .filter(lmsType -> lmsType.features.isEmpty() ||
+                        environment.getProperty(DISABLE_LMS_FLAG + lmsType.name(), Boolean.class, false) == true)
+                .collect(Collectors.toList());
+        this.disabledLmsTypes.addAll(disabled);
     }
 
     public I18nSupport getI18nSupport() {
@@ -187,7 +184,7 @@ public class ResourceService {
 
     public List<Tuple<String>> lmsTypeResources() {
         return Arrays.stream(LmsType.values())
-                .filter(this.enabledLmsTypes::contains)
+                .filter(Predicate.not(this.disabledLmsTypes::contains))
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
                         this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name(), lmsType.name())))
