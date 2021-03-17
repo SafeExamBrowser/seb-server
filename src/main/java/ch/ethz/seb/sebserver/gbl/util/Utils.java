@@ -8,7 +8,11 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
@@ -685,5 +689,21 @@ public final class Utils {
 
     public static String valueOrEmptyNote(final String value) {
         return StringUtils.isBlank(value) ? Constants.EMPTY_NOTE : value;
+    }
+
+    /** This is used to verify if a given URL is available (valid)
+     * Uses java.net.Socket to try to connect to the given URL
+     *
+     * @param urlString the URL string
+     * @return true if SEB Server was able to ping the address. */
+    public static boolean pingHost(final String urlString) {
+        try (Socket socket = new Socket()) {
+            final URL url = new URL(urlString);
+            final int port = (url.getPort() >= 0) ? url.getPort() : 80;
+            socket.connect(new InetSocketAddress(url.getHost(), port), (int) Constants.SECOND_IN_MILLIS * 5);
+            return true;
+        } catch (final IOException e) {
+            return false; // Either timeout or unreachable or failed DNS lookup.
+        }
     }
 }

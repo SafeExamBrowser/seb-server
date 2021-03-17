@@ -97,7 +97,7 @@ public abstract class CourseAccess {
             final List<QuizData> cached = allQuizzesSupplier().getAllCached();
             final List<QuizData> available = (cached != null)
                     ? cached
-                    : quizzesSupplier(ids).get();
+                    : Collections.emptyList();
 
             final Map<String, QuizData> quizMapping = available
                     .stream()

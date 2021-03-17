@@ -8,10 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -20,7 +16,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -77,18 +72,12 @@ public interface LmsAPITemplate {
      * @return Collection of all QuizData from the given id set */
     Collection<Result<QuizData>> getQuizzes(Set<String> ids);
 
-    /** Get all QuizData for the set of QuizData identifiers from LMS API in a collection
-     * of Result. If particular Quiz cannot be loaded because of errors or deletion,
-     * the Result will have an error reference.
+    /** Get the quiz data with specified identifier.
      *
-     * NOTE: This method looks first in the cache for all given ids.
-     * If all quizzes are cached, returns all from cache.
-     * If one quiz is not in the cache, requests all quizzes from the API and refreshes the cache
+     * Default implementation: Uses getQuizzes(Set<String> ids) and returns the first matching or an error.
      *
-     * @param ids the Set of Quiz identifiers to get the QuizData for
-     * @return Collection of all QuizData from the given id set */
-    Collection<Result<QuizData>> getQuizzesFromCache(Set<String> ids);
-
+     * @param id the quiz data identifier
+     * @return Result refer to the quiz data or to an error when happened */
     default Result<QuizData> getQuiz(final String id) {
         if (StringUtils.isBlank(id)) {
             return Result.ofError(new RuntimeException("missing model id"));
@@ -99,6 +88,18 @@ public interface LmsAPITemplate {
                 .findFirst()
                 .orElse(Result.ofError(new ResourceNotFoundException(EntityType.EXAM, id)));
     }
+
+    /** Get all QuizData for the set of QuizData identifiers from LMS API in a collection
+     * of Result. If particular Quiz cannot be loaded because of errors or deletion,
+     * the Result will have an error reference.
+     *
+     * NOTE: This method looks first in the cache if existing for all given ids.
+     * If all quizzes are cached, returns all from cache.
+     * If one quiz is not in the cache, requests all quizzes from the API and refreshes the cache
+     *
+     * @param ids the Set of Quiz identifiers to get the QuizData for
+     * @return Collection of all QuizData from the given id set */
+    Collection<Result<QuizData>> getQuizzesFromCache(Set<String> ids);
 
     /** Convert a an anonymous or temporary user session identifier from SEB Client into a user
      * account details.
@@ -151,20 +152,5 @@ public interface LmsAPITemplate {
      * @param exam the Exam to release the restriction for
      * @return Result refer to the given Exam if successful or to an error if not */
     Result<Exam> releaseSEBClientRestriction(Exam exam);
-
-    /** This is used to verify if a given LMS Setup URL is available (valid)
-     *
-     * @param urlString the URL string given by the LMS Setup attribute
-     * @return true if SEB Server was able to ping the address. */
-    static boolean pingHost(final String urlString) {
-        try (Socket socket = new Socket()) {
-            final URL url = new URL(urlString);
-            final int port = (url.getPort() >= 0) ? url.getPort() : 80;
-            socket.connect(new InetSocketAddress(url.getHost(), port), (int) Constants.SECOND_IN_MILLIS * 5);
-            return true;
-        } catch (final IOException e) {
-            return false; // Either timeout or unreachable or failed DNS lookup.
-        }
-    }
 
 }

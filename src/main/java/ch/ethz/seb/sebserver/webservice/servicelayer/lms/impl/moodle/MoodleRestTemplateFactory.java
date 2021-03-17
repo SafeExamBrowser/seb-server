@@ -50,7 +50,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
 class MoodleRestTemplateFactory {
 
@@ -95,7 +94,7 @@ class MoodleRestTemplateFactory {
                     "lmsSetup:lmsUrl:notNull"));
         } else {
             // try to connect to the url
-            if (!LmsAPITemplate.pingHost(this.lmsSetup.lmsApiUrl)) {
+            if (!Utils.pingHost(this.lmsSetup.lmsApiUrl)) {
                 missingAttrs.add(APIMessage.fieldValidationError(
                         LMS_SETUP.ATTR_LMS_URL,
                         "lmsSetup:lmsUrl:url.invalid"));
