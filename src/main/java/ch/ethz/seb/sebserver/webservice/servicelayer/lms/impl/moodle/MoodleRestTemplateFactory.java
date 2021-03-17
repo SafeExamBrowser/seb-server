@@ -130,7 +130,8 @@ class MoodleRestTemplateFactory {
                     if (result.hasError()) {
                         log.warn("Failed to get access token for LMS: {}({})",
                                 this.lmsSetup.name,
-                                this.lmsSetup.id);
+                                this.lmsSetup.id,
+                                result.getError());
                     }
                     return result;
                 })
@@ -360,6 +361,9 @@ class MoodleRestTemplateFactory {
 
                     if (moodleToken == null || moodleToken.token == null) {
                         throw new RuntimeException("Access Token request with 200 but no or invalid token body");
+                    } else {
+                        log.info("Successfully get access token from Moodle: {}",
+                                MoodleRestTemplateFactory.this.lmsSetup);
                     }
 
                     this.accessToken = moodleToken.token;
