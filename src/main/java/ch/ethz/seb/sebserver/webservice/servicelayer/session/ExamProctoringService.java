@@ -30,7 +30,7 @@ public interface ExamProctoringService {
      *
      * @param proctoringSettings the settings to test
      * @return Result refer to true if the settings are correct and the proctoring server can be accessed. */
-    Result<Boolean> testExamProctoring(final ProctoringServiceSettings proctoringSettings);
+    Result<Boolean> testExamProctoring(ProctoringServiceSettings proctoringSettings);
 
     /** Gets the room connection data for a certain room for the proctor.
      *
@@ -45,21 +45,14 @@ public interface ExamProctoringService {
             String subject);
 
     Result<ProctoringRoomConnection> getClientRoomConnection(
-            final ProctoringServiceSettings proctoringSettings,
-            final String connectionToken,
-            final String roomName,
-            final String subject);
+            ProctoringServiceSettings proctoringSettings,
+            String connectionToken,
+            String roomName,
+            String subject);
 
-//    Result<ProctoringRoomConnection> getClientCollectingRoomConnection(
-//            final ProctoringServiceSettings proctoringSettings,
-//            final String connectionToken,
-//            final String roomName,
-//            final String subject);
+    Map<String, String> createJoinInstructionAttributes(ProctoringRoomConnection proctoringConnection);
 
-    Map<String, String> createJoinInstructionAttributes(
-            final ProctoringRoomConnection proctoringConnection);
-
-    Result<Void> disposeServiceRoomsForExam(Exam exam);
+    Result<Void> disposeServiceRoomsForExam(ProctoringServiceSettings proctoringSettings, Exam exam);
 
     default String verifyRoomName(final String requestedRoomName, final String connectionToken) {
         if (StringUtils.isNotBlank(requestedRoomName)) {

@@ -54,11 +54,23 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<RemoteProctoringRoom>> getCollectingRoomsForExam(final Long examId) {
+    public Result<Collection<RemoteProctoringRoom>> getCollectingRooms(final Long examId) {
         return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper.selectByExample()
                 .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
                 .and(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isEqualTo(0))
                 .and(RemoteProctoringRoomRecordDynamicSqlSupport.breakOutConnections, isNull())
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<RemoteProctoringRoom>> getRooms(final Long examId) {
+        return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper.selectByExample()
+                .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
                 .build()
                 .execute()
                 .stream()
@@ -75,6 +87,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<RemoteProctoringRoom> getRoom(final Long examId, final String roomName) {
         return Result.tryCatch(() -> {
             return this.remoteProctoringRoomRecordMapper.selectByExample()

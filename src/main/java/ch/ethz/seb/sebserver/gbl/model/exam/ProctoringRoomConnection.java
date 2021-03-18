@@ -25,6 +25,8 @@ public class ProctoringRoomConnection {
     public static final String ATTR_ACCESS_TOKEN = "accessToken";
     public static final String ATTR_CONNECTION_URL = "connectionURL";
     public static final String ATTR_USER_NAME = "userName";
+    public static final String ATTR_ROOM_KEY = "roomKey";
+    public static final String ATTR_API_KEY = "apiKey";
 
     @JsonProperty(ProctoringServiceSettings.ATTR_SERVER_TYPE)
     public final ProctoringServerType proctoringServerType;
@@ -45,7 +47,13 @@ public class ProctoringRoomConnection {
     public final String subject;
 
     @JsonProperty(ATTR_ACCESS_TOKEN)
-    public final String accessToken;
+    public final CharSequence accessToken;
+
+    @JsonProperty(ATTR_ROOM_KEY)
+    public final CharSequence roomKey;
+
+    @JsonProperty(ATTR_API_KEY)
+    public final CharSequence apiKey;
 
     @JsonProperty(ATTR_USER_NAME)
     public final String userName;
@@ -58,7 +66,9 @@ public class ProctoringRoomConnection {
             @JsonProperty(ATTR_SERVER_URL) final String serverURL,
             @JsonProperty(ATTR_ROOM_NAME) final String roomName,
             @JsonProperty(ATTR_SUBJECT) final String subject,
-            @JsonProperty(ATTR_ACCESS_TOKEN) final String accessToken,
+            @JsonProperty(ATTR_ACCESS_TOKEN) final CharSequence accessToken,
+            @JsonProperty(ATTR_ROOM_KEY) final CharSequence roomKey,
+            @JsonProperty(ATTR_API_KEY) final CharSequence apiKey,
             @JsonProperty(ATTR_USER_NAME) final String userName) {
 
         this.proctoringServerType = proctoringServerType;
@@ -68,6 +78,8 @@ public class ProctoringRoomConnection {
         this.roomName = roomName;
         this.subject = subject;
         this.accessToken = accessToken;
+        this.roomKey = roomKey;
+        this.apiKey = apiKey;
         this.userName = userName;
     }
 
@@ -83,8 +95,20 @@ public class ProctoringRoomConnection {
         return this.serverHost;
     }
 
-    public String getAccessToken() {
+    public CharSequence getAccessToken() {
         return this.accessToken;
+    }
+
+    public CharSequence getRoomKey() {
+        return this.roomKey;
+    }
+
+    public CharSequence getApiKey() {
+        return this.apiKey;
+    }
+
+    public String getUserName() {
+        return this.userName;
     }
 
     public String getServerURL() {

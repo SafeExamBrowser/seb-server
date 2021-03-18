@@ -164,7 +164,10 @@ public class JitsiProctoringService implements ExamProctoringService {
     }
 
     @Override
-    public Result<Void> disposeServiceRoomsForExam(final Exam exam) {
+    public Result<Void> disposeServiceRoomsForExam(
+            final ProctoringServiceSettings proctoringSettings,
+            final Exam exam) {
+
         // NOTE: Since Jitsi rooms are generated and disposed automatically we don't need to do anything here
         return Result.EMPTY;
     }
@@ -234,7 +237,7 @@ public class JitsiProctoringService implements ExamProctoringService {
         }
         attributes.put(
                 ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.JITSI_TOKEN,
-                proctoringConnection.accessToken);
+                String.valueOf(proctoringConnection.accessToken));
 
         return attributes;
     }
@@ -324,6 +327,8 @@ public class JitsiProctoringService implements ExamProctoringService {
                     roomName,
                     subject,
                     token,
+                    null,
+                    null,
                     clientName);
         });
     }

@@ -90,8 +90,9 @@ public class ServerPushService {
                 log.warn(
                         "Failed to stop Server Push Session on: {}. "
                                 + "It seems that the UISession is not available anymore. "
-                                + "This may source from a connection interruption",
-                        Thread.currentThread().getName(), e);
+                                + "This may source from a connection interruption. Cause: {}",
+                        Thread.currentThread().getName(),
+                        e.getMessage());
             }
 
         });

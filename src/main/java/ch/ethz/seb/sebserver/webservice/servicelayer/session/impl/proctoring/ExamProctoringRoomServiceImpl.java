@@ -70,7 +70,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
     @Override
     public Result<Collection<RemoteProctoringRoom>> getProctoringCollectingRooms(final Long examId) {
-        return this.remoteProctoringRoomDAO.getCollectingRoomsForExam(examId);
+        return this.remoteProctoringRoomDAO.getCollectingRooms(examId);
     }
 
     @Override
@@ -115,9 +115,14 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
         return Result.tryCatch(() -> {
 
+            final ProctoringServiceSettings settings = this.examSessionService
+                    .getRunningExam(exam.id)
+                    .flatMap(this.examAdminService::getProctoringServiceSettings)
+                    .getOrThrow();
+
             this.examAdminService
                     .getExamProctoringService(exam)
-                    .flatMap(service -> service.disposeServiceRoomsForExam(exam))
+                    .flatMap(service -> service.disposeServiceRoomsForExam(settings, exam))
                     .onError(error -> log.error("Failed to dispose proctoring service rooms for exam: {} / {}",
                             exam.name,
                             exam.externalId,

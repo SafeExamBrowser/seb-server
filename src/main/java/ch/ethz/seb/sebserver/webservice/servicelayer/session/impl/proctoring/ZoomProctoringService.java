@@ -204,17 +204,27 @@ public class ZoomProctoringService implements ExamProctoringService {
         attributes.put(
                 ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_ROOM,
                 proctoringConnection.roomName);
+        attributes.put(
+                ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_TOKEN,
+                String.valueOf(proctoringConnection.accessToken));
+        if (StringUtils.isNotBlank(proctoringConnection.apiKey)) {
+            attributes.put(
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_API_KEY,
+                    String.valueOf(proctoringConnection.apiKey));
+        }
+        if (StringUtils.isNotBlank(proctoringConnection.roomKey)) {
+            attributes.put(
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_MEETING_KEY,
+                    String.valueOf(proctoringConnection.roomKey));
+        }
+        attributes.put(
+                ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_USER_NAME,
+                proctoringConnection.userName);
         if (StringUtils.isNotBlank(proctoringConnection.subject)) {
             attributes.put(
                     ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_ROOM_SUBJECT,
                     proctoringConnection.subject);
         }
-        attributes.put(
-                ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_TOKEN,
-                proctoringConnection.accessToken);
-        attributes.put(
-                ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_USER_NAME,
-                proctoringConnection.userName);
 
         return attributes;
     }
@@ -250,6 +260,8 @@ public class ZoomProctoringService implements ExamProctoringService {
                     roomName,
                     subject,
                     jwt,
+                    credentials.accessToken,
+                    credentials.clientId,
                     this.authorizationService.getUserService().getCurrentUser().getUsername());
         });
     }
@@ -290,18 +302,29 @@ public class ZoomProctoringService implements ExamProctoringService {
                     roomName,
                     subject,
                     jwt,
+                    credentials.accessToken,
+                    credentials.clientId,
                     clientConnection.clientConnection.userSessionId);
         });
     }
 
     @Override
-    public Result<Void> disposeServiceRoomsForExam(final Exam exam) {
+    public Result<Void> disposeServiceRoomsForExam(
+            final ProctoringServiceSettings proctoringSettings,
+            final Exam exam) {
 
         return Result.tryCatch(() -> {
-            //this.remoteProctoringRoomDAO.getRoomsOfExam(exam.id);
+            this.remoteProctoringRoomDAO
+                    .getRooms(exam.id)
+                    .getOrThrow()
+                    .stream()
+                    .forEach(room -> {
+                        disposeBreakOutRoom(proctoringSettings, room.name)
+                                .onError(error -> log.warn("Failed to dispose proctoring room record for: {} cause: {}",
+                                        room,
+                                        error.getMessage()));
+                    });
         });
-        // Get all rooms of the exam
-
     }
 
     @Override
@@ -492,7 +515,7 @@ public class ZoomProctoringService implements ExamProctoringService {
             final String jwtHeaderPart = urlEncoder.encodeToString(
                     ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
             final String jwtPayload = String.format(
-                    ZOOM_API_ACCESS_TOKEN_PAYLOAD.replaceAll(" ", "").replaceAll("\n", ""),
+                    ZOOM_MEETING_ACCESS_TOKEN_PAYLOAD.replaceAll(" ", "").replaceAll("\n", ""),
                     credentials.clientIdAsString(),
                     iat,
                     exp,

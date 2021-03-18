@@ -81,7 +81,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetTownha
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
-import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
+import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService;
 import ch.ethz.seb.sebserver.gui.widget.Message;
 
 @Lazy

@@ -46,16 +46,18 @@ public final class ClientInstruction {
             public static final String JITSI_TOKEN = "jitsiMeetToken";
             public static final String JITSI_RECEIVE_AUDIO = "jitsiMeetReceiveAudio";
             public static final String JITSI_RECEIVE_VIDEO = "jitsiMeetReceiveVideo";
-            public static final String JITSI_ALLOW_CHAT = "jitsiMeetFeatureFlagChat";
+            public static final String JITSI_ALLOW_CHAT = "jitsiFeatureFlagChat";
 
-            public static final String ZOOM_URL = "zoomMeetServerURL";
-            public static final String ZOOM_ROOM = "zoomMeetRoom";
-            public static final String ZOOM_ROOM_SUBJECT = "zoomMeetSubject";
+            public static final String ZOOM_URL = "zoomServerURL";
+            public static final String ZOOM_ROOM = "zoomRoom";
+            public static final String ZOOM_ROOM_SUBJECT = "zoomSubject";
             public static final String ZOOM_USER_NAME = "zoomUserName";
-            public static final String ZOOM_TOKEN = "zoomMeetToken";
-            public static final String ZOOM_RECEIVE_AUDIO = "zoomMeetReceiveAudio";
-            public static final String ZOOM_RECEIVE_VIDEO = "zoomMeetReceiveVideo";
-            public static final String ZOOM_ALLOW_CHAT = "zoomMeetFeatureFlagChat";
+            public static final String ZOOM_API_KEY = "zoomAPIKey";
+            public static final String ZOOM_TOKEN = "zoomToken";
+            public static final String ZOOM_MEETING_KEY = "zoomMeetingKey";
+            public static final String ZOOM_RECEIVE_AUDIO = "zoomReceiveAudio";
+            public static final String ZOOM_RECEIVE_VIDEO = "zoomReceiveVideo";
+            public static final String ZOOM_ALLOW_CHAT = "zoomFeatureFlagChat";
         }
 
         public interface SEB_RECONFIGURE_SETTINGS {
@@ -63,9 +65,9 @@ public final class ClientInstruction {
             public static final String JITSI_RECEIVE_VIDEO = "jitsiMeetReceiveVideo";
             public static final String JITSI_ALLOW_CHAT = "jitsiMeetFeatureFlagChat";
 
-            public static final String ZOOM_RECEIVE_AUDIO = "zoomMeetReceiveAudio";
-            public static final String ZOOM_RECEIVE_VIDEO = "zoomMeetReceiveVideo";
-            public static final String ZOOM_ALLOW_CHAT = "zoomMeetFeatureFlagChat";
+            public static final String ZOOM_RECEIVE_AUDIO = "zoomReceiveAudio";
+            public static final String ZOOM_RECEIVE_VIDEO = "zoomReceiveVideo";
+            public static final String ZOOM_ALLOW_CHAT = "zoomFeatureFlagChat";
         }
     }
 

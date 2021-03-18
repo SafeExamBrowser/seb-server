@@ -67,7 +67,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProcto
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionDetails;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
-import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
+import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;

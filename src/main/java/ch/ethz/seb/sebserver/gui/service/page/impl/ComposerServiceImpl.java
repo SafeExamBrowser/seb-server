@@ -33,8 +33,8 @@ import ch.ethz.seb.sebserver.gui.service.page.RemoteProctoringView;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.IllegalUserSessionStateException;
-import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
-import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService.ProctoringWindowData;
+import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService;
+import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService.ProctoringWindowData;
 import ch.ethz.seb.sebserver.gui.widget.Message;
 
 @Lazy

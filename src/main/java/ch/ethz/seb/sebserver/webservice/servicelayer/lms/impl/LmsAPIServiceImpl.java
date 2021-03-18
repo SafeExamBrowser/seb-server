@@ -81,7 +81,9 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             return;
         }
 
-        log.debug("LmsSetup changed. Update cache by removing eventually used references");
+        if (log.isDebugEnabled()) {
+            log.debug("LmsSetup changed. Update cache by removing eventually used references");
+        }
 
         this.cache.remove(new CacheKey(lmsSetup.getModelId(), 0));
     }
@@ -105,11 +107,6 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
     @Override
     public Result<LmsAPITemplate> getLmsAPITemplate(final String lmsSetupId) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Get LmsAPITemplate for id: {}", lmsSetupId);
-        }
-
         return Result.tryCatch(() -> this.lmsSetupDAO
                 .byModelId(lmsSetupId)
                 .getOrThrow())
@@ -214,7 +211,6 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 .forEach(this.cache::remove);
         // get from cache
         return this.cache.get(new CacheKey(lmsSetup.getModelId(), 0));
-
     }
 
     private LmsAPITemplate createLmsSetupTemplate(final LmsSetup lmsSetup) {

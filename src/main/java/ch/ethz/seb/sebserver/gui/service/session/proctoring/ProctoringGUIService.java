@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.session;
+package ch.ethz.seb.sebserver.gui.service.session.proctoring;
 
 import java.util.Collection;
 import java.util.HashMap;

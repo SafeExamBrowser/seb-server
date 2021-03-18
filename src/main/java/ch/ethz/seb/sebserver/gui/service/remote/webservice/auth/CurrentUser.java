@@ -35,7 +35,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.session.ProctoringGUIService;
+import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService;
 
 @Component
 @GuiProfile
