@@ -466,7 +466,12 @@ public class ZoomProctoringService implements ExamProctoringService {
 
         try {
 
-            final CharSequence decryptedSecret = this.cryptor.decrypt(credentials.secret);
+            CharSequence decryptedSecret = credentials.secret;
+            try {
+                decryptedSecret = this.cryptor.decrypt(credentials.secret);
+            } catch (final Exception e) {
+                log.debug("Testing zoom account connection");
+            }
 
             final StringBuilder builder = new StringBuilder();
             final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
@@ -545,8 +550,7 @@ public class ZoomProctoringService implements ExamProctoringService {
 
     private final static class ZoomRestTemplate {
 
-        private static final String API_TEST_ENDPOINT =
-                "v2/users?status=active&page_size=30&page_number=1&data_type=Json";
+        private static final String API_TEST_ENDPOINT = "v2/users";
         private static final String API_CREATE_USER_ENDPOINT = "v2/users";
         private static final String API_DELETE_USER_ENDPOINT = "v2/users/{userid}?action=delete";
         private static final String API_USER_CUST_CREATE = "custCreate";
@@ -578,7 +582,12 @@ public class ZoomProctoringService implements ExamProctoringService {
             final String url = UriComponentsBuilder
                     .fromUriString(zoomServerUrl)
                     .path(API_TEST_ENDPOINT)
-                    .toString();
+                    .queryParam("status", "active")
+                    .queryParam("page_size", "10")
+                    .queryParam("page_number", "1")
+                    .queryParam("data_type", "Json")
+                    .build()
+                    .toUriString();
             return exchange(url, HttpMethod.GET, credentials);
         }
 
@@ -591,7 +600,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                 final String url = UriComponentsBuilder
                         .fromUriString(zoomServerUrl)
                         .path(API_CREATE_USER_ENDPOINT)
-                        .toString();
+                        .toUriString();
                 final String host = new URL(zoomServerUrl).getHost();
                 final CreateUserRequest createUserRequest = new CreateUserRequest(
                         API_USER_CUST_CREATE,
@@ -625,7 +634,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                         .fromUriString(zoomServerUrl)
                         .path(API_CREATE_MEETING_ENDPOINT)
                         .buildAndExpand(userId)
-                        .toString();
+                        .toUriString();
 
                 final CreateMeetingRequest createRoomRequest = new CreateMeetingRequest(topic, password);
 
@@ -651,7 +660,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                         .fromUriString(zoomServerUrl)
                         .path(API_DELETE_MEETING_ENDPOINT)
                         .buildAndExpand(meetingId)
-                        .toString();
+                        .toUriString();
 
                 return exchange(url, HttpMethod.DELETE, credentials);
 
@@ -671,7 +680,8 @@ public class ZoomProctoringService implements ExamProctoringService {
                         .fromUriString(zoomServerUrl)
                         .path(API_DELETE_USER_ENDPOINT)
                         .buildAndExpand(userId)
-                        .toString();
+                        .normalize()
+                        .toUriString();
 
                 return exchange(url, HttpMethod.DELETE, credentials);
 
@@ -713,7 +723,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                         : new HttpEntity<>(httpHeaders);
 
                 final ResponseEntity<String> result = this.restTemplate.exchange(
-                        url,
+                        url, //"https://ethz.zoom.us/v2/users?Fstatus=active&page_size=30&page_number=1&data_type=Json",
                         method,
                         httpEntity,
                         String.class);

@@ -67,7 +67,7 @@ public class Cryptor {
                     .append(salt);
 
         } catch (final Exception e) {
-            log.error("Failed to encrypt text: ", e);
+            log.error("Failed to encrypt text: {}", e.getMessage());
             throw e;
         }
     }
@@ -94,7 +94,7 @@ public class Cryptor {
                     .decrypt(cipherText.toString());
 
         } catch (final Exception e) {
-            log.error("Failed to decrypt text: ", e);
+            log.error("Failed to decrypt text: {}", e.getMessage());
             throw e;
         }
     }
