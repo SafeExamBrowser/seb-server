@@ -26,6 +26,7 @@ public class ProctoringViewRules implements ValueChangeRule {
     public static final String KEY_ENABLE_AI = "proctoringAIEnable";
     public static final String KEY_ENABLE_JITSI = "jitsiMeetEnable";
 
+    public static final String JITSI_GROUP_AUDIO_VIDEO = "jitsiMeetReceiveAudio";
     public static final String JITSI_GROUP_FEATURES = "jitsiMeetFeatureFlagChat";
     public static final String JITSI_GROUP_CONTROLS = "jitsiMeetAudioMuted";
 
@@ -45,9 +46,11 @@ public class ProctoringViewRules implements ValueChangeRule {
 
         if (KEY_ENABLE_JITSI.equals(attribute.name)) {
             if (BooleanUtils.toBoolean(value.value)) {
+                context.enableGroup(JITSI_GROUP_AUDIO_VIDEO);
                 context.enableGroup(JITSI_GROUP_FEATURES);
                 context.enableGroup(JITSI_GROUP_CONTROLS);
             } else {
+                context.disableGroup(JITSI_GROUP_AUDIO_VIDEO);
                 context.disableGroup(JITSI_GROUP_FEATURES);
                 context.disableGroup(JITSI_GROUP_CONTROLS);
             }
