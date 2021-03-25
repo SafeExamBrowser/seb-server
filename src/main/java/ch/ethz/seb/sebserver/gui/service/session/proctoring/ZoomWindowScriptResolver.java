@@ -64,16 +64,16 @@ public class ZoomWindowScriptResolver implements ProctoringWindowScriptResolver 
             + "            ZoomMtg.preLoadWasm();\n"
             + "            ZoomMtg.prepareJssdk();\n"
             + "\n"
-            + "            const API_KEY = \"%%_\" + ATTR_API_KEY + \"_%%\";\n"
+            + "            const API_KEY = \"%%_" + ATTR_API_KEY + "_%%\";\n"
             + "            const config = {\n"
-            + "                meetingNumber: %%_\" + ATTR_ROOM_NAME + \"_%%,\n"
-            + "                leaveUrl: '%%_\" + ATTR_HOST + \"_%%',\n"
-            + "                userName: '%%_\" + ATTR_USER_NAME + \"_%%',\n"
-            + "                passWord: '%%_\" + ATTR_ROOM_KEY + \"_%%',\n"
-            + "                role: 0 // 1 for host; 0 for attendee\n"
+            + "                meetingNumber: %%_" + ATTR_ROOM_NAME + "_%%,\n"
+            + "                leaveUrl: '%%_" + ATTR_HOST + "_%%',\n"
+            + "                userName: '%%_" + ATTR_USER_NAME + "_%%',\n"
+            + "                passWord: '%%_" + ATTR_ROOM_KEY + "_%%',\n"
+            + "                role: 1 // 1 for host; 0 for attendee\n"
             + "            };\n"
             + "\n"
-            + "            const signature = '%%_\" + ATTR_ACCESS_TOKEN + \"_%%';\n"
+            + "            const signature = '%%_" + ATTR_ACCESS_TOKEN + "_%%';\n"
             + "\n"
             + "            console.log(\"Initializing meeting...\");\n"
             + "\n"
@@ -155,7 +155,7 @@ public class ZoomWindowScriptResolver implements ProctoringWindowScriptResolver 
     public String getProctoringWindowScript(final ProctoringWindowData data) {
         final Map<String, String> args = new HashMap<>();
         args.put(ATTR_HOST, data.connectionData.serverHost);
-        args.put(ATTR_ROOM_NAME, data.connectionData.roomName);
+        args.put(ATTR_ROOM_NAME, data.connectionData.meetingId);
         args.put(ATTR_ACCESS_TOKEN, String.valueOf(data.connectionData.accessToken));
         args.put(ATTR_API_KEY, String.valueOf(data.connectionData.apiKey));
         if (StringUtils.isNotBlank(data.connectionData.roomKey)) {

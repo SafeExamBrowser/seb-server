@@ -111,7 +111,7 @@ public class ExamProctoringController {
         checkAccess(institutionId, examId);
         return this.examSessionService.getRunningExam(examId)
                 .flatMap(this.authorization::checkRead)
-                .flatMap(this.examAdminService::getExamProctoringService)
+                .flatMap(exam -> this.examAdminService.getExamProctoringService(exam.id))
                 .flatMap(service -> service.getProctorRoomConnection(
                         this.examAdminService.getProctoringServiceSettings(examId).getOrThrow(),
                         roomName,

@@ -115,14 +115,13 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
         return Result.tryCatch(() -> {
 
-            final ProctoringServiceSettings settings = this.examSessionService
-                    .getRunningExam(exam.id)
-                    .flatMap(this.examAdminService::getProctoringServiceSettings)
+            final ProctoringServiceSettings proctoringSettings = this.examAdminService
+                    .getProctoringServiceSettings(exam.id)
                     .getOrThrow();
 
             this.examAdminService
-                    .getExamProctoringService(exam)
-                    .flatMap(service -> service.disposeServiceRoomsForExam(settings, exam))
+                    .getExamProctoringService(proctoringSettings.serverType)
+                    .flatMap(service -> service.disposeServiceRoomsForExam(exam.id, proctoringSettings))
                     .onError(error -> log.error("Failed to dispose proctoring service rooms for exam: {} / {}",
                             exam.name,
                             exam.externalId,
@@ -143,9 +142,9 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         }
 
         return Result.tryCatch(() -> {
-            final ProctoringServiceSettings settings = this.examSessionService
-                    .getRunningExam(examId)
-                    .flatMap(this.examAdminService::getProctoringServiceSettings)
+
+            final ProctoringServiceSettings settings = this.examAdminService
+                    .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
             final ExamProctoringService examProctoringService = this.examAdminService
@@ -182,9 +181,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
         return Result.tryCatch(() -> {
 
-            final ProctoringServiceSettings settings = this.examSessionService
-                    .getRunningExam(examId)
-                    .flatMap(this.examAdminService::getProctoringServiceSettings)
+            final ProctoringServiceSettings settings = this.examAdminService
+                    .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
             final ExamProctoringService examProctoringService = this.examAdminService
@@ -213,13 +211,12 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     public Result<Void> closeProctoringRoom(final Long examId, final String roomName) {
         return Result.tryCatch(() -> {
 
-            final ProctoringServiceSettings proctoringSettings = this.examSessionService
-                    .getRunningExam(examId)
-                    .flatMap(this.examAdminService::getProctoringServiceSettings)
+            final ProctoringServiceSettings settings = this.examAdminService
+                    .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
             final ExamProctoringService examProctoringService = this.examAdminService
-                    .getExamProctoringService(proctoringSettings.serverType)
+                    .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
             // Get room
@@ -228,9 +225,9 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getOrThrow();
 
             if (!remoteProctoringRoom.breakOutConnections.isEmpty()) {
-                closeBreakOutRoom(examId, proctoringSettings, examProctoringService, remoteProctoringRoom);
+                closeBreakOutRoom(examId, settings, examProctoringService, remoteProctoringRoom);
             } else if (remoteProctoringRoom.townhallRoom) {
-                closeTownhall(examId, proctoringSettings, examProctoringService);
+                closeTownhall(examId, settings, examProctoringService);
             } else {
                 closeCollectingRoom(examId, roomName, examProctoringService);
             }
@@ -301,7 +298,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getOrThrow();
 
             final ExamProctoringService examProctoringService = this.examAdminService
-                    .getExamProctoringService(examId)
+                    .getExamProctoringService(proctoringSettings.serverType)
                     .getOrThrow();
 
             return this.remoteProctoringRoomDAO.reservePlaceInCollectingRoom(
@@ -415,13 +412,12 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
         return Result.tryCatch(() -> {
 
-            final ProctoringServiceSettings proctoringSettings = this.examSessionService
-                    .getRunningExam(examId)
-                    .flatMap(this.examAdminService::getProctoringServiceSettings)
+            final ProctoringServiceSettings settings = this.examAdminService
+                    .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
             final ExamProctoringService examProctoringService = this.examAdminService
-                    .getExamProctoringService(proctoringSettings.serverType)
+                    .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
             final RemoteProctoringRoom room = this.remoteProctoringRoomDAO

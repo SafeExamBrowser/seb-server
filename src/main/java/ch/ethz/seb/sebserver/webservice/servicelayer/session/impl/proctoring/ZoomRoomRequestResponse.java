@@ -77,12 +77,12 @@ public interface ZoomRoomRequestResponse {
             @JsonProperty final String email;
             @JsonProperty final int type;
             @JsonProperty final String first_name;
-            @JsonProperty final String lasr_name;
-            public UserInfo(final String email, final int type, final String first_name, final String lasr_name) {
+            @JsonProperty final String last_name;
+            public UserInfo(final String email, final int type, final String first_name, final String last_name) {
                 this.email = email;
                 this.type = type;
                 this.first_name = first_name;
-                this.lasr_name = lasr_name;
+                this.last_name = last_name;
             }
         }
     }
@@ -113,8 +113,9 @@ public interface ZoomRoomRequestResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     static class CreateMeetingRequest {
         @JsonProperty final String topic;
-        @JsonProperty final int type = 1; // Instant meeting
-        @JsonProperty final String start_time = DateTime.now(DateTimeZone.UTC).toString("yyyy-MM-dd`T`HH:mm:ssZ");
+        @JsonProperty final int type = 2; // Scheduled Meeting
+        @JsonProperty final String start_time = DateTime.now(DateTimeZone.UTC).toString("yyyy-MM-dd'T'HH:mm:ss");
+        @JsonProperty final int duration = 60;
         @JsonProperty final CharSequence password;
         @JsonProperty final Settings settings;
 
@@ -146,6 +147,8 @@ public interface ZoomRoomRequestResponse {
         final String status;
         final String uuid;
         final String host_id;
+        final CharSequence meetingPwd;
+        final CharSequence encryptedPwd;
 
         @JsonCreator
         public MeetingResponse(
@@ -156,7 +159,10 @@ public interface ZoomRoomRequestResponse {
                 @JsonProperty("duration") final Integer duration,
                 @JsonProperty("status") final String status,
                 @JsonProperty("uuid") final String uuid,
-                @JsonProperty("host_id") final String host_id) {
+                @JsonProperty("host_id") final String host_id,
+                @JsonProperty("password") final CharSequence meetingPwd,
+                @JsonProperty("encrypted_password") final CharSequence encryptedPwd) {
+
             this.id = id;
             this.join_url = join_url;
             this.start_url = start_url;
@@ -165,6 +171,8 @@ public interface ZoomRoomRequestResponse {
             this.status = status;
             this.uuid = uuid;
             this.host_id = host_id;
+            this.meetingPwd = meetingPwd;
+            this.encryptedPwd = encryptedPwd;
         }
     }
 

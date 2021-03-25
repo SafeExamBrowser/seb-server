@@ -16,4 +16,5 @@ public interface RemoteProctoringView extends TemplateComposer {
      *
      * @return the remote proctoring server type this remote proctoring view can handle. */
     ProctoringServerType serverType();
+
 }

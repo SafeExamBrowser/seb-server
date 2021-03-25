@@ -12,7 +12,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
@@ -52,7 +51,7 @@ public interface ExamProctoringService {
 
     Map<String, String> createJoinInstructionAttributes(ProctoringRoomConnection proctoringConnection);
 
-    Result<Void> disposeServiceRoomsForExam(ProctoringServiceSettings proctoringSettings, Exam exam);
+    Result<Void> disposeServiceRoomsForExam(Long examId, ProctoringServiceSettings proctoringSettings);
 
     default String verifyRoomName(final String requestedRoomName, final String connectionToken) {
         if (StringUtils.isNotBlank(requestedRoomName)) {

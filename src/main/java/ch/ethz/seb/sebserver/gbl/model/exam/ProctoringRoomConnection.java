@@ -27,6 +27,7 @@ public class ProctoringRoomConnection {
     public static final String ATTR_USER_NAME = "userName";
     public static final String ATTR_ROOM_KEY = "roomKey";
     public static final String ATTR_API_KEY = "apiKey";
+    public static final String ATTR_MEETING_ID = "meetingId";
 
     @JsonProperty(ProctoringServiceSettings.ATTR_SERVER_TYPE)
     public final ProctoringServerType proctoringServerType;
@@ -55,6 +56,9 @@ public class ProctoringRoomConnection {
     @JsonProperty(ATTR_API_KEY)
     public final CharSequence apiKey;
 
+    @JsonProperty(ATTR_MEETING_ID)
+    public final String meetingId;
+
     @JsonProperty(ATTR_USER_NAME)
     public final String userName;
 
@@ -69,6 +73,7 @@ public class ProctoringRoomConnection {
             @JsonProperty(ATTR_ACCESS_TOKEN) final CharSequence accessToken,
             @JsonProperty(ATTR_ROOM_KEY) final CharSequence roomKey,
             @JsonProperty(ATTR_API_KEY) final CharSequence apiKey,
+            @JsonProperty(ATTR_MEETING_ID) final String meetingId,
             @JsonProperty(ATTR_USER_NAME) final String userName) {
 
         this.proctoringServerType = proctoringServerType;
@@ -80,6 +85,7 @@ public class ProctoringRoomConnection {
         this.accessToken = accessToken;
         this.roomKey = roomKey;
         this.apiKey = apiKey;
+        this.meetingId = meetingId;
         this.userName = userName;
     }
 
@@ -121,6 +127,10 @@ public class ProctoringRoomConnection {
 
     public String getSubject() {
         return this.subject;
+    }
+
+    public String getMeetingId() {
+        return this.meetingId;
     }
 
     @Override

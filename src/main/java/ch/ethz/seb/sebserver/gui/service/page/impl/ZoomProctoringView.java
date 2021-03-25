@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2021 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,9 +39,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Component
 @GuiProfile
-public class JitsiMeetProctoringView implements RemoteProctoringView {
+public class ZoomProctoringView implements RemoteProctoringView {
 
-    private static final Logger log = LoggerFactory.getLogger(JitsiMeetProctoringView.class);
+    private static final Logger log = LoggerFactory.getLogger(ZoomProctoringView.class);
 
     private static final LocTextKey CLOSE_WINDOW_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.proctoring.action.close");
@@ -63,7 +63,7 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
     private final String remoteProctoringEndpoint;
     private final String remoteProctoringViewServletEndpoint;
 
-    public JitsiMeetProctoringView(
+    public ZoomProctoringView(
             final PageService pageService,
             final GuiServiceInfo guiServiceInfo,
             @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint,
@@ -77,12 +77,11 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
 
     @Override
     public ProctoringServerType serverType() {
-        return ProctoringServerType.JITSI_MEET;
+        return ProctoringServerType.ZOOM;
     }
 
     @Override
     public void compose(final PageContext pageContext) {
-
         final ProctoringWindowData proctoringWindowData = ProctoringGUIService.getCurrentProctoringWindowData();
 
         final Composite parent = pageContext.getParent();
@@ -152,6 +151,7 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
                 proctoringWindowData.connectionData.roomName,
                 chatAction));
         chatAction.setData(BroadcastActionState.KEY_NAME, broadcastActionState);
+
     }
 
     private void sendReconfigurationAttributes(

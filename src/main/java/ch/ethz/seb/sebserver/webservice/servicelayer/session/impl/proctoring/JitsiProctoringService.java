@@ -165,9 +165,8 @@ public class JitsiProctoringService implements ExamProctoringService {
 
     @Override
     public Result<Void> disposeServiceRoomsForExam(
-            final ProctoringServiceSettings proctoringSettings,
-            final Exam exam) {
-
+            final Long examId,
+            final ProctoringServiceSettings proctoringSettings) {
         // NOTE: Since Jitsi rooms are generated and disposed automatically we don't need to do anything here
         return Result.EMPTY;
     }
@@ -327,6 +326,7 @@ public class JitsiProctoringService implements ExamProctoringService {
                     roomName,
                     subject,
                     token,
+                    null,
                     null,
                     null,
                     clientName);
