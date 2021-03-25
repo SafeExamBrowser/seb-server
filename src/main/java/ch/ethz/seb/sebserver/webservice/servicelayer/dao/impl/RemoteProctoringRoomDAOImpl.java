@@ -102,7 +102,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     .execute();
 
             if (active > 0) {
-                throw new IllegalStateException("Townhall, for exam: " + examId + " already existis");
+                throw new IllegalStateException("Townhall, for exam: " + examId + " already exists");
             }
 
             final String newCollectingRoomName = UUID.randomUUID().toString();

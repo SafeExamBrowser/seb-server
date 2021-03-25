@@ -40,6 +40,9 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 @Order(7)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements ErrorController {
 
+    private static final String ERROR_PATH = "/sebserver/error";
+    private static final String CHECK_PATH = "/sebserver/check";
+
     @Value("${sebserver.webservice.http.redirect.gui}")
     private String guiRedirect;
     @Value("${sebserver.webservice.api.exam.endpoint.discovery}")
@@ -78,22 +81,27 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
     public void configure(final WebSecurity web) {
         web
                 .ignoring()
-                .antMatchers("/error")
+                .antMatchers(ERROR_PATH)
+                .antMatchers(CHECK_PATH)
                 .antMatchers(this.examAPIDiscoveryEndpoint)
                 .antMatchers(this.adminAPIEndpoint + API.INFO_ENDPOINT + API.LOGO_PATH_SEGMENT + "/**")
                 .antMatchers(this.adminAPIEndpoint + API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT + "/**")
                 .antMatchers(this.adminAPIEndpoint + API.REGISTER_ENDPOINT);
     }
 
-    @RequestMapping("/error")
+    @RequestMapping(CHECK_PATH)
+    public void check() throws IOException {
+    }
+
+    @RequestMapping(ERROR_PATH)
     public void handleError(final HttpServletResponse response) throws IOException {
-        //response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+        response.getOutputStream().print(response.getStatus());
         response.setHeader(HttpHeaders.LOCATION, this.guiRedirect);
         response.flushBuffer();
     }
 
     @Override
     public String getErrorPath() {
-        return "/error";
+        return ERROR_PATH;
     }
 }

@@ -316,7 +316,7 @@ public class ExamProctoringController {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId) {
 
-        checkAccess(institutionId, examId);
+        checkExamReadAccess(institutionId);
 
         return this.examProcotringRoomService.getTownhallRoomData(examId)
                 .getOrElse(() -> RemoteProctoringRoom.NULL_ROOM);
@@ -351,7 +351,8 @@ public class ExamProctoringController {
         // first create and register a room to collect all connection of the exam
         // As long as the room exists new connections will join this room immediately
         // after have been applied to the default collecting room
-        final RemoteProctoringRoom townhallRoom = this.examProcotringRoomService.createTownhallRoom(examId, subject)
+        final RemoteProctoringRoom townhallRoom = this.examProcotringRoomService
+                .createTownhallRoom(examId, subject)
                 .onError(error -> this.examProcotringRoomService.disposeTownhallRoom(examId))
                 .getOrThrow();
 
@@ -588,6 +589,13 @@ public class ExamProctoringController {
                 attributes,
                 connectionToken,
                 true);
+    }
+
+    private void checkExamReadAccess(final Long institutionId) {
+        this.authorization.check(
+                PrivilegeType.READ,
+                EntityType.EXAM,
+                institutionId);
     }
 
     private void checkAccess(final Long institutionId, final Long examId) {
