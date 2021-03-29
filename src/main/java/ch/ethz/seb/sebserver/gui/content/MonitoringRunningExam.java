@@ -17,6 +17,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
 import org.eclipse.swt.SWT;
@@ -78,6 +79,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClient
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProcotringRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnectionData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetTownhallRoom;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.IsTownhallRoomAvailable;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
@@ -123,6 +125,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
     private final ServerPushService serverPushService;
     private final PageService pageService;
+    private final RestService restService;
     private final ResourceService resourceService;
     private final AsyncRunner asyncRunner;
     private final InstructionProcessor instructionProcessor;
@@ -147,6 +150,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         this.serverPushService = serverPushService;
         this.pageService = pageService;
+        this.restService = pageService.getRestService();
         this.resourceService = pageService.getResourceService();
         this.asyncRunner = asyncRunner;
         this.instructionProcessor = instructionProcessor;
@@ -214,13 +218,14 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         this.serverPushService.runServerPush(
                 new ServerPushContext(
-                        content, Utils.truePredicate(),
+                        content,
+                        Utils.truePredicate(),
                         createServerPushUpdateErrorHandler(this.pageService, pageContext)),
                 this.pollInterval,
                 context -> clientTable.updateValues(),
                 updateTableGUI(clientTable));
 
-        final BooleanSupplier privilege = () -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER);
+        final BooleanSupplier isExamSupporter = () -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER);
 
         actionBuilder
 
@@ -242,20 +247,20 @@ public class MonitoringRunningExam implements TemplateComposer {
 
                     return copyOfPageAction;
                 })
-                .publishIf(privilege, false)
+                .publishIf(isExamSupporter, false)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_QUIT_ALL)
                 .withEntityKey(entityKey)
                 .withConfirm(() -> CONFIRM_QUIT_ALL)
                 .withExec(action -> this.quitSEBClients(action, clientTable, true))
                 .noEventPropagation()
-                .publishIf(privilege)
+                .publishIf(isExamSupporter)
 
                 .newAction(ActionDefinition.MONITORING_EXAM_SEARCH_CONNECTIONS)
                 .withEntityKey(entityKey)
                 .withExec(this::openSearchPopup)
                 .noEventPropagation()
-                .publishIf(privilege)
+                .publishIf(isExamSupporter)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_QUIT_SELECTED)
                 .withEntityKey(entityKey)
@@ -265,7 +270,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         action -> this.quitSEBClients(action, clientTable, false),
                         EMPTY_ACTIVE_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(privilege, false)
+                .publishIf(isExamSupporter, false)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_DISABLE_SELECTED_CONNECTION)
                 .withEntityKey(entityKey)
@@ -275,81 +280,26 @@ public class MonitoringRunningExam implements TemplateComposer {
                         action -> this.disableSEBClients(action, clientTable, false),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(privilege, false);
+                .publishIf(isExamSupporter, false);
 
-        if (privilege.getAsBoolean()) {
-
-            if (clientTable.isStatusHidden(ConnectionStatus.CLOSED)) {
-                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
-                        .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
-                        .noEventPropagation()
-                        .withSwitchAction(
-                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
-                                        .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
-                                        .noEventPropagation()
-                                        .create())
-                        .publish();
-            } else {
-                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
-                        .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
-                        .noEventPropagation()
-                        .withSwitchAction(
-                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
-                                        .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
-                                        .noEventPropagation()
-                                        .create())
-                        .publish();
-            }
-
-            if (clientTable.isStatusHidden(ConnectionStatus.CONNECTION_REQUESTED)) {
-                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
-                        .withExec(showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
-                        .noEventPropagation()
-                        .withSwitchAction(
-                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
-                                        .withExec(
-                                                hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
-                                        .noEventPropagation()
-                                        .create())
-                        .publish();
-            } else {
-                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
-                        .withExec(hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
-                        .noEventPropagation()
-                        .withSwitchAction(
-                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
-                                        .withExec(
-                                                showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
-                                        .noEventPropagation()
-                                        .create())
-                        .publish();
-            }
-
-            if (clientTable.isStatusHidden(ConnectionStatus.DISABLED)) {
-                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
-                        .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
-                        .noEventPropagation()
-                        .withSwitchAction(
-                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
-                                        .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
-                                        .noEventPropagation()
-                                        .create())
-                        .publish();
-            } else {
-                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
-                        .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
-                        .noEventPropagation()
-                        .withSwitchAction(
-                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
-                                        .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
-                                        .noEventPropagation()
-                                        .create())
-                        .publish();
-            }
-
+        if (isExamSupporter.getAsBoolean()) {
+            addFilterActions(actionBuilder, clientTable, isExamSupporter);
+            addProctoringActions(
+                    currentUser.getProctoringGUIService(),
+                    pageContext,
+                    content,
+                    actionBuilder);
         }
+    }
 
-        final ProctoringSettings proctoringSettings = restService
+    private void addProctoringActions(
+            final ProctoringGUIService proctoringGUIService,
+            final PageContext pageContext,
+            final Composite parent,
+            final PageActionBuilder actionBuilder) {
+
+        final EntityKey entityKey = pageContext.getEntityKey();
+        final ProctoringSettings proctoringSettings = this.restService
                 .getBuilder(GetProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
@@ -359,7 +309,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
             actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)
                     .withEntityKey(entityKey)
-                    .withExec(this::toggleTownhallRoom)
+                    .withExec(action -> this.toggleTownhallRoom(proctoringGUIService, action))
                     .noEventPropagation()
                     .publish();
 
@@ -375,34 +325,126 @@ public class MonitoringRunningExam implements TemplateComposer {
 
             final Map<String, Pair<RemoteProctoringRoom, TreeItem>> availableRooms = new HashMap<>();
             updateRoomActions(
-                    entityKey,
                     pageContext,
                     availableRooms,
                     actionBuilder,
-                    proctoringSettings);
+                    proctoringSettings,
+                    proctoringGUIService);
             this.serverPushService.runServerPush(
                     new ServerPushContext(
-                            content,
+                            parent,
                             Utils.truePredicate(),
                             createServerPushUpdateErrorHandler(this.pageService, pageContext)),
                     this.proctoringRoomUpdateInterval,
                     context -> updateRoomActions(
-                            entityKey,
                             pageContext,
                             availableRooms,
                             actionBuilder,
-                            proctoringSettings));
+                            proctoringSettings,
+                            proctoringGUIService));
+        }
+    }
+
+    private void addFilterActions(
+            final PageActionBuilder actionBuilder,
+            final ClientConnectionTable clientTable,
+            final BooleanSupplier isExamSupporter) {
+
+        addClosedFilterAction(actionBuilder, clientTable);
+        addRequestedFilterAction(actionBuilder, clientTable);
+        addDisabledFilterAction(actionBuilder, clientTable);
+    }
+
+    private void addDisabledFilterAction(
+            final PageActionBuilder actionBuilder,
+            final ClientConnectionTable clientTable) {
+
+        if (clientTable.isStatusHidden(ConnectionStatus.DISABLED)) {
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
+                    .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
+                    .noEventPropagation()
+                    .withSwitchAction(
+                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
+                                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
+                                    .noEventPropagation()
+                                    .create())
+                    .publish();
+        } else {
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
+                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
+                    .noEventPropagation()
+                    .withSwitchAction(
+                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
+                                    .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
+                                    .noEventPropagation()
+                                    .create())
+                    .publish();
+        }
+    }
+
+    private void addRequestedFilterAction(
+            final PageActionBuilder actionBuilder,
+            final ClientConnectionTable clientTable) {
+
+        if (clientTable.isStatusHidden(ConnectionStatus.CONNECTION_REQUESTED)) {
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
+                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                    .noEventPropagation()
+                    .withSwitchAction(
+                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
+                                    .withExec(
+                                            hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                                    .noEventPropagation()
+                                    .create())
+                    .publish();
+        } else {
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
+                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                    .noEventPropagation()
+                    .withSwitchAction(
+                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
+                                    .withExec(
+                                            showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                                    .noEventPropagation()
+                                    .create())
+                    .publish();
+        }
+    }
+
+    private void addClosedFilterAction(
+            final PageActionBuilder actionBuilder,
+            final ClientConnectionTable clientTable) {
+
+        if (clientTable.isStatusHidden(ConnectionStatus.CLOSED)) {
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
+                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
+                    .noEventPropagation()
+                    .withSwitchAction(
+                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
+                                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
+                                    .noEventPropagation()
+                                    .create())
+                    .publish();
+        } else {
+            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
+                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
+                    .noEventPropagation()
+                    .withSwitchAction(
+                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
+                                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
+                                    .noEventPropagation()
+                                    .create())
+                    .publish();
         }
     }
 
     private boolean isTownhallRoomActive(final String examModelId) {
-        final RemoteProctoringRoom townhall = this.pageService.getRestService()
-                .getBuilder(GetTownhallRoom.class)
+        return !BooleanUtils.toBoolean(this.pageService
+                .getRestService()
+                .getBuilder(IsTownhallRoomAvailable.class)
                 .withURIVariable(API.PARAM_MODEL_ID, examModelId)
                 .call()
-                .getOr(null);
-
-        return townhall != null && townhall.id != null;
+                .getOr(Constants.FALSE_STRING));
     }
 
     private PageAction openSearchPopup(final PageAction action) {
@@ -410,9 +452,12 @@ public class MonitoringRunningExam implements TemplateComposer {
         return action;
     }
 
-    private PageAction toggleTownhallRoom(final PageAction action) {
+    private PageAction toggleTownhallRoom(
+            final ProctoringGUIService proctoringGUIService,
+            final PageAction action) {
+
         if (isTownhallRoomActive(action.getEntityKey().modelId)) {
-            closeTownhallRoom(action);
+            closeTownhallRoom(proctoringGUIService, action);
             this.pageService.firePageEvent(
                     new ActionActivationEvent(
                             true,
@@ -422,7 +467,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                     action.pageContext());
             return action;
         } else {
-            openTownhallRoom(action);
+            openTownhallRoom(proctoringGUIService, action);
             this.pageService.firePageEvent(
                     new ActionActivationEvent(
                             true,
@@ -434,14 +479,12 @@ public class MonitoringRunningExam implements TemplateComposer {
         }
     }
 
-    private PageAction openTownhallRoom(final PageAction action) {
+    private PageAction openTownhallRoom(
+            final ProctoringGUIService proctoringGUIService,
+            final PageAction action) {
+
         try {
             final EntityKey examId = action.getEntityKey();
-
-            final ProctoringGUIService proctoringGUIService = this.pageService
-                    .getCurrentUser()
-                    .getProctoringGUIService();
-
             String activeAllRoomName = proctoringGUIService.getTownhallRoom(examId.modelId);
 
             if (activeAllRoomName == null) {
@@ -476,7 +519,10 @@ public class MonitoringRunningExam implements TemplateComposer {
         return action;
     }
 
-    private PageAction closeTownhallRoom(final PageAction action) {
+    private PageAction closeTownhallRoom(
+            final ProctoringGUIService proctoringGUIService,
+            final PageAction action) {
+
         final String examId = action.getEntityKey().modelId;
         final RemoteProctoringRoom townhall = this.pageService.getRestService()
                 .getBuilder(GetTownhallRoom.class)
@@ -492,45 +538,59 @@ public class MonitoringRunningExam implements TemplateComposer {
         }
 
         try {
-            final ProctoringGUIService proctoringGUIService = this.pageService
-                    .getCurrentUser()
-                    .getProctoringGUIService();
-
             proctoringGUIService.closeRoom(townhall.name);
         } catch (final Exception e) {
-            log.error("Failed to close procotring townhall room for exam: {}", examId);
+            log.error("Failed to close proctoring townhall room for exam: {}", examId);
         }
         return action;
     }
 
-    private void updateTownhallButton(final EntityKey entityKey, final PageContext pageContext) {
+    private void updateTownhallButton(
+            final ProctoringGUIService proctoringGUIService,
+            final PageContext pageContext) {
+        final EntityKey entityKey = pageContext.getEntityKey();
+
         if (isTownhallRoomActive(entityKey.modelId)) {
-            this.pageService.firePageEvent(
-                    new ActionActivationEvent(
-                            true,
-                            new Tuple<>(
-                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                                    ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
-                    pageContext);
+            final boolean townhallRoomFromThisUser = proctoringGUIService
+                    .getTownhallRoom(entityKey.modelId) != null;
+            if (townhallRoomFromThisUser) {
+                this.pageService.firePageEvent(
+                        new ActionActivationEvent(
+                                true,
+                                new Tuple<>(
+                                        ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                        ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
+                        pageContext);
+            } else {
+                this.pageService.firePageEvent(
+                        new ActionActivationEvent(
+                                false,
+                                ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
+                        pageContext);
+            }
         } else {
             this.pageService.firePageEvent(
                     new ActionActivationEvent(
                             true,
                             new Tuple<>(
                                     ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)),
+                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM),
+                            ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                            ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
                     pageContext);
         }
     }
 
     private void updateRoomActions(
-            final EntityKey entityKey,
             final PageContext pageContext,
             final Map<String, Pair<RemoteProctoringRoom, TreeItem>> rooms,
             final PageActionBuilder actionBuilder,
-            final ProctoringSettings proctoringSettings) {
+            final ProctoringSettings proctoringSettings,
+            final ProctoringGUIService proctoringGUIService) {
 
-        updateTownhallButton(entityKey, pageContext);
+        final EntityKey entityKey = pageContext.getEntityKey();
+        updateTownhallButton(proctoringGUIService, pageContext);
         final I18nSupport i18nSupport = this.pageService.getI18nSupport();
         this.pageService.getRestService().getBuilder(GetProcotringRooms.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
@@ -571,7 +631,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         this.pageService.publishAction(
                                 action,
                                 _treeItem -> rooms.put(room.name, new Pair<>(room, _treeItem)));
-                        addRoomConnectionsPopupListener(entityKey, pageContext, rooms);
+                        addRoomConnectionsPopupListener(pageContext, rooms);
                         processProctorRoomActionActivation(rooms.get(room.name).b, room, pageContext);
                     }
                 });
@@ -596,11 +656,11 @@ public class MonitoringRunningExam implements TemplateComposer {
     }
 
     private void addRoomConnectionsPopupListener(
-            final EntityKey entityKey,
             final PageContext pageContext,
             final Map<String, Pair<RemoteProctoringRoom, TreeItem>> rooms) {
 
         if (!rooms.isEmpty()) {
+            final EntityKey entityKey = pageContext.getEntityKey();
             final TreeItem treeItem = rooms.values().iterator().next().b;
             final Tree tree = treeItem.getParent();
             if (tree.getData(SHOW_CONNECTION_ACTION_APPLIED) == null) {

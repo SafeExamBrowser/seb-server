@@ -44,6 +44,12 @@ public interface ExamProctoringRoomService {
      * name of an exam. */
     void updateProctoringCollectingRooms();
 
+    /** Indicates whether the town-hall room for a specified exam is active or not.
+     *
+     * @param examId the exam identifier
+     * @return true if the town-hall room for specified exam is active, false if not. */
+    boolean isTownhallRoomActive(Long examId);
+
     /** This creates a town-hall room for a specific exam. The exam must be active and running
      * and there must be no other town-hall room already be active. An unique room name will be
      * created and returned.

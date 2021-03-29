@@ -23,6 +23,8 @@ public interface RemoteProctoringRoomDAO {
 
     Result<String> getRoomName(Long roomId);
 
+    boolean isTownhallRoomActive(Long examId);
+
     Result<RemoteProctoringRoom> getTownhallRoom(Long examId);
 
     Result<RemoteProctoringRoom> createTownhallRoom(Long examId, String subject);

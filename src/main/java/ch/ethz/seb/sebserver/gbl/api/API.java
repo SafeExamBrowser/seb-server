@@ -186,6 +186,7 @@ public final class API {
     public static final String EXAM_PROCTORING_ACTIVATE_TOWNHALL_ROOM = "activate-towhall-room";
     public static final String EXAM_PROCTORING_DEACTIVATE_TOWNHALL_ROOM = "deactivate-towhall-room";
     public static final String EXAM_PROCTORING_TOWNHALL_ROOM_DATA = "towhall-room-data";
+    public static final String EXAM_PROCTORING_TOWNHALL_ROOM_AVAILABLE = "towhall-available";
 
     public static final String SEB_CLIENT_CONNECTION_ENDPOINT = "/seb-client-connection";
 

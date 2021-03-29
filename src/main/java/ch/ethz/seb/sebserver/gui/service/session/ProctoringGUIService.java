@@ -195,7 +195,7 @@ public class ProctoringGUIService {
         closeWindow(name);
         final RoomConnectionData roomConnectionData = this.rooms.remove(name);
         if (roomConnectionData != null) {
-            // send reset of broadcast attributes to all in the room
+            // Send reset of broadcast attributes to all in the room
             this.restService.getBuilder(SendProctoringBroadcastAttributes.class)
                     .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
                     .withFormParam(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID, roomConnectionData.roomName)
@@ -209,7 +209,7 @@ public class ProctoringGUIService {
                             "Failed to send reset broadcast attribute instruction call for room: {}, cause: {}",
                             roomConnectionData.roomName,
                             error.getMessage()));
-            // send instruction to leave this room and join the own exam collecting room
+            // Send instruction to leave this room and join the own exam collecting room
             if (!roomConnectionData.connections.isEmpty()) {
                 this.restService.getBuilder(SendRejoinExamCollectionRoom.class)
                         .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
@@ -221,6 +221,7 @@ public class ProctoringGUIService {
                                 name,
                                 error.getMessage()));
             } else {
+                // Close town-hall room
                 this.restService.getBuilder(DisposeTownhallRoom.class)
                         .withURIVariable(API.PARAM_MODEL_ID, roomConnectionData.examId)
                         .call()

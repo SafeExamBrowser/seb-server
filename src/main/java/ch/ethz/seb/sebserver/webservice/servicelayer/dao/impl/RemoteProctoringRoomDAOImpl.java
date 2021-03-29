@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 @Component
 @WebServiceProfile
 public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
+
+    private static final Logger log = LoggerFactory.getLogger(RemoteProctoringRoomDAOImpl.class);
 
     private final RemoteProctoringRoomRecordMapper remoteProctoringRoomRecordMapper;
 
@@ -94,14 +98,9 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     @Transactional
     public Result<RemoteProctoringRoom> createTownhallRoom(final Long examId, final String subject) {
         return Result.tryCatch(() -> {
-            // check first if town-hall room is not already active
-            final long active = this.remoteProctoringRoomRecordMapper.countByExample()
-                    .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
-                    .and(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isNotEqualTo(0))
-                    .build()
-                    .execute();
 
-            if (active > 0) {
+            // Check first if town-hall room is not already active
+            if (isTownhallRoomActive(examId)) {
                 throw new IllegalStateException("Townhall, for exam: " + examId + " already exists");
             }
 
@@ -120,6 +119,24 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
         })
                 .map(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isTownhallRoomActive(final Long examId) {
+        try {
+            final long active = this.remoteProctoringRoomRecordMapper.countByExample()
+                    .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                    .and(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isNotEqualTo(0))
+                    .build()
+                    .execute();
+            return (active > 0);
+        } catch (final Exception e) {
+            log.error(
+                    "Failed to verify town-hall room activity for exam: {}. Mark it as active to avoid double openings",
+                    examId, e);
+            return true;
+        }
     }
 
     @Override
