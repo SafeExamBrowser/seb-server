@@ -21,6 +21,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
@@ -101,7 +103,7 @@ public class ExamAPI_V1_Controller {
 
                     final POSTMapper mapper = new POSTMapper(formParams, request.getQueryString());
 
-                    final String remoteAddr = request.getRemoteAddr();
+                    final String remoteAddr = this.getClientAddress(request);
                     final Long institutionId = (instIdRequestParam != null)
                             ? instIdRequestParam
                             : mapper.getLong(API.PARAM_INSTITUTION_ID);
@@ -163,7 +165,7 @@ public class ExamAPI_V1_Controller {
         return CompletableFuture.runAsync(
                 () -> {
 
-                    final String remoteAddr = request.getRemoteAddr();
+                    final String remoteAddr = this.getClientAddress(request);
                     final Long institutionId = getInstitutionId(principal);
 
                     this.sebClientConnectionService.updateClientConnection(
@@ -193,7 +195,7 @@ public class ExamAPI_V1_Controller {
         return CompletableFuture.runAsync(
                 () -> {
 
-                    final String remoteAddr = request.getRemoteAddr();
+                    final String remoteAddr = this.getClientAddress(request);
                     final Long institutionId = getInstitutionId(principal);
 
                     this.sebClientConnectionService.establishClientConnection(
@@ -220,7 +222,7 @@ public class ExamAPI_V1_Controller {
         return CompletableFuture.runAsync(
                 () -> {
 
-                    final String remoteAddr = request.getRemoteAddr();
+                    final String remoteAddr = this.getClientAddress(request);
                     final Long institutionId = getInstitutionId(principal);
 
                     if (log.isDebugEnabled()) {
@@ -403,6 +405,25 @@ public class ExamAPI_V1_Controller {
             } catch (final Exception e1) {
                 log.error("Failed to write error to response: ", e1);
             }
+        }
+    }
+
+    private String getClientAddress(final HttpServletRequest request) {
+        try {
+            final String ipAddress = request.getHeader("X-FORWARDED-FOR");
+
+            if (ipAddress == null) {
+                return request.getRemoteAddr();
+            }
+
+            if (ipAddress.contains(",")) {
+                return StringUtils.split(ipAddress, Constants.COMMA)[0];
+            }
+
+            return ipAddress;
+        } catch (final Exception e) {
+            log.warn("Failed to verify client IP address: {}", e.getMessage());
+            return request.getHeader("X-FORWARDED-FOR");
         }
     }
 

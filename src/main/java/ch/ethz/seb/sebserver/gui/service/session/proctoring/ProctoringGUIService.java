@@ -50,6 +50,13 @@ public class ProctoringGUIService {
         this.openWindows.put(windowName, new RoomData(roomName, examId));
     }
 
+    public boolean isTownhallOpenForUser(final String examId) {
+        return this.openWindows.values().stream()
+                .filter(room -> room.isTownhall && room.examId.equals(examId))
+                .findFirst()
+                .isPresent();
+    }
+
     public static ProctoringWindowData getCurrentProctoringWindowData() {
         return (ProctoringWindowData) RWT.getUISession()
                 .getHttpSession()
@@ -105,7 +112,7 @@ public class ProctoringGUIService {
                 .withFormParam(ProctoringRoomConnection.ATTR_SUBJECT, subject)
                 .call()
                 .map(connection -> {
-                    this.openWindows.put(windowName, new RoomData(connection.roomName, examId));
+                    this.openWindows.put(windowName, new RoomData(connection.roomName, examId, true));
                     return connection;
                 });
     }
@@ -152,10 +159,16 @@ public class ProctoringGUIService {
     private static final class RoomData {
         final String roomName;
         final String examId;
+        final boolean isTownhall;
 
         public RoomData(final String roomName, final String examId) {
+            this(roomName, examId, false);
+        }
+
+        public RoomData(final String roomName, final String examId, final boolean townhall) {
             this.roomName = roomName;
             this.examId = examId;
+            this.isTownhall = townhall;
         }
     }
 

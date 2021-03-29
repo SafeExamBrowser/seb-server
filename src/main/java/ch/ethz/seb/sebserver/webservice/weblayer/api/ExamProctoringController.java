@@ -236,6 +236,22 @@ public class ExamProctoringController {
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_PROCTORING_TOWNHALL_ROOM_AVAILABLE,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public String isTownhallRoomAvialbale(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_MODEL_ID) final Long examId) {
+
+        checkExamReadAccess(institutionId);
+        return String.valueOf(!this.examProcotringRoomService.isTownhallRoomActive(examId));
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_TOWNHALL_ROOM_DATA,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -246,7 +262,7 @@ public class ExamProctoringController {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_MODEL_ID) final Long examId) {
 
-        checkAccess(institutionId, examId);
+        checkExamReadAccess(institutionId);
         return this.examProcotringRoomService
                 .getTownhallRoomData(examId)
                 .getOrElse(() -> RemoteProctoringRoom.NULL_ROOM);
@@ -271,6 +287,13 @@ public class ExamProctoringController {
         return this.examProcotringRoomService
                 .openTownhallRoom(examId, subject)
                 .getOrThrow();
+    }
+
+    private void checkExamReadAccess(final Long institutionId) {
+        this.authorization.check(
+                PrivilegeType.READ,
+                EntityType.EXAM,
+                institutionId);
     }
 
     private void checkAccess(final Long institutionId, final Long examId) {

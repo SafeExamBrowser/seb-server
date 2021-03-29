@@ -185,6 +185,7 @@ public final class API {
     public static final String EXAM_PROCTORING_ROOM_CONNECTIONS_PATH_SEGMENT = "/room-connections";
     public static final String EXAM_PROCTORING_ACTIVATE_TOWNHALL_ROOM = "activate-towhall-room";
     public static final String EXAM_PROCTORING_TOWNHALL_ROOM_DATA = "towhall-room-data";
+    public static final String EXAM_PROCTORING_TOWNHALL_ROOM_AVAILABLE = "towhall-available";
 
     public static final String EXAM_PROCTORING_ATTR_RECEIVE_AUDIO = "receive_audio";
     public static final String EXAM_PROCTORING_ATTR_RECEIVE_VIDEO = "receive_video";

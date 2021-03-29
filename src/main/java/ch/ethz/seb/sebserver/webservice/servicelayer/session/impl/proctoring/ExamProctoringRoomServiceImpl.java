@@ -318,6 +318,11 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         }
     }
 
+    @Override
+    public boolean isTownhallRoomActive(final Long examId) {
+        return this.remoteProctoringRoomDAO.isTownhallRoomActive(examId);
+    }
+
     private void closeTownhall(
             final Long examId,
             final ProctoringServiceSettings proctoringSettings,
@@ -593,4 +598,5 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                         true)
                 .onError(error -> log.error("Failed to send join instruction: {}", connectionToken, error));
     }
+
 }

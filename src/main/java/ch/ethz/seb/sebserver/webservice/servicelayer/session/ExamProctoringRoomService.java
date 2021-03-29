@@ -58,6 +58,8 @@ public interface ExamProctoringRoomService {
      * @return Result refer to the given exam or to an error when happened */
     Result<Exam> disposeRoomsForExam(Exam exam);
 
+    boolean isTownhallRoomActive(final Long examId);
+
     /** This creates a town-hall room for a specific exam. The exam must be active and running
      * and there must be no other town-hall room already be active. An unique room name will be
      * created and returned.

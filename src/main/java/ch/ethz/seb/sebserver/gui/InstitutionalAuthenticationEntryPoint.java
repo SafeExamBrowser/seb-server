@@ -116,60 +116,56 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
 
         final String institutionalEndpoint = extractInstitutionalEndpoint(request);
 
-        if (StringUtils.isNoneBlank(institutionalEndpoint) && log.isDebugEnabled()) {
-            log.debug("No default gui entrypoint requested: {}", institutionalEndpoint);
-        } else {
-            request.getSession().setAttribute(INST_SUFFIX_ATTRIBUTE, null);
-            request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);
-            forwardToEntryPoint(request, response, this.guiEntryPoint, false);
-            return;
-        }
-
-        try {
-
-            final RestTemplate restTemplate = new RestTemplate();
-            final List<EntityName> institutions = restTemplate
-                    .exchange(
-                            this.webserviceURIService.getURIBuilder()
-                                    .path(API.INFO_ENDPOINT + API.INFO_INST_ENDPOINT)
-                                    .toUriString(),
-                            HttpMethod.GET,
-                            HttpEntity.EMPTY,
-                            new ParameterizedTypeReference<List<EntityName>>() {
-                            },
-                            institutionalEndpoint,
-                            API.INFO_PARAM_INST_SUFFIX,
-                            institutionalEndpoint)
-                    .getBody();
-
-            if (institutions != null && !institutions.isEmpty()) {
-                request.getSession().setAttribute(
-                        INST_SUFFIX_ATTRIBUTE,
-                        StringUtils.isNotBlank(institutionalEndpoint)
-                                ? institutionalEndpoint
-                                : null);
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Known and active gui entrypoint requested: {}", institutions);
-                }
-
-                final String logoImageBase64 = requestLogoImage(institutionalEndpoint);
-                if (StringUtils.isNotBlank(logoImageBase64)) {
-                    request.getSession().setAttribute(API.PARAM_LOGO_IMAGE, logoImageBase64);
-
-                }
-                forwardToEntryPoint(request, response, this.guiEntryPoint, false);
-                return;
+        if (StringUtils.isNotBlank(institutionalEndpoint)) {
+            if (log.isDebugEnabled()) {
+                log.debug("No default gui entrypoint requested: {}", institutionalEndpoint);
             }
-        } catch (final Exception e) {
-            log.error("Failed to extract and set institutional endpoint request: ", e);
 
+            try {
+
+                final RestTemplate restTemplate = new RestTemplate();
+                final List<EntityName> institutions = restTemplate
+                        .exchange(
+                                this.webserviceURIService.getURIBuilder()
+                                        .path(API.INFO_ENDPOINT + API.INFO_INST_ENDPOINT)
+                                        .toUriString(),
+                                HttpMethod.GET,
+                                HttpEntity.EMPTY,
+                                new ParameterizedTypeReference<List<EntityName>>() {
+                                },
+                                institutionalEndpoint,
+                                API.INFO_PARAM_INST_SUFFIX,
+                                institutionalEndpoint)
+                        .getBody();
+
+                if (institutions != null && !institutions.isEmpty()) {
+                    request.getSession().setAttribute(
+                            INST_SUFFIX_ATTRIBUTE,
+                            StringUtils.isNotBlank(institutionalEndpoint)
+                                    ? institutionalEndpoint
+                                    : null);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Known and active gui entrypoint requested: {}", institutions);
+                    }
+
+                    final String logoImageBase64 = requestLogoImage(institutionalEndpoint);
+                    if (StringUtils.isNotBlank(logoImageBase64)) {
+                        request.getSession().setAttribute(API.PARAM_LOGO_IMAGE, logoImageBase64);
+
+                    }
+                    forwardToEntryPoint(request, response, this.guiEntryPoint, false);
+                    return;
+                }
+            } catch (final Exception e) {
+                log.error("Failed to extract and set institutional endpoint request: ", e);
+            }
         }
 
         request.getSession().setAttribute(INST_SUFFIX_ATTRIBUTE, null);
         request.getSession().removeAttribute(API.PARAM_LOGO_IMAGE);
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        forwardToEntryPoint(request, response, this.guiEntryPoint, true);
+        forwardToEntryPoint(request, response, this.guiEntryPoint, institutionalEndpoint == null);
 
     }
 
@@ -203,16 +199,25 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
 
     public static String extractInstitutionalEndpoint(final HttpServletRequest request) {
         final String requestURI = request.getRequestURI();
-        if (StringUtils.isBlank(requestURI) || requestURI.equals(Constants.SLASH.toString())) {
+        if (StringUtils.isBlank(requestURI)) {
             return null;
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Trying to verify institution from requested entrypoint url: {}", requestURI);
+        if (requestURI.equals(Constants.SLASH.toString())) {
+            return StringUtils.EMPTY;
         }
 
         try {
-            return requestURI.substring(requestURI.lastIndexOf(Constants.SLASH) + 1);
+            if (log.isDebugEnabled()) {
+                log.debug("Trying to verify institution from requested entrypoint url: {}", requestURI);
+            }
+
+            final String[] split = StringUtils.split(requestURI, Constants.SLASH);
+            if (split.length > 1) {
+                return null;
+            }
+
+            return split[0];
         } catch (final Exception e) {
             log.error("Failed to extract institutional URL suffix: {}", e.getMessage());
             return null;

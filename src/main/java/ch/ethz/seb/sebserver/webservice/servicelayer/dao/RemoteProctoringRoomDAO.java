@@ -59,6 +59,8 @@ public interface RemoteProctoringRoomDAO {
      * @return Result refer to the created room record or to an error when happened */
     Result<RemoteProctoringRoom> createTownhallRoom(Long examId, NewRoom room);
 
+    boolean isTownhallRoomActive(Long examId);
+
     /** Get the town hall room record for a given exam if existing.
      *
      * @param examId the exam identifier

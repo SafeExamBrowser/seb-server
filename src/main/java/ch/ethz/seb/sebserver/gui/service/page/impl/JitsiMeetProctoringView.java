@@ -84,17 +84,18 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
     public void compose(final PageContext pageContext) {
 
         final ProctoringWindowData proctoringWindowData = ProctoringGUIService.getCurrentProctoringWindowData();
-
         final Composite parent = pageContext.getParent();
-
         final Composite content = new Composite(parent, SWT.NONE | SWT.NO_SCROLL);
         final GridLayout gridLayout = new GridLayout();
+        final ProctoringGUIService proctoringGUIService = this.pageService
+                .getCurrentUser()
+                .getProctoringGUIService();
 
         content.setLayout(gridLayout);
         final GridData headerCell = new GridData(SWT.FILL, SWT.FILL, true, true);
         content.setLayoutData(headerCell);
 
-        parent.addListener(SWT.Dispose, event -> closeRoom(proctoringWindowData));
+        parent.addListener(SWT.Dispose, event -> closeRoom(proctoringGUIService, proctoringWindowData));
 
         final String url = this.guiServiceInfo
                 .getExternalServerURIBuilder()
@@ -124,7 +125,7 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
 
         final Button closeAction = widgetFactory.buttonLocalized(footer, CLOSE_WINDOW_TEXT_KEY);
         closeAction.setLayoutData(new RowData(150, 30));
-        closeAction.addListener(SWT.Selection, event -> closeRoom(proctoringWindowData));
+        closeAction.addListener(SWT.Selection, event -> closeRoom(proctoringGUIService, proctoringWindowData));
 
         final BroadcastActionState broadcastActionState = new BroadcastActionState();
 
@@ -232,11 +233,15 @@ public class JitsiMeetProctoringView implements RemoteProctoringView {
         sendReconfigurationAttributes(examId, roomName, state);
     }
 
-    private void closeRoom(final ProctoringWindowData proctoringWindowData) {
-        this.pageService
-                .getCurrentUser()
-                .getProctoringGUIService()
-                .closeRoomWindow(proctoringWindowData.windowName);
+    private void closeRoom(
+            final ProctoringGUIService proctoringGUIService,
+            final ProctoringWindowData proctoringWindowData) {
+
+        try {
+            proctoringGUIService.closeRoomWindow(proctoringWindowData.connectionData.roomName);
+        } catch (final Exception e) {
+            log.error("Failed to close proctoring window properly: ", e);
+        }
     }
 
     static final class BroadcastActionState {
