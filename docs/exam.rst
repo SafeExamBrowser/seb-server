@@ -114,14 +114,14 @@ Other Features
 
 Currently there are three other features that can be managed within the exam administration.
 
-- :ref:`exam-indicators-label` Define indicators to measure values for each connected SEB client when an exam is running. And 
+- :ref:`exam-indicators-label`_ Define indicators to measure values for each connected SEB client when an exam is running. And 
 define thresholds for the indicators to show incidences.
 
-- :ref:`seb_restriction-label` If this feature is supported within the underling LMS of the exam, you are able to automatically 
+- :ref:`seb_restriction-label`_ If this feature is supported within the underling LMS of the exam, you are able to automatically 
 restrict the course or quiz on the LMS for SEB only access and may also be able to set the conditions and attributes for the restriction
 as defined by the LMS.
 
-- :ref:`seb_proctoringSettings-label` If the proctoring feature is available you are able to set and connect
+- :ref:`seb_proctoringSettings-label`_ If the proctoring feature is available you are able to set and connect
 to a proctoring service and setup proctoring for an specified exam that can be used during the examination within the monitoring.
 
 
