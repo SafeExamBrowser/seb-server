@@ -225,7 +225,7 @@ In the current version of SEB Server, there are some differences to some SEB set
 
 **SEB settings currently not supported by the SEB Server**
 
-- Start URL: Since SEB Server has already been contacted by a SEB client when downloading the exam configuration this is not used by the exam configuration on SEB Server. But this can be used as fallback URL in the Client Configuration.
+- Start URL: Since SEB Server has already been contacted by a SEB client when downloading the exam configuration this is not used by the exam configuration on SEB Server. But this can be used as fallback URL in the Connection Configuration.
 - Embedded Resource: There is currently no embedding supported within exam configurations on SEB Server.
 - Additional Dictionaries: There are only the SEB client default dictionaries available in the current SEB Server version.
 - Additional Resources: Additional resources are currently not available in the current SEB Server version.

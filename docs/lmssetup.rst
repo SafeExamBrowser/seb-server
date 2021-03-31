@@ -21,7 +21,8 @@ Usually this API comes as a REST or SOAP API with the core LMS implementation or
 
 SEB Server supports this course API's so far:
  - Open edX: The standard system `Open edX REST API <https://courses.edx.org/api-docs/>`_. The SEB Server uses the "courses" endpoints to get course data.
- - Moodle (Course Access): The standard system `Moodle REST API <https://docs.moodle.org/dev/Web_service_API_functions>`_. The SEB Server uses the "core_course" endpoints to get course data. Note that a second Moodle integration part for SEB access restriction with Config-Key will follow together with a Moodle plugin in a future version of SEB Server  
+ - Moodle (Course Access): The standard system `Moodle REST API <https://docs.moodle.org/dev/Web_service_API_functions>`_. The SEB Server uses the standard Moodle rest endpoints to get course data. 
+   Please note that a second Moodle integration part for SEB access restriction with Config-Key will follow together with a Moodle plugin in a future version of SEB Server  
 
 
 **SEB restriction API** 
@@ -63,8 +64,7 @@ SEB Server internally. Use the "Type" selector to specify the type of the LMS to
   
 - **: Moodle**: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the described API's of the Moodle system but there is currently no SEB restriction plugin available that works
-  with SEB Server. Note that Moodle binding is experimental in the current SEB Server version and there is no guarantee to work correctly or to work
-  with an upcoming full Moodle integration in newer version.
+  with SEB Server. Note that Moodle integration is implemented partially within SEB Server version 1.1.x. Only the course access feature is implemented and the course restriction feature will come with a future SEB Server release
 
 The "LMS Server Address" is the root URL to connect to the LMS server with HTTP over the Internet or intranet. This is usually the the URL that is 
 also used with the Browser to connect to the main page of the LMS system. And additionally the credentials that has been created with the creation of the :ref:`lms-api-account-label` has to be set in the LMS Setup the make the SEB Server

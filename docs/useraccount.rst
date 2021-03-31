@@ -127,7 +127,7 @@ while all other users can only modify change its own password. The current passw
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/account/change_password.png
 
-**Activate / Deactivate user-account
+**Activate / Deactivate user-account**
 
 Users with user-account write privileges (SEB Server administrator and institutional administrator) are able to activate/deactivate
 user-accounts of others. A inactive user-account prevent a user to sign-in. There are several different ways or places where the status
@@ -138,7 +138,7 @@ of a user-account can be changed
 - If one creates a new user-account there is the possibility to create and activate the user-account by using the "Activate User Account" action from the action pain on the right side.
 - The same situation appears for inactive user-accounts in edit mode.
 
-**Delete a user-account
+**Delete a user-account**
 
 Users with user-account write privileges (SEB Server administrator and institutional administrator) are able to delete user-accounts of others.
 
@@ -159,7 +159,7 @@ A user account can be deleted with all dependencies that belongs to the user-acc
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/account/delete.png
     
-- Within the delete dialog you are able to delete either:
+- Within the delete dialog you are able to delete either
     - Only the user-account with no dependencies at all (no selection)
     - The user-account with all dependencies (Include all Dependencies)
     - Or the user-account with only the exam dependencies, keeping the exam configurations (Include all Exams)

@@ -1,4 +1,4 @@
-.. _client-configuration-label:
+.. _connection-configuration-label:
 
 Connection Configuration
 ====================
