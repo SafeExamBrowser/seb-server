@@ -109,7 +109,7 @@ are in collecting rooms as well as new connecting SEB clients to leave their cur
 Within the town-hall a proctor has the same features as in the collecting room but can connect to all participants at the same time.
 When the town-hall is closed all connected SEB clients are enforced to leave the town-room and go back to its collecting room meetings again.
     
-**Single Room Feature"**
+**Single Room Feature**
 
 Another live proctoring feature can be found in the detailed monitoring view of one particular SEB client connection. The single room features allows a proctor to connect to a single
 participant and being able to view or communication with just this one participant. You can initiate this single room connection by using the "Single Room Proctoring" action on 

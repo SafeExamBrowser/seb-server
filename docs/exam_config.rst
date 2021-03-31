@@ -151,6 +151,7 @@ The SEB configuration files where created with the SEB configuration tool and ar
 - If the import was successful a new exam configuration with the given name exists.
 
 .. _copy-config-label:
+
 **Copy an Exam Configuration**
 
 Since an exam configuration can only be used by one exam you have  periodically to create a copy of an existing exam configuration
