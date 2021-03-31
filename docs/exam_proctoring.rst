@@ -1,7 +1,7 @@
 .. _sebProctoringSettings-label:
 
 Exam Proctoring
----------------
+===============
 
 If this feature is enabled, you are able to setup a proctoring service for an specified exam that can be used in the monitoring later on while the exam is running and SEB clients are connected.
 
