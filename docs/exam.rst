@@ -62,7 +62,7 @@ the pop-up shows the description and the status of the selected configuration.
 
 .. note::
     If there are no SEB exam configurations available for applying, the application will note this within a pop-up message.
-    In this case you can create a new one for this exam as described in :ref:`seb_restriction-label`
+    In this case you can create a new one for this exam as described in :ref:`sebRestriction-label`
 
 .. image:: images/exam/addExamConfig.png
     :align: center
