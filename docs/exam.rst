@@ -151,7 +151,7 @@ your institution use the type information of the exam to set them into context.
 - When you have selected a exam configuration the dialog shows you some additional information about the exam configuration. 
 - If you want or need to put an password protected encryption to the exam configuration for this exam you can do so by give the password for the encryption also within the attachment dialog. Be aware that every SEB client that will receive an encrypted exam configuration from the SEB Server will prompt the user to give the correct password. In most cases an encryption of the exam configuration is not needed, because a secure HTTPS connection form SEB client to SEB Server is already in place.
 
-** Delete an exam**
+**Delete an exam**
 
 If you have "Exam Administrator" privileges you are able to entirely delete an existing exam and its dependencies. 
 
