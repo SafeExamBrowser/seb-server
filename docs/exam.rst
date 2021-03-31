@@ -101,7 +101,7 @@ For more information about the Config-Key its purpose and use, please visit the 
 
 To remove an already applied SEB exam configuration from the exam, select the SEB exam configuration in the table and use the "Delete Exam Configuration"
 action form the right action pane. If the automated SEB restriction feature is supported by the LMS of the exam, the removal of a SEB exam configuration will 
-automatically update the SEB restriction details and remove the Config-Key form the restriction details. See :ref:`seb_restriction-label` for more information.
+automatically update the SEB restriction details and remove the Config-Key form the restriction details. See :ref:`sebRestriction-label` for more information.
 Once you have removed a SEB exam configuration from the exam you are able to apply another one to the exam.
 
 You can navigate directly to the SEB exam configuration details page by double-click on the table entry of the SEB exam configuration. You will then 
@@ -113,6 +113,13 @@ Other Features
 --------------
 
 Currently there are three other features that can be managed within the exam administration.
+
+.. toctree::
+   :maxdepth: 1
+   
+   exam_indicator
+   exam_restriction
+   exam_proctoring
 
 - The feature :ref:`examIndicators-label` define indicators to measure values for each connected SEB client when an exam is running. And 
   define thresholds for the indicators to show incidences.
