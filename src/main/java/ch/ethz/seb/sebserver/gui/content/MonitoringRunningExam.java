@@ -10,33 +10,22 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.BooleanUtils;
-import org.eclipse.rap.rwt.RWT;
-import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncRunner;
@@ -44,22 +33,16 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-import ch.ethz.seb.sebserver.gui.content.action.ActionPane;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
-import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
@@ -76,12 +59,10 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.IsTownhallRoomAvailable;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
+import ch.ethz.seb.sebserver.gui.service.session.proctoring.MonitoringProctoringService;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService;
 import ch.ethz.seb.sebserver.gui.widget.Message;
 
@@ -92,23 +73,6 @@ public class MonitoringRunningExam implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(MonitoringRunningExam.class);
 
- // @formatter:off
-    static final String OPEN_ROOM_SCRIPT =
-            "try {\n" +
-            "var existingWin = window.open('', '%s', 'height=%s,width=%s,location=no,scrollbars=yes,status=no,menubar=0,toolbar=no,titlebar=no,dialog=no');\n" +
-            "if(existingWin.location.href === 'about:blank'){\n" +
-            "    existingWin.location.href = '%s%s';\n" +
-            "    existingWin.focus();\n" +
-            "} else {\n" +
-            "    existingWin.focus();\n" +
-            "}" +
-            "}\n" +
-            "catch(err) {\n" +
-            "    alert(\"Unexpected Javascript Error happened: \" + err);\n"+
-            "}";
-    // @formatter:on
-
-    private static final String SHOW_CONNECTION_ACTION_APPLIED = "SHOW_CONNECTION_ACTION_APPLIED";
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.emptySelection");
     private static final LocTextKey EMPTY_ACTIVE_SELECTION_TEXT_KEY =
@@ -119,8 +83,6 @@ public class MonitoringRunningExam implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.all.confirm");
     private static final LocTextKey CONFIRM_DISABLE_SELECTED =
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.disable.selected.confirm");
-    private static final LocTextKey EXAM_ROOM_NAME =
-            new LocTextKey("sebserver.monitoring.exam.proctoring.room.all.name");
 
     private final ServerPushService serverPushService;
     private final PageService pageService;
@@ -128,23 +90,19 @@ public class MonitoringRunningExam implements TemplateComposer {
     private final ResourceService resourceService;
     private final AsyncRunner asyncRunner;
     private final InstructionProcessor instructionProcessor;
-    private final GuiServiceInfo guiServiceInfo;
     private final MonitoringExamSearchPopup monitoringExamSearchPopup;
-    private final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup;
+    private final MonitoringProctoringService monitoringProctoringService;
     private final long pollInterval;
     private final long proctoringRoomUpdateInterval;
-    private final String remoteProctoringEndpoint;
 
     protected MonitoringRunningExam(
             final ServerPushService serverPushService,
             final PageService pageService,
             final AsyncRunner asyncRunner,
             final InstructionProcessor instructionProcessor,
-            final GuiServiceInfo guiServiceInfo,
             final MonitoringExamSearchPopup monitoringExamSearchPopup,
-            final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup,
+            final MonitoringProctoringService monitoringProctoringService,
             @Value("${sebserver.gui.webservice.poll-interval:1000}") final long pollInterval,
-            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint,
             @Value("${sebserver.gui.remote.proctoring.rooms.update.poll-interval:5000}") final long proctoringRoomUpdateInterval) {
 
         this.serverPushService = serverPushService;
@@ -153,11 +111,9 @@ public class MonitoringRunningExam implements TemplateComposer {
         this.resourceService = pageService.getResourceService();
         this.asyncRunner = asyncRunner;
         this.instructionProcessor = instructionProcessor;
-        this.guiServiceInfo = guiServiceInfo;
+        this.monitoringProctoringService = monitoringProctoringService;
         this.pollInterval = pollInterval;
         this.monitoringExamSearchPopup = monitoringExamSearchPopup;
-        this.remoteProctoringEndpoint = remoteProctoringEndpoint;
-        this.proctorRoomConnectionsPopup = proctorRoomConnectionsPopup;
         this.proctoringRoomUpdateInterval = proctoringRoomUpdateInterval;
     }
 
@@ -308,11 +264,12 @@ public class MonitoringRunningExam implements TemplateComposer {
 
             actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)
                     .withEntityKey(entityKey)
-                    .withExec(action -> this.toggleTownhallRoom(proctoringGUIService, action))
+                    .withExec(action -> this.monitoringProctoringService.toggleTownhallRoom(proctoringGUIService,
+                            action))
                     .noEventPropagation()
                     .publish();
 
-            if (isTownhallRoomActive(entityKey.modelId)) {
+            if (this.monitoringProctoringService.isTownhallRoomActive(entityKey.modelId)) {
                 this.pageService.firePageEvent(
                         new ActionActivationEvent(
                                 true,
@@ -322,10 +279,8 @@ public class MonitoringRunningExam implements TemplateComposer {
                         pageContext);
             }
 
-            final Map<String, Pair<RemoteProctoringRoom, TreeItem>> availableRooms = new HashMap<>();
-            updateRoomActions(
+            this.monitoringProctoringService.initCollectingRoomActions(
                     pageContext,
-                    availableRooms,
                     actionBuilder,
                     proctoringSettings,
                     proctoringGUIService);
@@ -335,9 +290,8 @@ public class MonitoringRunningExam implements TemplateComposer {
                             Utils.truePredicate(),
                             createServerPushUpdateErrorHandler(this.pageService, pageContext)),
                     this.proctoringRoomUpdateInterval,
-                    context -> updateRoomActions(
+                    context -> this.monitoringProctoringService.updateCollectingRoomActions(
                             pageContext,
-                            availableRooms,
                             actionBuilder,
                             proctoringSettings,
                             proctoringGUIService));
@@ -437,293 +391,8 @@ public class MonitoringRunningExam implements TemplateComposer {
         }
     }
 
-    private boolean isTownhallRoomActive(final String examModelId) {
-        return !BooleanUtils.toBoolean(this.pageService
-                .getRestService()
-                .getBuilder(IsTownhallRoomAvailable.class)
-                .withURIVariable(API.PARAM_MODEL_ID, examModelId)
-                .call()
-                .getOr(Constants.FALSE_STRING));
-    }
-
     private PageAction openSearchPopup(final PageAction action) {
         this.monitoringExamSearchPopup.show(action.pageContext());
-        return action;
-    }
-
-    private PageAction toggleTownhallRoom(
-            final ProctoringGUIService proctoringGUIService,
-            final PageAction action) {
-
-        if (isTownhallRoomActive(action.getEntityKey().modelId)) {
-            closeTownhallRoom(proctoringGUIService, action);
-            this.pageService.firePageEvent(
-                    new ActionActivationEvent(
-                            true,
-                            new Tuple<>(
-                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)),
-                    action.pageContext());
-            return action;
-        } else {
-            openTownhallRoom(proctoringGUIService, action);
-            this.pageService.firePageEvent(
-                    new ActionActivationEvent(
-                            true,
-                            new Tuple<>(
-                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                                    ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
-                    action.pageContext());
-            return action;
-        }
-    }
-
-    private PageAction openTownhallRoom(
-            final ProctoringGUIService proctoringGUIService,
-            final PageAction action) {
-
-        try {
-            final EntityKey examId = action.getEntityKey();
-
-            final String windowName = getTownhallWindowName(examId.modelId);
-            if (!proctoringGUIService.hasWindow(windowName)) {
-                final ProctoringRoomConnection proctoringConnectionData = proctoringGUIService
-                        .openTownhallRoom(
-                                examId.modelId,
-                                windowName,
-                                this.pageService.getI18nSupport().getText(EXAM_ROOM_NAME))
-                        .onError(error -> log.error(
-                                "Failed to open all collecting room for exam {} {}", examId.modelId,
-                                error.getMessage()))
-                        .getOrThrow();
-                ProctoringGUIService.setCurrentProctoringWindowData(
-                        examId.modelId,
-                        windowName,
-                        proctoringConnectionData);
-            }
-
-            final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
-            final String script = String.format(
-                    OPEN_ROOM_SCRIPT,
-                    windowName,
-                    800,
-                    1200,
-                    this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                    this.remoteProctoringEndpoint);
-            javaScriptExecutor.execute(script);
-
-        } catch (final Exception e) {
-            log.error("Failed to open popup for town-hall room: ", e);
-        }
-        return action;
-    }
-
-    private PageAction closeTownhallRoom(
-            final ProctoringGUIService proctoringGUIService,
-            final PageAction action) {
-
-        final String examId = action.getEntityKey().modelId;
-        try {
-
-            this.pageService
-                    .getCurrentUser()
-                    .getProctoringGUIService()
-                    .closeRoomWindow(getTownhallWindowName(examId));
-
-        } catch (final Exception e) {
-            log.error("Failed to close proctoring town-hall room for exam: {}", examId);
-        }
-        return action;
-    }
-
-    private void updateTownhallButton(
-            final ProctoringGUIService proctoringGUIService,
-            final PageContext pageContext) {
-        final EntityKey entityKey = pageContext.getEntityKey();
-
-        if (isTownhallRoomActive(entityKey.modelId)) {
-            final boolean townhallRoomFromThisUser = proctoringGUIService
-                    .isTownhallOpenForUser(entityKey.modelId);
-            if (townhallRoomFromThisUser) {
-                this.pageService.firePageEvent(
-                        new ActionActivationEvent(
-                                true,
-                                new Tuple<>(
-                                        ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                                        ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
-                        pageContext);
-            } else {
-                this.pageService.firePageEvent(
-                        new ActionActivationEvent(
-                                false,
-                                ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                                ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
-                        pageContext);
-            }
-        } else {
-            this.pageService.firePageEvent(
-                    new ActionActivationEvent(
-                            true,
-                            new Tuple<>(
-                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM),
-                            ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                            ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
-                    pageContext);
-        }
-    }
-
-    private void updateRoomActions(
-            final PageContext pageContext,
-            final Map<String, Pair<RemoteProctoringRoom, TreeItem>> rooms,
-            final PageActionBuilder actionBuilder,
-            final ProctoringServiceSettings proctoringSettings,
-            final ProctoringGUIService proctoringGUIService) {
-
-        final EntityKey entityKey = pageContext.getEntityKey();
-        updateTownhallButton(proctoringGUIService, pageContext);
-        final I18nSupport i18nSupport = this.pageService.getI18nSupport();
-        this.pageService
-                .getRestService()
-                .getBuilder(GetCollectingRooms.class)
-                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                .call()
-                .onError(error -> log.error("Failed to update proctoring rooms on GUI {}", error.getMessage()))
-                .getOr(Collections.emptyList())
-                .stream()
-                .forEach(room -> {
-                    if (rooms.containsKey(room.name)) {
-                        // update action
-                        final TreeItem treeItem = rooms.get(room.name).b;
-                        rooms.put(room.name, new Pair<>(room, treeItem));
-                        treeItem.setText(i18nSupport.getText(new LocTextKey(
-                                ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM.title.name,
-                                room.subject,
-                                room.roomSize,
-                                proctoringSettings.collectingRoomSize)));
-                        processProctorRoomActionActivation(treeItem, room, pageContext);
-                    } else {
-                        // create new action
-                        final PageAction action =
-                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM)
-                                        .withEntityKey(entityKey)
-                                        .withExec(_action -> {
-                                            final int actualRoomSize = getActualRoomSize(room, rooms);
-                                            if (actualRoomSize <= 0) {
-                                                return _action;
-                                            }
-                                            return showExamProctoringRoom(proctoringSettings, room, _action);
-                                        })
-                                        .withNameAttributes(
-                                                room.subject,
-                                                room.roomSize,
-                                                proctoringSettings.collectingRoomSize)
-                                        .noEventPropagation()
-                                        .create();
-
-                        this.pageService.publishAction(
-                                action,
-                                _treeItem -> rooms.put(room.name, new Pair<>(room, _treeItem)));
-                        addRoomConnectionsPopupListener(pageContext, rooms);
-                        processProctorRoomActionActivation(rooms.get(room.name).b, room, pageContext);
-                    }
-                });
-    }
-
-    private void processProctorRoomActionActivation(
-            final TreeItem treeItem,
-            final RemoteProctoringRoom room,
-            final PageContext pageContext) {
-
-        try {
-            final Display display = pageContext.getRoot().getDisplay();
-            final PageAction action = (PageAction) treeItem.getData(ActionPane.ACTION_EVENT_CALL_KEY);
-            final Image image = room.roomSize > 0
-                    ? action.definition.icon.getImage(display)
-                    : action.definition.icon.getGreyedImage(display);
-            treeItem.setImage(image);
-            treeItem.setForeground(room.roomSize > 0 ? null : new Color(display, Constants.GREY_DISABLED));
-        } catch (final Exception e) {
-            log.warn("Failed to set Proctor-Room-Activation: ", e.getMessage());
-        }
-    }
-
-    private void addRoomConnectionsPopupListener(
-            final PageContext pageContext,
-            final Map<String, Pair<RemoteProctoringRoom, TreeItem>> rooms) {
-
-        if (!rooms.isEmpty()) {
-            final EntityKey entityKey = pageContext.getEntityKey();
-            final TreeItem treeItem = rooms.values().iterator().next().b;
-            final Tree tree = treeItem.getParent();
-            if (tree.getData(SHOW_CONNECTION_ACTION_APPLIED) == null) {
-                tree.addListener(SWT.Selection, event -> {
-                    final TreeItem item = (TreeItem) event.item;
-                    item.getParent().deselectAll();
-                    if (event.button == 3) {
-                        rooms.entrySet()
-                                .stream()
-                                .filter(e -> e.getValue().b.equals(item))
-                                .findFirst()
-                                .ifPresent(e -> {
-                                    final RemoteProctoringRoom room = e.getValue().a;
-                                    if (room.roomSize > 0) {
-                                        final PageContext pc = pageContext.copy()
-                                                .clearAttributes()
-                                                .withEntityKey(new EntityKey(room.name,
-                                                        EntityType.REMOTE_PROCTORING_ROOM))
-                                                .withParentEntityKey(entityKey);
-                                        this.proctorRoomConnectionsPopup.show(pc, room.subject);
-                                    }
-                                });
-                    }
-                });
-                tree.setData(SHOW_CONNECTION_ACTION_APPLIED, true);
-            }
-        }
-    }
-
-    private int getActualRoomSize(
-            final RemoteProctoringRoom room,
-            final Map<String, Pair<RemoteProctoringRoom, TreeItem>> rooms) {
-
-        return rooms.get(room.name).a.roomSize;
-    }
-
-    private PageAction showExamProctoringRoom(
-            final ProctoringServiceSettings proctoringSettings,
-            final RemoteProctoringRoom room,
-            final PageAction action) {
-
-        final ProctoringRoomConnection proctoringConnectionData = this.pageService
-                .getRestService()
-                .getBuilder(GetProctorRoomConnection.class)
-                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
-                .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
-                .withQueryParam(ProctoringRoomConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
-                .call()
-                .getOrThrow();
-
-        ProctoringGUIService.setCurrentProctoringWindowData(
-                String.valueOf(proctoringSettings.examId),
-                proctoringConnectionData);
-
-        final String script = String.format(
-                OPEN_ROOM_SCRIPT,
-                room.name,
-                800,
-                1200,
-                this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                this.remoteProctoringEndpoint);
-
-        RWT.getClient()
-                .getService(JavaScriptExecutor.class)
-                .execute(script);
-
-        this.pageService.getCurrentUser()
-                .getProctoringGUIService()
-                .registerProctoringWindow(String.valueOf(room.examId), room.name, room.name);
-
         return action;
     }
 
@@ -833,10 +502,6 @@ public class MonitoringRunningExam implements TemplateComposer {
             }
             return false;
         };
-    }
-
-    private String getTownhallWindowName(final String examId) {
-        return examId + "_townhall";
     }
 
 }

@@ -83,8 +83,8 @@ public class ZoomProctoringService implements ExamProctoringService {
             "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
     private static final String ZOOM_API_ACCESS_TOKEN_PAYLOAD =
             "{\"iss\":\"%s\",\"exp\":%s}";
-    private static final String ZOOM_MEETING_ACCESS_TOKEN_PAYLOAD =
-            "{\"app_key\":\"%s\",\"iat\":%s,\"exp\":%s,\"tpc\":\"%s\",\"pwd\":\"%s\"}";
+//    private static final String ZOOM_MEETING_ACCESS_TOKEN_PAYLOAD =
+//            "{\"app_key\":\"%s\",\"iat\":%s,\"exp\":%s,\"tpc\":\"%s\",\"pwd\":\"%s\"}";
 
     private static final Map<String, String> SEB_API_NAME_INSTRUCTION_NAME_MAPPING = Utils.immutableMapOf(Arrays.asList(
             new Tuple<>(
@@ -156,7 +156,7 @@ public class ZoomProctoringService implements ExamProctoringService {
 
                 final ClientCredentials credentials = new ClientCredentials(
                         proctoringSettings.appKey,
-                        proctoringSettings.appSecret);
+                        this.cryptor.decrypt(proctoringSettings.appSecret));
 
                 final ResponseEntity<String> result = this.zoomRestTemplate
                         .testServiceConnection(
@@ -172,6 +172,19 @@ public class ZoomProctoringService implements ExamProctoringService {
                     // Remove this before finish up the Zoom integration
 
                     try {
+                        final ProctoringServiceSettings encryptedSettings = new ProctoringServiceSettings(
+                                proctoringSettings.examId,
+                                proctoringSettings.enableProctoring,
+                                proctoringSettings.serverType,
+                                proctoringSettings.serverURL,
+                                proctoringSettings.collectingRoomSize,
+                                proctoringSettings.appKey,
+                                this.cryptor.decrypt(proctoringSettings.appSecret));
+
+                        disposeServiceRoomsForExam(
+                                proctoringSettings.examId,
+                                encryptedSettings)
+                                        .getOrThrow();
 
                     } catch (final Exception e) {
                         log.error("Failed to dev-cleanup rooms: ", e);
@@ -261,7 +274,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     roomName,
                     subject,
                     jwt,
-                    this.cryptor.decrypt(credentials.accessToken),
+                    credentials.accessToken,
                     credentials.clientId,
                     String.valueOf(additionalZoomRoomData.meeting_id),
                     this.authorizationService.getUserService().getCurrentUser().getUsername());
@@ -307,7 +320,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     roomName,
                     subject,
                     jwt,
-                    this.cryptor.decrypt(credentials.accessToken),
+                    credentials.accessToken,
                     credentials.clientId,
                     String.valueOf(additionalZoomRoomData.meeting_id),
                     clientConnection.clientConnection.userSessionId);
@@ -372,8 +385,13 @@ public class ZoomProctoringService implements ExamProctoringService {
                         roomData.getAdditionalRoomData(),
                         AdditionalZoomRoomData.class);
 
+                final ClientCredentials credentials = new ClientCredentials(
+                        proctoringSettings.appKey,
+                        proctoringSettings.appSecret);
+
                 this.deleteAdHocMeeting(
                         proctoringSettings,
+                        credentials,
                         roomName,
                         additionalZoomRoomData.user_id)
                         .getOrThrow();
@@ -444,21 +462,18 @@ public class ZoomProctoringService implements ExamProctoringService {
             return new NewRoom(
                     roomName,
                     subject,
-                    this.cryptor.encrypt(meetingResponse.meetingPwd),
+                    meetingResponse.encryptedMeetingPwd,
                     additionalZoomRoomDataString);
         });
     }
 
     private Result<Void> deleteAdHocMeeting(
             final ProctoringServiceSettings proctoringSettings,
+            final ClientCredentials credentials,
             final String meetingId,
             final String userId) {
 
         return Result.tryCatch(() -> {
-
-            final ClientCredentials credentials = new ClientCredentials(
-                    proctoringSettings.appKey,
-                    this.cryptor.decrypt(proctoringSettings.appSecret));
 
             this.zoomRestTemplate.deleteMeeting(proctoringSettings.serverURL, credentials, meetingId);
             this.zoomRestTemplate.deleteUser(proctoringSettings.serverURL, credentials, userId);
@@ -472,13 +487,7 @@ public class ZoomProctoringService implements ExamProctoringService {
 
         try {
 
-            CharSequence decryptedSecret = credentials.secret;
-            try {
-                decryptedSecret = this.cryptor.decrypt(credentials.secret);
-            } catch (final Exception e) {
-                log.debug("Testing zoom account connection");
-            }
-
+            final CharSequence decryptedSecret = this.cryptor.decrypt(credentials.secret);
             final StringBuilder builder = new StringBuilder();
             final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
 
@@ -698,7 +707,10 @@ public class ZoomProctoringService implements ExamProctoringService {
                 return exchange(url, HttpMethod.DELETE, credentials);
 
             } catch (final Exception e) {
-                log.error("Failed to delete Zoom ad-hoc meeting: {}", meetingId, e);
+                log.error("Failed to delete Zoom ad-hoc meeting: {} cause: {} / {}",
+                        meetingId,
+                        e.getMessage(),
+                        (e.getCause() != null) ? e.getCause().getMessage() : Constants.EMPTY_NOTE);
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
@@ -719,7 +731,10 @@ public class ZoomProctoringService implements ExamProctoringService {
                 return exchange(url, HttpMethod.DELETE, credentials);
 
             } catch (final Exception e) {
-                log.error("Failed to delete Zoom ad-hoc user with id: {}", userId, e);
+                log.error("Failed to delete Zoom ad-hoc user with id: {} cause: {} / {}",
+                        userId,
+                        e.getMessage(),
+                        (e.getCause() != null) ? e.getCause().getMessage() : Constants.EMPTY_NOTE);
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
@@ -741,7 +756,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                 final HttpMethod method,
                 final ClientCredentials credentials) {
 
-            return exchange(url, HttpMethod.GET, null, getHeaders(credentials));
+            return exchange(url, method, null, getHeaders(credentials));
         }
 
         private ResponseEntity<String> exchange(

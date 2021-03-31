@@ -8,29 +8,20 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.UUID;
-
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.junit.Ignore;
-import org.junit.jupiter.api.Test;
-
 public class ReplTest {
 
-    @Test
-    @Ignore
-    public void testDateFormatting() {
-        final String datestring = DateTime.now(DateTimeZone.UTC).toString("yyyy-MM-dd'T'HH:mm:ss");
-        assertEquals("", datestring);
-    }
-
-    @Test
-    @Ignore
-    public void testGenPwd() {
-        final CharSequence meetingPwd = UUID.randomUUID().toString().subSequence(0, 9);
-        assertEquals("", meetingPwd);
-    }
+//    @Test
+//    @Ignore
+//    public void testDateFormatting() {
+//        final String datestring = DateTime.now(DateTimeZone.UTC).toString("yyyy-MM-dd'T'HH:mm:ss");
+//        assertEquals("", datestring);
+//    }
+//
+//    @Test
+//    @Ignore
+//    public void testGenPwd() {
+//        final CharSequence meetingPwd = UUID.randomUUID().toString().subSequence(0, 9);
+//        assertEquals("", meetingPwd);
+//    }
 
 }

@@ -148,7 +148,7 @@ public interface ZoomRoomRequestResponse {
         final String uuid;
         final String host_id;
         final CharSequence meetingPwd;
-        final CharSequence encryptedPwd;
+        final CharSequence encryptedMeetingPwd;
 
         @JsonCreator
         public MeetingResponse(
@@ -161,7 +161,7 @@ public interface ZoomRoomRequestResponse {
                 @JsonProperty("uuid") final String uuid,
                 @JsonProperty("host_id") final String host_id,
                 @JsonProperty("password") final CharSequence meetingPwd,
-                @JsonProperty("encrypted_password") final CharSequence encryptedPwd) {
+                @JsonProperty("encrypted_password") final CharSequence encryptedMeetingPwd) {
 
             this.id = id;
             this.join_url = join_url;
@@ -172,7 +172,7 @@ public interface ZoomRoomRequestResponse {
             this.uuid = uuid;
             this.host_id = host_id;
             this.meetingPwd = meetingPwd;
-            this.encryptedPwd = encryptedPwd;
+            this.encryptedMeetingPwd = encryptedMeetingPwd;
         }
     }
 

@@ -8,14 +8,10 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.eclipse.rap.rwt.RWT;
-import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,18 +26,15 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
-import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
@@ -61,12 +54,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctorin
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetPendingClientNotifications;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionDetails;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
+import ch.ethz.seb.sebserver.gui.service.session.proctoring.MonitoringProctoringService;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
@@ -121,10 +113,9 @@ public class MonitoringClientConnection implements TemplateComposer {
     private final I18nSupport i18nSupport;
     private final InstructionProcessor instructionProcessor;
     private final SEBClientEventDetailsPopup sebClientLogDetailsPopup;
-    private final GuiServiceInfo guiServiceInfo;
+    private final MonitoringProctoringService monitoringProctoringService;
     private final long pollInterval;
     private final int pageSize;
-    private final String remoteProctoringEndpoint;
 
     private final TableFilterAttribute typeFilter;
     private final TableFilterAttribute textFilter =
@@ -135,21 +126,19 @@ public class MonitoringClientConnection implements TemplateComposer {
             final PageService pageService,
             final InstructionProcessor instructionProcessor,
             final SEBClientEventDetailsPopup sebClientLogDetailsPopup,
-            final GuiServiceInfo guiServiceInfo,
+            final MonitoringProctoringService monitoringProctoringService,
             @Value("${sebserver.gui.webservice.poll-interval:500}") final long pollInterval,
-            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize,
-            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint) {
+            @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.serverPushService = serverPushService;
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.i18nSupport = this.resourceService.getI18nSupport();
         this.instructionProcessor = instructionProcessor;
-        this.guiServiceInfo = guiServiceInfo;
+        this.monitoringProctoringService = monitoringProctoringService;
         this.pollInterval = pollInterval;
         this.sebClientLogDetailsPopup = sebClientLogDetailsPopup;
         this.pageSize = pageSize;
-        this.remoteProctoringEndpoint = remoteProctoringEndpoint;
 
         this.typeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -380,20 +369,25 @@ public class MonitoringClientConnection implements TemplateComposer {
                     .getBuilder(GetProctoringSettings.class)
                     .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
                     .call()
-                    .onError(error -> log.error("Failed to get ProctoringSettings", error))
+                    .onError(error -> log.error("Failed to get ProctoringServiceSettings", error))
                     .getOr(null);
+            final ProctoringGUIService proctoringGUIService = currentUser.getProctoringGUIService();
 
             if (procotringSettings != null && procotringSettings.enableProctoring) {
                 actionBuilder
                         .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING)
                         .withEntityKey(parentEntityKey)
-                        .withExec(action -> this.openOneToOneRoom(action, connectionData))
+                        .withExec(action -> this.monitoringProctoringService.openOneToOneRoom(
+                                action,
+                                connectionData, proctoringGUIService))
                         .noEventPropagation()
                         .publish()
 
                         .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_EXAM_ROOM_PROCTORING)
                         .withEntityKey(parentEntityKey)
-                        .withExec(action -> this.openExamCollectionProctorScreen(action, connectionData))
+                        .withExec(action -> this.monitoringProctoringService.openExamCollectionProctorScreen(
+                                action,
+                                connectionData))
                         .noEventPropagation()
                         .publish();
 
@@ -432,98 +426,6 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .withAttribute(
                         Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
                         connectionData.clientConnection.connectionToken);
-    }
-
-    private PageAction openExamCollectionProctorScreen(
-            final PageAction action,
-            final ClientConnectionData connectionData) {
-
-        final String examId = action.getEntityKey().modelId;
-
-        final ProctoringServiceSettings proctoringSettings = this.pageService.getRestService()
-                .getBuilder(GetProctoringSettings.class)
-                .withURIVariable(API.PARAM_MODEL_ID, examId)
-                .call()
-                .getOrThrow();
-
-        final Optional<RemoteProctoringRoom> roomOptional =
-                this.pageService.getRestService().getBuilder(GetCollectingRooms.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, examId)
-                        .call()
-                        .getOrThrow()
-                        .stream()
-                        .filter(room -> room.id.equals(connectionData.clientConnection.remoteProctoringRoomId))
-                        .findFirst();
-
-        if (roomOptional.isPresent()) {
-            final RemoteProctoringRoom room = roomOptional.get();
-            final ProctoringRoomConnection proctoringConnectionData = this.pageService
-                    .getRestService()
-                    .getBuilder(GetProctorRoomConnection.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
-                    .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
-                    .withQueryParam(ProctoringRoomConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
-                    .call()
-                    .getOrThrow();
-
-            ProctoringGUIService.setCurrentProctoringWindowData(examId, proctoringConnectionData);
-            final String script = String.format(
-                    MonitoringRunningExam.OPEN_ROOM_SCRIPT,
-                    room.name,
-                    800,
-                    1200,
-                    this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                    this.remoteProctoringEndpoint);
-
-            RWT.getClient()
-                    .getService(JavaScriptExecutor.class)
-                    .execute(script);
-
-            this.pageService.getCurrentUser()
-                    .getProctoringGUIService()
-                    .registerProctoringWindow(examId, room.name, room.name);
-        }
-
-        return action;
-    }
-
-    private PageAction openOneToOneRoom(
-            final PageAction action,
-            final ClientConnectionData connectionData) {
-
-        final String connectionToken = connectionData.clientConnection.connectionToken;
-        final String windowName = connectionToken + "_one2oneRooom";
-        final String examId = action.getEntityKey().modelId;
-
-        final ProctoringGUIService proctoringGUIService = this.pageService
-                .getCurrentUser()
-                .getProctoringGUIService();
-
-        if (!proctoringGUIService.hasWindow(windowName)) {
-            final ProctoringRoomConnection proctoringConnectionData = proctoringGUIService
-                    .openBreakOutRoom(
-                            examId,
-                            windowName,
-                            connectionData.clientConnection.userSessionId,
-                            Arrays.asList(connectionToken))
-                    .onError(error -> log.error(
-                            "Failed to open single proctoring room for connection {} {}",
-                            connectionToken,
-                            error.getMessage()))
-                    .getOr(null);
-            ProctoringGUIService.setCurrentProctoringWindowData(examId, windowName, proctoringConnectionData);
-        }
-
-        final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
-        final String script = String.format(
-                MonitoringRunningExam.OPEN_ROOM_SCRIPT,
-                windowName,
-                420,
-                640,
-                this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                this.remoteProctoringEndpoint);
-        javaScriptExecutor.execute(script);
-        return action;
     }
 
     private String getClientTime(final ClientEvent event) {
