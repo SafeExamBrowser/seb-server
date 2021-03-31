@@ -109,29 +109,6 @@ see the details of the SEB exam configuration as well as a table of exams where 
 to apply one SEB exam configuration to one exam, there is only one entry and you can quickly navigate back to the exam be also double-click on the
 table entry of the exam.
 
-Other Features
---------------
-
-Currently there are three other features that can be managed within the exam administration.
-
-.. toctree::
-   :maxdepth: 1
-   
-   exam_indicator
-   exam_restriction
-   exam_proctoring
-
-- The feature :ref:`examIndicators-label` define indicators to measure values for each connected SEB client when an exam is running. And 
-  define thresholds for the indicators to show incidences.
-
-- :ref:`sebRestriction-label` If this feature is supported within the underling LMS of the exam, you are able to automatically 
-  restrict the course or quiz on the LMS for SEB only access and may also be able to set the conditions and attributes for the restriction
-  as defined by the LMS.
-
-- :ref:`sebProctoringSettings-label` If the proctoring feature is available you are able to set and connect
-  to a proctoring service and setup proctoring for an specified exam that can be used during the examination within the monitoring.
-
-
 
 Use Cases
 ---------

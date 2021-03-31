@@ -1,4 +1,5 @@
 .. _sebProctoringSettings-label:
+
 Exam Proctoring
 ---------------
 
