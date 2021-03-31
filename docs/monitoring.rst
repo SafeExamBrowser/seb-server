@@ -80,6 +80,48 @@ overview temporary network latency or other irregularities, when this two time v
 
 In the detail view you are also able to use the instructions "Quit SEB Client" and "Mark as Canceled" for the selected SEB client connection.
 
+Live Proctoring
+---------------
+
+When the exam live proctoring feature is enabled for the running exam (see :ref:`sebProctoringSettings-label`), SEB Server will automatically create and collect 
+connected SEB clients into so called collecting rooms. The size of this collecting rooms can be defined within the proctoring settings in the exam.
+One ore more proctor can then open such a collecting room and SEB Server will join the proctor to the meeting where the participants of this room can be seen.
+
+.. image:: images/monitoring/proctoringExam.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringExam.png
+    
+Within a live proctoring window you can user the enabled features of the used meeting service. And you are able to communicate with the SEB clients by using one
+or more of the following features:
+
+- **Start Audio Broadcast** Will enforce the SEB clients within the particular room to enable receive audio and a proctor can speak to the students that are in the meeting.
+- **Start Video Broadcast** Will enforce the SEB clients within the particular room to enable receive audio and video and proctor is shown to the students that are in the meeting and can speak to them as well.
+- **Enable Chat** Will enforce the SEB clients within the particular room to enable the chat feature and a proctor is able to chat with all students in the meeting.
+
+.. image:: images/monitoring/proctoringWindow.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringWindow.png
+    
+**Town-hall Feature**
+    
+Beside the usual collecting room, there is a town-hall room feature. By using the "Open Townhall" action from the right action pane, SEB Server enforce all SEB clients that
+are in collecting rooms as well as new connecting SEB clients to leave their current meeting and join the town-hall meeting for as long as the town-hall is active.
+Within the town-hall a proctor has the same features as in the collecting room but can connect to all participants at the same time.
+When the town-hall is closed all connected SEB clients are enforced to leave the town-room and go back to its collecting room meetings again.
+    
+**Single Room Feature**
+
+Another live proctoring feature can be found in the detailed monitoring view of one particular SEB client connection. The single room features allows a proctor to connect to a single
+participant and being able to view or communication with just this one participant. You can initiate this single room connection by using the "Single Room Proctoring" action on 
+the right action pane. SEB Server will then enforce the involved SEB client to leave its collecting room and join a newly created room with the proctor. 
+Within the single room a proctor has the same features as in the collecting room to communicate with the student or participant.
+When the single room is closed the connected SEB clients is enforced to leave the single room and go back to its collecting room meetings again.
+    
+.. image:: images/monitoring/proctoringClient.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringClient.png
+
+
 All SEB Client Logs
 -------------------
 

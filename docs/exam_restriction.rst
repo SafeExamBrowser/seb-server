@@ -1,6 +1,7 @@
-.. _seb_restriction-label:
+.. _sebRestriction-label:
+
 Automated SEB Restriction
---------------------------
+=========================
 
 If the corresponding LMS of an exam supports the automated SEB restriction feature, the SEB restriction can be managed within the exam details page.
 To navigate to the exam details page of an exam go to the "Exam" page under the "Exam Administration", find the specified exam in the list by using

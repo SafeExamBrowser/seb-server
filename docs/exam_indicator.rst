@@ -1,6 +1,7 @@
-.. _exam-indicators-label:
+.. _examIndicators-label:
+
 Monitoring Indicators
----------------------
+=====================
 
 For monitoring connected SEB clients, SEB server supports some indicators that can be defined within an exam and that are shown and measured during an
 exam. When you import, the application automatically creates a default ping-indicator for the exam. You are able to modify this default indicator and also

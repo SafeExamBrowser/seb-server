@@ -26,7 +26,7 @@ The key features of SEB Server are:
 - Built-in multi-tenancy capabilities. Create and manage institutions as separated clients.
 - Lightweight user-account management where users can register itself and get needed privileges assigned by already registered administrator users that has the privileges to maintain user accounts.
 - Track user activities within user-activity-logs for the whole SEB Server or the a client.
-- Create, export and maintain SEB client configurations. Those are needed to startup a Safe Exam Browser client with and contain all information to connect securely to the SEB Server.
+- Create, export and maintain SEB connection configurations. Those are needed to startup a Safe Exam Browser client with and contain all information to connect securely to the SEB Server.
 - Create and maintain SEB exam configurations. Those are sent to a SEB client on connection setup and contain all SEB settings for a particular e-assessment.
 - Setup and maintain Learning Management Systems (LMS) like Open edX or Moodle to be able to navigate and find courses or quizzes on the LMS and to push access-restrictions to the LMS if supported by the LMS
 - Import and maintain courses or quizzes form a LMS. Setup everything that is needed for an e-assessment that is based on a course or quiz form the LMS
@@ -65,10 +65,10 @@ Another use-case would be to maintain registered user accounts, to give more pri
 
 An institutional administrator has overall read access for its institution and is able to modify the institution properties as well as 
 create new or maintain existing user-accounts for the belonging institution. Furthermore an institutional administrator is able to create and maintain 
-learning management system (LMS) setups and SEB client-configurations for the belonging institution.
+learning management system (LMS) setups and SEB connection-configurations for the belonging institution.
 
 A typical use-case for a institutional administrator would be to give the appropriate roles and privileges to newly registered users of the institution.
-Or another use-case would be to create and maintain SEB client configurations for the institutions and setup and maintain learning management systems 
+Or another use-case would be to create and maintain SEB connection configurations for the institutions and setup and maintain learning management systems 
 within the SEB Server and the belonging institution.
 
 **Exam Administrator**

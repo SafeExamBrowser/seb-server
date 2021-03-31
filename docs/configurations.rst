@@ -23,6 +23,6 @@ This feature is currently in an experimental state and may be changed and / or e
 .. toctree::
    :maxdepth: 1
    
-   client_config
+   connection_config
    exam_config
    config_template
