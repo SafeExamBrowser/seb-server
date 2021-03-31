@@ -1,4 +1,4 @@
-.. _exam-indicators-label:
+.. _examIndicators-label:
 Monitoring Indicators
 ---------------------
 

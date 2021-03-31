@@ -1,4 +1,4 @@
-.. _seb_restriction-label:
+.. _sebRestriction-label:
 Automated SEB Restriction
 --------------------------
 

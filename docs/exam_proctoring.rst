@@ -1,4 +1,4 @@
-.. _seb_proctoringSettings-label:
+.. _sebProctoringSettings-label:
 Exam Proctoring
 ---------------
 
