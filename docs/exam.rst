@@ -112,7 +112,7 @@ table entry of the exam.
 Other Features
 --------------
 
-Currently there are two other features that can be managed within the exam administration.
+Currently there are three other features that can be managed within the exam administration.
 
 - **:ref:`exam-indicators-label`** : Define indicators to measure values for each connected SEB client when an exam is running. And 
 define thresholds for the indicators to show incidences.
@@ -120,6 +120,9 @@ define thresholds for the indicators to show incidences.
 - **:ref:`seb_restriction-label`** : If this feature is supported within the underling LMS of the exam, you are able to automatically 
 restrict the course or quiz on the LMS for SEB only access and may also be able to set the conditions and attributes for the restriction
 as defined by the LMS.
+
+- **:ref:`seb_proctoringSettings-label`** : If the proctoring feature is available you are able to set and connect
+to a proctoring service and setup proctoring for an specified exam that can be used during the examination within the monitoring.
 
 
 
@@ -163,3 +166,23 @@ your institution use the type information of the exam to set them into context.
 - On the attachment dialog use the drop down selection to select the exam configuration you want to apply to the exam. The drop down selection shows the names of the available exam configurations and you can filter this names by start typing the name of the exam configuration you want to find in the input field of the selection.
 - When you have selected a exam configuration the dialog shows you some additional information about the exam configuration. 
 - If you want or need to put an password protected encryption to the exam configuration for this exam you can do so by give the password for the encryption also within the attachment dialog. Be aware that every SEB client that will receive an encrypted exam configuration from the SEB Server will prompt the user to give the correct password. In most cases an encryption of the exam configuration is not needed, because a secure HTTPS connection form SEB client to SEB Server is already in place.
+
+** Delete an exam**
+
+If you have "Exam Administrator" privileges you are able to entirely delete an existing exam and its dependencies. 
+
+.. note::
+    Please be aware that deletion in this context means a fully removal of the data. The data will be lost and not recoverable.
+
+- Login as an exam administrator and go to the "Exam" page under the "Exam Administration" section.
+- Use the filter to find the exam on that you have to delete. 
+- Double click the list entry of the exam to go to the exam details page. Check if you are on the right exam.
+- Use the "Delete" action on the right action pane to open a deletion dialog.
+
+.. image:: images/exam/deleteExam.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/deleteExam.png
+    
+- Within the delete exam dialog you see a list of a dependencies that also will be deleted. Please check them carefully before deletion.
+- Use the below action to either delete the exam or cancel the action and go back to the exam view.
+

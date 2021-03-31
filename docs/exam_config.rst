@@ -81,8 +81,8 @@ The "Copy Exam Configuration" action can always be used no matter in what state 
 feature there will be a copy dialog shown as pop-up window where one has to give at least a new unique name for the copy. See :ref:`copy-config-label` 
 for detailed step by step guide.
 
-A plain XML text export of the exam configuration may be needed for testing. This is always possible by using the "Export Exam Configuration" 
-action from the right action pane. This will start a usual browser download dialog handled by your browser to save or load the file. The default name
+A plain XML export of the SEB settings may be needed for testing. This is always possible by using the "Export SEB Settings" action
+from the right action pane in the SEB settings view. This will start a usual browser download dialog handled by your browser to save or load the file. The default name
 of the file of a exam configuration is "SEBExamSettings.seb".
 
 SEB Server supports also the `SEB Config-Key <https://safeexambrowser.org/developer/seb-config-key.html>`_ that is used to validate the SEB configuration
@@ -122,9 +122,9 @@ during the semester.
     available for use. A new working revision will be created and all the changes until then will go into the new working revision.
     To revert all the changes done since last save / publish use the "Undo" action.
 
-**Export an Exam Configuration**
+**Export SEB Settings**
 
-You want to test an exam configuration manually with a SEB client. Therefore you need to export a existing exam configuration and load
+You want to test an exam configuration manually with a SEB client. Therefore you need to export the settings of an existing exam configuration and load
 it with a SEB client or the SEB configuration tool.
 
 - Sign into SEB Server with your exam administrator role account
@@ -132,7 +132,8 @@ it with a SEB client or the SEB configuration tool.
 - You see a list of all available exam configuration.
 - Use the Filter above the list to narrow down the number of entries and to find a specific exam configuration.
 - Open the exam configuration either by double-click on the list entry or be selecting the list entry and using the "View Exam Configuration" action.
-- In the view mode of the exam configuration use the "Export Exam Configuration" action to start the export download.
+- Open the SEB settings of the exam configuration by using the action on the right action pane.
+- Use the "Export SEB Settings" action to start the export download.
 - Save the file or open it directly with SEB
 
 **Import an Exam Configuration**
@@ -220,8 +221,7 @@ some SEB settings are missing or wrong and has to be changed for the exam. This 
 SEB Setting Differences
 -----------------------
 
-In the current version (1.0) of SEB Server, there are some differences to some SEB settings and also some SEB settings that are currently not 
-available on the SEB Server.
+In the current version of SEB Server, there are some differences to some SEB settings as well as some SEB settings that are slightly different or not available at all on the SEB Server.
 
 **SEB settings currently not supported by the SEB Server**
 

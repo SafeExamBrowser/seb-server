@@ -114,7 +114,7 @@ As a user with user-account write privileges (SEB Server administrator and insti
 while all other users can only modify change its own password. The current password must be known to change the password.
 
 - Login to SEB Server application with your own account an click the "User Account" section on the left side menu.
-- As a user with user-account write privileges one will see the list of all available user-accounts. Find the user-account that must be modified
+- As a user with user-account write privileges will see the list of all available user-accounts. Find the user-account that must be modified
   by using the filter above and double-click on the respective list entry to open the user-account form in view mode
 - Without user-account write privileges, a user will just see its own user-account form in view mode.
 - Use the "Change Password" action on the right action pane to open the change password form.
@@ -137,4 +137,39 @@ of a user-account can be changed
 - In the user-account form in view mode by using the "Activate User Account" or "Deactivate User Account" action from the action pain at the right side. There will be automatically appear the proper action in relation to the current user-account.
 - If one creates a new user-account there is the possibility to create and activate the user-account by using the "Activate User Account" action from the action pain on the right side.
 - The same situation appears for inactive user-accounts in edit mode.
+
+**Delete a user-account
+
+Users with user-account write privileges (SEB Server administrator and institutional administrator) are able to delete user-accounts of others.
+
+.. note:: 
+    Please be aware that deletion means full deletion form the persistent storage, all data will be lost.
+    
+A user account can be deleted with all dependencies that belongs to the user-account. This includes:
+
+- All exam configuration the user has created and is owner of
+- All exams the user has created and is owner of and all dependencies of an exam to like indicators, configuration mappings and all monitoring data if present
+
+- Login to SEB Server application with your own account an click the "User Account" section on the left side menu.
+- As a user with user-account write privileges will see the list of all available user-accounts. Find the user-account that must be deleted
+  by using the filter above and double-click on the respective list entry to open the user-account form in view mode.
+- Use the "Delete User Account" action from the right action pane to open the deletion dialog.
+
+.. image:: images/account/delete.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/account/delete.png
+    
+- Within the delete dialog you are able to delete either:
+    - Only the user-account with no dependencies at all (no selection)
+    - The user-account with all dependencies (Include all Dependencies)
+    - Or the user-account with only the exam dependencies, keeping the exam configurations (Include all Exams)
+    
+- After you have made your choice, you can show a report that will show all dependencies that are deleted within the action. Use the "Show Report" action below the delete dialog to show the report or
+  just use the "Delete" action to execute the delete.
+- In the deletion report you are able to check carefully every object that will be deleted within the action.
+
+.. image:: images/account/deleteReport.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/account/deleteReport.png
+
 

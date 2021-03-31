@@ -21,7 +21,7 @@ Usually this API comes as a REST or SOAP API with the core LMS implementation or
 
 SEB Server supports this course API's so far:
  - Open edX: The standard system `Open edX REST API <https://courses.edx.org/api-docs/>`_. The SEB Server uses the "courses" endpoints to get course data.
- - Moodle (experimental): The standard system `Moodle REST API <https://docs.moodle.org/dev/Web_service_API_functions>`_. The SEB Server uses the "core_course" endpoints to get course data. Note that Moodle binding is experimental in the current SEB Server version and there is no garantee to work correctly or to work with an upcoming full Moodle integration in newer version.
+ - Moodle (Course Access): The standard system `Moodle REST API <https://docs.moodle.org/dev/Web_service_API_functions>`_. The SEB Server uses the "core_course" endpoints to get course data. Note that a second Moodle integration part for SEB access restriction with Config-Key will follow together with a Moodle plugin in a future version of SEB Server  
 
 
 **SEB restriction API** 
@@ -201,6 +201,11 @@ Once the client registration was successful the client id and client secret can 
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/documentation/docs/images/lmssetup/openEdxAPIAccess6.png
     
     
+    
+**Create Moodle API Access Account**
+
+To be able to create an LMS Setup for Moodle you need a Moodle administrator or manager account. You can then use this account in the LMS Setup to connect the the LMS.
+
 
 .. _lms-setup-rest-plugin-label:
 
