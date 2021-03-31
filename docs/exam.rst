@@ -83,7 +83,7 @@ client that receives the encrypted SEB exam configuration will prompt the user f
 
 Click the "OK" button on the pop-up to apply the selected SEB exam configuration. You will see the applied SEB exam configuration in the list.
 If the automated SEB restriction feature is supported by the LMS of the exam, the application of a SEB exam configuration will automatically update
-the SEB restriction details with the generated Config-Key. See :ref:`seb_restriction-label` for more information.
+the SEB restriction details with the generated Config-Key. See :ref:`sebRestriction-label` for more information.
 
 .. image:: images/exam/examWithConfig.png
     :align: center
