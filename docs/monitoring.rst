@@ -80,18 +80,18 @@ overview temporary network latency or other irregularities, when this two time v
 
 In the detail view you are also able to use the instructions "Quit SEB Client" and "Mark as Canceled" for the selected SEB client connection.
 
-Exam Proctoring
+Live Proctoring
 ---------------
 
-When the exam proctoring feature is enabled for the running exam (see **:ref:`seb_proctoringSettings-label`**), SEB Server will automatically create and collect 
+When the exam live proctoring feature is enabled for the running exam (see :ref:`sebProctoringSettings-label`), SEB Server will automatically create and collect 
 connected SEB clients into so called collecting rooms. The size of this collecting rooms can be defined within the proctoring settings in the exam.
-One ore more proctor can now open such a collecting room and SEB Server will then join the proctor the the meeting where the SEB clients of this room can be seen.
+One ore more proctor can then open such a collecting room and SEB Server will join the proctor to the meeting where the participants of this room can be seen.
 
 .. image:: images/monitoring/proctoringExam.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringExam.png
     
-Within a proctoring window you can user the enabled features of the used meeting service. And you are able to communicate with the SEB clients by using one
+Within a live proctoring window you can user the enabled features of the used meeting service. And you are able to communicate with the SEB clients by using one
 or more of the following features:
 
 - **Start Audio Broadcast** Will enforce the SEB clients within the particular room to enable receive audio and a proctor can speak to the students that are in the meeting.
@@ -111,7 +111,7 @@ When the town-hall is closed all connected SEB clients are enforced to leave the
     
 **Single Room Feature"**
 
-Another proctoring feature can be found in the detailed monitoring view of one particular SEB client connection. The single room features allows a proctor to connect to a single
+Another live proctoring feature can be found in the detailed monitoring view of one particular SEB client connection. The single room features allows a proctor to connect to a single
 participant and being able to view or communication with just this one participant. You can initiate this single room connection by using the "Single Room Proctoring" action on 
 the right action pane. SEB Server will then enforce the involved SEB client to leave its collecting room and join a newly created room with the proctor. 
 Within the single room a proctor has the same features as in the collecting room to communicate with the student or participant.
@@ -120,6 +120,7 @@ When the single room is closed the connected SEB clients is enforced to leave th
 .. image:: images/monitoring/proctoringClient.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringClient.png
+
 
 All SEB Client Logs
 -------------------

@@ -1,18 +1,20 @@
 .. _sebProctoringSettings-label:
 
-Exam Proctoring
+Live Proctoring
 ===============
 
-If this feature is enabled, you are able to setup a proctoring service for an specified exam that can be used in the monitoring later on while the exam is running and SEB clients are connected.
+To be able to use the integrated live proctoring feature with SEB and SEB Server you need an external meeting service that can be used by the SEB Server to automatically create meetings.
+If this feature is enabled, you are able to setup a live proctoring service for a specified exam that can be used in the monitoring later on while the exam is running and SEB clients are connected.
 
 .. note::
     This feature is still in a prototype state and not all functionality meight work as expected.
     
-To be able to use proctoring features within SEB Server you need a meeting service with scale. Currently supported is `Jitsi Meet <https://jitsi.org/jitsi-meet/>`_ with JWT token authentication enabled.
+To be able to use the live proctoring features within SEB Server you need a external meeting service that scales out for the need. 
+Currently supported is `Jitsi Meet <https://jitsi.org/jitsi-meet/>`_ with JWT token authentication enabled.
 A `Zoom meeting service <https://zoom.us/>`_ integration is planed for a future release of SEB Server.
 To setup and configure a Jitsi Meet service for testing you can refer to the `Docker installation documentation <https://jitsi.github.io/handbook/docs/devops-guide/devops-guide-docker>`_
 
-To setup a proctoring service for an exam, go to the view page of the exam and use the "Proctoring Settings" action on the right action pain to open up the proctoring settings dialog.
+To setup a live proctoring service for an exam, go to the view page of the exam and use the "Proctoring Settings" action on the right action pain to open up the proctoring settings dialog.
 
 .. image:: images/exam/proctoringSettings.png
     :align: center
