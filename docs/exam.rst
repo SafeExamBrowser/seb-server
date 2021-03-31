@@ -114,7 +114,7 @@ Other Features
 
 Currently there are three other features that can be managed within the exam administration.
 
-- :ref:`examIndicators-label` Define indicators to measure values for each connected SEB client when an exam is running. And 
+- The feature :ref:`examIndicators-label` define indicators to measure values for each connected SEB client when an exam is running. And 
   define thresholds for the indicators to show incidences.
 
 - :ref:`sebRestriction-label` If this feature is supported within the underling LMS of the exam, you are able to automatically 
