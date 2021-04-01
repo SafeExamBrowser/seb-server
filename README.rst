@@ -96,19 +96,19 @@ SEB Server version. There is an entry for each platform with a beta or testing r
 .. csv-table::
    :header: "Platform / OS", "Beta/RC Version", "Release Version"
 
-   "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q4 2020 - Version 2.3"
-   "SEB Client for Mac", "Q4 2020 - Version 2.3", "Q4 2020 - Version 2.3"
+   "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q2 2021 - Version 2.5/3.0"
+   "SEB Client for Mac", "Q2 2021 - Version 3.1", "Q2 2021 - Version 3.1"
    "SEB Client for Windows", "Q2 2020 - Version 3.1", "Q4 2020 - Version 3.1"
    
-For testing: 
+**SEB Server Version 1.1.X**
 
-**Note that these are all beta versions and must only be used for testing or demonstration.**
+.. csv-table::
+   :header: "Platform / OS", "Beta/RC Version", "Release Version"
 
-`Download beta version of SEB Client iOS <https://sourceforge.net/p/seb/discussion/seb-ios/thread/e7e542a5/>`_
-
-`Download Safe Exam Browser 3.1 for Windows <https://sourceforge.net/projects/seb/files/seb/SEB_3.1.0/SEB_3.1.0.228_SetupBundle.exe/download>`_
-
-
+   "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q2 2021 - Version 2.5/3.0"
+   "SEB Client for Mac", "Q2 2021 - Version 3.1", "Q2 2021 - Version 3.1"
+   "SEB Client for Windows", "April 2021 - Version 3.2", "May 2021 - Version 3.2"
+   
 
 Install SEB Server
 ------------------
