@@ -156,7 +156,7 @@ public class ZoomProctoringService implements ExamProctoringService {
 
                 final ClientCredentials credentials = new ClientCredentials(
                         proctoringSettings.appKey,
-                        this.cryptor.decrypt(proctoringSettings.appSecret));
+                        this.cryptor.encrypt(proctoringSettings.appSecret));
 
                 final ResponseEntity<String> result = this.zoomRestTemplate
                         .testServiceConnection(
@@ -179,7 +179,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                                 proctoringSettings.serverURL,
                                 proctoringSettings.collectingRoomSize,
                                 proctoringSettings.appKey,
-                                this.cryptor.decrypt(proctoringSettings.appSecret));
+                                this.cryptor.encrypt(proctoringSettings.appSecret));
 
                         disposeServiceRoomsForExam(
                                 proctoringSettings.examId,
@@ -425,7 +425,7 @@ public class ZoomProctoringService implements ExamProctoringService {
         return Result.tryCatch(() -> {
             final ClientCredentials credentials = new ClientCredentials(
                     proctoringSettings.appKey,
-                    this.cryptor.decrypt(proctoringSettings.appSecret));
+                    proctoringSettings.appSecret);
 
             // First create a new user/host for the new room
             final ResponseEntity<String> createUser = this.zoomRestTemplate.createUser(
