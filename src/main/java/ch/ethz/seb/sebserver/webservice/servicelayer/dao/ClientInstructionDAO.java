@@ -38,6 +38,12 @@ public interface ClientInstructionDAO {
      * @return Result refer to all instructions that are younger then one minute or to an error when happened */
     Result<Collection<ClientInstructionRecord>> getAllActive();
 
+    /** Get all active instructions for a specified connection token
+     *
+     * @param connectionToken the connection token
+     * @return Collection of all active instructions for specified connection token */
+    Result<Collection<ClientInstructionRecord>> getAllActive(String connectionToken);
+
     /** Deletes the specified instruction form the data base
      *
      * @param id the identifier (PK) if the ClientInstruction to delete

@@ -113,7 +113,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
                     final String attributesString = this.jsonMapper.writeValueAsString(attributes);
                     this.clientInstructionDAO
                             .insert(examId, type, attributesString, connectionToken, needsConfirm)
-                            .map(this::putToCacheIfAbsent)
+                            .map(this::putToCache)
                             .onError(error -> log.error("Failed to register instruction: {}", error.getMessage()))
                             .getOrThrow();
                 } catch (final Exception e) {
@@ -141,19 +141,20 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
             connectionTokens
                     .stream()
                     .filter(activeConnections::contains)
-                    .map(token -> this.clientInstructionDAO.insert(examId, type, attributesString, token, needsConfirm))
+                    .map(token -> this.clientInstructionDAO
+                            .insert(examId, type, attributesString, token, needsConfirm))
                     .map(result -> result.get(
                             error -> log.error("Failed to register instruction: {}", error.getMessage()),
                             () -> null))
                     .filter(Objects::nonNull)
-                    .forEach(this::putToCacheIfAbsent);
+                    .forEach(this::putToCache);
         });
 
     }
 
     @Override
     public String getInstructionJSON(final String connectionToken) {
-        refreshCache();
+        refreshCache(connectionToken);
         if (this.instructions.isEmpty()) {
             return null;
         }
@@ -242,20 +243,25 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
         }
     }
 
-    private void refreshCache() {
-        if (!this.webserviceInfo.isDistributed()) {
+    private void refreshCache(final String connectionToken) {
+        if (!this.webserviceInfo.isDistributed() && !this.instructions.isEmpty()) {
             return;
         }
 
         final long currentTimeMillis = System.currentTimeMillis();
         if (currentTimeMillis - this.lastRefresh > Constants.SECOND_IN_MILLIS) {
             this.lastRefresh = currentTimeMillis;
-
-            loadInstructions()
+            loadInstructions(connectionToken)
                     .onError(error -> log.error(
                             "Failed load instructions from persistent storage and to refresh cache: ",
                             error));
         }
+    }
+
+    private Result<Void> loadInstructions(final String connectionToken) {
+        return Result.tryCatch(() -> this.clientInstructionDAO.getAllActive(connectionToken)
+                .getOrThrow()
+                .forEach(this::putToCacheIfAbsent));
     }
 
     private Result<Void> loadInstructions() {
@@ -264,13 +270,22 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
                 .forEach(this::putToCacheIfAbsent));
     }
 
+    // NOTE: In a distributed setup we only fill the cache from persistent storage
+    //       whereas in a none distributed setup we can put the instruction directly in the cache
+    //       and store the instruction into persistent only for recovering reasons.
+    private ClientInstructionRecord putToCache(final ClientInstructionRecord instruction) {
+        if (!this.webserviceInfo.isDistributed()) {
+            return putToCacheIfAbsent(instruction);
+        }
+        return instruction;
+    }
+
     private ClientInstructionRecord putToCacheIfAbsent(final ClientInstructionRecord instruction) {
         final SizedArrayNonBlockingQueue<ClientInstructionRecord> queue = this.instructions.computeIfAbsent(
                 instruction.getConnectionToken(),
                 key -> new SizedArrayNonBlockingQueue<>(INSTRUCTION_QUEUE_MAX_SIZE));
 
         if (queue.contains(instruction)) {
-            log.warn("Instruction alread in the queue: {}", instruction);
             return instruction;
         }
 

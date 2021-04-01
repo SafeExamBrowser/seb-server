@@ -65,6 +65,22 @@ public class ClientInstructionDAOImpl implements ClientInstructionDAO {
     }
 
     @Override
+    public Result<Collection<ClientInstructionRecord>> getAllActive(final String connectionToken) {
+        return Result.tryCatch(() -> {
+            final long millisNowMinusOneMinute = DateTime.now(DateTimeZone.UTC).minusMinutes(1).getMillis();
+            return this.clientInstructionRecordMapper
+                    .selectByExample()
+                    .where(ClientInstructionRecordDynamicSqlSupport.timestamp,
+                            SqlBuilder.isGreaterThanOrEqualTo(millisNowMinusOneMinute))
+                    .and(
+                            ClientInstructionRecordDynamicSqlSupport.connectionToken,
+                            SqlBuilder.isEqualTo(connectionToken))
+                    .build()
+                    .execute();
+        });
+    }
+
+    @Override
     @Transactional
     public Result<Void> delete(final Long id) {
         return Result.tryCatch(() -> {
