@@ -97,7 +97,7 @@ SEB Server version. There is an entry for each platform with a beta or testing r
    :header: "Platform / OS", "Beta/RC Version", "Release Version"
 
    "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q2 2021 - Version 2.5/3.0"
-   "SEB Client for Mac", "Q2 2020 - Version 3.1", "Q2 2021 - Version 3.1"
+   "SEB Client for Mac", "Q2 2021 - Version 3.1", "Q2 2021 - Version 3.1"
    "SEB Client for Windows", "Q2 2020 - Version 3.1", "Q4 2020 - Version 3.1"
    
 For testing: 
