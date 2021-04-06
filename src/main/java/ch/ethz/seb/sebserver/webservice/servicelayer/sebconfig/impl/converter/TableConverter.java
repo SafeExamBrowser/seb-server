@@ -186,7 +186,11 @@ public class TableConverter implements AttributeValueConverter {
 
                 if (value == null) {
 
-                    log.warn("Missing AttributeValue for ConfigurationAttribute: {}. Create ad-hoc attribute", attr);
+                    if (log.isDebugEnabled()) {
+                        log.warn(
+                                "Missing AttributeValue for ConfigurationAttribute: {}. Create ad-hoc attribute",
+                                attr);
+                    }
 
                     value = new ConfigurationValue(
                             -1L,

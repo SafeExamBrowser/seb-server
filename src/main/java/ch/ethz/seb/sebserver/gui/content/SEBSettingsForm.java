@@ -121,13 +121,6 @@ public class SEBSettingsForm implements TemplateComposer {
                 .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_NODE, error))
                 .getOrThrow();
 
-        final boolean settingsPublished = this.restService.getBuilder(GetSettingsPublished.class)
-                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                .call()
-                .onError(error -> log.warn("Failed to verify published settings. Cause: ", error.getMessage()))
-                .map(result -> result.settingsPublished)
-                .getOr(false);
-
         final boolean readonly = pageContext.isReadonly() || configNode.status == ConfigurationStatus.IN_USE;
         final boolean isAttachedToExam = !readonly && this.restService
                 .getBuilder(GetExamConfigMappingNames.class)
@@ -143,12 +136,11 @@ public class SEBSettingsForm implements TemplateComposer {
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
         warningPanelAnchor.setLayout(gridLayout);
-        final Runnable publishedMessagePanelViewCallback = this.publishedMessagePanelViewCallback(
-                warningPanelAnchor,
-                entityKey.modelId);
-        if (!settingsPublished) {
-            publishedMessagePanelViewCallback.run();
-        }
+        final PublishedMessagePanelViewCallback publishedMessagePanelViewCallback =
+                new PublishedMessagePanelViewCallback(
+                        this.pageService,
+                        warningPanelAnchor,
+                        entityKey.modelId);
 
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
@@ -266,6 +258,9 @@ public class SEBSettingsForm implements TemplateComposer {
                     .ignoreMoveAwayFromEdit()
                     .publish();
 
+            publishedMessagePanelViewCallback.activate();
+            publishedMessagePanelViewCallback.run();
+
         } catch (final RuntimeException e) {
             pageContext.notifyUnexpectedError(e);
             throw e;
@@ -275,31 +270,84 @@ public class SEBSettingsForm implements TemplateComposer {
         }
     }
 
-    private Runnable publishedMessagePanelViewCallback(final Composite parent, final String nodeId) {
-        return () -> {
-            if (parent.getChildren() != null && parent.getChildren().length > 0) {
+    private static class PublishedMessagePanelViewCallback implements Runnable {
+
+        private final PageService pageService;
+        private final Composite parent;
+        private final String nodeId;
+
+        private boolean active = false;
+
+        public PublishedMessagePanelViewCallback(
+                final PageService pageService,
+                final Composite parent,
+                final String nodeId) {
+
+            this.pageService = pageService;
+            this.parent = parent;
+            this.nodeId = nodeId;
+        }
+
+        public void activate() {
+            this.active = true;
+        }
+
+        @Override
+        public void run() {
+            if (!this.active) {
                 return;
             }
 
-            final boolean settingsPublished = this.restService.getBuilder(GetSettingsPublished.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, nodeId)
+            final boolean settingsPublished = this.pageService.getRestService()
+                    .getBuilder(GetSettingsPublished.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, this.nodeId)
                     .call()
                     .onError(error -> log.warn("Failed to verify published settings. Cause: ", error.getMessage()))
                     .map(result -> result.settingsPublished)
                     .getOr(false);
 
             if (!settingsPublished) {
-
-                final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
-                final Composite warningPanel = widgetFactory.createWarningPanel(parent);
-                widgetFactory.labelLocalized(
-                        warningPanel,
-                        CustomVariant.MESSAGE,
-                        UNPUBLISHED_MESSAGE_KEY);
-                parent.getParent().layout();
+                if (this.parent.getChildren() != null && this.parent.getChildren().length == 0) {
+                    final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
+                    final Composite warningPanel = widgetFactory.createWarningPanel(this.parent);
+                    widgetFactory.labelLocalized(
+                            warningPanel,
+                            CustomVariant.MESSAGE,
+                            UNPUBLISHED_MESSAGE_KEY);
+                }
+            } else if (this.parent.getChildren() != null && this.parent.getChildren().length > 0) {
+                this.parent.getChildren()[0].dispose();
             }
-        };
+            this.parent.getParent().layout();
+        }
     }
+
+//    private Runnable publishedMessagePanelViewCallback(
+//            final Composite parent,
+//            final String nodeId) {
+//        return () -> {
+//            final boolean settingsPublished = this.restService.getBuilder(GetSettingsPublished.class)
+//                    .withURIVariable(API.PARAM_MODEL_ID, nodeId)
+//                    .call()
+//                    .onError(error -> log.warn("Failed to verify published settings. Cause: ", error.getMessage()))
+//                    .map(result -> result.settingsPublished)
+//                    .getOr(false);
+//
+//            if (!settingsPublished) {
+//                if (parent.getChildren() != null && parent.getChildren().length == 0) {
+//                    final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
+//                    final Composite warningPanel = widgetFactory.createWarningPanel(parent);
+//                    widgetFactory.labelLocalized(
+//                            warningPanel,
+//                            CustomVariant.MESSAGE,
+//                            UNPUBLISHED_MESSAGE_KEY);
+//                }
+//            } else if (parent.getChildren() != null && parent.getChildren().length > 0) {
+//                parent.getChildren()[0].dispose();
+//            }
+//            parent.getParent().layout();
+//        };
+//    }
 
     private void notifyErrorOnSave(final Exception error, final PageContext context) {
         if (error instanceof APIMessageError) {
