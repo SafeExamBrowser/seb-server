@@ -113,13 +113,17 @@ public interface ZoomRoomRequestResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     static class CreateMeetingRequest {
         @JsonProperty final String topic;
-        @JsonProperty final int type = 2; // Scheduled Meeting
-        @JsonProperty final String start_time = DateTime.now(DateTimeZone.UTC).toString("yyyy-MM-dd'T'HH:mm:ss");
+        @JsonProperty final int type;
+        @JsonProperty final String start_time;
+        @JsonProperty final String timezone;
         @JsonProperty final int duration = 60;
         @JsonProperty final CharSequence password;
         @JsonProperty final Settings settings;
 
         public CreateMeetingRequest(final String topic, final CharSequence password) {
+            this.type = 2; // Scheduled Meeting
+            this.start_time = DateTime.now(DateTimeZone.UTC).toString("yyyy-MM-dd'T'HH:mm:ss");
+            this.timezone = DateTimeZone.UTC.getID();
             this.topic = topic;
             this.password = password;
             this.settings = new Settings();

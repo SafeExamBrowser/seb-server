@@ -132,6 +132,10 @@ public final class ViewContext {
         return this.attributeMapping.getOrientationsOfGroup(attribute);
     }
 
+    public Collection<Orientation> getOrientationsOfExpandable(final ConfigurationAttribute attribute) {
+        return this.attributeMapping.getOrientationsOfExpandable(attribute);
+    }
+
     public Orientation getOrientation(final Long attributeId) {
         return this.attributeMapping.getOrientation(attributeId);
     }

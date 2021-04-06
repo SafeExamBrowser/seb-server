@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
+import ch.ethz.seb.sebserver.gui.service.examconfig.impl.CellFieldBuilderAdapter.ExpandBarCellFieldBuilderAdapter;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.CellFieldBuilderAdapter.GroupCellFieldBuilderAdapter;
 
 public class ViewGridBuilder {
@@ -37,8 +38,13 @@ public class ViewGridBuilder {
     final ViewContext viewContext;
 
     private final CellFieldBuilderAdapter[][] grid;
-    private final GroupCellFieldBuilderAdapter groupBuilderAdapter;
     private final Set<String> registeredGroups;
+    private final Set<String> registeredExpandables;
+
+    private final boolean isGroupBuilder;
+    private final boolean isExpandBarBuilder;
+    private final int xOffset;
+    private final int yOffset;
 
     ViewGridBuilder(
             final Composite parent,
@@ -49,8 +55,14 @@ public class ViewGridBuilder {
         this.parent = parent;
         this.viewContext = viewContext;
         this.grid = new CellFieldBuilderAdapter[viewContext.getRows()][viewContext.getColumns()];
-        this.groupBuilderAdapter = null;
         this.registeredGroups = new HashSet<>();
+        this.registeredExpandables = new HashSet<>();
+
+        this.isGroupBuilder = false;
+        this.isExpandBarBuilder = false;
+        this.xOffset = 0;
+        this.yOffset = 0;
+
     }
 
     ViewGridBuilder(
@@ -62,9 +74,31 @@ public class ViewGridBuilder {
         this.examConfigurationService = examConfigurationService;
         this.parent = parent;
         this.viewContext = viewContext;
-        this.groupBuilderAdapter = groupBuilderAdapter;
+        this.isGroupBuilder = true;
+        this.isExpandBarBuilder = false;
+        this.xOffset = groupBuilderAdapter.x;
+        this.yOffset = groupBuilderAdapter.y;
         this.grid = new CellFieldBuilderAdapter[groupBuilderAdapter.height - 1][groupBuilderAdapter.width];
         this.registeredGroups = null;
+        this.registeredExpandables = null;
+    }
+
+    ViewGridBuilder(
+            final Composite parent,
+            final ViewContext viewContext,
+            final ExpandBarCellFieldBuilderAdapter expandBarBuilderAdapter,
+            final ExamConfigurationService examConfigurationService) {
+
+        this.examConfigurationService = examConfigurationService;
+        this.parent = parent;
+        this.viewContext = viewContext;
+        this.isGroupBuilder = false;
+        this.isExpandBarBuilder = true;
+        this.xOffset = expandBarBuilderAdapter.x;
+        this.yOffset = expandBarBuilderAdapter.y;
+        this.grid = new CellFieldBuilderAdapter[expandBarBuilderAdapter.height - 1][expandBarBuilderAdapter.width];
+        this.registeredGroups = new HashSet<>();
+        this.registeredExpandables = null;
     }
 
     ViewGridBuilder add(final ConfigurationAttribute attribute) {
@@ -84,24 +118,49 @@ public class ViewGridBuilder {
         final Orientation orientation = this.viewContext
                 .getOrientation(attribute.id);
 
-        // create group if this is not a group builder
-        if (this.groupBuilderAdapter == null && StringUtils.isNotBlank(orientation.groupId)) {
-            if (this.registeredGroups.contains(orientation.groupId)) {
+        // create group builder
+        if (StringUtils.isNotBlank(orientation.groupId)) {
+
+            final String expandGroupKey = ExpandBarCellFieldBuilderAdapter.getExpandGroupKey(orientation.groupId);
+            if (!this.isExpandBarBuilder && !this.isGroupBuilder && expandGroupKey != null) {
+                if (this.registeredExpandables.contains(expandGroupKey)) {
+                    return this;
+                }
+
+                final ExpandBarCellFieldBuilderAdapter groupBuilder =
+                        new ExpandBarCellFieldBuilderAdapter(this.viewContext.getOrientationsOfExpandable(attribute));
+
+                fillDummy(groupBuilder.x, groupBuilder.y, groupBuilder.width, groupBuilder.height);
+                this.grid[groupBuilder.y][groupBuilder.x] = groupBuilder;
+                this.registeredExpandables.add(expandGroupKey);
                 return this;
             }
 
-            final GroupCellFieldBuilderAdapter groupBuilder =
-                    new GroupCellFieldBuilderAdapter(this.viewContext.getOrientationsOfGroup(attribute));
+            if (!this.isGroupBuilder) {
+                if (this.registeredGroups.contains(orientation.groupId)) {
+                    return this;
+                }
 
-            fillDummy(groupBuilder.x, groupBuilder.y, groupBuilder.width, groupBuilder.height);
-            this.grid[groupBuilder.y][groupBuilder.x] = groupBuilder;
-            this.registeredGroups.add(orientation.groupId);
-            return this;
+                final GroupCellFieldBuilderAdapter groupBuilder =
+                        new GroupCellFieldBuilderAdapter(this.viewContext.getOrientationsOfGroup(attribute));
+
+                final int xpos = groupBuilder.x - this.xOffset;
+                final int ypos = groupBuilder.y - this.yOffset;
+
+                fillDummy(xpos, ypos, groupBuilder.width, groupBuilder.height);
+                this.grid[ypos][xpos] = groupBuilder;
+                this.registeredGroups.add(orientation.groupId);
+                return this;
+            }
+        }
+
+        if (this.isExpandBarBuilder) {
+            System.out.print("**************** attr:" + attribute.name);
         }
 
         // create single input field with label
-        final int xpos = orientation.xpos() + ((this.groupBuilderAdapter != null) ? -this.groupBuilderAdapter.x : 0);
-        final int ypos = orientation.ypos() + ((this.groupBuilderAdapter != null) ? -this.groupBuilderAdapter.y : 0);
+        final int xpos = orientation.xpos() - this.xOffset;
+        final int ypos = orientation.ypos() - this.yOffset;
 
         if (orientation.width > 1 || orientation.height > 1) {
             fillDummy(xpos, ypos, orientation.width, orientation.height);

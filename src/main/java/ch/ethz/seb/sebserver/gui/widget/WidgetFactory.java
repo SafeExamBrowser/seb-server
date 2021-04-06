@@ -30,6 +30,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DateTime;
+import org.eclipse.swt.widgets.ExpandBar;
+import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -520,6 +522,33 @@ public class WidgetFactory {
 
         this.polyglotPageService.injectI18n(group, locTextKey, locTooltipKey);
         return group;
+    }
+
+    public ExpandBar expandBarLocalized(
+            final Composite parent,
+            final LocTextKey locTooltipKey) {
+
+        final ExpandBar expandBar = new ExpandBar(parent, SWT.NONE);
+        this.polyglotPageService.injectI18n(expandBar, locTooltipKey);
+        return expandBar;
+    }
+
+    public Composite expandItemLocalized(
+            final ExpandBar parent,
+            final int columns,
+            final LocTextKey locTextKey) {
+
+        final ExpandItem expandItem = new ExpandItem(parent, SWT.NONE);
+        final Composite body = new Composite(expandItem.getParent(), SWT.NONE);
+        final GridLayout gridLayout = new GridLayout(columns, true);
+        gridLayout.verticalSpacing = 0;
+        gridLayout.horizontalSpacing = 0;
+        gridLayout.marginHeight = 0;
+        body.setLayout(gridLayout);
+        expandItem.setControl(body);
+
+        this.polyglotPageService.injectI18n(expandItem, locTextKey);
+        return body;
     }
 
     public Tree treeLocalized(final Composite parent, final int style) {

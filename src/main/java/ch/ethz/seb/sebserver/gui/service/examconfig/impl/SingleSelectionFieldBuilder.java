@@ -112,14 +112,6 @@ public class SingleSelectionFieldBuilder extends SelectionFieldBuilder implement
         protected void setValueToControl(final String value) {
             this.control.select(value);
         }
-
-        @Override
-        public String getReadableValue() {
-
-            // TODO Auto-generated method stub
-            return super.getReadableValue();
-        }
-
     }
 
 }

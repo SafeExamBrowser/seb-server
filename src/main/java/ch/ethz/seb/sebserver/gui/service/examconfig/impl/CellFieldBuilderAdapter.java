@@ -8,13 +8,22 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TitleOrientation;
@@ -220,6 +229,136 @@ interface CellFieldBuilderAdapter {
                 groupBuilder.add(attribute);
             }
             groupBuilder.compose();
+        }
+    }
+
+    class ExpandBarCellFieldBuilderAdapter implements CellFieldBuilderAdapter {
+
+        public final static Pattern EXPAND_BAR_GROUP_PATTERN = Pattern.compile("\\[(.*?)\\]");
+
+        final Map<String, Collection<Orientation>> orientationsOfExpandBar;
+
+        int x = 100;
+        int y = 100;
+        int width = 1;
+        int height = 1;
+
+        public static final String getExpandKey(final String groupId) {
+            final Matcher matcher = EXPAND_BAR_GROUP_PATTERN.matcher(groupId);
+            if (matcher.find()) {
+                String expandableGroup = matcher.group();
+                expandableGroup = expandableGroup.substring(1, expandableGroup.length() - 1);
+                return expandableGroup;
+            }
+
+            return null;
+        }
+
+        public static final String getExpandGroupKey(final String groupId) {
+            String expandKey = getExpandKey(groupId);
+            if (expandKey == null) {
+                if (StringUtils.isNotBlank(groupId) && groupId.contains(Constants.EMBEDDED_LIST_SEPARATOR)) {
+                    expandKey = groupId;
+                } else {
+                    return null;
+                }
+            }
+
+            final String[] split = StringUtils.split(expandKey, Constants.EMBEDDED_LIST_SEPARATOR);
+            if (split != null && split.length > 0) {
+                return split[0];
+            }
+
+            return null;
+        }
+
+        public static final String getExpandItemKey(final String groupId) {
+            String expandKey = getExpandKey(groupId);
+            if (expandKey == null) {
+                if (StringUtils.isNotBlank(groupId) && groupId.contains(Constants.EMBEDDED_LIST_SEPARATOR)) {
+                    expandKey = groupId;
+                } else {
+                    return null;
+                }
+            }
+
+            final String[] split = StringUtils.split(expandKey, Constants.EMBEDDED_LIST_SEPARATOR);
+            if (split != null && split.length > 1) {
+                return split[1];
+            }
+
+            return null;
+        }
+
+        ExpandBarCellFieldBuilderAdapter(final Collection<Orientation> orientationsOfExpandBar) {
+            this.orientationsOfExpandBar = new HashMap<>();
+
+            for (final Orientation o : orientationsOfExpandBar) {
+                final String expandKey = getExpandKey(o.groupId);
+                if (expandKey == null) {
+                    continue;
+                }
+
+                this.orientationsOfExpandBar
+                        .computeIfAbsent(expandKey, key -> new ArrayList<>())
+                        .add(o);
+
+                final int xpos = o.xPosition - ((o.title == TitleOrientation.LEFT) ? 1 : 0);
+                this.x = Math.min(xpos, this.x);
+                final int ypos = o.yPosition - ((o.title == TitleOrientation.TOP) ? 1 : 0);
+                this.y = Math.min(ypos, this.y);
+                this.width = Math.max(this.width, o.xpos() + o.width());
+                this.height = Math.max(this.height, o.ypos() + o.height());
+            }
+
+            this.width = this.width - this.x;
+            this.height = this.height - this.y + 1;
+        }
+
+        @Override
+        public void createCell(final ViewGridBuilder builder) {
+            final WidgetFactory widgetFactory = builder.examConfigurationService.getWidgetFactory();
+            final LocTextKey expandTooltipText = this.orientationsOfExpandBar
+                    .keySet()
+                    .stream()
+                    .findFirst()
+                    .map(key -> {
+                        final String expandGroupKey = getExpandGroupKey(key);
+                        return new LocTextKey(
+                                ExamConfigurationService.TOOL_TIP_SUFFIX + expandGroupKey,
+                                expandGroupKey);
+                    }).orElse(null);
+
+            final ExpandBar expandBar = widgetFactory.expandBarLocalized(
+                    builder.parent,
+                    expandTooltipText);
+            expandBar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, this.width, this.height));
+
+            for (final Map.Entry<String, Collection<Orientation>> entry : this.orientationsOfExpandBar.entrySet()) {
+
+                final String expandItemKey = getExpandItemKey(entry.getKey());
+                final Collection<Orientation> value = entry.getValue();
+                final LocTextKey labelKey = new LocTextKey(
+                        ExamConfigurationService.GROUP_LABEL_LOC_TEXT_PREFIX + expandItemKey,
+                        expandItemKey);
+
+                final Composite expandItem = widgetFactory.expandItemLocalized(
+                        expandBar,
+                        this.width,
+                        labelKey);
+
+                final ViewGridBuilder expandBuilder = new ViewGridBuilder(
+                        expandItem,
+                        builder.viewContext,
+                        this,
+                        builder.examConfigurationService);
+
+                for (final Orientation orientation : value) {
+                    final ConfigurationAttribute attribute = builder.viewContext.getAttribute(orientation.attributeId);
+                    expandBuilder.add(attribute);
+                }
+                expandBuilder.compose();
+            }
         }
     }
 }

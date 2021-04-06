@@ -13,6 +13,8 @@ import java.util.Locale;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.ExpandBar;
+import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
@@ -78,6 +80,20 @@ public interface PolyglotPageService {
      * @param locTextKey the localized text key to inject
      * @param locTooltipKey the localized text key for the tool-tip to inject */
     void injectI18n(Group group, LocTextKey locTextKey, LocTextKey locTooltipKey);
+
+    /** Used to inject a localized text within the given Control (Widget) that automatically gets changed on language
+     * change.
+     *
+     * @param expandBar the ExpandBar instance
+     * @param locTooltipKey the localized text key for the tool-tip to inject */
+    void injectI18n(ExpandBar expandBar, LocTextKey locTooltipKey);
+
+    /** Used to inject a localized text within the given Control (Widget) that automatically gets changed on language
+     * change.
+     *
+     * @param expandItem the ExpandItem instance
+     * @param locTextKey the localized text key to inject */
+    void injectI18n(ExpandItem expandItem, LocTextKey locTextKey);
 
     /** Used to inject a localized text within the given Control (Widget) that automatically gets changed on language
      * change.

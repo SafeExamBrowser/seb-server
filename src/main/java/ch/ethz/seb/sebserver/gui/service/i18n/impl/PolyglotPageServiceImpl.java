@@ -17,6 +17,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.ExpandBar;
+import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
@@ -103,6 +105,24 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
         final Consumer<Group> groupFunction = groupFunction(locTextKey, locTooltipKey, this.i18nSupport);
         group.setData(POLYGLOT_WIDGET_FUNCTION_KEY, groupFunction);
         groupFunction.accept(group);
+    }
+
+    @Override
+    public void injectI18n(final ExpandBar expandBar, final LocTextKey locTooltipKey) {
+        expandBar.setData(
+                POLYGLOT_WIDGET_FUNCTION_KEY,
+                (Consumer<ExpandBar>) _expandBar -> {
+                    if (locTooltipKey != null) {
+                        _expandBar.setToolTipText(this.i18nSupport.getText(locTooltipKey));
+                    }
+                    updateLocale(_expandBar.getItems(), this.i18nSupport);
+                });
+    }
+
+    @Override
+    public void injectI18n(final ExpandItem expandItem, final LocTextKey locTextKey) {
+        expandItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
+        expandItem.setText(this.i18nSupport.getText(locTextKey));
     }
 
     @Override
@@ -275,6 +295,19 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
                         childItem.setText(i, i18nSupport.getText(locTextKey[i]));
                     }
                 }
+            }
+        }
+    }
+
+    private static void updateLocale(final ExpandItem[] items, final I18nSupport i18nSupport) {
+        if (items == null) {
+            return;
+        }
+
+        for (final ExpandItem childItem : items) {
+            final LocTextKey locTextKey = (LocTextKey) childItem.getData(POLYGLOT_ITEM_TEXT_DATA_KEY);
+            if (locTextKey != null) {
+                childItem.setText(i18nSupport.getText(locTextKey));
             }
         }
     }

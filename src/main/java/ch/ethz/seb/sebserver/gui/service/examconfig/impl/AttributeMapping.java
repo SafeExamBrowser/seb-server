@@ -17,12 +17,17 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.examconfig.impl.CellFieldBuilderAdapter.ExpandBarCellFieldBuilderAdapter;
 
 public class AttributeMapping {
+
+    private static final Logger log = LoggerFactory.getLogger(AttributeMapping.class);
 
     public final Long templateId;
 
@@ -146,6 +151,33 @@ public class AttributeMapping {
                 .stream()
                 .map(o -> o.viewId)
                 .collect(Collectors.toSet());
+    }
+
+    public Collection<Orientation> getOrientationsOfExpandable(final ConfigurationAttribute attribute) {
+        final Orientation orientation = this.orientationAttributeMapping.get(attribute.id);
+        if (orientation == null) {
+            return Collections.emptyList();
+        }
+
+        if (StringUtils.isBlank(orientation.groupId)) {
+            return Collections.emptyList();
+        }
+
+        final String expandGroupKey = ExpandBarCellFieldBuilderAdapter.getExpandGroupKey(orientation.groupId);
+        if (expandGroupKey == null) {
+            return Collections.emptyList();
+        }
+
+        try {
+            return Collections.unmodifiableCollection(this.orientationAttributeMapping
+                    .values()
+                    .stream()
+                    .filter(o -> o.groupId != null && o.groupId.contains(expandGroupKey))
+                    .collect(Collectors.toList()));
+        } catch (final Exception e) {
+            log.error("Failed to verify expandable identifier from group identifier", e);
+            return Collections.emptyList();
+        }
     }
 
     public Collection<Orientation> getOrientationsOfGroup(final ConfigurationAttribute attribute) {
