@@ -56,33 +56,9 @@ a more automated and secure setup for high-stake exams.
 .. image:: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/seb-sebserver-lms.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/seb-sebserver-lms.png
-
-SEB - SEB Server Compatibility
-------------------------------
-
-The table below shows available and upcoming SEB client versions that has SEB Server integration support and are compatible with particular 
-SEB Server version. There is an entry for each platform with a beta or testing release date and a official release date.
-
-**SEB Server Version 1.0.X**
-
-.. csv-table::
-   :header: "Platform / OS", "Beta/RC Version", "Release Version"
-
-   "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q4 2020 - Version 2.3"
-   "SEB Client for Mac", "Q4 2020 - Version 2.3", "Q4 2020 - Version 2.3"
-   "SEB Client for Windows", "Q2 2020 - Version 3.1", "Q4 2020 - Version 3.1"
-   
-For testing: 
-
-**Note that these are all beta versions and must only be used for testing or demonstration.**
-
-`Download beta version of SEB Client iOS <https://sourceforge.net/p/seb/discussion/seb-ios/thread/e7e542a5/>`_
-
-`Download Safe Exam Browser 3.1 for Windows <https://sourceforge.net/projects/seb/files/seb/SEB_3.1.0/SEB_3.1.0.228_SetupBundle.exe/download>`_
-
-
-Version 1.1.0 is out
---------------------
+    
+SEB Server Version 1.1.0 is out
+-------------------------------
 
 New features:
 
@@ -109,6 +85,31 @@ Changes:
 - "Export Exam Configuration" is now named "Export SEB Settings" and can be found in the "SEB Settings" view of an "Exam Configuration"
 
 
+SEB - SEB Server Compatibility
+------------------------------
+
+The table below shows available and upcoming SEB client versions that has SEB Server integration support and are compatible with particular 
+SEB Server version. There is an entry for each platform with a beta or testing release date and a official release date.
+
+**SEB Server Version 1.0.X**
+
+.. csv-table::
+   :header: "Platform / OS", "Beta/RC Version", "Release Version"
+
+   "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q2 2021 - Version 2.5/3.0"
+   "SEB Client for Mac", "Q2 2021 - Version 3.1", "Q2 2021 - Version 3.1"
+   "SEB Client for Windows", "Q2 2020 - Version 3.1", "Q4 2020 - Version 3.1"
+   
+**SEB Server Version 1.1.X**
+
+.. csv-table::
+   :header: "Platform / OS", "Beta/RC Version", "Release Version"
+
+   "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q2 2021 - Version 2.5/3.0"
+   "SEB Client for Mac", "Q2 2021 - Version 3.1", "Q2 2021 - Version 3.1"
+   "SEB Client for Windows", "April 2021 - Version 3.2", "May 2021 - Version 3.2"
+   
+
 Install SEB Server
 ------------------
 
@@ -122,4 +123,4 @@ For a complete SEB Server user guide please go to `SEB Server User Guide <https:
 Project Background
 ------------------
 
-The SEB Server is currently build and maintained by the `Swiss MOOC Service <https://www.swissmooc.ch/>`_ that is founded by leading Swiss universities EPFL, ETH, SUPSI, USI and HES-SO and is financially supported by the `Swissuniversities’ P5 program <https://www.swissuniversities.ch/themen/digitalisierung/p-5-wissenschaftliche-information>`_.
+The SEB Server is currently build and maintained by the `Swiss MOOC Service <https://www.swissmooc.ch/>`_ that is founded by leading Swiss universities EPFL, ETH, SUPSI, USI and HES-SO. The Swiss MOOC Service was financially supported from 2018-2020 by the `Swissuniversities´ P5 program <https://www.swissuniversities.ch/themen/digitalisierung/p-5-wissenschaftliche-information>`_.
