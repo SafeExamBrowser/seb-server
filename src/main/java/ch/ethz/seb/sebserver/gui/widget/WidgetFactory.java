@@ -533,7 +533,7 @@ public class WidgetFactory {
         return expandBar;
     }
 
-    public Composite expandItemLocalized(
+    public ExpandItem expandItemLocalized(
             final ExpandBar parent,
             final int columns,
             final LocTextKey locTextKey) {
@@ -548,7 +548,7 @@ public class WidgetFactory {
         expandItem.setControl(body);
 
         this.polyglotPageService.injectI18n(expandItem, locTextKey);
-        return body;
+        return expandItem;
     }
 
     public Tree treeLocalized(final Composite parent, final int style) {

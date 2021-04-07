@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.gui.service.examconfig.impl.CellFieldBuilderAdapter.ExpandBarCellFieldBuilderAdapter;
 
 public class AttributeMapping {
 
@@ -163,7 +162,7 @@ public class AttributeMapping {
             return Collections.emptyList();
         }
 
-        final String expandGroupKey = ExpandBarCellFieldBuilderAdapter.getExpandGroupKey(orientation.groupId);
+        final String expandGroupKey = ViewGridBuilder.getExpandGroupKey(orientation.groupId);
         if (expandGroupKey == null) {
             return Collections.emptyList();
         }

@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,10 +23,12 @@ import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
+import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.CellFieldBuilderAdapter.ExpandBarCellFieldBuilderAdapter;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.CellFieldBuilderAdapter.GroupCellFieldBuilderAdapter;
@@ -32,6 +36,8 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.CellFieldBuilderAdapter
 public class ViewGridBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(ViewGridBuilder.class);
+
+    public static Pattern EXPAND_BAR_GROUP_PATTERN = Pattern.compile("\\[(.*?)\\]");
 
     final ExamConfigurationService examConfigurationService;
     final Composite parent;
@@ -101,6 +107,95 @@ public class ViewGridBuilder {
         this.registeredExpandables = null;
     }
 
+    public static String getGroupKey(final String groupId) {
+        if (groupId == null || !groupId.contains(Constants.SQUARE_BRACE_OPEN.toString())) {
+            return groupId;
+        }
+
+        if (groupId.startsWith(Constants.SQUARE_BRACE_OPEN.toString())) {
+            return null;
+        }
+
+        final String[] split = StringUtils.split(groupId, Constants.SQUARE_BRACE_OPEN);
+        if (split != null && split.length > 0) {
+            return split[0];
+        }
+
+        return null;
+    }
+
+    public static String getExpandKey(final String groupId) {
+        final Matcher matcher = EXPAND_BAR_GROUP_PATTERN.matcher(groupId);
+        if (matcher.find()) {
+            String expandableGroup = matcher.group();
+            expandableGroup = expandableGroup.substring(1, expandableGroup.length() - 1);
+            return expandableGroup;
+        }
+
+        return null;
+    }
+
+    public static String getExpandGroupKey(final String groupId) {
+        String expandKey = getExpandKey(groupId);
+        if (expandKey == null) {
+            if (StringUtils.isNotBlank(groupId) && groupId.contains(Constants.EMBEDDED_LIST_SEPARATOR)) {
+                expandKey = groupId;
+            } else {
+                return null;
+            }
+        }
+
+        final String[] split = StringUtils.split(expandKey, Constants.EMBEDDED_LIST_SEPARATOR);
+        if (split != null && split.length > 0) {
+            return split[0];
+        }
+
+        return null;
+    }
+
+    public static String getExpandItemKey(final String groupId) {
+        String expandKey = getExpandKey(groupId);
+        if (expandKey == null) {
+            if (StringUtils.isNotBlank(groupId) && groupId.contains(Constants.EMBEDDED_LIST_SEPARATOR)) {
+                expandKey = groupId;
+            } else {
+                return null;
+            }
+        }
+
+        final String[] split = StringUtils.split(expandKey, Constants.EMBEDDED_LIST_SEPARATOR);
+        if (split != null && split.length > 1) {
+            return split[1];
+        }
+
+        return null;
+    }
+
+    public static CellFieldBuilderAdapter fieldBuilderAdapter(
+            final InputFieldBuilder inputFieldBuilder,
+            final ConfigurationAttribute attribute) {
+
+        return new CellFieldBuilderAdapter() {
+            @Override
+            public void createCell(final ViewGridBuilder builder) {
+
+                final InputField inputField = inputFieldBuilder.createInputField(
+                        builder.parent,
+                        attribute,
+                        builder.viewContext);
+
+                if (inputField != null) {
+                    builder.viewContext.registerInputField(inputField);
+                }
+            }
+
+            @Override
+            public String toString() {
+                return "[FIELD]";
+            }
+        };
+    }
+
     ViewGridBuilder add(final ConfigurationAttribute attribute) {
         if (log.isDebugEnabled()) {
             log.debug("Add SEB Configuration Attribute: " + attribute);
@@ -121,7 +216,7 @@ public class ViewGridBuilder {
         // create group builder
         if (StringUtils.isNotBlank(orientation.groupId)) {
 
-            final String expandGroupKey = ExpandBarCellFieldBuilderAdapter.getExpandGroupKey(orientation.groupId);
+            final String expandGroupKey = getExpandGroupKey(orientation.groupId);
             if (!this.isExpandBarBuilder && !this.isGroupBuilder && expandGroupKey != null) {
                 if (this.registeredExpandables.contains(expandGroupKey)) {
                     return this;
@@ -137,25 +232,24 @@ public class ViewGridBuilder {
             }
 
             if (!this.isGroupBuilder) {
-                if (this.registeredGroups.contains(orientation.groupId)) {
+                final String groupKey = getGroupKey(orientation.groupId);
+                if (groupKey != null) {
+                    if (this.registeredGroups.contains(groupKey)) {
+                        return this;
+                    }
+
+                    final GroupCellFieldBuilderAdapter groupBuilder =
+                            new GroupCellFieldBuilderAdapter(this.viewContext.getOrientationsOfGroup(attribute));
+
+                    final int xpos = groupBuilder.x - this.xOffset;
+                    final int ypos = groupBuilder.y - this.yOffset;
+
+                    fillDummy(xpos, ypos, groupBuilder.width, groupBuilder.height);
+                    this.grid[ypos][xpos] = groupBuilder;
+                    this.registeredGroups.add(groupKey);
                     return this;
                 }
-
-                final GroupCellFieldBuilderAdapter groupBuilder =
-                        new GroupCellFieldBuilderAdapter(this.viewContext.getOrientationsOfGroup(attribute));
-
-                final int xpos = groupBuilder.x - this.xOffset;
-                final int ypos = groupBuilder.y - this.yOffset;
-
-                fillDummy(xpos, ypos, groupBuilder.width, groupBuilder.height);
-                this.grid[ypos][xpos] = groupBuilder;
-                this.registeredGroups.add(orientation.groupId);
-                return this;
             }
-        }
-
-        if (this.isExpandBarBuilder) {
-            System.out.print("**************** attr:" + attribute.name);
         }
 
         // create single input field with label
@@ -170,7 +264,7 @@ public class ViewGridBuilder {
                 attribute,
                 orientation);
 
-        this.grid[ypos][xpos] = CellFieldBuilderAdapter.fieldBuilderAdapter(
+        this.grid[ypos][xpos] = fieldBuilderAdapter(
                 inputFieldBuilder,
                 attribute);
 

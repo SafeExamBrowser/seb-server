@@ -12,24 +12,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.ExpandBar;
+import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TitleOrientation;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
-import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
-import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -49,31 +44,6 @@ interface CellFieldBuilderAdapter {
     void createCell(ViewGridBuilder builder);
 
     default void balanceGrid(final CellFieldBuilderAdapter[][] grid, final int x, final int y) {
-    }
-
-    static CellFieldBuilderAdapter fieldBuilderAdapter(
-            final InputFieldBuilder inputFieldBuilder,
-            final ConfigurationAttribute attribute) {
-
-        return new CellFieldBuilderAdapter() {
-            @Override
-            public void createCell(final ViewGridBuilder builder) {
-
-                final InputField inputField = inputFieldBuilder.createInputField(
-                        builder.parent,
-                        attribute,
-                        builder.viewContext);
-
-                if (inputField != null) {
-                    builder.viewContext.registerInputField(inputField);
-                }
-            }
-
-            @Override
-            public String toString() {
-                return "[FIELD]";
-            }
-        };
     }
 
     static CellFieldBuilderAdapter labelBuilder(
@@ -234,8 +204,6 @@ interface CellFieldBuilderAdapter {
 
     class ExpandBarCellFieldBuilderAdapter implements CellFieldBuilderAdapter {
 
-        public final static Pattern EXPAND_BAR_GROUP_PATTERN = Pattern.compile("\\[(.*?)\\]");
-
         final Map<String, Collection<Orientation>> orientationsOfExpandBar;
 
         int x = 100;
@@ -243,58 +211,11 @@ interface CellFieldBuilderAdapter {
         int width = 1;
         int height = 1;
 
-        public static final String getExpandKey(final String groupId) {
-            final Matcher matcher = EXPAND_BAR_GROUP_PATTERN.matcher(groupId);
-            if (matcher.find()) {
-                String expandableGroup = matcher.group();
-                expandableGroup = expandableGroup.substring(1, expandableGroup.length() - 1);
-                return expandableGroup;
-            }
-
-            return null;
-        }
-
-        public static final String getExpandGroupKey(final String groupId) {
-            String expandKey = getExpandKey(groupId);
-            if (expandKey == null) {
-                if (StringUtils.isNotBlank(groupId) && groupId.contains(Constants.EMBEDDED_LIST_SEPARATOR)) {
-                    expandKey = groupId;
-                } else {
-                    return null;
-                }
-            }
-
-            final String[] split = StringUtils.split(expandKey, Constants.EMBEDDED_LIST_SEPARATOR);
-            if (split != null && split.length > 0) {
-                return split[0];
-            }
-
-            return null;
-        }
-
-        public static final String getExpandItemKey(final String groupId) {
-            String expandKey = getExpandKey(groupId);
-            if (expandKey == null) {
-                if (StringUtils.isNotBlank(groupId) && groupId.contains(Constants.EMBEDDED_LIST_SEPARATOR)) {
-                    expandKey = groupId;
-                } else {
-                    return null;
-                }
-            }
-
-            final String[] split = StringUtils.split(expandKey, Constants.EMBEDDED_LIST_SEPARATOR);
-            if (split != null && split.length > 1) {
-                return split[1];
-            }
-
-            return null;
-        }
-
         ExpandBarCellFieldBuilderAdapter(final Collection<Orientation> orientationsOfExpandBar) {
             this.orientationsOfExpandBar = new HashMap<>();
 
             for (final Orientation o : orientationsOfExpandBar) {
-                final String expandKey = getExpandKey(o.groupId);
+                final String expandKey = ViewGridBuilder.getExpandKey(o.groupId);
                 if (expandKey == null) {
                     continue;
                 }
@@ -323,7 +244,7 @@ interface CellFieldBuilderAdapter {
                     .stream()
                     .findFirst()
                     .map(key -> {
-                        final String expandGroupKey = getExpandGroupKey(key);
+                        final String expandGroupKey = ViewGridBuilder.getExpandGroupKey(key);
                         return new LocTextKey(
                                 ExamConfigurationService.TOOL_TIP_SUFFIX + expandGroupKey,
                                 expandGroupKey);
@@ -332,23 +253,25 @@ interface CellFieldBuilderAdapter {
             final ExpandBar expandBar = widgetFactory.expandBarLocalized(
                     builder.parent,
                     expandTooltipText);
-            expandBar.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, this.width, this.height));
+            expandBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, this.width, this.height + 2));
 
             for (final Map.Entry<String, Collection<Orientation>> entry : this.orientationsOfExpandBar.entrySet()) {
 
-                final String expandItemKey = getExpandItemKey(entry.getKey());
+                final String expandItemKey = ViewGridBuilder.getExpandItemKey(entry.getKey());
                 final Collection<Orientation> value = entry.getValue();
                 final LocTextKey labelKey = new LocTextKey(
                         ExamConfigurationService.GROUP_LABEL_LOC_TEXT_PREFIX + expandItemKey,
                         expandItemKey);
 
-                final Composite expandItem = widgetFactory.expandItemLocalized(
+                final ExpandItem expandItem = widgetFactory.expandItemLocalized(
                         expandBar,
                         this.width,
                         labelKey);
 
+                expandItem.setHeight(this.height * 25);
+                final Composite body = (Composite) expandItem.getControl();
                 final ViewGridBuilder expandBuilder = new ViewGridBuilder(
-                        expandItem,
+                        body,
                         builder.viewContext,
                         this,
                         builder.examConfigurationService);
@@ -361,4 +284,5 @@ interface CellFieldBuilderAdapter {
             }
         }
     }
+
 }
