@@ -1,0 +1,102 @@
+<html>
+    <head>
+        <meta charset='utf-8' />
+        <link type='text/css' rel='stylesheet' href='https://source.zoom.us/1.9.0/css/bootstrap.css' />
+        <link type='text/css' rel='stylesheet' href='https://source.zoom.us/1.9.0/css/react-select.css' />
+    </head>
+    <body>
+        <script src='https://source.zoom.us/1.9.0/lib/vendor/react.min.js'></script>
+        <script src='https://source.zoom.us/1.9.0/lib/vendor/react-dom.min.js'></script>
+        <script src='https://source.zoom.us/1.9.0/lib/vendor/redux.min.js'></script>
+        <script src='https://source.zoom.us/1.9.0/lib/vendor/redux-thunk.min.js'></script>
+        <script src='https://source.zoom.us/1.9.0/lib/vendor/jquery.min.js'></script>
+        <script src='https://source.zoom.us/1.9.0/lib/vendor/lodash.min.js'></script>
+        <script src='https://source.zoom.us/zoom-meeting-1.9.0.min.js'></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9/crypto-js.min.js'></script>
+        <script type='text/javascript'>
+
+            console.log('Checking system requirements...');
+            console.log(JSON.stringify(ZoomMtg.checkSystemRequirements()));
+
+            console.log('Initializing Zoom...');
+            ZoomMtg.setZoomJSLib('https://source.zoom.us/1.9.0/lib', '/av');
+            ZoomMtg.preLoadWasm();
+            ZoomMtg.prepareJssdk();
+
+            const API_KEY = '%%_ATTR_API_KEY_%%';
+            const config = {
+                meetingNumber: %%_ATTR_ROOM_NAME_%%,
+                leaveUrl: '%%_ATTR_HOST_%%',
+                userName: '%%_ATTR_USER_NAME_%%',
+                passWord: '%%_ATTR_ROOM_KEY_%%',
+                role: 1 // 1 for host; 0 for attendee
+            };
+
+            const signature = '%%_ATTR_ACCESS_TOKEN_%%';
+            console.log('Initializing meeting...');
+
+            // See documentation: https://zoom.github.io/sample-app-web/ZoomMtg.html#init
+            ZoomMtg.init({
+                debug: true, //optional
+                leaveUrl: config.leaveUrl, //required
+                // webEndpoint: 'PSO web domain', // PSO option
+                showMeetingHeader: true, //option
+                disableInvite: false, //optional
+                disableCallOut: false, //optional
+                disableRecord: false, //optional
+                disableJoinAudio: false, //optional
+                audioPanelAlwaysOpen: true, //optional
+                showPureSharingContent: false, //optional
+                isSupportAV: true, //optional,
+                isSupportChat: true, //optional,
+                isSupportQA: true, //optional,
+                isSupportCC: true, //optional,
+                screenShare: true, //optional,
+                rwcBackup: '', //optional,
+                videoDrag: true, //optional,
+                sharingMode: 'both', //optional,
+                videoHeader: true, //optional,
+                isLockBottom: true, // optional,
+                isSupportNonverbal: true, // optional,
+                isShowJoiningErrorDialog: true, // optional,
+                inviteUrlFormat: '', // optional
+                loginWindow: {  // optional,
+                    width: 400,
+                    height: window.innerHeight - 4
+                },
+                meetingInfo: [ // optional
+                   'topic',
+                   'host',
+                   'mn',
+                   'pwd',
+                   'invite',
+                   'participant',
+                   'dc'
+                ],
+                disableVoIP: false, // optional
+                disableReport: false, // optional
+                error: function (res) {
+                    console.warn('INIT ERROR')
+                    console.log(res)
+                },
+                success: function () {
+                   console.log('INIT SUCCESS')
+                    ZoomMtg.join({
+                        signature: signature,
+                        apiKey: API_KEY,
+                        meetingNumber: config.meetingNumber,
+                        userName: config.userName,
+                        passWord: config.passWord,
+                        success(res) {
+                             console.log('JOIN SUCCESS')
+                        },
+                        error(res) {
+                            console.warn('JOIN ERROR')
+                            console.log(res)
+                        }
+                    })
+                }
+            })
+        </script>
+    </body>
+</html>

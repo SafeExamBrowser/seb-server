@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title></title>
+    <script src='https://%%_ATTR_HOST_%%/external_api.js'></script>
+</head>
+<body>
+<div id='proctoring'></div>
+</body>
+<script>
+
+    const options = {
+        parentNode: document.querySelector('#proctoring'),
+        roomName: '%%_ATTR_ROOM_NAME_%%',
+        // width: window.innerWidth,
+        height: window.innerHeight - 4,
+        jwt: '%%_ATTR_ACCESS_TOKEN_%%',
+        configOverwrite: { startAudioOnly: false, startWithAudioMuted: true, startWithVideoMuted: false, disable1On1Mode: true },
+        interfaceConfigOverwrite: { 
+            TOOLBAR_BUTTONS: [
+                'microphone', 'camera',
+                'fodeviceselection', 'profile', 'chat', 'recording',
+                'livestreaming', 'settings',
+                'videoquality', 'filmstrip', 'feedback',
+                'tileview', 'help', 'mute-everyone', 'security'
+            ],
+            SHOW_WATERMARK_FOR_GUESTS: false,
+            RECENT_LIST_ENABLED: false,
+            HIDE_INVITE_MORE_HEADER: true,
+            DISABLE_RINGING: true,
+            DISABLE_PRESENCE_STATUS: true,
+            DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
+            GENERATE_ROOMNAMES_ON_WELCOME_PAGE: false,
+            MOBILE_APP_PROMO: false,
+            SHOW_JITSI_WATERMARK: false,
+            DISABLE_PRESENCE_STATUS: true,
+            DISABLE_RINGING: true,
+            DISABLE_VIDEO_BACKGROUND: false,
+            filmStripOnly: false
+        }
+    }
+    
+    const meetAPI = new JitsiMeetExternalAPI('%%_ATTR_HOST_%%', options);
+    meetAPI.executeCommand('subject', '%%_ATTR_SUBJECT_%%');
+    
+</script>
+</html>

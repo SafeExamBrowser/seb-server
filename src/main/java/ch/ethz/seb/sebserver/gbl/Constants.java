@@ -74,6 +74,9 @@ public final class Constants {
     public static final String URL_ADDRESS_SEPARATOR = COLON.toString() + SLASH.toString() + SLASH.toString();
     public static final String URL_PATH_SEPARATOR = SLASH.toString();
 
+    public static final String DYN_HTML_ATTR_OPEN = "%%_";
+    public static final String DYN_HTML_ATTR_CLOSE = "_%%";
+
     public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     public static final String TIME_ZONE_OFFSET_TAIL_FORMAT = "|ZZ";
 
