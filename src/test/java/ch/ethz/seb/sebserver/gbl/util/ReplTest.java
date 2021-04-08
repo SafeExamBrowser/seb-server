@@ -29,4 +29,17 @@ public class ReplTest {
 //        assertEquals("", DateTimeZone.UTC.getID());
 //    }
 
+//    @Test
+//    public void testPeriod() {
+//        final Period period = new Period(
+//                DateTime.now(DateTimeZone.UTC),
+//                DateTime.now(DateTimeZone.UTC).plusDays(1));
+//
+//        final Interval interv = new Interval(
+//                DateTime.now(DateTimeZone.UTC),
+//                DateTime.now(DateTimeZone.UTC).plusDays(1));
+//
+//        assertEquals(Constants.DAY_IN_MIN, interv.toDurationMillis() / Constants.MINUTE_IN_MILLIS);
+//    }
+
 }

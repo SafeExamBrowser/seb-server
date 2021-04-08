@@ -23,6 +23,9 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -355,6 +358,7 @@ public class ZoomProctoringService implements ExamProctoringService {
         return createAdHocMeeting(
                 UUID.randomUUID().toString(),
                 "Proctoring Room " + (roomNumber + 1),
+                getMeetingDuration(proctoringSettings.examId),
                 proctoringSettings);
     }
 
@@ -366,7 +370,23 @@ public class ZoomProctoringService implements ExamProctoringService {
         return createAdHocMeeting(
                 UUID.randomUUID().toString(),
                 subject,
+                getMeetingDuration(proctoringSettings.examId),
                 proctoringSettings);
+    }
+
+    private int getMeetingDuration(final Long examId) {
+        try {
+            final DateTime endTime = this.examSessionService
+                    .getRunningExam(examId)
+                    .getOrThrow()
+                    .getEndTime();
+            final Long result = new Interval(DateTime.now(DateTimeZone.UTC), endTime)
+                    .toDurationMillis() / Constants.MINUTE_IN_MILLIS;
+            return result.intValue();
+        } catch (final Exception e) {
+            log.error("Failed to get duration for meeting from exam: {} cause: {}", examId, e.getMessage());
+            return Constants.DAY_IN_MIN;
+        }
     }
 
     @Override
@@ -397,7 +417,9 @@ public class ZoomProctoringService implements ExamProctoringService {
                         .getOrThrow();
 
             } catch (final Exception e) {
-                throw new RuntimeException("Unexpected error while trying to dispose ad-hoc room for zoom proctoring");
+                throw new RuntimeException(
+                        "Unexpected error while trying to dispose ad-hoc room for zoom proctoring",
+                        e);
             }
         });
 
@@ -420,6 +442,7 @@ public class ZoomProctoringService implements ExamProctoringService {
     private Result<NewRoom> createAdHocMeeting(
             final String roomName,
             final String subject,
+            final int duration,
             final ProctoringServiceSettings proctoringSettings) {
 
         return Result.tryCatch(() -> {
@@ -443,6 +466,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     credentials,
                     userResponse.id,
                     subject,
+                    duration,
                     meetingPwd);
             final MeetingResponse meetingResponse = this.jsonMapper.readValue(
                     createMeeting.getBody(),
@@ -668,6 +692,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                 final ClientCredentials credentials,
                 final String userId,
                 final String topic,
+                final int duration,
                 final CharSequence password) {
 
             try {
@@ -678,7 +703,10 @@ public class ZoomProctoringService implements ExamProctoringService {
                         .buildAndExpand(userId)
                         .toUriString();
 
-                final CreateMeetingRequest createRoomRequest = new CreateMeetingRequest(topic, password);
+                final CreateMeetingRequest createRoomRequest = new CreateMeetingRequest(
+                        topic,
+                        duration,
+                        password);
 
                 final String body = this.zoomProctoringService.jsonMapper.writeValueAsString(createRoomRequest);
                 final HttpHeaders headers = getHeaders(credentials);

@@ -40,6 +40,8 @@ public final class Constants {
     public static final long HOUR_IN_MILLIS = 60 * MINUTE_IN_MILLIS;
     public static final long DAY_IN_MILLIS = 24 * HOUR_IN_MILLIS;
 
+    public static final int DAY_IN_MIN = 60 * 24;
+
     public static final Character CARRIAGE_RETURN = '\n';
     public static final Character CURLY_BRACE_OPEN = '{';
     public static final Character CURLY_BRACE_CLOSE = '}';

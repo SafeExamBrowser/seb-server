@@ -387,11 +387,6 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 remoteProctoringRoom.breakOutConnections,
                 examProctoringService.getDefaultInstructionAttributes());
 
-        // Delete room on persistent
-        this.remoteProctoringRoomDAO
-                .deleteRoom(remoteProctoringRoom.id)
-                .getOrThrow();
-
         // Dispose the proctoring room on service side
         examProctoringService
                 .disposeBreakOutRoom(proctoringSettings, remoteProctoringRoom.name)
@@ -402,6 +397,11 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 proctoringSettings,
                 remoteProctoringRoom.breakOutConnections,
                 examProctoringService);
+
+        // Delete room on persistent
+        this.remoteProctoringRoomDAO
+                .deleteRoom(remoteProctoringRoom.id)
+                .getOrThrow();
     }
 
     @Override
