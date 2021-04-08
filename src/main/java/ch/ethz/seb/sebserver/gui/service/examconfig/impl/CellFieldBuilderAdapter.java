@@ -171,15 +171,16 @@ interface CellFieldBuilderAdapter {
         public void createCell(final ViewGridBuilder builder) {
             final WidgetFactory widgetFactory = builder.examConfigurationService.getWidgetFactory();
             final Orientation o = this.orientationsOfGroup.stream().findFirst().orElse(null);
+            final String groupKey = ViewGridBuilder.getGroupKey(o.groupId);
             final LocTextKey groupLabelKey = new LocTextKey(
                     ExamConfigurationService.GROUP_LABEL_LOC_TEXT_PREFIX +
-                            o.groupId,
-                    o.groupId);
+                            groupKey,
+                    groupKey);
             final LocTextKey groupTooltipKey = new LocTextKey(
                     ExamConfigurationService.GROUP_LABEL_LOC_TEXT_PREFIX +
-                            o.groupId +
+                            groupKey +
                             ExamConfigurationService.TOOL_TIP_SUFFIX,
-                    o.groupId);
+                    groupKey);
 
             final Group group = widgetFactory.groupLocalized(
                     builder.parent,
@@ -233,7 +234,7 @@ interface CellFieldBuilderAdapter {
             }
 
             this.width = this.width - this.x;
-            this.height = this.height - this.y + 1;
+            this.height = this.height - this.y + 2;
         }
 
         @Override
@@ -252,7 +253,8 @@ interface CellFieldBuilderAdapter {
 
             final ExpandBar expandBar = widgetFactory.expandBarLocalized(
                     builder.parent,
-                    expandTooltipText);
+                    expandTooltipText,
+                    true);
             expandBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, this.width, this.height + 2));
 
             for (final Map.Entry<String, Collection<Orientation>> entry : this.orientationsOfExpandBar.entrySet()) {
@@ -268,7 +270,7 @@ interface CellFieldBuilderAdapter {
                         this.width,
                         labelKey);
 
-                expandItem.setHeight(this.height * 25);
+                expandItem.setHeight(this.height * 23);
                 final Composite body = (Composite) expandItem.getControl();
                 final ViewGridBuilder expandBuilder = new ViewGridBuilder(
                         body,

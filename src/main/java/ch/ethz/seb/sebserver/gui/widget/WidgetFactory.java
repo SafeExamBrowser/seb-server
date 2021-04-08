@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.widget;
 import static ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService.POLYGLOT_WIDGET_FUNCTION_KEY;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -526,10 +527,42 @@ public class WidgetFactory {
 
     public ExpandBar expandBarLocalized(
             final Composite parent,
-            final LocTextKey locTooltipKey) {
+            final LocTextKey locTooltipKey,
+            final boolean exclusive) {
 
         final ExpandBar expandBar = new ExpandBar(parent, SWT.NONE);
         this.polyglotPageService.injectI18n(expandBar, locTooltipKey);
+
+        if (exclusive) {
+            expandBar.addListener(SWT.Expand, event -> {
+                try {
+                    final Widget expandItem = event.item;
+                    Arrays.asList(expandBar.getItems())
+                            .stream()
+                            .filter(item -> !item.equals(expandItem))
+                            .forEach(item -> item.setExpanded(false));
+                } catch (final Exception e) {
+                    if (log.isDebugEnabled()) {
+                        log.warn("Failed to automate ExpandBar", e);
+                    }
+                }
+            });
+            expandBar.addListener(SWT.Collapse, event -> {
+                try {
+                    final Widget expandItem = event.item;
+                    int itemIndex = Arrays.asList(expandBar.getItems()).indexOf(expandItem) + 1;
+                    if (itemIndex >= expandBar.getItemCount()) {
+                        itemIndex = 0;
+                    }
+                    expandBar.getItem(itemIndex).setExpanded(true);
+                } catch (final Exception e) {
+                    if (log.isDebugEnabled()) {
+                        log.warn("Failed to automate ExpandBar", e);
+                    }
+                }
+            });
+        }
+
         return expandBar;
     }
 
@@ -538,6 +571,7 @@ public class WidgetFactory {
             final int columns,
             final LocTextKey locTextKey) {
 
+        final int itemCount = parent.getItemCount();
         final ExpandItem expandItem = new ExpandItem(parent, SWT.NONE);
         final Composite body = new Composite(expandItem.getParent(), SWT.NONE);
         final GridLayout gridLayout = new GridLayout(columns, true);
@@ -546,8 +580,9 @@ public class WidgetFactory {
         gridLayout.marginHeight = 0;
         body.setLayout(gridLayout);
         expandItem.setControl(body);
-
+        expandItem.setExpanded(itemCount == 0);
         this.polyglotPageService.injectI18n(expandItem, locTextKey);
+
         return expandItem;
     }
 

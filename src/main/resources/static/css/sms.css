@@ -803,6 +803,53 @@ Table-GridLine:vertical, Table-GridLine:header, Table-GridLine:horizontal:rowtem
     color: transparent;
 }
 
+/* ExpandBar default theme */
+ExpandBar {
+    color: #FFFFFF;
+    background-color: white;
+    border: none;
+}
+
+ExpandBar[BORDER] {
+    border: none;
+}
+
+ExpandItem {
+    color: #FFFFFF;
+    border: none;
+}
+
+ExpandItem-Header {
+    border: none;
+    cursor: pointer;
+    background-color: #595959;
+    background-gradient-color: #595959;
+    background-image: gradient( linear, left top, left bottom, from( #595959 ), to( #595959 ) );
+    text-shadow: none;
+}
+
+ExpandItem-Header:disabled {
+    cursor: default;
+}
+
+ExpandItem-Button {
+    background-image: url( static/images/expand.png );
+}
+
+ExpandItem-Button:hover {
+    background-image:
+        url( static/images/expand.png );
+}
+
+ExpandItem-Button:expanded {
+    background-image:
+        url( static/images/collapse.png );
+}
+
+ExpandItem-Button:expanded:hover {
+    background-image:
+        url( static/images/collapse.png );
+}
 
 
 
