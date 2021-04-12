@@ -8,8 +8,7 @@
 
 package ch.ethz.seb.sebserver.gbl.client;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -37,21 +36,7 @@ public class ClientCredentialServiceImplTest {
         assertNotNull(clientCredentials);
         assertNotNull(clientCredentials.clientId);
         assertNotNull(clientCredentials.secret);
-        assertNotNull(clientCredentials.accessToken);
-
-//        String encrypted =
-//                cryptor.encrypt(clientName, "secret1").toString();
-//        String decrypted = cryptor.decrypt(encrypted, "secret1").toString();
-//
-//        assertEquals(clientName, decrypted);
-//
-//        final String clientSecret = "fbjreij39ru29305ruà££àèLöäöäü65%(/%(ç87";
-//
-//        encrypted =
-//                cryptor.encrypt(clientSecret, "secret1").toString();
-//        decrypted = cryptor.decrypt(encrypted, "secret1").toString();
-//
-//        assertEquals(clientSecret, decrypted);
+        assertNull(clientCredentials.accessToken);
     }
 
 }
