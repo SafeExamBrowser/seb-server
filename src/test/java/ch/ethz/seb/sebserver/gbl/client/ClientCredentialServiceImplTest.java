@@ -27,7 +27,6 @@ public class ClientCredentialServiceImplTest {
                 .thenReturn("secret1");
 
         final Cryptor cryptor = new Cryptor(envMock);
-        final String clientName = "simpleClientName";
         final ClientCredentialServiceImpl service = new ClientCredentialServiceImpl(envMock, cryptor);
 
         final Result<ClientCredentials> clientCredentialsResult = service.generatedClientCredentials();
