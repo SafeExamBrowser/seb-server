@@ -448,14 +448,14 @@ public class MoodleCourseAccess extends CourseAccess {
 
             if (courses == null) {
                 log.error("No courses found for ids: {} on LMS: {}", ids, this.lmsSetup.name);
-                Collections.emptyList();
+                return Collections.emptyList();
             }
 
             logMoodleWarnings(courses.warnings);
 
             if (courses.courses == null || courses.courses.isEmpty()) {
                 log.error("No courses found for ids: {} on LMS: {}", ids, this.lmsSetup.name);
-                Collections.emptyList();
+                return Collections.emptyList();
             }
 
             return courses.courses;

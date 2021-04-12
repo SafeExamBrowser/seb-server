@@ -323,9 +323,14 @@ class MoodleRestTemplateFactory {
             }
 
             final String body = response.getBody();
+
             // NOTE: for some unknown reason, Moodles API error responses come with a 200 OK response HTTP Status
             //       So this is a special Moodle specific error handling here...
-            if (body.startsWith("{exception")) {
+            if (body.startsWith("{exception") || body.contains("\"exception\":")) {
+                // Reset access token to get new on next call (fix access if token is expired)
+                // TODO find a way to verify token invalidity response from Moodle.
+                //      Unfortunately there is not a lot of Moodle documentation for the API error handling around.
+                this.accessToken = null;
                 throw new RuntimeException(
                         "Failed to call Moodle webservice API function: " + functionName + " lms setup: " +
                                 MoodleRestTemplateFactory.this.lmsSetup + " response: " + body);

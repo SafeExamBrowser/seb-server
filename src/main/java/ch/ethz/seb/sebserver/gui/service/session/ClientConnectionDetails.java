@@ -40,6 +40,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.DisposedOAuth2RestTemplateException;
 import ch.ethz.seb.sebserver.gui.service.session.IndicatorData.ThresholdColor;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 
@@ -135,6 +136,7 @@ public class ClientConnectionDetails {
                 .call()
                 .get(error -> {
                     log.error("Unexpected error while trying to get current client connection data: ", error);
+                    recoverFromDisposedRestTemplate(error);
                     return null;
                 });
 
@@ -232,6 +234,15 @@ public class ClientConnectionDetails {
         this.pageService.firePageEvent(
                 new ActionEvent(pageReloadAction),
                 pageContext);
+    }
+
+    public void recoverFromDisposedRestTemplate(final Exception error) {
+        if (log.isDebugEnabled()) {
+            log.debug("Try to recover from disposed OAuth2 rest template...");
+        }
+        if (error instanceof DisposedOAuth2RestTemplateException) {
+            this.pageService.getRestService().injectCurrentRestTemplate(this.restCallBuilder);
+        }
     }
 
 }

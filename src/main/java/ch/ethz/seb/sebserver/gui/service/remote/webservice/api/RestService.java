@@ -71,4 +71,13 @@ public interface RestService {
             EntityType entityType,
             CallType callType);
 
+    /** Use this to inject the current SEB Server API access RestTemplate to a long living
+     * RestCallBuilder. This is usually used to recover from a disposed API access RestTemplate.
+     * 
+     * @param <T> The generic type of RestCallBuilder
+     * @param builder the RestCallBuilder to inject the current RestTemplate into. */
+    default <T> void injectCurrentRestTemplate(final RestCall<T>.RestCallBuilder builder) {
+        builder.withRestTemplate(getWebserviceAPIRestTemplate());
+    }
+
 }
