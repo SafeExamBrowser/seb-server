@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gbl.client;
+package ch.ethz.seb.sebserver.gbl.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -15,44 +15,46 @@ import static org.mockito.Mockito.when;
 import org.junit.Test;
 import org.springframework.core.env.Environment;
 
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
-
-public class ClientCredentialServiceTest {
-
-//    @Test
-//    public void testEncryptSimpleSecret() {
-//        final Environment envMock = mock(Environment.class);
-//        when(envMock.getProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
-//                .thenReturn("internalSecret");
-//
-//        final Cryptor cryptor = new Cryptor(envMock);
-//
-//        final CharSequence encrypt = cryptor.encrypt("testVDI");
-//        assertEquals("", encrypt.toString());
-//    }
+public class CryptorTest {
 
     @Test
-    public void testEncryptDecryptClientCredentials() {
-        final Environment envMock = mock(Environment.class);
-        when(envMock.getRequiredProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
-                .thenReturn("secret1");
-
-        final Cryptor cryptor = new Cryptor(envMock);
-
+    public void testEncryptDecrypt() {
         final String clientName = "simpleClientName";
-
-        final ClientCredentialServiceImpl service = new ClientCredentialServiceImpl(envMock, cryptor);
         String encrypted =
-                cryptor.encrypt(clientName, "secret1").toString();
-        String decrypted = cryptor.decrypt(encrypted, "secret1").toString();
+                Cryptor.encrypt(clientName, "secret1").toString();
+        String decrypted = Cryptor.decrypt(encrypted, "secret1").toString();
 
         assertEquals(clientName, decrypted);
 
         final String clientSecret = "fbjreij39ru29305ruà££àèLöäöäü65%(/%(ç87";
 
         encrypted =
-                cryptor.encrypt(clientSecret, "secret1").toString();
-        decrypted = cryptor.decrypt(encrypted, "secret1").toString();
+                Cryptor.encrypt(clientSecret, "secret1").toString();
+        decrypted = Cryptor.decrypt(encrypted, "secret1").toString();
+
+        assertEquals(clientSecret, decrypted);
+    }
+
+    @Test
+    public void testEncryptDecryptService() {
+        final Environment envMock = mock(Environment.class);
+        when(envMock.getRequiredProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
+                .thenReturn("secret1");
+
+        final Cryptor cryptor = new Cryptor(envMock);
+        final String clientName = "simpleClientName";
+
+        String encrypted =
+                cryptor.encrypt(clientName).toString();
+        String decrypted = cryptor.decrypt(encrypted).toString();
+
+        assertEquals(clientName, decrypted);
+
+        final String clientSecret = "fbjreij39ru29305ruà££àèLöäöäü65%(/%(ç87";
+
+        encrypted =
+                cryptor.encrypt(clientSecret).toString();
+        decrypted = cryptor.decrypt(encrypted).toString();
 
         assertEquals(clientSecret, decrypted);
     }
