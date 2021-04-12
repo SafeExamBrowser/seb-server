@@ -1,7 +1,7 @@
 Master: 
 
-![build] https://github.com/SafeExamBrowser/seb-server/actions/workflows/buildReporting_Java8.yml/badge.svg?branch=master
-
+.. image:: https://github.com/SafeExamBrowser/seb-server/actions/workflows/buildReporting_Java8.yml/badge.svg?branch=master
+    :target: https://github.com/SafeExamBrowser/seb-server/actions
 .. image:: https://readthedocs.org/projects/seb-server/badge/?version=latest
     :target: https://seb-server.readthedocs.io/en/latest/?badge=latest
 .. image:: https://codecov.io/gh/SafeExamBrowser/seb-server/branch/master/graph/badge.svg
