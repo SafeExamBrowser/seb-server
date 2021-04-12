@@ -8,5 +8,8 @@ coverage:
         threshold: 5%
     patch: off
   
+github_checks:
+    annotations: false
+    
 fixes:
   -"::seb-server/"
