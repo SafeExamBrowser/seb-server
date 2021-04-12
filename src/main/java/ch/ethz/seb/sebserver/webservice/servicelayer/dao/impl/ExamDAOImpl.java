@@ -941,7 +941,7 @@ public class ExamDAOImpl implements ExamDAO {
                     }
                 }
             } catch (final Exception e) {
-                log.warn("Failed to try to recover from Moodle quiz restore: ", e.getMessage());
+                log.warn("Failed to try to recover from Moodle quiz restore: {}", e.getMessage());
             }
             return null;
         }

@@ -62,6 +62,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.DisposedOAuth2RestTemplateException;
 import ch.ethz.seb.sebserver.gui.service.session.IndicatorData.ThresholdColor;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -90,8 +91,7 @@ public final class ClientConnectionTable {
     private final static LocTextKey CONNECTION_STATUS_TOOLTIP_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.status" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
 
-    private final WidgetFactory widgetFactory;
-    private final ResourceService resourceService;
+    private final PageService pageService;
     private final AsyncRunner asyncRunner;
     private final Exam exam;
     private final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder;
@@ -124,11 +124,13 @@ public final class ClientConnectionTable {
             final Collection<Indicator> indicators,
             final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder) {
 
-        this.widgetFactory = pageService.getWidgetFactory();
-        this.resourceService = pageService.getResourceService();
+        this.pageService = pageService;
         this.asyncRunner = asyncRunner;
         this.exam = exam;
         this.restCallBuilder = restCallBuilder;
+
+        final WidgetFactory widgetFactory = pageService.getWidgetFactory();
+        final ResourceService resourceService = pageService.getResourceService();
 
         final Display display = tableRoot.getDisplay();
         this.colorData = new ColorData(display);
@@ -143,11 +145,11 @@ public final class ClientConnectionTable {
                 NUMBER_OF_NONE_INDICATOR_COLUMNS);
 
         this.localizedClientConnectionStatusNameFunction =
-                this.resourceService.localizedClientConnectionStatusNameFunction();
+                resourceService.localizedClientConnectionStatusNameFunction();
         this.statusFilter = EnumSet.noneOf(ConnectionStatus.class);
         loadStatusFilter();
 
-        this.table = this.widgetFactory.tableLocalized(tableRoot, SWT.MULTI | SWT.V_SCROLL);
+        this.table = widgetFactory.tableLocalized(tableRoot, SWT.MULTI | SWT.V_SCROLL);
         final GridLayout gridLayout = new GridLayout(3 + indicators.size(), false);
         gridLayout.horizontalSpacing = 100;
         gridLayout.marginWidth = 100;
@@ -161,20 +163,20 @@ public final class ClientConnectionTable {
         this.table.addListener(SWT.Selection, event -> this.notifySelectionChange());
         this.table.addListener(SWT.MouseUp, this::notifyTableInfoClick);
 
-        this.widgetFactory.tableColumnLocalized(
+        widgetFactory.tableColumnLocalized(
                 this.table,
                 CONNECTION_ID_TEXT_KEY,
                 CONNECTION_ID_TOOLTIP_TEXT_KEY);
-        this.widgetFactory.tableColumnLocalized(
+        widgetFactory.tableColumnLocalized(
                 this.table,
                 CONNECTION_ADDRESS_TEXT_KEY,
                 CONNECTION_ADDRESS_TOOLTIP_TEXT_KEY);
-        this.widgetFactory.tableColumnLocalized(
+        widgetFactory.tableColumnLocalized(
                 this.table,
                 CONNECTION_STATUS_TEXT_KEY,
                 CONNECTION_STATUS_TOOLTIP_TEXT_KEY);
         for (final Indicator indDef : indicators) {
-            final TableColumn tableColumn = this.widgetFactory.tableColumnLocalized(
+            final TableColumn tableColumn = widgetFactory.tableColumnLocalized(
                     this.table,
                     new LocTextKey(INDICATOR_NAME_TEXT_KEY_PREFIX + indDef.name),
                     new LocTextKey(INDICATOR_NAME_TEXT_KEY_PREFIX + indDef.type.name));
@@ -187,7 +189,7 @@ public final class ClientConnectionTable {
     }
 
     public WidgetFactory getWidgetFactory() {
-        return this.widgetFactory;
+        return this.pageService.getWidgetFactory();
     }
 
     public boolean isEmpty() {
@@ -325,7 +327,11 @@ public final class ClientConnectionTable {
         this.restCallBuilder
                 .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam)
                 .call()
-                .getOrThrow()
+                .get(error -> {
+                    log.error("Unexpected error while trying to get client connection table data: ", error);
+                    recoverFromDisposedRestTemplate(error);
+                    return Collections.emptyList();
+                })
                 .forEach(data -> {
                     final UpdatableTableItem tableItem = this.tableMapping.computeIfAbsent(
                             data.getConnectionId(),
@@ -425,7 +431,7 @@ public final class ClientConnectionTable {
 
     private void saveStatusFilter() {
         try {
-            this.resourceService
+            this.pageService
                     .getCurrentUser()
                     .putAttribute(
                             USER_SESSION_STATUS_FILTER_ATTRIBUTE,
@@ -440,7 +446,7 @@ public final class ClientConnectionTable {
 
     private void loadStatusFilter() {
         try {
-            final String attribute = this.resourceService
+            final String attribute = this.pageService
                     .getCurrentUser()
                     .getAttribute(USER_SESSION_STATUS_FILTER_ATTRIBUTE);
             this.statusFilter.clear();
@@ -705,6 +711,15 @@ public final class ClientConnectionTable {
             return ClientConnectionTable.this;
         }
 
+    }
+
+    public void recoverFromDisposedRestTemplate(final Exception error) {
+        if (log.isDebugEnabled()) {
+            log.debug("Try to recover from disposed OAuth2 rest template...");
+        }
+        if (error instanceof DisposedOAuth2RestTemplateException) {
+            this.pageService.getRestService().injectCurrentRestTemplate(this.restCallBuilder);
+        }
     }
 
 }

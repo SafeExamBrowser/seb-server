@@ -132,7 +132,7 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
             if (this.enabled) {
                 return super.doExecute(url, method, requestCallback, responseExtractor);
             } else {
-                throw new IllegalStateException(
+                throw new DisposedOAuth2RestTemplateException(
                         "Error: Forbidden execution call on disabled DisposableOAuth2RestTemplate");
             }
         }

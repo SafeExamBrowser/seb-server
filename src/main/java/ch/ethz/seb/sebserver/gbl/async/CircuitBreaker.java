@@ -174,7 +174,7 @@ public final class CircuitBreaker<T> {
                 this.state = State.HALF_OPEN;
                 this.failingCount.set(0);
                 return Result.ofError(new RuntimeException(
-                        "Set CircuitBeaker to half-open state. Cause: ",
+                        "Set CircuitBeaker to half-open state. Cause: " + result.getError().getMessage(),
                         result.getError()));
             } else {
                 // try again
@@ -204,7 +204,7 @@ public final class CircuitBreaker<T> {
 
             this.state = State.OPEN;
             return Result.ofError(new RuntimeException(
-                    "Set CircuitBeaker to open state. Cause: ",
+                    "Set CircuitBeaker to open state. Cause: " + result.getError().getMessage(),
                     result.getError()));
         } else {
             // on success go to CLOSED state
