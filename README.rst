@@ -2,6 +2,7 @@ Master:
 
 .. image:: https://github.com/SafeExamBrowser/seb-server/actions/workflows/buildReporting_Java11.yml/badge.svg?branch=master
     :target: https://github.com/SafeExamBrowser/seb-server/actions
+    :alt: build
 .. image:: https://readthedocs.org/projects/seb-server/badge/?version=latest
     :target: https://seb-server.readthedocs.io/en/latest/?badge=latest
 .. image:: https://codecov.io/gh/SafeExamBrowser/seb-server/branch/master/graph/badge.svg
