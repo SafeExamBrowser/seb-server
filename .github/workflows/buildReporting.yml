@@ -1,15 +1,13 @@
 # This workflow will build a Java project with Maven
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: Java CI with Maven
+name: build
 
 on:
   push:
-    branches: [main, development]
+    branches: [master, development]
   pull_request:
-    branches: [main, development]
-  workflow_dispatch:
-  
+    branches: [master, development]
 
 jobs:
   build:
@@ -25,3 +23,9 @@ jobs:
         distribution: 'adopt'
     - name: Build with Maven
       run: mvn clean install -e -P let_reporting
+    - uses: codecov/codecov-action@v1
+      with:
+        flags: unittests # optional
+        name: SEB Server Build # optional
+        fail_ci_if_error: false # optional (default = false)
+        verbose: false # optional (default = false)
