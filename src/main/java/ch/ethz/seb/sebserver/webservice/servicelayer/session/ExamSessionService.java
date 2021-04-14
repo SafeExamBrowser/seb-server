@@ -128,9 +128,13 @@ public interface ExamSessionService {
 
     /** Streams the default SEB Exam Configuration to a ClientConnection with given connectionToken.
      *
+     * @param institutionId the Institution identifier
      * @param connectionToken The connection token that identifiers the ClientConnection
      * @param out The OutputStream to stream the data to */
-    void streamDefaultExamConfig(String connectionToken, OutputStream out);
+    void streamDefaultExamConfig(
+            Long institutionId,
+            String connectionToken,
+            OutputStream out);
 
     /** Get current ClientConnectionData for a specified active SEB client connection.
      *

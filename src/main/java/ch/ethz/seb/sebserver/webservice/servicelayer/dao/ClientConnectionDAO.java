@@ -144,6 +144,12 @@ public interface ClientConnectionDAO extends
      * @return Result refer to the active connection flag or to an error when happened */
     Result<Boolean> isActiveConnection(Long examId, String connectionToken);
 
+    /** Use this to check whether a single ClientConnection is up to date or needs a refresh.
+     *
+     * @param clientConnection the actual ClientConnection (from the internal cache)
+     * @return Result refer to true if the given ClientConnection is up to date */
+    Result<Boolean> isUpToDate(ClientConnection clientConnection);
+
     /** Filters a set of client connection tokens to a set containing only
      * connection tokens of active client connections.
      *

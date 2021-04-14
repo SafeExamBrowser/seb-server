@@ -282,6 +282,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public void streamDefaultExamConfig(
+            final Long institutionId,
             final String connectionToken,
             final OutputStream out) {
 
@@ -289,15 +290,16 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             log.debug("SEB exam configuration download request, connectionToken: {}", connectionToken);
         }
 
-        final ClientConnection connection = this.clientConnectionDAO
-                .byConnectionToken(connectionToken)
+        final ClientConnectionData clientConnectionData = this.getConnectionData(connectionToken)
                 .getOrThrow();
 
-        if (connection == null) {
+        if (clientConnectionData == null || clientConnectionData.clientConnection == null) {
             log.warn("SEB exam configuration download request, no active ClientConnection found for token: {}",
                     connectionToken);
             throw new AccessDeniedException("Illegal connection token. No active ClientConnection found for token");
         }
+
+        final ClientConnection connection = clientConnectionData.clientConnection;
 
         // exam integrity check
         if (connection.examId == null || !isExamRunning(connection.examId)) {
@@ -309,11 +311,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             log.debug("Trying to get exam from InMemorySEBConfig");
         }
 
-        final Exam exam = this.getRunningExam(connection.examId)
-                .getOrThrow();
-
         final InMemorySEBConfig sebConfigForExam = this.examSessionCacheService
-                .getDefaultSEBConfigForExam(exam);
+                .getDefaultSEBConfigForExam(connection.examId, institutionId);
 
         if (sebConfigForExam == null) {
             log.error("Failed to get and cache InMemorySEBConfig for connection: {}", connection);
@@ -341,13 +340,26 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     public Result<ClientConnectionData> getConnectionData(final String connectionToken) {
 
         return Result.tryCatch(() -> {
+
             final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
                     .getClientConnection(connectionToken);
             if (activeClientConnection == null) {
                 throw new NoSuchElementException("Client Connection with token: " + connectionToken);
             }
 
+            if (this.distributedSetup) {
+
+                final Boolean upToDate = this.clientConnectionDAO
+                        .isUpToDate(activeClientConnection.clientConnection)
+                        .getOr(false);
+                if (!upToDate) {
+                    this.examSessionCacheService.evictClientConnection(connectionToken);
+                    return this.examSessionCacheService.getClientConnection(connectionToken);
+                }
+            }
+
             return activeClientConnection;
+
         });
     }
 
@@ -359,7 +371,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         if (this.distributedSetup) {
 
             // if we run in distributed mode, we have to get the connection tokens of the exam
-            // always form the persistent storage and update the client connection cache
+            // always from the persistent storage and update the client connection cache
             // before by remove out-dated client connection. This is done within the update_time
             // of the client connection record that is set on every update in the persistent
             // storage. So if the update_time of the cached client connection doesen't match the
@@ -415,7 +427,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     public Result<Exam> flushCache(final Exam exam) {
         return Result.tryCatch(() -> {
             this.examSessionCacheService.evict(exam);
-            this.examSessionCacheService.evictDefaultSEBConfig(exam);
+            this.examSessionCacheService.evictDefaultSEBConfig(exam.id);
             this.clientConnectionDAO
                     .getConnectionTokens(exam.id)
                     .getOrElse(Collections::emptyList)
