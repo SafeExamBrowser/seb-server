@@ -486,6 +486,23 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    public Result<Boolean> isUpToDate(final ClientConnection clientConnection) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+                .selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.connectionToken,
+                        SqlBuilder.isEqualTo(clientConnection.connectionToken))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.updateTime,
+                        SqlBuilder.isEqualTo(clientConnection.updateTime))
+                .build()
+                .execute()
+                .stream()
+                .findFirst()
+                .isPresent());
+    }
+
+    @Override
     public Result<Set<String>> filterActive(final Long examId, final Set<String> connectionToken) {
         if (connectionToken == null || connectionToken.isEmpty()) {
             return Result.ofRuntimeError("Null or empty set reference");

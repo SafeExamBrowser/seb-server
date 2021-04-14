@@ -44,7 +44,6 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -340,12 +339,13 @@ public class ExamAPI_V1_Controller {
             final Principal principal,
             final HttpServletResponse response) {
 
+        final Long institutionId = getInstitutionId(principal);
+
         try {
 
             // if an examId is provided with the request, update the connection first
             if (formParams != null && formParams.containsKey(API.EXAM_API_PARAM_EXAM_ID)) {
                 final String examId = formParams.getFirst(API.EXAM_API_PARAM_EXAM_ID);
-                final Long institutionId = getInstitutionId(principal);
                 final ClientConnection connection = this.sebClientConnectionService.updateClientConnection(
                         connectionToken,
                         institutionId,
@@ -361,36 +361,37 @@ public class ExamAPI_V1_Controller {
 
             final ServletOutputStream outputStream = response.getOutputStream();
 
-            try {
-
-                final ClientConnectionData connection = this.examSessionService
-                        .getConnectionData(connectionToken)
-                        .getOrThrow();
-
-                // exam integrity check
-                if (connection.clientConnection.examId == null ||
-                        !this.examSessionService.isExamRunning(connection.clientConnection.examId)) {
-
-                    log.error("Missing exam identifier or requested exam is not running for connection: {}",
-                            connection);
-                    throw new IllegalStateException("Missing exam identifier or requested exam is not running");
-                }
-            } catch (final Exception e) {
-
-                log.error("Unexpected error: ", e);
-
-                final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
-                outputStream.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
-                response.setStatus(HttpStatus.BAD_REQUEST.value());
-                outputStream.flush();
-                outputStream.close();
-                return;
-            }
+//            try {
+//
+//                final ClientConnectionData connection = this.examSessionService
+//                        .getConnectionData(connectionToken)
+//                        .getOrThrow();
+//
+//                // exam integrity check
+//                if (connection.clientConnection.examId == null ||
+//                        !this.examSessionService.isExamRunning(connection.clientConnection.examId)) {
+//
+//                    log.error("Missing exam identifier or requested exam is not running for connection: {}",
+//                            connection);
+//                    throw new IllegalStateException("Missing exam identifier or requested exam is not running");
+//                }
+//            } catch (final Exception e) {
+//
+//                log.error("Unexpected error: ", e);
+//
+//                final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
+//                outputStream.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
+//                response.setStatus(HttpStatus.BAD_REQUEST.value());
+//                outputStream.flush();
+//                outputStream.close();
+//                return;
+//            }
 
             try {
 
                 this.examSessionService
                         .streamDefaultExamConfig(
+                                institutionId,
                                 connectionToken,
                                 outputStream);
 

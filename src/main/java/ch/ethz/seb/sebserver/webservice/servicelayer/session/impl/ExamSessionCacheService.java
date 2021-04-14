@@ -174,31 +174,31 @@ public class ExamSessionCacheService {
 
     @Cacheable(
             cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
-            key = "#exam.id",
+            key = "#examId",
             sync = true)
-    public InMemorySEBConfig getDefaultSEBConfigForExam(final Exam exam) {
+    public InMemorySEBConfig getDefaultSEBConfigForExam(final Long examId, final Long institutionId) {
         try {
 
             final ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
             final Long configId = this.sebExamConfigService.exportForExam(
                     byteOut,
-                    exam.institutionId,
-                    exam.id);
+                    institutionId,
+                    examId);
 
-            return new InMemorySEBConfig(configId, exam.id, byteOut.toByteArray());
+            return new InMemorySEBConfig(configId, examId, byteOut.toByteArray());
 
         } catch (final Exception e) {
-            log.error("Unexpected error while getting default exam configuration for running exam; {}", exam, e);
+            log.error("Unexpected error while getting default exam configuration for running exam; {}", examId, e);
             throw e;
         }
     }
 
     @CacheEvict(
             cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
-            key = "#exam.id")
-    public void evictDefaultSEBConfig(final Exam exam) {
+            key = "#examId")
+    public void evictDefaultSEBConfig(final Long examId) {
         if (log.isDebugEnabled()) {
-            log.debug("Eviction of default SEB Configuration from cache for exam: {}", exam.id);
+            log.debug("Eviction of default SEB Configuration from cache for exam: {}", examId);
         }
     }
 
