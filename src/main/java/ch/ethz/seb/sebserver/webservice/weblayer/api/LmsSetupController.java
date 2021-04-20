@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -122,6 +123,14 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
 
     @Override
     protected LmsSetup createNew(final POSTMapper postParams) {
+
+        final Long institutionId = postParams.getLong(
+                Domain.LMS_SETUP.ATTR_INSTITUTION_ID);
+
+        if (institutionId == null) {
+            throw new APIConstraintViolationException("Institution identifier is missing");
+        }
+
         return new LmsSetup(null, postParams);
     }
 
