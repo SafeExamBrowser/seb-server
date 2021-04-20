@@ -284,8 +284,8 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             final HttpServletRequest request) {
 
-        // check modify privilege for requested institution and concrete entityType
-        this.checkModifyPrivilege(institutionId);
+        // check write privilege for requested institution and concrete entityType
+        this.checkWritePrivilege(institutionId);
 
         final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
                 .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
