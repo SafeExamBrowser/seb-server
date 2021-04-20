@@ -8,10 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
@@ -141,17 +139,18 @@ public class ExamMonitoringController {
             filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
         }
 
-        final List<Exam> exams = new ArrayList<>(this.examSessionService
+        final Collection<Exam> exams = this.examSessionService
                 .getFilteredRunningExams(
                         filterMap,
                         exam -> this.hasRunningExamPrivilege(exam, institutionId))
-                .getOrThrow());
+                .getOrThrow();
 
-        return ExamAdministrationController.buildSortedExamPage(
-                this.paginationService.getPageNumber(pageNumber),
-                this.paginationService.getPageSize(pageSize),
+        return this.paginationService.buildPageFromList(
+                pageNumber,
+                pageSize,
                 sort,
-                exams);
+                exams,
+                ExamAdministrationController.pageSort(sort));
     }
 
     @RequestMapping(

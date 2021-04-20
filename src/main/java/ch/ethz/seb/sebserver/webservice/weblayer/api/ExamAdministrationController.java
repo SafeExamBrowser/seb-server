@@ -9,12 +9,12 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletOutputStream;
@@ -158,16 +158,19 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     EntityType.EXAM,
                     institutionId);
 
-            final List<Exam> exams = new ArrayList<>(
-                    this.examDAO
-                            .allMatching(new FilterMap(allRequestParams, request.getQueryString()), this::hasReadAccess)
-                            .getOrThrow());
+            final Collection<Exam> exams = this.examDAO
+                    .allMatching(new FilterMap(
+                            allRequestParams,
+                            request.getQueryString()),
+                            this::hasReadAccess)
+                    .getOrThrow();
 
-            return buildSortedExamPage(
-                    this.paginationService.getPageNumber(pageNumber),
-                    this.paginationService.getPageSize(pageSize),
+            return this.paginationService.buildPageFromList(
+                    pageNumber,
+                    pageSize,
                     sort,
-                    exams);
+                    exams,
+                    pageSort(sort));
         }
     }
 
@@ -543,39 +546,30 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         }
     }
 
-    public static Page<Exam> buildSortedExamPage(
-            final Integer pageNumber,
-            final Integer pageSize,
-            final String sort,
-            final List<Exam> exams) {
+    static Function<Collection<Exam>, List<Exam>> pageSort(final String sort) {
 
-        if (!StringUtils.isBlank(sort)) {
-            final String sortBy = PageSortOrder.decode(sort);
+        final String sortBy = PageSortOrder.decode(sort);
+        return exams -> {
+            final List<Exam> list = exams.stream().collect(Collectors.toList());
+            if (StringUtils.isBlank(sort)) {
+                return list;
+            }
+
             if (sortBy.equals(Exam.FILTER_ATTR_NAME)) {
-                exams.sort(Comparator.comparing(exam -> exam.name));
+                list.sort(Comparator.comparing(exam -> exam.name));
             }
             if (sortBy.equals(Exam.FILTER_ATTR_TYPE)) {
-                exams.sort(Comparator.comparing(exam -> exam.type));
+                list.sort(Comparator.comparing(exam -> exam.type));
             }
             if (sortBy.equals(QuizData.FILTER_ATTR_START_TIME)) {
-                exams.sort(Comparator.comparing(exam -> exam.startTime));
+                list.sort(Comparator.comparing(exam -> exam.startTime));
             }
-        }
 
-        if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
-            Collections.reverse(exams);
-        }
-
-        final int start = (pageNumber - 1) * pageSize;
-        int end = start + pageSize;
-        if (exams.size() < end) {
-            end = exams.size();
-        }
-        return new Page<>(
-                exams.size() / pageSize,
-                pageNumber,
-                sort,
-                exams.subList(start, end));
+            if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
+                Collections.reverse(list);
+            }
+            return list;
+        };
     }
 
 }

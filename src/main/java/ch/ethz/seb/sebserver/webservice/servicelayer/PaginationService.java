@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.mybatis.dynamic.sql.SqlTable;
@@ -61,7 +63,7 @@ public interface PaginationService {
      * So we recommend to apply as much of the filtering as possible on the SQL level and only if necessary and
      * not avoidable, apply a additional filter on software-level that eventually filter one or two entities
      * for a page.
-     * 
+     *
      * @param pageNumber the current page number
      * @param pageSize the (full) size of the page
      * @param sort the name of the sort column with a leading '-' for descending sort order
@@ -74,5 +76,37 @@ public interface PaginationService {
             final String sort,
             final String tableName,
             final Supplier<Result<Collection<T>>> delegate);
+
+    /** Use this to build a current Page from a given list of objects.
+     *
+     * @param <T> the Type if list entities
+     * @param pageNumber the number of the current page
+     * @param pageSize the size of a page
+     * @param sort the page sort flag
+     * @param all list of all entities, unsorted
+     * @param sorter a sorter function that sorts the list for specific type of entries
+     * @return current page of objects from the sorted list of entities */
+    default <T> Page<T> buildPageFromList(
+            final Integer pageNumber,
+            final Integer pageSize,
+            final String sort,
+            final Collection<T> all,
+            final Function<Collection<T>, List<T>> sorter) {
+
+        final List<T> sorted = sorter.apply(all);
+        final int _pageNumber = getPageNumber(pageNumber);
+        final int _pageSize = getPageSize(pageSize);
+        final int start = (_pageNumber - 1) * _pageSize;
+        int end = start + _pageSize;
+        if (sorted.size() < end) {
+            end = sorted.size();
+        }
+
+        return new Page<>(
+                sorted.size() / _pageSize,
+                _pageNumber,
+                sort,
+                sorted.subList(start, end));
+    }
 
 }
