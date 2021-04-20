@@ -546,10 +546,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             return Result.of(result);
 
         } catch (final Exception e) {
-            // NOTE: It seems that this has to be manually closed on error case
-            //       We expected that this is closed by the API but if this manual close is been left
-            //       some left-overs will affect strange behavior.
-            //       TODO: find a better solution for this
             IOUtils.closeQuietly(inputStream);
             return Result.ofError(e);
         }
