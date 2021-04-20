@@ -124,15 +124,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     public Result<Institution> save(final Institution institution) {
         return Result.tryCatch(() -> {
 
-            final Long count = this.institutionRecordMapper.countByExample()
-                    .where(InstitutionRecordDynamicSqlSupport.name, isEqualTo(institution.name))
-                    .and(InstitutionRecordDynamicSqlSupport.id, isNotEqualTo(institution.id))
-                    .build()
-                    .execute();
-
-            if (count != null && count > 0) {
-                throw new FieldValidationException("name", "institution:name:exists");
-            }
+            checkUniqueName(institution);
 
             final InstitutionRecord newRecord = new InstitutionRecord(
                     institution.id,
@@ -154,14 +146,7 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     public Result<Institution> createNew(final Institution institution) {
         return Result.tryCatch(() -> {
 
-            final Long count = this.institutionRecordMapper.countByExample()
-                    .where(InstitutionRecordDynamicSqlSupport.name, isEqualTo(institution.name))
-                    .build()
-                    .execute();
-
-            if (count != null && count > 0) {
-                throw new FieldValidationException("name", "institution:name:exists");
-            }
+            checkUniqueName(institution);
 
             final InstitutionRecord newRecord = new InstitutionRecord(
                     null,
@@ -270,5 +255,17 @@ public class InstitutionDAOImpl implements InstitutionDAO {
                 record.getLogoImage(),
                 record.getThemeName(),
                 BooleanUtils.toBooleanObject(record.getActive())));
+    }
+
+    private void checkUniqueName(final Institution institution) {
+        final Long count = this.institutionRecordMapper.countByExample()
+                .where(InstitutionRecordDynamicSqlSupport.name, isEqualTo(institution.name))
+                .and(InstitutionRecordDynamicSqlSupport.id, isNotEqualToWhenPresent(institution.id))
+                .build()
+                .execute();
+
+        if (count != null && count > 0) {
+            throw new FieldValidationException("name", "institution:name:exists");
+        }
     }
 }
