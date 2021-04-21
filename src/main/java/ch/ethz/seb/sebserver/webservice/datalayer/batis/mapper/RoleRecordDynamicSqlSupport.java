@@ -6,19 +6,19 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class RoleRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.839+01:00", comments="Source Table: user_role")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-15T12:53:55.752+02:00", comments="Source Table: user_role")
     public static final RoleRecord roleRecord = new RoleRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.839+01:00", comments="Source field: user_role.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-15T12:53:55.752+02:00", comments="Source field: user_role.id")
     public static final SqlColumn<Long> id = roleRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.839+01:00", comments="Source field: user_role.user_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-15T12:53:55.752+02:00", comments="Source field: user_role.user_id")
     public static final SqlColumn<Long> userId = roleRecord.userId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.839+01:00", comments="Source field: user_role.role_name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-15T12:53:55.752+02:00", comments="Source field: user_role.role_name")
     public static final SqlColumn<String> roleName = roleRecord.roleName;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-03-11T14:43:22.839+01:00", comments="Source Table: user_role")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-15T12:53:55.752+02:00", comments="Source Table: user_role")
     public static final class RoleRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 

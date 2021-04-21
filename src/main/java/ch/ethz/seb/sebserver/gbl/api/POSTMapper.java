@@ -92,6 +92,25 @@ public class POSTMapper {
         return value.toCharArray();
     }
 
+    public byte[] getBinary(final String name) {
+        final String value = getString(name);
+        if (value == null || value.length() <= 0) {
+            return null;
+        }
+
+        Utils.toByteArray(value);
+        return null;
+    }
+
+    public byte[] getBinaryFromBase64(final String name) {
+        final String value = getString(name);
+        if (value == null || value.length() <= 0) {
+            return null;
+        }
+
+        return null;
+    }
+
     public CharSequence getCharSequence(final String name) {
         return CharBuffer.wrap(getCharArray(name));
     }

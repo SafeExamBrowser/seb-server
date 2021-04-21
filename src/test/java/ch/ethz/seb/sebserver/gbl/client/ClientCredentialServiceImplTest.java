@@ -23,11 +23,11 @@ public class ClientCredentialServiceImplTest {
     @Test
     public void testGeneratedClientCredentials() {
         final Environment envMock = mock(Environment.class);
-        when(envMock.getRequiredProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
+        when(envMock.getRequiredProperty("sebserver.webservice.internalSecret"))
                 .thenReturn("secret1");
 
         final Cryptor cryptor = new Cryptor(envMock);
-        final ClientCredentialServiceImpl service = new ClientCredentialServiceImpl(envMock, cryptor);
+        final ClientCredentialServiceImpl service = new ClientCredentialServiceImpl(cryptor);
 
         final Result<ClientCredentials> clientCredentialsResult = service.generatedClientCredentials();
         assertTrue(clientCredentialsResult.hasValue());

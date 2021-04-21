@@ -38,7 +38,7 @@ public class CryptorTest {
     @Test
     public void testEncryptDecryptService() {
         final Environment envMock = mock(Environment.class);
-        when(envMock.getRequiredProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY))
+        when(envMock.getRequiredProperty("sebserver.webservice.internalSecret"))
                 .thenReturn("secret1");
 
         final Cryptor cryptor = new Cryptor(envMock);

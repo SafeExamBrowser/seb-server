@@ -8,6 +8,12 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import org.bouncycastle.jcajce.provider.keystore.pkcs12.PKCS12KeyStoreSpi;
+import org.bouncycastle.jcajce.provider.keystore.pkcs12.PKCS12KeyStoreSpi.BCPKCS12KeyStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -22,28 +28,40 @@ public class Cryptor {
 
     private static final Logger log = LoggerFactory.getLogger(Cryptor.class);
 
-    public static final String SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY = "sebserver.webservice.internalSecret";
-
-    private final Environment environment;
+    private final CharSequence internalPWD;
 
     public Cryptor(final Environment environment) {
-        this.environment = environment;
+        this.internalPWD = environment.getProperty("sebserver.webservice.internalSecret");
     }
 
     public CharSequence encrypt(final CharSequence text) {
-
-        final CharSequence secret = this.environment
-                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-
-        return encrypt(text, secret);
+        return encrypt(text, this.internalPWD);
     }
 
     public CharSequence decrypt(final CharSequence text) {
+        return decrypt(text, this.internalPWD);
+    }
 
-        final CharSequence secret = this.environment
-                .getProperty(SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
+    public Result<PKCS12KeyStoreSpi> createNewEmptyKeyStore() {
+        return loadKeyStore(null);
+    }
 
-        return decrypt(text, secret);
+    public Result<PKCS12KeyStoreSpi> loadKeyStore(final InputStream in) {
+        return Result.tryCatch(() -> {
+            final BCPKCS12KeyStore bcpkcs12KeyStore = new BCPKCS12KeyStore();
+            bcpkcs12KeyStore.engineLoad(in, Utils.toCharArray(this.internalPWD));
+            return bcpkcs12KeyStore;
+        });
+    }
+
+    public Result<Void> storeKeyStore(final PKCS12KeyStoreSpi keyStore, final OutputStream out) {
+        try {
+            keyStore.engineStore(out, Utils.toCharArray(this.internalPWD));
+            return Result.EMPTY;
+        } catch (final IOException e) {
+            log.error("Failed to store KeyStore: ", e);
+            return Result.ofError(e);
+        }
     }
 
     public static CharSequence encrypt(final CharSequence text, final CharSequence secret) {

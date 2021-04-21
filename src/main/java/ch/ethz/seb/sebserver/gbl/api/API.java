@@ -198,4 +198,9 @@ public final class API {
     public static final String SEB_CLIENT_EVENT_EXTENDED_PAGE_ENDPOINT = SEB_CLIENT_EVENT_ENDPOINT
             + SEB_CLIENT_EVENT_SEARCH_PATH_SEGMENT;
 
+    public static final String CERTIFICATE_ENDPOINT = "/certificate";
+    public static final String CERTIFICATE_ALIAS = "alias";
+    public static final String CERTIFICATE_FILE_TYPE = "fileType";
+    public static final String CERTIFICATE_PASSWORD_ATTR_NAME = "certPassword";
+
 }

@@ -16,7 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
@@ -28,14 +27,9 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
 
     private static final Logger log = LoggerFactory.getLogger(ClientCredentialServiceImpl.class);
 
-    private final Environment environment;
     private final Cryptor cryptor;
 
-    protected ClientCredentialServiceImpl(
-            final Environment environment,
-            final Cryptor cryptor) {
-
-        this.environment = environment;
+    protected ClientCredentialServiceImpl(final Cryptor cryptor) {
         this.cryptor = cryptor;
     }
 
@@ -61,16 +55,13 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
             final CharSequence secretPlaintext,
             final CharSequence accessTokenPlaintext) {
 
-        final CharSequence secret = this.environment
-                .getProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-
         return new ClientCredentials(
                 clientIdPlaintext,
                 (StringUtils.isNoneBlank(secretPlaintext))
-                        ? Cryptor.encrypt(secretPlaintext, secret).toString()
+                        ? this.cryptor.encrypt(secretPlaintext).toString()
                         : null,
                 (StringUtils.isNoneBlank(accessTokenPlaintext))
-                        ? Cryptor.encrypt(accessTokenPlaintext, secret).toString()
+                        ? this.cryptor.encrypt(accessTokenPlaintext).toString()
                         : null);
     }
 
@@ -80,9 +71,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
             return null;
         }
 
-        final CharSequence secret = this.environment
-                .getProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-        return Cryptor.decrypt(credentials.secret, secret);
+        return this.cryptor.decrypt(credentials.secret);
     }
 
     @Override
@@ -91,10 +80,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
             return null;
         }
 
-        final CharSequence secret = this.environment
-                .getProperty(Cryptor.SEBSERVER_WEBSERVICE_INTERNAL_SECRET_KEY);
-
-        return Cryptor.decrypt(credentials.accessToken, secret);
+        return this.cryptor.decrypt(credentials.accessToken);
     }
 
     @Override

@@ -274,6 +274,20 @@ public final class Result<T> {
         return this;
     }
 
+    public Result<T> onErrorDo(final Function<Exception, T> errorHandler) {
+        if (this.error != null) {
+            return new Result<>(errorHandler.apply(this.error));
+        }
+        return this;
+    }
+
+    public Result<T> onErrorDo(final Function<Exception, T> errorHandler, final Class<? extends Exception> errorType) {
+        if (this.error != null && errorType.isAssignableFrom(this.error.getClass())) {
+            return new Result<>(errorHandler.apply(this.error));
+        }
+        return this;
+    }
+
     /** Use this to create a Result of a given resulting value.
      *
      * @param value resulting value
