@@ -1,3 +1,4 @@
+#!/bin/sh
 if [ "x${JMX_PORT}" = "x" ] ; \
     then exec java \
         -Xms${JAVA_HEAP_MIN} \
