@@ -13,6 +13,12 @@ COPY docker/start-sebserver.sh seb-server.jar /sebserver/
 
 WORKDIR /sebserver
 
-CMD /bin/sh /sebserver/start-sebserver.sh
+#CMD /bin/sh /sebserver/start-sebserver.sh
+
+CMD exec java \
+    -Xms${JAVA_HEAP_MIN} \
+    -Xmx${JAVA_HEAP_MAX} \
+    -jar "seb-server.jar" \
+    --spring.config.location=file:/sebserver/config/spring/,classpath:/config/;
 
 EXPOSE $SERVER_PORT $JMX_PORT
