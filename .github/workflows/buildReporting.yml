@@ -8,6 +8,8 @@ on:
     branches: [master, development, docker-setup]
   pull_request:
     branches: [master, development, docker-setup]
+  tags:
+    - v*
 
 jobs:
   maven-build:
