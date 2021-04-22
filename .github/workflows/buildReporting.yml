@@ -40,7 +40,7 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
     -
       name: Build with Maven
-      run: mvn clean install -e -P let_reporting -Dbuild-version="${{ env.SHA }}"
+      run: mvn clean install -e -P let_reporting -Dsebserver-version="${{ env.SHA }}"
       env: 
          sebserver-version: ${{ env.SHA }}
     -
@@ -61,6 +61,7 @@ jobs:
         path: target/seb-server.jar
 
   docker-build:
+    needs: maven-build
     # Run only on tagging
     # if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
