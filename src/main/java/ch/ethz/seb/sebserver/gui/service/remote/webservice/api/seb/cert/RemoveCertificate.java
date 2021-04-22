@@ -29,7 +29,7 @@ public class RemoveCertificate extends RestCall<Void> {
         super(new TypeKey<>(
                 CallType.GET_SINGLE,
                 EntityType.CERTIFICATE,
-                new TypeReference<>() {
+                new TypeReference<Void>() {
                 }),
                 HttpMethod.GET,
                 MediaType.APPLICATION_FORM_URLENCODED,
