@@ -6,8 +6,6 @@ name: build
 on:
   push:
     branches: [master, development, docker-setup]
-    tags:
-    - '*'
   pull_request:
     branches: [master, development, docker-setup]
 
