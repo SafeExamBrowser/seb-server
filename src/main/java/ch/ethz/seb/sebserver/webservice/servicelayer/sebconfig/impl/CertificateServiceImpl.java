@@ -9,8 +9,11 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
 import java.io.InputStream;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -18,8 +21,8 @@ import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateData;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateData.CertificateFileType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateFileType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -39,7 +42,7 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     @Override
-    public Result<CertificateData> getCertificateData(final Long institutionId, final String alias) {
+    public Result<CertificateInfo> getCertificateInfo(final Long institutionId, final String alias) {
 
         return this.certificateDAO
                 .getCertificates(institutionId)
@@ -47,7 +50,7 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     @Override
-    public Result<Collection<CertificateData>> getCertificateData(
+    public Result<Collection<CertificateInfo>> getCertificateInfo(
             final Long institutionId,
             final FilterMap filterMap) {
 
@@ -64,7 +67,7 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     @Override
-    public Result<CertificateData> addCertificate(
+    public Result<CertificateInfo> addCertificate(
             final Long institutionId,
             final CertificateFileType certificateFileType,
             final String alias,
@@ -83,13 +86,29 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     @Override
-    public Result<Collection<CertificateData>> toCertificateData(final Certificates certificates) {
+    public Result<Collection<CertificateInfo>> toCertificateInfo(final Certificates certificates) {
         return Result.tryCatch(() -> getDataFromCertificates(certificates));
     }
 
-    private Collection<CertificateData> getDataFromCertificates(
+    @Override
+    public Result<String> getBase64Encoded(final Long institutionId, final String alias) {
+        return this.certificateDAO
+                .getCertificates(institutionId)
+                .map(certs -> certs.keyStore.engineGetCertificate(alias))
+                .map(this::getBase64Encoded);
+    }
+
+    private String getBase64Encoded(final Certificate cert) {
+        try {
+            return Base64.getEncoder().encodeToString(cert.getEncoded());
+        } catch (final CertificateEncodingException e) {
+            throw new RuntimeException();
+        }
+    }
+
+    private Collection<CertificateInfo> getDataFromCertificates(
             final Certificates certificates,
-            final Predicate<CertificateData> predicate) {
+            final Predicate<CertificateInfo> predicate) {
 
         return certificates.aliases
                 .stream()
@@ -99,7 +118,7 @@ public class CertificateServiceImpl implements CertificateService {
                 .collect(Collectors.toList());
     }
 
-    private Collection<CertificateData> getDataFromCertificates(final Certificates certificates) {
+    private Collection<CertificateInfo> getDataFromCertificates(final Certificates certificates) {
         return getDataFromCertificates(certificates, data -> true);
     }
 

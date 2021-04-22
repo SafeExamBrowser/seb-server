@@ -20,17 +20,17 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CertificateData implements Entity {
+public class CertificateInfo implements Entity {
 
     public static enum CertificateType {
         UNKNOWN,
-        SSL_TLS,
-        CA,
-        IDENTITY
+        DIGITAL_SIGNATURE,
+        DATA_ENCIPHERMENT,
+        KEY_CERT_SIGN
     }
 
     public static enum CertificateFileType {
-        PEM("pem", "crt"),
+        PEM("pem", "crt", "cer"),
         PKCS12("p12", "pfx");
 
         private String[] extentions;
@@ -61,22 +61,17 @@ public class CertificateData implements Entity {
     @JsonProperty(ATTR_CERT_TYPE)
     public final EnumSet<CertificateType> types;
 
-    @JsonProperty(ATTR_CERT_BASE_64)
-    public final String certBase64;
-
     @JsonCreator
-    public CertificateData(
+    public CertificateInfo(
             @JsonProperty(ATTR_ALIAS) final String alias,
             @JsonProperty(ATTR_ALIAS) final DateTime validityFrom,
             @JsonProperty(ATTR_ALIAS) final DateTime validityTo,
-            @JsonProperty(ATTR_CERT_TYPE) final EnumSet<CertificateType> types,
-            @JsonProperty(ATTR_CERT_BASE_64) final String certBase64) {
+            @JsonProperty(ATTR_CERT_TYPE) final EnumSet<CertificateType> types) {
 
         this.alias = alias;
         this.validityFrom = validityFrom;
         this.validityTo = validityTo;
         this.types = types;
-        this.certBase64 = certBase64;
     }
 
     public String getAlias() {
@@ -93,10 +88,6 @@ public class CertificateData implements Entity {
 
     public EnumSet<CertificateType> getTypes() {
         return this.types;
-    }
-
-    public String getCertBase64() {
-        return this.certBase64;
     }
 
     @Override
@@ -130,7 +121,7 @@ public class CertificateData implements Entity {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final CertificateData other = (CertificateData) obj;
+        final CertificateInfo other = (CertificateInfo) obj;
         if (this.alias == null) {
             if (other.alias != null)
                 return false;

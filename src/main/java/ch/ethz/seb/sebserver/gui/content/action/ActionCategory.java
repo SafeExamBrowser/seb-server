@@ -25,7 +25,8 @@ public enum ActionCategory {
     SEB_CONFIG_TEMPLATE_LIST(new LocTextKey("sebserver.configtemplate.list.actions"), 1),
     SEB_CONFIG_TEMPLATE_ATTRIBUTE_LIST(new LocTextKey("sebserver.configtemplate.attr.list.actions"), 1),
     RUNNING_EXAM_LIST(new LocTextKey("sebserver.monitoring.exam.list.actions"), 1),
-    EXAM_MONITORING_NOTIFICATION_LIST(new LocTextKey("sebserver.monitoring.exam.connection.notificationlist.actions"),
+    EXAM_MONITORING_NOTIFICATION_LIST(new LocTextKey(
+            "sebserver.monitoring.exam.connection.notificationlist.actions"),
             1),
     CLIENT_EVENT_LIST(new LocTextKey("sebserver.monitoring.exam.connection.list.actions"), 1),
     LOGS_USER_ACTIVITY_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),

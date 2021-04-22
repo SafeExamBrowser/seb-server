@@ -612,6 +612,20 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
             ActionCategory.FORM),
 
+    SEB_CERTIFICATE_LIST(
+            new LocTextKey("sebserver.certificate.action.list"),
+            PageStateDefinitionImpl.SEB_CERTIFICATE_LIST),
+    SEB_CERTIFICATE_IMPORT(
+            new LocTextKey("sebserver.certificate.action.import"),
+            ImageIcon.IMPORT,
+            PageStateDefinitionImpl.SEB_CERTIFICATE_LIST,
+            ActionCategory.FORM),
+    SEB_CERTIFICATE_REMOVE(
+            new LocTextKey("sebserver.certificate.action.remove"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.SEB_CERTIFICATE_LIST,
+            ActionCategory.FORM),
+
     RUNNING_EXAM_VIEW_LIST(
             new LocTextKey("sebserver.monitoring.action.list"),
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM_LIST),

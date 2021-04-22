@@ -14,22 +14,22 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateData;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateData.CertificateFileType;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateData.CertificateType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateFileType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 
 public interface CertificateService {
 
-    Result<CertificateData> getCertificateData(Long institutionId, String alias);
+    Result<CertificateInfo> getCertificateInfo(Long institutionId, String alias);
 
-    Result<Collection<CertificateData>> getCertificateData(Long institutionId, FilterMap filterMap);
+    Result<Collection<CertificateInfo>> getCertificateInfo(Long institutionId, FilterMap filterMap);
 
     Result<Certificates> getCertificates(Long institutionId);
 
-    Result<CertificateData> addCertificate(
+    Result<CertificateInfo> addCertificate(
             Long institutionId,
             CertificateFileType certificateFileType,
             String alias,
@@ -37,19 +37,21 @@ public interface CertificateService {
 
     Result<Certificates> removeCertificate(Long institutionId, String alias);
 
-    Result<Collection<CertificateData>> toCertificateData(Certificates certificates);
+    Result<Collection<CertificateInfo>> toCertificateInfo(Certificates certificates);
 
-    default Predicate<CertificateData> createFilter(final FilterMap filterMap) {
-        final String aliasFilter = filterMap.getString(CertificateData.FILTER_ATTR_ALIAS);
+    Result<String> getBase64Encoded(Long institutionId, String alias);
+
+    default Predicate<CertificateInfo> createFilter(final FilterMap filterMap) {
+        final String aliasFilter = filterMap.getString(CertificateInfo.FILTER_ATTR_ALIAS);
         final CertificateType typeFilter = filterMap.getEnum(
-                CertificateData.FILTER_ATTR_TYPE,
+                CertificateInfo.FILTER_ATTR_TYPE,
                 CertificateType.class);
-        return certificateData -> {
+        return certificateInfo -> {
             if (StringUtils.isNotBlank(aliasFilter) &&
-                    !certificateData.alias.contains(aliasFilter)) {
+                    !certificateInfo.alias.contains(aliasFilter)) {
                 return false;
             }
-            if (typeFilter != null && !certificateData.types.contains(typeFilter)) {
+            if (typeFilter != null && !certificateInfo.types.contains(typeFilter)) {
                 return false;
             }
 

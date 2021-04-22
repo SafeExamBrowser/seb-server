@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateData;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
@@ -68,7 +68,7 @@ public class CertificateDAOImpl implements CertificateDAO {
 
     @Override
     @Transactional
-    public Result<CertificateData> addCertificate(
+    public Result<CertificateInfo> addCertificate(
             final Long institutionId,
             final String alias,
             final Certificate certificate) {

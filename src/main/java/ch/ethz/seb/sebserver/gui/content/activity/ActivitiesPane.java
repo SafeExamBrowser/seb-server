@@ -229,6 +229,18 @@ public class ActivitiesPane implements TemplateComposer {
                                 .create());
             }
 
+            // Certificate management
+            if (!isSupporterOnly) {
+                final TreeItem examConfigTemplate = this.widgetFactory.treeItemLocalized(
+                        sebConfigs,
+                        ActivityDefinition.SEB_CERTIFICATE_MANAGEMENT.displayName);
+                injectActivitySelection(
+                        examConfigTemplate,
+                        actionBuilder
+                                .newAction(ActionDefinition.SEB_CERTIFICATE_LIST)
+                                .create());
+            }
+
             sebConfigs.setExpanded(this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN));
         }
 

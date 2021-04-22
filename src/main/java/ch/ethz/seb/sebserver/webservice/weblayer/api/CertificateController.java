@@ -39,9 +39,8 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateData;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateData.CertificateFileType;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateFileType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -117,7 +116,7 @@ public class CertificateController {
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<CertificateData> getPage(
+    public Page<CertificateInfo> getPage(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -131,8 +130,8 @@ public class CertificateController {
         checkReadPrivilege(institutionId);
 
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
-        final Collection<CertificateData> certificates = this.certificateService
-                .getCertificateData(institutionId, filterMap)
+        final Collection<CertificateInfo> certificates = this.certificateService
+                .getCertificateInfo(institutionId, filterMap)
                 .getOrThrow();
 
         return this.paginationService.buildPageFromList(
@@ -160,7 +159,7 @@ public class CertificateController {
         checkReadPrivilege(institutionId);
 
         return this.certificateService
-                .getCertificateData(
+                .getCertificateInfo(
                         institutionId,
                         new FilterMap(allRequestParams, request.getQueryString()))
                 .getOrThrow()
@@ -170,19 +169,19 @@ public class CertificateController {
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT,
+            path = API.CERTIFICATE_ALIAS_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public CertificateData getBy(
+    public CertificateInfo getAlias(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable final String modelId) {
+            @PathVariable final String alias) {
 
         return this.certificateService
-                .getCertificateData(institutionId, modelId)
+                .getCertificateInfo(institutionId, alias)
                 .getOrThrow();
     }
 
@@ -190,7 +189,7 @@ public class CertificateController {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Certificates loadCertificate(
+    public CertificateInfo loadCertificate(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -212,8 +211,7 @@ public class CertificateController {
 
             inputStream = new BufferedInputStream(request.getInputStream());
             return this.certificateService.addCertificate(institutionId, certificateFileType, alias, inputStream)
-                    .map(certData -> this.userActivityLogDAO.log(UserLogActivityType.IMPORT, certData))
-                    .flatMap(certData -> this.certificateService.getCertificates(institutionId))
+                    .flatMap(certData -> this.userActivityLogDAO.log(UserLogActivityType.IMPORT, certData))
                     .getOrThrow();
 
         } catch (final Exception e) {
@@ -226,21 +224,20 @@ public class CertificateController {
     }
 
     @RequestMapping(
+            path = API.CERTIFICATE_ALIAS_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Certificates deleteCertificate(
+    public void deleteCertificate(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestHeader(
-                    name = API.CERTIFICATE_ALIAS,
-                    required = true) final String alias) {
+            @PathVariable final String alias) {
 
         this.checkWritePrivilege(institutionId);
 
-        return this.certificateService.removeCertificate(institutionId, alias)
+        this.certificateService.removeCertificate(institutionId, alias)
                 .getOrThrow();
     }
 
@@ -258,15 +255,15 @@ public class CertificateController {
                 institutionId);
     }
 
-    private static Function<Collection<CertificateData>, List<CertificateData>> pageSort(final String sort) {
+    private static Function<Collection<CertificateInfo>, List<CertificateInfo>> pageSort(final String sort) {
         return certificates -> {
-            final List<CertificateData> list = certificates.stream().collect(Collectors.toList());
+            final List<CertificateInfo> list = certificates.stream().collect(Collectors.toList());
             if (StringUtils.isBlank(sort)) {
                 return list;
             }
 
             final String sortBy = PageSortOrder.decode(sort);
-            if (sortBy.equals(CertificateData.FILTER_ATTR_ALIAS)) {
+            if (sortBy.equals(CertificateInfo.FILTER_ATTR_ALIAS)) {
                 list.sort(Comparator.comparing(cert -> cert.alias));
             }
 
