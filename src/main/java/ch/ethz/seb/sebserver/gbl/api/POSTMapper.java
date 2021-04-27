@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.api;
 
 import java.nio.CharBuffer;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -95,20 +96,19 @@ public class POSTMapper {
     public byte[] getBinary(final String name) {
         final String value = getString(name);
         if (value == null || value.length() <= 0) {
-            return null;
+            return new byte[0];
         }
 
-        Utils.toByteArray(value);
-        return null;
+        return Utils.toByteArray(value);
     }
 
     public byte[] getBinaryFromBase64(final String name) {
         final String value = getString(name);
         if (value == null || value.length() <= 0) {
-            return null;
+            return new byte[0];
         }
 
-        return null;
+        return Base64.getDecoder().decode(value);
     }
 
     public CharSequence getCharSequence(final String name) {
