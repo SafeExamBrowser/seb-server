@@ -866,8 +866,11 @@ public class WidgetFactory {
             final boolean readonly,
             final Collection<String> supportedFiles) {
 
-        final FileUploadSelection fileUploadSelection =
-                new FileUploadSelection(parent, this.i18nSupport, readonly);
+        final FileUploadSelection fileUploadSelection = new FileUploadSelection(
+                parent,
+                this.i18nSupport,
+                supportedFiles,
+                readonly);
 
         if (supportedFiles != null) {
             supportedFiles.forEach(fileUploadSelection::withSupportFor);

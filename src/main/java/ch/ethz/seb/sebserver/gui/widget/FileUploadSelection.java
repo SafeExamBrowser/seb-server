@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -59,6 +60,7 @@ public class FileUploadSelection extends Composite {
     public FileUploadSelection(
             final Composite parent,
             final I18nSupport i18nSupport,
+            final Collection<String> supportedFiles,
             final boolean readonly) {
 
         super(parent, SWT.NONE);
@@ -86,6 +88,10 @@ public class FileUploadSelection extends Composite {
             this.fileUpload.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(PLEASE_SELECT_TEXT)));
             this.inputReceiver = new InputReceiver();
             this.uploadHandler = new FileUploadHandler(this.inputReceiver);
+
+            if (supportedFiles != null && !supportedFiles.isEmpty()) {
+                this.fileUpload.setFilterExtensions(supportedFiles.toArray(new String[supportedFiles.size()]));
+            }
 
             this.fileName = new Label(this, SWT.NONE);
             this.fileName.setText(i18nSupport.getText(PLEASE_SELECT_TEXT));
