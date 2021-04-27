@@ -132,7 +132,7 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
     }
 
     private boolean setMasterTo(final String uuid) {
-        log.info("Set webservice {} as master", uuid);
+
         final long now = Utils.getMillisecondsNow();
 
         // check if this is registered
@@ -142,7 +142,9 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
                 .execute();
 
         if (entries == null || entries.isEmpty()) {
-            log.warn("The webservice with uuid: {} is not registered and cannot become a master", uuid);
+            if (log.isDebugEnabled()) {
+                log.debug("The webservice with uuid: {} is not registered and cannot become a master", uuid);
+            }
             return false;
         }
 
@@ -155,6 +157,8 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
             log.error("Failed to update webservice with uuid: {} to become master", uuid);
             return false;
         }
+
+        log.info("Set webservice {} as master", uuid);
 
         return true;
     }

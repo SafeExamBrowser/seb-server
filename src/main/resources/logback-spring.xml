@@ -17,7 +17,7 @@
 
   <springProfile name="dev">
 
-    <root level="DEBUG" additivity="true">
+    <root level="INFO" additivity="true">
       <appender-ref ref="STDOUT" />
       <appender-ref ref="FILE" />
     </root>
