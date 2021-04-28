@@ -154,11 +154,11 @@ public class CertificateDAOImpl implements CertificateDAO {
             throw new RuntimeException("Alias name already exists: " + alias);
         }
 
-        Collections.<String> list(store.engineAliases())
+        Collections.list(store.engineAliases())
                 .stream()
                 .forEach(key -> {
                     try {
-                        final Certificate cert = store.engineGetCertificate(key);
+                        final Certificate cert = store.engineGetCertificate(String.valueOf(key));
                         if (cert.equals(certificate)) {
                             throw new RuntimeException("Certificate already exists: " + key);
                         }
