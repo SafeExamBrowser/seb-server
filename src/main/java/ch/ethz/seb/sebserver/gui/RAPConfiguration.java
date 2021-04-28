@@ -52,8 +52,6 @@ public class RAPConfiguration implements ApplicationConfiguration {
             final String proctoringEntrypoint = StaticApplicationPropertyResolver
                     .getProperty("sebserver.gui.remote.proctoring.entrypoint", "/remote-proctoring");
 
-            // TODO get file path from properties
-            //application.addStyleSheet(RWT.DEFAULT_THEME_ID, "static/css/sebserver.css");
             application.addStyleSheet(DEFAULT_THEME_NAME, "resource/theme/default.css");
             application.addStyleSheet(DEFAULT_THEME_NAME, "static/css/sebserver.css");
             application.addStyleSheet("sms", "resource/theme/default.css");

@@ -54,7 +54,7 @@ public class CertificateInfo implements Entity {
                     .stream()
                     .flatMap(type -> Stream.of(type.extentions))
                     .collect(Collectors.toList())
-                    .toArray(String[]::new);
+                    .toArray(new String[0]);
         }
 
         public static CertificateFileType forFileName(final String fileName) {
