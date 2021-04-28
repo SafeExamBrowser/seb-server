@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +25,7 @@ import org.eclipse.rap.rwt.application.EntryPoint;
 import org.eclipse.rap.rwt.application.EntryPointFactory;
 import org.eclipse.rap.rwt.client.WebClient;
 import org.eclipse.rap.rwt.internal.theme.ThemeUtil;
+import org.eclipse.rap.rwt.service.ResourceLoader;
 import org.eclipse.rap.rwt.service.ServiceManager;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
@@ -56,11 +59,18 @@ public class RAPConfiguration implements ApplicationConfiguration {
             application.addStyleSheet("sms", "resource/theme/default.css");
             application.addStyleSheet("sms", "static/css/sms.css");
 
+            application.addResource("fav_icon", new ResourceLoader() {
+                @Override
+                public InputStream getResourceAsStream(final String resourceName) throws IOException {
+                    return RAPConfiguration.class.getClassLoader().getResourceAsStream("static/images/fav_icon.png");
+                }
+            });
+
             final Map<String, String> properties = new HashMap<>();
             properties.put(WebClient.PAGE_TITLE, "SEB Server");
             properties.put(WebClient.BODY_HTML, "<big>Loading Application<big>");
             properties.put(WebClient.THEME_ID, DEFAULT_THEME_NAME);
-            //        properties.put(WebClient.FAVICON, "icons/favicon.png");
+            properties.put(WebClient.FAVICON, "fav_icon");
 
             application.addEntryPoint(guiEntrypoint, new RAPSpringEntryPointFactory(), properties);
             application.addEntryPoint(proctoringEntrypoint, new RAPRemoteProcotringEntryPointFactory(), properties);
