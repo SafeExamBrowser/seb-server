@@ -11,8 +11,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import java.io.ByteArrayInputStream;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -20,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.bouncycastle.jcajce.provider.keystore.pkcs12.PKCS12KeyStoreSpi;
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +47,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 @Component
 @WebServiceProfile
 public class CertificateDAOImpl implements CertificateDAO {
+
+    private static final Logger log = LoggerFactory.getLogger(CertificateDAOImpl.class);
 
     private final CertificateRecordMapper certificateRecordMapper;
     private final Cryptor cryptor;
@@ -115,18 +121,53 @@ public class CertificateDAOImpl implements CertificateDAO {
             final Certificate certificate) {
 
         return loadCertificateStore(record.getCertStore())
+                .map(store -> checkPresent(alias, store, certificate))
                 .map(store -> {
-                    try {
-                        store.engineSetCertificateEntry(alias, certificate);
-                    } catch (final KeyStoreException e) {
-                        throw new RuntimeException("Failed to add certificate to keystore. Cause: ", e);
-                    }
+                    addToStore(alias, certificate, store);
                     return new Certificates(
                             record.getId(),
                             record.getInstitutionId(),
                             joinAliases(record.getAliases(), alias),
                             store);
                 });
+    }
+
+    private void addToStore(
+            final String alias,
+            final Certificate certificate,
+            final PKCS12KeyStoreSpi store) {
+
+        try {
+            store.engineSetCertificateEntry(alias, certificate);
+        } catch (final KeyStoreException e) {
+            throw new RuntimeException("Failed to add certificate to keystore. Cause: ", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private PKCS12KeyStoreSpi checkPresent(
+            final String alias,
+            final PKCS12KeyStoreSpi store,
+            final Certificate certificate) {
+
+        if (store.engineContainsAlias(alias)) {
+            throw new RuntimeException("Alias name already exists: " + alias);
+        }
+
+        Collections.<String> list(store.engineAliases())
+                .stream()
+                .forEach(key -> {
+                    try {
+                        final Certificate cert = store.engineGetCertificate(key);
+                        if (cert.equals(certificate)) {
+                            throw new RuntimeException("Certificate already exists: " + key);
+                        }
+                    } catch (final Exception e) {
+                        log.warn("Failed to check certificate duplicate for alias: {}", key);
+                    }
+                });
+
+        return store;
     }
 
     private Result<Certificates> removeCertificate(
@@ -152,7 +193,7 @@ public class CertificateDAOImpl implements CertificateDAO {
         if (StringUtils.isBlank(aliases)) {
             return Arrays.asList(newAlias);
         } else {
-            final Collection<String> listFromString = Utils.getListFromString(aliases);
+            final Collection<String> listFromString = new ArrayList<>(Utils.getListFromString(aliases));
             listFromString.add(newAlias);
             return listFromString;
         }
@@ -167,7 +208,7 @@ public class CertificateDAOImpl implements CertificateDAO {
                     StringUtils.join(certificates.aliases, Constants.COMMA),
                     storeToBinary(certificates.keyStore));
 
-            this.certificateRecordMapper.updateByPrimaryKey(record);
+            this.certificateRecordMapper.updateByPrimaryKeySelective(record);
             return certificates;
         });
     }
@@ -189,7 +230,7 @@ public class CertificateDAOImpl implements CertificateDAO {
                     .execute();
 
             if (result != null && result.size() > 0) {
-                return result.get(1);
+                return result.get(0);
             } else {
                 throw new ResourceNotFoundException(EntityType.CERTIFICATE, String.valueOf(institutionId));
             }

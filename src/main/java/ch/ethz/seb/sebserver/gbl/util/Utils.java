@@ -219,11 +219,11 @@ public final class Utils {
                 .replace("\r\n", "\n");
     }
 
-    public static Collection<String> getListFromString(final String list) {
+    public static List<String> getListFromString(final String list) {
         return getListFromString(list, Constants.LIST_SEPARATOR);
     }
 
-    public static Collection<String> getListFromString(final String list, final String separator) {
+    public static List<String> getListFromString(final String list, final String separator) {
         if (list == null) {
             return Collections.emptyList();
         }

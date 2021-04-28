@@ -8,11 +8,15 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -21,9 +25,11 @@ import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
@@ -34,18 +40,34 @@ import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 @GuiProfile
 public class CertificateList implements TemplateComposer {
 
-    private static final LocTextKey EMPTY_LIST_TEXT_KEY =
+    static final LocTextKey EMPTY_LIST_TEXT_KEY =
             new LocTextKey("sebserver.certificate.list.empty");
-    private static final LocTextKey TITLE_TEXT_KEY =
+    private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
+            new LocTextKey("sebserver.certificate.info.pleaseSelect");
+    static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.certificate.list.title");
-    private static final LocTextKey ALIAS_TEXT_KEY =
+    static final LocTextKey ALIAS_TEXT_KEY =
             new LocTextKey("sebserver.certificate.list.column.alias");
-    private static final LocTextKey VALID_FROM_KEY =
+    static final LocTextKey VALID_FROM_KEY =
             new LocTextKey("sebserver.certificate.list.column.validFrom");
-    private static final LocTextKey VALID_TO_KEY =
+    static final LocTextKey VALID_TO_KEY =
             new LocTextKey("sebserver.certificate.list.column.validTo");
-    private static final LocTextKey TYPE_TEXT_KEY =
+    static final LocTextKey TYPE_TEXT_KEY =
             new LocTextKey("sebserver.certificate.list.column.type");
+    static final LocTextKey FORM_IMPORT_SELECT_TEXT_KEY =
+            new LocTextKey("sebserver.certificate.action.import-file-select");
+    static final LocTextKey FORM_IMPORT_NO_SELECT_TEXT_KEY =
+            new LocTextKey("sebserver.certificate.action.import-file-select.no");
+    static final LocTextKey FORM_ALIAS_TEXT_KEY =
+            new LocTextKey("sebserver.certificate.form.alias");
+    static final LocTextKey FORM_IMPORT_PASSWORD_TEXT_KEY =
+            new LocTextKey("sebserver.certificate.action.import-file-password");
+    static final LocTextKey FORM_IMPORT_ERRPR_TITLE =
+            new LocTextKey("sebserver.error.unexpected");
+    static final LocTextKey FORM_IMPORT_ERROR_FILE_SELECTION =
+            new LocTextKey("sebserver.certificate.message.error.file");
+    static final LocTextKey FORM_IMPORT_CONFIRM_TEXT_KEY =
+            new LocTextKey("sebserver.certificate.action.import-config.confirm");
 
     private final TableFilterAttribute aliasFilter = new TableFilterAttribute(
             CriteriaType.TEXT,
@@ -54,20 +76,26 @@ public class CertificateList implements TemplateComposer {
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
+    private final CertificateImportPopup certificateImportPopup;
     private final int pageSize;
 
     protected CertificateList(
             final PageService pageService,
+            final CertificateImportPopup certificateImportPopup,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.restService = pageService.getRestService();
         this.currentUser = pageService.getCurrentUser();
+        this.certificateImportPopup = certificateImportPopup;
         this.pageSize = pageSize;
     }
 
     @Override
     public void compose(final PageContext pageContext) {
+
+        final GrantCheck grantCheck = this.currentUser.grantCheck(EntityType.CERTIFICATE);
+
         final Composite content = this.pageService
                 .getWidgetFactory()
                 .defaultPageLayout(
@@ -77,6 +105,7 @@ public class CertificateList implements TemplateComposer {
         // table
         final EntityTable<CertificateInfo> table =
                 this.pageService.entityTableBuilder(this.restService.getRestCall(GetCertificatePage.class))
+                        .withMultiSelection()
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
 
@@ -109,15 +138,31 @@ public class CertificateList implements TemplateComposer {
                                 ActionDefinition.SEB_CERTIFICATE_REMOVE))
 
                         .compose(pageContext.copyOf(content));
+
+        this.pageService.pageActionBuilder(pageContext.clearEntityKeys())
+
+                .newAction(ActionDefinition.SEB_CERTIFICATE_IMPORT)
+                .withExec(this.certificateImportPopup.importFunction())
+                .noEventPropagation()
+                .publishIf(() -> grantCheck.iw())
+
+                .newAction(ActionDefinition.SEB_CERTIFICATE_REMOVE)
+                .withSelect(
+                        table::getSelection,
+                        PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
+                .publishIf(() -> grantCheck.iw(), false);
     }
 
     private String getTypeInfo(final CertificateInfo certificateInfo) {
         final I18nSupport i18nSupport = this.pageService.getI18nSupport();
-        //i18nSupport.getText("")
 
-        // TODO
-
-        return "";
+        return StringUtils.join(
+                certificateInfo.types.stream()
+                        .map(type -> new LocTextKey("sebserver.certificate.list.column.type." + type.name()))
+                        .map(i18nSupport::getText)
+                        .collect(Collectors.toList()),
+                " | ");
     }
 
 }

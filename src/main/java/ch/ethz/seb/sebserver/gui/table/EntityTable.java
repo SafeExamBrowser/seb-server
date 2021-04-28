@@ -129,7 +129,7 @@ public class EntityTable<ROW> {
         this.currentPageAttrName = name + "_currentPage";
         this.markupEnabled = markupEnabled;
 
-        this.composite = new Composite(pageContext.getParent(), type);
+        this.composite = new Composite(pageContext.getParent(), SWT.NONE);
         this.pageService = pageService;
         this.i18nSupport = pageService.getI18nSupport();
         this.pageContext = pageContext;
@@ -158,7 +158,7 @@ public class EntityTable<ROW> {
                 .map(ColumnDefinition::getFilterAttribute)
                 .anyMatch(Objects::nonNull) ? new TableFilter<>(this) : null;
 
-        this.table = this.widgetFactory.tableLocalized(this.composite);
+        this.table = this.widgetFactory.tableLocalized(this.composite, type);
         final GridLayout gridLayout = new GridLayout(columns.size(), true);
         this.table.setLayout(gridLayout);
         gridData = new GridData(SWT.FILL, SWT.TOP, true, false);

@@ -8,7 +8,10 @@
 
 package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.joda.time.DateTime;
 
@@ -30,13 +33,36 @@ public class CertificateInfo implements Entity {
     }
 
     public static enum CertificateFileType {
-        PEM("pem", "crt", "cer"),
-        PKCS12("p12", "pfx");
+        PEM(".pem", ".crt", ".cer"),
+        PKCS12(".p12", ".pfx");
 
         private String[] extentions;
 
         private CertificateFileType(final String... extentions) {
             this.extentions = extentions;
+        }
+
+        public boolean match(final String fileName) {
+            return Stream.of(this.extentions)
+                    .filter(ext -> fileName.endsWith(ext))
+                    .findAny()
+                    .isPresent();
+        }
+
+        public static String[] getAllExtensions() {
+            return Arrays.asList(CertificateFileType.values())
+                    .stream()
+                    .flatMap(type -> Stream.of(type.extentions))
+                    .collect(Collectors.toList())
+                    .toArray(String[]::new);
+        }
+
+        public static CertificateFileType forFileName(final String fileName) {
+            return Arrays.asList(CertificateFileType.values())
+                    .stream()
+                    .filter(type -> type.match(fileName))
+                    .findFirst()
+                    .orElse(null);
         }
     }
 
@@ -47,15 +73,14 @@ public class CertificateInfo implements Entity {
     public static final String ATTR_VALIDITY_FROM = "validityFrom";
     public static final String ATTR_VALIDITY_TO = "validityTo";
     public static final String ATTR_CERT_TYPE = "certType";
-    public static final String ATTR_CERT_BASE_64 = "cert";
 
     @JsonProperty(ATTR_ALIAS)
     public final String alias;
 
-    @JsonProperty(ATTR_ALIAS)
+    @JsonProperty(ATTR_VALIDITY_FROM)
     public final DateTime validityFrom;
 
-    @JsonProperty(ATTR_ALIAS)
+    @JsonProperty(ATTR_VALIDITY_TO)
     public final DateTime validityTo;
 
     @JsonProperty(ATTR_CERT_TYPE)
@@ -64,8 +89,8 @@ public class CertificateInfo implements Entity {
     @JsonCreator
     public CertificateInfo(
             @JsonProperty(ATTR_ALIAS) final String alias,
-            @JsonProperty(ATTR_ALIAS) final DateTime validityFrom,
-            @JsonProperty(ATTR_ALIAS) final DateTime validityTo,
+            @JsonProperty(ATTR_VALIDITY_FROM) final DateTime validityFrom,
+            @JsonProperty(ATTR_VALIDITY_TO) final DateTime validityTo,
             @JsonProperty(ATTR_CERT_TYPE) final EnumSet<CertificateType> types) {
 
         this.alias = alias;

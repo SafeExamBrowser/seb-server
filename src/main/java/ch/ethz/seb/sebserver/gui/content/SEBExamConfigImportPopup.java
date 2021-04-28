@@ -158,37 +158,15 @@ public class SEBExamConfigImportPopup {
                 if (!configuration.hasError()) {
                     context.publishInfo(SEBExamConfigForm.FORM_IMPORT_CONFIRM_TEXT_KEY);
                 } else {
-                    final Exception error = configuration.getError();
-                    if (error instanceof RestCallError) {
-                        ((RestCallError) error)
-                                .getErrorMessages()
-                                .stream()
-                                .findFirst()
-                                .ifPresent(message -> {
-                                    if (APIMessage.ErrorMessage.MISSING_PASSWORD.isOf(message)) {
-                                        formHandle
-                                                .getContext()
-                                                .publishPageMessage(MISSING_PASSWORD);
-                                    } else {
-                                        formHandle
-                                                .getContext()
-                                                .notifyImportError(EntityType.CONFIGURATION_NODE, error);
-                                    }
-                                });
-
-                    } else {
-                        formHandle.getContext().notifyError(
-                                SEBExamConfigForm.FORM_TITLE,
-                                configuration.getError());
-                    }
-
+                    handleImportError(formHandle, configuration);
                 }
+
                 reloadPage(newConfig, context);
                 return true;
             } else {
                 formHandle.getContext().publishPageMessage(
-                        new LocTextKey("sebserver.error.unexpected"),
-                        new LocTextKey("Please select a valid SEB Exam Configuration File"));
+                        SEBExamConfigForm.FORM_IMPORT_ERROR_TITLE,
+                        SEBExamConfigForm.FORM_IMPORT_ERROR_FILE_SELECTION);
             }
 
             return false;
@@ -196,6 +174,35 @@ public class SEBExamConfigImportPopup {
             reloadPage(newConfig, formHandle.getContext());
             formHandle.getContext().notifyError(SEBExamConfigForm.FORM_TITLE, e);
             return true;
+        }
+    }
+
+    private void handleImportError(
+            final FormHandle<ConfigurationNode> formHandle,
+            final Result<Configuration> configuration) {
+
+        final Exception error = configuration.getError();
+        if (error instanceof RestCallError) {
+            ((RestCallError) error)
+                    .getErrorMessages()
+                    .stream()
+                    .findFirst()
+                    .ifPresent(message -> {
+                        if (APIMessage.ErrorMessage.MISSING_PASSWORD.isOf(message)) {
+                            formHandle
+                                    .getContext()
+                                    .publishPageMessage(MISSING_PASSWORD);
+                        } else {
+                            formHandle
+                                    .getContext()
+                                    .notifyImportError(EntityType.CONFIGURATION_NODE, error);
+                        }
+                    });
+
+        } else {
+            formHandle.getContext().notifyError(
+                    SEBExamConfigForm.FORM_TITLE,
+                    configuration.getError());
         }
     }
 
@@ -213,8 +220,11 @@ public class SEBExamConfigImportPopup {
                 action.pageContext());
     }
 
-    private boolean checkInput(final FormHandle<ConfigurationNode> formHandle, final boolean newConfig,
+    private boolean checkInput(
+            final FormHandle<ConfigurationNode> formHandle,
+            final boolean newConfig,
             final Form form) {
+
         if (newConfig) {
             formHandle.process(name -> true, Form.FormFieldAccessor::resetError);
             final String fieldValue = form.getFieldValue(Domain.CONFIGURATION_NODE.ATTR_NAME);
@@ -223,7 +233,7 @@ public class SEBExamConfigImportPopup {
                         Domain.CONFIGURATION_NODE.ATTR_NAME,
                         this.pageService
                                 .getI18nSupport()
-                                .getText(new LocTextKey("sebserver.form.validation.fieldError.notNull")));
+                                .getText(SEBExamConfigForm.FIELD_VAL_NOT_NULL_KEY));
                 return false;
             } else if (fieldValue.length() < 3 || fieldValue.length() > 255) {
                 form.setFieldError(
@@ -253,8 +263,7 @@ public class SEBExamConfigImportPopup {
                                 Domain.CONFIGURATION_NODE.ATTR_NAME,
                                 this.pageService
                                         .getI18nSupport()
-                                        .getText(new LocTextKey(
-                                                "sebserver.form.validation.fieldError.name.notunique")));
+                                        .getText(SEBExamConfigForm.FIELD_VAL_UNIQUE_NAME));
                         return false;
                     }
                 } catch (final Exception e) {

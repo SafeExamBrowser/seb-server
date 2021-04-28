@@ -200,8 +200,6 @@ public final class API {
 
     public static final String CERTIFICATE_ENDPOINT = "/certificate";
     public static final String CERTIFICATE_ALIAS = "alias";
-    public static final String CERTIFICATE_FILE_TYPE = "fileType";
-    public static final String CERTIFICATE_PASSWORD_ATTR_NAME = "certPassword";
     public static final String CERTIFICATE_ALIAS_VAR_PATH_SEGMENT = "/{" + CERTIFICATE_ALIAS + "}";
 
 }

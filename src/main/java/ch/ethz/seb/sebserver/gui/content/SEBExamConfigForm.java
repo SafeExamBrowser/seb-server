@@ -95,6 +95,14 @@ public class SEBExamConfigForm implements TemplateComposer {
 
     static final LocTextKey SAVE_CONFIRM_STATE_CHANGE_WHILE_ATTACHED =
             new LocTextKey("sebserver.examconfig.action.state-change.confirm");
+    static final LocTextKey FIELD_VAL_UNIQUE_NAME =
+            new LocTextKey("sebserver.form.validation.fieldError.name.notunique");
+    static final LocTextKey FIELD_VAL_NOT_NULL_KEY =
+            new LocTextKey("sebserver.form.validation.fieldError.notNull");
+    static final LocTextKey FORM_IMPORT_ERROR_TITLE =
+            new LocTextKey("sebserver.error.unexpected");
+    static final LocTextKey FORM_IMPORT_ERROR_FILE_SELECTION =
+            new LocTextKey("sebserver.examconfig.message.error.file");
 
     private final PageService pageService;
     private final RestService restService;

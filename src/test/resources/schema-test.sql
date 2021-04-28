@@ -588,7 +588,7 @@ CREATE TABLE IF NOT EXISTS `client_instruction` (
 DROP TABLE IF EXISTS `certificate` ;
 
 CREATE TABLE IF NOT EXISTS `certificate` (
-  `id` BIGINT UNSIGNED NOT NULL,
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
   `aliases` VARCHAR(4000) NULL,
   `cert_store` BLOB NULL,

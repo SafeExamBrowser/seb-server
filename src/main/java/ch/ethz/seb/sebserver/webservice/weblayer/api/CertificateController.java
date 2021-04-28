@@ -195,16 +195,17 @@ public class CertificateController {
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestHeader(
-                    name = API.CERTIFICATE_FILE_TYPE,
-                    required = true) final CertificateFileType certificateFileType,
+                    name = API.IMPORT_FILE_ATTR_NAME,
+                    required = true) final String fileName,
             @RequestHeader(
                     name = API.CERTIFICATE_ALIAS,
                     required = false) final String alias,
-            @RequestHeader(name = API.CERTIFICATE_PASSWORD_ATTR_NAME, required = false) final String password,
+            @RequestHeader(name = API.IMPORT_PASSWORD_ATTR_NAME, required = false) final CharSequence password,
             final HttpServletRequest request) {
 
         this.checkWritePrivilege(institutionId);
 
+        final CertificateFileType certificateFileType = CertificateFileType.forFileName(fileName);
         InputStream inputStream = null;
 
         try {
@@ -237,7 +238,8 @@ public class CertificateController {
 
         this.checkWritePrivilege(institutionId);
 
-        this.certificateService.removeCertificate(institutionId, alias)
+        this.certificateService
+                .removeCertificate(institutionId, alias)
                 .getOrThrow();
     }
 

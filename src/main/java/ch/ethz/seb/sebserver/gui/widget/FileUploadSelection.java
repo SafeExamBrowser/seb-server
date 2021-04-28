@@ -56,6 +56,7 @@ public class FileUploadSelection extends Composite {
     private InputStream inputStream;
     private final FileUploadHandler uploadHandler;
     private final InputReceiver inputReceiver;
+    private boolean selection = false;
 
     public FileUploadSelection(
             final Composite parent,
@@ -98,6 +99,7 @@ public class FileUploadSelection extends Composite {
             this.fileName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
             this.fileUpload.addListener(SWT.Selection, event -> {
+                this.selection = true;
                 final String fileName = FileUploadSelection.this.fileUpload.getFileName();
                 if (fileName == null || !fileSupported(fileName)) {
                     if (FileUploadSelection.this.errorHandler != null) {
@@ -143,6 +145,14 @@ public class FileUploadSelection extends Composite {
         if (this.fileName != null && fileName != null) {
             this.fileName.setText(fileName);
         }
+    }
+
+    public boolean hasFileSelection() {
+        return this.selection;
+    }
+
+    public void setSelection(final boolean selection) {
+        this.selection = selection;
     }
 
     public InputStream getInputStream() {

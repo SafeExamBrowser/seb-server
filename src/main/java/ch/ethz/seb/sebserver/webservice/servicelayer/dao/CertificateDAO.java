@@ -9,17 +9,23 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 import java.util.NoSuchElementException;
 
+import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x500.style.IETFUtils;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.joda.time.DateTime;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import io.micrometer.core.instrument.util.StringUtils;
 
 /** Concrete EntityDAO interface of Certificate entities */
 public interface CertificateDAO {
@@ -52,8 +58,20 @@ public interface CertificateDAO {
         if (StringUtils.isNotBlank(alias)) {
             return alias;
         }
-        // TODO is this correct?
-        return certificate.getIssuerDN().getName();
+
+        try {
+            final X500Name x500name = new JcaX509CertificateHolder(certificate).getSubject();
+            final RDN cn = x500name.getRDNs(BCStyle.CN)[0];
+            final String dn = IETFUtils.valueToString(cn.getFirst().getValue());
+
+            if (StringUtils.isBlank(dn)) {
+                return String.valueOf(certificate.getSerialNumber());
+            } else {
+                return dn.replace(" ", "_").toLowerCase();
+            }
+        } catch (final CertificateEncodingException e) {
+            return String.valueOf(certificate.getSerialNumber());
+        }
     }
 
     static EnumSet<CertificateType> getTypes(final X509Certificate cert) {

@@ -73,7 +73,7 @@ public class CertificateServiceImpl implements CertificateService {
             final String alias,
             final InputStream in) {
 
-        return loadCertFromImput(institutionId, certificateFileType, in)
+        return loadCertFromInput(institutionId, certificateFileType, in)
                 .flatMap(cert -> this.certificateDAO.addCertificate(
                         institutionId,
                         CertificateDAO.extractAlias(cert, alias),
@@ -122,7 +122,7 @@ public class CertificateServiceImpl implements CertificateService {
         return getDataFromCertificates(certificates, data -> true);
     }
 
-    private Result<X509Certificate> loadCertFromImput(
+    private Result<X509Certificate> loadCertFromInput(
             final Long institutionId,
             final CertificateFileType certificateFileType,
             final InputStream in) {
