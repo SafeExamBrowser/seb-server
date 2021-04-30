@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.WebserviceURIService;
 
 @Component
 @GuiProfile
@@ -23,15 +24,18 @@ public class GuiInit implements ApplicationListener<ApplicationReadyEvent> {
     private final SEBServerInit sebServerInit;
     private final Environment environment;
     private final GuiServiceInfo guiServiceInfo;
+    private final WebserviceURIService webserviceURIService;
 
     protected GuiInit(
             final SEBServerInit sebServerInit,
             final Environment environment,
-            final GuiServiceInfo guiServiceInfo) {
+            final GuiServiceInfo guiServiceInfo,
+            final WebserviceURIService webserviceURIService) {
 
         this.sebServerInit = sebServerInit;
         this.environment = environment;
         this.guiServiceInfo = guiServiceInfo;
+        this.webserviceURIService = webserviceURIService;
     }
 
     @Override
@@ -46,13 +50,13 @@ public class GuiInit implements ApplicationListener<ApplicationReadyEvent> {
         SEBServerInit.INIT_LOGGER.info("---->  GUI Service successfully successfully started up!");
         SEBServerInit.INIT_LOGGER.info("---->");
 
-        final String webServiceProtocol = this.environment.getProperty("sebserver.gui.webservice.protocol", "http");
-        final String webServiceAddress = this.environment.getRequiredProperty("sebserver.gui.webservice.address");
-        final String webServicePort = this.environment.getProperty("sebserver.gui.webservice.port", "80");
+//        final String webServiceProtocol = this.environment.getProperty("sebserver.gui.webservice.protocol", "http");
+//        final String webServiceAddress = this.environment.getRequiredProperty("sebserver.gui.webservice.address");
+//        final String webServicePort = this.environment.getProperty("sebserver.gui.webservice.port", "80");
 
-        SEBServerInit.INIT_LOGGER
-                .info("----> Webservice connection: " + webServiceProtocol + "://" + webServiceAddress
-                        + ":" + webServicePort);
+        SEBServerInit.INIT_LOGGER.info(
+                "----> Webservice connection: {}",
+                this.webserviceURIService.getURIBuilder().build());
         SEBServerInit.INIT_LOGGER.info(
                 "----> GUI service internal connection : "
                         + this.guiServiceInfo.getInternalServerURIBuilder().toUriString());

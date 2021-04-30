@@ -44,6 +44,7 @@ public class WebserviceInfo {
     private static final String WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY =
             "sebserver.webservice.api.exam.endpoint.discovery";
     private static final String WEB_SERVICE_EXTERNAL_ADDRESS_ALIAS = "sebserver.webservice.lms.address.alias";
+    private static final String WEB_SERVICE_CONTEXT_PATH = "server.servlet.context-path";
 
     private final String sebServerVersion;
     private final String testProperty;
@@ -53,6 +54,7 @@ public class WebserviceInfo {
     private final String serverPort; // internal
     private final String webserverPort; // external
     private final String discoveryEndpoint;
+    private final String contextPath;
 
     private final String serverURLPrefix;
     private final boolean isDistributed;
@@ -70,6 +72,7 @@ public class WebserviceInfo {
         this.serverPort = environment.getRequiredProperty(WEB_SERVICE_SERVER_PORT_KEY);
         this.webserverPort = environment.getProperty(WEB_SERVICE_HTTP_PORT);
         this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
+        this.contextPath = environment.getProperty(WEB_SERVICE_CONTEXT_PATH, "");
 
         if (StringUtils.isEmpty(this.webserverName)) {
             log.warn("NOTE: External server name, property : 'sebserver.webservice.http.external.servername' "
@@ -84,7 +87,9 @@ public class WebserviceInfo {
         if (StringUtils.isNotBlank(this.webserverPort)) {
             builder.port(this.webserverPort);
         }
-
+        if (StringUtils.isNotBlank(this.contextPath) && !this.contextPath.equals("/")) {
+            builder.path(this.contextPath);
+        }
         this.serverURLPrefix = builder.toUriString();
 
         this.isDistributed = BooleanUtils.toBoolean(environment.getProperty(
@@ -141,6 +146,10 @@ public class WebserviceInfo {
 
     public String getServerExternalPort() {
         return this.webserverPort;
+    }
+
+    public Object getContextPath() {
+        return this.contextPath;
     }
 
     public String getDiscoveryEndpoint() {

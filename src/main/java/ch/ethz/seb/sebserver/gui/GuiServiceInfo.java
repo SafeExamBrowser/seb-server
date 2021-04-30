@@ -25,6 +25,7 @@ public class GuiServiceInfo {
     private final String internalPort;
     private final String externalPort;
     private final String entryPoint;
+    private final String contextPath;
     private final UriComponentsBuilder internalServerURIBuilder;
     private final UriComponentsBuilder externalServerURIBuilder;
 
@@ -34,7 +35,8 @@ public class GuiServiceInfo {
             @Value("${sebserver.gui.http.external.scheme}") final String externalScheme,
             @Value("${sebserver.gui.http.external.servername}") final String externalServer,
             @Value("${sebserver.gui.http.external.port}") final String externalPort,
-            @Value("${sebserver.gui.entrypoint:/gui}") final String entryPoint) {
+            @Value("${sebserver.gui.entrypoint:/gui}") final String entryPoint,
+            @Value("${server.servlet.context-path:/}") final String contextPath) {
 
         if (StringUtils.isBlank(externalScheme)) {
             throw new RuntimeException("Missing mandatory inital parameter sebserver.gui.http.external.servername");
@@ -50,15 +52,22 @@ public class GuiServiceInfo {
         this.internalPort = internalPort;
         this.externalPort = externalPort;
         this.entryPoint = entryPoint;
+        this.contextPath = contextPath;
         this.internalServerURIBuilder = UriComponentsBuilder
                 .fromHttpUrl("http://" + this.internalServer);
         if (StringUtils.isNotBlank(internalPort)) {
             this.internalServerURIBuilder.port(this.internalPort);
         }
+        if (StringUtils.isNotBlank(contextPath) && !contextPath.equals("/")) {
+            this.internalServerURIBuilder.path(contextPath);
+        }
         this.externalServerURIBuilder = UriComponentsBuilder
                 .fromHttpUrl(this.externalScheme + "://" + this.externalServer);
         if (StringUtils.isNotBlank(externalPort)) {
             this.externalServerURIBuilder.port(this.externalPort);
+        }
+        if (StringUtils.isNotBlank(contextPath) && !contextPath.equals("/")) {
+            this.externalServerURIBuilder.path(contextPath);
         }
     }
 
@@ -84,6 +93,10 @@ public class GuiServiceInfo {
 
     public String getEntryPoint() {
         return this.entryPoint;
+    }
+
+    public String getContextPath() {
+        return this.contextPath;
     }
 
     public UriComponentsBuilder getInternalServerURIBuilder() {
