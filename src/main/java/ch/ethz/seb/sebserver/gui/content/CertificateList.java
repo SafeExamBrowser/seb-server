@@ -16,7 +16,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -28,6 +31,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificatePage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.RemoveCertificate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
@@ -149,9 +153,24 @@ public class CertificateList implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_CERTIFICATE_REMOVE)
                 .withSelect(
                         table::getSelection,
-                        PageAction::applySingleSelectionAsEntityKey,
+                        this::removeCertificate,
                         EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> grantCheck.iw(), false);
+    }
+
+    private PageAction removeCertificate(final PageAction action) {
+        final String ids = StringUtils.join(
+                action.getMultiSelection().stream()
+                        .map(EntityKey::getModelId)
+                        .collect(Collectors.toList()),
+                Constants.LIST_SEPARATOR);
+
+        this.restService.getBuilder(RemoveCertificate.class)
+                .withFormParam(API.CERTIFICATE_ALIAS, ids)
+                .call()
+                .onError(erorr -> action.pageContext().notifyRemoveError(EntityType.CERTIFICATE, erorr));
+
+        return action;
     }
 
     private String getTypeInfo(final CertificateInfo certificateInfo) {

@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -32,10 +33,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
@@ -43,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateFileType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
@@ -229,18 +233,21 @@ public class CertificateController {
             method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public void deleteCertificate(
+    public Collection<EntityKey> deleteCertificate(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable final String alias) {
+            @RequestParam(name = API.CERTIFICATE_ALIAS, required = true) final String aliases) {
 
         this.checkWritePrivilege(institutionId);
 
-        this.certificateService
-                .removeCertificate(institutionId, alias)
-                .getOrThrow();
+        return Arrays.asList(StringUtils.split(aliases, Constants.LIST_SEPARATOR))
+                .stream()
+                .map(alias -> this.certificateService
+                        .removeCertificate(institutionId, alias))
+                .flatMap(Result::onErrorLogAndSkip)
+                .collect(Collectors.toList());
     }
 
     private void checkReadPrivilege(final Long institutionId) {

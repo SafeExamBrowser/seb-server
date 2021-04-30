@@ -22,6 +22,7 @@ import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.joda.time.DateTime;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
@@ -34,7 +35,7 @@ public interface CertificateDAO {
 
     Result<CertificateInfo> addCertificate(Long institutionId, String alias, Certificate certificate);
 
-    Result<Certificates> removeCertificate(Long institutionId, String alias);
+    Result<EntityKey> removeCertificate(Long institutionId, String alias);
 
     static Result<CertificateInfo> getDataFromCertificate(final Certificates certificates, final String alias) {
         return Result.tryCatch(() -> {

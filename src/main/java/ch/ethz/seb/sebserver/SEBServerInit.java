@@ -48,6 +48,8 @@ public class SEBServerInit {
             INIT_LOGGER.info("---->");
             INIT_LOGGER.info("----> Active profiles: {}", Arrays.toString(this.environment.getActiveProfiles()));
             INIT_LOGGER.info("---->");
+            INIT_LOGGER.info("----> Context Path: {}", this.environment.getProperty("server.servlet.context-path"));
+            INIT_LOGGER.info("---->");
 
             this.initialized = true;
         }

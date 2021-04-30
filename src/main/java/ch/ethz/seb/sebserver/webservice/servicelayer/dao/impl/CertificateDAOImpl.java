@@ -29,7 +29,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -88,11 +90,12 @@ public class CertificateDAOImpl implements CertificateDAO {
 
     @Override
     @Transactional
-    public Result<Certificates> removeCertificate(final Long institutionId, final String alias) {
+    public Result<EntityKey> removeCertificate(final Long institutionId, final String alias) {
 
         return getCertificatesFromPersistent(institutionId)
                 .flatMap(record -> removeCertificate(record, alias))
                 .flatMap(this::storeUpdate)
+                .map(cert -> new EntityKey(alias, EntityType.CERTIFICATE))
                 .onError(TransactionHandler::rollback);
     }
 
@@ -151,7 +154,8 @@ public class CertificateDAOImpl implements CertificateDAO {
             final Certificate certificate) {
 
         if (store.engineContainsAlias(alias)) {
-            throw new RuntimeException("Alias name already exists: " + alias);
+            throw new FieldValidationException("name", "institution:name:exists");
+            //throw new RuntimeException("Alias name already exists: " + alias);
         }
 
         Collections.list(store.engineAliases())

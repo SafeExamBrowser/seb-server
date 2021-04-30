@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateFileType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateType;
@@ -35,7 +36,7 @@ public interface CertificateService {
             String alias,
             InputStream in);
 
-    Result<Certificates> removeCertificate(Long institutionId, String alias);
+    Result<EntityKey> removeCertificate(Long institutionId, String alias);
 
     Result<Collection<CertificateInfo>> toCertificateInfo(Certificates certificates);
 

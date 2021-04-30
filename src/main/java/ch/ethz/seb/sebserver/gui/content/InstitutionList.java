@@ -8,23 +8,17 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
-import java.util.ArrayList;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -34,7 +28,6 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.RemoveCertificate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
@@ -152,7 +145,7 @@ public class InstitutionList implements TemplateComposer {
                 .newAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
                 .withSelect(
                         table::getSelection,
-                        this::removeCertificates,
+                        PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> instGrant.m(), false)
 
@@ -160,32 +153,6 @@ public class InstitutionList implements TemplateComposer {
                 .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
                 .withConfirm(this.pageService.confirmDeactivation(table))
                 .publishIf(() -> instGrant.m(), false);
-    }
-
-    private PageAction removeCertificates(final PageAction action) {
-        final Set<EntityKey> multiSelection = action.getMultiSelection();
-        if (multiSelection != null) {
-            final ArrayList<Exception> errors = new ArrayList<>();
-            multiSelection
-                    .stream()
-                    .forEach(key -> {
-                        final Result<Void> call = this.restService.getBuilder(RemoveCertificate.class)
-                                .withURIVariable(
-                                        API.CERTIFICATE_ALIAS_VAR_PATH_SEGMENT,
-                                        key.modelId)
-                                .call();
-                        if (call.hasError()) {
-                            errors.add(call.getError());
-                        }
-                    });
-            if (!errors.isEmpty()) {
-                action.pageContext().notifyRemoveError(
-                        EntityType.CERTIFICATE,
-                        errors.get(0));
-            }
-        }
-
-        return action;
     }
 
 }

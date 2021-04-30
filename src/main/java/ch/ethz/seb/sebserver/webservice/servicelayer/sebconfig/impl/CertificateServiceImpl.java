@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateFileType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
@@ -81,7 +82,7 @@ public class CertificateServiceImpl implements CertificateService {
     }
 
     @Override
-    public Result<Certificates> removeCertificate(final Long institutionId, final String alias) {
+    public Result<EntityKey> removeCertificate(final Long institutionId, final String alias) {
         return this.certificateDAO.removeCertificate(institutionId, alias);
     }
 
