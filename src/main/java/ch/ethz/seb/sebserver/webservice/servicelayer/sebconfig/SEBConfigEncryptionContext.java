@@ -29,9 +29,8 @@ public interface SEBConfigEncryptionContext {
 
     /** Get a defined Certificate if supported.
      *
-     * @param key The key of the Certificate to get
      * @return a defined Certificate
      * @throws UnsupportedOperationException if not supported */
-    Certificate getCertificate(CharSequence key);
+    Certificate getCertificate();
 
 }

@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.Future;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -74,7 +73,7 @@ public final class SEBConfigEncryptionServiceImpl implements SEBConfigEncryption
             pin = new PipedInputStream(pout);
 
             if (log.isDebugEnabled()) {
-                log.debug("Password encryption with strategy: {}", strategy);
+                log.debug("Encryption with strategy: {}", strategy);
             }
 
             output.write(strategy.header);
@@ -193,16 +192,16 @@ public final class SEBConfigEncryptionServiceImpl implements SEBConfigEncryption
 
         public final Strategy strategy;
         public final CharSequence password;
-        public final Function<CharSequence, Certificate> certificateStore;
+        public final Certificate certificate;
 
         private EncryptionContext(
                 final Strategy strategy,
                 final CharSequence password,
-                final Function<CharSequence, Certificate> certificateStore) {
+                final Certificate certificate) {
 
             this.strategy = strategy;
             this.password = password;
-            this.certificateStore = certificateStore;
+            this.certificate = certificate;
         }
 
         @Override
@@ -216,24 +215,24 @@ public final class SEBConfigEncryptionServiceImpl implements SEBConfigEncryption
         }
 
         @Override
-        public Certificate getCertificate(final CharSequence key) {
-            if (this.certificateStore == null) {
-                throw new UnsupportedOperationException();
-            }
-            return this.certificateStore.apply(key);
+        public Certificate getCertificate() {
+            return this.certificate;
         }
 
-        static SEBConfigEncryptionContext contextOf(final Strategy strategy, final CharSequence password) {
+        static SEBConfigEncryptionContext contextOf(
+                final Strategy strategy,
+                final CharSequence password) {
+
             checkPasswordBased(strategy);
             return new EncryptionContext(strategy, password, null);
         }
 
         static SEBConfigEncryptionContext contextOf(
                 final Strategy strategy,
-                final Function<CharSequence, Certificate> certificateStore) {
+                final Certificate certificate) {
 
             checkCertificateBased(strategy);
-            return new EncryptionContext(strategy, null, certificateStore);
+            return new EncryptionContext(strategy, null, certificate);
         }
 
         static void checkPasswordBased(final Strategy strategy) {

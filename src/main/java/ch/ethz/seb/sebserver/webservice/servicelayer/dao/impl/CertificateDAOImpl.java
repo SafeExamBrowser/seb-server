@@ -10,12 +10,14 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import java.io.ByteArrayInputStream;
 import java.security.KeyStoreException;
+import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,7 +66,19 @@ public class CertificateDAOImpl implements CertificateDAO {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
+    public Result<Certificate> getCertificate(final Long institutionId, final String alias) {
+        return getCertificates(institutionId)
+                .map(certs -> {
+                    if (!certs.aliases.contains(alias)) {
+                        throw new ResourceNotFoundException(EntityType.CERTIFICATE, alias);
+                    }
+                    return certs.keyStore.engineGetCertificate(alias);
+                });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Certificates> getCertificates(final Long institutionId) {
 
         return getCertificatesFromPersistent(institutionId)
@@ -81,8 +95,19 @@ public class CertificateDAOImpl implements CertificateDAO {
             final String alias,
             final Certificate certificate) {
 
+        return this.addCertificate(institutionId, alias, certificate, null);
+    }
+
+    @Override
+    @Transactional
+    public Result<CertificateInfo> addCertificate(
+            final Long institutionId,
+            final String alias,
+            final Certificate certificate,
+            final PrivateKey privateKey) {
+
         return getCertificatesFromPersistent(institutionId)
-                .flatMap(record -> addCertificate(record, alias, certificate))
+                .flatMap(record -> addCertificate(record, alias, certificate, privateKey))
                 .flatMap(this::storeUpdate)
                 .flatMap(certs -> CertificateDAO.getDataFromCertificate(certs, alias))
                 .onError(TransactionHandler::rollback);
@@ -97,6 +122,18 @@ public class CertificateDAOImpl implements CertificateDAO {
                 .flatMap(this::storeUpdate)
                 .map(cert -> new EntityKey(alias, EntityType.CERTIFICATE))
                 .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<String>> getAllIdentityAlias(final Long institutionId) {
+        return getCertificates(institutionId)
+                .map(certs -> certs.aliases
+                        .stream()
+                        .filter(alias -> this.cryptor
+                                .getPrivateKey(certs.keyStore, alias)
+                                .hasValue())
+                        .collect(Collectors.toList()));
     }
 
     private Certificates createNewCertificateStore(final Long institutionId) {
@@ -121,12 +158,13 @@ public class CertificateDAOImpl implements CertificateDAO {
     private Result<Certificates> addCertificate(
             final CertificateRecord record,
             final String alias,
-            final Certificate certificate) {
+            final Certificate certificate,
+            final PrivateKey privateKey) {
 
         return loadCertificateStore(record.getCertStore())
                 .map(store -> checkPresent(alias, store, certificate))
                 .map(store -> {
-                    addToStore(alias, certificate, store);
+                    addToStore(alias, certificate, privateKey, store);
                     return new Certificates(
                             record.getId(),
                             record.getInstitutionId(),
@@ -138,10 +176,18 @@ public class CertificateDAOImpl implements CertificateDAO {
     private void addToStore(
             final String alias,
             final Certificate certificate,
+            final PrivateKey privateKey,
             final PKCS12KeyStoreSpi store) {
 
         try {
+            // Add the certificate to the key store
             store.engineSetCertificateEntry(alias, certificate);
+            // Add the private key to the key store with internal password protection
+            if (privateKey != null) {
+                this.cryptor.addPrivateKey(store, privateKey, alias, certificate)
+                        .onError(error -> log.error("Failed to add private key for certificate: {}", alias, error));
+            }
+
         } catch (final KeyStoreException e) {
             throw new RuntimeException("Failed to add certificate to keystore. Cause: ", e);
         }
@@ -188,7 +234,7 @@ public class CertificateDAOImpl implements CertificateDAO {
                     return new Certificates(
                             record.getId(),
                             record.getInstitutionId(),
-                            joinAliases(record.getAliases(), alias),
+                            removeAlias(record.getAliases(), alias),
                             store);
                 });
     }
@@ -201,6 +247,12 @@ public class CertificateDAOImpl implements CertificateDAO {
             listFromString.add(newAlias);
             return listFromString;
         }
+    }
+
+    private Collection<String> removeAlias(final String aliases, final String alias) {
+        final Collection<String> listFromString = new ArrayList<>(Utils.getListFromString(aliases));
+        listFromString.remove(alias);
+        return listFromString;
     }
 
     private Result<Certificates> storeUpdate(final Certificates certificates) {

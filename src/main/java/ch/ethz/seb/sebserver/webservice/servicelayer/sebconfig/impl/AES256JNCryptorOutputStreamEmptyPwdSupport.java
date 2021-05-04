@@ -22,12 +22,12 @@ import javax.crypto.spec.IvParameterSpec;
 import org.apache.commons.lang3.Validate;
 import org.cryptonode.jncryptor.CryptorException;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+
 class AES256JNCryptorOutputStreamEmptyPwdSupport extends OutputStream {
 
     static final int SALT_LENGTH = 8;
     static final int AES_BLOCK_SIZE = 16;
-    static final String AES_CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
-    static final String HMAC_ALGORITHM = "HmacSHA256";
     static final int VERSION = 3;
     static final int FLAG_PASSWORD = 0x01;
 
@@ -86,11 +86,11 @@ class AES256JNCryptorOutputStreamEmptyPwdSupport extends OutputStream {
         this.iv = iv;
 
         try {
-            final Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
+            final Cipher cipher = Cipher.getInstance(Constants.AES_CIPHER_ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, encryptionKey, new IvParameterSpec(iv));
 
             try {
-                final Mac mac = Mac.getInstance(HMAC_ALGORITHM);
+                final Mac mac = Mac.getInstance(Constants.HMAC_ALGORITHM);
                 mac.init(hmacKey);
 
                 this.macOutputStream = new MacOutputStream(out, mac);

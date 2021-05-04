@@ -19,11 +19,11 @@ import javax.crypto.spec.SecretKeySpec;
 import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.CryptorException;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+
 class AES256JNCryptorEmptyPwdSupport extends AES256JNCryptor {
 
-    static final String KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA1";
     static final int AES_256_KEY_SIZE = 256 / 8;
-    static final String AES_NAME = "AES";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     protected AES256JNCryptorEmptyPwdSupport() {
@@ -44,14 +44,14 @@ class AES256JNCryptorEmptyPwdSupport extends AES256JNCryptor {
     public SecretKey keyForPassword(final char[] password, final byte[] salt) throws CryptorException {
         try {
             final SecretKeyFactory factory = SecretKeyFactory
-                    .getInstance(KEY_DERIVATION_ALGORITHM);
+                    .getInstance(Constants.KEY_DERIVATION_ALGORITHM);
             final SecretKey tmp = factory.generateSecret(new PBEKeySpec(password, salt,
                     getPBKDFIterations(), AES_256_KEY_SIZE * 8));
-            return new SecretKeySpec(tmp.getEncoded(), AES_NAME);
+            return new SecretKeySpec(tmp.getEncoded(), Constants.AES);
         } catch (final GeneralSecurityException e) {
             throw new CryptorException(String.format(
                     "Failed to generate key from password using %s.",
-                    KEY_DERIVATION_ALGORITHM), e);
+                    Constants.KEY_DERIVATION_ALGORITHM), e);
         }
     }
 

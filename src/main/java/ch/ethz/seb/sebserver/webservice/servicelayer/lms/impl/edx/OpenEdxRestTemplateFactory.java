@@ -140,7 +140,9 @@ final class OpenEdxRestTemplateFactory {
             final String accessTokenRequestPath) throws URISyntaxException {
 
         final CharSequence plainClientId = credentials.clientId;
-        final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(credentials);
+        final CharSequence plainClientSecret = this.clientCredentialService
+                .getPlainClientSecret(credentials)
+                .getOrThrow();
 
         final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
         details.setAccessTokenUri(lmsSetup.lmsApiUrl + accessTokenRequestPath);

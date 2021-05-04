@@ -215,7 +215,12 @@ public class CertificateController {
         try {
 
             inputStream = new BufferedInputStream(request.getInputStream());
-            return this.certificateService.addCertificate(institutionId, certificateFileType, alias, inputStream)
+            return this.certificateService.addCertificate(
+                    institutionId,
+                    certificateFileType,
+                    alias,
+                    password,
+                    inputStream)
                     .flatMap(certData -> this.userActivityLogDAO.log(UserLogActivityType.IMPORT, certData))
                     .getOrThrow();
 
@@ -229,7 +234,6 @@ public class CertificateController {
     }
 
     @RequestMapping(
-            path = API.CERTIFICATE_ALIAS_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)

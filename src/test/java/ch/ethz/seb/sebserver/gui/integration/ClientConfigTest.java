@@ -124,6 +124,7 @@ public class ClientConfigTest extends GuiIntegrationTest {
                         null,
                         "password",
                         null,
+                        "certAlias",
                         null))
                 .call();
 
@@ -153,6 +154,7 @@ public class ClientConfigTest extends GuiIntegrationTest {
                         null,
                         "password",
                         "password",
+                        "certAlias",
                         null))
                 .call()
                 .getOrThrow();

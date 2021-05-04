@@ -19,13 +19,14 @@ import org.mockito.Mockito;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public class ExamJITSIProctoringServiceTest {
 
     @Test
     public void testTokenPayload() throws InvalidKeyException, NoSuchAlgorithmException {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
-        Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn("fbvgeghergrgrthrehreg123");
+        Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn(Result.of("fbvgeghergrgrthrehreg123"));
         final JitsiProctoringService examJITSIProctoringService =
                 new JitsiProctoringService(null, null, cryptorMock, null);
 
@@ -59,7 +60,7 @@ public class ExamJITSIProctoringServiceTest {
     @Test
     public void testCreateProctoringURL() {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
-        Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn("fbvgeghergrgrthrehreg123");
+        Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn(Result.of("fbvgeghergrgrthrehreg123"));
         final JitsiProctoringService examJITSIProctoringService =
                 new JitsiProctoringService(null, null, cryptorMock, null);
         final ProctoringRoomConnection data = examJITSIProctoringService.createProctoringConnection(

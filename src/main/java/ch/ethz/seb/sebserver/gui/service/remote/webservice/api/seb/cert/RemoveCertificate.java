@@ -36,7 +36,7 @@ public class RemoveCertificate extends RestCall<Collection<EntityKey>> {
                 }),
                 HttpMethod.DELETE,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.CERTIFICATE_ENDPOINT + API.CERTIFICATE_ALIAS_VAR_PATH_SEGMENT);
+                API.CERTIFICATE_ENDPOINT);
     }
 
 }

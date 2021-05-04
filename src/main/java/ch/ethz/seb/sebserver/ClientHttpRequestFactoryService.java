@@ -45,6 +45,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ResourceUtils;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -200,7 +201,7 @@ public class ClientHttpRequestFactoryService {
                     .loadTrustMaterial(trustStoreFile, password)
                     .setKeyStoreType(this.environment.getProperty(
                             "server.ssl.key-store-type",
-                            "pkcs12"))
+                            Constants.PKCS_12))
                     .build();
         }
 
@@ -218,9 +219,11 @@ public class ClientHttpRequestFactoryService {
                     .setSSLContext(sslContext)
                     .build();
             final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(client);
+
             factory.setConnectionRequestTimeout(this.connectionRequestTimeout);
             factory.setConnectTimeout(this.connectTimeout);
             factory.setReadTimeout(this.readTimeout);
+
             return factory;
         }
     }
@@ -246,8 +249,10 @@ public class ClientHttpRequestFactoryService {
         if (proxy.clientCredentials != null && StringUtils.isNotBlank(proxy.clientCredentials.clientId)) {
             final CredentialsProvider credsProvider = new BasicCredentialsProvider();
             final String plainClientId = proxy.clientCredentials.clientIdAsString();
-            final String plainClientSecret = Utils.toString(this.clientCredentialService
-                    .getPlainClientSecret(proxy.clientCredentials));
+            final CharSequence secret = this.clientCredentialService
+                    .getPlainClientSecret(proxy.clientCredentials)
+                    .getOrThrow();
+            final String plainClientSecret = Utils.toString(secret);
 
             credsProvider.setCredentials(
                     AuthScope.ANY,

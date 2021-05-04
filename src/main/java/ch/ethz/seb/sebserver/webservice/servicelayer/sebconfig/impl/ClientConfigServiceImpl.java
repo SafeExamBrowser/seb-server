@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
@@ -15,6 +16,7 @@ import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,10 +56,11 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.CertificateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionContext;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService.Strategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
@@ -165,6 +168,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     private final PasswordEncoder clientPasswordEncoder;
     private final ZipService zipService;
     private final WebserviceInfo webserviceInfo;
+    private final CertificateDAO certificateDAO;
     private final long defaultPingInterval;
 
     protected ClientConfigServiceImpl(
@@ -172,8 +176,9 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             final ClientCredentialService clientCredentialService,
             final SEBConfigEncryptionService sebConfigEncryptionService,
             final ZipService zipService,
-            @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
             final WebserviceInfo webserviceInfo,
+            final CertificateDAO certificateDAO,
+            @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
             @Value("${sebserver.webservice.api.exam.defaultPingInterval:1000}") final long defaultPingInterval) {
 
         this.sebClientConfigDAO = sebClientConfigDAO;
@@ -182,6 +187,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         this.zipService = zipService;
         this.clientPasswordEncoder = clientPasswordEncoder;
         this.webserviceInfo = webserviceInfo;
+        this.certificateDAO = certificateDAO;
         this.defaultPingInterval = defaultPingInterval;
     }
 
@@ -224,18 +230,13 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         final SEBClientConfig config = this.sebClientConfigDAO
                 .byModelId(modelId).getOrThrow();
 
-        final CharSequence encryptionPassword = this.sebClientConfigDAO
-                .getConfigPasswordCipher(config.getModelId())
-                .getOr((config.getConfigPurpose() == ConfigPurpose.START_EXAM) ? null : StringUtils.EMPTY);
-
-        exportSEBClientConfiguration(output, examId, config, encryptionPassword);
+        exportSEBClientConfiguration(output, examId, config);
     }
 
     protected void exportSEBClientConfiguration(
             final OutputStream output,
             final Long examId,
-            final SEBClientConfig config,
-            final CharSequence encryptionPassword) {
+            final SEBClientConfig config) {
 
         final String plainTextXMLContent = extractXMLContent(config, examId);
 
@@ -263,9 +264,10 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             // ZIP plain text
             this.zipService.write(pOut, plainIn);
 
-            if (encryptionPassword != null) {
-                // encrypt zipped plain text and add header
-                passwordEncryption(zipOut, encryptionPassword, config.getConfigPurpose(), pIn);
+            if (StringUtils.isNotBlank(config.encryptCertificateAlias)) {
+                certificateEncryption(zipOut, config, pIn);
+            } else if (config.hasEncryptionSecret()) {
+                passwordEncryption(zipOut, config, pIn);
             } else {
                 // just add plain text header
                 this.sebConfigEncryptionService.streamEncrypted(
@@ -290,6 +292,34 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         }
     }
 
+    private SEBConfigEncryptionContext buildCertificateEncryptionContext(final SEBClientConfig config) {
+
+        final Certificate certificate = this.certificateDAO.getCertificate(
+                config.institutionId,
+                String.valueOf(config.getEncryptCertificateAlias()))
+                .getOrThrow();
+
+        return EncryptionContext.contextOf(
+                SEBConfigEncryptionService.Strategy.PUBLIC_KEY_HASH_SYMMETRIC_KEY,
+                certificate);
+    }
+
+    private SEBConfigEncryptionContext buildPasswordEncryptionContext(final SEBClientConfig config) {
+        final CharSequence encryptionPassword = this.sebClientConfigDAO
+                .getConfigPasswordCipher(config.getModelId())
+                .getOr((config.getConfigPurpose() == ConfigPurpose.START_EXAM) ? null : StringUtils.EMPTY);
+        final CharSequence plainTextPassword = (StringUtils.isNotBlank(encryptionPassword))
+                ? getPlainTextPassword(
+                        encryptionPassword,
+                        config.configPurpose)
+                : null;
+        return EncryptionContext.contextOf(
+                (config.configPurpose == ConfigPurpose.CONFIGURE_CLIENT)
+                        ? SEBConfigEncryptionService.Strategy.PASSWORD_PWCC
+                        : SEBConfigEncryptionService.Strategy.PASSWORD_PSWD,
+                plainTextPassword);
+    }
+
     private String extractXMLContent(final SEBClientConfig config, final Long examId) {
 
         final String fallbackAddition = getFallbackAddition(config);
@@ -309,7 +339,8 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                 .getOrThrow();
         final CharSequence plainClientId = sebClientCredentials.clientId;
         final CharSequence plainClientSecret = this.clientCredentialService
-                .getPlainClientSecret(sebClientCredentials);
+                .getPlainClientSecret(sebClientCredentials)
+                .getOrThrow();
 
         final String plainTextConfig = String.format(
                 SEB_CLIENT_CONFIG_TEMPLATE_XML,
@@ -389,7 +420,9 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                     config.fallbackAttemptInterval);
 
             if (StringUtils.isNotBlank(config.fallbackPassword)) {
-                final CharSequence decrypt = this.clientCredentialService.decrypt(config.fallbackPassword);
+                final CharSequence decrypt = this.clientCredentialService
+                        .decrypt(config.fallbackPassword)
+                        .getOrThrow();
                 fallbackAddition += String.format(
                         SEB_CLIENT_CONFIG_STRING_TEMPLATE,
                         SEBClientConfig.ATTR_FALLBACK_PASSWORD,
@@ -397,7 +430,9 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             }
 
             if (StringUtils.isNotBlank(config.quitPassword)) {
-                final CharSequence decrypt = this.clientCredentialService.decrypt(config.quitPassword);
+                final CharSequence decrypt = this.clientCredentialService
+                        .decrypt(config.quitPassword)
+                        .getOrThrow();
                 fallbackAddition += String.format(
                         SEB_CLIENT_CONFIG_STRING_TEMPLATE,
                         SEBClientConfig.ATTR_QUIT_PASSWORD,
@@ -428,7 +463,9 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             final ClientCredentials credentials = this.sebClientConfigDAO
                     .getSEBClientCredentials(config.getModelId())
                     .getOrThrow();
-            final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(credentials);
+            final CharSequence plainClientSecret = this.clientCredentialService
+                    .getPlainClientSecret(credentials)
+                    .getOrThrow();
             final String basicAuth = credentials.clientId +
                     String.valueOf(Constants.COLON) +
                     plainClientSecret;
@@ -463,28 +500,46 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         checkAccess(config);
     }
 
+    private void certificateEncryption(
+            final OutputStream out,
+            final SEBClientConfig config,
+            final InputStream in) throws IOException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("*** SEB client configuration with certificate based encryption");
+        }
+
+        final boolean withPasswordEncryption = config.hasEncryptionSecret();
+
+        PipedOutputStream passEncryptionOut = null;
+        PipedInputStream passEncryptionIn = null;
+
+        if (withPasswordEncryption) {
+            // encrypt with password first
+            passEncryptionOut = new PipedOutputStream();
+            passEncryptionIn = new PipedInputStream(passEncryptionOut);
+            passwordEncryption(passEncryptionOut, config, in);
+        }
+
+        this.sebConfigEncryptionService.streamEncrypted(
+                out,
+                (withPasswordEncryption) ? in : passEncryptionIn,
+                buildCertificateEncryptionContext(config));
+    }
+
     private void passwordEncryption(
             final OutputStream output,
-            final CharSequence encryptionPassword,
-            final ConfigPurpose configPurpose,
+            final SEBClientConfig config,
             final InputStream input) {
 
         if (log.isDebugEnabled()) {
             log.debug("*** SEB client configuration with password based encryption");
         }
 
-        final CharSequence plainTextPassword = getPlainTextPassword(
-                encryptionPassword,
-                configPurpose);
-
         this.sebConfigEncryptionService.streamEncrypted(
                 output,
                 input,
-                EncryptionContext.contextOf(
-                        (configPurpose == ConfigPurpose.CONFIGURE_CLIENT)
-                                ? Strategy.PASSWORD_PWCC
-                                : Strategy.PASSWORD_PSWD,
-                        plainTextPassword));
+                buildPasswordEncryptionContext(config));
     }
 
     private CharSequence getPlainTextPassword(
@@ -493,7 +548,9 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
         CharSequence plainTextPassword = (encryptionPassword == StringUtils.EMPTY)
                 ? StringUtils.EMPTY
-                : this.clientCredentialService.decrypt(encryptionPassword);
+                : this.clientCredentialService
+                        .decrypt(encryptionPassword)
+                        .getOrThrow();
 
         if (configPurpose == ConfigPurpose.CONFIGURE_CLIENT && plainTextPassword != StringUtils.EMPTY) {
             MessageDigest digest;
@@ -518,7 +575,10 @@ public class ClientConfigServiceImpl implements ClientConfigService {
      * @return encoded clientSecret for that SEBClientConfiguration with clientId or null of not existing */
     private Result<CharSequence> getEncodedClientConfigSecret(final String clientId) {
         return this.sebClientConfigDAO.getConfigPasswordCipherByClientName(clientId)
-                .map(cipher -> this.clientPasswordEncoder.encode(this.clientCredentialService.decrypt(cipher)));
+                .map(cipher -> this.clientPasswordEncoder
+                        .encode(this.clientCredentialService
+                                .decrypt(cipher)
+                                .getOrThrow()));
     }
 
 }

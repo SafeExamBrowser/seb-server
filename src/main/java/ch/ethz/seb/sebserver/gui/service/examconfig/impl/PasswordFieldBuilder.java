@@ -154,7 +154,9 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
         @Override
         protected void setValueToControl(final String value) {
             if (StringUtils.isNotBlank(value)) {
-                final CharSequence pwd = this.cryptor.decrypt(value);
+                final CharSequence pwd = this.cryptor
+                        .decrypt(value)
+                        .getOrThrow();
                 this.control.setValue(pwd.toString());
                 this.confirm.setValue(pwd.toString());
             } else {

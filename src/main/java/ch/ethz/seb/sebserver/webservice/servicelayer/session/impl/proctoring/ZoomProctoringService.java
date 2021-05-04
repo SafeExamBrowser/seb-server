@@ -159,7 +159,9 @@ public class ZoomProctoringService implements ExamProctoringService {
 
                 final ClientCredentials credentials = new ClientCredentials(
                         proctoringSettings.appKey,
-                        this.cryptor.encrypt(proctoringSettings.appSecret));
+                        this.cryptor
+                                .encrypt(proctoringSettings.appSecret)
+                                .getOrThrow());
 
                 final ResponseEntity<String> result = this.zoomRestTemplate
                         .testServiceConnection(
@@ -182,7 +184,9 @@ public class ZoomProctoringService implements ExamProctoringService {
                                 proctoringSettings.serverURL,
                                 proctoringSettings.collectingRoomSize,
                                 proctoringSettings.appKey,
-                                this.cryptor.encrypt(proctoringSettings.appSecret));
+                                this.cryptor
+                                        .encrypt(proctoringSettings.appSecret)
+                                        .getOrThrow());
 
                         disposeServiceRoomsForExam(
                                 proctoringSettings.examId,
@@ -511,7 +515,10 @@ public class ZoomProctoringService implements ExamProctoringService {
 
         try {
 
-            final CharSequence decryptedSecret = this.cryptor.decrypt(credentials.secret);
+            final CharSequence decryptedSecret = this.cryptor
+                    .decrypt(credentials.secret)
+                    .getOrThrow();
+
             final StringBuilder builder = new StringBuilder();
             final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
 
@@ -551,7 +558,9 @@ public class ZoomProctoringService implements ExamProctoringService {
         try {
             final String apiKey = credentials.clientIdAsString();
             final int status = host ? 1 : 0;
-            final CharSequence decryptedSecret = this.cryptor.decrypt(credentials.secret);
+            final CharSequence decryptedSecret = this.cryptor
+                    .decrypt(credentials.secret)
+                    .getOrThrow();
 
             final Mac hasher = Mac.getInstance("HmacSHA256");
             final String ts = Long.toString(System.currentTimeMillis() - 30000);

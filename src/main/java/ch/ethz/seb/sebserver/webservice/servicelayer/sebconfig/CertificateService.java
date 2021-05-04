@@ -34,6 +34,7 @@ public interface CertificateService {
             Long institutionId,
             CertificateFileType certificateFileType,
             String alias,
+            CharSequence password,
             InputStream in);
 
     Result<EntityKey> removeCertificate(Long institutionId, String alias);

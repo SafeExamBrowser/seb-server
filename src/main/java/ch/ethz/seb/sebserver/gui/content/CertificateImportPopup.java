@@ -15,8 +15,6 @@ import java.util.function.Supplier;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -47,8 +45,6 @@ import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
 @Component
 @GuiProfile
 public class CertificateImportPopup {
-
-    private static final Logger log = LoggerFactory.getLogger(SEBExamConfigImportPopup.class);
 
     private final static PageMessageException MISSING_PASSWORD = new PageMessageException(
             new LocTextKey("sebserver.certificate.action.import.missing-password"));

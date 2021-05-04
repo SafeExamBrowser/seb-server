@@ -164,7 +164,9 @@ class MoodleRestTemplateFactory {
             final String accessTokenRequestPath) {
 
         final CharSequence plainClientId = credentials.clientId;
-        final CharSequence plainClientSecret = this.clientCredentialService.getPlainClientSecret(credentials);
+        final CharSequence plainClientSecret = this.clientCredentialService
+                .getPlainClientSecret(credentials)
+                .getOrThrow();
 
         final MoodleAPIRestTemplate restTemplate = new MoodleAPIRestTemplate(
                 this.jsonMapper,

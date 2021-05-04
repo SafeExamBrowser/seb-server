@@ -38,12 +38,11 @@ public interface SEBConfigEncryptionService {
         PASSWORD_PSWD(Type.PASSWORD, "pswd"),
         /** Password encryption with 'pwcc' header */
         PASSWORD_PWCC(Type.PASSWORD, "pwcc"),
-
-// NOTE not supported yet but eventually needed for SEB config import.
-//        PUBLIC_KEY_HASH(Type.CERTIFICATE, "pkhs"),
-//        PUBLIC_KEY_HASH_SYMMETRIC_KEY(Type.CERTIFICATE, "phsk")
-
-        ;
+        /** Encryption with public/private asymmetric keys and symmetric key */
+        PUBLIC_KEY_HASH_SYMMETRIC_KEY(Type.CERTIFICATE, "phsk"),
+        // NOTE not supported yet but eventually needed for SEB config import.
+        /** Encryption with public/private key */
+        PUBLIC_KEY_HASH(Type.CERTIFICATE, "pkhs");
 
         public final Type type;
         public final byte[] header;

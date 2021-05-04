@@ -130,6 +130,13 @@ public final class Constants {
     public static final int GZIP_CM = 8;
 
     public static final String SHA_256 = "SHA-256";
+    public static final String X_509 = "X.509";
+    public static final String PKCS_12 = "pkcs12";
+    public static final String SHA_1 = "SHA-1";
+    public static final String AES = "AES";
+    public static final String AES_CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
+    public static final String HMAC_ALGORITHM = "HmacSHA256";
+    public static final String KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA1";
 
     public static final RGB WHITE_RGB = new RGB(255, 255, 255);
     public static final RGB BLACK_RGB = new RGB(0, 0, 0);

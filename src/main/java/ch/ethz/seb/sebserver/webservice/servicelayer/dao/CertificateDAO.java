@@ -8,9 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.NoSuchElementException;
 
@@ -31,11 +33,24 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 /** Concrete EntityDAO interface of Certificate entities */
 public interface CertificateDAO {
 
+    Result<Certificate> getCertificate(final Long institutionId, String alias);
+
     Result<Certificates> getCertificates(Long institutionId);
 
-    Result<CertificateInfo> addCertificate(Long institutionId, String alias, Certificate certificate);
+    Result<CertificateInfo> addCertificate(
+            Long institutionId,
+            String alias,
+            Certificate certificate);
+
+    Result<CertificateInfo> addCertificate(
+            Long institutionId,
+            String alias,
+            Certificate certificate,
+            PrivateKey privateKey);
 
     Result<EntityKey> removeCertificate(Long institutionId, String alias);
+
+    Result<Collection<String>> getAllIdentityAlias(Long institutionId);
 
     static Result<CertificateInfo> getDataFromCertificate(final Certificates certificates, final String alias) {
         return Result.tryCatch(() -> {

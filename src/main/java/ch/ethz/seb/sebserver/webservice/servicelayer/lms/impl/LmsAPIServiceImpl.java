@@ -132,7 +132,8 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         final ClientCredentials lmsCredentials = this.clientCredentialService.encryptClientCredentials(
                 lmsSetup.lmsAuthName,
                 lmsSetup.lmsAuthSecret,
-                lmsSetup.lmsRestApiToken);
+                lmsSetup.lmsRestApiToken)
+                .getOrThrow();
 
         final ProxyData proxyData = (StringUtils.isNoneBlank(lmsSetup.proxyHost))
                 ? new ProxyData(
@@ -140,7 +141,8 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                         lmsSetup.proxyPort,
                         this.clientCredentialService.encryptClientCredentials(
                                 lmsSetup.proxyAuthUsername,
-                                lmsSetup.proxyAuthSecret))
+                                lmsSetup.proxyAuthSecret)
+                                .getOrThrow())
                 : null;
 
         return test(createLmsSetupTemplate(lmsSetup, lmsCredentials, proxyData));

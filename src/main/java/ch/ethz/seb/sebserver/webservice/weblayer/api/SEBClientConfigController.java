@@ -39,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -46,6 +47,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
@@ -85,8 +87,14 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void downloadSEBConfig(
             @PathVariable final String modelId,
+            @RequestParam(
+                    name = Entity.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = EXAM.ATTR_ID, required = false) final Long examId,
             final HttpServletResponse response) throws IOException {
+
+        checkReadPrivilege(institutionId);
 
         this.entityDAO.byModelId(modelId)
                 .flatMap(this.authorization::checkWrite)

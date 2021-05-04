@@ -428,6 +428,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 record.getDate(),
                 record.getEncryptSecret(),
                 null,
+                additionalAttributes.containsKey(SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS)
+                        ? additionalAttributes.get(SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS).getValue()
+                        : null,
                 BooleanUtils.toBooleanObject(record.getActive())));
     }
 
@@ -438,7 +441,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
         }
 
         final CharSequence encrypted_encrypt_secret = sebClientConfig.hasEncryptionSecret()
-                ? this.clientCredentialService.encrypt(sebClientConfig.encryptSecret)
+                ? this.clientCredentialService
+                        .encrypt(sebClientConfig.encryptSecret)
+                        .getOrThrow()
                 : null;
         return (encrypted_encrypt_secret != null) ? encrypted_encrypt_secret.toString() : null;
     }
@@ -589,6 +594,19 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     EntityType.SEB_CLIENT_CONFIGURATION,
                     configId,
                     SEBClientConfig.ATTR_QUIT_PASSWORD);
+        }
+
+        if (StringUtils.isNotBlank(sebClientConfig.encryptCertificateAlias)) {
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS,
+                    sebClientConfig.encryptCertificateAlias);
+        } else {
+            this.additionalAttributesDAO.delete(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS);
         }
     }
 

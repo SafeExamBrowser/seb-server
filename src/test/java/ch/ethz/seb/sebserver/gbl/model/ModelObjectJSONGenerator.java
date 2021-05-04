@@ -119,7 +119,13 @@ public class ModelObjectJSONGenerator {
                 VDIType.NO, null, null, null,
                 true, "fallbackStartURL", 20000L, (short) 3, (short) 1000, "fallbackPassword",
                 "fallbackPasswordConfirm",
-                "quitPassword", "quitPasswordConfirm", DateTime.now(), "encryptSecret", "encryptSecretConfirm", true);
+                "quitPassword",
+                "quitPasswordConfirm",
+                DateTime.now(),
+                "encryptSecret",
+                "encryptSecretConfirm",
+                "certAlias",
+                true);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 

@@ -320,7 +320,9 @@ public final class Form implements FormBinding {
             @Override public String getStringValue() {return pwdInput.getValue() != null ? pwdInput.getValue().toString() : null;}
             @Override public void setStringValue(final String value) {
                 if (StringUtils.isNotBlank(value)) {
-                    pwdInput.setValue(Form.this.cryptor.decrypt(value));
+                    final CharSequence pwd = Form.this.cryptor.decrypt(value)
+                        .getOrThrow();
+                    pwdInput.setValue(pwd);
                 } else {
                     pwdInput.setValue(value);
                 }

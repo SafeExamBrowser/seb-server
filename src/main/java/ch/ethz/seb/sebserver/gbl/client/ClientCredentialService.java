@@ -37,7 +37,7 @@ public interface ClientCredentialService {
      * @param secretPlaintext the plain secret text
      * @param accessTokenPlaintext the plain accessToken text
      * @return encrypted client credentials */
-    ClientCredentials encryptClientCredentials(
+    Result<ClientCredentials> encryptClientCredentials(
             CharSequence clientIdPlaintext,
             CharSequence secretPlaintext,
             CharSequence accessTokenPlaintext);
@@ -48,7 +48,7 @@ public interface ClientCredentialService {
      * @param clientIdPlaintext the plain clientId text
      * @param secretPlaintext the plain secret text
      * @return encrypted client credentials */
-    default ClientCredentials encryptClientCredentials(
+    default Result<ClientCredentials> encryptClientCredentials(
             final CharSequence clientIdPlaintext,
             final CharSequence secretPlaintext) {
 
@@ -59,13 +59,13 @@ public interface ClientCredentialService {
      *
      * @param credentials ClientCredentials containing the secret to decrypt
      * @return decrypted plain text secret */
-    CharSequence getPlainClientSecret(ClientCredentials credentials);
+    Result<CharSequence> getPlainClientSecret(ClientCredentials credentials);
 
     /** Use this to get a decrypted plain text accessToken form given ClientCredentials
      *
      * @param credentials ClientCredentials containing the accessToken to decrypt
      * @return decrypted plain text accessToken */
-    CharSequence getPlainAccessToken(ClientCredentials credentials);
+    Result<CharSequence> getPlainAccessToken(ClientCredentials credentials);
 
     /** Encrypts a given plain text that uses {@link org.springframework.security.crypto.encrypt.Encryptors#stronger}
      * and a randomly generated salt that is added to the cipher text.
@@ -73,12 +73,12 @@ public interface ClientCredentialService {
      *
      * @param text the plain text to encrypt
      * @return encrypted cipher text with additional salt */
-    CharSequence encrypt(final CharSequence text);
+    Result<CharSequence> encrypt(final CharSequence text);
 
     /** Decrypt a given cipher that was encrypted with the method used by this services encrypt method.
      *
      * @param cipher the cipher text with additional salt
      * @return plain text decrypt from the given cipher */
-    CharSequence decrypt(final CharSequence cipher);
+    Result<CharSequence> decrypt(final CharSequence cipher);
 
 }

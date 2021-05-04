@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.gbl.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
 
 import org.bouncycastle.jcajce.provider.keystore.pkcs12.PKCS12KeyStoreSpi;
 import org.bouncycastle.jcajce.provider.keystore.pkcs12.PKCS12KeyStoreSpi.BCPKCS12KeyStore;
@@ -22,6 +24,7 @@ import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 
+/** Cryptor dealing with internal encryption and decryption. */
 @Lazy
 @Service
 public class Cryptor {
@@ -34,11 +37,19 @@ public class Cryptor {
         this.internalPWD = environment.getProperty("sebserver.webservice.internalSecret");
     }
 
-    public CharSequence encrypt(final CharSequence text) {
+    /** Use this to encrypt a text with the internal password
+     *
+     * @param text The text to encrypt with the internal password
+     * @return the encrypted text cipher */
+    public Result<CharSequence> encrypt(final CharSequence text) {
         return encrypt(text, this.internalPWD);
     }
 
-    public CharSequence decrypt(final CharSequence text) {
+    /** Use this to decrypt a cipher text with the internal password
+     *
+     * @param text The cipher text to decrypt with the internal password
+     * @return the plain text */
+    public Result<CharSequence> decrypt(final CharSequence text) {
         return decrypt(text, this.internalPWD);
     }
 
@@ -64,17 +75,40 @@ public class Cryptor {
         }
     }
 
-    public static CharSequence encrypt(final CharSequence text, final CharSequence secret) {
-        if (text == null) {
-            throw new IllegalArgumentException("Text has null reference");
-        }
+    public Result<PKCS12KeyStoreSpi> addPrivateKey(
+            final PKCS12KeyStoreSpi keyStore,
+            final PrivateKey privateKey,
+            final String alias,
+            final Certificate certificate) {
 
-        if (secret == null) {
-            log.warn("No internal secret supplied: skip encryption");
-            return text;
-        }
+        return Result.tryCatch(() -> {
 
-        try {
+            keyStore.engineSetKeyEntry(
+                    alias,
+                    privateKey,
+                    Utils.toCharArray(this.internalPWD),
+                    new Certificate[] { certificate });
+
+            return keyStore;
+        });
+    }
+
+    public Result<PrivateKey> getPrivateKey(final PKCS12KeyStoreSpi store, final String alias) {
+        return Result.tryCatch(() -> {
+            return (PrivateKey) store.engineGetKey(alias, Utils.toCharArray(this.internalPWD));
+        });
+    }
+
+    static Result<CharSequence> encrypt(final CharSequence text, final CharSequence secret) {
+        return Result.tryCatch(() -> {
+            if (text == null) {
+                throw new IllegalArgumentException("Text has null reference");
+            }
+
+            if (secret == null) {
+                log.warn("No internal secret supplied: skip encryption");
+                return text;
+            }
 
             final CharSequence salt = KeyGenerators.string().generateKey();
             final CharSequence cipher = Encryptors
@@ -84,23 +118,19 @@ public class Cryptor {
             return new StringBuilder(cipher)
                     .append(salt);
 
-        } catch (final Exception e) {
-            log.error("Failed to encrypt text: {}", e.getMessage());
-            throw e;
-        }
+        });
     }
 
-    public static CharSequence decrypt(final CharSequence cipher, final CharSequence secret) {
-        if (cipher == null) {
-            throw new IllegalArgumentException("Cipher has null reference");
-        }
+    static Result<CharSequence> decrypt(final CharSequence cipher, final CharSequence secret) {
+        return Result.tryCatch(() -> {
+            if (cipher == null) {
+                throw new IllegalArgumentException("Cipher has null reference");
+            }
 
-        if (secret == null) {
-            log.warn("No internal secret supplied: skip decryption");
-            return cipher;
-        }
-
-        try {
+            if (secret == null) {
+                log.warn("No internal secret supplied: skip decryption");
+                return cipher;
+            }
 
             final int length = cipher.length();
             final int cipherTextLength = length - 16;
@@ -111,9 +141,7 @@ public class Cryptor {
                     .delux(secret, salt)
                     .decrypt(cipherText.toString());
 
-        } catch (final Exception e) {
-            log.error("Failed to decrypt text: {}", e.getMessage());
-            throw e;
-        }
+        });
     }
+
 }

@@ -307,7 +307,10 @@ public class JitsiProctoringService implements ExamProctoringService {
                     .build()
                     .getHost();
 
-            final CharSequence decryptedSecret = this.cryptor.decrypt(appSecret);
+            final CharSequence decryptedSecret = this.cryptor
+                    .decrypt(appSecret)
+                    .getOrThrow();
+
             final String token = internalCreateAccessToken(
                     appKey,
                     decryptedSecret,

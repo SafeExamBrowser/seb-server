@@ -2124,7 +2124,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         try {
             new SEBClientBot(
                     credentials.clientIdAsString(),
-                    this.cryptor.decrypt(credentials.secret).toString(),
+                    this.cryptor.decrypt(credentials.secret).getOrThrow().toString(),
                     exam.getModelId(),
                     String.valueOf(exam.institutionId));
             Thread.sleep(1000);

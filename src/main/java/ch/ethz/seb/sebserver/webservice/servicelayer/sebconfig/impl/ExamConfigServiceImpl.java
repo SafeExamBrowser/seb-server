@@ -188,7 +188,8 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             }
 
             final CharSequence encryptionPasswordPlaintext = this.clientCredentialService
-                    .decrypt(passwordCipher);
+                    .decrypt(passwordCipher)
+                    .getOrThrow();
 
             PipedOutputStream plainOut = null;
             PipedInputStream zipIn = null;

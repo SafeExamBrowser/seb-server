@@ -242,6 +242,11 @@ public class SEBClientConfigForm implements TemplateComposer {
         final boolean showVDIAttrs = clientConfig.vdiType == VDIType.VM_WARE;
         final boolean showFallbackAttrs = BooleanUtils.isTrue(clientConfig.fallback);
 
+        final CharSequence pwd = (formHandleAnchor.formHandle == null)
+                ? clientConfig.getEncryptSecret()
+                : this.cryptor.encrypt(clientConfig.getEncryptSecret())
+                        .getOrThrow();
+
         PageService.clearComposite(formContent);
 
         final FormBuilder formBuilder = this.pageService.formBuilder(
@@ -282,9 +287,7 @@ public class SEBClientConfigForm implements TemplateComposer {
                 .addField(FormBuilder.password(
                         Domain.SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET,
                         FORM_ENCRYPT_SECRET_TEXT_KEY,
-                        (formHandleAnchor.formHandle == null)
-                                ? clientConfig.getEncryptSecret()
-                                : this.cryptor.encrypt(clientConfig.getEncryptSecret())))
+                        pwd))
 
                 .withDefaultSpanEmptyCell(3)
                 .addFieldIf(
@@ -292,9 +295,7 @@ public class SEBClientConfigForm implements TemplateComposer {
                         () -> FormBuilder.password(
                                 SEBClientConfig.ATTR_ENCRYPT_SECRET_CONFIRM,
                                 FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY,
-                                (formHandleAnchor.formHandle == null)
-                                        ? clientConfig.getEncryptSecret()
-                                        : this.cryptor.encrypt(clientConfig.getEncryptSecretConfirm())))
+                                pwd))
 
                 .withDefaultSpanInput(2)
                 .addField(FormBuilder.text(

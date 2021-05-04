@@ -13,8 +13,6 @@ import java.security.SecureRandom;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +23,6 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 @Service
 public class ClientCredentialServiceImpl implements ClientCredentialService {
 
-    private static final Logger log = LoggerFactory.getLogger(ClientCredentialServiceImpl.class);
-
     private final Cryptor cryptor;
 
     protected ClientCredentialServiceImpl(final Cryptor cryptor) {
@@ -35,38 +31,35 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
 
     @Override
     public Result<ClientCredentials> generatedClientCredentials() {
-        return Result.tryCatch(() -> {
-            try {
-
-                return encryptClientCredentials(
-                        generateClientId(),
-                        generateClientSecret());
-
-            } catch (final Exception e) {
-                log.error("Error while trying to generate client credentials: ", e);
-                throw new RuntimeException("cause: ", e);
-            }
-        });
+        return encryptClientCredentials(
+                generateClientId(),
+                generateClientSecret());
     }
 
     @Override
-    public ClientCredentials encryptClientCredentials(
+    public Result<ClientCredentials> encryptClientCredentials(
             final CharSequence clientIdPlaintext,
             final CharSequence secretPlaintext,
             final CharSequence accessTokenPlaintext) {
 
-        return new ClientCredentials(
-                clientIdPlaintext,
-                (StringUtils.isNoneBlank(secretPlaintext))
-                        ? this.cryptor.encrypt(secretPlaintext).toString()
-                        : null,
-                (StringUtils.isNoneBlank(accessTokenPlaintext))
-                        ? this.cryptor.encrypt(accessTokenPlaintext).toString()
-                        : null);
+        return Result.tryCatch(() -> {
+            return new ClientCredentials(
+                    clientIdPlaintext,
+                    (StringUtils.isNoneBlank(secretPlaintext))
+                            ? this.cryptor.encrypt(secretPlaintext)
+                                    .getOrThrow()
+                                    .toString()
+                            : null,
+                    (StringUtils.isNoneBlank(accessTokenPlaintext))
+                            ? this.cryptor.encrypt(accessTokenPlaintext)
+                                    .getOrThrow()
+                                    .toString()
+                            : null);
+        });
     }
 
     @Override
-    public CharSequence getPlainClientSecret(final ClientCredentials credentials) {
+    public Result<CharSequence> getPlainClientSecret(final ClientCredentials credentials) {
         if (credentials == null || !credentials.hasSecret()) {
             return null;
         }
@@ -75,21 +68,21 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     }
 
     @Override
-    public CharSequence getPlainAccessToken(final ClientCredentials credentials) {
+    public Result<CharSequence> getPlainAccessToken(final ClientCredentials credentials) {
         if (credentials == null || !credentials.hasAccessToken()) {
-            return null;
+            return Result.ofRuntimeError("No token available");
         }
 
         return this.cryptor.decrypt(credentials.accessToken);
     }
 
     @Override
-    public CharSequence encrypt(final CharSequence text) {
+    public Result<CharSequence> encrypt(final CharSequence text) {
         return this.cryptor.encrypt(text);
     }
 
     @Override
-    public CharSequence decrypt(final CharSequence text) {
+    public Result<CharSequence> decrypt(final CharSequence text) {
         return this.cryptor.decrypt(text);
     }
 
@@ -104,7 +97,6 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     }
 
     public static CharSequence generateClientSecret() {
-        // TODO find a better way to generate a random char array instead of using RandomStringUtils.random which uses a String
         return RandomStringUtils.random(
                 64, 0, possibleCharacters.length - 1, false, false,
                 possibleCharacters, new SecureRandom());

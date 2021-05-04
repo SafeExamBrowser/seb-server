@@ -546,6 +546,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
         final CharSequence encrypted_encrypt_secret = examConfigurationMap.hasEncryptionSecret()
                 ? this.clientCredentialService.encrypt(examConfigurationMap.encryptSecret)
+                        .getOrThrow()
                 : null;
         return (encrypted_encrypt_secret != null) ? encrypted_encrypt_secret.toString() : null;
     }

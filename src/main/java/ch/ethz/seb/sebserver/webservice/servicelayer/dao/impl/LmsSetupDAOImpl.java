@@ -349,7 +349,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getLmsProxyAuthUsername(),
                 record.getLmsProxyAuthSecret());
 
-        final CharSequence plainAccessToken = this.clientCredentialService.getPlainAccessToken(clientCredentials);
         return Result.tryCatch(() -> new LmsSetup(
                 record.getId(),
                 record.getInstitutionId(),
@@ -358,7 +357,10 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 Utils.toString(clientCredentials.clientId),
                 null,
                 record.getLmsUrl(),
-                Utils.toString(plainAccessToken),
+                Utils.toString(
+                        this.clientCredentialService
+                                .getPlainAccessToken(clientCredentials)
+                                .getOr(null)),
                 record.getLmsProxyHost(),
                 record.getLmsProxyPort(),
                 Utils.toString(proxyCredentials.clientId),
@@ -390,14 +392,16 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 ? new ClientCredentials(null, null)
                 : this.clientCredentialService.encryptClientCredentials(
                         lmsSetup.proxyAuthUsername,
-                        lmsSetup.proxyAuthSecret);
+                        lmsSetup.proxyAuthSecret)
+                        .getOrThrow();
     }
 
     private ClientCredentials createAPIClientCredentials(final LmsSetup lmsSetup) {
         return this.clientCredentialService.encryptClientCredentials(
                 lmsSetup.lmsAuthName,
                 lmsSetup.lmsAuthSecret,
-                lmsSetup.lmsRestApiToken);
+                lmsSetup.lmsRestApiToken)
+                .getOrThrow();
     }
 
 }

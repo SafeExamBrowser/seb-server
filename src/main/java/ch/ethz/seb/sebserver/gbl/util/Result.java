@@ -382,7 +382,8 @@ public final class Result<T> {
 
     @Override
     public String toString() {
-        return "Result [value=" + this.value + ", error=" + this.error + "]";
+        throw new RuntimeException("!!!!!!!!!!!!!");
+        //return "Result [value=" + this.value + ", error=" + this.error + "]";
     }
 
     public interface TryCatchSupplier<T> {

@@ -99,7 +99,9 @@ public class SebConfigEncryptionServiceImplTest {
     private SEBConfigEncryptionServiceImpl sebConfigEncryptionServiceImpl() {
         final JNCryptor cryptor = new AES256JNCryptor();
         final List<SEBConfigCryptor> encryptors = Arrays.asList(
-                new PasswordEncryptor(cryptor),
+                new PasswordCryptor(
+                        new PasswordEncryptor(),
+                        new PasswordDecryptor(cryptor)),
                 new NoneEncryptor());
         return new SEBConfigEncryptionServiceImpl(encryptors);
     }

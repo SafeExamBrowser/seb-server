@@ -21,16 +21,16 @@ public class CryptorTest {
     public void testEncryptDecrypt() {
         final String clientName = "simpleClientName";
         String encrypted =
-                Cryptor.encrypt(clientName, "secret1").toString();
-        String decrypted = Cryptor.decrypt(encrypted, "secret1").toString();
+                Cryptor.encrypt(clientName, "secret1").getOrThrow().toString();
+        String decrypted = Cryptor.decrypt(encrypted, "secret1").getOrThrow().toString();
 
         assertEquals(clientName, decrypted);
 
         final String clientSecret = "fbjreij39ru29305ruà££àèLöäöäü65%(/%(ç87";
 
         encrypted =
-                Cryptor.encrypt(clientSecret, "secret1").toString();
-        decrypted = Cryptor.decrypt(encrypted, "secret1").toString();
+                Cryptor.encrypt(clientSecret, "secret1").getOrThrow().toString();
+        decrypted = Cryptor.decrypt(encrypted, "secret1").getOrThrow().toString();
 
         assertEquals(clientSecret, decrypted);
     }
@@ -45,16 +45,16 @@ public class CryptorTest {
         final String clientName = "simpleClientName";
 
         String encrypted =
-                cryptor.encrypt(clientName).toString();
-        String decrypted = cryptor.decrypt(encrypted).toString();
+                cryptor.encrypt(clientName).getOrThrow().toString();
+        String decrypted = cryptor.decrypt(encrypted).getOrThrow().toString();
 
         assertEquals(clientName, decrypted);
 
         final String clientSecret = "fbjreij39ru29305ruà££àèLöäöäü65%(/%(ç87";
 
         encrypted =
-                cryptor.encrypt(clientSecret).toString();
-        decrypted = cryptor.decrypt(encrypted).toString();
+                cryptor.encrypt(clientSecret).getOrThrow().toString();
+        decrypted = cryptor.decrypt(encrypted).getOrThrow().toString();
 
         assertEquals(clientSecret, decrypted);
     }
