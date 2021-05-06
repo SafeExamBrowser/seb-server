@@ -138,11 +138,14 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         gridData.horizontalIndent = 0;
         label.setLayoutData(gridData);
 
-        final Supplier<String> valueSupplier = () -> this.itemsSupplier.get().stream()
-                .filter(tuple -> valueKey.equals(tuple._1))
-                .findFirst()
-                .map(tuple -> tuple._2)
-                .orElse(Constants.EMPTY_NOTE);
+        final Supplier<String> valueSupplier = () -> (StringUtils.isBlank(valueKey))
+                ? Constants.EMPTY_NOTE
+                : this.itemsSupplier.get()
+                        .stream()
+                        .filter(tuple -> valueKey.equals(tuple._1))
+                        .findFirst()
+                        .map(tuple -> tuple._2)
+                        .orElse(Constants.EMPTY_NOTE);
         final Consumer<Text> updateFunction = t -> t.setText(valueSupplier.get());
 
         label.setText(valueSupplier.get());

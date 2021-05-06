@@ -29,6 +29,7 @@ public class CertificateInfo implements Entity {
         UNKNOWN,
         DIGITAL_SIGNATURE,
         DATA_ENCIPHERMENT,
+        DATA_ENCIPHERMENT_PRIVATE_KEY,
         KEY_CERT_SIGN
     }
 

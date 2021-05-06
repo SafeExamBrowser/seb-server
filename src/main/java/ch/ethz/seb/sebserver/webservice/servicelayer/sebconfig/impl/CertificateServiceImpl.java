@@ -53,7 +53,7 @@ public class CertificateServiceImpl implements CertificateService {
 
         return this.certificateDAO
                 .getCertificates(institutionId)
-                .flatMap(certs -> CertificateDAO.getDataFromCertificate(certs, alias));
+                .flatMap(certs -> this.certificateDAO.getDataFromCertificate(certs, alias));
     }
 
     @Override
@@ -86,14 +86,14 @@ public class CertificateServiceImpl implements CertificateService {
                 return loadCertFromPEM(in)
                         .flatMap(cert -> this.certificateDAO.addCertificate(
                                 institutionId,
-                                CertificateDAO.extractAlias(cert, alias),
+                                this.certificateDAO.extractAlias(cert, alias),
                                 cert));
 
             case PKCS12:
                 return loadCertFromPKC(in, password)
                         .flatMap(pair -> this.certificateDAO.addCertificate(
                                 institutionId,
-                                CertificateDAO.extractAlias(pair.a, alias),
+                                this.certificateDAO.extractAlias(pair.a, alias),
                                 pair.a,
                                 pair.b));
             default:
@@ -133,7 +133,7 @@ public class CertificateServiceImpl implements CertificateService {
 
         return certificates.aliases
                 .stream()
-                .map(alias -> CertificateDAO.getDataFromCertificate(certificates, alias))
+                .map(alias -> this.certificateDAO.getDataFromCertificate(certificates, alias))
                 .flatMap(Result::onErrorLogAndSkip)
                 .filter(predicate)
                 .collect(Collectors.toList());

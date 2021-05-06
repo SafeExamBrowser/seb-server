@@ -20,9 +20,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -43,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction.WhiteListPath;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
@@ -72,6 +76,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExams;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificateNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodeNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
@@ -84,6 +89,8 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 /** Defines functionality to get resources or functions of resources to feed e.g. selection or
  * combo-box content. */
 public class ResourceService {
+
+    private static final Logger log = LoggerFactory.getLogger(ResourceService.class);
 
     private static final String MISSING_CLIENT_PING_NAME_KEY = "MISSING";
 
@@ -729,6 +736,21 @@ public class ResourceService {
                                 SEB_CLIENT_CONFIG_PURPOSE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
                                 StringUtils.EMPTY))))
                 .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> identityCertificatesResources() {
+        return Stream.concat(
+                Stream.of(new EntityName("", EntityType.CERTIFICATE, "")),
+                this.restService.getBuilder(GetCertificateNames.class)
+                        .withQueryParam(
+                                CertificateInfo.FILTER_ATTR_TYPE,
+                                String.valueOf(CertificateInfo.CertificateType.DATA_ENCIPHERMENT_PRIVATE_KEY))
+                        .call()
+                        .onError(error -> log.warn("Failed to get identity certificate names: {}", error.getMessage()))
+                        .getOr(Collections.emptyList())
+                        .stream())
+                .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
                 .collect(Collectors.toList());
     }
 

@@ -523,7 +523,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
         this.sebConfigEncryptionService.streamEncrypted(
                 out,
-                (withPasswordEncryption) ? in : passEncryptionIn,
+                (withPasswordEncryption) ? passEncryptionIn : in,
                 buildCertificateEncryptionContext(config));
     }
 

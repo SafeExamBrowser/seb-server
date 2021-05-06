@@ -63,7 +63,7 @@ public class PasswordEncryptor {
             log.error("Error while trying to read/write form/to streams: ", e);
         } finally {
             try {
-                input.close();
+                IOUtils.closeQuietly(input);
                 if (encryptOutput != null) {
                     encryptOutput.flush();
                     encryptOutput.close();

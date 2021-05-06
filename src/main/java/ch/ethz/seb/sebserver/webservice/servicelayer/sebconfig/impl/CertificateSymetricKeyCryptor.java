@@ -12,15 +12,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.security.MessageDigest;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Set;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +49,7 @@ public class CertificateSymetricKeyCryptor implements SEBConfigCryptor {
     private static final Set<Strategy> STRATEGIES = Utils.immutableSetOf(
             Strategy.PUBLIC_KEY_HASH_SYMMETRIC_KEY);
     private static final int PUBLIC_KEY_HASH_SIZE = 20;
+    private static final int ENCRYPTION_KEY_BITS = 256;
     private static final int ENCRYPTION_KEY_LENGTH = 32;
     private static final int KEY_LENGTH_SIZE = 4;
 
@@ -82,6 +88,7 @@ public class CertificateSymetricKeyCryptor implements SEBConfigCryptor {
             final byte[] generateParameter = generateParameter(certificate, publicKeyHash, symetricKey);
 
             output.write(generateParameter, 0, generateParameter.length);
+
             this.passwordEncryptor.encrypt(output, input, symetricKeyBase64);
 
         } catch (final Exception e) {
@@ -106,17 +113,27 @@ public class CertificateSymetricKeyCryptor implements SEBConfigCryptor {
 
     }
 
-    private byte[] generatePublicKeyHash(final Certificate cert) throws NoSuchAlgorithmException {
-        final byte[] publicKey = cert.getPublicKey().getEncoded();
-        final MessageDigest md = MessageDigest.getInstance(Constants.SHA_1);
-        final byte[] hash = md.digest(publicKey);
-        return hash;
+    private byte[] generatePublicKeyHash(final Certificate cert)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
+        byte[] publicKey = cert.getPublicKey().getEncoded();
+        final PublicKey publicKey2 = cert.getPublicKey();
+        final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        final X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKey);
+        final PublicKey _publicKey = keyFactory.generatePublic(keySpec);
+        publicKey = _publicKey.getEncoded();
+
+        final String algorithm = publicKey2.getAlgorithm();
+        final String encodeHex = String.valueOf(Hex.encodeHex(publicKey));
+        final String sha1Hex = DigestUtils.sha1Hex(publicKey);
+        final String sha256Hex = DigestUtils.sha256Hex(publicKey);
+        return DigestUtils.sha1(publicKey);
     }
 
     private byte[] generateSymetricKey() throws NoSuchAlgorithmException {
         final KeyGenerator keyGenerator = KeyGenerator.getInstance(Constants.AES);
-        keyGenerator.init(ENCRYPTION_KEY_LENGTH);
-        return keyGenerator.generateKey().getEncoded();
+        keyGenerator.init(ENCRYPTION_KEY_BITS);
+        final byte[] encoded = keyGenerator.generateKey().getEncoded();
+        return encoded;
     }
 
     @SuppressWarnings("resource")
@@ -135,8 +152,9 @@ public class CertificateSymetricKeyCryptor implements SEBConfigCryptor {
         data.write(publicKeyHash, 0, publicKeyHash.length);
         data.write(encryptedKeyLength, 0, encryptedKeyLength.length);
         data.write(encryptedKey, 0, encryptedKey.length);
+        final byte[] byteArray = data.toByteArray();
 
-        return data.toByteArray();
+        return byteArray;
     }
 
     private byte[] generateEncryptedKey(final Certificate cert, final byte[] symetricKey) throws Exception {
