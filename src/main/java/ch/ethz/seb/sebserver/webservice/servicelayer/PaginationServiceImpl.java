@@ -229,6 +229,7 @@ public class PaginationServiceImpl implements PaginationService {
         userTableMap.put(Domain.USER.ATTR_USERNAME, UserRecordDynamicSqlSupport.username.name());
         userTableMap.put(Domain.USER.ATTR_EMAIL, UserRecordDynamicSqlSupport.email.name());
         userTableMap.put(Domain.USER.ATTR_LANGUAGE, UserRecordDynamicSqlSupport.language.name());
+        userTableMap.put(Domain.USER.ATTR_ACTIVE, UserRecordDynamicSqlSupport.active.name());
         this.sortColumnMapping.put(UserRecordDynamicSqlSupport.userRecord.name(), userTableMap);
         this.defaultSortColumn.put(UserRecordDynamicSqlSupport.userRecord.name(), Domain.USER.ATTR_ID);
 
@@ -237,6 +238,7 @@ public class PaginationServiceImpl implements PaginationService {
         lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, institutionNameRef);
         lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_NAME, LmsSetupRecordDynamicSqlSupport.name.name());
         lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsSetupRecordDynamicSqlSupport.lmsType.name());
+        lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_ACTIVE, LmsSetupRecordDynamicSqlSupport.active.name());
         this.sortColumnMapping.put(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord.name(), lmsSetupTableMap);
         this.defaultSortColumn.put(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord.name(), Domain.LMS_SETUP.ATTR_ID);
 
@@ -260,6 +262,9 @@ public class PaginationServiceImpl implements PaginationService {
         sebClientConfigTableMap.put(
                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_DATE,
                 SebClientConfigRecordDynamicSqlSupport.date.name());
+        sebClientConfigTableMap.put(
+                Domain.SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE,
+                SebClientConfigRecordDynamicSqlSupport.active.name());
         this.sortColumnMapping.put(
                 SebClientConfigRecordDynamicSqlSupport.sebClientConfigRecord.name(),
                 sebClientConfigTableMap);
