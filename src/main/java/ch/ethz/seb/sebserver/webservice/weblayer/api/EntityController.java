@@ -148,12 +148,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         checkReadPrivilege(institutionId);
 
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
-
-        // if current user has no read access for specified entity type within other institution
-        // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
-        if (!this.authorization.hasGrant(PrivilegeType.READ, getGrantEntityType())) {
-            filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
-        }
+        populateFilterMap(filterMap, institutionId, sort);
 
         return this.paginationService.getPage(
                 pageNumber,
@@ -162,6 +157,19 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 getSQLTableOfEntity().name(),
                 () -> getAll(filterMap))
                 .getOrThrow();
+    }
+
+    protected void populateFilterMap(final FilterMap filterMap, final Long institutionId, final String sort) {
+        // If current user has no read access for specified entity type within other institution
+        // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
+        if (!this.authorization.hasGrant(PrivilegeType.READ, getGrantEntityType())) {
+            filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+        }
+
+        // If sorting is on institution name we need to join the institution table
+        if (sort != null && sort.contains(Entity.FILTER_ATTR_INSTITUTION)) {
+            filterMap.putIfAbsent(FilterMap.ATTR_ADD_INSITUTION_JOIN, Constants.TRUE_STRING);
+        }
     }
 
     // ******************

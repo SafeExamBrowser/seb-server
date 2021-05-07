@@ -45,6 +45,9 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
  * All text based filter criteria are used as SQL wildcard's */
 public class FilterMap extends POSTMapper {
 
+    public static final String ATTR_ADD_INSITUTION_JOIN = "ADD_INSITUTION_JOIN";
+    public static final String ATTR_ADD_LMS_SETUP_JOIN = "ADD_LMS_SETUP_JOIN";
+
     public FilterMap() {
         super(new LinkedMultiValueMap<>(), null);
     }

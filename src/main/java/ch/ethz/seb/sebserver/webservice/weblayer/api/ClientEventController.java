@@ -103,12 +103,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
         checkReadPrivilege(institutionId);
 
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
-
-        // if current user has no read access for specified entity type within other institution
-        // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
-        if (!this.authorization.hasGrant(PrivilegeType.READ, getGrantEntityType())) {
-            filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
-        }
+        populateFilterMap(filterMap, institutionId, sort);
 
         try {
 

@@ -112,6 +112,7 @@ public class CertificateList implements TemplateComposer {
                         .withMultiSelection()
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
+                        .withDefaultSort(CertificateInfo.ATTR_ALIAS)
 
                         .withColumn(new ColumnDefinition<>(
                                 CertificateInfo.ATTR_ALIAS,

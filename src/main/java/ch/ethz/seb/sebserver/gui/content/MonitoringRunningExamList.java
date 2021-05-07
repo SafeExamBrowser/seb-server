@@ -95,6 +95,7 @@ public class MonitoringRunningExamList implements TemplateComposer {
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withRowDecorator(ExamList.decorateOnExamConsistency(this.pageService))
+                        .withDefaultSort(QuizData.QUIZ_ATTR_NAME)
 
                         .withColumn(new ColumnDefinition<>(
                                 QuizData.QUIZ_ATTR_NAME,

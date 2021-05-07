@@ -25,8 +25,10 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
+import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
@@ -75,7 +77,7 @@ public class PaginationServiceImpl implements PaginationService {
             return false;
         }
 
-        return tableMap.containsKey(orderBy);
+        return tableMap.containsKey(PageSortOrder.decode(orderBy));
     }
 
     /** Use this to set a page limitation on SQL level. This checks first if there is
@@ -194,6 +196,11 @@ public class PaginationServiceImpl implements PaginationService {
 
     private void initSortColumnMapping() {
 
+        final String institutionNameRef = "institution." + InstitutionRecordDynamicSqlSupport.name.name();
+        final String lmsSetupNameRef = "lms_setup." + LmsSetupRecordDynamicSqlSupport.name.name();
+        final String clientConnectionNameRef =
+                "client_connection." + ClientConnectionRecordDynamicSqlSupport.examUserSessionId.name();
+
         // define and initialize sort column mapping for...
 
         // Institution Table
@@ -216,6 +223,7 @@ public class PaginationServiceImpl implements PaginationService {
 
         // User Table
         final Map<String, String> userTableMap = new HashMap<>();
+        userTableMap.put(Domain.USER.ATTR_INSTITUTION_ID, institutionNameRef);
         userTableMap.put(Domain.USER.ATTR_NAME, UserRecordDynamicSqlSupport.name.name());
         userTableMap.put(Domain.USER.ATTR_SURNAME, UserRecordDynamicSqlSupport.surname.name());
         userTableMap.put(Domain.USER.ATTR_USERNAME, UserRecordDynamicSqlSupport.username.name());
@@ -226,6 +234,7 @@ public class PaginationServiceImpl implements PaginationService {
 
         // LMS Setup Table
         final Map<String, String> lmsSetupTableMap = new HashMap<>();
+        lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_INSTITUTION_ID, institutionNameRef);
         lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_NAME, LmsSetupRecordDynamicSqlSupport.name.name());
         lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsSetupRecordDynamicSqlSupport.lmsType.name());
         this.sortColumnMapping.put(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord.name(), lmsSetupTableMap);
@@ -233,18 +242,15 @@ public class PaginationServiceImpl implements PaginationService {
 
         // Exam Table
         final Map<String, String> examTableMap = new HashMap<>();
-        examTableMap.put(
-                Domain.EXAM.ATTR_TYPE,
-                ExamRecordDynamicSqlSupport.type.name());
-        this.sortColumnMapping.put(
-                ExamRecordDynamicSqlSupport.examRecord.name(),
-                examTableMap);
-        this.defaultSortColumn.put(
-                ExamRecordDynamicSqlSupport.examRecord.name(),
-                Domain.EXAM.ATTR_ID);
+        examTableMap.put(Entity.FILTER_ATTR_INSTITUTION, institutionNameRef);
+        examTableMap.put(Domain.EXAM.ATTR_LMS_SETUP_ID, lmsSetupNameRef);
+        examTableMap.put(Domain.EXAM.ATTR_TYPE, ExamRecordDynamicSqlSupport.type.name());
+        this.sortColumnMapping.put(ExamRecordDynamicSqlSupport.examRecord.name(), examTableMap);
+        this.defaultSortColumn.put(ExamRecordDynamicSqlSupport.examRecord.name(), Domain.EXAM.ATTR_ID);
 
         // SEB Client Configuration Table
         final Map<String, String> sebClientConfigTableMap = new HashMap<>();
+        lmsSetupTableMap.put(Domain.SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID, institutionNameRef);
         sebClientConfigTableMap.put(
                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID,
                 SebClientConfigRecordDynamicSqlSupport.institutionId.name());
@@ -265,7 +271,7 @@ public class PaginationServiceImpl implements PaginationService {
         final Map<String, String> configurationNodeTableMap = new HashMap<>();
         configurationNodeTableMap.put(
                 Domain.CONFIGURATION_NODE.ATTR_INSTITUTION_ID,
-                ConfigurationNodeRecordDynamicSqlSupport.institutionId.name());
+                institutionNameRef);
         configurationNodeTableMap.put(
                 Domain.CONFIGURATION_NODE.ATTR_NAME,
                 ConfigurationNodeRecordDynamicSqlSupport.name.name());
@@ -285,6 +291,9 @@ public class PaginationServiceImpl implements PaginationService {
         // ClientEvent table
         final Map<String, String> clientEventTableMap = new HashMap<>();
         clientEventTableMap.put(
+                Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
+                clientConnectionNameRef);
+        clientEventTableMap.put(
                 Domain.CLIENT_EVENT.ATTR_TYPE,
                 ClientEventRecordDynamicSqlSupport.type.name());
         clientEventTableMap.put(
@@ -296,6 +305,9 @@ public class PaginationServiceImpl implements PaginationService {
         clientEventTableMap.put(
                 Domain.CLIENT_EVENT.ATTR_TEXT,
                 ClientEventRecordDynamicSqlSupport.text.name());
+        clientEventTableMap.put(
+                Domain.CLIENT_EVENT.ATTR_NUMERIC_VALUE,
+                ClientEventRecordDynamicSqlSupport.numericValue.name());
         this.sortColumnMapping.put(
                 ClientEventRecordDynamicSqlSupport.clientEventRecord.name(),
                 clientEventTableMap);
@@ -305,6 +317,9 @@ public class PaginationServiceImpl implements PaginationService {
 
         // User Activity Log Table
         final Map<String, String> userActivityLogTableMap = new HashMap<>();
+        userActivityLogTableMap.put(
+                UserActivityLog.FILTER_ATTR_INSTITUTION,
+                institutionNameRef);
         userActivityLogTableMap.put(
                 Domain.USER.ATTR_USERNAME,
                 UserRecordDynamicSqlSupport.username.name());

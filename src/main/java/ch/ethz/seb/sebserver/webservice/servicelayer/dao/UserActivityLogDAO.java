@@ -8,9 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import java.util.Collection;
-import java.util.function.Predicate;
-
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
@@ -135,14 +132,5 @@ public interface UserActivityLogDAO extends
 
         return log(user, activityType, entity, null);
     }
-
-    Result<Collection<UserActivityLog>> all(
-            Long InstitutionId,
-            String userId,
-            Long from,
-            Long to,
-            String activityTypes,
-            String entityTypes,
-            Predicate<UserActivityLog> predicate);
 
 }

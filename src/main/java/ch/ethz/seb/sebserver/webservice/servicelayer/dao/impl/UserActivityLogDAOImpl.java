@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
+import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -42,6 +44,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
@@ -310,11 +313,10 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                 filterMap.getUserLofTo(),
                 filterMap.getString(UserActivityLog.FILTER_ATTR_ACTIVITY_TYPES),
                 filterMap.getString(UserActivityLog.FILTER_ATTR_ENTITY_TYPES),
+                filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN),
                 predicate);
     }
 
-    @Override
-    @Transactional(readOnly = true)
     public Result<Collection<UserActivityLog>> all(
             final Long institutionId,
             final String userName,
@@ -322,6 +324,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
             final Long to,
             final String activityTypes,
             final String entityTypes,
+            final boolean joinInstitution,
             final Predicate<UserActivityLog> predicate) {
 
         return Result.tryCatch(() -> {
@@ -332,15 +335,32 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     ? Arrays.asList(StringUtils.split(entityTypes, Constants.LIST_SEPARATOR))
                     : null;
 
-            final List<UserActivityLogRecord> records = this.userLogRecordMapper
-                    .selectByExample()
-                    .leftJoin(UserRecordDynamicSqlSupport.userRecord)
-                    .on(
-                            UserRecordDynamicSqlSupport.uuid,
-                            SqlBuilder.equalTo(UserActivityLogRecordDynamicSqlSupport.userUuid))
-                    .where(
-                            UserRecordDynamicSqlSupport.institutionId,
-                            SqlBuilder.isEqualToWhenPresent(institutionId))
+            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserActivityLogRecord>>>.QueryExpressionWhereBuilder whereClause =
+                    joinInstitution
+                            ? this.userLogRecordMapper
+                                    .selectByExample()
+                                    .leftJoin(UserRecordDynamicSqlSupport.userRecord)
+                                    .on(
+                                            UserRecordDynamicSqlSupport.uuid,
+                                            SqlBuilder.equalTo(UserActivityLogRecordDynamicSqlSupport.userUuid))
+                                    .join(InstitutionRecordDynamicSqlSupport.institutionRecord)
+                                    .on(InstitutionRecordDynamicSqlSupport.id,
+                                            SqlBuilder.equalTo(UserRecordDynamicSqlSupport.institutionId))
+                                    .where(
+                                            UserRecordDynamicSqlSupport.institutionId,
+                                            SqlBuilder.isEqualToWhenPresent(institutionId))
+
+                            : this.userLogRecordMapper
+                                    .selectByExample()
+                                    .leftJoin(UserRecordDynamicSqlSupport.userRecord)
+                                    .on(
+                                            UserRecordDynamicSqlSupport.uuid,
+                                            SqlBuilder.equalTo(UserActivityLogRecordDynamicSqlSupport.userUuid))
+                                    .where(
+                                            UserRecordDynamicSqlSupport.institutionId,
+                                            SqlBuilder.isEqualToWhenPresent(institutionId));
+
+            final List<UserActivityLogRecord> records = whereClause
                     .and(
                             UserRecordDynamicSqlSupport.username,
                             SqlBuilder.isLikeWhenPresent(userName))

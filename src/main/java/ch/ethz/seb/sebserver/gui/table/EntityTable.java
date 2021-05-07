@@ -97,6 +97,9 @@ public class EntityTable<ROW> {
     private final Consumer<Set<ROW>> selectionListener;
     private final Consumer<Integer> contentChangeListener;
 
+    private final String defaultSortColumn;
+    private final PageSortOrder defaultSortOrder;
+
     int pageNumber;
     int pageSize;
     String sortColumn = null;
@@ -120,7 +123,9 @@ public class EntityTable<ROW> {
             final MultiValueMap<String, String> staticQueryParams,
             final BiConsumer<TableItem, ROW> rowDecorator,
             final Consumer<Set<ROW>> selectionListener,
-            final Consumer<Integer> contentChangeListener) {
+            final Consumer<Integer> contentChangeListener,
+            final String defaultSortColumn,
+            final PageSortOrder defaultSortOrder) {
 
         this.name = name;
         this.filterAttrName = name + "_filter";
@@ -128,6 +133,9 @@ public class EntityTable<ROW> {
         this.sortOrderAttrName = name + "_sortOrder";
         this.currentPageAttrName = name + "_currentPage";
         this.markupEnabled = markupEnabled;
+
+        this.defaultSortColumn = defaultSortColumn;
+        this.defaultSortOrder = defaultSortOrder;
 
         this.composite = new Composite(pageContext.getParent(), SWT.NONE);
         this.pageService = pageService;
@@ -281,9 +289,10 @@ public class EntityTable<ROW> {
     }
 
     public void reset() {
-        this.applySort(null);
-        this.table.setSortColumn(null);
-        this.table.setSortDirection(SWT.NONE);
+        this.sortColumn = this.defaultSortColumn;
+        this.sortOrder = this.defaultSortOrder;
+        updateSortUserAttr();
+        setTableSort();
         applyFilter();
     }
 
@@ -306,10 +315,10 @@ public class EntityTable<ROW> {
         return this.filter.getFilterParameter();
     }
 
-    public void applySort(final String columnName) {
+    public void applySort(final String columnName, final PageSortOrder order) {
         try {
             this.sortColumn = columnName;
-            this.sortOrder = PageSortOrder.ASCENDING;
+            this.sortOrder = order;
 
             if (columnName != null) {
                 updateTableRows(
@@ -455,7 +464,7 @@ public class EntityTable<ROW> {
             if (column.isSortable()) {
                 tableColumn.addListener(SWT.Selection, event -> {
                     if (!column.columnName.equals(this.sortColumn)) {
-                        applySort(column.columnName);
+                        applySort(column.columnName, PageSortOrder.ASCENDING);
                         this.table.setSortColumn(tableColumn);
                         this.table.setSortDirection(SWT.UP);
                     } else {
@@ -713,10 +722,8 @@ public class EntityTable<ROW> {
                     .getAttribute(this.sortAttrName);
             if (StringUtils.isNotBlank(sort)) {
                 this.sortColumn = sort;
-                final TableColumn tableColumn = getTableColumn(sort);
-                if (tableColumn != null) {
-                    this.table.setSortColumn(tableColumn);
-                }
+            } else {
+                this.sortColumn = this.defaultSortColumn;
             }
 
             final String sortOrder = this.pageService
@@ -724,11 +731,27 @@ public class EntityTable<ROW> {
                     .getAttribute(this.sortOrderAttrName);
             if (StringUtils.isNotBlank(sortOrder)) {
                 this.sortOrder = PageSortOrder.valueOf(sortOrder);
-                this.table.setSortDirection(this.sortOrder == PageSortOrder.ASCENDING ? SWT.UP : SWT.DOWN);
+            } else {
+                this.sortOrder = this.defaultSortOrder;
             }
+
+            setTableSort();
 
         } catch (final Exception e) {
             log.error("Failed to get sort attribute form current user attributes", e);
+        }
+    }
+
+    private void setTableSort() {
+        if (this.sortColumn != null) {
+            final TableColumn tableColumn = getTableColumn(this.sortColumn);
+            if (tableColumn != null) {
+                this.table.setSortColumn(tableColumn);
+            }
+            this.table.setSortDirection(this.sortOrder == PageSortOrder.ASCENDING ? SWT.UP : SWT.DOWN);
+        } else {
+            this.table.setSortColumn(null);
+            this.table.setSortDirection(SWT.NONE);
         }
     }
 

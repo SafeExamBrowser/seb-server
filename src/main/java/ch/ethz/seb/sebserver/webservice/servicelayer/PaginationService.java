@@ -101,9 +101,10 @@ public interface PaginationService {
         if (sorted.size() < end) {
             end = sorted.size();
         }
+        final int numberOfPages = sorted.size() / _pageSize;
 
         return new Page<>(
-                sorted.size() / _pageSize,
+                (numberOfPages > 0) ? numberOfPages : 1,
                 _pageNumber,
                 sort,
                 sorted.subList(start, end));

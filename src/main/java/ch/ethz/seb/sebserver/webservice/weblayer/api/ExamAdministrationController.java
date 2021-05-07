@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
@@ -480,6 +481,16 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .map(this::checkExamSupporterRole);
     }
 
+    @Override
+    protected void populateFilterMap(final FilterMap filterMap, final Long institutionId, final String sort) {
+        super.populateFilterMap(filterMap, institutionId, sort);
+
+        // If sorting is on lms setup name we need to join the lms setup table
+        if (sort != null && sort.contains(Domain.EXAM.ATTR_LMS_SETUP_ID)) {
+            filterMap.putIfAbsent(FilterMap.ATTR_ADD_LMS_SETUP_JOIN, Constants.TRUE_STRING);
+        }
+    }
+
     private Exam checkExamSupporterRole(final Exam exam) {
         final Set<String> examSupporter = this.userDAO.all(
                 this.authorization.getUserService().getCurrentUser().getUserInfo().institutionId,
@@ -555,7 +566,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 return list;
             }
 
-            if (sortBy.equals(Exam.FILTER_ATTR_NAME)) {
+            if (sortBy.equals(Exam.FILTER_ATTR_NAME) || sortBy.equals(QuizData.QUIZ_ATTR_NAME)) {
                 list.sort(Comparator.comparing(exam -> exam.name));
             }
             if (sortBy.equals(Exam.FILTER_ATTR_TYPE)) {

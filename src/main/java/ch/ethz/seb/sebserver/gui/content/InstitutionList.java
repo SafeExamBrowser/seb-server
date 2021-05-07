@@ -96,6 +96,7 @@ public class InstitutionList implements TemplateComposer {
                 this.pageService.entityTableBuilder(this.restService.getRestCall(GetInstitutionPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
+                        .withDefaultSort(Domain.INSTITUTION.ATTR_NAME)
                         .withColumn(new ColumnDefinition<>(
                                 Domain.INSTITUTION.ATTR_NAME,
                                 NAME_TEXT_KEY,

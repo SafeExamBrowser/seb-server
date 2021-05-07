@@ -138,7 +138,7 @@ public class UserAccountList implements TemplateComposer {
                 restService.getRestCall(GetUserAccountPage.class))
                 .withEmptyMessage(EMPTY_TEXT_KEY)
                 .withPaging(this.pageSize)
-
+                .withDefaultSort(isSEBAdmin.getAsBoolean() ? Domain.USER.ATTR_INSTITUTION_ID : Domain.USER.ATTR_NAME)
                 .withColumnIf(
                         isSEBAdmin,
                         () -> new ColumnDefinition<>(
@@ -146,7 +146,8 @@ public class UserAccountList implements TemplateComposer {
                                 INSTITUTION_TEXT_KEY,
                                 userInstitutionNameFunction(this.resourceService))
                                         .withFilter(this.institutionFilter)
-                                        .widthProportion(2))
+                                        .widthProportion(2)
+                                        .sortable())
 
                 .withColumn(new ColumnDefinition<>(
                         Domain.USER.ATTR_NAME,

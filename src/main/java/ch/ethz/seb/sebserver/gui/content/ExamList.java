@@ -145,8 +145,10 @@ public class ExamList implements TemplateComposer {
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withRowDecorator(decorateOnExamConsistency(this.pageService))
-
                         .withStaticFilter(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
+                        .withDefaultSort(isSEBAdmin.getAsBoolean()
+                                ? Domain.EXAM.ATTR_INSTITUTION_ID
+                                : Domain.EXAM.ATTR_LMS_SETUP_ID)
 
                         .withColumnIf(
                                 isSEBAdmin,
@@ -155,7 +157,8 @@ public class ExamList implements TemplateComposer {
                                         COLUMN_TITLE_INSTITUTION_KEY,
                                         exam -> institutionNameFunction
                                                 .apply(String.valueOf(exam.getInstitutionId())))
-                                                        .withFilter(this.institutionFilter))
+                                                        .withFilter(this.institutionFilter)
+                                                        .sortable())
 
                         .withColumn(new ColumnDefinition<>(
                                 Domain.EXAM.ATTR_LMS_SETUP_ID,

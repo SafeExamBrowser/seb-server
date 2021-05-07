@@ -183,14 +183,17 @@ public class UserActivityLogs implements TemplateComposer {
                 restService.getRestCall(GetUserLogPage.class))
                 .withEmptyMessage(EMPTY_TEXT_KEY)
                 .withPaging(this.pageSize)
-
+                .withDefaultSort(isSEBAdmin.getAsBoolean()
+                        ? UserActivityLog.FILTER_ATTR_INSTITUTION
+                        : UserActivityLog.ATTR_USER_NAME)
                 .withColumnIf(
                         isSEBAdmin,
                         () -> new ColumnDefinition<>(
                                 UserActivityLog.FILTER_ATTR_INSTITUTION,
                                 INSTITUTION_TEXT_KEY,
                                 institutionNameFunction)
-                                        .withFilter(this.institutionFilter))
+                                        .withFilter(this.institutionFilter)
+                                        .sortable())
 
                 .withColumn(new ColumnDefinition<>(
                         UserActivityLog.ATTR_USER_NAME,

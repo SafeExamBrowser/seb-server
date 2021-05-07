@@ -116,13 +116,15 @@ public class LmsSetupList implements TemplateComposer {
                 this.pageService.entityTableBuilder(restService.getRestCall(GetLmsSetupPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
+                        .withDefaultSort(isSEBAdmin ? Domain.LMS_SETUP.ATTR_INSTITUTION_ID : Domain.LMS_SETUP.ATTR_NAME)
                         .withColumnIf(
                                 () -> isSEBAdmin,
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,
                                         lmsSetupInstitutionNameFunction(this.resourceService))
-                                                .withFilter(this.institutionFilter))
+                                                .withFilter(this.institutionFilter)
+                                                .sortable())
                         .withColumn(new ColumnDefinition<>(
                                 Domain.LMS_SETUP.ATTR_NAME,
                                 NAME_TEXT_KEY,

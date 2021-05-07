@@ -27,6 +27,9 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
+import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -162,11 +165,22 @@ public class UserDAOImpl implements UserDAO {
                     ? predicate.and(ui -> ui.roles.contains(userRole))
                     : predicate;
 
-            return this.userRecordMapper
-                    .selectByExample()
-                    .where(
-                            UserRecordDynamicSqlSupport.active,
-                            isEqualToWhenPresent(filterMap.getActiveAsInt()))
+            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserRecord>>>.QueryExpressionWhereBuilder sqlWhereClause =
+                    (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
+                            ? this.userRecordMapper
+                                    .selectByExample()
+                                    .join(InstitutionRecordDynamicSqlSupport.institutionRecord)
+                                    .on(InstitutionRecordDynamicSqlSupport.id,
+                                            SqlBuilder.equalTo(UserRecordDynamicSqlSupport.institutionId))
+                                    .where(
+                                            UserRecordDynamicSqlSupport.active,
+                                            isEqualToWhenPresent(filterMap.getActiveAsInt()))
+                            : this.userRecordMapper
+                                    .selectByExample()
+                                    .where(
+                                            UserRecordDynamicSqlSupport.active,
+                                            isEqualToWhenPresent(filterMap.getActiveAsInt()));
+            return sqlWhereClause
                     .and(
                             UserRecordDynamicSqlSupport.institutionId,
                             isEqualToWhenPresent(filterMap.getInstitutionId()))

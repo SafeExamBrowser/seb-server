@@ -149,6 +149,7 @@ public class SEBClientEvents implements TemplateComposer {
                 this.restService.getRestCall(GetExtendedClientEventPage.class))
                 .withEmptyMessage(EMPTY_TEXT_KEY)
                 .withPaging(this.pageSize)
+                .withDefaultSort(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID)
 
                 .withColumn(new ColumnDefinition<>(
                         Domain.CLIENT_CONNECTION.ATTR_EXAM_ID,

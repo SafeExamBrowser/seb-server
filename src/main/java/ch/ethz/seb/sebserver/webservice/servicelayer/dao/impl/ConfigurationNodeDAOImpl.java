@@ -20,6 +20,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
+import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +44,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationReco
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
@@ -104,33 +107,46 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             final FilterMap filterMap,
             final Predicate<ConfigurationNode> predicate) {
 
-        return Result.tryCatch(() -> this.configurationNodeRecordMapper
-                .selectByExample()
-                .where(
-                        ConfigurationNodeRecordDynamicSqlSupport.status,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeStatus()))
-                .and(
-                        ConfigurationNodeRecordDynamicSqlSupport.institutionId,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getInstitutionId()))
-                .and(
-                        ConfigurationNodeRecordDynamicSqlSupport.name,
-                        SqlBuilder.isLikeWhenPresent(filterMap.getName()))
-                .and(
-                        ConfigurationNodeRecordDynamicSqlSupport.description,
-                        SqlBuilder.isLikeWhenPresent(filterMap.getConfigNodeDesc()))
-                .and(
-                        ConfigurationNodeRecordDynamicSqlSupport.type,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeType()))
-                .and(
-                        ConfigurationNodeRecordDynamicSqlSupport.templateId,
-                        SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeTemplateId()))
-                .build()
-                .execute()
-                .stream()
-                .map(ConfigurationNodeDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .filter(predicate)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ConfigurationNodeRecord>>>.QueryExpressionWhereBuilder whereClause =
+                    (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
+                            ? this.configurationNodeRecordMapper
+                                    .selectByExample()
+                                    .join(InstitutionRecordDynamicSqlSupport.institutionRecord)
+                                    .on(InstitutionRecordDynamicSqlSupport.id,
+                                            SqlBuilder.equalTo(ConfigurationNodeRecordDynamicSqlSupport.institutionId))
+                                    .where(
+                                            ConfigurationNodeRecordDynamicSqlSupport.status,
+                                            SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeStatus()))
+                            : this.configurationNodeRecordMapper
+                                    .selectByExample()
+                                    .where(
+                                            ConfigurationNodeRecordDynamicSqlSupport.status,
+                                            SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeStatus()));
+
+            return whereClause.and(
+                    ConfigurationNodeRecordDynamicSqlSupport.institutionId,
+                    SqlBuilder.isEqualToWhenPresent(filterMap.getInstitutionId()))
+                    .and(
+                            ConfigurationNodeRecordDynamicSqlSupport.name,
+                            SqlBuilder.isLikeWhenPresent(filterMap.getName()))
+                    .and(
+                            ConfigurationNodeRecordDynamicSqlSupport.description,
+                            SqlBuilder.isLikeWhenPresent(filterMap.getConfigNodeDesc()))
+                    .and(
+                            ConfigurationNodeRecordDynamicSqlSupport.type,
+                            SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeType()))
+                    .and(
+                            ConfigurationNodeRecordDynamicSqlSupport.templateId,
+                            SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeTemplateId()))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(ConfigurationNodeDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .filter(predicate)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

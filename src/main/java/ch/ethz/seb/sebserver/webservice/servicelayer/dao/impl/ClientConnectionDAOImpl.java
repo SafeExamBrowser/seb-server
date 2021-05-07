@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
+import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +43,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecord
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RemoteProctoringRoomRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
@@ -88,30 +91,44 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             final FilterMap filterMap,
             final Predicate<ClientConnection> predicate) {
 
-        return Result.tryCatch(() -> this.clientConnectionRecordMapper
-                .selectByExample()
-                .where(
-                        ClientConnectionRecordDynamicSqlSupport.institutionId,
-                        isEqualToWhenPresent(filterMap.getInstitutionId()))
-                .and(
-                        ClientConnectionRecordDynamicSqlSupport.examId,
-                        isEqualToWhenPresent(filterMap.getClientConnectionExamId()))
-                .and(
-                        ClientConnectionRecordDynamicSqlSupport.status,
-                        isEqualToWhenPresent(filterMap.getClientConnectionStatus()))
-                .and(
-                        ClientConnectionRecordDynamicSqlSupport.examUserSessionId,
-                        isLikeWhenPresent(filterMap.getClientConnectionUserId()))
-                .and(
-                        ClientConnectionRecordDynamicSqlSupport.clientAddress,
-                        isLikeWhenPresent(filterMap.getClientConnectionIPAddress()))
-                .build()
-                .execute()
-                .stream()
-                .map(ClientConnectionDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .filter(predicate)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientConnectionRecord>>>.QueryExpressionWhereBuilder whereClause =
+                    (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
+                            ? this.clientConnectionRecordMapper
+                                    .selectByExample()
+                                    .join(InstitutionRecordDynamicSqlSupport.institutionRecord)
+                                    .on(InstitutionRecordDynamicSqlSupport.id,
+                                            SqlBuilder.equalTo(ClientConnectionRecordDynamicSqlSupport.institutionId))
+                                    .where(
+                                            ClientConnectionRecordDynamicSqlSupport.institutionId,
+                                            isEqualToWhenPresent(filterMap.getInstitutionId()))
+
+                            : this.clientConnectionRecordMapper
+                                    .selectByExample()
+                                    .where(
+                                            ClientConnectionRecordDynamicSqlSupport.institutionId,
+                                            isEqualToWhenPresent(filterMap.getInstitutionId()));
+            return whereClause
+                    .and(
+                            ClientConnectionRecordDynamicSqlSupport.examId,
+                            isEqualToWhenPresent(filterMap.getClientConnectionExamId()))
+                    .and(
+                            ClientConnectionRecordDynamicSqlSupport.status,
+                            isEqualToWhenPresent(filterMap.getClientConnectionStatus()))
+                    .and(
+                            ClientConnectionRecordDynamicSqlSupport.examUserSessionId,
+                            isLikeWhenPresent(filterMap.getClientConnectionUserId()))
+                    .and(
+                            ClientConnectionRecordDynamicSqlSupport.clientAddress,
+                            isLikeWhenPresent(filterMap.getClientConnectionIPAddress()))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(ClientConnectionDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .filter(predicate)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

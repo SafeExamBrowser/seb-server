@@ -106,6 +106,9 @@ public class ConfigTemplateList implements TemplateComposer {
                                 ConfigurationType.TEMPLATE.name())
                         .withEmptyMessage(EMPTY_TEMPLATE_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
+                        .withDefaultSort(isSEBAdmin
+                                ? Domain.LMS_SETUP.ATTR_INSTITUTION_ID
+                                : Domain.CONFIGURATION_NODE.ATTR_NAME)
                         .withColumnIf(
                                 () -> isSEBAdmin,
                                 () -> new ColumnDefinition<>(

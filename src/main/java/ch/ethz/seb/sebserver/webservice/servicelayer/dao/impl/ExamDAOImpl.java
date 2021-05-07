@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,6 +28,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
+import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -51,6 +54,8 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttribu
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
@@ -180,10 +185,35 @@ public class ExamDAOImpl implements ExamDAO {
                 return true;
             };
 
-            final List<ExamRecord> records = this.examRecordMapper.selectByExample()
-                    .where(
-                            ExamRecordDynamicSqlSupport.active,
-                            isEqualToWhenPresent(filterMap.getActiveAsInt()))
+            // If we have a sort on institution name, join the institution table
+            // If we have a sort on lms setup name, join lms setup table
+            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamRecord>>>.QueryExpressionWhereBuilder whereClause =
+                    (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
+                            ? this.examRecordMapper
+                                    .selectByExample()
+                                    .join(InstitutionRecordDynamicSqlSupport.institutionRecord)
+                                    .on(
+                                            InstitutionRecordDynamicSqlSupport.id,
+                                            SqlBuilder.equalTo(ExamRecordDynamicSqlSupport.institutionId))
+                                    .where(
+                                            ExamRecordDynamicSqlSupport.active,
+                                            isEqualToWhenPresent(filterMap.getActiveAsInt()))
+                            : (filterMap.getBoolean(FilterMap.ATTR_ADD_LMS_SETUP_JOIN))
+                                    ? this.examRecordMapper
+                                            .selectByExample()
+                                            .join(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord)
+                                            .on(
+                                                    LmsSetupRecordDynamicSqlSupport.id,
+                                                    SqlBuilder.equalTo(ExamRecordDynamicSqlSupport.lmsSetupId))
+                                            .where(
+                                                    ExamRecordDynamicSqlSupport.active,
+                                                    isEqualToWhenPresent(filterMap.getActiveAsInt()))
+                                    : this.examRecordMapper.selectByExample()
+                                            .where(
+                                                    ExamRecordDynamicSqlSupport.active,
+                                                    isEqualToWhenPresent(filterMap.getActiveAsInt()));
+
+            final List<ExamRecord> records = whereClause
                     .and(
                             ExamRecordDynamicSqlSupport.institutionId,
                             isEqualToWhenPresent(filterMap.getInstitutionId()))
@@ -750,7 +780,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             final HashMap<Long, Collection<ExamRecord>> lmsSetupToRecordMapping = records
                     .stream()
-                    .reduce(new HashMap<>(),
+                    .reduce(new LinkedHashMap<>(),
                             (map, record) -> Utils.mapCollect(map, record.getLmsSetupId(), record),
                             Utils::mapPutAll);
 

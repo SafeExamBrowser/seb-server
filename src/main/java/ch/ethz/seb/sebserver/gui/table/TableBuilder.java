@@ -24,6 +24,7 @@ import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -49,6 +50,8 @@ public class TableBuilder<ROW> {
     private Consumer<Set<ROW>> selectionListener;
     private Consumer<Integer> contentChangeListener;
     private boolean markupEnabled = false;
+    private String defaultSortColumn = null;
+    private PageSortOrder defaultSortOrder = PageSortOrder.ASCENDING;
 
     public TableBuilder(
             final String name,
@@ -103,6 +106,16 @@ public class TableBuilder<ROW> {
 
     public TableBuilder<ROW> withPaging(final int pageSize) {
         this.pageSize = pageSize;
+        return this;
+    }
+
+    public TableBuilder<ROW> withDefaultSort(final String defaultSortColumn) {
+        this.defaultSortColumn = defaultSortColumn;
+        return this;
+    }
+
+    public TableBuilder<ROW> withDefaultSortOrder(final PageSortOrder defaultSortOrder) {
+        this.defaultSortOrder = defaultSortOrder;
         return this;
     }
 
@@ -209,7 +222,9 @@ public class TableBuilder<ROW> {
                 this.staticQueryParams,
                 this.rowDecorator,
                 this.selectionListener,
-                this.contentChangeListener);
+                this.contentChangeListener,
+                this.defaultSortColumn,
+                this.defaultSortOrder);
     }
 
 }
