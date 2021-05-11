@@ -51,7 +51,17 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
  *
- * See also: https://docs.moodle.org/dev/Web_service_API_functions */
+ * See also: https://docs.moodle.org/dev/Web_service_API_functions
+ *
+ * NOTE: Because of the missing integration on Moodle side so far the MoodleCourseAccess
+ * needs to deal with Moodle's standard API functions that don't allow to filter and page course/quiz data
+ * in an easy and proper way. Therefore we have to fetch all course and quiz data from Moodle before
+ * filtering and paging can be applied. Since there are possibly thousands of active courses and quizzes
+ * this moodle course access implements an synchronous fetch as well as an asynchronous fetch strategy.
+ * The asynchronous fetch strategy is started within a background task and fill up a shared cache.
+ * A request will start the background task if needed and return immediately to do not block the request.
+ * The planed Moodle integration on moodle side also defines an improved course access API. This will
+ * possibly make this synchronous fetch strategy obsolete in the future. */
 public class MoodleCourseAccess extends CourseAccess {
 
     private static final long INITIAL_WAIT_TIME = 3 * Constants.SECOND_IN_MILLIS;
@@ -253,6 +263,7 @@ public class MoodleCourseAccess extends CourseAccess {
         final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
         final long fromCutTime = (quizFromTime != null) ? Utils.toUnixTimeInSeconds(quizFromTime) : -1;
 
+        // Verify and call the proper strategy to get the course and quiz data
         Collection<CourseDataShort> courseQuizData = Collections.emptyList();
         if (this.moodleCourseDataAsyncLoader.isRunning()) {
             courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData();

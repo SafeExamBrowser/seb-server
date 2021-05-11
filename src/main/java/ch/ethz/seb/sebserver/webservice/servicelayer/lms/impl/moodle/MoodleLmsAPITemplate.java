@@ -32,6 +32,20 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 
+/** The MoodleLmsAPITemplate is separated into two parts:
+ * - MoodleCourseAccess implements the course access API
+ * - MoodleCourseRestriction implements the SEB restriction API
+ * - Both uses the MoodleRestTemplateFactore to create a spring based RestTemplate to access the LMS API
+ *
+ * NOTE: Because of the missing integration on Moodle side so far the MoodleCourseAccess
+ * needs to deal with Moodle's standard API functions that don't allow to filter and page course/quiz data
+ * in an easy and proper way. Therefore we have to fetch all course and quiz data from Moodle before
+ * filtering and paging can be applied. Since there are possibly thousands of active courses and quizzes
+ * this moodle course access implements an synchronous fetch as well as an asynchronous fetch strategy.
+ * The asynchronous fetch strategy is started within a background task and fill up a shared cache.
+ * A request will start the background task if needed and return immediately to do not block the request.
+ * The planed Moodle integration on moodle side also defines an improved course access API. This will
+ * possibly make this synchronous fetch strategy obsolete in the future. */
 public class MoodleLmsAPITemplate implements LmsAPITemplate {
 
     private static final Logger log = LoggerFactory.getLogger(MoodleLmsAPITemplate.class);
@@ -63,7 +77,6 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
         throw new NoSEBRestrictionException();
-        //return this.moodleCourseRestriction.initAPIAccess();
     }
 
     @Override

@@ -31,6 +31,10 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 
+/** The OpenEdxLmsAPITemplate is separated into two parts:
+ * - OpenEdxCourseAccess implements the course access API
+ * - OpenEdxCourseRestriction implements the SEB restriction API
+ * - Both uses the OpenEdxRestTemplateFactory to create a spring based RestTemplate to access the LMS API */
 final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     private static final Logger log = LoggerFactory.getLogger(OpenEdxLmsAPITemplate.class);

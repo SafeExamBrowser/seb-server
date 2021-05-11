@@ -32,6 +32,9 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 
+/** The open edX SEB course restriction API implementation.
+ *
+ * See also : https://seb-openedx.readthedocs.io/en/latest/ */
 public class OpenEdxCourseRestriction {
 
     private static final Logger log = LoggerFactory.getLogger(OpenEdxCourseRestriction.class);
@@ -43,7 +46,6 @@ public class OpenEdxCourseRestriction {
     private final LmsSetup lmsSetup;
     private final JSONMapper jsonMapper;
     private final OpenEdxRestTemplateFactory openEdxRestTemplateFactory;
-    private final int restrictionAPIPushCount;
 
     private OAuth2RestTemplate restTemplate;
 
@@ -56,7 +58,6 @@ public class OpenEdxCourseRestriction {
         this.lmsSetup = lmsSetup;
         this.jsonMapper = jsonMapper;
         this.openEdxRestTemplateFactory = openEdxRestTemplateFactory;
-        this.restrictionAPIPushCount = restrictionAPIPushCount;
     }
 
     LmsSetupTestResult initAPIAccess() {
@@ -145,9 +146,9 @@ public class OpenEdxCourseRestriction {
             log.debug("PUT SEB Client restriction on course: {} : {}", courseId, restriction);
         }
 
-        return handleSEBRestriction(processSEBRestrictionUpdate(pushSEBRestrictionFunction(
+        return handleSEBRestriction(pushSEBRestrictionFunction(
                 restriction,
-                courseId)));
+                courseId));
     }
 
     Result<Boolean> deleteSEBRestriction(final String courseId) {
@@ -156,41 +157,7 @@ public class OpenEdxCourseRestriction {
             log.debug("DELETE SEB Client restriction on course: {}", courseId);
         }
 
-        return handleSEBRestriction(processSEBRestrictionUpdate(deleteSEBRestrictionFunction(courseId)));
-    }
-
-    private BooleanSupplier processSEBRestrictionUpdate(final BooleanSupplier restrictionUpdate) {
-        return () -> {
-            if (this.restrictionAPIPushCount > 0) {
-                // NOTE: This is a temporary work-around for SEB Restriction API within Open edX SEB integration plugin to
-                //       apply on load-balanced infrastructure or infrastructure that has several layers of cache.
-                //       The reason for this is that the API (Open edX system) internally don't apply a resource-change that is
-                //       done within HTTP API call immediately from an outside perspective.
-                //       After a resource-change on the API is done, the system toggles between the old and the new resource
-                //       while constantly calling GET. This usually happens for about a minute or two then it stabilizes on the new resource
-                //
-                //       This may source on load-balancing or internally caching on Open edX side.
-                //       To mitigate this effect the SEB Server can be configured to apply a resource-change on the
-                //       API several times in a row to flush as match caches and reach as match as possible server instances.
-                //
-                //       Since this is a brute-force method to mitigate the problem, this should only be a temporary
-                //       work-around until a better solution on Open edX SEB integration side has been found and applied.
-
-                log.warn("SEB restriction update with multiple API push "
-                        + "(this is a temporary work-around for SEB Restriction API within Open edX SEB integration plugin)");
-
-                for (int i = 0; i < this.restrictionAPIPushCount; i++) {
-                    if (!restrictionUpdate.getAsBoolean()) {
-                        Result.ofRuntimeError(
-                                "Failed to process SEB restriction update. See logs for more information");
-                    }
-                }
-
-                return true;
-            } else {
-                return restrictionUpdate.getAsBoolean();
-            }
-        };
+        return handleSEBRestriction(deleteSEBRestrictionFunction(courseId));
     }
 
     private BooleanSupplier pushSEBRestrictionFunction(

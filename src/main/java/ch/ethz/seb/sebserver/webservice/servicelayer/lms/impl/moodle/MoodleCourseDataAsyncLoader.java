@@ -53,6 +53,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
 @Component
 @WebServiceProfile
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+/** This implements the (temporary) asynchronous fetch strategy to fetch
+ * course and quiz data within a background task and fill up a shared cache. */
 public class MoodleCourseDataAsyncLoader {
 
     private static final Logger log = LoggerFactory.getLogger(MoodleCourseDataAsyncLoader.class);
