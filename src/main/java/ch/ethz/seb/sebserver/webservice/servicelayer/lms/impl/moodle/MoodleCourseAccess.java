@@ -296,21 +296,7 @@ public class MoodleCourseAccess extends CourseAccess {
             return Collections.emptyList();
         }
 
-        return courseQuizData
-                .stream()
-                .reduce(
-                        new ArrayList<>(),
-                        (list, courseData) -> {
-                            list.addAll(quizDataOf(
-                                    this.lmsSetup,
-                                    courseData,
-                                    urlPrefix));
-                            return list;
-                        },
-                        (list1, list2) -> {
-                            list1.addAll(list2);
-                            return list1;
-                        });
+        return reduceCoursesToQuizzes(urlPrefix, courseQuizData);
     }
 
     private List<QuizData> getCached() {
@@ -319,6 +305,14 @@ public class MoodleCourseAccess extends CourseAccess {
         final String urlPrefix = (this.lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
                 ? this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
                 : this.lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
+
+        return reduceCoursesToQuizzes(urlPrefix, courseQuizData);
+    }
+
+    private ArrayList<QuizData> reduceCoursesToQuizzes(
+            final String urlPrefix,
+            final Collection<CourseDataShort> courseQuizData) {
+
         return courseQuizData
                 .stream()
                 .reduce(
@@ -465,14 +459,12 @@ public class MoodleCourseAccess extends CourseAccess {
         }
     }
 
-    static Map<String, String> additionalAttrs = new HashMap<>();
-
     private List<QuizData> quizDataOf(
             final LmsSetup lmsSetup,
             final CourseData courseData,
             final String uriPrefix) {
 
-        additionalAttrs.clear();
+        final Map<String, String> additionalAttrs = new HashMap<>();
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_CREATION_TIME, String.valueOf(courseData.time_created));
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SHORT_NAME, courseData.short_name);
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_ID_NUMBER, courseData.idnumber);
@@ -515,7 +507,7 @@ public class MoodleCourseAccess extends CourseAccess {
             final CourseDataShort courseData,
             final String uriPrefix) {
 
-        additionalAttrs.clear();
+        final Map<String, String> additionalAttrs = new HashMap<>();
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_CREATION_TIME, String.valueOf(courseData.time_created));
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SHORT_NAME, courseData.short_name);
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_ID_NUMBER, courseData.idnumber);
