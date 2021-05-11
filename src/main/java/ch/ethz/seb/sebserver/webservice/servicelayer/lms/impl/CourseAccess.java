@@ -31,18 +31,27 @@ import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 
+/** A partial course access API implementation that uses CircuitBreaker to apply LMS
+ * API requests in a protected environment.
+ *
+ * Extend this to implement a concrete course access API for a given type of LMS. */
 public abstract class CourseAccess {
 
     private static final Logger log = LoggerFactory.getLogger(CourseAccess.class);
 
+    /** Fetch status that indicates an asynchronous quiz data fetch status if the
+     * concrete implementation has such. */
     public enum FetchStatus {
         ALL_FETCHED,
         ASYNC_FETCH_RUNNING,
         FETCH_ERROR
     }
 
+    /** CircuitBreaker for protected quiz and course data requests */
     protected final CircuitBreaker<List<QuizData>> quizzesRequest;
+    /** CircuitBreaker for protected chapter data requests */
     protected final CircuitBreaker<Chapters> chaptersRequest;
+    /** CircuitBreaker for protected examinee account details requests */
     protected final CircuitBreaker<ExamineeAccountDetails> accountDetailRequest;
 
     protected CourseAccess(
@@ -134,6 +143,10 @@ public abstract class CourseAccess {
         return this.accountDetailRequest.protectedRun(accountDetailsSupplier(examineeSessionId));
     }
 
+    /** Default implementation that uses getExamineeAccountDetails to geht the examinee name
+     *
+     * @param examineeSessionId
+     * @return The examinee account name for the given examineeSessionId */
     public String getExamineeName(final String examineeSessionId) {
         return getExamineeAccountDetails(examineeSessionId)
                 .map(ExamineeAccountDetails::getDisplayName)
@@ -159,17 +172,29 @@ public abstract class CourseAccess {
                 Collections.emptyMap());
     }
 
+    /** Provides a supplier for the quiz data request to use within the circuit breaker */
     protected abstract Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids);
 
+    /** Provides a AllQuizzesSupplier to supply quiz data either form cache or from LMS */
     protected abstract AllQuizzesSupplier allQuizzesSupplier();
 
+    /** Provides a supplier for the course chapter data request to use within the circuit breaker */
     protected abstract Supplier<Chapters> getCourseChaptersSupplier(final String courseId);
 
+    /** Gives a fetch status if asynchronous quiz data fetching is part of the underling implementation */
     protected abstract FetchStatus getFetchStatus();
 
+    /** Uses to supply quiz data */
     protected interface AllQuizzesSupplier {
+        /** Get all currently cached quiz data if supported by the underling implementation
+         *
+         * @return List containing all cached quiz data objects */
         List<QuizData> getAllCached();
 
+        /** Get a list of all quiz data filtered by the given filter map from LMS.
+         *
+         * @param filterMap Map containing the filter criteria
+         * @return Result refer to the list of filtered quiz data or to an error when happened */
         Result<List<QuizData>> getAll(final FilterMap filterMap);
     }
 
