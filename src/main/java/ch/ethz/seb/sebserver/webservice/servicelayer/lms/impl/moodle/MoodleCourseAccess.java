@@ -58,8 +58,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
  * in an easy and proper way. Therefore we have to fetch all course and quiz data from Moodle before
  * filtering and paging can be applied. Since there are possibly thousands of active courses and quizzes
  * this moodle course access implements an synchronous fetch as well as an asynchronous fetch strategy.
- * The asynchronous fetch strategy is started within a background task and fill up a shared cache.
- * A request will start the background task if needed and return immediately to do not block the request.
+ * The asynchronous fetch strategy is started within a background task that batches the course and quiz
+ * requests to Moodle and fill up a shared cache. A SEB Server LMS API request will start the
+ * background task if needed and return immediately to do not block the request.
  * The planed Moodle integration on moodle side also defines an improved course access API. This will
  * possibly make this synchronous fetch strategy obsolete in the future. */
 public class MoodleCourseAccess extends CourseAccess {
