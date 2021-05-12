@@ -16,8 +16,6 @@ import java.nio.ByteOrder;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.util.Base64;
-import java.util.Enumeration;
-import java.util.Objects;
 import java.util.Set;
 
 import javax.crypto.KeyGenerator;
@@ -30,7 +28,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateService;
@@ -59,16 +56,15 @@ public class CertificateSymetricKeyCryptor extends AbstractCertificateCryptor im
 
     private final PasswordEncryptor passwordEncryptor;
     private final PasswordDecryptor passwordDecryptor;
-    private final CertificateService certificateService;
 
     public CertificateSymetricKeyCryptor(
             final PasswordEncryptor passwordEncryptor,
             final PasswordDecryptor passwordDecryptor,
             final CertificateService certificateService) {
 
+        super(certificateService);
         this.passwordEncryptor = passwordEncryptor;
         this.passwordDecryptor = passwordDecryptor;
-        this.certificateService = certificateService;
     }
 
     @Override
@@ -124,11 +120,16 @@ public class CertificateSymetricKeyCryptor extends AbstractCertificateCryptor im
         try {
 
             final byte[] publicKeyHash = parsePublicKeyHash(input);
-            final Certificate cert = getCertificateByPublicKeyHash(
+            final Certificate certificate = getCertificateByPublicKeyHash(
                     context.institutionId(),
                     publicKeyHash);
+
+            if (certificate == null) {
+                throw new RuntimeException("No matching certificate found to decrypt the configuration");
+            }
+
             final byte[] encryptedKey = getEncryptedKey(input);
-            final byte[] symetricKey = decryptWithCert(cert, encryptedKey);
+            final byte[] symetricKey = decryptWithCert(certificate, encryptedKey);
             final CharSequence symetricKeyBase64 = Base64.getEncoder().encodeToString(symetricKey);
 
             this.passwordDecryptor.decrypt(output, input, symetricKeyBase64);
@@ -159,31 +160,6 @@ public class CertificateSymetricKeyCryptor extends AbstractCertificateCryptor im
         final byte[] encryptedKey = new byte[keyLengthInt];
         input.read(encryptedKey, 0, encryptedKey.length);
         return encryptedKey;
-    }
-
-    private Certificate getCertificateByPublicKeyHash(final Long institutionId, final byte[] publicKeyHash) {
-        try {
-
-            final Certificates certs = this.certificateService
-                    .getCertificates(institutionId)
-                    .getOrThrow();
-
-            @SuppressWarnings("unchecked")
-            final Enumeration<String> engineAliases = certs.keyStore.engineAliases();
-            while (engineAliases.hasMoreElements()) {
-                final Certificate certificate = certs.keyStore.engineGetCertificate(engineAliases.nextElement());
-                final byte[] otherPublicKeyHash = generatePublicKeyHash(certificate);
-                if (Objects.equals(otherPublicKeyHash, publicKeyHash)) {
-                    return certificate;
-                }
-            }
-
-            return null;
-
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to get certificate by public key hash: ", e);
-            return null;
-        }
     }
 
     private byte[] generateSymetricKey() throws NoSuchAlgorithmException {
