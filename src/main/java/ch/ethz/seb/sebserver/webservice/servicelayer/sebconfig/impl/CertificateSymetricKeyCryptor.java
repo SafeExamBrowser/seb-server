@@ -16,7 +16,7 @@ import java.nio.ByteOrder;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.util.Base64;
-import java.util.Iterator;
+import java.util.Enumeration;
 import java.util.Objects;
 import java.util.Set;
 
@@ -167,13 +167,11 @@ public class CertificateSymetricKeyCryptor extends AbstractCertificateCryptor im
             final Certificates certs = this.certificateService
                     .getCertificates(institutionId)
                     .getOrThrow();
-            @SuppressWarnings("unchecked")
-            final Iterator<String> asIterator = certs.keyStore
-                    .engineAliases()
-                    .asIterator();
 
-            while (asIterator.hasNext()) {
-                final Certificate certificate = certs.keyStore.engineGetCertificate(asIterator.next());
+            @SuppressWarnings("unchecked")
+            final Enumeration<String> engineAliases = certs.keyStore.engineAliases();
+            while (engineAliases.hasMoreElements()) {
+                final Certificate certificate = certs.keyStore.engineGetCertificate(engineAliases.nextElement());
                 final byte[] otherPublicKeyHash = generatePublicKeyHash(certificate);
                 if (Objects.equals(otherPublicKeyHash, publicKeyHash)) {
                     return certificate;
