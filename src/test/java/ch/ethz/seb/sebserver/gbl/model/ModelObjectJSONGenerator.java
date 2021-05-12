@@ -125,6 +125,7 @@ public class ModelObjectJSONGenerator {
                 "encryptSecret",
                 "encryptSecretConfirm",
                 "certAlias",
+                false,
                 true);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));

@@ -193,7 +193,7 @@ public class CertificateController {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public CertificateInfo loadCertificate(
+    public CertificateInfo importCertificate(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,

@@ -8,14 +8,15 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
-import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 
 public class CheckboxFieldBuilder extends FieldBuilder<String> {
 
@@ -27,15 +28,31 @@ public class CheckboxFieldBuilder extends FieldBuilder<String> {
         super(name, label, value);
     }
 
+    public FieldBuilder<?> withRightLabel() {
+        this.rightLabel = true;
+        return this;
+    }
+
     @Override
     void build(final FormBuilder builder) {
         final boolean readonly = builder.readonly || this.readonly;
-        final Control titleLabel = createTitleLabel(builder.formParent, builder, this);
-        final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
-        final Button checkbox = builder.widgetFactory.buttonLocalized(
-                fieldGrid,
-                SWT.CHECK,
-                null, null);
+        Control titleLabel = null;
+        Composite fieldGrid;
+        Button checkbox;
+        if (this.rightLabel) {
+            fieldGrid = createFieldGrid(builder.formParent, this.spanInput, false);
+            checkbox = builder.widgetFactory.buttonLocalized(
+                    fieldGrid,
+                    SWT.CHECK,
+                    this.label, this.tooltip);
+        } else {
+            titleLabel = createTitleLabel(builder.formParent, builder, this);
+            fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
+            checkbox = builder.widgetFactory.buttonLocalized(
+                    fieldGrid,
+                    SWT.CHECK,
+                    null, null);
+        }
 
         final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
         checkbox.setLayoutData(gridData);

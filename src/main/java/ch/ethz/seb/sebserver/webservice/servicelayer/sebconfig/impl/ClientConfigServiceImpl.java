@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
@@ -273,7 +272,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                 this.sebConfigEncryptionService.streamEncrypted(
                         zipOut,
                         pIn,
-                        EncryptionContext.contextOfPlainText());
+                        EncryptionContext.contextOfPlainText(config.institutionId));
             }
 
             // ZIP again to finish up
@@ -300,7 +299,10 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                 .getOrThrow();
 
         return EncryptionContext.contextOf(
-                SEBConfigEncryptionService.Strategy.PUBLIC_KEY_HASH_SYMMETRIC_KEY,
+                config.institutionId,
+                (config.encryptCertificateAsym)
+                        ? SEBConfigEncryptionService.Strategy.PUBLIC_KEY_HASH
+                        : SEBConfigEncryptionService.Strategy.PUBLIC_KEY_HASH_SYMMETRIC_KEY,
                 certificate);
     }
 
@@ -314,6 +316,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                         config.configPurpose)
                 : null;
         return EncryptionContext.contextOf(
+                config.institutionId,
                 (config.configPurpose == ConfigPurpose.CONFIGURE_CLIENT)
                         ? SEBConfigEncryptionService.Strategy.PASSWORD_PWCC
                         : SEBConfigEncryptionService.Strategy.PASSWORD_PSWD,
@@ -503,7 +506,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     private void certificateEncryption(
             final OutputStream out,
             final SEBClientConfig config,
-            final InputStream in) throws IOException {
+            final InputStream in) {
 
         if (log.isDebugEnabled()) {
             log.debug("*** SEB client configuration with certificate based encryption");
@@ -511,20 +514,33 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
         final boolean withPasswordEncryption = config.hasEncryptionSecret();
 
-        PipedOutputStream passEncryptionOut = null;
-        PipedInputStream passEncryptionIn = null;
+        PipedOutputStream streamOut = null;
+        PipedInputStream streamIn = null;
+        try {
+            streamOut = new PipedOutputStream();
+            streamIn = new PipedInputStream(streamOut);
 
-        if (withPasswordEncryption) {
-            // encrypt with password first
-            passEncryptionOut = new PipedOutputStream();
-            passEncryptionIn = new PipedInputStream(passEncryptionOut);
-            passwordEncryption(passEncryptionOut, config, in);
+            if (withPasswordEncryption) {
+                // encrypt with password first
+                passwordEncryption(streamOut, config, in);
+            } else {
+                // just add plaintext header
+                this.sebConfigEncryptionService.streamEncrypted(
+                        streamOut,
+                        in,
+                        EncryptionContext.contextOfPlainText(config.institutionId));
+            }
+
+            this.sebConfigEncryptionService.streamEncrypted(
+                    out,
+                    streamIn,
+                    buildCertificateEncryptionContext(config));
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while tying to stream certificate encrypted config: ", e);
+            IOUtils.closeQuietly(streamOut);
+            IOUtils.closeQuietly(streamIn);
         }
-
-        this.sebConfigEncryptionService.streamEncrypted(
-                out,
-                (withPasswordEncryption) ? passEncryptionIn : in,
-                buildCertificateEncryptionContext(config));
     }
 
     private void passwordEncryption(

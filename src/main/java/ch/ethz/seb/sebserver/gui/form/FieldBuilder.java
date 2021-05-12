@@ -39,6 +39,7 @@ public abstract class FieldBuilder<T> {
     boolean visible = true;
     String defaultLabel = null;
     boolean isMandatory = false;
+    boolean rightLabel = false;
 
     final String name;
     final LocTextKey label;
@@ -195,8 +196,12 @@ public abstract class FieldBuilder<T> {
     }
 
     public static Composite createFieldGrid(final Composite parent, final int hspan) {
+        return createFieldGrid(parent, hspan, false);
+    }
+
+    public static Composite createFieldGrid(final Composite parent, final int hspan, final boolean rightLabel) {
         final Composite fieldGrid = new Composite(parent, SWT.NONE);
-        final GridLayout gridLayout = new GridLayout();
+        final GridLayout gridLayout = new GridLayout((rightLabel) ? 2 : 1, true);
         gridLayout.verticalSpacing = 0;
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;

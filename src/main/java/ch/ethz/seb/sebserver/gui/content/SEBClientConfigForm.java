@@ -106,6 +106,8 @@ public class SEBClientConfigForm implements TemplateComposer {
 
     private static final LocTextKey FORM_ENCRYPT_CERT_KEY =
             new LocTextKey("sebserver.clientconfig.form.certificate");
+    private static final LocTextKey FORM_ENCRYPT_CERTIFICATE_ASYM =
+            new LocTextKey("sebserver.clientconfig.form.type.async");
     private static final LocTextKey FORM_ENCRYPT_SECRET_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.encryptSecret");
     private static final LocTextKey FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY =
@@ -285,15 +287,6 @@ public class SEBClientConfigForm implements TemplateComposer {
                         .mandatory(!isReadonly))
                 .withDefaultSpanEmptyCell(3)
 
-                .withDefaultSpanInput(3)
-                .addField(FormBuilder.singleSelection(
-                        SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS,
-                        FORM_ENCRYPT_CERT_KEY,
-                        clientConfig.encryptCertificateAlias,
-                        () -> this.pageService.getResourceService().identityCertificatesResources()))
-                .withDefaultSpanEmptyCell(3)
-
-                .withDefaultSpanInput(3)
                 .addField(FormBuilder.password(
                         Domain.SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET,
                         FORM_ENCRYPT_SECRET_TEXT_KEY,
@@ -307,6 +300,24 @@ public class SEBClientConfigForm implements TemplateComposer {
                                 FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY,
                                 pwd))
 
+                .withDefaultSpanInput(2)
+                .addField(FormBuilder.singleSelection(
+                        SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS,
+                        FORM_ENCRYPT_CERT_KEY,
+                        clientConfig.encryptCertificateAlias,
+                        () -> this.pageService.getResourceService().identityCertificatesResources()))
+                .withDefaultSpanInput(3)
+                .withDefaultSpanLabel(1)
+                .addField(FormBuilder.checkbox(
+                        SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ASYM,
+                        FORM_ENCRYPT_CERTIFICATE_ASYM,
+                        (BooleanUtils.isTrue(clientConfig.encryptCertificateAsym))
+                                ? Constants.TRUE_STRING
+                                : Constants.FALSE_STRING)
+                        .withRightLabel()
+                        .withEmptyCellSeparation(false))
+                .withDefaultSpanEmptyCell(1)
+                .withDefaultSpanLabel(2)
                 .withDefaultSpanInput(2)
                 .addField(FormBuilder.text(
                         SEBClientConfig.ATTR_PING_INTERVAL,

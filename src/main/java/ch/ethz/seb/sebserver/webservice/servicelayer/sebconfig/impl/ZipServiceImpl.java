@@ -47,7 +47,7 @@ public class ZipServiceImpl implements ZipService {
             log.error("Error while streaming data to zipped output: ", e);
         } finally {
             try {
-                in.close();
+                IOUtils.closeQuietly(in);
                 if (zipOutputStream != null) {
                     zipOutputStream.flush();
                     zipOutputStream.close();

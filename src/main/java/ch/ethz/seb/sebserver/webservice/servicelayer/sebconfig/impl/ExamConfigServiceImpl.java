@@ -225,6 +225,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
                         cryptOut,
                         cryptIn,
                         EncryptionContext.contextOf(
+                                institutionId,
                                 Strategy.PASSWORD_PSWD,
                                 encryptionPasswordPlaintext));
 
@@ -342,7 +343,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
                 streamDecrypted = this.sebConfigEncryptionService.streamDecrypted(
                         cryptOut,
                         cryptIn,
-                        EncryptionContext.contextOf(password));
+                        EncryptionContext.contextOf(config.institutionId, password));
 
                 // if zipped, unzip attach unzip stream first
                 unzippedIn = this.examConfigIO.unzip(plainIn);

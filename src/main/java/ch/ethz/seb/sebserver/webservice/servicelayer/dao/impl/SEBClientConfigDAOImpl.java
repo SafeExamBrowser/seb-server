@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
@@ -431,6 +432,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS)
                         ? additionalAttributes.get(SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS).getValue()
                         : null,
+                additionalAttributes.containsKey(SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ASYM),
                 BooleanUtils.toBooleanObject(record.getActive())));
     }
 
@@ -607,6 +609,19 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     EntityType.SEB_CLIENT_CONFIGURATION,
                     configId,
                     SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS);
+        }
+
+        if (BooleanUtils.isTrue(sebClientConfig.encryptCertificateAsym)) {
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ASYM,
+                    Constants.TRUE_STRING);
+        } else {
+            this.additionalAttributesDAO.delete(
+                    EntityType.SEB_CLIENT_CONFIGURATION,
+                    configId,
+                    SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ASYM);
         }
     }
 

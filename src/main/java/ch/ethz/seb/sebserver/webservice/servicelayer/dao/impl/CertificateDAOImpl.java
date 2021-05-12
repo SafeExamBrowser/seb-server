@@ -222,7 +222,7 @@ public class CertificateDAOImpl implements CertificateDAO {
         }
 
         // dataEncipherment
-        if (keyUsage[3]) {
+        if (keyUsage[2] || keyUsage[3]) {
             final String alias = certificates.keyStore.engineGetCertificateAlias(cert);
             if (this.cryptor.getPrivateKey(certificates.keyStore, alias).hasValue()) {
                 result.add(CertificateType.DATA_ENCIPHERMENT_PRIVATE_KEY);

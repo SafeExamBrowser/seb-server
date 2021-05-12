@@ -48,6 +48,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     public static final String ATTR_QUIT_PASSWORD_CONFIRM = "hashedQuitPasswordConfirm";
     public static final String ATTR_ENCRYPT_SECRET_CONFIRM = "confirm_encrypt_secret";
     public static final String ATTR_ENCRYPT_CERTIFICATE_ALIAS = "cert_alias";
+    public static final String ATTR_ENCRYPT_CERTIFICATE_ASYM = "cert_encryption_asym";
 
     public static final String FILTER_ATTR_CREATION_DATE = "creation_date";
 
@@ -161,6 +162,9 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     @JsonProperty(ATTR_ENCRYPT_CERTIFICATE_ALIAS)
     public final String encryptCertificateAlias;
 
+    @JsonProperty(ATTR_ENCRYPT_CERTIFICATE_ASYM)
+    public final Boolean encryptCertificateAsym;
+
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE)
     public final Boolean active;
 
@@ -190,6 +194,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET) final CharSequence encryptSecret,
             @JsonProperty(ATTR_ENCRYPT_SECRET_CONFIRM) final CharSequence encryptSecretConfirm,
             @JsonProperty(ATTR_ENCRYPT_CERTIFICATE_ALIAS) final String encryptCertificateAlias,
+            @JsonProperty(ATTR_ENCRYPT_CERTIFICATE_ASYM) final Boolean encryptCertificateAsym,
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE) final Boolean active) {
 
         this.id = id;
@@ -216,6 +221,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         this.encryptSecret = encryptSecret;
         this.encryptSecretConfirm = encryptSecretConfirm;
         this.encryptCertificateAlias = encryptCertificateAlias;
+        this.encryptCertificateAsym = encryptCertificateAsym;
         this.active = active;
     }
 
@@ -254,6 +260,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         this.encryptSecret = postParams.getCharSequence(Domain.SEB_CLIENT_CONFIGURATION.ATTR_ENCRYPT_SECRET);
         this.encryptSecretConfirm = postParams.getCharSequence(ATTR_ENCRYPT_SECRET_CONFIRM);
         this.encryptCertificateAlias = postParams.getString(ATTR_ENCRYPT_CERTIFICATE_ALIAS);
+        this.encryptCertificateAsym = postParams.getBooleanObject(ATTR_ENCRYPT_CERTIFICATE_ASYM);
         this.active = false;
     }
 
@@ -442,6 +449,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
                 Constants.EMPTY_NOTE,
                 Constants.EMPTY_NOTE,
                 Constants.EMPTY_NOTE,
+                this.encryptCertificateAsym,
                 this.active);
     }
 
@@ -469,6 +477,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
                 null,
                 null,
                 null,
+                false,
                 false);
     }
 

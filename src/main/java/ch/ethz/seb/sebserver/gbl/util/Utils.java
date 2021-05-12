@@ -169,6 +169,11 @@ public final class Utils {
                 : Collections.emptyList();
     }
 
+    public static <T extends Collection<V>, V> T addAll(final T target, final T source) {
+        target.addAll(source);
+        return target;
+    }
+
     public static <K, V> Map<K, V> immutableMapOf(final Map<K, V> params) {
         return (params != null)
                 ? Collections.unmodifiableMap(params)

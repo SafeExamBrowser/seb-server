@@ -11,12 +11,14 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -25,6 +27,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateFileType;
@@ -35,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.CertificateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateService;
 
 @Lazy
@@ -43,9 +48,15 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateServic
 public class CertificateServiceImpl implements CertificateService {
 
     private final CertificateDAO certificateDAO;
+    private final SEBClientConfigDAO sebClientConfigDAO;
 
-    public CertificateServiceImpl(final CertificateDAO certificateDAO) {
+    public CertificateServiceImpl(
+            final CertificateDAO certificateDAO,
+            final SEBClientConfigDAO sebClientConfigDAO) {
+
         this.certificateDAO = certificateDAO;
+        this.sebClientConfigDAO = sebClientConfigDAO;
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     }
 
     @Override
@@ -103,6 +114,18 @@ public class CertificateServiceImpl implements CertificateService {
 
     @Override
     public Result<EntityKey> removeCertificate(final Long institutionId, final String alias) {
+
+        // TODO check if certificate is in use
+        if (this.sebClientConfigDAO.all(institutionId, true)
+                .getOr(Collections.emptyList())
+                .stream()
+                .filter(config -> alias.equals(config.encryptCertificateAlias))
+                .findFirst()
+                .isPresent()) {
+
+            throw new APIMessageException(APIMessage.ErrorMessage.INTEGRITY_VALIDATION);
+        }
+
         return this.certificateDAO.removeCertificate(institutionId, alias);
     }
 

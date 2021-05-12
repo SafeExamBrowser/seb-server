@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
@@ -72,6 +73,8 @@ public class CertificateList implements TemplateComposer {
             new LocTextKey("sebserver.certificate.message.error.file");
     static final LocTextKey FORM_IMPORT_CONFIRM_TEXT_KEY =
             new LocTextKey("sebserver.certificate.action.import-config.confirm");
+    static final LocTextKey FORM_ACTION_MESSAGE_IN_USE_TEXT_KEY =
+            new LocTextKey("sebserver.certificate.action.remove.in-use");
 
     private final TableFilterAttribute aliasFilter = new TableFilterAttribute(
             CriteriaType.TEXT,
@@ -169,7 +172,13 @@ public class CertificateList implements TemplateComposer {
         this.restService.getBuilder(RemoveCertificate.class)
                 .withFormParam(API.CERTIFICATE_ALIAS, ids)
                 .call()
-                .onError(erorr -> action.pageContext().notifyRemoveError(EntityType.CERTIFICATE, erorr));
+                .onError(error -> {
+                    if (APIMessage.checkError(error, APIMessage.ErrorMessage.INTEGRITY_VALIDATION)) {
+                        action.pageContext().publishInfo(FORM_ACTION_MESSAGE_IN_USE_TEXT_KEY);
+                    } else {
+                        action.pageContext().notifyRemoveError(EntityType.CERTIFICATE, error);
+                    }
+                });
 
         return action;
     }

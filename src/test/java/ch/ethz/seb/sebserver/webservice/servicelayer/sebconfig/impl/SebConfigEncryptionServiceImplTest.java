@@ -40,7 +40,7 @@ public class SebConfigEncryptionServiceImplTest {
                 .streamEncrypted(
                         out,
                         IOUtils.toInputStream(config, "UTF-8"),
-                        EncryptionContext.contextOfPlainText());
+                        EncryptionContext.contextOfPlainText(1L));
 
         final byte[] plainWithHeader = out.toByteArray();
         assertNotNull(plainWithHeader);
@@ -50,7 +50,7 @@ public class SebConfigEncryptionServiceImplTest {
         sebConfigEncryptionServiceImpl.streamDecrypted(
                 out2,
                 new ByteArrayInputStream(plainWithHeader),
-                EncryptionContext.contextOf(Strategy.PASSWORD_PSWD, (CharSequence) null));
+                EncryptionContext.contextOf(1L, Strategy.PASSWORD_PSWD, (CharSequence) null));
 
         out2.close();
 
@@ -74,6 +74,7 @@ public class SebConfigEncryptionServiceImplTest {
                 out,
                 IOUtils.toInputStream(config, "UTF-8"),
                 EncryptionContext.contextOf(
+                        1L,
                         Strategy.PASSWORD_PWCC,
                         pwd));
 
@@ -87,7 +88,7 @@ public class SebConfigEncryptionServiceImplTest {
         sebConfigEncryptionServiceImpl.streamDecrypted(
                 out2,
                 new ByteArrayInputStream(byteArray),
-                EncryptionContext.contextOf(Strategy.PASSWORD_PSWD, pwd));
+                EncryptionContext.contextOf(1L, Strategy.PASSWORD_PSWD, pwd));
 
         final byte[] byteArray2 = out2.toByteArray();
         assertNotNull(byteArray2);

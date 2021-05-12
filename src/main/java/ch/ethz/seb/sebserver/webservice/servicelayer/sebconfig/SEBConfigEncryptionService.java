@@ -40,7 +40,6 @@ public interface SEBConfigEncryptionService {
         PASSWORD_PWCC(Type.PASSWORD, "pwcc"),
         /** Encryption with public/private asymmetric keys and symmetric key */
         PUBLIC_KEY_HASH_SYMMETRIC_KEY(Type.CERTIFICATE, "phsk"),
-        // NOTE not supported yet but eventually needed for SEB config import.
         /** Encryption with public/private key */
         PUBLIC_KEY_HASH(Type.CERTIFICATE, "pkhs");
 

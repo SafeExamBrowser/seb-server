@@ -282,4 +282,17 @@ public class APIMessage implements Serializable {
         return builder.toString();
     }
 
+    public static boolean checkError(final Exception error, final ErrorMessage errorMessage) {
+        if (!(error instanceof APIMessageException)) {
+            return false;
+        }
+
+        final APIMessageException _error = (APIMessageException) error;
+        return _error.getAPIMessages()
+                .stream()
+                .filter(msg -> errorMessage.messageCode.equals(msg.messageCode))
+                .findFirst()
+                .isPresent();
+    }
+
 }

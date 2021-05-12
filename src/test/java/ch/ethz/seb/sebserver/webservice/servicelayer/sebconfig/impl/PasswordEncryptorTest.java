@@ -74,6 +74,7 @@ public class PasswordEncryptorTest {
         final ByteArrayOutputStream out = new ByteArrayOutputStream(512);
 
         final SEBConfigEncryptionContext context = EncryptionContext.contextOf(
+                1L,
                 Strategy.PASSWORD_PWCC,
                 pwd);
 

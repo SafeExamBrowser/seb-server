@@ -16,6 +16,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncrypti
  * within a concrete strategy. */
 public interface SEBConfigEncryptionContext {
 
+    /** Get the institution identifier */
+    Long institutionId();
+
     /** Get the current encryption/decryption strategy
      *
      * @return the current encryption/decryption strategy */
