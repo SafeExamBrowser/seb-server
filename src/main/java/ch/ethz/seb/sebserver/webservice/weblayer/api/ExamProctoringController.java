@@ -47,18 +47,18 @@ public class ExamProctoringController {
 
     private final ExamProctoringRoomService examProcotringRoomService;
     private final ExamAdminService examAdminService;
-    private final AuthorizationService authorization;
+    private final AuthorizationService authorizationService;
     private final ExamSessionService examSessionService;
 
     public ExamProctoringController(
             final ExamProctoringRoomService examProcotringRoomService,
             final ExamAdminService examAdminService,
-            final AuthorizationService authorization,
+            final AuthorizationService authorizationService,
             final ExamSessionService examSessionService) {
 
         this.examProcotringRoomService = examProcotringRoomService;
         this.examAdminService = examAdminService;
-        this.authorization = authorization;
+        this.authorizationService = authorizationService;
         this.examSessionService = examSessionService;
     }
 
@@ -69,7 +69,7 @@ public class ExamProctoringController {
      * See also UserService.addUsersInstitutionDefaultPropertySupport */
     @InitBinder
     public void initBinder(final WebDataBinder binder) {
-        this.authorization
+        this.authorizationService
                 .getUserService()
                 .addUsersInstitutionDefaultPropertySupport(binder);
     }
@@ -110,7 +110,7 @@ public class ExamProctoringController {
 
         checkAccess(institutionId, examId);
         return this.examSessionService.getRunningExam(examId)
-                .flatMap(this.authorization::checkRead)
+                .flatMap(this.authorizationService::checkRead)
                 .flatMap(exam -> this.examAdminService.getExamProctoringService(exam.id))
                 .flatMap(service -> service.getProctorRoomConnection(
                         this.examAdminService.getProctoringServiceSettings(examId).getOrThrow(),
@@ -290,19 +290,19 @@ public class ExamProctoringController {
     }
 
     private void checkExamReadAccess(final Long institutionId) {
-        this.authorization.check(
+        this.authorizationService.check(
                 PrivilegeType.READ,
                 EntityType.EXAM,
                 institutionId);
     }
 
     private void checkAccess(final Long institutionId, final Long examId) {
-        this.authorization.check(
+        this.authorizationService.check(
                 PrivilegeType.READ,
                 EntityType.EXAM,
                 institutionId);
 
-        this.authorization.checkRead(this.examSessionService
+        this.authorizationService.checkRead(this.examSessionService
                 .getExamDAO()
                 .byPK(examId)
                 .getOrThrow());

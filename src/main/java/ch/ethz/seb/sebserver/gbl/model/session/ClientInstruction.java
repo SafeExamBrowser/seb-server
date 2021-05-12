@@ -64,7 +64,7 @@ public final class ClientInstruction {
             public static final String JITSI_RECEIVE_AUDIO = "jitsiMeetReceiveAudio";
             public static final String JITSI_RECEIVE_VIDEO = "jitsiMeetReceiveVideo";
             public static final String JITSI_ALLOW_CHAT = "jitsiMeetFeatureFlagChat";
-
+            public static final String JITSI_PIN_USER_ID = "jitsiMeetPinUser";
             public static final String ZOOM_RECEIVE_AUDIO = "zoomReceiveAudio";
             public static final String ZOOM_RECEIVE_VIDEO = "zoomReceiveVideo";
             public static final String ZOOM_ALLOW_CHAT = "zoomFeatureFlagChat";

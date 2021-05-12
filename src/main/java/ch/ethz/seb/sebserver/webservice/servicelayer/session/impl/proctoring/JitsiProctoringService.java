@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -206,11 +207,25 @@ public class JitsiProctoringService implements ExamProctoringService {
 
     @Override
     public Map<String, String> getInstructionAttributes(final Map<String, String> attributes) {
-        return attributes.entrySet().stream()
+        final Map<String, String> result = attributes
+                .entrySet()
+                .stream()
                 .map(entry -> new Tuple<>(
                         SEB_API_NAME_INSTRUCTION_NAME_MAPPING.getOrDefault(entry.getKey(), entry.getKey()),
                         entry.getValue()))
                 .collect(Collectors.toMap(Tuple::get_1, Tuple::get_2));
+
+        if (BooleanUtils.isTrue(Boolean.valueOf(attributes.get(API.EXAM_PROCTORING_ATTR_RECEIVE_VIDEO)))) {
+            final String username = this.authorizationService
+                    .getUserService()
+                    .getCurrentUser()
+                    .getUsername();
+            attributes.put(
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_PIN_USER_ID,
+                    username);
+        }
+
+        return result;
     }
 
     @Override
