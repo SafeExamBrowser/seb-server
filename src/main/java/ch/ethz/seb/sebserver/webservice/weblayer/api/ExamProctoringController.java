@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,20 +60,20 @@ public class ExamProctoringController {
     private final ExamProctoringRoomService examProcotringRoomService;
     private final ExamAdminService examAdminService;
     private final SEBClientInstructionService sebInstructionService;
-    private final AuthorizationService authorization;
+    private final AuthorizationService authorizationService;
     private final ExamSessionService examSessionService;
 
     public ExamProctoringController(
             final ExamProctoringRoomService examProcotringRoomService,
             final ExamAdminService examAdminService,
             final SEBClientInstructionService sebInstructionService,
-            final AuthorizationService authorization,
+            final AuthorizationService authorizationService,
             final ExamSessionService examSessionService) {
 
         this.examProcotringRoomService = examProcotringRoomService;
         this.examAdminService = examAdminService;
         this.sebInstructionService = sebInstructionService;
-        this.authorization = authorization;
+        this.authorizationService = authorizationService;
         this.examSessionService = examSessionService;
     }
 
@@ -83,7 +84,7 @@ public class ExamProctoringController {
      * See also UserService.addUsersInstitutionDefaultPropertySupport */
     @InitBinder
     public void initBinder(final WebDataBinder binder) {
-        this.authorization
+        this.authorizationService
                 .getUserService()
                 .addUsersInstitutionDefaultPropertySupport(binder);
     }
@@ -123,7 +124,7 @@ public class ExamProctoringController {
         checkAccess(institutionId, examId);
 
         return this.examSessionService.getRunningExam(examId)
-                .flatMap(this.authorization::checkRead)
+                .flatMap(this.authorizationService::checkRead)
                 .flatMap(this.examAdminService::getExamProctoring)
                 .flatMap(proc -> this.examAdminService
                         .getExamProctoringService(proc.serverType)
@@ -199,6 +200,16 @@ public class ExamProctoringController {
         attributes.put(
                 ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_ALLOW_CHAT,
                 sendAllowChat);
+
+        if (BooleanUtils.isTrue(Boolean.valueOf(sendReceiveVideo))) {
+            final String username = this.authorizationService
+                    .getUserService()
+                    .getCurrentUser()
+                    .getUsername();
+            attributes.put(
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_RECONFIGURE_SETTINGS.JITSI_PIN_USER_ID,
+                    username);
+        }
 
         sendBroadcastInstructions(examId, roomName, connectionTokens, attributes);
     }
@@ -608,19 +619,19 @@ public class ExamProctoringController {
     }
 
     private void checkExamReadAccess(final Long institutionId) {
-        this.authorization.check(
+        this.authorizationService.check(
                 PrivilegeType.READ,
                 EntityType.EXAM,
                 institutionId);
     }
 
     private void checkAccess(final Long institutionId, final Long examId) {
-        this.authorization.check(
+        this.authorizationService.check(
                 PrivilegeType.READ,
                 EntityType.EXAM,
                 institutionId);
 
-        this.authorization.checkRead(this.examSessionService
+        this.authorizationService.checkRead(this.examSessionService
                 .getExamDAO()
                 .byPK(examId)
                 .getOrThrow());
