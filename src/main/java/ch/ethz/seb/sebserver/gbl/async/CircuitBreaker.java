@@ -121,7 +121,7 @@ public final class CircuitBreaker<T> {
         return this.lastSuccessTime;
     }
 
-    public Result<T> protectedRun(final Supplier<T> supplier) {
+    public synchronized Result<T> protectedRun(final Supplier<T> supplier) {
         final long currentTime = System.currentTimeMillis();
 
         if (log.isDebugEnabled()) {

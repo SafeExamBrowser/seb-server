@@ -124,7 +124,7 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
     }
 
     @Override
-    public Result<T> get() {
+    public synchronized Result<T> get() {
         final Result<T> result = this.delegate.protectedRun(this.supplier);
         if (result.hasError()) {
             if (this.memoizing && this.cached != null) {
