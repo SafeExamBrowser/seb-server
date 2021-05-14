@@ -50,33 +50,28 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 
 class MoodleRestTemplateFactory {
 
     private static final Logger log = LoggerFactory.getLogger(MoodleRestTemplateFactory.class);
 
     final JSONMapper jsonMapper;
-    final LmsSetup lmsSetup;
-    final ClientCredentials credentials;
-    final ProxyData proxyData;
+    final APITemplateDataSupplier apiTemplateDataSupplier;
     final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     final ClientCredentialService clientCredentialService;
     final Set<String> knownTokenAccessPaths;
 
     public MoodleRestTemplateFactory(
             final JSONMapper jsonMapper,
-            final LmsSetup lmsSetup,
-            final ClientCredentials credentials,
-            final ProxyData proxyData,
+            final APITemplateDataSupplier apiTemplateDataSupplier,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final String[] alternativeTokenRequestPaths) {
 
         this.jsonMapper = jsonMapper;
-        this.lmsSetup = lmsSetup;
+        this.apiTemplateDataSupplier = apiTemplateDataSupplier;
         this.clientCredentialService = clientCredentialService;
-        this.credentials = credentials;
-        this.proxyData = proxyData;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
 
         this.knownTokenAccessPaths = new HashSet<>();
@@ -86,28 +81,36 @@ class MoodleRestTemplateFactory {
         }
     }
 
+    APITemplateDataSupplier getApiTemplateDataSupplier() {
+        return this.apiTemplateDataSupplier;
+    }
+
     public LmsSetupTestResult test() {
+
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
+
         final List<APIMessage> missingAttrs = new ArrayList<>();
-        if (StringUtils.isBlank(this.lmsSetup.lmsApiUrl)) {
+        if (StringUtils.isBlank(lmsSetup.lmsApiUrl)) {
             missingAttrs.add(APIMessage.fieldValidationError(
                     LMS_SETUP.ATTR_LMS_URL,
                     "lmsSetup:lmsUrl:notNull"));
         } else {
             // try to connect to the url
-            if (!Utils.pingHost(this.lmsSetup.lmsApiUrl)) {
+            if (!Utils.pingHost(lmsSetup.lmsApiUrl)) {
                 missingAttrs.add(APIMessage.fieldValidationError(
                         LMS_SETUP.ATTR_LMS_URL,
                         "lmsSetup:lmsUrl:url.invalid"));
             }
         }
 
-        if (StringUtils.isBlank(this.lmsSetup.lmsRestApiToken)) {
-            if (!this.credentials.hasClientId()) {
+        if (StringUtils.isBlank(lmsSetup.lmsRestApiToken)) {
+            if (!credentials.hasClientId()) {
                 missingAttrs.add(APIMessage.fieldValidationError(
                         LMS_SETUP.ATTR_LMS_CLIENTNAME,
                         "lmsSetup:lmsClientname:notNull"));
             }
-            if (!this.credentials.hasSecret()) {
+            if (!credentials.hasSecret()) {
                 missingAttrs.add(APIMessage.fieldValidationError(
                         LMS_SETUP.ATTR_LMS_CLIENTSECRET,
                         "lmsSetup:lmsClientsecret:notNull"));
@@ -122,14 +125,17 @@ class MoodleRestTemplateFactory {
     }
 
     Result<MoodleAPIRestTemplate> createRestTemplate() {
+
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+
         return this.knownTokenAccessPaths
                 .stream()
                 .map(this::createRestTemplate)
                 .map(result -> {
                     if (result.hasError()) {
                         log.warn("Failed to get access token for LMS: {}({})",
-                                this.lmsSetup.name,
-                                this.lmsSetup.id,
+                                lmsSetup.name,
+                                lmsSetup.id,
                                 result.getError());
                     }
                     return result;
@@ -138,51 +144,46 @@ class MoodleRestTemplateFactory {
                 .findFirst()
                 .orElse(Result.ofRuntimeError(
                         "Failed to gain any access for LMS " +
-                                this.lmsSetup.name + "(" + this.lmsSetup.id +
+                                lmsSetup.name + "(" + lmsSetup.id +
                                 ") on paths: " + this.knownTokenAccessPaths));
     }
 
     Result<MoodleAPIRestTemplate> createRestTemplate(final String accessTokenPath) {
-        return Result.tryCatch(() -> {
-            final MoodleAPIRestTemplate template = createRestTemplate(
-                    this.credentials,
-                    accessTokenPath);
 
-            final CharSequence accessToken = template.getAccessToken();
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+
+        return Result.tryCatch(() -> {
+            final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
+            final ProxyData proxyData = this.apiTemplateDataSupplier.getProxyData();
+
+            final CharSequence plainClientId = credentials.clientId;
+            final CharSequence plainClientSecret = this.clientCredentialService
+                    .getPlainClientSecret(credentials)
+                    .getOrThrow();
+
+            final MoodleAPIRestTemplate restTemplate = new MoodleAPIRestTemplate(
+                    this.jsonMapper,
+                    lmsSetup.lmsApiUrl,
+                    accessTokenPath,
+                    lmsSetup.lmsRestApiToken,
+                    plainClientId,
+                    plainClientSecret);
+
+            final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                    .getClientHttpRequestFactory(proxyData)
+                    .getOrThrow();
+
+            restTemplate.setRequestFactory(clientHttpRequestFactory);
+            final CharSequence accessToken = restTemplate.getAccessToken();
+
             if (accessToken == null) {
                 throw new RuntimeException("Failed to get access token for LMS " +
-                        this.lmsSetup.name + "(" + this.lmsSetup.id +
+                        lmsSetup.name + "(" + lmsSetup.id +
                         ") on path: " + accessTokenPath);
             }
 
-            return template;
+            return restTemplate;
         });
-    }
-
-    protected MoodleAPIRestTemplate createRestTemplate(
-            final ClientCredentials credentials,
-            final String accessTokenRequestPath) {
-
-        final CharSequence plainClientId = credentials.clientId;
-        final CharSequence plainClientSecret = this.clientCredentialService
-                .getPlainClientSecret(credentials)
-                .getOrThrow();
-
-        final MoodleAPIRestTemplate restTemplate = new MoodleAPIRestTemplate(
-                this.jsonMapper,
-                this.lmsSetup.lmsApiUrl,
-                accessTokenRequestPath,
-                this.lmsSetup.lmsRestApiToken,
-                plainClientId,
-                plainClientSecret);
-
-        final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
-                .getClientHttpRequestFactory(this.proxyData)
-                .getOrThrow();
-
-        restTemplate.setRequestFactory(clientHttpRequestFactory);
-
-        return restTemplate;
     }
 
     public class MoodleAPIRestTemplate extends RestTemplate {
@@ -210,7 +211,6 @@ class MoodleRestTemplateFactory {
         private final HttpEntity<?> tokenReqEntity = new HttpEntity<>(new LinkedMultiValueMap<>());
 
         protected MoodleAPIRestTemplate(
-
                 final JSONMapper jsonMapper,
                 final String serverURL,
                 final String tokenPath,
@@ -318,10 +318,13 @@ class MoodleRestTemplateFactory {
                     functionReqEntity,
                     String.class);
 
+            final LmsSetup lmsSetup = MoodleRestTemplateFactory.this.apiTemplateDataSupplier
+                    .getLmsSetup();
+
             if (response.getStatusCode() != HttpStatus.OK) {
                 throw new RuntimeException(
                         "Failed to call Moodle webservice API function: " + functionName + " lms setup: " +
-                                MoodleRestTemplateFactory.this.lmsSetup + " response: " + response.getBody());
+                                lmsSetup + " response: " + response.getBody());
             }
 
             final String body = response.getBody();
@@ -335,7 +338,7 @@ class MoodleRestTemplateFactory {
                 this.accessToken = null;
                 throw new RuntimeException(
                         "Failed to call Moodle webservice API function: " + functionName + " lms setup: " +
-                                MoodleRestTemplateFactory.this.lmsSetup + " response: " + body);
+                                lmsSetup + " response: " + body);
             }
 
             return body;
@@ -343,7 +346,11 @@ class MoodleRestTemplateFactory {
 
         private void requestAccessToken() {
 
+            final LmsSetup lmsSetup = MoodleRestTemplateFactory.this.apiTemplateDataSupplier
+                    .getLmsSetup();
+
             try {
+
                 final ResponseEntity<String> response = super.exchange(
                         this.serverURL + this.tokenPath,
                         HttpMethod.GET,
@@ -353,11 +360,11 @@ class MoodleRestTemplateFactory {
 
                 if (response.getStatusCode() != HttpStatus.OK) {
                     log.error("Failed to gain access token for LMS (Moodle): lmsSetup: {} response: {} : {}",
-                            MoodleRestTemplateFactory.this.lmsSetup,
+                            lmsSetup,
                             response.getStatusCode(),
                             response.getBody());
                     throw new RuntimeException("Failed to gain access token for LMS (Moodle): lmsSetup: " +
-                            MoodleRestTemplateFactory.this.lmsSetup + " response: " + response.getBody());
+                            lmsSetup + " response: " + response.getBody());
                 }
 
                 try {
@@ -369,25 +376,25 @@ class MoodleRestTemplateFactory {
                         throw new RuntimeException("Access Token request with 200 but no or invalid token body");
                     } else {
                         log.info("Successfully get access token from Moodle: {}",
-                                MoodleRestTemplateFactory.this.lmsSetup);
+                                lmsSetup);
                     }
 
                     this.accessToken = moodleToken.token;
                 } catch (final Exception e) {
                     log.error("Failed to gain access token for LMS (Moodle): lmsSetup: {} response: {} : {}",
-                            MoodleRestTemplateFactory.this.lmsSetup,
+                            lmsSetup,
                             response.getStatusCode(),
                             response.getBody());
                     throw new RuntimeException("Failed to gain access token for LMS (Moodle): lmsSetup: " +
-                            MoodleRestTemplateFactory.this.lmsSetup + " response: " + response.getBody(), e);
+                            lmsSetup + " response: " + response.getBody(), e);
                 }
 
             } catch (final Exception e) {
                 log.error("Failed to gain access token for LMS (Moodle): lmsSetup: {} :",
-                        MoodleRestTemplateFactory.this.lmsSetup,
+                        lmsSetup,
                         e);
                 throw new RuntimeException("Failed to gain access token for LMS (Moodle): lmsSetup: " +
-                        MoodleRestTemplateFactory.this.lmsSetup + " cause: " + e.getMessage());
+                        lmsSetup + " cause: " + e.getMessage());
             }
         }
 

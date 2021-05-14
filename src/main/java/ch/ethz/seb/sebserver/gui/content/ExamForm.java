@@ -226,6 +226,8 @@ public class ExamForm implements TemplateComposer {
         final ExamStatus examStatus = exam.getStatus();
         final boolean editable = modifyGrant && (examStatus == ExamStatus.UP_COMING ||
                 examStatus == ExamStatus.RUNNING);
+
+//        TODO this is not performat try to improve by doing one check with the CheckExamConsistency above
         final boolean sebRestrictionAvailable = testSEBRestrictionAPI(exam);
         final boolean isRestricted = readonly && sebRestrictionAvailable && this.restService
                 .getBuilder(CheckSEBRestriction.class)

@@ -47,7 +47,7 @@ public final class Exam implements GrantEntity {
             null,
             null,
             ExamStatus.FINISHED,
-//            Boolean.FALSE,
+            Boolean.FALSE,
             null,
             Boolean.FALSE,
             null);
@@ -115,6 +115,9 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_STATUS)
     public final ExamStatus status;
 
+    @JsonProperty(EXAM.ATTR_LMS_SEB_RESTRICTION)
+    public final Boolean sebRestriction;
+
     @JsonProperty(EXAM.ATTR_BROWSER_KEYS)
     public final String browserExamKeys;
 
@@ -139,6 +142,7 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_OWNER) final String owner,
             @JsonProperty(EXAM.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM.ATTR_STATUS) final ExamStatus status,
+            @JsonProperty(EXAM.ATTR_LMS_SEB_RESTRICTION) final Boolean sebRestriction,
             @JsonProperty(EXAM.ATTR_BROWSER_KEYS) final String browserExamKeys,
             @JsonProperty(EXAM.ATTR_ACTIVE) final Boolean active,
             @JsonProperty(EXAM.ATTR_LASTUPDATE) final String lastUpdate) {
@@ -155,6 +159,7 @@ public final class Exam implements GrantEntity {
         this.type = type;
         this.owner = owner;
         this.status = (status != null) ? status : getStatusFromDate(startTime, endTime);
+        this.sebRestriction = sebRestriction;
         this.browserExamKeys = browserExamKeys;
         this.active = (active != null) ? active : Boolean.TRUE;
         this.lastUpdate = lastUpdate;
@@ -181,6 +186,7 @@ public final class Exam implements GrantEntity {
                 EXAM.ATTR_STATUS,
                 ExamStatus.class,
                 getStatusFromDate(this.startTime, this.endTime));
+        this.sebRestriction = null;
         this.browserExamKeys = mapper.getString(EXAM.ATTR_BROWSER_KEYS);
         this.active = mapper.getBoolean(EXAM.ATTR_ACTIVE);
         this.supporter = mapper.getStringSet(EXAM.ATTR_SUPPORTER);
@@ -204,6 +210,7 @@ public final class Exam implements GrantEntity {
         this.type = null;
         this.owner = null;
         this.status = (status != null) ? status : getStatusFromDate(this.startTime, this.endTime);
+        this.sebRestriction = null;
         this.browserExamKeys = null;
         this.active = null;
         this.supporter = null;

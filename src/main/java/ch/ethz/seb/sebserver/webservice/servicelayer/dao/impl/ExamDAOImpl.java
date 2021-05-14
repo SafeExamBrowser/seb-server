@@ -1010,6 +1010,7 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getOwner(),
                     supporter,
                     (quizData != null) ? status : (statusOverride != null) ? statusOverride : status,
+                    BooleanUtils.toBooleanObject(record.getLmsSebRestriction()),
                     record.getBrowserKeys(),
                     BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : null),
                     record.getLastupdate());

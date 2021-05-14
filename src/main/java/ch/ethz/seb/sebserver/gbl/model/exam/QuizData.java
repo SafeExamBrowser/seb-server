@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public final class QuizData implements GrantEntity {
 
+    public static final String FILTER_ATTR_QUIZ_NAME = "quiz_name";
     public static final String FILTER_ATTR_START_TIME = "start_timestamp";
 
     public static final String ATTR_ADDITIONAL_ATTRIBUTES = "ADDITIONAL_ATTRIBUTES";

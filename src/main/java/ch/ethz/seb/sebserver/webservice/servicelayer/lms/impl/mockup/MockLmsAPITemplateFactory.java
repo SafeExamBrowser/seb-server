@@ -6,18 +6,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
-import ch.ethz.seb.sebserver.gbl.client.ProxyData;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
 
@@ -38,14 +36,9 @@ public class MockLmsAPITemplateFactory implements LmsAPITemplateFactory {
     }
 
     @Override
-    public Result<LmsAPITemplate> create(
-            final LmsSetup lmsSetup,
-            final ClientCredentials credentials,
-            final ProxyData proxyData) {
-
+    public Result<LmsAPITemplate> create(final APITemplateDataSupplier apiTemplateDataSupplier) {
         return Result.tryCatch(() -> new MockupLmsAPITemplate(
-                lmsSetup,
-                credentials,
+                apiTemplateDataSupplier,
                 this.webserviceInfo));
     }
 

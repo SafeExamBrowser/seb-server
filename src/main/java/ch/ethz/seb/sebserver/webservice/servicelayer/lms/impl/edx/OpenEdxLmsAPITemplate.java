@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -39,23 +40,27 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     private static final Logger log = LoggerFactory.getLogger(OpenEdxLmsAPITemplate.class);
 
-    private final LmsSetup lmsSetup;
     private final OpenEdxCourseAccess openEdxCourseAccess;
     private final OpenEdxCourseRestriction openEdxCourseRestriction;
 
     OpenEdxLmsAPITemplate(
-            final LmsSetup lmsSetup,
             final OpenEdxCourseAccess openEdxCourseAccess,
             final OpenEdxCourseRestriction openEdxCourseRestriction) {
 
-        this.lmsSetup = lmsSetup;
         this.openEdxCourseAccess = openEdxCourseAccess;
         this.openEdxCourseRestriction = openEdxCourseRestriction;
     }
 
     @Override
+    public LmsType getType() {
+        return LmsType.OPEN_EDX;
+    }
+
+    @Override
     public LmsSetup lmsSetup() {
-        return this.lmsSetup;
+        return this.openEdxCourseAccess
+                .getApiTemplateDataSupplier()
+                .getLmsSetup();
     }
 
     @Override
@@ -150,7 +155,8 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
             log.debug("Release SEB Client restriction for Exam: {}", exam);
         }
 
-        return this.openEdxCourseRestriction.deleteSEBRestriction(exam.externalId)
+        return this.openEdxCourseRestriction
+                .deleteSEBRestriction(exam.externalId)
                 .map(result -> exam);
     }
 

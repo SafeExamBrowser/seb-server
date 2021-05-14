@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.MoodleSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -51,23 +52,27 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
 
     private static final Logger log = LoggerFactory.getLogger(MoodleLmsAPITemplate.class);
 
-    private final LmsSetup lmsSetup;
     private final MoodleCourseAccess moodleCourseAccess;
     private final MoodleCourseRestriction moodleCourseRestriction;
 
     protected MoodleLmsAPITemplate(
-            final LmsSetup lmsSetup,
             final MoodleCourseAccess moodleCourseAccess,
             final MoodleCourseRestriction moodleCourseRestriction) {
 
-        this.lmsSetup = lmsSetup;
         this.moodleCourseAccess = moodleCourseAccess;
         this.moodleCourseRestriction = moodleCourseRestriction;
     }
 
     @Override
+    public LmsType getType() {
+        return LmsType.MOODLE;
+    }
+
+    @Override
     public LmsSetup lmsSetup() {
-        return this.lmsSetup;
+        return this.moodleCourseAccess
+                .getApiTemplateDataSupplier()
+                .getLmsSetup();
     }
 
     @Override

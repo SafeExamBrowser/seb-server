@@ -35,9 +35,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
  * API requests in a protected environment.
  *
  * Extend this to implement a concrete course access API for a given type of LMS. */
-public abstract class CourseAccess {
+public abstract class AbstractCourseAccess {
 
-    private static final Logger log = LoggerFactory.getLogger(CourseAccess.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractCourseAccess.class);
 
     /** Fetch status that indicates an asynchronous quiz data fetch status if the
      * concrete implementation has such. */
@@ -54,7 +54,7 @@ public abstract class CourseAccess {
     /** CircuitBreaker for protected examinee account details requests */
     protected final CircuitBreaker<ExamineeAccountDetails> accountDetailRequest;
 
-    protected CourseAccess(
+    protected AbstractCourseAccess(
             final AsyncService asyncService,
             final Environment environment) {
 

@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,12 +54,13 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.CourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCourseAccess;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
  *
  * See also: https://course-catalog-api-guide.readthedocs.io */
-final class OpenEdxCourseAccess extends CourseAccess {
+final class OpenEdxCourseAccess extends AbstractCourseAccess {
 
     private static final Logger log = LoggerFactory.getLogger(OpenEdxCourseAccess.class);
 
@@ -70,7 +72,6 @@ final class OpenEdxCourseAccess extends CourseAccess {
     private static final String OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT = "/api/user/v1/accounts?username=";
 
     private final JSONMapper jsonMapper;
-    private final LmsSetup lmsSetup;
     private final OpenEdxRestTemplateFactory openEdxRestTemplateFactory;
     private final WebserviceInfo webserviceInfo;
     private final MemoizingCircuitBreaker<List<QuizData>> allQuizzesRequest;
@@ -80,7 +81,6 @@ final class OpenEdxCourseAccess extends CourseAccess {
 
     public OpenEdxCourseAccess(
             final JSONMapper jsonMapper,
-            final LmsSetup lmsSetup,
             final OpenEdxRestTemplateFactory openEdxRestTemplateFactory,
             final WebserviceInfo webserviceInfo,
             final AsyncService asyncService,
@@ -88,7 +88,6 @@ final class OpenEdxCourseAccess extends CourseAccess {
 
         super(asyncService, environment);
         this.jsonMapper = jsonMapper;
-        this.lmsSetup = lmsSetup;
         this.openEdxRestTemplateFactory = openEdxRestTemplateFactory;
         this.webserviceInfo = webserviceInfo;
 
@@ -130,7 +129,13 @@ final class OpenEdxCourseAccess extends CourseAccess {
         };
     }
 
+    APITemplateDataSupplier getApiTemplateDataSupplier() {
+        return this.openEdxRestTemplateFactory.apiTemplateDataSupplier;
+    }
+
     LmsSetupTestResult initAPIAccess() {
+
+        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
 
         final LmsSetupTestResult attributesCheck = this.openEdxRestTemplateFactory.test();
         if (!attributesCheck.isOk()) {
@@ -148,13 +153,14 @@ final class OpenEdxCourseAccess extends CourseAccess {
         final OAuth2RestTemplate restTemplate = restTemplateRequest.get();
 
         try {
-            this.getEdxPage(this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT, restTemplate);
+            restTemplate.getAccessToken();
+            //this.getEdxPage(lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT, restTemplate);
         } catch (final RuntimeException e) {
 
             restTemplate.setAuthenticator(new EdxOAuth2RequestAuthenticator());
 
             try {
-                this.getEdxPage(this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT, restTemplate);
+                this.getEdxPage(lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT, restTemplate);
             } catch (final RuntimeException ee) {
                 log.error("Failed to access Open edX course API: ", ee);
                 return LmsSetupTestResult.ofQuizAccessAPIError(ee.getMessage());
@@ -167,14 +173,18 @@ final class OpenEdxCourseAccess extends CourseAccess {
     @Override
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
         return Result.tryCatch(() -> {
+            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+            final HttpHeaders httpHeaders = new HttpHeaders();
             final OAuth2RestTemplate template = getRestTemplate()
                     .getOrThrow();
 
-            final String externalStartURI = this.webserviceInfo.getLmsExternalAddressAlias(this.lmsSetup.lmsApiUrl);
+            final String externalStartURI = this.webserviceInfo
+                    .getLmsExternalAddressAlias(lmsSetup.lmsApiUrl);
+
             final String uri = (externalStartURI != null)
                     ? externalStartURI + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeSessionId
-                    : this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeSessionId;
-            final HttpHeaders httpHeaders = new HttpHeaders();
+                    : lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeSessionId;
+
             final String responseJSON = template.exchange(
                     uri,
                     HttpMethod.GET,
@@ -211,9 +221,24 @@ final class OpenEdxCourseAccess extends CourseAccess {
 
     @Override
     protected Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids) {
-        return () -> getRestTemplate()
-                .map(template -> this.collectQuizzes(template, ids))
-                .getOrThrow();
+
+        if (ids.size() == 1) {
+            return () -> {
+                final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+                final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
+                return Arrays.asList(quizDataOf(
+                        lmsSetup,
+                        getOneCourses(
+                                lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT,
+                                getRestTemplate().getOrThrow(),
+                                ids.iterator().next()),
+                        externalStartURI));
+            };
+        } else {
+            return () -> getRestTemplate()
+                    .map(template -> this.collectQuizzes(template, ids))
+                    .getOrThrow();
+        }
     }
 
     private Supplier<List<QuizData>> quizzesSupplier() {
@@ -225,8 +250,10 @@ final class OpenEdxCourseAccess extends CourseAccess {
     @Override
     protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
         return () -> {
+            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+
             final String uri =
-                    this.lmsSetup.lmsApiUrl +
+                    lmsSetup.lmsApiUrl +
                             OPEN_EDX_DEFAULT_BLOCKS_ENDPOINT +
                             Utils.encodeFormURL_UTF_8(courseId);
             return new Chapters(getCourseBlocks(uri)
@@ -239,16 +266,18 @@ final class OpenEdxCourseAccess extends CourseAccess {
     }
 
     private ArrayList<QuizData> collectQuizzes(final OAuth2RestTemplate restTemplate, final Set<String> ids) {
-        final String externalStartURI = getExternalLMSServerAddress(this.lmsSetup);
+        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+        final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
+
         return collectCourses(
-                this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT,
+                lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT,
                 restTemplate,
                 ids)
                         .stream()
                         .reduce(
                                 new ArrayList<>(),
                                 (list, courseData) -> {
-                                    list.add(quizDataOf(this.lmsSetup, courseData, externalStartURI));
+                                    list.add(quizDataOf(lmsSetup, courseData, externalStartURI));
                                     return list;
                                 },
                                 (list1, list2) -> {
@@ -258,15 +287,16 @@ final class OpenEdxCourseAccess extends CourseAccess {
     }
 
     private ArrayList<QuizData> collectAllQuizzes(final OAuth2RestTemplate restTemplate) {
-        final String externalStartURI = getExternalLMSServerAddress(this.lmsSetup);
+        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+        final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
         return collectAllCourses(
-                this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT,
+                lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT,
                 restTemplate)
                         .stream()
                         .reduce(
                                 new ArrayList<>(),
                                 (list, courseData) -> {
-                                    list.add(quizDataOf(this.lmsSetup, courseData, externalStartURI));
+                                    list.add(quizDataOf(lmsSetup, courseData, externalStartURI));
                                     return list;
                                 },
                                 (list1, list2) -> {
@@ -320,6 +350,21 @@ final class OpenEdxCourseAccess extends CourseAccess {
         }
 
         return collector;
+    }
+
+    private CourseData getOneCourses(
+            final String pageURI,
+            final OAuth2RestTemplate restTemplate,
+            final String id) {
+
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        final ResponseEntity<CourseData> exchange = restTemplate.exchange(
+                pageURI + "/" + id,
+                HttpMethod.GET,
+                new HttpEntity<>(httpHeaders),
+                CourseData.class);
+
+        return exchange.getBody();
     }
 
     private List<CourseData> collectAllCourses(final String pageURI, final OAuth2RestTemplate restTemplate) {

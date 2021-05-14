@@ -20,12 +20,11 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
-import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
-import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
 
@@ -68,29 +67,25 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
     }
 
     @Override
-    public Result<LmsAPITemplate> create(
-            final LmsSetup lmsSetup,
-            final ClientCredentials credentials,
-            final ProxyData proxyData) {
+    public Result<LmsAPITemplate> create(final APITemplateDataSupplier apiTemplateDataSupplier) {
 
         return Result.tryCatch(() -> {
 
-            final MoodleCourseDataAsyncLoader asyncLoaderPrototype =
-                    this.applicationContext.getBean(MoodleCourseDataAsyncLoader.class);
-            asyncLoaderPrototype.init(lmsSetup.name);
+            final LmsSetup lmsSetup = apiTemplateDataSupplier.getLmsSetup();
+
+            final MoodleCourseDataAsyncLoader asyncLoaderPrototype = this.applicationContext
+                    .getBean(MoodleCourseDataAsyncLoader.class);
+            asyncLoaderPrototype.init(lmsSetup.getModelId());
 
             final MoodleRestTemplateFactory moodleRestTemplateFactory = new MoodleRestTemplateFactory(
                     this.jsonMapper,
-                    lmsSetup,
-                    credentials,
-                    proxyData,
+                    apiTemplateDataSupplier,
                     this.clientCredentialService,
                     this.clientHttpRequestFactoryService,
                     this.alternativeTokenRequestPaths);
 
             final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                     this.jsonMapper,
-                    lmsSetup,
                     moodleRestTemplateFactory,
                     asyncLoaderPrototype,
                     this.asyncService,
@@ -101,7 +96,6 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     moodleRestTemplateFactory);
 
             return new MoodleLmsAPITemplate(
-                    lmsSetup,
                     moodleCourseAccess,
                     moodleCourseRestriction);
         });

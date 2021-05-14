@@ -43,30 +43,25 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 
 final class OpenEdxRestTemplateFactory {
 
     private static final String OPEN_EDX_DEFAULT_TOKEN_REQUEST_PATH = "/oauth2/access_token";
 
-    final LmsSetup lmsSetup;
-    final ClientCredentials credentials;
-    final ProxyData proxyData;
+    final APITemplateDataSupplier apiTemplateDataSupplier;
     final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     final ClientCredentialService clientCredentialService;
     final Set<String> knownTokenAccessPaths;
 
     OpenEdxRestTemplateFactory(
-            final LmsSetup lmsSetup,
-            final ClientCredentials credentials,
-            final ProxyData proxyData,
+            final APITemplateDataSupplier apiTemplateDataSupplier,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final String[] alternativeTokenRequestPaths) {
 
-        this.lmsSetup = lmsSetup;
+        this.apiTemplateDataSupplier = apiTemplateDataSupplier;
         this.clientCredentialService = clientCredentialService;
-        this.credentials = credentials;
-        this.proxyData = proxyData;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
 
         this.knownTokenAccessPaths = new HashSet<>();
@@ -76,26 +71,34 @@ final class OpenEdxRestTemplateFactory {
         }
     }
 
+    APITemplateDataSupplier getApiTemplateDataSupplier() {
+        return this.apiTemplateDataSupplier;
+    }
+
     public LmsSetupTestResult test() {
+
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final ClientCredentials lmsClientCredentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
+
         final List<APIMessage> missingAttrs = new ArrayList<>();
-        if (StringUtils.isBlank(this.lmsSetup.lmsApiUrl)) {
+        if (StringUtils.isBlank(lmsSetup.lmsApiUrl)) {
             missingAttrs.add(APIMessage.fieldValidationError(
                     LMS_SETUP.ATTR_LMS_URL,
                     "lmsSetup:lmsUrl:notNull"));
         } else {
             // try to connect to the url
-            if (!Utils.pingHost(this.lmsSetup.lmsApiUrl)) {
+            if (!Utils.pingHost(lmsSetup.lmsApiUrl)) {
                 missingAttrs.add(APIMessage.fieldValidationError(
                         LMS_SETUP.ATTR_LMS_URL,
                         "lmsSetup:lmsUrl:url.invalid"));
             }
         }
-        if (!this.credentials.hasClientId()) {
+        if (!lmsClientCredentials.hasClientId()) {
             missingAttrs.add(APIMessage.fieldValidationError(
                     LMS_SETUP.ATTR_LMS_CLIENTNAME,
                     "lmsSetup:lmsClientname:notNull"));
         }
-        if (!this.credentials.hasSecret()) {
+        if (!lmsClientCredentials.hasSecret()) {
             missingAttrs.add(APIMessage.fieldValidationError(
                     LMS_SETUP.ATTR_LMS_CLIENTSECRET,
                     "lmsSetup:lmsClientsecret:notNull"));
@@ -120,10 +123,7 @@ final class OpenEdxRestTemplateFactory {
 
     Result<OAuth2RestTemplate> createOAuthRestTemplate(final String accessTokenPath) {
         return Result.tryCatch(() -> {
-            final OAuth2RestTemplate template = createRestTemplate(
-                    this.lmsSetup,
-                    this.credentials,
-                    accessTokenPath);
+            final OAuth2RestTemplate template = createRestTemplate(accessTokenPath);
 
             final OAuth2AccessToken accessToken = template.getAccessToken();
             if (accessToken == null) {
@@ -134,10 +134,11 @@ final class OpenEdxRestTemplateFactory {
         });
     }
 
-    private OAuth2RestTemplate createRestTemplate(
-            final LmsSetup lmsSetup,
-            final ClientCredentials credentials,
-            final String accessTokenRequestPath) throws URISyntaxException {
+    private OAuth2RestTemplate createRestTemplate(final String accessTokenRequestPath) throws URISyntaxException {
+
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
+        final ProxyData proxyData = this.apiTemplateDataSupplier.getProxyData();
 
         final CharSequence plainClientId = credentials.clientId;
         final CharSequence plainClientSecret = this.clientCredentialService
@@ -150,7 +151,7 @@ final class OpenEdxRestTemplateFactory {
         details.setClientSecret(plainClientSecret.toString());
 
         final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
-                .getClientHttpRequestFactory(this.proxyData)
+                .getClientHttpRequestFactory(proxyData)
                 .getOrThrow();
 
         final OAuth2RestTemplate template = new OAuth2RestTemplate(details);

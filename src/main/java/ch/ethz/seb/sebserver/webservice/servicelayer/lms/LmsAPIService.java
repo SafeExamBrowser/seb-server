@@ -35,6 +35,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
  * changes this service will be notifies about the change and release the related LmsAPITemplate from cache. */
 public interface LmsAPIService {
 
+    /** Reset and cleanup the caches if there are some */
+    void cleanup();
+
     /** Get the specified LmsSetup model by primary key
      *
      * @param id The identifier (PK) of the LmsSetup model

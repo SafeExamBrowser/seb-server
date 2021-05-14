@@ -246,12 +246,21 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(
+                    name = API.EXAM_ADMINISTRATION_CONSISTENCY_CHECK_INCLUDE_RESTRICTION,
+                    defaultValue = "false") final boolean includeRestriction) {
 
         checkReadPrivilege(institutionId);
-        return this.examSessionService
+        final Collection<APIMessage> result = this.examSessionService
                 .checkExamConsistency(modelId)
                 .getOrThrow();
+
+        if (includeRestriction) {
+            // TODO include seb restriction check and status
+        }
+
+        return result;
     }
 
     // ****************************************************************************
@@ -524,37 +533,43 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     }
 
     private Result<Exam> applySEBRestriction(final Exam exam, final boolean restrict) {
-        final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(exam.lmsSetupId)
-                .getOrThrow();
 
-        if (!lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
-            return Result.ofError(new UnsupportedOperationException(
-                    "SEB Restriction feature not available for LMS type: " + lmsSetup.lmsType));
-        }
+        return Result.tryCatch(() -> {
+            final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(exam.lmsSetupId)
+                    .getOrThrow();
 
-        if (restrict) {
-            if (!this.lmsAPIService
-                    .getLmsSetup(exam.lmsSetupId)
-                    .getOrThrow().lmsType.features.contains(Features.SEB_RESTRICTION)) {
-
-                return Result.ofError(new APIMessageException(
-                        APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT
-                                .of("The LMS for this Exam has no SEB restriction feature")));
+            if (!lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
+                throw new UnsupportedOperationException(
+                        "SEB Restriction feature not available for LMS type: " + lmsSetup.lmsType);
             }
 
-            if (this.examSessionService.hasActiveSEBClientConnections(exam.id)) {
-                return Result.ofError(new APIMessageException(
-                        APIMessage.ErrorMessage.INTEGRITY_VALIDATION
-                                .of("Exam currently has active SEB Client connections.")));
-            }
+            if (restrict) {
+                if (!this.lmsAPIService
+                        .getLmsSetup(exam.lmsSetupId)
+                        .getOrThrow().lmsType.features.contains(Features.SEB_RESTRICTION)) {
 
-            return this.checkNoActiveSEBClientConnections(exam)
-                    .flatMap(this.sebRestrictionService::applySEBClientRestriction)
-                    .flatMap(e -> this.examDAO.setSEBRestriction(exam.id, restrict));
-        } else {
-            return this.sebRestrictionService.releaseSEBClientRestriction(exam)
-                    .flatMap(e -> this.examDAO.setSEBRestriction(exam.id, restrict));
-        }
+                    throw new APIMessageException(
+                            APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT
+                                    .of("The LMS for this Exam has no SEB restriction feature"));
+                }
+
+                if (this.examSessionService.hasActiveSEBClientConnections(exam.id)) {
+                    throw new APIMessageException(
+                            APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                                    .of("Exam currently has active SEB Client connections."));
+                }
+
+                // TODO double check before setSEBRestriction
+                return this.checkNoActiveSEBClientConnections(exam)
+                        .flatMap(this.sebRestrictionService::applySEBClientRestriction)
+                        .flatMap(e -> this.examDAO.setSEBRestriction(exam.id, restrict))
+                        .getOrThrow();
+            } else {
+                return this.sebRestrictionService.releaseSEBClientRestriction(exam)
+                        .flatMap(e -> this.examDAO.setSEBRestriction(exam.id, restrict))
+                        .getOrThrow();
+            }
+        });
     }
 
     static Function<Collection<Exam>, List<Exam>> pageSort(final String sort) {

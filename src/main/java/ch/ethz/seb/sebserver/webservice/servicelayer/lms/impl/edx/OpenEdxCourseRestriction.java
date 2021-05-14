@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
-import java.util.function.BooleanSupplier;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -23,8 +21,6 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -43,19 +39,16 @@ public class OpenEdxCourseRestriction {
     private static final String OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_PATH =
             "/seb-openedx/api/v1/course/%s/configuration/";
 
-    private final LmsSetup lmsSetup;
     private final JSONMapper jsonMapper;
     private final OpenEdxRestTemplateFactory openEdxRestTemplateFactory;
 
     private OAuth2RestTemplate restTemplate;
 
     protected OpenEdxCourseRestriction(
-            final LmsSetup lmsSetup,
             final JSONMapper jsonMapper,
             final OpenEdxRestTemplateFactory openEdxRestTemplateFactory,
             final int restrictionAPIPushCount) {
 
-        this.lmsSetup = lmsSetup;
         this.jsonMapper = jsonMapper;
         this.openEdxRestTemplateFactory = openEdxRestTemplateFactory;
     }
@@ -75,15 +68,16 @@ public class OpenEdxCourseRestriction {
         }
 
         final OAuth2RestTemplate restTemplate = restTemplateRequest.get();
-
-        // NOTE: since the OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_INFO endpoint is
-        //       not accessible within OAuth2 authentication (just with user - authentication),
-        //       we can only check if the endpoint is available for now. This is checked
-        //       if there is no 404 response.
-        // TODO: Ask eduNEXT to implement also OAuth2 API access for this endpoint to be able
-        //       to check the version of the installed plugin.
-        final String url = this.lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_INFO;
         try {
+            final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
+
+            // NOTE: since the OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_INFO endpoint is
+            //       not accessible within OAuth2 authentication (just with user - authentication),
+            //       we can only check if the endpoint is available for now. This is checked
+            //       if there is no 404 response.
+            // TODO: Ask eduNEXT to implement also OAuth2 API access for this endpoint to be able
+            //       to check the version of the installed plugin.
+            final String url = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_INFO;
 
             restTemplate.exchange(
                     url,
@@ -111,8 +105,10 @@ public class OpenEdxCourseRestriction {
             log.debug("GET SEB Client restriction on course: {}", courseId);
         }
 
+        final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
+
         return Result.tryCatch(() -> {
-            final String url = this.lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
+            final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
             httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
@@ -146,9 +142,28 @@ public class OpenEdxCourseRestriction {
             log.debug("PUT SEB Client restriction on course: {} : {}", courseId, restriction);
         }
 
-        return handleSEBRestriction(pushSEBRestrictionFunction(
-                restriction,
-                courseId));
+        return Result.tryCatch(() -> {
+            final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
+            final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
+            final HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+            httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
+            final OpenEdxSEBRestriction body = this
+                    .getRestTemplate()
+                    .getOrThrow()
+                    .exchange(
+                            url,
+                            HttpMethod.PUT,
+                            new HttpEntity<>(toJson(restriction), httpHeaders),
+                            OpenEdxSEBRestriction.class)
+                    .getBody();
+
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully PUT SEB Client restriction on course: {} : {}", courseId, body);
+            }
+
+            return true;
+        });
     }
 
     Result<Boolean> deleteSEBRestriction(final String courseId) {
@@ -157,74 +172,99 @@ public class OpenEdxCourseRestriction {
             log.debug("DELETE SEB Client restriction on course: {}", courseId);
         }
 
-        return handleSEBRestriction(deleteSEBRestrictionFunction(courseId));
-    }
-
-    private BooleanSupplier pushSEBRestrictionFunction(
-            final OpenEdxSEBRestriction restriction,
-            final String courseId) {
-
-        final String url = this.lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
-        return () -> {
-            final OpenEdxSEBRestriction body = this.restTemplate.exchange(
-                    url,
-                    HttpMethod.PUT,
-                    new HttpEntity<>(toJson(restriction), httpHeaders),
-                    OpenEdxSEBRestriction.class)
-                    .getBody();
-
-            if (log.isDebugEnabled()) {
-                log.debug("Successfully PUT SEB Client restriction on course: {} : {}", courseId, body);
-            }
-
-            return true;
-        };
-    }
-
-    private BooleanSupplier deleteSEBRestrictionFunction(final String courseId) {
-
-        final String url = this.lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
-        return () -> {
+        return Result.tryCatch(() -> {
+            final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
+            final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
-            final ResponseEntity<Object> exchange = this.restTemplate.exchange(
-                    url,
-                    HttpMethod.DELETE,
-                    new HttpEntity<>(httpHeaders),
-                    Object.class);
+            final ResponseEntity<Object> exchange = this
+                    .getRestTemplate()
+                    .getOrThrow()
+                    .exchange(
+                            url,
+                            HttpMethod.DELETE,
+                            new HttpEntity<>(httpHeaders),
+                            Object.class);
 
             if (exchange.getStatusCode() == HttpStatus.NO_CONTENT) {
                 if (log.isDebugEnabled()) {
                     log.debug("Successfully PUT SEB Client restriction on course: {}", courseId);
                 }
+                return true;
             } else {
-                log.error("Unexpected response for deletion: {}", exchange);
-                return false;
+                throw new RuntimeException("Unexpected response for deletion: " + exchange);
             }
+        });
 
-            return true;
-        };
     }
 
-    private Result<Boolean> handleSEBRestriction(final BooleanSupplier task) {
-        return getRestTemplate()
-                .map(restTemplate -> {
-                    try {
-                        return task.getAsBoolean();
-                    } catch (final HttpClientErrorException ce) {
-                        if (ce.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                            throw new APIMessageException(APIMessage.ErrorMessage.UNAUTHORIZED.of(ce.getMessage()
-                                    + " Unable to get access for API. Please check the corresponding LMS Setup "));
-                        }
-                        throw ce;
-                    } catch (final Exception e) {
-                        throw new RuntimeException("Unexpected: ", e);
-                    }
-                });
-    }
+//    private BooleanSupplier pushSEBRestrictionFunction(
+//            final OpenEdxSEBRestriction restriction,
+//            final String courseId) {
+//
+//        final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
+//        final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
+//        final HttpHeaders httpHeaders = new HttpHeaders();
+//        httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+//        httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
+//        return () -> {
+//            final OpenEdxSEBRestriction body = this.restTemplate.exchange(
+//                    url,
+//                    HttpMethod.PUT,
+//                    new HttpEntity<>(toJson(restriction), httpHeaders),
+//                    OpenEdxSEBRestriction.class)
+//                    .getBody();
+//
+//            if (log.isDebugEnabled()) {
+//                log.debug("Successfully PUT SEB Client restriction on course: {} : {}", courseId, body);
+//            }
+//
+//            return true;
+//        };
+//    }
+
+//    private BooleanSupplier deleteSEBRestrictionFunction(final String courseId) {
+//
+//        final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
+//        final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
+//        return () -> {
+//            final HttpHeaders httpHeaders = new HttpHeaders();
+//            httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
+//            final ResponseEntity<Object> exchange = this.restTemplate.exchange(
+//                    url,
+//                    HttpMethod.DELETE,
+//                    new HttpEntity<>(httpHeaders),
+//                    Object.class);
+//
+//            if (exchange.getStatusCode() == HttpStatus.NO_CONTENT) {
+//                if (log.isDebugEnabled()) {
+//                    log.debug("Successfully PUT SEB Client restriction on course: {}", courseId);
+//                }
+//            } else {
+//                log.error("Unexpected response for deletion: {}", exchange);
+//                return false;
+//            }
+//
+//            return true;
+//        };
+//    }
+
+//    private Result<Boolean> handleSEBRestriction(final BooleanSupplier task) {
+//        return getRestTemplate()
+//                .map(restTemplate -> {
+//                    try {
+//                        return task.getAsBoolean();
+//                    } catch (final HttpClientErrorException ce) {
+//                        if (ce.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+//                            throw new APIMessageException(APIMessage.ErrorMessage.UNAUTHORIZED.of(ce.getMessage()
+//                                    + " Unable to get access for API. Please check the corresponding LMS Setup "));
+//                        }
+//                        throw ce;
+//                    } catch (final Exception e) {
+//                        throw new RuntimeException("Unexpected: ", e);
+//                    }
+//                });
+//    }
 
     private String getSEBRestrictionUrl(final String courseId) {
         return String.format(OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_PATH, courseId);

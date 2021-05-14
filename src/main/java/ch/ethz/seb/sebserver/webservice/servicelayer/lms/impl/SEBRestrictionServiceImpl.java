@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -63,14 +66,37 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     }
 
     @Override
+    public LmsAPIService getLmsAPIService() {
+        return this.lmsAPIService;
+    }
+
+    @Override
+    public boolean checkConsistency(@NotNull final Long lmsSetupId, final Exam exam) {
+        final LmsSetup lmsSetup = this.lmsAPIService
+                .getLmsSetup(exam.lmsSetupId)
+                .getOr(null);
+
+        // check only if SEB_RESTRICTION feature is on
+        if (lmsSetup != null && lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
+            if (!exam.sebRestriction) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
     @Transactional
     public Result<SEBRestriction> getSEBRestrictionFromExam(final Exam exam) {
         return Result.tryCatch(() -> {
             // load the config keys from restriction and merge with new generated config keys
+            final long currentTimeMillis = System.currentTimeMillis();
             final Set<String> configKeys = new HashSet<>();
             final Collection<String> generatedKeys = this.examConfigService
                     .generateConfigKeys(exam.institutionId, exam.id)
                     .getOrThrow();
+            System.out.println("******* " + (System.currentTimeMillis() - currentTimeMillis));
 
             configKeys.addAll(generatedKeys);
             if (generatedKeys != null && !generatedKeys.isEmpty()) {
@@ -134,6 +160,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                     null, null, null, null, null, null, null, null, null, null,
                     exam.supporter,
                     exam.status,
+                    null,
                     (browserExamKeys != null && !browserExamKeys.isEmpty())
                             ? StringUtils.join(browserExamKeys, Constants.LIST_SEPARATOR_CHAR)
                             : StringUtils.EMPTY,
@@ -167,28 +194,31 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
 
     @Override
     public Result<Exam> applySEBClientRestriction(final Exam exam) {
-        if (!this.lmsAPIService
-                .getLmsSetup(exam.lmsSetupId)
-                .getOrThrow().lmsType.features.contains(Features.SEB_RESTRICTION)) {
+        return Result.tryCatch(() -> {
+            if (!this.lmsAPIService
+                    .getLmsSetup(exam.lmsSetupId)
+                    .getOrThrow().lmsType.features.contains(Features.SEB_RESTRICTION)) {
 
-            return Result.of(exam);
-        }
+                return exam;
+            }
 
-        return this.getSEBRestrictionFromExam(exam)
-                .map(sebRestrictionData -> {
+            return this.getSEBRestrictionFromExam(exam)
+                    .map(sebRestrictionData -> {
 
-                    if (log.isDebugEnabled()) {
-                        log.debug("Applying SEB Client restriction on LMS with: {}", sebRestrictionData);
-                    }
+                        if (log.isDebugEnabled()) {
+                            log.debug("Applying SEB Client restriction on LMS with: {}", sebRestrictionData);
+                        }
 
-                    return this.lmsAPIService
-                            .getLmsAPITemplate(exam.lmsSetupId)
-                            .flatMap(lmsTemplate -> lmsTemplate.applySEBClientRestriction(
-                                    exam.externalId,
-                                    sebRestrictionData))
-                            .map(data -> exam)
-                            .getOrThrow();
-                });
+                        return this.lmsAPIService
+                                .getLmsAPITemplate(exam.lmsSetupId)
+                                .flatMap(lmsTemplate -> lmsTemplate.applySEBClientRestriction(
+                                        exam.externalId,
+                                        sebRestrictionData))
+                                .map(data -> exam)
+                                .getOrThrow();
+                    })
+                    .getOrThrow();
+        });
     }
 
     @Override

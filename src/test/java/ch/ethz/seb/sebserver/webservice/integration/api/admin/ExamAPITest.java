@@ -64,6 +64,7 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         exam.owner,
                         Arrays.asList("user5"),
                         null,
+                        false,
                         null,
                         true,
                         null))
@@ -94,6 +95,7 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                         exam.owner,
                         Arrays.asList("user2"),
                         null,
+                        false,
                         null,
                         true,
                         null))

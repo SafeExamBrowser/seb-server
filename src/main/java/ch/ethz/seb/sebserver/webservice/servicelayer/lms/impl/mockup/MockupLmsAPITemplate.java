@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,31 +35,32 @@ import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 
-final class MockupLmsAPITemplate implements LmsAPITemplate {
+public class MockupLmsAPITemplate implements LmsAPITemplate {
 
     private static final Logger log = LoggerFactory.getLogger(MockupLmsAPITemplate.class);
 
-    private final LmsSetup lmsSetup;
-    private final ClientCredentials credentials;
     private final Collection<QuizData> mockups;
     private final WebserviceInfo webserviceInfo;
+    private final APITemplateDataSupplier apiTemplateDataSupplier;
 
     MockupLmsAPITemplate(
-            final LmsSetup lmsSetup,
-            final ClientCredentials credentials,
+            final APITemplateDataSupplier apiTemplateDataSupplier,
             final WebserviceInfo webserviceInfo) {
 
-        this.lmsSetup = lmsSetup;
-        this.credentials = credentials;
+        this.apiTemplateDataSupplier = apiTemplateDataSupplier;
         this.webserviceInfo = webserviceInfo;
+        this.mockups = new ArrayList<>();
 
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final Long lmsSetupId = lmsSetup.id;
         final Long institutionId = lmsSetup.getInstitutionId();
         final LmsType lmsType = lmsSetup.getLmsType();
-        this.mockups = new ArrayList<>();
+
         this.mockups.add(new QuizData(
                 "quiz1", institutionId, lmsSetupId, lmsType, "Demo Quiz 1 (MOCKUP)", "<p>Demo Quiz Mockup</p>",
                 "2020-01-01T09:00:00Z", null, "http://lms.mockup.com/api/"));
@@ -93,23 +94,30 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
+    public LmsType getType() {
+        return LmsType.MOCKUP;
+    }
+
+    @Override
     public LmsSetup lmsSetup() {
-        return this.lmsSetup;
+        return this.apiTemplateDataSupplier.getLmsSetup();
     }
 
     private List<APIMessage> checkAttributes() {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final ClientCredentials lmsClientCredentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
         final List<APIMessage> missingAttrs = new ArrayList<>();
-        if (StringUtils.isBlank(this.lmsSetup.lmsApiUrl)) {
+        if (StringUtils.isBlank(lmsSetup.lmsApiUrl)) {
             missingAttrs.add(APIMessage.fieldValidationError(
                     LMS_SETUP.ATTR_LMS_URL,
                     "lmsSetup:lmsUrl:notNull"));
         }
-        if (!this.credentials.hasClientId()) {
+        if (!lmsClientCredentials.hasClientId()) {
             missingAttrs.add(APIMessage.fieldValidationError(
                     LMS_SETUP.ATTR_LMS_CLIENTNAME,
                     "lmsSetup:lmsClientname:notNull"));
         }
-        if (!this.credentials.hasSecret()) {
+        if (!lmsClientCredentials.hasSecret()) {
             missingAttrs.add(APIMessage.fieldValidationError(
                     LMS_SETUP.ATTR_LMS_CLIENTSECRET,
                     "lmsSetup:lmsClientsecret:notNull"));
@@ -119,7 +127,7 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public LmsSetupTestResult testCourseAccessAPI() {
-        log.info("Test Lms Binding for Mockup and LmsSetup: {}", this.lmsSetup);
+        log.info("Test Lms Binding for Mockup and LmsSetup: {}", this.apiTemplateDataSupplier.getLmsSetup());
 
         final List<APIMessage> missingAttrs = checkAttributes();
 
@@ -136,7 +144,6 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
-        // TODO Auto-generated method stub
         return LmsSetupTestResult.ofQuizRestrictionAPIError("unsupported");
     }
 
@@ -239,7 +246,7 @@ final class MockupLmsAPITemplate implements LmsAPITemplate {
     private boolean authenticate() {
         try {
 
-            final CharSequence plainClientId = this.credentials.clientId;
+            final CharSequence plainClientId = this.apiTemplateDataSupplier.getLmsClientCredentials().clientId;
             if (plainClientId == null || plainClientId.length() <= 0) {
                 throw new IllegalAccessException("Wrong client credential");
             }

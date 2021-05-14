@@ -37,16 +37,32 @@ public final class LmsSetup implements GrantEntity, Activatable {
     public static final String FILTER_ATTR_LMS_SETUP = "lms_setup";
     public static final String FILTER_ATTR_LMS_TYPE = "lms_type";
 
+    /** LMS binding and API features */
     public enum Features {
+        /** The course API allows the application to securely connect to a LMS service
+         * and request course or quiz data from that LMS as well as requesting some
+         * limited LMS user account data like user name or display name. */
         COURSE_API,
+        /** The SEB restriction API allows the application to securely connect to a LMS service
+         * and place or release SEB restrictions, for a particular course or quiz, on the LMS.
+         * The SEB restriciton is usually in the form of certain hash keys and addition
+         * restriction settings that prompt the LMS to check access on course/quiz connection and
+         * allow only access for a dedicated SEB client with the right configuration in place. */
         SEB_RESTRICTION
     }
 
+    /** Defines the supported types if LMS bindings.
+     * Also defines the supports feature(s) for each type of LMS binding. */
     public enum LmsType {
+        /** Mockup LMS type used to create test setups */
         MOCKUP(Features.COURSE_API),
+        /** The Open edX LMS binding features both APIs, course access as well as SEB restrcition */
         OPEN_EDX(Features.COURSE_API, Features.SEB_RESTRICTION),
+        /** The Moodle binding features only the course access API so far */
         MOODLE(Features.COURSE_API /* , Features.SEB_RESTRICTION */),
+        /** The Ans Delft binding is on the way */
         ANS_DELFT(/* Features.COURSE_API , Features.SEB_RESTRICTION */),
+        /** The OpenOLAT binding is on the way */
         OPEN_OLAT(/* Features.COURSE_API , Features.SEB_RESTRICTION */);
 
         public final EnumSet<Features> features;

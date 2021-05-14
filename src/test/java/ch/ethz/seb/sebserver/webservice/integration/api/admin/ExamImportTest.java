@@ -10,7 +10,10 @@ package ch.ethz.seb.sebserver.webservice.integration.api.admin;
 
 import static org.junit.Assert.*;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.jdbc.Sql;
@@ -23,9 +26,24 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
-@Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public class ExamImportTest extends AdministrationAPIIntegrationTester {
+
+    @Autowired
+    private LmsAPIService lmsAPIService;
+
+    @Before
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
+    public void init() {
+        this.lmsAPIService.cleanup();
+    }
+
+    @After
+    @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
+    public void cleanup() {
+        this.lmsAPIService.cleanup();
+    }
 
     @Test
     public void testImportFromQuiz() throws Exception {
@@ -57,7 +75,7 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
                 this,
                 getSebAdminAccess(),
                 getSebAdminAccess(),
-                "LmsSetupMock",
+                "LmsSetupMock1",
                 "quiz2",
                 ExamType.MANAGED,
                 "user5");
@@ -76,7 +94,7 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
                     this,
                     getAdminInstitution2Access(),
                     getAdminInstitution2Access(),
-                    "LmsSetupMock",
+                    "LmsSetupMock2",
                     "quiz2",
                     ExamType.MANAGED,
                     "user7");
@@ -90,7 +108,7 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
                 this,
                 getAdminInstitution2Access(),
                 getExamAdmin1(), // this exam administrator is on Institution 2
-                "LmsSetupMock2",
+                "LmsSetupMock3",
                 "quiz2",
                 ExamType.MANAGED,
                 "user7");
@@ -108,7 +126,7 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
                     this,
                     getAdminInstitution1Access(),
                     getExamAdmin1(), // this exam administrator is on Institution 2
-                    "LmsSetupMock",
+                    "LmsSetupMock4",
                     "quiz2",
                     ExamType.MANAGED,
                     "user7");

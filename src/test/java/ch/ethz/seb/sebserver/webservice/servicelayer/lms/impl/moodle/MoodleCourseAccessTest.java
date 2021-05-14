@@ -71,7 +71,6 @@ public class MoodleCourseAccessTest {
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                 new JSONMapper(),
-                null,
                 moodleRestTemplateFactory,
                 null,
                 mock(AsyncService.class),
@@ -120,7 +119,6 @@ public class MoodleCourseAccessTest {
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                 new JSONMapper(),
-                null,
                 moodleRestTemplateFactory,
                 null,
                 mock(AsyncService.class),
@@ -143,7 +141,6 @@ public class MoodleCourseAccessTest {
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                 new JSONMapper(),
-                null,
                 moodleRestTemplateFactory,
                 null,
                 mock(AsyncService.class),
@@ -165,7 +162,6 @@ public class MoodleCourseAccessTest {
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                 new JSONMapper(),
-                null,
                 moodleRestTemplateFactory,
                 null,
                 mock(AsyncService.class),

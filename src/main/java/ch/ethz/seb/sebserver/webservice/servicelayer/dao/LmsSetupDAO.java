@@ -29,4 +29,5 @@ public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup, LmsSetup>, B
      * @param lmsSetupId the LMS Setup identifier
      * @return Result refer to the proxy data or to an error if happened */
     Result<ProxyData> getLmsAPIAccessProxyData(String lmsSetupId);
+
 }

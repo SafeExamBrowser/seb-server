@@ -8,9 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
-import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
-import ch.ethz.seb.sebserver.gbl.client.ProxyData;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -23,16 +20,10 @@ public interface LmsAPITemplateFactory {
      * @return the LMS type if a specific implementation */
     LmsType lmsType();
 
-    /** Creates a LmsAPITemplate for the specific implements LMS type.
+    /** Creates a {@link LmsAPITemplate } for the specific implements LMS type
+     * And provides it with the needed {@link APITemplateDataSupplier }
      *
-     * @param lmsSetup the LMS setup data to initialize the template
-     * @param credentials the access data for accessing the LMS API. Either client credentials or access token from LMS
-     *            setup input
-     * @param proxyData The proxy data used to connect to the LMS if needed.
-     * @return Result refer to the LmsAPITemplate or to an error when happened */
-    Result<LmsAPITemplate> create(
-            final LmsSetup lmsSetup,
-            final ClientCredentials credentials,
-            final ProxyData proxyData);
+     * @param apiTemplateDataSupplier supplies all needed actual LMS setup data */
+    Result<LmsAPITemplate> create(final APITemplateDataSupplier apiTemplateDataSupplier);
 
 }

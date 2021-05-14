@@ -45,7 +45,8 @@ import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.CourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseDataAsyncLoader.CourseDataShort;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
 
@@ -63,7 +64,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
  * background task if needed and return immediately to do not block the request.
  * The planed Moodle integration on moodle side also defines an improved course access API. This will
  * possibly make this synchronous fetch strategy obsolete in the future. */
-public class MoodleCourseAccess extends CourseAccess {
+public class MoodleCourseAccess extends AbstractCourseAccess {
 
     private static final long INITIAL_WAIT_TIME = 3 * Constants.SECOND_IN_MILLIS;
 
@@ -86,7 +87,6 @@ public class MoodleCourseAccess extends CourseAccess {
     static final String MOODLE_COURSE_API_SEARCH_PAGE_SIZE = "perpage";
 
     private final JSONMapper jsonMapper;
-    private final LmsSetup lmsSetup;
     private final MoodleRestTemplateFactory moodleRestTemplateFactory;
     private final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader;
     private final CircuitBreaker<List<QuizData>> allQuizzesRequest;
@@ -96,7 +96,6 @@ public class MoodleCourseAccess extends CourseAccess {
 
     protected MoodleCourseAccess(
             final JSONMapper jsonMapper,
-            final LmsSetup lmsSetup,
             final MoodleRestTemplateFactory moodleRestTemplateFactory,
             final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader,
             final AsyncService asyncService,
@@ -104,7 +103,6 @@ public class MoodleCourseAccess extends CourseAccess {
 
         super(asyncService, environment);
         this.jsonMapper = jsonMapper;
-        this.lmsSetup = lmsSetup;
         this.moodleCourseDataAsyncLoader = moodleCourseDataAsyncLoader;
         this.moodleRestTemplateFactory = moodleRestTemplateFactory;
 
@@ -136,6 +134,10 @@ public class MoodleCourseAccess extends CourseAccess {
         };
     }
 
+    APITemplateDataSupplier getApiTemplateDataSupplier() {
+        return this.moodleRestTemplateFactory.apiTemplateDataSupplier;
+    }
+
     @Override
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
         return Result.tryCatch(() -> {
@@ -151,8 +153,9 @@ public class MoodleCourseAccess extends CourseAccess {
                     queryAttributes);
 
             if (checkAccessDeniedError(userDetailsJSON)) {
+                final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
                 log.error("Get access denied error from Moodle: {} for API call: {}, response: {}",
-                        this.lmsSetup,
+                        lmsSetup,
                         MOODLE_USER_PROFILE_API_FUNCTION_NAME,
                         Utils.truncateText(userDetailsJSON, 2000));
                 throw new RuntimeException("No user details on Moodle API request (access-denied)");
@@ -257,9 +260,11 @@ public class MoodleCourseAccess extends CourseAccess {
             final MoodleAPIRestTemplate restTemplate,
             final FilterMap filterMap) {
 
-        final String urlPrefix = (this.lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
-                ? this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
-                : this.lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
+        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+
+        final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
+                ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
+                : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
 
         final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
         final long fromCutTime = (quizFromTime != null) ? Utils.toUnixTimeInSeconds(quizFromTime) : -1;
@@ -313,10 +318,10 @@ public class MoodleCourseAccess extends CourseAccess {
 
     private List<QuizData> getCached() {
         final Collection<CourseDataShort> courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData();
-
-        final String urlPrefix = (this.lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
-                ? this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
-                : this.lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
+        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+        final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
+                ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
+                : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
 
         return reduceCoursesToQuizzes(urlPrefix, courseQuizData);
     }
@@ -325,13 +330,14 @@ public class MoodleCourseAccess extends CourseAccess {
             final String urlPrefix,
             final Collection<CourseDataShort> courseQuizData) {
 
+        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
         return courseQuizData
                 .stream()
                 .reduce(
                         new ArrayList<>(),
                         (list, courseData) -> {
                             list.addAll(quizDataOf(
-                                    this.lmsSetup,
+                                    lmsSetup,
                                     courseData,
                                     urlPrefix));
                             return list;
@@ -380,16 +386,17 @@ public class MoodleCourseAccess extends CourseAccess {
             final CourseQuizData courseQuizData = this.jsonMapper.readValue(
                     quizzesJSON,
                     CourseQuizData.class);
+            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
 
             if (courseQuizData == null) {
-                log.error("No quizzes found for  ids: {} on LMS; {}", quizIds, this.lmsSetup.name);
+                log.error("No quizzes found for  ids: {} on LMS; {}", quizIds, lmsSetup.name);
                 return Collections.emptyList();
             }
 
             logMoodleWarnings(courseQuizData.warnings);
 
             if (courseQuizData.quizzes == null || courseQuizData.quizzes.isEmpty()) {
-                log.error("No quizzes found for  ids: {} on LMS; {}", quizIds, this.lmsSetup.name);
+                log.error("No quizzes found for  ids: {} on LMS; {}", quizIds, lmsSetup.name);
                 return Collections.emptyList();
             }
 
@@ -402,9 +409,9 @@ public class MoodleCourseAccess extends CourseAccess {
                         }
                     });
 
-            final String urlPrefix = (this.lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
-                    ? this.lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
-                    : this.lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
+            final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
+                    ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
+                    : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
 
             return courseData.values()
                     .stream()
@@ -413,7 +420,7 @@ public class MoodleCourseAccess extends CourseAccess {
                             new ArrayList<>(),
                             (list, cd) -> {
                                 list.addAll(quizDataOf(
-                                        this.lmsSetup,
+                                        lmsSetup,
                                         cd,
                                         urlPrefix));
                                 return list;
@@ -451,16 +458,17 @@ public class MoodleCourseAccess extends CourseAccess {
             final Courses courses = this.jsonMapper.readValue(
                     coursePageJSON,
                     Courses.class);
+            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
 
             if (courses == null) {
-                log.error("No courses found for ids: {} on LMS: {}", ids, this.lmsSetup.name);
+                log.error("No courses found for ids: {} on LMS: {}", ids, lmsSetup.name);
                 return Collections.emptyList();
             }
 
             logMoodleWarnings(courses.warnings);
 
             if (courses.courses == null || courses.courses.isEmpty()) {
-                log.error("No courses found for ids: {} on LMS: {}", ids, this.lmsSetup.name);
+                log.error("No courses found for ids: {} on LMS: {}", ids, lmsSetup.name);
                 return Collections.emptyList();
             }
 
@@ -630,9 +638,10 @@ public class MoodleCourseAccess extends CourseAccess {
     private void logMoodleWarnings(final Collection<Warning> warnings) {
         if (warnings != null && !warnings.isEmpty()) {
             if (log.isDebugEnabled()) {
+                final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
                 log.debug(
                         "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
-                        this.lmsSetup,
+                        lmsSetup,
                         MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME,
                         warnings.size(),
                         warnings.iterator().next().toString());

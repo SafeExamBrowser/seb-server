@@ -22,10 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
@@ -38,6 +38,8 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
@@ -71,21 +73,9 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         this.templateFactories = new EnumMap<>(factories);
     }
 
-    /** Listen to LmsSetupChangeEvent to release an affected LmsAPITemplate from cache
-     *
-     * @param event the event holding the changed LmsSetup */
-    @EventListener
-    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
-        final LmsSetup lmsSetup = event.getLmsSetup();
-        if (lmsSetup == null) {
-            return;
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("LmsSetup changed. Update cache by removing eventually used references");
-        }
-
-        this.cache.remove(new CacheKey(lmsSetup.getModelId(), 0));
+    @Override
+    public void cleanup() {
+        this.cache.clear();
     }
 
     @Override
@@ -107,10 +97,19 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
     @Override
     public Result<LmsAPITemplate> getLmsAPITemplate(final String lmsSetupId) {
-        return Result.tryCatch(() -> this.lmsSetupDAO
-                .byModelId(lmsSetupId)
-                .getOrThrow())
-                .flatMap(this::getLmsAPITemplate);
+        return Result.tryCatch(() -> {
+            LmsAPITemplate lmsAPITemplate = getFromCache(lmsSetupId);
+            if (lmsAPITemplate == null) {
+                lmsAPITemplate = createLmsSetupTemplate(lmsSetupId);
+                if (lmsAPITemplate != null) {
+                    this.cache.put(new CacheKey(lmsSetupId, System.currentTimeMillis()), lmsAPITemplate);
+                }
+            }
+            if (lmsAPITemplate == null) {
+                throw new ResourceNotFoundException(EntityType.LMS_SETUP, lmsSetupId);
+            }
+            return lmsAPITemplate;
+        });
     }
 
     @Override
@@ -129,23 +128,22 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
     @Override
     public LmsSetupTestResult testAdHoc(final LmsSetup lmsSetup) {
-        final ClientCredentials lmsCredentials = this.clientCredentialService.encryptClientCredentials(
-                lmsSetup.lmsAuthName,
-                lmsSetup.lmsAuthSecret,
-                lmsSetup.lmsRestApiToken)
-                .getOrThrow();
+        final AdHocAPITemplateDataSupplier apiTemplateDataSupplier = new AdHocAPITemplateDataSupplier(
+                lmsSetup,
+                this.clientCredentialService);
 
-        final ProxyData proxyData = (StringUtils.isNoneBlank(lmsSetup.proxyHost))
-                ? new ProxyData(
-                        lmsSetup.proxyHost,
-                        lmsSetup.proxyPort,
-                        this.clientCredentialService.encryptClientCredentials(
-                                lmsSetup.proxyAuthUsername,
-                                lmsSetup.proxyAuthSecret)
-                                .getOrThrow())
-                : null;
+        final LmsAPITemplate lmsSetupTemplate = createLmsSetupTemplate(apiTemplateDataSupplier);
 
-        return test(createLmsSetupTemplate(lmsSetup, lmsCredentials, proxyData));
+        final LmsSetupTestResult testCourseAccessAPI = lmsSetupTemplate.testCourseAccessAPI();
+        if (!testCourseAccessAPI.isOk()) {
+            return testCourseAccessAPI;
+        }
+
+        if (lmsSetupTemplate.lmsSetup().getLmsType().features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
+            return lmsSetupTemplate.testCourseRestrictionAPI();
+        }
+
+        return LmsSetupTestResult.ofOkay();
     }
 
     /** Collect all QuizData from all affecting LmsSetup.
@@ -183,6 +181,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             return this.lmsSetupDAO.all(institutionId, true)
                     .getOrThrow()
                     .parallelStream()
+                    .map(LmsSetup::getModelId)
                     .map(this::getLmsAPITemplate)
                     .flatMap(Result::onErrorLogAndSkip)
                     .map(template -> template.getQuizzes(filterMap))
@@ -193,18 +192,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         });
     }
 
-    private Result<LmsAPITemplate> getLmsAPITemplate(final LmsSetup lmsSetup) {
-        return Result.tryCatch(() -> {
-            LmsAPITemplate lmsAPITemplate = getFromCache(lmsSetup);
-            if (lmsAPITemplate == null) {
-                lmsAPITemplate = createLmsSetupTemplate(lmsSetup);
-                this.cache.put(new CacheKey(lmsSetup.getModelId(), System.currentTimeMillis()), lmsAPITemplate);
-            }
-            return lmsAPITemplate;
-        });
-    }
-
-    private LmsAPITemplate getFromCache(final LmsSetup lmsSetup) {
+    private LmsAPITemplate getFromCache(final String lmsSetupId) {
         // first cleanup the cache by removing old instances
         final long currentTimeMillis = System.currentTimeMillis();
         new ArrayList<>(this.cache.keySet())
@@ -212,38 +200,101 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 .filter(key -> key.creationTimestamp - currentTimeMillis > Constants.DAY_IN_MILLIS)
                 .forEach(this.cache::remove);
         // get from cache
-        return this.cache.get(new CacheKey(lmsSetup.getModelId(), 0));
+        return this.cache.get(new CacheKey(lmsSetupId, 0));
     }
 
-    private LmsAPITemplate createLmsSetupTemplate(final LmsSetup lmsSetup) {
+    private LmsAPITemplate createLmsSetupTemplate(final String lmsSetupId) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Create new LmsAPITemplate for id: {}", lmsSetup.getModelId());
+            log.debug("Create new LmsAPITemplate for id: {}", lmsSetupId);
         }
 
-        final ClientCredentials credentials = this.lmsSetupDAO
-                .getLmsAPIAccessCredentials(lmsSetup.getModelId())
-                .getOrThrow();
-
-        final ProxyData proxyData = this.lmsSetupDAO
-                .getLmsAPIAccessProxyData(lmsSetup.getModelId())
-                .getOr(null);
-
-        return createLmsSetupTemplate(lmsSetup, credentials, proxyData);
+        return createLmsSetupTemplate(new PersistentAPITemplateDataSupplier(
+                lmsSetupId,
+                this.lmsSetupDAO));
     }
 
-    private LmsAPITemplate createLmsSetupTemplate(
-            final LmsSetup lmsSetup,
-            final ClientCredentials credentials,
-            final ProxyData proxyData) {
+    private LmsAPITemplate createLmsSetupTemplate(final APITemplateDataSupplier apiTemplateDataSupplier) {
 
-        if (!this.templateFactories.containsKey(lmsSetup.lmsType)) {
-            throw new UnsupportedOperationException("No support for LMS Type: " + lmsSetup.lmsType);
+        final LmsType lmsType = apiTemplateDataSupplier.getLmsSetup().lmsType;
+
+        if (!this.templateFactories.containsKey(lmsType)) {
+            throw new UnsupportedOperationException("No support for LMS Type: " + lmsType);
         }
 
-        final LmsAPITemplateFactory lmsAPITemplateFactory = this.templateFactories.get(lmsSetup.lmsType);
-        return lmsAPITemplateFactory.create(lmsSetup, credentials, proxyData)
+        final LmsAPITemplateFactory lmsAPITemplateFactory = this.templateFactories
+                .get(lmsType);
+
+        return lmsAPITemplateFactory
+                .create(apiTemplateDataSupplier)
                 .getOrThrow();
+    }
+
+    /** Used to always get the actual LMS connection data from persistent */
+    private static final class PersistentAPITemplateDataSupplier implements APITemplateDataSupplier {
+
+        private final String lmsSetupId;
+        private final LmsSetupDAO lmsSetupDAO;
+
+        public PersistentAPITemplateDataSupplier(final String lmsSetupId, final LmsSetupDAO lmsSetupDAO) {
+            this.lmsSetupId = lmsSetupId;
+            this.lmsSetupDAO = lmsSetupDAO;
+        }
+
+        @Override
+        public LmsSetup getLmsSetup() {
+            return this.lmsSetupDAO.byModelId(this.lmsSetupId).getOrThrow();
+        }
+
+        @Override
+        public ClientCredentials getLmsClientCredentials() {
+            return this.lmsSetupDAO.getLmsAPIAccessCredentials(this.lmsSetupId).getOrThrow();
+        }
+
+        @Override
+        public ProxyData getProxyData() {
+            return this.lmsSetupDAO.getLmsAPIAccessProxyData(this.lmsSetupId).getOr(null);
+        }
+    }
+
+    /** Used to test LMS connection data that are not yet persistently stored */
+    private static final class AdHocAPITemplateDataSupplier implements APITemplateDataSupplier {
+
+        private final LmsSetup lmsSetup;
+        private final ClientCredentialService clientCredentialService;
+
+        public AdHocAPITemplateDataSupplier(
+                final LmsSetup lmsSetup,
+                final ClientCredentialService clientCredentialService) {
+            this.lmsSetup = lmsSetup;
+            this.clientCredentialService = clientCredentialService;
+        }
+
+        @Override
+        public LmsSetup getLmsSetup() {
+            return this.lmsSetup;
+        }
+
+        @Override
+        public ClientCredentials getLmsClientCredentials() {
+            return this.clientCredentialService.encryptClientCredentials(
+                    this.lmsSetup.getLmsAuthName(),
+                    this.lmsSetup.getLmsAuthSecret())
+                    .getOrThrow();
+        }
+
+        @Override
+        public ProxyData getProxyData() {
+            return (StringUtils.isNoneBlank(this.lmsSetup.proxyHost))
+                    ? new ProxyData(
+                            this.lmsSetup.proxyHost,
+                            this.lmsSetup.proxyPort,
+                            this.clientCredentialService.encryptClientCredentials(
+                                    this.lmsSetup.proxyAuthUsername,
+                                    this.lmsSetup.proxyAuthSecret)
+                                    .getOrThrow())
+                    : null;
+        }
     }
 
     private static final class CacheKey {

@@ -34,8 +34,6 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -49,7 +47,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.IndicatorDistributedRequestCache;
 
@@ -67,7 +65,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     private final ExamDAO examDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final CacheManager cacheManager;
-    private final LmsAPIService lmsAPIService;
+    private final SEBRestrictionService sebRestrictionService;
     private final IndicatorDistributedRequestCache indicatorDistributedRequestCache;
     private final boolean distributedSetup;
 
@@ -79,7 +77,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final ClientConnectionDAO clientConnectionDAO,
             final IndicatorDAO indicatorDAO,
             final CacheManager cacheManager,
-            final LmsAPIService lmsAPIService,
+            final SEBRestrictionService sebRestrictionService,
             final IndicatorDistributedRequestCache indicatorDistributedRequestCache,
             @Value("${sebserver.webservice.distributed:false}") final boolean distributedSetup) {
 
@@ -90,7 +88,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         this.clientConnectionDAO = clientConnectionDAO;
         this.cacheManager = cacheManager;
         this.indicatorDAO = indicatorDAO;
-        this.lmsAPIService = lmsAPIService;
+        this.sebRestrictionService = sebRestrictionService;
         this.indicatorDistributedRequestCache = indicatorDistributedRequestCache;
         this.distributedSetup = distributedSetup;
     }
@@ -117,7 +115,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public LmsAPIService getLmsAPIService() {
-        return this.lmsAPIService;
+        return this.sebRestrictionService.getLmsAPIService();
     }
 
     @Override
@@ -149,29 +147,10 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                             return null;
                         });
 
-                // check SEB restriction available and restricted
-                // if SEB restriction is not available no consistency violation message is added
-                final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(exam.lmsSetupId)
-                        .getOr(null);
-                if (lmsSetup != null && lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
-                    this.lmsAPIService.getLmsAPITemplate(exam.lmsSetupId)
-                            .map(t -> {
-                                if (t.testCourseRestrictionAPI().isOk()) {
-                                    return t;
-                                } else {
-                                    throw new NoSEBRestrictionException();
-                                }
-                            })
-                            .flatMap(t -> t.getSEBClientRestriction(exam))
-                            .onError(error -> {
-                                if (error instanceof NoSEBRestrictionException) {
-                                    result.add(
-                                            ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION
-                                                    .of(exam.getModelId()));
-                                } else {
-                                    throw new RuntimeException("Unexpected error: ", error);
-                                }
-                            });
+                if (!this.sebRestrictionService.checkConsistency(exam.lmsSetupId, exam)) {
+                    result.add(
+                            ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION
+                                    .of(exam.getModelId()));
                 }
 
                 // check indicator exists
