@@ -99,9 +99,21 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
+    public Result<QuizData> getQuizFromCache(final String id) {
+        return this.openEdxCourseAccess
+                .getQuizFromCache(id)
+                .orElse(() -> getQuiz(id));
+    }
+
+    @Override
     public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
         return this.openEdxCourseAccess.getQuizzesFromCache(ids)
                 .getOrElse(() -> getQuizzes(ids));
+    }
+
+    @Override
+    public void clearCache() {
+        this.openEdxCourseAccess.clearCache();
     }
 
     @Override

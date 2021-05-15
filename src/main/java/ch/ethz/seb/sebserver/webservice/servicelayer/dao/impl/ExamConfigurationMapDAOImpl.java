@@ -377,6 +377,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
     private Result<Collection<ExamConfigurationMap>> toDomainModel(
             final Collection<ExamConfigurationMapRecord> records) {
+
         return Result.tryCatch(() -> records
                 .stream()
                 .map(model -> this.toDomainModel(model).getOrThrow())
@@ -390,7 +391,8 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     .selectByPrimaryKey(record.getConfigurationNodeId());
             final String status = config.getStatus();
 
-            final Exam exam = this.examDAO.byPK(record.getExamId())
+            final Exam exam = this.examDAO
+                    .getWithQuizDataFromCache(record.getExamId())
                     .getOr(null);
 
             return new ExamConfigurationMap(

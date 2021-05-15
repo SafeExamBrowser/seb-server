@@ -23,7 +23,7 @@
             <tti unit="hours">24</tti>
         </expiry>
         <resources>
-            <heap unit="entries">2000</heap>
+            <heap unit="entries">3000</heap>
         </resources>
     </cache>
     
@@ -93,7 +93,16 @@
         </resources>
     </cache>
     
-    
+    <cache alias="QUIZ_DATA_CACHE">
+        <key-type>java.lang.String</key-type>
+        <value-type>ch.ethz.seb.sebserver.gbl.model.exam.QuizData</value-type>
+        <expiry>
+            <tti unit="minutes">10</tti>
+        </expiry>
+        <resources>
+            <heap unit="entries">10000</heap>
+        </resources>
+    </cache>
     
     
 </config>

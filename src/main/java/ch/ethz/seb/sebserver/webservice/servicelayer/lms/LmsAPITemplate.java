@@ -165,6 +165,15 @@ public interface LmsAPITemplate {
      * @return Collection of all {@link QuizData } from the given id set */
     Collection<Result<QuizData>> getQuizzesFromCache(Set<String> ids);
 
+    /** Get a particular quiz data from cache if available. If not, tries to get it from the LMS.
+     *
+     * @param id the quiz identifier, external identifier of the exam.
+     * @return Result refer to the {@link QuizData } or to an error when happended */
+    Result<QuizData> getQuizFromCache(String id);
+
+    /** Clears the underling caches if there are some for a particular implementation. */
+    void clearCache();
+
     /** Convert an anonymous or temporary examineeUserId, sent by the SEB Client on LMS login,
      * to LMS examinee account details by requesting them on the LMS API with the given examineeUserId
      *

@@ -111,6 +111,17 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
+    public Result<QuizData> getQuizFromCache(final String id) {
+        return this.moodleCourseAccess.getQuizFromCache(id)
+                .orElse(() -> getQuiz(id));
+    }
+
+    @Override
+    public void clearCache() {
+        this.moodleCourseAccess.clearCache();
+    }
+
+    @Override
     public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
         return this.moodleCourseAccess.getQuizzesFromCache(ids)
                 .getOrElse(() -> getQuizzes(ids));

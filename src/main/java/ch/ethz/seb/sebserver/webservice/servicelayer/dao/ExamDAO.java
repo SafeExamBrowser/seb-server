@@ -37,6 +37,8 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *         happened */
     Result<GrantEntity> examGrantEntityByClientConnection(Long connectionId);
 
+    Result<Exam> getWithQuizDataFromCache(Long id);
+
     /** Get all active Exams for a given institution.
      *
      * @param institutionId the identifier of the institution

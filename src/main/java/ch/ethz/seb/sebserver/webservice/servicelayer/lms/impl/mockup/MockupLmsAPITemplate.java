@@ -9,7 +9,9 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -179,6 +181,16 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
     @Override
     public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
         return getQuizzes(ids);
+    }
+
+    @Override
+    public Result<QuizData> getQuizFromCache(final String id) {
+        return getQuizzes(new HashSet<>(Arrays.asList(id))).iterator().next();
+    }
+
+    @Override
+    public void clearCache() {
+
     }
 
     @Override

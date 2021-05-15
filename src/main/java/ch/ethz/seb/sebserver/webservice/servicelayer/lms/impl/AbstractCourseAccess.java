@@ -11,12 +11,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +21,7 @@ import org.springframework.core.env.Environment;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
+import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker.State;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
@@ -101,42 +98,8 @@ public abstract class AbstractCourseAccess {
                         Constants.SECOND_IN_MILLIS * 10));
     }
 
-    public Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
-        return Result.tryCatch(() -> {
-            final List<QuizData> cached = allQuizzesSupplier().getAllCached();
-            final List<QuizData> available = (cached != null)
-                    ? cached
-                    : Collections.emptyList();
-
-            final Map<String, QuizData> quizMapping = available
-                    .stream()
-                    .collect(Collectors.toMap(q -> q.id, Function.identity()));
-
-            if (!quizMapping.keySet().containsAll(ids)) {
-
-                final Map<String, QuizData> collect = quizzesSupplier(ids).get()
-                        .stream()
-                        .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
-                if (collect != null) {
-                    quizMapping.clear();
-                    quizMapping.putAll(collect);
-                }
-            }
-
-            return ids
-                    .stream()
-                    .map(id -> {
-                        final QuizData q = quizMapping.get(id);
-                        return (q == null)
-                                ? Result.<QuizData> ofError(new NoSuchElementException("Quiz with id: " + id))
-                                : Result.of(q);
-                    })
-                    .collect(Collectors.toList());
-        });
-    }
-
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return allQuizzesSupplier().getAll(filterMap);
+        return this.quizzesRequest.protectedRun(allQuizzesSupplier(filterMap));
     }
 
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
@@ -172,30 +135,41 @@ public abstract class AbstractCourseAccess {
                 Collections.emptyMap());
     }
 
+    /** This abstraction has no cache implementation and therefore this returns a Result
+     * with an "No cache supported error.
+     * </p>
+     * To implement and use caching, this must be overridden and implemented
+     *
+     * @param id The identifier of the QuizData to get from cache
+     * @return Result with an "No cache supported error */
+    public Result<QuizData> getQuizFromCache(final String id) {
+        return Result.ofRuntimeError("No cache supported");
+    }
+
+    /** This abstraction has no cache implementation and therefore this returns a Result
+     * with an "No cache supported error.
+     * </p>
+     * To implement and use caching, this must be overridden and implemented
+     *
+     * @param ids Collection of quiz data identifier to get from the cache
+     * @return Result with an "No cache supported error */
+    public Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
+        return Result.ofRuntimeError("No cache supported");
+    }
+
     /** Provides a supplier for the quiz data request to use within the circuit breaker */
     protected abstract Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids);
 
-    /** Provides a AllQuizzesSupplier to supply quiz data either form cache or from LMS */
-    protected abstract AllQuizzesSupplier allQuizzesSupplier();
+    /** Provides a supplier to supply request to use within the circuit breaker */
+    protected abstract Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap);
 
     /** Provides a supplier for the course chapter data request to use within the circuit breaker */
     protected abstract Supplier<Chapters> getCourseChaptersSupplier(final String courseId);
 
-    /** Gives a fetch status if asynchronous quiz data fetching is part of the underling implementation */
-    protected abstract FetchStatus getFetchStatus();
-
-    /** Uses to supply quiz data */
-    protected interface AllQuizzesSupplier {
-        /** Get all currently cached quiz data if supported by the underling implementation
-         *
-         * @return List containing all cached quiz data objects */
-        List<QuizData> getAllCached();
-
-        /** Get a list of all quiz data filtered by the given filter map from LMS.
-         *
-         * @param filterMap Map containing the filter criteria
-         * @return Result refer to the list of filtered quiz data or to an error when happened */
-        Result<List<QuizData>> getAll(final FilterMap filterMap);
+    protected FetchStatus getFetchStatus() {
+        if (this.quizzesRequest.getState() != State.CLOSED) {
+            return FetchStatus.FETCH_ERROR;
+        }
+        return FetchStatus.ALL_FETCHED;
     }
-
 }

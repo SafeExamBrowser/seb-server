@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.CacheManager;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -43,8 +44,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
-import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker.State;
-import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -55,12 +54,12 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
  *
  * See also: https://course-catalog-api-guide.readthedocs.io */
-final class OpenEdxCourseAccess extends AbstractCourseAccess {
+final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
 
     private static final Logger log = LoggerFactory.getLogger(OpenEdxCourseAccess.class);
 
@@ -74,63 +73,32 @@ final class OpenEdxCourseAccess extends AbstractCourseAccess {
     private final JSONMapper jsonMapper;
     private final OpenEdxRestTemplateFactory openEdxRestTemplateFactory;
     private final WebserviceInfo webserviceInfo;
-    private final MemoizingCircuitBreaker<List<QuizData>> allQuizzesRequest;
-    private final AllQuizzesSupplier allQuizzesSupplier;
 
     private OAuth2RestTemplate restTemplate;
+    private final Long lmsSetupId;
 
     public OpenEdxCourseAccess(
             final JSONMapper jsonMapper,
             final OpenEdxRestTemplateFactory openEdxRestTemplateFactory,
             final WebserviceInfo webserviceInfo,
             final AsyncService asyncService,
-            final Environment environment) {
+            final Environment environment,
+            final CacheManager cacheManager) {
 
-        super(asyncService, environment);
+        super(asyncService, environment, cacheManager);
         this.jsonMapper = jsonMapper;
         this.openEdxRestTemplateFactory = openEdxRestTemplateFactory;
         this.webserviceInfo = webserviceInfo;
-
-        this.allQuizzesRequest = asyncService.createMemoizingCircuitBreaker(
-                quizzesSupplier(),
-                environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.attempts",
-                        Integer.class,
-                        3),
-                environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.blockingTime",
-                        Long.class,
-                        Constants.MINUTE_IN_MILLIS),
-                environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.timeToRecover",
-                        Long.class,
-                        Constants.MINUTE_IN_MILLIS),
-                environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.memoize",
-                        Boolean.class,
-                        true),
-                environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.memoizingTime",
-                        Long.class,
-                        Constants.HOUR_IN_MILLIS));
-
-        this.allQuizzesSupplier = new AllQuizzesSupplier() {
-
-            @Override
-            public List<QuizData> getAllCached() {
-                return OpenEdxCourseAccess.this.allQuizzesRequest.getCached();
-            }
-
-            @Override
-            public Result<List<QuizData>> getAll(final FilterMap filterMap) {
-                return OpenEdxCourseAccess.this.allQuizzesRequest.get();
-            }
-
-        };
+        this.lmsSetupId = openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup().id;
     }
 
     APITemplateDataSupplier getApiTemplateDataSupplier() {
         return this.openEdxRestTemplateFactory.apiTemplateDataSupplier;
+    }
+
+    @Override
+    protected Long getLmsSetupId() {
+        return this.lmsSetupId;
     }
 
     LmsSetupTestResult initAPIAccess() {
@@ -220,6 +188,13 @@ final class OpenEdxCourseAccess extends AbstractCourseAccess {
     }
 
     @Override
+    protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
+        return () -> getRestTemplate()
+                .map(this::collectAllQuizzes)
+                .getOrThrow();
+    }
+
+    @Override
     protected Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids) {
 
         if (ids.size() == 1) {
@@ -231,7 +206,7 @@ final class OpenEdxCourseAccess extends AbstractCourseAccess {
                         getOneCourses(
                                 lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT,
                                 getRestTemplate().getOrThrow(),
-                                ids.iterator().next()),
+                                ids),
                         externalStartURI));
             };
         } else {
@@ -239,12 +214,6 @@ final class OpenEdxCourseAccess extends AbstractCourseAccess {
                     .map(template -> this.collectQuizzes(template, ids))
                     .getOrThrow();
         }
-    }
-
-    private Supplier<List<QuizData>> quizzesSupplier() {
-        return () -> getRestTemplate()
-                .map(this::collectAllQuizzes)
-                .getOrThrow();
     }
 
     @Override
@@ -337,7 +306,10 @@ final class OpenEdxCourseAccess extends AbstractCourseAccess {
         final List<CourseData> collector = new ArrayList<>();
         EdXPage page = getEdxPage(pageURI, restTemplate).getBody();
         if (page != null) {
-            collector.addAll(page.results);
+            page.results
+                    .stream()
+                    .filter(cd -> ids.contains(cd.id))
+                    .forEach(collector::add);
             while (page != null && StringUtils.isNotBlank(page.next)) {
                 page = getEdxPage(page.next, restTemplate).getBody();
                 if (page != null) {
@@ -355,16 +327,33 @@ final class OpenEdxCourseAccess extends AbstractCourseAccess {
     private CourseData getOneCourses(
             final String pageURI,
             final OAuth2RestTemplate restTemplate,
-            final String id) {
+            final Set<String> ids) {
 
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        final ResponseEntity<CourseData> exchange = restTemplate.exchange(
-                pageURI + "/" + id,
-                HttpMethod.GET,
-                new HttpEntity<>(httpHeaders),
-                CourseData.class);
+        System.out.println("********************");
 
-        return exchange.getBody();
+        // NOTE: try first to get the course data by id. This seems to be possible
+        // when the SEB restriction is not set. Once the SEB restriction is set,
+        // this gives a 403 response.
+        // We haven't found another way to get course data by id in this case so far
+        // Workaround is to search the course by paging (slow)
+        try {
+            final HttpHeaders httpHeaders = new HttpHeaders();
+            final String uri = pageURI + ids.iterator().next();
+            final ResponseEntity<CourseData> exchange = restTemplate.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    new HttpEntity<>(httpHeaders),
+                    CourseData.class);
+
+            return exchange.getBody();
+        } catch (final Exception e) {
+            // try with paging
+            final List<CourseData> collectCourses = collectCourses(pageURI, restTemplate, ids);
+            if (collectCourses.isEmpty()) {
+                return null;
+            }
+            return collectCourses.get(0);
+        }
     }
 
     private List<CourseData> collectAllCourses(final String pageURI, final OAuth2RestTemplate restTemplate) {
@@ -403,7 +392,7 @@ final class OpenEdxCourseAccess extends AbstractCourseAccess {
                         Blocks.class);
     }
 
-    private static QuizData quizDataOf(
+    private QuizData quizDataOf(
             final LmsSetup lmsSetup,
             final CourseData courseData,
             final String uriPrefix) {
@@ -411,7 +400,7 @@ final class OpenEdxCourseAccess extends AbstractCourseAccess {
         final String startURI = uriPrefix + courseData.id;
         final Map<String, String> additionalAttrs = new HashMap<>();
         additionalAttrs.put("blocks_url", courseData.blocks_url);
-        return new QuizData(
+        final QuizData quizData = new QuizData(
                 courseData.id,
                 lmsSetup.getInstitutionId(),
                 lmsSetup.id,
@@ -421,6 +410,10 @@ final class OpenEdxCourseAccess extends AbstractCourseAccess {
                 courseData.start,
                 courseData.end,
                 startURI);
+
+        super.putToCache(quizData);
+
+        return quizData;
     }
 
     /** Maps a OpenEdX course API course page */
@@ -536,19 +529,6 @@ final class OpenEdxCourseAccess extends AbstractCourseAccess {
         }
 
         return Result.of(this.restTemplate);
-    }
-
-    @Override
-    protected FetchStatus getFetchStatus() {
-        if (this.allQuizzesRequest.getState() != State.CLOSED) {
-            return FetchStatus.FETCH_ERROR;
-        }
-        return FetchStatus.ALL_FETCHED;
-    }
-
-    @Override
-    protected AllQuizzesSupplier allQuizzesSupplier() {
-        return this.allQuizzesSupplier;
     }
 
 }

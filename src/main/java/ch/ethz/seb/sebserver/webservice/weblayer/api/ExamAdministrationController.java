@@ -279,7 +279,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
 
         checkReadPrivilege(institutionId);
-        return this.examDAO.byPK(modelId)
+        return this.examDAO
+                .getWithQuizDataFromCache(modelId)
                 .flatMap(this.examAdminService::isRestricted)
                 .getOrThrow();
     }
@@ -407,9 +408,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             @PathVariable final Long modelId) {
 
         checkReadPrivilege(institutionId);
-        return this.entityDAO.byPK(modelId)
-                .flatMap(this.authorization::checkRead)
-                .flatMap(exam -> this.examAdminService.getProctoringServiceSettings(exam.id))
+        return this.examAdminService.getProctoringServiceSettings(modelId)
                 .getOrThrow();
     }
 

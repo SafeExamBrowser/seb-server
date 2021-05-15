@@ -98,17 +98,20 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     @Override
     public Result<LmsAPITemplate> getLmsAPITemplate(final String lmsSetupId) {
         return Result.tryCatch(() -> {
-            LmsAPITemplate lmsAPITemplate = getFromCache(lmsSetupId);
-            if (lmsAPITemplate == null) {
-                lmsAPITemplate = createLmsSetupTemplate(lmsSetupId);
-                if (lmsAPITemplate != null) {
-                    this.cache.put(new CacheKey(lmsSetupId, System.currentTimeMillis()), lmsAPITemplate);
+            synchronized (this) {
+                LmsAPITemplate lmsAPITemplate = getFromCache(lmsSetupId);
+                if (lmsAPITemplate == null) {
+                    lmsAPITemplate = createLmsSetupTemplate(lmsSetupId);
+                    if (lmsAPITemplate != null) {
+                        this.cache.put(new CacheKey(lmsSetupId, System.currentTimeMillis()), lmsAPITemplate);
+                    }
                 }
+                if (lmsAPITemplate == null) {
+                    throw new ResourceNotFoundException(EntityType.LMS_SETUP, lmsSetupId);
+                }
+
+                return lmsAPITemplate;
             }
-            if (lmsAPITemplate == null) {
-                throw new ResourceNotFoundException(EntityType.LMS_SETUP, lmsSetupId);
-            }
-            return lmsAPITemplate;
         });
     }
 

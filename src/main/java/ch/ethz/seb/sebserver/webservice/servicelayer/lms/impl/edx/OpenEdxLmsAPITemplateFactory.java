@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ public class OpenEdxLmsAPITemplateFactory implements LmsAPITemplateFactory {
     private final WebserviceInfo webserviceInfo;
     private final AsyncService asyncService;
     private final Environment environment;
+    private final CacheManager cacheManager;
     private final ClientCredentialService clientCredentialService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final String[] alternativeTokenRequestPaths;
@@ -46,6 +48,7 @@ public class OpenEdxLmsAPITemplateFactory implements LmsAPITemplateFactory {
             final WebserviceInfo webserviceInfo,
             final AsyncService asyncService,
             final Environment environment,
+            final CacheManager cacheManager,
             final ClientCredentialService clientCredentialService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             @Value("${sebserver.webservice.lms.openedx.api.token.request.paths}") final String alternativeTokenRequestPaths,
@@ -55,6 +58,7 @@ public class OpenEdxLmsAPITemplateFactory implements LmsAPITemplateFactory {
         this.webserviceInfo = webserviceInfo;
         this.asyncService = asyncService;
         this.environment = environment;
+        this.cacheManager = cacheManager;
         this.clientCredentialService = clientCredentialService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.alternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
@@ -84,7 +88,8 @@ public class OpenEdxLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     openEdxRestTemplateFactory,
                     this.webserviceInfo,
                     this.asyncService,
-                    this.environment);
+                    this.environment,
+                    this.cacheManager);
 
             final OpenEdxCourseRestriction openEdxCourseRestriction = new OpenEdxCourseRestriction(
                     this.jsonMapper,

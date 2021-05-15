@@ -91,12 +91,10 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     public Result<SEBRestriction> getSEBRestrictionFromExam(final Exam exam) {
         return Result.tryCatch(() -> {
             // load the config keys from restriction and merge with new generated config keys
-            final long currentTimeMillis = System.currentTimeMillis();
             final Set<String> configKeys = new HashSet<>();
             final Collection<String> generatedKeys = this.examConfigService
                     .generateConfigKeys(exam.institutionId, exam.id)
                     .getOrThrow();
-            System.out.println("******* " + (System.currentTimeMillis() - currentTimeMillis));
 
             configKeys.addAll(generatedKeys);
             if (generatedKeys != null && !generatedKeys.isEmpty()) {

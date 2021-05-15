@@ -123,7 +123,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         return Result.tryCatch(() -> {
             final Collection<APIMessage> result = new ArrayList<>();
 
-            final Exam exam = this.examDAO.byPK(examId)
+            final Exam exam = this.examDAO
+                    .getWithQuizDataFromCache(examId)
                     .getOrThrow();
 
             // check lms connection

@@ -59,6 +59,7 @@ public final class Constants {
     public static final Character DOUBLE_QUOTE = '"';
     public static final Character COMMA = ',';
     public static final Character PIPE = '|';
+    public static final Character UNDERLINE = '_';
     public static final Character AMPERSAND = '&';
     public static final Character EQUALITY_SIGN = '=';
     public static final Character LIST_SEPARATOR_CHAR = COMMA;

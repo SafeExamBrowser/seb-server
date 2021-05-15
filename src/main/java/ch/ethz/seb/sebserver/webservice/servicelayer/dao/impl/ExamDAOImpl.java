@@ -121,6 +121,13 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Exam> getWithQuizDataFromCache(final Long id) {
+        return recordById(id)
+                .flatMap(this::toDomainModelFromCache);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<Exam>> all(final Long institutionId, final Boolean active) {
         return Result.tryCatch(() -> (active != null)
                 ? this.examRecordMapper.selectByExample()
@@ -759,6 +766,17 @@ public class ExamDAOImpl implements ExamDAO {
                 new EntityKey(exam.getId(), EntityType.EXAM),
                 exam.getName(),
                 exam.getDescription());
+    }
+
+    private Result<Exam> toDomainModelFromCache(final ExamRecord record) {
+
+        return this.lmsAPIService
+                .getLmsAPITemplate(record.getLmsSetupId())
+                .flatMap(template -> this.toDomainModel(
+                        record,
+                        template.getQuizFromCache(record.getExternalId())
+                                .getOrThrow(),
+                        null));
     }
 
     private Result<Exam> toDomainModel(final ExamRecord record) {

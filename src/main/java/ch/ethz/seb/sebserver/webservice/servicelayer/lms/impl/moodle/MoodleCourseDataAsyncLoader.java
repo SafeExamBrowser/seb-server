@@ -65,7 +65,7 @@ public class MoodleCourseDataAsyncLoader {
     private final int maxSize;
     private final int pageSize;
 
-    private final Set<CourseDataShort> cachedCourseData = new HashSet<>();
+    private final Map<String, CourseDataShort> cachedCourseData = new HashMap<>();
     private final Set<String> newIds = new HashSet<>();
 
     private String lmsSetup = Constants.EMPTY_NOTE;
@@ -122,8 +122,8 @@ public class MoodleCourseDataAsyncLoader {
         this.fromCutTime = fromCutTime;
     }
 
-    public Set<CourseDataShort> getCachedCourseData() {
-        return new HashSet<>(this.cachedCourseData);
+    public Map<String, CourseDataShort> getCachedCourseData() {
+        return new HashMap<>(this.cachedCourseData);
     }
 
     public long getLastRunTime() {
@@ -138,7 +138,7 @@ public class MoodleCourseDataAsyncLoader {
         return this.lastLoadTime > 3 * Constants.SECOND_IN_MILLIS;
     }
 
-    public Set<CourseDataShort> loadSync(final MoodleAPIRestTemplate restTemplate) {
+    public Map<String, CourseDataShort> loadSync(final MoodleAPIRestTemplate restTemplate) {
         if (this.running) {
             throw new IllegalStateException("Is already running asynchronously");
         }
@@ -168,14 +168,20 @@ public class MoodleCourseDataAsyncLoader {
 
     }
 
+    public void clearCache() {
+        if (!isRunning()) {
+            this.cachedCourseData.clear();
+            this.newIds.clear();
+        }
+    }
+
     private Runnable loadAndCache(final MoodleAPIRestTemplate restTemplate) {
         return () -> {
-            //this.cachedCourseData.clear();
             this.newIds.clear();
             final long startTime = Utils.getMillisecondsNow();
 
             loadAllQuizzes(restTemplate);
-            syncCache();
+            this.syncCache();
 
             this.lastLoadTime = Utils.getMillisecondsNow() - startTime;
             this.running = false;
@@ -263,7 +269,7 @@ public class MoodleCourseDataAsyncLoader {
                                         this.lmsSetup,
                                         c);
                             } else {
-                                this.cachedCourseData.add(c);
+                                this.cachedCourseData.put(c.id, c);
                                 this.newIds.add(c.id);
                             }
                         });
@@ -461,13 +467,15 @@ public class MoodleCourseDataAsyncLoader {
 
     private void syncCache() {
         if (!this.cachedCourseData.isEmpty()) {
-            final Set<CourseDataShort> newData = this.cachedCourseData.stream()
-                    .filter(data -> this.newIds.contains(data.id))
+
+            final Set<String> oldData = this.cachedCourseData
+                    .keySet()
+                    .stream()
+                    .filter(id -> !this.newIds.contains(id))
                     .collect(Collectors.toSet());
 
             synchronized (this.cachedCourseData) {
-                this.cachedCourseData.clear();
-                this.cachedCourseData.addAll(newData);
+                oldData.stream().forEach(this.cachedCourseData::remove);
             }
         }
         this.newIds.clear();
