@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -71,6 +72,23 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                         t -> t.lmsType(),
                         Function.identity()));
         this.templateFactories = new EnumMap<>(factories);
+    }
+
+    /** Listen to LmsSetupChangeEvent to release an affected LmsAPITemplate from cache
+     *
+     * @param event the event holding the changed LmsSetup */
+    @EventListener
+    public void notifyLmsSetupChange(final LmsSetupChangeEvent event) {
+        final LmsSetup lmsSetup = event.getLmsSetup();
+        if (lmsSetup == null) {
+            return;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("LmsSetup changed. Update cache by removing eventually used references");
+        }
+
+        this.cache.remove(new CacheKey(lmsSetup.getModelId(), 0));
     }
 
     @Override
