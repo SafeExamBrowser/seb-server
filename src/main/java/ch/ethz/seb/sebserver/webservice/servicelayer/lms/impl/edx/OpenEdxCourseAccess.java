@@ -141,52 +141,56 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
     }
 
     @Override
-    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
-        return Result.tryCatch(() -> {
-            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-            final HttpHeaders httpHeaders = new HttpHeaders();
-            final OAuth2RestTemplate template = getRestTemplate()
-                    .getOrThrow();
+    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId) {
+        return () -> {
+            try {
+                final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+                final HttpHeaders httpHeaders = new HttpHeaders();
+                final OAuth2RestTemplate template = getRestTemplate()
+                        .getOrThrow();
 
-            final String externalStartURI = this.webserviceInfo
-                    .getLmsExternalAddressAlias(lmsSetup.lmsApiUrl);
+                final String externalStartURI = this.webserviceInfo
+                        .getLmsExternalAddressAlias(lmsSetup.lmsApiUrl);
 
-            final String uri = (externalStartURI != null)
-                    ? externalStartURI + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeSessionId
-                    : lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeSessionId;
+                final String uri = (externalStartURI != null)
+                        ? externalStartURI + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeSessionId
+                        : lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeSessionId;
 
-            final String responseJSON = template.exchange(
-                    uri,
-                    HttpMethod.GET,
-                    new HttpEntity<>(httpHeaders),
-                    String.class)
-                    .getBody();
+                final String responseJSON = template.exchange(
+                        uri,
+                        HttpMethod.GET,
+                        new HttpEntity<>(httpHeaders),
+                        String.class)
+                        .getBody();
 
-            final EdxUserDetails[] userDetails = this.jsonMapper.<EdxUserDetails[]> readValue(
-                    responseJSON,
-                    new TypeReference<EdxUserDetails[]>() {
-                    });
+                final EdxUserDetails[] userDetails = this.jsonMapper.<EdxUserDetails[]> readValue(
+                        responseJSON,
+                        new TypeReference<EdxUserDetails[]>() {
+                        });
 
-            if (userDetails == null || userDetails.length <= 0) {
-                throw new RuntimeException("No user details on Open edX API request");
+                if (userDetails == null || userDetails.length <= 0) {
+                    throw new RuntimeException("No user details on Open edX API request");
+                }
+
+                final Map<String, String> additionalAttributes = new HashMap<>();
+                additionalAttributes.put("bio", userDetails[0].bio);
+                additionalAttributes.put("country", userDetails[0].country);
+                additionalAttributes.put("date_joined", userDetails[0].date_joined);
+                additionalAttributes.put("gender", userDetails[0].gender);
+                additionalAttributes.put("is_active", String.valueOf(userDetails[0].is_active));
+                additionalAttributes.put("mailing_address", userDetails[0].mailing_address);
+                additionalAttributes.put("secondary_email", userDetails[0].secondary_email);
+
+                return new ExamineeAccountDetails(
+                        userDetails[0].username,
+                        userDetails[0].name,
+                        userDetails[0].username,
+                        userDetails[0].email,
+                        additionalAttributes);
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
             }
-
-            final Map<String, String> additionalAttributes = new HashMap<>();
-            additionalAttributes.put("bio", userDetails[0].bio);
-            additionalAttributes.put("country", userDetails[0].country);
-            additionalAttributes.put("date_joined", userDetails[0].date_joined);
-            additionalAttributes.put("gender", userDetails[0].gender);
-            additionalAttributes.put("is_active", String.valueOf(userDetails[0].is_active));
-            additionalAttributes.put("mailing_address", userDetails[0].mailing_address);
-            additionalAttributes.put("secondary_email", userDetails[0].secondary_email);
-
-            return new ExamineeAccountDetails(
-                    userDetails[0].username,
-                    userDetails[0].name,
-                    userDetails[0].username,
-                    userDetails[0].email,
-                    additionalAttributes);
-        });
+        };
     }
 
     @Override
@@ -275,7 +279,7 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
                     });
 
             if (!leftIds.isEmpty()) {
-                result.addAll(super.protectedQuizzesRequest(leftIds));
+                result.addAll(super.protectedQuizzesRequest(leftIds).getOrThrow());
             }
 
             return result;

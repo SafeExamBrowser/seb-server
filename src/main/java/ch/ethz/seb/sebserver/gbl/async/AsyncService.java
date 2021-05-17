@@ -15,19 +15,19 @@ import org.springframework.stereotype.Service;
 
 @Lazy
 @Service
-/** Implements a asynchronous service to manly support  CircuitBreaker and MemoizingCircuitBreaker functionality. */
+/** Implements a asynchronous service to manly support CircuitBreaker and MemoizingCircuitBreaker functionality. */
 public class AsyncService {
 
     private final AsyncRunner asyncRunner;
 
-    protected AsyncService(final AsyncRunner asyncRunner) {
+    public AsyncService(final AsyncRunner asyncRunner) {
         this.asyncRunner = asyncRunner;
     }
 
     /** Create a CircuitBreaker of specified type with the default parameter defined in the CircuitBreaker class
      *
      * @param <T> the type of the CircuitBreaker
-     * @return  a CircuitBreaker of specified type with the default parameter defined in the CircuitBreaker class */
+     * @return a CircuitBreaker of specified type with the default parameter defined in the CircuitBreaker class */
     public <T> CircuitBreaker<T> createCircuitBreaker() {
         return new CircuitBreaker<>(this.asyncRunner);
     }
@@ -38,7 +38,7 @@ public class AsyncService {
      * @param maxBlockingTime maximal time since call CircuitBreaker waits for a response before going onto open state.
      * @param timeToRecover the time the CircuitBreaker takes to recover form open state.
      * @param <T> the type of the CircuitBreaker
-     * @return  a CircuitBreaker of specified type */
+     * @return a CircuitBreaker of specified type */
     public <T> CircuitBreaker<T> createCircuitBreaker(
             final int maxFailingAttempts,
             final long maxBlockingTime,
@@ -52,7 +52,7 @@ public class AsyncService {
     }
 
     /** Create a MemoizingCircuitBreaker of specified type that memoize a successful result and return the last
-     *  successful result on fail as long as maxMemoizingTime is not exceeded.
+     * successful result on fail as long as maxMemoizingTime is not exceeded.
      *
      * @param blockingSupplier the blocking result supplier that the MemoizingCircuitBreaker must call
      * @param maxFailingAttempts maximal number of attempts the CircuitBreaker allows before going onto open state.
@@ -61,7 +61,7 @@ public class AsyncService {
      * @param momoized whether the memoizing functionality is on or off
      * @param maxMemoizingTime the maximal time memorized data is valid
      * @param <T> the type of the CircuitBreaker
-     * @return  a CircuitBreaker of specified type */
+     * @return a CircuitBreaker of specified type */
     public <T> MemoizingCircuitBreaker<T> createMemoizingCircuitBreaker(
             final Supplier<T> blockingSupplier,
             final int maxFailingAttempts,

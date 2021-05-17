@@ -129,59 +129,63 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
     }
 
     @Override
-    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
-        return Result.tryCatch(() -> {
-            final MoodleAPIRestTemplate template = getRestTemplate()
-                    .getOrThrow();
+    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId) {
+        return () -> {
+            try {
+                final MoodleAPIRestTemplate template = getRestTemplate()
+                        .getOrThrow();
 
-            final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
-            queryAttributes.add("field", "id");
-            queryAttributes.add("values[0]", examineeSessionId);
+                final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
+                queryAttributes.add("field", "id");
+                queryAttributes.add("values[0]", examineeSessionId);
 
-            final String userDetailsJSON = template.callMoodleAPIFunction(
-                    MOODLE_USER_PROFILE_API_FUNCTION_NAME,
-                    queryAttributes);
-
-            if (checkAccessDeniedError(userDetailsJSON)) {
-                final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-                log.error("Get access denied error from Moodle: {} for API call: {}, response: {}",
-                        lmsSetup,
+                final String userDetailsJSON = template.callMoodleAPIFunction(
                         MOODLE_USER_PROFILE_API_FUNCTION_NAME,
-                        Utils.truncateText(userDetailsJSON, 2000));
-                throw new RuntimeException("No user details on Moodle API request (access-denied)");
+                        queryAttributes);
+
+                if (checkAccessDeniedError(userDetailsJSON)) {
+                    final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+                    log.error("Get access denied error from Moodle: {} for API call: {}, response: {}",
+                            lmsSetup,
+                            MOODLE_USER_PROFILE_API_FUNCTION_NAME,
+                            Utils.truncateText(userDetailsJSON, 2000));
+                    throw new RuntimeException("No user details on Moodle API request (access-denied)");
+                }
+
+                final MoodleUserDetails[] userDetails = this.jsonMapper.<MoodleUserDetails[]> readValue(
+                        userDetailsJSON,
+                        new TypeReference<MoodleUserDetails[]>() {
+                        });
+
+                if (userDetails == null || userDetails.length <= 0) {
+                    throw new RuntimeException("No user details on Moodle API request");
+                }
+
+                final Map<String, String> additionalAttributes = new HashMap<>();
+                additionalAttributes.put("firstname", userDetails[0].firstname);
+                additionalAttributes.put("lastname", userDetails[0].lastname);
+                additionalAttributes.put("department", userDetails[0].department);
+                additionalAttributes.put("firstaccess", String.valueOf(userDetails[0].firstaccess));
+                additionalAttributes.put("lastaccess", String.valueOf(userDetails[0].lastaccess));
+                additionalAttributes.put("auth", userDetails[0].auth);
+                additionalAttributes.put("suspended", String.valueOf(userDetails[0].suspended));
+                additionalAttributes.put("confirmed", String.valueOf(userDetails[0].confirmed));
+                additionalAttributes.put("lang", userDetails[0].lang);
+                additionalAttributes.put("theme", userDetails[0].theme);
+                additionalAttributes.put("timezone", userDetails[0].timezone);
+                additionalAttributes.put("description", userDetails[0].description);
+                additionalAttributes.put("mailformat", String.valueOf(userDetails[0].mailformat));
+                additionalAttributes.put("descriptionformat", String.valueOf(userDetails[0].descriptionformat));
+                return new ExamineeAccountDetails(
+                        userDetails[0].id,
+                        userDetails[0].fullname,
+                        userDetails[0].username,
+                        userDetails[0].email,
+                        additionalAttributes);
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
             }
-
-            final MoodleUserDetails[] userDetails = this.jsonMapper.<MoodleUserDetails[]> readValue(
-                    userDetailsJSON,
-                    new TypeReference<MoodleUserDetails[]>() {
-                    });
-
-            if (userDetails == null || userDetails.length <= 0) {
-                throw new RuntimeException("No user details on Moodle API request");
-            }
-
-            final Map<String, String> additionalAttributes = new HashMap<>();
-            additionalAttributes.put("firstname", userDetails[0].firstname);
-            additionalAttributes.put("lastname", userDetails[0].lastname);
-            additionalAttributes.put("department", userDetails[0].department);
-            additionalAttributes.put("firstaccess", String.valueOf(userDetails[0].firstaccess));
-            additionalAttributes.put("lastaccess", String.valueOf(userDetails[0].lastaccess));
-            additionalAttributes.put("auth", userDetails[0].auth);
-            additionalAttributes.put("suspended", String.valueOf(userDetails[0].suspended));
-            additionalAttributes.put("confirmed", String.valueOf(userDetails[0].confirmed));
-            additionalAttributes.put("lang", userDetails[0].lang);
-            additionalAttributes.put("theme", userDetails[0].theme);
-            additionalAttributes.put("timezone", userDetails[0].timezone);
-            additionalAttributes.put("description", userDetails[0].description);
-            additionalAttributes.put("mailformat", String.valueOf(userDetails[0].mailformat));
-            additionalAttributes.put("descriptionformat", String.valueOf(userDetails[0].descriptionformat));
-            return new ExamineeAccountDetails(
-                    userDetails[0].id,
-                    userDetails[0].fullname,
-                    userDetails[0].username,
-                    userDetails[0].email,
-                    additionalAttributes);
-        });
+        };
     }
 
     LmsSetupTestResult initAPIAccess() {

@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -134,10 +133,8 @@ public abstract class AbstractCourseAccess {
         return this.allQuizzesRequest.protectedRun(allQuizzesSupplier(filterMap));
     }
 
-    public Collection<QuizData> protectedQuizzesRequest(final Set<String> ids) {
-        return this.quizzesRequest.protectedRun(quizzesSupplier(ids))
-                .onError(error -> log.error("Failed to get QuizData for ids: ", error))
-                .getOrElse(() -> Collections.emptyList());
+    public Result<Collection<QuizData>> protectedQuizzesRequest(final Set<String> ids) {
+        return this.quizzesRequest.protectedRun(quizzesSupplier(ids));
     }
 
     public Result<QuizData> protectedQuizRequest(final String id) {
@@ -145,7 +142,8 @@ public abstract class AbstractCourseAccess {
     }
 
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
-        return this.accountDetailRequest.protectedRun(accountDetailsSupplier(examineeSessionId));
+        final Supplier<ExamineeAccountDetails> accountDetailsSupplier = accountDetailsSupplier(examineeSessionId);
+        return this.accountDetailRequest.protectedRun(accountDetailsSupplier);
     }
 
     /** Default implementation that uses getExamineeAccountDetails to geht the examinee name
@@ -163,19 +161,7 @@ public abstract class AbstractCourseAccess {
         return this.chaptersRequest.protectedRun(getCourseChaptersSupplier(courseId));
     }
 
-    /** NOTE: this returns a ExamineeAccountDetails with given examineeSessionId for default.
-     * Override this if requesting account details is supported for specified LMS access.
-     *
-     * @param examineeSessionId
-     * @return this returns a ExamineeAccountDetails with given examineeSessionId for default */
-    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId) {
-        return () -> new ExamineeAccountDetails(
-                examineeSessionId,
-                examineeSessionId,
-                examineeSessionId,
-                examineeSessionId,
-                Collections.emptyMap());
-    }
+    protected abstract Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId);
 
     /** Provides a supplier to supply request to use within the circuit breaker */
     protected abstract Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap);

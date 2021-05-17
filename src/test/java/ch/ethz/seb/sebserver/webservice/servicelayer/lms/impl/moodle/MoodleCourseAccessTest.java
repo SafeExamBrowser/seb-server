@@ -22,6 +22,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.async.AsyncRunner;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -74,7 +75,7 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 moodleRestTemplateFactory,
                 null,
-                mock(AsyncService.class),
+                new AsyncService(new AsyncRunner()),
                 this.env);
 
         final String examId = "123";
