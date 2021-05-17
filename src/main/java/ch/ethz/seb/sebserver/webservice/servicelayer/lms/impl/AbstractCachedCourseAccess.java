@@ -21,8 +21,10 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
-/** This implements an overal short time cache for QuizData object for all implementing
- * classes. It uses EH-Cache with a short time to live */
+/** This implements an overall short time cache for QuizData objects for all implementing
+ * instances. It uses EH-Cache with a short time to live about 1 - 2 minutes.
+ * </p>
+ * The QuizData are stored with a key composed from the id of the key **/
 public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
 
     public static final String CACHE_NAME_QUIZ_DATA = "QUIZ_DATA_CACHE";
