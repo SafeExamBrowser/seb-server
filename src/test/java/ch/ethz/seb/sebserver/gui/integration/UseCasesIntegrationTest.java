@@ -768,8 +768,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final QuizData quizData = quizzes.content.get(0);
         assertNotNull(quizData);
         assertEquals("Demo Quiz 1 (MOCKUP)", quizData.name);
-        assertEquals(quizData.institutionId, Long.valueOf(4));
-        assertEquals(quizData.lmsSetupId, Long.valueOf(1));
+        assertEquals(Long.valueOf(1), quizData.lmsSetupId);
+        assertEquals(Long.valueOf(4), quizData.institutionId);
+
         // import quiz as exam
         final Result<Exam> newExamResult = restService
                 .getBuilder(ImportAsExam.class)
@@ -2555,7 +2556,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow();
 
         assertNotNull(testResult);
-        System.out.print("********************** testResult: " + testResult);
+//        System.out.print("********************** testResult: " + testResult);
 //        assertFalse(testResult.isOk());
 //        assertEquals("[Error [errorType=TOKEN_REQUEST, message=Failed to gain access token from OpenEdX Rest API:\n" +
 //                " tried token endpoints: [/oauth2/access_token]]]", String.valueOf(testResult.errors));
