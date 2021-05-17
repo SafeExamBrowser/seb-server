@@ -18,8 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.NotNull;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +69,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     }
 
     @Override
-    public boolean checkConsistency(@NotNull final Long lmsSetupId, final Exam exam) {
+    public boolean checkSebRestrictionSet(final Exam exam) {
         final LmsSetup lmsSetup = this.lmsAPIService
                 .getLmsSetup(exam.lmsSetupId)
                 .getOr(null);

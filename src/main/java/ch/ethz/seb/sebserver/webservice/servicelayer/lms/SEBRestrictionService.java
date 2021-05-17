@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
-import javax.validation.constraints.NotNull;
-
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -55,6 +53,14 @@ public interface SEBRestrictionService {
      * @return Result refer to the Exam instance or to an error if happened */
     Result<Exam> releaseSEBClientRestriction(Exam exam);
 
-    boolean checkConsistency(@NotNull Long lmsSetupId, Exam exam);
+    /** This checks whether the SEB Restriction is switched on for the given Exam.
+     * The check only applies if the SEB Restriction feature is switched on
+     * for the particular LMS type of the Exam. otherwise it returns true to indicate
+     * everything is fine with SEB Restriction
+     *
+     * @param exam the Exam instance to chech
+     * @return false if the SEB Restriction feature is switched on for the given Exam but the restriction is not applied
+     *         to the LMS */
+    boolean checkSebRestrictionSet(Exam exam);
 
 }

@@ -148,7 +148,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                             return null;
                         });
 
-                if (!this.sebRestrictionService.checkConsistency(exam.lmsSetupId, exam)) {
+                if (!this.sebRestrictionService.checkSebRestrictionSet(exam)) {
                     result.add(
                             ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION
                                     .of(exam.getModelId()));
