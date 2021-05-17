@@ -121,13 +121,6 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Exam> getWithQuizDataFromCache(final Long id) {
-        return recordById(id)
-                .flatMap(this::toDomainModelFromCache);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Result<Collection<Exam>> all(final Long institutionId, final Boolean active) {
         return Result.tryCatch(() -> (active != null)
                 ? this.examRecordMapper.selectByExample()
@@ -169,7 +162,6 @@ public class ExamDAOImpl implements ExamDAO {
 
         return Result.tryCatch(() -> {
 
-            final boolean cached = filterMap.getBoolean(Exam.FILTER_CACHED_QUIZZES);
             final String name = filterMap.getQuizName();
             final DateTime from = filterMap.getExamFromTime();
             final Predicate<Exam> quizDataFilter = exam -> {
@@ -236,7 +228,7 @@ public class ExamDAOImpl implements ExamDAO {
                     .build()
                     .execute();
 
-            return this.toDomainModel(records, cached)
+            return this.toDomainModel(records)
                     .getOrThrow()
                     .stream()
                     .filter(quizDataFilter.and(predicate))
@@ -768,17 +760,6 @@ public class ExamDAOImpl implements ExamDAO {
                 exam.getDescription());
     }
 
-    private Result<Exam> toDomainModelFromCache(final ExamRecord record) {
-
-        return this.lmsAPIService
-                .getLmsAPITemplate(record.getLmsSetupId())
-                .flatMap(template -> this.toDomainModel(
-                        record,
-                        template.getQuizFromCache(record.getExternalId())
-                                .getOrThrow(),
-                        null));
-    }
-
     private Result<Exam> toDomainModel(final ExamRecord record) {
         return toDomainModel(
                 record.getLmsSetupId(),
@@ -787,12 +768,6 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     private Result<Collection<Exam>> toDomainModel(final Collection<ExamRecord> records) {
-        return toDomainModel(records, false);
-    }
-
-    private Result<Collection<Exam>> toDomainModel(
-            final Collection<ExamRecord> records,
-            final boolean cached) {
 
         return Result.tryCatch(() -> {
 
@@ -807,8 +782,7 @@ public class ExamDAOImpl implements ExamDAO {
                     .stream()
                     .flatMap(entry -> toDomainModel(
                             entry.getKey(),
-                            entry.getValue(),
-                            cached)
+                            entry.getValue())
                                     .onError(error -> log.error(
                                             "Failed to get quizzes from LMS Setup: {}",
                                             entry.getKey(), error))
@@ -822,14 +796,6 @@ public class ExamDAOImpl implements ExamDAO {
             final Long lmsSetupId,
             final Collection<ExamRecord> records) {
 
-        return toDomainModel(lmsSetupId, records, false);
-    }
-
-    private Result<Collection<Exam>> toDomainModel(
-            final Long lmsSetupId,
-            final Collection<ExamRecord> records,
-            final boolean cached) {
-
         return Result.tryCatch(() -> {
 
             // map records
@@ -840,7 +806,7 @@ public class ExamDAOImpl implements ExamDAO {
             // get and map quizzes
             final Map<String, QuizData> quizzes = this.lmsAPIService
                     .getLmsAPITemplate(lmsSetupId)
-                    .map(template -> getQuizzesFromLMS(template, recordMapping.keySet(), cached))
+                    .map(template -> getQuizzesFromLMS(template, recordMapping.keySet()))
                     .onError(error -> log.error("Failed to get quizzes for exams: ", error))
                     .getOr(Collections.emptyList())
                     .stream()
@@ -894,13 +860,10 @@ public class ExamDAOImpl implements ExamDAO {
 
     private Collection<Result<QuizData>> getQuizzesFromLMS(
             final LmsAPITemplate template,
-            final Set<String> ids,
-            final boolean cached) {
+            final Set<String> ids) {
 
         try {
-            return (cached)
-                    ? template.getQuizzesFromCache(ids)
-                    : template.getQuizzes(ids);
+            return template.getQuizzes(ids);
         } catch (final Exception e) {
             log.error("Unexpected error while using LmsAPITemplate to get quizzes: ", e);
             return Collections.emptyList();

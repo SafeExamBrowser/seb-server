@@ -9,9 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -165,6 +163,15 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
+    public Result<QuizData> getQuiz(final String id) {
+        return Result.of(this.mockups
+                .stream()
+                .filter(q -> id.equals(q.id))
+                .findFirst()
+                .get());
+    }
+
+    @Override
     public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
         if (!authenticate()) {
             throw new IllegalArgumentException("Wrong clientId or secret");
@@ -176,16 +183,6 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
                 .filter(mock -> ids.contains(mock.id))
                 .map(Result::of)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
-        return getQuizzes(ids);
-    }
-
-    @Override
-    public Result<QuizData> getQuizFromCache(final String id) {
-        return getQuizzes(new HashSet<>(Arrays.asList(id))).iterator().next();
     }
 
     @Override

@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -133,28 +132,6 @@ public abstract class AbstractCourseAccess {
                 examineeSessionId,
                 examineeSessionId,
                 Collections.emptyMap());
-    }
-
-    /** This abstraction has no cache implementation and therefore this returns a Result
-     * with an "No cache supported error.
-     * </p>
-     * To implement and use caching, this must be overridden and implemented
-     *
-     * @param id The identifier of the QuizData to get from cache
-     * @return Result with an "No cache supported error */
-    public Result<QuizData> getQuizFromCache(final String id) {
-        return Result.ofRuntimeError("No cache supported");
-    }
-
-    /** This abstraction has no cache implementation and therefore this returns a Result
-     * with an "No cache supported error.
-     * </p>
-     * To implement and use caching, this must be overridden and implemented
-     *
-     * @param ids Collection of quiz data identifier to get from the cache
-     * @return Result with an "No cache supported error */
-    public Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
-        return Result.ofRuntimeError("No cache supported");
     }
 
     /** Provides a supplier for the quiz data request to use within the circuit breaker */

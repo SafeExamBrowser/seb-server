@@ -9,8 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +19,6 @@ import org.springframework.core.env.Environment;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 
 /** This implements an overall short time cache for QuizData objects for all implementing
  * instances. It uses EH-Cache with a short time to live about 1 - 2 minutes.
@@ -95,11 +92,6 @@ public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
         }
 
         this.cache.evict(createCacheKey);
-    }
-
-    @Override
-    public Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
-        return Result.of(ids.stream().map(this::getQuizFromCache).collect(Collectors.toList()));
     }
 
     /** Get the LMS setup identifier that is wrapped within the implementing template.

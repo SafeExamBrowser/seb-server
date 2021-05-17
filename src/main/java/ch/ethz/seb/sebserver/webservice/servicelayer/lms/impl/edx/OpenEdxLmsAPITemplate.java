@@ -10,9 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -83,32 +81,20 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
+    public Result<QuizData> getQuiz(final String id) {
+        return Result.tryCatch(() -> {
+            final QuizData quizFromCache = this.openEdxCourseAccess.getQuizFromCache(id);
+            if (quizFromCache != null) {
+                return quizFromCache;
+            }
+
+            return this.openEdxCourseAccess.getQuizFromLMS(id);
+        });
+    }
+
+    @Override
     public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
-        final Map<String, QuizData> mapping = this.openEdxCourseAccess
-                .quizzesSupplier(ids)
-                .get()
-                .stream()
-                .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
-
-        return ids.stream()
-                .map(id -> {
-                    final QuizData data = mapping.get(id);
-                    return (data == null) ? Result.<QuizData> ofRuntimeError("Missing id: " + id) : Result.of(data);
-                })
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public Result<QuizData> getQuizFromCache(final String id) {
-        return this.openEdxCourseAccess
-                .getQuizFromCache(id)
-                .orElse(() -> getQuiz(id));
-    }
-
-    @Override
-    public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
-        return this.openEdxCourseAccess.getQuizzesFromCache(ids)
-                .getOrElse(() -> getQuizzes(ids));
+        return this.openEdxCourseAccess.getQuizzesFromCache(ids);
     }
 
     @Override

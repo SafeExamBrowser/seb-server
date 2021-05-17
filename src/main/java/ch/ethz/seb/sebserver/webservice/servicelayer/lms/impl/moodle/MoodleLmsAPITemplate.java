@@ -10,9 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -95,36 +93,18 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
-        final Map<String, QuizData> mapping = this.moodleCourseAccess
-                .quizzesSupplier(ids)
-                .get()
-                .stream()
-                .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
-
-        return ids.stream()
-                .map(id -> {
-                    final QuizData data = mapping.get(id);
-                    return (data == null) ? Result.<QuizData> ofRuntimeError("Missing id: " + id) : Result.of(data);
-                })
-                .collect(Collectors.toList());
+    public Result<QuizData> getQuiz(final String id) {
+        return this.moodleCourseAccess.getQuizFromCache(id);
     }
 
     @Override
-    public Result<QuizData> getQuizFromCache(final String id) {
-        return this.moodleCourseAccess.getQuizFromCache(id)
-                .orElse(() -> getQuiz(id));
+    public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
+        return this.moodleCourseAccess.getQuizzesFromCache(ids);
     }
 
     @Override
     public void clearCache() {
         this.moodleCourseAccess.clearCache();
-    }
-
-    @Override
-    public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
-        return this.moodleCourseAccess.getQuizzesFromCache(ids)
-                .getOrElse(() -> getQuizzes(ids));
     }
 
     @Override

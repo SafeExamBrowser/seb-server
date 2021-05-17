@@ -124,7 +124,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final Collection<APIMessage> result = new ArrayList<>();
 
             final Exam exam = this.examDAO
-                    .getWithQuizDataFromCache(examId)
+                    .byPK(examId)
                     .getOrThrow();
 
             // check lms connection

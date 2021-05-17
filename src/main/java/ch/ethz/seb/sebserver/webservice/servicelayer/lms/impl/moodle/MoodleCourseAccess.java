@@ -20,6 +20,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -213,7 +214,6 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
         return LmsSetupTestResult.ofOkay(LmsType.MOODLE);
     }
 
-    @Override
     public Result<QuizData> getQuizFromCache(final String id) {
         return Result.tryCatch(() -> {
 
@@ -245,43 +245,48 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
                 }
             }
 
-            throw new RuntimeException("No quiz found in cache");
+            // get from LMS
+            final Set<String> ids = Stream.of(id).collect(Collectors.toSet());
+            return super.quizzesRequest
+                    .protectedRun(quizzesSupplier(ids))
+                    .getOrThrow()
+                    .get(0);
         });
     }
 
-    @Override
-    public Result<Collection<Result<QuizData>>> getQuizzesFromCache(final Set<String> ids) {
-        return Result.tryCatch(() -> {
-            final List<QuizData> cached = getCached();
-            final List<QuizData> available = (cached != null)
-                    ? cached
-                    : Collections.emptyList();
+    public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
+        final List<QuizData> cached = getCached();
+        final List<QuizData> available = (cached != null)
+                ? cached
+                : Collections.emptyList();
 
-            final Map<String, QuizData> quizMapping = available
+        final Map<String, QuizData> quizMapping = available
+                .stream()
+                .collect(Collectors.toMap(q -> q.id, Function.identity()));
+
+        if (!quizMapping.keySet().containsAll(ids)) {
+
+            final Map<String, QuizData> collect = super.quizzesRequest
+                    .protectedRun(quizzesSupplier(ids))
+                    .onError(error -> log.error("Failed to get quizzes by ids: ", error))
+                    .getOrElse(() -> Collections.emptyList())
                     .stream()
-                    .collect(Collectors.toMap(q -> q.id, Function.identity()));
-
-            if (!quizMapping.keySet().containsAll(ids)) {
-
-                final Map<String, QuizData> collect = quizzesSupplier(ids).get()
-                        .stream()
-                        .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
-                if (collect != null) {
-                    quizMapping.clear();
-                    quizMapping.putAll(collect);
-                }
+                    .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
+            if (collect != null) {
+                quizMapping.clear();
+                quizMapping.putAll(collect);
             }
+        }
 
-            return ids
-                    .stream()
-                    .map(id -> {
-                        final QuizData q = quizMapping.get(id);
-                        return (q == null)
-                                ? Result.<QuizData> ofError(new NoSuchElementException("Quiz with id: " + id))
-                                : Result.of(q);
-                    })
-                    .collect(Collectors.toList());
-        });
+        return ids
+                .stream()
+                .map(id -> {
+                    final QuizData q = quizMapping.get(id);
+                    return (q == null)
+                            ? Result.<QuizData> ofError(new NoSuchElementException("Quiz with id: " + id))
+                            : Result.of(q);
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

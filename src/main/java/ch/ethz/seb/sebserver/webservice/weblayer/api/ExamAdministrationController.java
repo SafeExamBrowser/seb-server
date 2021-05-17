@@ -280,7 +280,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
         checkReadPrivilege(institutionId);
         return this.examDAO
-                .getWithQuizDataFromCache(modelId)
+                .byPK(modelId)
                 .flatMap(this.examAdminService::isRestricted)
                 .getOrThrow();
     }

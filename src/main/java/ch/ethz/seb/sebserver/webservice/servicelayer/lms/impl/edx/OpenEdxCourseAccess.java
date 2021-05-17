@@ -12,9 +12,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -195,29 +198,52 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
                 .getOrThrow();
     }
 
-    @Override
-    public Result<QuizData> getQuizFromCache(final String id) {
-        return Result.tryCatch(() -> {
+    public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
+        final HashSet<String> leftIds = new HashSet<>(ids);
+        final Collection<Result<QuizData>> result = new ArrayList<>();
+        ids.stream()
+                .map(this::getQuizFromCache)
+                .forEach(q -> {
+                    if (q != null) {
+                        leftIds.remove(q.id);
+                        result.add(Result.of(q));
+                    }
+                });
 
-            // first try to get it from short time cache
-            QuizData quizData = super.getFromCache(id);
-            if (quizData != null) {
-                return quizData;
-            }
+        if (!leftIds.isEmpty()) {
+            super.quizzesRequest.protectedRun(this.quizzesSupplier(leftIds))
+                    .onError(error -> log.error("Failed to get quizzes by ids: ", error))
+                    .getOrElse(() -> Collections.emptyList())
+                    .stream()
+                    .forEach(q -> {
+                        leftIds.remove(q.id);
+                        result.add(Result.of(q));
+                    });
+        }
 
-            // Otherwise get one course from LMS and cache
-            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-            final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
-            quizData = quizDataOf(
-                    lmsSetup,
-                    this.getOneCourse(id, this.restTemplate, id),
-                    externalStartURI);
+        if (!leftIds.isEmpty()) {
+            leftIds.forEach(q -> result.add(Result.ofError(new NoSuchElementException())));
+        }
 
-            if (quizData != null) {
-                super.putToCache(quizData);
-            }
-            return quizData;
-        });
+        return result;
+    }
+
+    public QuizData getQuizFromCache(final String id) {
+        return super.getFromCache(id);
+    }
+
+    public QuizData getQuizFromLMS(final String id) {
+        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+        final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
+        final QuizData quizData = quizDataOf(
+                lmsSetup,
+                this.getOneCourse(id, this.restTemplate, id),
+                externalStartURI);
+
+        if (quizData != null) {
+            super.putToCache(quizData);
+        }
+        return quizData;
     }
 
     @Override

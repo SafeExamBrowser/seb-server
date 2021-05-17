@@ -392,7 +392,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
             final String status = config.getStatus();
 
             final Exam exam = this.examDAO
-                    .getWithQuizDataFromCache(record.getExamId())
+                    .byPK(record.getExamId())
                     .getOr(null);
 
             return new ExamConfigurationMap(

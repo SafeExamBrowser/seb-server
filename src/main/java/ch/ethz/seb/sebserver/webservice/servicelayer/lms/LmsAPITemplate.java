@@ -8,15 +8,10 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -27,7 +22,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCourseAccess;
 
 /** Defines an LMS API access template to build SEB Server LMS integration.
@@ -135,41 +129,10 @@ public interface LmsAPITemplate {
 
     /** Get the quiz data with specified identifier.
      *
-     * Default implementation: Uses {@link #getQuizzes(Set<String> ids) } and returns the first matching or an error.
      *
      * @param id the quiz data identifier
      * @return Result refer to the quiz data or to an error when happened */
-    default Result<QuizData> getQuiz(final String id) {
-        if (StringUtils.isBlank(id)) {
-            return Result.ofError(new RuntimeException("missing model id"));
-        }
-
-        return getQuizzes(new HashSet<>(Arrays.asList(id)))
-                .stream()
-                .findFirst()
-                .orElse(Result.ofError(new ResourceNotFoundException(EntityType.EXAM, id)));
-    }
-
-    /** Get all {@link QuizData } for the set of {@link QuizData }-identifiers (ids) from the LMS defined within the
-     * underling LmsSetup, in a collection of Results.
-     *
-     * If there is caching involved this function shall try to get the data from the cache first.
-     *
-     * NOTE: This function depends on the specific LMS implementation and on whether caching the quiz data
-     * makes sense or not. Following strategy is recommended:
-     * Looks first in the cache if the whole set of {@link QuizData } can be get from the cache.
-     * If all quizzes are cached, returns all from cache.
-     * If one or more quiz is not in the cache, requests all quizzes from the API and refreshes the cache
-     *
-     * @param ids the Set of Quiz identifiers to get the {@link QuizData } for
-     * @return Collection of all {@link QuizData } from the given id set */
-    Collection<Result<QuizData>> getQuizzesFromCache(Set<String> ids);
-
-    /** Get a particular quiz data from cache if available. If not, tries to get it from the LMS.
-     *
-     * @param id the quiz identifier, external identifier of the exam.
-     * @return Result refer to the {@link QuizData } or to an error when happended */
-    Result<QuizData> getQuizFromCache(String id);
+    Result<QuizData> getQuiz(final String id);
 
     /** Clears the underling caches if there are some for a particular implementation. */
     void clearCache();
