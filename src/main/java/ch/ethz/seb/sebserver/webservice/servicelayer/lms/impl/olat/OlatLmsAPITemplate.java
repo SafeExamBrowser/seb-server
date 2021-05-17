@@ -162,7 +162,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             final HashSet<String> leftIds = new HashSet<>(ids);
             final Collection<QuizData> result = new ArrayList<>();
             ids.stream()
-                    .map(super::getFromCache)
+                    .map(id -> super.getFromCache(id))
                     .forEach(q -> {
                         if (q != null) {
                             leftIds.remove(q.id);
