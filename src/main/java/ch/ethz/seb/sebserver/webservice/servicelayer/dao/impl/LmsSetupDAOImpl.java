@@ -163,7 +163,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
             final ClientCredentials proxyCredentials = createProxyClientCredentials(lmsSetup);
             final LmsSetupRecord newRecord = new LmsSetupRecord(
                     lmsSetup.id,
-                    lmsSetup.institutionId,
+                    null,
                     lmsSetup.name,
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
                     lmsSetup.lmsApiUrl,
@@ -180,7 +180,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     proxyCredentials.secretAsString(),
                     savedRecord.getActive());
 
-            this.lmsSetupRecordMapper.updateByPrimaryKey(newRecord);
+            this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
         })
                 .flatMap(this::toDomainModel)
