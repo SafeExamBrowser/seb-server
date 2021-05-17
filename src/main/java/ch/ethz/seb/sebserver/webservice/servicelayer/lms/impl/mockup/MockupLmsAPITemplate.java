@@ -134,19 +134,19 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
         final List<APIMessage> missingAttrs = checkAttributes();
 
         if (!missingAttrs.isEmpty()) {
-            return LmsSetupTestResult.ofMissingAttributes(missingAttrs);
+            return LmsSetupTestResult.ofMissingAttributes(LmsType.MOCKUP, missingAttrs);
         }
 
         if (authenticate()) {
-            return LmsSetupTestResult.ofOkay();
+            return LmsSetupTestResult.ofOkay(LmsType.MOCKUP);
         } else {
-            return LmsSetupTestResult.ofTokenRequestError("Illegal access");
+            return LmsSetupTestResult.ofTokenRequestError(LmsType.MOCKUP, "Illegal access");
         }
     }
 
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
-        return LmsSetupTestResult.ofQuizRestrictionAPIError("unsupported");
+        return LmsSetupTestResult.ofQuizRestrictionAPIError(LmsType.MOCKUP, "unsupported");
     }
 
     @Override

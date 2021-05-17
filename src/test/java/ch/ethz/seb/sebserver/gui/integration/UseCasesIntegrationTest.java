@@ -657,7 +657,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         lmsSetup.proxyPort,
                         lmsSetup.proxyAuthUsername,
                         lmsSetup.proxyAuthSecret,
-                        lmsSetup.active))
+                        lmsSetup.active,
+                        null))
                 .call();
 
         assertNotNull(newLMSCall);

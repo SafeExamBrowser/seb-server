@@ -23,6 +23,7 @@ import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
@@ -115,7 +116,7 @@ public class MoodleCourseAccessTest {
     public void testInitAPIAccessError1() {
         final MoodleRestTemplateFactory moodleRestTemplateFactory = mock(MoodleRestTemplateFactory.class);
         when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.ofRuntimeError("Error1"));
-        when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay());
+        when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay(LmsType.MOODLE));
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                 new JSONMapper(),
@@ -137,7 +138,7 @@ public class MoodleCourseAccessTest {
         final MoodleAPIRestTemplate moodleAPIRestTemplate = mock(MoodleAPIRestTemplate.class);
         when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.of(moodleAPIRestTemplate));
         doThrow(RuntimeException.class).when(moodleAPIRestTemplate).testAPIConnection(any());
-        when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay());
+        when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay(LmsType.MOODLE));
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                 new JSONMapper(),
@@ -158,7 +159,7 @@ public class MoodleCourseAccessTest {
         final MoodleRestTemplateFactory moodleRestTemplateFactory = mock(MoodleRestTemplateFactory.class);
         final MoodleAPIRestTemplate moodleAPIRestTemplate = mock(MoodleAPIRestTemplate.class);
         when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.of(moodleAPIRestTemplate));
-        when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay());
+        when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay(LmsType.MOODLE));
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                 new JSONMapper(),

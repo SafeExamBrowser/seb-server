@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -483,6 +484,9 @@ public class ExamForm implements TemplateComposer {
         }
 
         final LmsSetupTestResult lmsSetupTestResult = result.get();
+        if (!lmsSetupTestResult.lmsType.features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
+            return false;
+        }
         return !lmsSetupTestResult.hasError(ErrorType.QUIZ_RESTRICTION_API_REQUEST);
     }
 

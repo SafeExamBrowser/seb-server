@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.MoodleSEBRestriction;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
@@ -97,14 +98,14 @@ public class MoodleCourseRestriction {
 
             final Error checkError = this.checkError(jsonResponse);
             if (checkError != null) {
-                return LmsSetupTestResult.ofQuizRestrictionAPIError(checkError.exception);
+                return LmsSetupTestResult.ofQuizRestrictionAPIError(LmsType.MOODLE, checkError.exception);
             }
 
         } catch (final Exception e) {
             log.debug("Moodle SEB restriction API not available: ", e);
-            return LmsSetupTestResult.ofQuizRestrictionAPIError(e.getMessage());
+            return LmsSetupTestResult.ofQuizRestrictionAPIError(LmsType.MOODLE, e.getMessage());
         }
-        return LmsSetupTestResult.ofOkay();
+        return LmsSetupTestResult.ofOkay(LmsType.MOODLE);
     }
 
     Result<MoodleSEBRestriction> getSEBRestriction(

@@ -151,6 +151,21 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     @Override
     @Transactional
+    public boolean isUpToDate(final LmsSetup lmsSetup) {
+        try {
+            final LmsSetupRecord record = this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
+            if (lmsSetup.updateTime == null) {
+                return record.getUpdateTime() == null;
+            }
+            return lmsSetup.updateTime.equals(record.getUpdateTime());
+        } catch (final Exception e) {
+            log.error("Failed to check snyc on LmsSetup: {}", lmsSetup);
+            return false;
+        }
+    }
+
+    @Override
+    @Transactional
     public Result<LmsSetup> save(final LmsSetup lmsSetup) {
         return Result.tryCatch(() -> {
 
@@ -178,6 +193,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     lmsSetup.getProxyPort(),
                     proxyCredentials.clientIdAsString(),
                     proxyCredentials.secretAsString(),
+                    System.currentTimeMillis(),
                     savedRecord.getActive());
 
             this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -209,6 +225,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     lmsSetup.getProxyPort(),
                     proxyCredentials.clientIdAsString(),
                     proxyCredentials.secretAsString(),
+                    System.currentTimeMillis(),
                     BooleanUtils.toInteger(false));
 
             this.lmsSetupRecordMapper.insert(newRecord);
@@ -226,6 +243,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
             final List<Long> ids = extractListOfPKs(all);
             final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord(
                     null, null, null, null, null, null, null, null, null, null, null, null,
+                    System.currentTimeMillis(),
                     BooleanUtils.toIntegerObject(active));
 
             this.lmsSetupRecordMapper.updateByExampleSelective(lmsSetupRecord)
@@ -383,7 +401,8 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                 record.getLmsProxyPort(),
                 Utils.toString(proxyCredentials.clientId),
                 Utils.toString(proxyCredentials.secret),
-                BooleanUtils.toBooleanObject(record.getActive())));
+                BooleanUtils.toBooleanObject(record.getActive()),
+                record.getUpdateTime()));
     }
 
     // check if same name already exists for the same institution

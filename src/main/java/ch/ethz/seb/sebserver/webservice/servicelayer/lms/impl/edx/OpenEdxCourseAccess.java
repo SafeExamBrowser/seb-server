@@ -48,6 +48,7 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -104,8 +105,6 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
 
     LmsSetupTestResult initAPIAccess() {
 
-        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-
         final LmsSetupTestResult attributesCheck = this.openEdxRestTemplateFactory.test();
         if (!attributesCheck.isOk()) {
             return attributesCheck;
@@ -116,7 +115,7 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
             final String message = "Failed to gain access token from OpenEdX Rest API:\n tried token endpoints: " +
                     this.openEdxRestTemplateFactory.knownTokenAccessPaths;
             log.error(message, restTemplateRequest.getError());
-            return LmsSetupTestResult.ofTokenRequestError(message);
+            return LmsSetupTestResult.ofTokenRequestError(LmsType.OPEN_EDX, message);
         }
 
         final OAuth2RestTemplate restTemplate = restTemplateRequest.get();
@@ -129,14 +128,15 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
             restTemplate.setAuthenticator(new EdxOAuth2RequestAuthenticator());
 
             try {
+                final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
                 this.getEdxPage(lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT, restTemplate);
             } catch (final RuntimeException ee) {
                 log.error("Failed to access Open edX course API: ", ee);
-                return LmsSetupTestResult.ofQuizAccessAPIError(ee.getMessage());
+                return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.OPEN_EDX, ee.getMessage());
             }
         }
 
-        return LmsSetupTestResult.ofOkay();
+        return LmsSetupTestResult.ofOkay(LmsType.OPEN_EDX);
     }
 
     @Override

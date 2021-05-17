@@ -121,6 +121,9 @@ public final class LmsSetup implements GrantEntity, Activatable {
     @JsonProperty(LMS_SETUP.ATTR_ACTIVE)
     public final Boolean active;
 
+    @JsonProperty(LMS_SETUP.ATTR_UPDATE_TIME)
+    public final Long updateTime;
+
     @JsonCreator
     public LmsSetup(
             @JsonProperty(LMS_SETUP.ATTR_ID) final Long id,
@@ -135,7 +138,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
             @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_PORT) final Integer proxyPort,
             @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME) final String proxyAuthUsername,
             @JsonProperty(LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET) final String proxyAuthSecret,
-            @JsonProperty(INSTITUTION.ATTR_ACTIVE) final Boolean active) {
+            @JsonProperty(INSTITUTION.ATTR_ACTIVE) final Boolean active,
+            @JsonProperty(LMS_SETUP.ATTR_UPDATE_TIME) final Long updateTime) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -150,6 +154,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
         this.proxyAuthUsername = proxyAuthUsername;
         this.proxyAuthSecret = proxyAuthSecret;
         this.active = (active != null) ? active : Boolean.FALSE;
+        this.updateTime = updateTime;
     }
 
     public LmsSetup(final String modelId, final POSTMapper mapper) {
@@ -166,6 +171,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
         this.proxyAuthUsername = mapper.getString(LMS_SETUP.ATTR_LMS_PROXY_AUTH_USERNAME);
         this.proxyAuthSecret = mapper.getString(LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET);
         this.active = mapper.getBooleanObject(LMS_SETUP.ATTR_ACTIVE);
+        this.updateTime = mapper.getLong(LMS_SETUP.ATTR_UPDATE_TIME);
     }
 
     @Override
@@ -255,7 +261,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
                 this.proxyPort,
                 this.proxyAuthUsername,
                 Constants.EMPTY_NOTE,
-                this.active);
+                this.active,
+                this.updateTime);
     }
 
     @Override
@@ -299,7 +306,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
     }
 
     public static LmsSetup createNew(final Long institutionId) {
-        return new LmsSetup(null, institutionId, null, null, null, null, null, null, null, null, null, null, false);
+        return new LmsSetup(
+                null, institutionId, null, null, null, null, null, null, null, null, null, null, false, null);
     }
 
 }

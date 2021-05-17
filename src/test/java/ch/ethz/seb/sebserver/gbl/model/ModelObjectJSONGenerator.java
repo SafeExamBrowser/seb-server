@@ -103,11 +103,13 @@ public class ModelObjectJSONGenerator {
 
         domainObject = new LmsSetup(
                 1L, 1L, "name", LmsType.OPEN_EDX, "lmsApiAccountName", "lmsApiAccountPassword",
-                "lmsApiUrl", "lmsApiToken", "proxyHost", 8085, "proxyAuthUsername", "proxyAuthSecret", true);
+                "lmsApiUrl", "lmsApiToken", "proxyHost", 8085, "proxyAuthUsername", "proxyAuthSecret", true,
+                System.currentTimeMillis());
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject = new LmsSetupTestResult(
+                LmsType.MOCKUP,
                 Arrays.asList(new LmsSetupTestResult.Error(ErrorType.QUIZ_ACCESS_API_REQUEST, "No Access")),
                 Arrays.asList(APIMessage.ErrorMessage.UNEXPECTED.of()));
         System.out.println(domainObject.getClass().getSimpleName() + ":");

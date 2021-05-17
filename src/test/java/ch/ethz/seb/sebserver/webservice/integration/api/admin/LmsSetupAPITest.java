@@ -68,6 +68,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 null,
                 null,
                 null,
+                null,
                 null);
 
         lmsSetup = new RestAPITestHelper()
@@ -416,6 +417,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 null,
                 null,
                 null,
+                null,
                 null);
         lmsSetup = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
@@ -450,6 +452,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
                 "lms1Name",
                 "someSecret",
                 "https://www.lms1.com",
+                null,
                 null,
                 null,
                 null,

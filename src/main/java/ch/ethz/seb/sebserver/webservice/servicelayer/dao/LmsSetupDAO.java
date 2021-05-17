@@ -30,4 +30,11 @@ public interface LmsSetupDAO extends ActivatableEntityDAO<LmsSetup, LmsSetup>, B
      * @return Result refer to the proxy data or to an error if happened */
     Result<ProxyData> getLmsAPIAccessProxyData(String lmsSetupId);
 
+    /** Checks if the given LmsSetup instance is in sync with the version on
+     * data base by matching the update_time field
+     *
+     * @param lmsSetup LmsSetup instance to check if it is up to date
+     * @return true if the update_time has the same value on persistent */
+    boolean isUpToDate(LmsSetup lmsSetup);
+
 }

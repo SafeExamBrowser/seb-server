@@ -12,3 +12,9 @@ ALTER TABLE `remote_proctoring_room`
 ADD COLUMN IF NOT EXISTS `break_out_connections` VARCHAR(4000) NULL,
 ADD COLUMN IF NOT EXISTS `join_key` VARCHAR(255) NULL,
 ADD COLUMN IF NOT EXISTS `room_data` VARCHAR(4000) NULL;
+
+-- -----------------------------------------------------
+-- Alter Table `lms_setup`
+-- -----------------------------------------------------
+ALTER TABLE `lms_setup`
+ADD COLUMN IF NOT EXISTS `update_time` BIGINT UNSIGNED NULL;

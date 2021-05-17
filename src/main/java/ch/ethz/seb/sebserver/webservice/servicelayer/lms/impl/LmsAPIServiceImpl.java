@@ -37,6 +37,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
@@ -52,6 +53,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
     private static final Logger log = LoggerFactory.getLogger(LmsAPIServiceImpl.class);
 
+    private final WebserviceInfo webserviceInfo;
     private final LmsSetupDAO lmsSetupDAO;
     private final ClientCredentialService clientCredentialService;
     private final EnumMap<LmsType, LmsAPITemplateFactory> templateFactories;
@@ -59,10 +61,12 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     private final Map<CacheKey, LmsAPITemplate> cache = new ConcurrentHashMap<>();
 
     public LmsAPIServiceImpl(
+            final WebserviceInfo webserviceInfo,
             final LmsSetupDAO lmsSetupDAO,
             final ClientCredentialService clientCredentialService,
             final Collection<LmsAPITemplateFactory> lmsAPITemplateFactories) {
 
+        this.webserviceInfo = webserviceInfo;
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientCredentialService = clientCredentialService;
 
@@ -144,7 +148,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             return template.testCourseRestrictionAPI();
         }
 
-        return LmsSetupTestResult.ofOkay();
+        return LmsSetupTestResult.ofOkay(template.lmsSetup().getLmsType());
     }
 
     @Override
@@ -164,7 +168,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             return lmsSetupTemplate.testCourseRestrictionAPI();
         }
 
-        return LmsSetupTestResult.ofOkay();
+        return LmsSetupTestResult.ofOkay(lmsSetupTemplate.lmsSetup().getLmsType());
     }
 
     /** Collect all QuizData from all affecting LmsSetup.
@@ -221,7 +225,23 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 .filter(key -> key.creationTimestamp - currentTimeMillis > Constants.DAY_IN_MILLIS)
                 .forEach(this.cache::remove);
         // get from cache
-        return this.cache.get(new CacheKey(lmsSetupId, 0));
+        final CacheKey cacheKey = new CacheKey(lmsSetupId, 0);
+        final LmsAPITemplate lmsAPITemplate = this.cache.get(cacheKey);
+
+        // in distributed setup, check if lmsSetup is up to date
+        if (this.webserviceInfo.isDistributed()) {
+            if (lmsAPITemplate == null) {
+                return null;
+            }
+
+            final LmsSetup lmsSetup = lmsAPITemplate.lmsSetup();
+            if (!this.lmsSetupDAO.isUpToDate(lmsSetup)) {
+                this.cache.remove(cacheKey);
+                return null;
+            }
+        }
+
+        return lmsAPITemplate;
     }
 
     private LmsAPITemplate createLmsSetupTemplate(final String lmsSetupId) {

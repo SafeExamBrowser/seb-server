@@ -40,6 +40,7 @@ import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -105,10 +106,10 @@ final class OpenEdxRestTemplateFactory {
         }
 
         if (!missingAttrs.isEmpty()) {
-            return LmsSetupTestResult.ofMissingAttributes(missingAttrs);
+            return LmsSetupTestResult.ofMissingAttributes(LmsType.OPEN_EDX, missingAttrs);
         }
 
-        return LmsSetupTestResult.ofOkay();
+        return LmsSetupTestResult.ofOkay(LmsType.OPEN_EDX);
     }
 
     Result<OAuth2RestTemplate> createOAuthRestTemplate() {

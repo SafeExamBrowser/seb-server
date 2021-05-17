@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public final class LmsSetupTestResult {
@@ -33,6 +34,8 @@ public final class LmsSetupTestResult {
         QUIZ_RESTRICTION_API_REQUEST
     }
 
+    @JsonProperty(Domain.LMS_SETUP.ATTR_LMS_TYPE)
+    public final LmsSetup.LmsType lmsType;
     @JsonProperty(ATTR_ERRORS)
     public final Collection<Error> errors;
     @JsonProperty(ATTR_MISSING_ATTRIBUTE)
@@ -40,27 +43,32 @@ public final class LmsSetupTestResult {
 
     @JsonCreator
     public LmsSetupTestResult(
+            @JsonProperty(Domain.LMS_SETUP.ATTR_LMS_TYPE) final LmsSetup.LmsType lmsType,
             @JsonProperty(ATTR_ERRORS) final Collection<Error> errors,
             @JsonProperty(ATTR_MISSING_ATTRIBUTE) final Collection<APIMessage> missingLMSSetupAttribute) {
 
+        this.lmsType = lmsType;
         this.errors = Utils.immutableCollectionOf(errors);
         this.missingLMSSetupAttribute = Utils.immutableCollectionOf(missingLMSSetupAttribute);
     }
 
-    protected LmsSetupTestResult() {
-        this(
+    protected LmsSetupTestResult(final LmsSetup.LmsType lmsType) {
+        this(lmsType,
                 Collections.emptyList(),
                 Collections.emptyList());
     }
 
-    protected LmsSetupTestResult(final Error error) {
-        this(
+    protected LmsSetupTestResult(final LmsSetup.LmsType lmsType, final Error error) {
+        this(lmsType,
                 Utils.immutableCollectionOf(Arrays.asList(error)),
                 Collections.emptyList());
     }
 
-    protected LmsSetupTestResult(final Error error, final Collection<APIMessage> missingLMSSetupAttribute) {
-        this(
+    protected LmsSetupTestResult(
+            final LmsSetup.LmsType lmsType,
+            final Error error,
+            final Collection<APIMessage> missingLMSSetupAttribute) {
+        this(lmsType,
                 Utils.immutableCollectionOf(Arrays.asList(error)),
                 Utils.immutableCollectionOf(missingLMSSetupAttribute));
     }
@@ -97,29 +105,30 @@ public final class LmsSetupTestResult {
         return builder.toString();
     }
 
-    public static LmsSetupTestResult ofOkay() {
-        return new LmsSetupTestResult();
+    public static LmsSetupTestResult ofOkay(final LmsSetup.LmsType lmsType) {
+        return new LmsSetupTestResult(lmsType);
     }
 
-    public static LmsSetupTestResult ofMissingAttributes(final Collection<APIMessage> attrs) {
-        return new LmsSetupTestResult(new Error(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"), attrs);
+    public static LmsSetupTestResult ofMissingAttributes(final LmsSetup.LmsType lmsType,
+            final Collection<APIMessage> attrs) {
+        return new LmsSetupTestResult(lmsType, new Error(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"), attrs);
     }
 
-    public static LmsSetupTestResult ofMissingAttributes(final APIMessage... attrs) {
-        return new LmsSetupTestResult(new Error(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"),
+    public static LmsSetupTestResult ofMissingAttributes(final LmsSetup.LmsType lmsType, final APIMessage... attrs) {
+        return new LmsSetupTestResult(lmsType, new Error(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"),
                 Arrays.asList(attrs));
     }
 
-    public static LmsSetupTestResult ofTokenRequestError(final String message) {
-        return new LmsSetupTestResult(new Error(ErrorType.TOKEN_REQUEST, message));
+    public static LmsSetupTestResult ofTokenRequestError(final LmsSetup.LmsType lmsType, final String message) {
+        return new LmsSetupTestResult(lmsType, new Error(ErrorType.TOKEN_REQUEST, message));
     }
 
-    public static LmsSetupTestResult ofQuizAccessAPIError(final String message) {
-        return new LmsSetupTestResult(new Error(ErrorType.QUIZ_ACCESS_API_REQUEST, message));
+    public static LmsSetupTestResult ofQuizAccessAPIError(final LmsSetup.LmsType lmsType, final String message) {
+        return new LmsSetupTestResult(lmsType, new Error(ErrorType.QUIZ_ACCESS_API_REQUEST, message));
     }
 
-    public static LmsSetupTestResult ofQuizRestrictionAPIError(final String message) {
-        return new LmsSetupTestResult(new Error(ErrorType.QUIZ_RESTRICTION_API_REQUEST, message));
+    public static LmsSetupTestResult ofQuizRestrictionAPIError(final LmsSetup.LmsType lmsType, final String message) {
+        return new LmsSetupTestResult(lmsType, new Error(ErrorType.QUIZ_RESTRICTION_API_REQUEST, message));
     }
 
     public final static class Error {

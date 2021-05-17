@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
@@ -63,13 +64,13 @@ public class OpenEdxCourseRestriction {
         final Result<OAuth2RestTemplate> restTemplateRequest = getRestTemplate();
         if (restTemplateRequest.hasError()) {
             return LmsSetupTestResult.ofTokenRequestError(
+                    LmsType.OPEN_EDX,
                     "Failed to gain access token from OpenEdX Rest API:\n tried token endpoints: " +
                             this.openEdxRestTemplateFactory.knownTokenAccessPaths);
         }
 
         final OAuth2RestTemplate restTemplate = restTemplateRequest.get();
         try {
-            final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
 
             // NOTE: since the OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_INFO endpoint is
             //       not accessible within OAuth2 authentication (just with user - authentication),
@@ -77,6 +78,7 @@ public class OpenEdxCourseRestriction {
             //       if there is no 404 response.
             // TODO: Ask eduNEXT to implement also OAuth2 API access for this endpoint to be able
             //       to check the version of the installed plugin.
+            final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
             final String url = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_INFO;
 
             restTemplate.exchange(
@@ -88,6 +90,7 @@ public class OpenEdxCourseRestriction {
         } catch (final HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return LmsSetupTestResult.ofQuizRestrictionAPIError(
+                        LmsType.OPEN_EDX,
                         "Failed to verify course restriction API: " + e.getMessage());
             }
 
@@ -96,7 +99,7 @@ public class OpenEdxCourseRestriction {
             }
         }
 
-        return LmsSetupTestResult.ofOkay();
+        return LmsSetupTestResult.ofOkay(LmsType.OPEN_EDX);
     }
 
     Result<OpenEdxSEBRestriction> getSEBRestriction(final String courseId) {

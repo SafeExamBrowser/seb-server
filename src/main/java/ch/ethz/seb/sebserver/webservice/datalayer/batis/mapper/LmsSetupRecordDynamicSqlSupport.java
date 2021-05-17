@@ -6,49 +6,52 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class LmsSetupRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.768+02:00", comments="Source Table: lms_setup")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.134+02:00", comments="Source Table: lms_setup")
     public static final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.768+02:00", comments="Source field: lms_setup.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.135+02:00", comments="Source field: lms_setup.id")
     public static final SqlColumn<Long> id = lmsSetupRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.768+02:00", comments="Source field: lms_setup.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.135+02:00", comments="Source field: lms_setup.institution_id")
     public static final SqlColumn<Long> institutionId = lmsSetupRecord.institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.768+02:00", comments="Source field: lms_setup.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.135+02:00", comments="Source field: lms_setup.name")
     public static final SqlColumn<String> name = lmsSetupRecord.name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.768+02:00", comments="Source field: lms_setup.lms_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.135+02:00", comments="Source field: lms_setup.lms_type")
     public static final SqlColumn<String> lmsType = lmsSetupRecord.lmsType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.768+02:00", comments="Source field: lms_setup.lms_url")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.135+02:00", comments="Source field: lms_setup.lms_url")
     public static final SqlColumn<String> lmsUrl = lmsSetupRecord.lmsUrl;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.768+02:00", comments="Source field: lms_setup.lms_clientname")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.135+02:00", comments="Source field: lms_setup.lms_clientname")
     public static final SqlColumn<String> lmsClientname = lmsSetupRecord.lmsClientname;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.768+02:00", comments="Source field: lms_setup.lms_clientsecret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.135+02:00", comments="Source field: lms_setup.lms_clientsecret")
     public static final SqlColumn<String> lmsClientsecret = lmsSetupRecord.lmsClientsecret;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.769+02:00", comments="Source field: lms_setup.lms_rest_api_token")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.135+02:00", comments="Source field: lms_setup.lms_rest_api_token")
     public static final SqlColumn<String> lmsRestApiToken = lmsSetupRecord.lmsRestApiToken;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.769+02:00", comments="Source field: lms_setup.lms_proxy_host")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.135+02:00", comments="Source field: lms_setup.lms_proxy_host")
     public static final SqlColumn<String> lmsProxyHost = lmsSetupRecord.lmsProxyHost;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.769+02:00", comments="Source field: lms_setup.lms_proxy_port")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.136+02:00", comments="Source field: lms_setup.lms_proxy_port")
     public static final SqlColumn<Integer> lmsProxyPort = lmsSetupRecord.lmsProxyPort;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.769+02:00", comments="Source field: lms_setup.lms_proxy_auth_username")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.136+02:00", comments="Source field: lms_setup.lms_proxy_auth_username")
     public static final SqlColumn<String> lmsProxyAuthUsername = lmsSetupRecord.lmsProxyAuthUsername;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.769+02:00", comments="Source field: lms_setup.lms_proxy_auth_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.136+02:00", comments="Source field: lms_setup.lms_proxy_auth_secret")
     public static final SqlColumn<String> lmsProxyAuthSecret = lmsSetupRecord.lmsProxyAuthSecret;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.769+02:00", comments="Source field: lms_setup.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.137+02:00", comments="Source field: lms_setup.update_time")
+    public static final SqlColumn<Long> updateTime = lmsSetupRecord.updateTime;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.137+02:00", comments="Source field: lms_setup.active")
     public static final SqlColumn<Integer> active = lmsSetupRecord.active;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-04-28T09:50:10.768+02:00", comments="Source Table: lms_setup")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-05-17T13:37:54.135+02:00", comments="Source Table: lms_setup")
     public static final class LmsSetupRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 
@@ -73,6 +76,8 @@ public final class LmsSetupRecordDynamicSqlSupport {
         public final SqlColumn<String> lmsProxyAuthUsername = column("lms_proxy_auth_username", JDBCType.VARCHAR);
 
         public final SqlColumn<String> lmsProxyAuthSecret = column("lms_proxy_auth_secret", JDBCType.VARCHAR);
+
+        public final SqlColumn<Long> updateTime = column("update_time", JDBCType.BIGINT);
 
         public final SqlColumn<Integer> active = column("active", JDBCType.INTEGER);
 

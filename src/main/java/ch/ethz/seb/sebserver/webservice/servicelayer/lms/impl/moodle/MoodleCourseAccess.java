@@ -42,6 +42,7 @@ import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker.State;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -195,7 +196,7 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
             final String message = "Failed to gain access token from Moodle Rest API:\n tried token endpoints: " +
                     this.moodleRestTemplateFactory.knownTokenAccessPaths;
             log.error(message + " cause: {}", restTemplateRequest.getError().getMessage());
-            return LmsSetupTestResult.ofTokenRequestError(message);
+            return LmsSetupTestResult.ofTokenRequestError(LmsType.MOODLE, message);
         }
 
         final MoodleAPIRestTemplate restTemplate = restTemplateRequest.get();
@@ -206,10 +207,10 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
                     MOODLE_QUIZ_API_FUNCTION_NAME);
         } catch (final RuntimeException e) {
             log.error("Failed to access Moodle course API: ", e);
-            return LmsSetupTestResult.ofQuizAccessAPIError(e.getMessage());
+            return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.MOODLE, e.getMessage());
         }
 
-        return LmsSetupTestResult.ofOkay();
+        return LmsSetupTestResult.ofOkay(LmsType.MOODLE);
     }
 
     @Override
