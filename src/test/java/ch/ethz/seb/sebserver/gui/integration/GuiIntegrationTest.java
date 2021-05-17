@@ -43,7 +43,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 @SpringBootTest(
         properties = "file.encoding=UTF-8",
         classes = SEBServer.class,
-        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 public abstract class GuiIntegrationTest {
