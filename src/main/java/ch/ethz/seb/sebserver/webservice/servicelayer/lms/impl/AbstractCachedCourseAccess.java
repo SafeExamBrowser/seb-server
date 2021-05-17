@@ -24,9 +24,12 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 /** This implements an overall short time cache for QuizData objects for all implementing
  * instances. It uses EH-Cache with a short time to live about 1 - 2 minutes.
  * </p>
- * The QuizData are stored with a key composed from the id of the key **/
+ * The QuizData are stored with a key composed from the id of the key
+ * </p>
+ * The EH-Cache can be configured in file ehcache.xml **/
 public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
 
+    /** The cache name of the overall short time EH-Cache */
     public static final String CACHE_NAME_QUIZ_DATA = "QUIZ_DATA_CACHE";
 
     private final Cache cache;
@@ -40,14 +43,24 @@ public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
         this.cache = cacheManager.getCache(CACHE_NAME_QUIZ_DATA);
     }
 
+    /** Used to clear the entire cache */
     public void clearCache() {
         this.cache.clear();
     }
 
+    /** Get the for the given quiz id QuizData from cache .
+     * 
+     * @param id The quiz id - this is the raw quiz id not the cache key. The cache key is composed internally
+     * @return the QuizData corresponding the given id or null if there is no such data in cache */
     protected QuizData getFromCache(final String id) {
         return this.cache.get(createCacheKey(id), QuizData.class);
     }
 
+    /** Puts the given QuizData to the cache.
+     * </p>
+     * The cache key with lms suffix is composed internally
+     *
+     * @param quizData */
     protected void putToCache(final QuizData quizData) {
         this.cache.put(createCacheKey(quizData.id), quizData);
     }

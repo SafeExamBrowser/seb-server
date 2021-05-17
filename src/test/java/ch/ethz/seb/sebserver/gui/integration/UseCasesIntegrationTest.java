@@ -32,6 +32,7 @@ import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -723,6 +724,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
     @Test
     @Order(6)
+    @Ignore
     // *************************************
     // Use Case 5.5: Login as TestInstAdmin and create new Open edX LMS setup and activate
     //  - login as TestInstAdmin : 987654321
