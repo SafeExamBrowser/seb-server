@@ -88,8 +88,6 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             log.debug("LmsSetup changed. Update cache by removing eventually used references");
         }
 
-        System.out.println("++++++++++++++++++++++++++++ remove: " + lmsSetup);
-
         this.cache.remove(new CacheKey(lmsSetup.getModelId(), 0));
     }
 

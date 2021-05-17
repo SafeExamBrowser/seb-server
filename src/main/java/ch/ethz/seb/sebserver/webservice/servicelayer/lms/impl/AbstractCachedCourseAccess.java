@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.core.env.Environment;
@@ -28,6 +30,8 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * </p>
  * The EH-Cache can be configured in file ehcache.xml **/
 public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
+
+    private static final Logger log = LoggerFactory.getLogger(AbstractCachedCourseAccess.class);
 
     /** The cache name of the overall short time EH-Cache */
     public static final String CACHE_NAME_QUIZ_DATA = "QUIZ_DATA_CACHE";
@@ -49,7 +53,7 @@ public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
     }
 
     /** Get the for the given quiz id QuizData from cache .
-     * 
+     *
      * @param id The quiz id - this is the raw quiz id not the cache key. The cache key is composed internally
      * @return the QuizData corresponding the given id or null if there is no such data in cache */
     protected QuizData getFromCache(final String id) {
@@ -62,15 +66,35 @@ public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
      *
      * @param quizData */
     protected void putToCache(final QuizData quizData) {
-        this.cache.put(createCacheKey(quizData.id), quizData);
+        if (quizData == null) {
+            return;
+        }
+
+        final String createCacheKey = createCacheKey(quizData.id);
+
+        if (log.isTraceEnabled()) {
+            log.trace("Put to cache: {} : {}", createCacheKey, quizData);
+        }
+
+        this.cache.put(createCacheKey, quizData);
     }
 
+    /** Put all QuizData to short time cache.
+     *
+     * @param quizData Collection of QuizData */
     protected void putToCache(final Collection<QuizData> quizData) {
         quizData.stream().forEach(q -> this.cache.put(createCacheKey(q.id), q));
     }
 
     protected void evict(final String id) {
-        this.cache.evict(createCacheKey(id));
+
+        final String createCacheKey = createCacheKey(id);
+
+        if (log.isTraceEnabled()) {
+            log.trace("Evict from cache: {}", createCacheKey);
+        }
+
+        this.cache.evict(createCacheKey);
     }
 
     @Override
@@ -78,6 +102,10 @@ public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
         return Result.of(ids.stream().map(this::getQuizFromCache).collect(Collectors.toList()));
     }
 
+    /** Get the LMS setup identifier that is wrapped within the implementing template.
+     * This is used to create the cache Key.
+     *
+     * @return */
     protected abstract Long getLmsSetupId();
 
     private final String createCacheKey(final String id) {

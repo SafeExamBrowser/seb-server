@@ -364,7 +364,9 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
             final OAuth2RestTemplate restTemplate,
             final String id) {
 
-        System.out.println("********************");
+        if (log.isDebugEnabled()) {
+            log.debug("Try to get one course data from LMS: {}", id);
+        }
 
         // NOTE: try to get the course data by id. This seems to be possible
         // when the SEB restriction is not set. Once the SEB restriction is set,
