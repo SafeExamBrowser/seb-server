@@ -829,7 +829,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertNotNull(newExamResult);
         if (newExamResult.hasError()) {
-            System.out.println("***************************** ");
+            System.out.println("***************************** " + newExamResult.getError().getMessage());
             newExamResult.getError().printStackTrace();
         }
         assertFalse(newExamResult.hasError());
