@@ -74,7 +74,7 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
     @Override
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
         return this.openEdxCourseAccess
-                .getQuizzes(filterMap)
+                .protectedQuizzesRequest(filterMap)
                 .map(quizzes -> quizzes.stream()
                         .filter(LmsAPIService.quizFilterPredicate(filterMap))
                         .collect(Collectors.toList()));
@@ -82,18 +82,16 @@ final class OpenEdxLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<QuizData> getQuiz(final String id) {
-        return Result.tryCatch(() -> {
-            final QuizData quizFromCache = this.openEdxCourseAccess.getQuizFromCache(id);
-            if (quizFromCache != null) {
-                return quizFromCache;
-            }
+        final QuizData quizFromCache = this.openEdxCourseAccess.getQuizFromCache(id);
+        if (quizFromCache != null) {
+            return Result.of(quizFromCache);
+        }
 
-            return this.openEdxCourseAccess.getQuizFromLMS(id);
-        });
+        return this.openEdxCourseAccess.protectedQuizRequest(id);
     }
 
     @Override
-    public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
+    public Result<Collection<QuizData>> getQuizzes(final Set<String> ids) {
         return this.openEdxCourseAccess.getQuizzesFromCache(ids);
     }
 

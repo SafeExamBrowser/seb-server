@@ -806,11 +806,9 @@ public class ExamDAOImpl implements ExamDAO {
             // get and map quizzes
             final Map<String, QuizData> quizzes = this.lmsAPIService
                     .getLmsAPITemplate(lmsSetupId)
-                    .map(template -> getQuizzesFromLMS(template, recordMapping.keySet()))
-                    .onError(error -> log.error("Failed to get quizzes for exams: ", error))
-                    .getOr(Collections.emptyList())
+                    .flatMap(template -> template.getQuizzes(recordMapping.keySet()))
+                    .getOrElse(() -> Collections.emptyList())
                     .stream()
-                    .flatMap(Result::skipOnError)
                     .collect(Collectors.toMap(q -> q.id, Function.identity()));
 
             if (records.size() != quizzes.size()) {
@@ -856,18 +854,6 @@ public class ExamDAOImpl implements ExamDAO {
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         });
-    }
-
-    private Collection<Result<QuizData>> getQuizzesFromLMS(
-            final LmsAPITemplate template,
-            final Set<String> ids) {
-
-        try {
-            return template.getQuizzes(ids);
-        } catch (final Exception e) {
-            log.error("Unexpected error while using LmsAPITemplate to get quizzes: ", e);
-            return Collections.emptyList();
-        }
     }
 
     private QuizData getQuizData(

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -44,7 +45,11 @@ public abstract class AbstractCourseAccess {
     }
 
     /** CircuitBreaker for protected quiz and course data requests */
-    protected final CircuitBreaker<List<QuizData>> quizzesRequest;
+    protected final CircuitBreaker<List<QuizData>> allQuizzesRequest;
+    /** CircuitBreaker for protected quiz and course data requests */
+    protected final CircuitBreaker<Collection<QuizData>> quizzesRequest;
+    /** CircuitBreaker for protected quiz and course data requests */
+    protected final CircuitBreaker<QuizData> quizRequest;
     /** CircuitBreaker for protected chapter data requests */
     protected final CircuitBreaker<Chapters> chaptersRequest;
     /** CircuitBreaker for protected examinee account details requests */
@@ -54,7 +59,35 @@ public abstract class AbstractCourseAccess {
             final AsyncService asyncService,
             final Environment environment) {
 
+        this.allQuizzesRequest = asyncService.createCircuitBreaker(
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
+                        Integer.class,
+                        3),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.blockingTime",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.timeToRecover",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS));
+
         this.quizzesRequest = asyncService.createCircuitBreaker(
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
+                        Integer.class,
+                        3),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.blockingTime",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.timeToRecover",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS));
+
+        this.quizRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
                         Integer.class,
@@ -97,8 +130,18 @@ public abstract class AbstractCourseAccess {
                         Constants.SECOND_IN_MILLIS * 10));
     }
 
-    public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return this.quizzesRequest.protectedRun(allQuizzesSupplier(filterMap));
+    public Result<List<QuizData>> protectedQuizzesRequest(final FilterMap filterMap) {
+        return this.allQuizzesRequest.protectedRun(allQuizzesSupplier(filterMap));
+    }
+
+    public Collection<QuizData> protectedQuizzesRequest(final Set<String> ids) {
+        return this.quizzesRequest.protectedRun(quizzesSupplier(ids))
+                .onError(error -> log.error("Failed to get QuizData for ids: ", error))
+                .getOrElse(() -> Collections.emptyList());
+    }
+
+    public Result<QuizData> protectedQuizRequest(final String id) {
+        return this.quizRequest.protectedRun(quizSupplier(id));
     }
 
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
@@ -116,7 +159,7 @@ public abstract class AbstractCourseAccess {
                 .getOr(examineeSessionId);
     }
 
-    protected Result<Chapters> getCourseChapters(final String courseId) {
+    public Result<Chapters> getCourseChapters(final String courseId) {
         return this.chaptersRequest.protectedRun(getCourseChaptersSupplier(courseId));
     }
 
@@ -134,11 +177,14 @@ public abstract class AbstractCourseAccess {
                 Collections.emptyMap());
     }
 
-    /** Provides a supplier for the quiz data request to use within the circuit breaker */
-    protected abstract Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids);
-
     /** Provides a supplier to supply request to use within the circuit breaker */
     protected abstract Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap);
+
+    /** Provides a supplier for the quiz data request to use within the circuit breaker */
+    protected abstract Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids);
+
+    /** Provides a supplier for the quiz data request to use within the circuit breaker */
+    protected abstract Supplier<QuizData> quizSupplier(final String id);
 
     /** Provides a supplier for the course chapter data request to use within the circuit breaker */
     protected abstract Supplier<Chapters> getCourseChaptersSupplier(final String courseId);

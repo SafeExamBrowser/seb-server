@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -245,52 +244,54 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
                 }
             }
 
-            // get from LMS
-            final Set<String> ids = Stream.of(id).collect(Collectors.toSet());
-            return super.quizzesRequest
-                    .protectedRun(quizzesSupplier(ids))
-                    .getOrThrow()
-                    .get(0);
+            // get from LMS in protected request
+            return super.protectedQuizRequest(id).getOrThrow();
         });
     }
 
-    public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
-        final List<QuizData> cached = getCached();
-        final List<QuizData> available = (cached != null)
-                ? cached
-                : Collections.emptyList();
+    public Result<Collection<QuizData>> getQuizzesFromCache(final Set<String> ids) {
+        return Result.tryCatch(() -> {
+            final List<QuizData> cached = getCached();
+            final List<QuizData> available = (cached != null)
+                    ? cached
+                    : Collections.emptyList();
 
-        final Map<String, QuizData> quizMapping = available
-                .stream()
-                .collect(Collectors.toMap(q -> q.id, Function.identity()));
-
-        if (!quizMapping.keySet().containsAll(ids)) {
-
-            final Map<String, QuizData> collect = super.quizzesRequest
-                    .protectedRun(quizzesSupplier(ids))
-                    .onError(error -> log.error("Failed to get quizzes by ids: ", error))
-                    .getOrElse(() -> Collections.emptyList())
+            final Map<String, QuizData> quizMapping = available
                     .stream()
-                    .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
-            if (collect != null) {
-                quizMapping.clear();
-                quizMapping.putAll(collect);
-            }
-        }
+                    .collect(Collectors.toMap(q -> q.id, Function.identity()));
 
-        return ids
-                .stream()
-                .map(id -> {
-                    final QuizData q = quizMapping.get(id);
-                    return (q == null)
-                            ? Result.<QuizData> ofError(new NoSuchElementException("Quiz with id: " + id))
-                            : Result.of(q);
-                })
-                .collect(Collectors.toList());
+            if (!quizMapping.keySet().containsAll(ids)) {
+
+                final Map<String, QuizData> collect = super.quizzesRequest
+                        .protectedRun(quizzesSupplier(ids))
+                        .onError(error -> log.error("Failed to get quizzes by ids: ", error))
+                        .getOrElse(() -> Collections.emptyList())
+                        .stream()
+                        .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
+                if (collect != null) {
+                    quizMapping.clear();
+                    quizMapping.putAll(collect);
+                }
+            }
+
+            return quizMapping.values();
+
+        });
     }
 
     @Override
-    protected Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids) {
+    protected Supplier<QuizData> quizSupplier(final String id) {
+        return () -> {
+            final Set<String> ids = Stream.of(id).collect(Collectors.toSet());
+            return getRestTemplate()
+                    .map(template -> getQuizzesForIds(template, ids))
+                    .getOr(Collections.emptyList())
+                    .get(0);
+        };
+    }
+
+    @Override
+    protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
         return () -> getRestTemplate()
                 .map(template -> getQuizzesForIds(template, ids))
                 .getOr(Collections.emptyList());

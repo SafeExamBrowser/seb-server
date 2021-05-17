@@ -86,7 +86,7 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
     @Override
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
         return this.moodleCourseAccess
-                .getQuizzes(filterMap)
+                .protectedQuizzesRequest(filterMap)
                 .map(quizzes -> quizzes.stream()
                         .filter(LmsAPIService.quizFilterPredicate(filterMap))
                         .collect(Collectors.toList()));
@@ -98,7 +98,7 @@ public class MoodleLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
+    public Result<Collection<QuizData>> getQuizzes(final Set<String> ids) {
         return this.moodleCourseAccess.getQuizzesFromCache(ids);
     }
 

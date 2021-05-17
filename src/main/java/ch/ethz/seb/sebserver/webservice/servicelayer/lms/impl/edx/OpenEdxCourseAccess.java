@@ -12,12 +12,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -198,57 +196,25 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
                 .getOrThrow();
     }
 
-    public Collection<Result<QuizData>> getQuizzesFromCache(final Set<String> ids) {
-        final HashSet<String> leftIds = new HashSet<>(ids);
-        final Collection<Result<QuizData>> result = new ArrayList<>();
-        ids.stream()
-                .map(this::getQuizFromCache)
-                .forEach(q -> {
-                    if (q != null) {
-                        leftIds.remove(q.id);
-                        result.add(Result.of(q));
-                    }
-                });
+    @Override
+    protected Supplier<QuizData> quizSupplier(final String id) {
+        return () -> {
+            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+            final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
+            final QuizData quizData = quizDataOf(
+                    lmsSetup,
+                    this.getOneCourse(id, this.restTemplate, id),
+                    externalStartURI);
 
-        if (!leftIds.isEmpty()) {
-            super.quizzesRequest.protectedRun(this.quizzesSupplier(leftIds))
-                    .onError(error -> log.error("Failed to get quizzes by ids: ", error))
-                    .getOrElse(() -> Collections.emptyList())
-                    .stream()
-                    .forEach(q -> {
-                        leftIds.remove(q.id);
-                        result.add(Result.of(q));
-                    });
-        }
-
-        if (!leftIds.isEmpty()) {
-            leftIds.forEach(q -> result.add(Result.ofError(new NoSuchElementException())));
-        }
-
-        return result;
-    }
-
-    public QuizData getQuizFromCache(final String id) {
-        return super.getFromCache(id);
-    }
-
-    public QuizData getQuizFromLMS(final String id) {
-        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-        final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
-        final QuizData quizData = quizDataOf(
-                lmsSetup,
-                this.getOneCourse(id, this.restTemplate, id),
-                externalStartURI);
-
-        if (quizData != null) {
-            super.putToCache(quizData);
-        }
-        return quizData;
+            if (quizData != null) {
+                super.putToCache(quizData);
+            }
+            return quizData;
+        };
     }
 
     @Override
-    protected Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids) {
-
+    protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
         if (ids.size() == 1) {
             return () -> {
 
@@ -293,6 +259,31 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
                             .map(block -> new Chapters.Chapter(block.display_name, block.block_id))
                             .collect(Collectors.toList()));
         };
+    }
+
+    public Result<Collection<QuizData>> getQuizzesFromCache(final Set<String> ids) {
+        return Result.tryCatch(() -> {
+            final HashSet<String> leftIds = new HashSet<>(ids);
+            final Collection<QuizData> result = new ArrayList<>();
+            ids.stream()
+                    .map(this::getQuizFromCache)
+                    .forEach(q -> {
+                        if (q != null) {
+                            leftIds.remove(q.id);
+                            result.add(q);
+                        }
+                    });
+
+            if (!leftIds.isEmpty()) {
+                result.addAll(super.protectedQuizzesRequest(leftIds));
+            }
+
+            return result;
+        });
+    }
+
+    public QuizData getQuizFromCache(final String id) {
+        return super.getFromCache(id);
     }
 
     private ArrayList<QuizData> collectQuizzes(final OAuth2RestTemplate restTemplate, final Set<String> ids) {

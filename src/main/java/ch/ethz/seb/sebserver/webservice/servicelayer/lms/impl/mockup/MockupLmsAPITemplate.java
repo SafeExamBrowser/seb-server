@@ -172,17 +172,18 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
     }
 
     @Override
-    public Collection<Result<QuizData>> getQuizzes(final Set<String> ids) {
-        if (!authenticate()) {
-            throw new IllegalArgumentException("Wrong clientId or secret");
-        }
+    public Result<Collection<QuizData>> getQuizzes(final Set<String> ids) {
+        return Result.tryCatch(() -> {
+            if (!authenticate()) {
+                throw new IllegalArgumentException("Wrong clientId or secret");
+            }
 
-        return this.mockups
-                .stream()
-                .map(this::getExternalAddressAlias)
-                .filter(mock -> ids.contains(mock.id))
-                .map(Result::of)
-                .collect(Collectors.toList());
+            return this.mockups
+                    .stream()
+                    .map(this::getExternalAddressAlias)
+                    .filter(mock -> ids.contains(mock.id))
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

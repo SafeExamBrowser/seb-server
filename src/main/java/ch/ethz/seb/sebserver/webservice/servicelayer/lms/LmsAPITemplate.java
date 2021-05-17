@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import ch.ethz.seb.sebserver.gbl.async.MemoizingCircuitBreaker;
+import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCourseAccess;
 
 /** Defines an LMS API access template to build SEB Server LMS integration.
@@ -41,28 +42,18 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCourseAcce
  * All course API requests of this template shall not block and return as fast as possible
  * with the best result it can provide for the time on that the request was made.
  * </p>
+ * Each request to a remote LMS shall be executed within a protected call such that the
+ * request don't block the API call as well as do not attack the remote LMS with endless
+ * requests on failure.</br>
+ * Therefore the abstract class {@link AbstractCourseAccess} defines protected calls
+ * for different API calls by using {@link CircuitBreaker}. documentation on the class for
+ * more information.
+ * </p>
  * Since the course API requests course data from potentially thousands of existing and
- * active courses, the course API can implement some caches if needed.</br>
- * A cache in the course API has manly two purposes; The first and prior purpose is to
- * be able to provide course data as fast as possible even if the LMS is not available or
- * busy at the time. The second purpose is to guarantee fast data access for the system
- * if this is needed and data actuality has second priority.</br>
- * Therefore usual get quiz data functions like {@link #getQuizzes(FilterMap filterMap) },
- * {@link #getQuizzes(Set<String> ids) } and {@link #getQuiz(final String id) }
- * shall always first try to connect to the LMS and request the specified data from the LMS.
- * If this succeeds the cache shall be updated with the received quizzes data and return them.
- * If this is not possible within a certain time, the implementation shall get as much of the
- * requested data from the cache and return them to the caller to not block the call too long
- * and allow the caller to return fast and present as much data as possible.</br>
- * This can be done with a {@link MemoizingCircuitBreaker} or a simple {@link CircuitBreaker}
- * with a separated cache, for example. The abstract implementation; {@link AbstractCourseAccess}
- * provides already defined wrapped circuit breaker for each call. To use it, just extend the
- * abstract class and implement the needed suppliers.</br>
- * On the other hand, dedicated cache access functions like {@link #getQuizzesFromCache(Set<String> ids) }
- * shall always first look into the cache to geht the requested data and if not
- * available, call the LMS and request the data from the LMS. If partial data is needed to get
- * be requested from the LMS, this functions shall also update the catch with the requested
- * and cache missed data afterwards.
+ * active courses, the course API can implement some short time caches if needed.</br>
+ * The abstract class {@link AbstractCachedCourseAccess} defines such a short time
+ * cache for all implementing classes using EH-Cache. See documentation on the class for
+ * more information.
  * </p>
  * <b>SEB restriction API</b></br>
  * For this API we need no caching since this is mostly about pushing data to the LMS for the LMS
@@ -120,15 +111,14 @@ public interface LmsAPITemplate {
     Result<List<QuizData>> getQuizzes(FilterMap filterMap);
 
     /** Get all {@link QuizData } for the set of {@link QuizData } identifiers from LMS API in a collection
-     * of Result. If particular quiz cannot be loaded because of errors or deletion,
-     * the Result will have an error reference.
+     * of Result. If particular quizzes cannot be loaded because of errors or deletion,
+     * the the referencing QuizData will not be in the resulting list and an error is logged.
      *
      * @param ids the Set of Quiz identifiers to get the {@link QuizData } for
      * @return Collection of all {@link QuizData } from the given id set */
-    Collection<Result<QuizData>> getQuizzes(Set<String> ids);
+    Result<Collection<QuizData>> getQuizzes(Set<String> ids);
 
     /** Get the quiz data with specified identifier.
-     *
      *
      * @param id the quiz data identifier
      * @return Result refer to the quiz data or to an error when happened */
