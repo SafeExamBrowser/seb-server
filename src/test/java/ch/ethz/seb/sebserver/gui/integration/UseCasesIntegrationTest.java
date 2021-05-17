@@ -32,7 +32,6 @@ import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -723,57 +722,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(6)
-    @Ignore
-    // *************************************
-    // Use Case 5.5: Login as TestInstAdmin and create new Open edX LMS setup and activate
-    //  - login as TestInstAdmin : 987654321
-    public void testUsecase06_CreateOpenEdxLMSSetup() {
-        final RestServiceImpl restService = createRestServiceForUser(
-                "TestInstAdmin",
-                "987654321",
-                new NewLmsSetup(),
-                new TestLmsSetup(),
-                new GetLmsSetupNames(),
-                new GetLmsSetup(),
-                new SaveLmsSetup(),
-                new ActivateLmsSetup(),
-                new DeactivateLmsSetup(),
-                new GetQuizPage());
-
-        // create new LMS Setup Mockup
-        final Result<LmsSetup> newLMSCall = restService
-                .getBuilder(NewLmsSetup.class)
-                .withFormParam(Domain.LMS_SETUP.ATTR_NAME, "Test Open edx")
-                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.OPEN_EDX.name())
-                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_URL, "http://localhost:8080/openedxtest")
-                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME, "test")
-                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET, "test")
-                .call();
-
-        assertNotNull(newLMSCall);
-        assertFalse(newLMSCall.hasError());
-        final LmsSetup lmsSetup = newLMSCall.get();
-        assertEquals("Test Open edx", lmsSetup.name);
-        assertFalse(lmsSetup.isActive());
-
-        // activate lms setup
-        final LmsSetupTestResult testResult = restService
-                .getBuilder(TestLmsSetup.class)
-                .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
-                .call()
-                .getOrThrow();
-
-        assertNotNull(testResult);
-        System.out.print("********************** testResult: " + testResult);
-//        assertFalse(testResult.isOk());
-//        assertEquals("[Error [errorType=TOKEN_REQUEST, message=Failed to gain access token from OpenEdX Rest API:\n" +
-//                " tried token endpoints: [/oauth2/access_token]]]", String.valueOf(testResult.errors));
-
-        // TODO how to mockup an Open edX response
-    }
-
-    @Test
     @Order(7)
     // *************************************
     // Use Case 6: Login as examAdmin2
@@ -820,6 +768,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final QuizData quizData = quizzes.content.get(0);
         assertNotNull(quizData);
         assertEquals("Demo Quiz 1 (MOCKUP)", quizData.name);
+
+        System.out.println("***************************** quizzes " + quizzes.content);
 
         // import quiz as exam
         final Result<Exam> newExamResult = restService
@@ -2566,6 +2516,56 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .map(name -> name.getModelId())
                 .collect(Collectors.toList()).isEmpty());
 
+    }
+
+    @Test
+    @Order(21)
+    // *************************************
+    // Use Case 5.5: Login as TestInstAdmin and create new Open edX LMS setup and activate
+    //  - login as TestInstAdmin : 987654321
+    public void testUsecase21_CreateOpenEdxLMSSetup() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "TestInstAdmin",
+                "987654321",
+                new NewLmsSetup(),
+                new TestLmsSetup(),
+                new GetLmsSetupNames(),
+                new GetLmsSetup(),
+                new SaveLmsSetup(),
+                new ActivateLmsSetup(),
+                new DeactivateLmsSetup(),
+                new GetQuizPage());
+
+        // create new LMS Setup Mockup
+        final Result<LmsSetup> newLMSCall = restService
+                .getBuilder(NewLmsSetup.class)
+                .withFormParam(Domain.LMS_SETUP.ATTR_NAME, "Test Open edx")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.OPEN_EDX.name())
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_URL, "http://localhost:8080/openedxtest")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME, "test")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET, "test")
+                .call();
+
+        assertNotNull(newLMSCall);
+        assertFalse(newLMSCall.hasError());
+        final LmsSetup lmsSetup = newLMSCall.get();
+        assertEquals("Test Open edx", lmsSetup.name);
+        assertFalse(lmsSetup.isActive());
+
+        // activate lms setup
+        final LmsSetupTestResult testResult = restService
+                .getBuilder(TestLmsSetup.class)
+                .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(testResult);
+        System.out.print("********************** testResult: " + testResult);
+//        assertFalse(testResult.isOk());
+//        assertEquals("[Error [errorType=TOKEN_REQUEST, message=Failed to gain access token from OpenEdX Rest API:\n" +
+//                " tried token endpoints: [/oauth2/access_token]]]", String.valueOf(testResult.errors));
+
+        // TODO how to mockup an Open edX response
     }
 
 }
