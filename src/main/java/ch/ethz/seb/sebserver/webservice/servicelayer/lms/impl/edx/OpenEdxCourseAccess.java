@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.edx;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -195,18 +196,52 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
     }
 
     @Override
+    public Result<QuizData> getQuizFromCache(final String id) {
+        return Result.tryCatch(() -> {
+
+            // first try to get it from short time cache
+            QuizData quizData = super.getFromCache(id);
+            if (quizData != null) {
+                return quizData;
+            }
+
+            // Otherwise get one course from LMS and cache
+            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+            final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
+            quizData = quizDataOf(
+                    lmsSetup,
+                    this.getOneCourse(id, this.restTemplate, id),
+                    externalStartURI);
+
+            if (quizData != null) {
+                super.putToCache(quizData);
+            }
+            return quizData;
+        });
+    }
+
+    @Override
     protected Supplier<List<QuizData>> quizzesSupplier(final Set<String> ids) {
 
         if (ids.size() == 1) {
             return () -> {
+
+                final String id = ids.iterator().next();
+
+                // first try to get it from short time cache
+                final QuizData quizData = super.getFromCache(id);
+                if (quizData != null) {
+                    return Arrays.asList(quizData);
+                }
+
                 final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
                 final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
                 return Arrays.asList(quizDataOf(
                         lmsSetup,
-                        getOneCourses(
+                        getOneCourse(
                                 lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT,
                                 getRestTemplate().getOrThrow(),
-                                ids),
+                                id),
                         externalStartURI));
             };
         } else {
@@ -301,7 +336,7 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
     private List<CourseData> collectCourses(
             final String pageURI,
             final OAuth2RestTemplate restTemplate,
-            final Set<String> ids) {
+            final Collection<String> ids) {
 
         final List<CourseData> collector = new ArrayList<>();
         EdXPage page = getEdxPage(pageURI, restTemplate).getBody();
@@ -324,21 +359,21 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
         return collector;
     }
 
-    private CourseData getOneCourses(
+    private CourseData getOneCourse(
             final String pageURI,
             final OAuth2RestTemplate restTemplate,
-            final Set<String> ids) {
+            final String id) {
 
         System.out.println("********************");
 
-        // NOTE: try first to get the course data by id. This seems to be possible
+        // NOTE: try to get the course data by id. This seems to be possible
         // when the SEB restriction is not set. Once the SEB restriction is set,
         // this gives a 403 response.
         // We haven't found another way to get course data by id in this case so far
         // Workaround is to search the course by paging (slow)
         try {
             final HttpHeaders httpHeaders = new HttpHeaders();
-            final String uri = pageURI + ids.iterator().next();
+            final String uri = pageURI + id;
             final ResponseEntity<CourseData> exchange = restTemplate.exchange(
                     uri,
                     HttpMethod.GET,
@@ -348,7 +383,10 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
             return exchange.getBody();
         } catch (final Exception e) {
             // try with paging
-            final List<CourseData> collectCourses = collectCourses(pageURI, restTemplate, ids);
+            final List<CourseData> collectCourses = collectCourses(
+                    pageURI,
+                    restTemplate,
+                    Arrays.asList(id));
             if (collectCourses.isEmpty()) {
                 return null;
             }

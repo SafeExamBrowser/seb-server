@@ -21,11 +21,11 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
+/** This implements an overal short time cache for QuizData object for all implementing
+ * classes. It uses EH-Cache with a short time to live */
 public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
 
     public static final String CACHE_NAME_QUIZ_DATA = "QUIZ_DATA_CACHE";
-
-    private static final String NO_QUIZ_DATA_FOUND_ERROR = "NO_QUIZ_DATA_FOUND_ERROR";
 
     private final Cache cache;
 
@@ -56,16 +56,6 @@ public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
 
     protected void evict(final String id) {
         this.cache.evict(createCacheKey(id));
-    }
-
-    @Override
-    public Result<QuizData> getQuizFromCache(final String id) {
-        final QuizData fromCache = getFromCache(id);
-        if (fromCache != null) {
-            return Result.of(fromCache);
-        } else {
-            return Result.ofRuntimeError(NO_QUIZ_DATA_FOUND_ERROR);
-        }
     }
 
     @Override

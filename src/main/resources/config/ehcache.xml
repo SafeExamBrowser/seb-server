@@ -9,7 +9,7 @@
         <key-type>java.lang.Long</key-type>
         <value-type>ch.ethz.seb.sebserver.gbl.model.exam.Exam</value-type>
         <expiry>
-            <tti unit="hours">24</tti>
+            <ttl unit="hours">24</ttl>
         </expiry>
         <resources>
             <heap unit="entries">100</heap>
@@ -20,7 +20,7 @@
         <key-type>java.lang.String</key-type>
         <value-type>ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal</value-type>
         <expiry>
-            <tti unit="hours">24</tti>
+            <ttl unit="hours">24</ttl>
         </expiry>
         <resources>
             <heap unit="entries">3000</heap>
@@ -31,7 +31,7 @@
         <key-type>java.lang.Long</key-type>
         <value-type>ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.InMemorySEBConfig</value-type>
         <expiry>
-            <tti unit="hours">24</tti>
+            <ttl unit="hours">24</ttl>
         </expiry>
         <resources>
             <heap unit="entries">20</heap>
@@ -42,7 +42,7 @@
         <key-type>java.lang.String</key-type>
         <value-type>ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord</value-type>
         <expiry>
-            <tti unit="hours">24</tti>
+            <ttl unit="hours">24</ttl>
         </expiry>
         <resources>
             <heap unit="entries">2000</heap>
@@ -53,7 +53,7 @@
         <key-type>java.lang.Long</key-type>
         <value-type>ch.ethz.seb.sebserver.gbl.util.Result</value-type>
         <expiry>
-            <tti unit="hours">24</tti>
+            <ttl unit="hours">24</ttl>
         </expiry>
         <resources>
             <heap unit="entries">100</heap>
@@ -64,7 +64,7 @@
         <key-type>org.springframework.security.oauth2.common.OAuth2AccessToken</key-type>
         <value-type>org.springframework.security.oauth2.provider.OAuth2Authentication</value-type>
         <expiry>
-            <tti unit="hours">24</tti>
+            <ttl unit="hours">24</ttl>
         </expiry>
         <resources>
             <heap unit="entries">100</heap>
@@ -75,7 +75,7 @@
         <key-type>java.lang.String</key-type>
         <value-type>ch.ethz.seb.sebserver.gbl.util.Result</value-type>
         <expiry>
-            <tti unit="hours">24</tti>
+            <ttl unit="hours">24</ttl>
         </expiry>
         <resources>
             <heap unit="entries">2000</heap>
@@ -86,7 +86,7 @@
         <key-type>java.lang.Long</key-type>
         <value-type>org.ehcache.impl.internal.concurrent.ConcurrentHashMap</value-type>
         <expiry>
-            <tti unit="hours">24</tti>
+            <ttl unit="hours">24</ttl>
         </expiry>
         <resources>
             <heap unit="entries">10</heap>
@@ -97,7 +97,7 @@
         <key-type>java.lang.String</key-type>
         <value-type>ch.ethz.seb.sebserver.gbl.model.exam.QuizData</value-type>
         <expiry>
-            <tti unit="minutes">10</tti>
+            <ttl unit="minutes">1</ttl>
         </expiry>
         <resources>
             <heap unit="entries">10000</heap>
