@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
  * is whether a singleton component nor a simple prototype but one (singleton) instance
  * can exist per defined LMSSetup, we need a specialized factory to build such
  * a LmsAPITemplate for a specific LMSSetup.
- * </p<
+ * </p>
  * Add needed dependencies as final fields and let them inject within the constructor
  * as usual. Just add the additionally needed dependencies used to build a OlatLmsAPITemplate. */
 public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {

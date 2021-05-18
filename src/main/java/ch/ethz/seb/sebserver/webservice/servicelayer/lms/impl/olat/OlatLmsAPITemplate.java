@@ -49,7 +49,9 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     private final Long lmsSetupId;
 
     protected OlatLmsAPITemplate(
+
             // TODO if you need more dependencies inject them here and set the reference
+
             final APITemplateDataSupplier apiTemplateDataSupplier,
             final AsyncService asyncService,
             final Environment environment,
