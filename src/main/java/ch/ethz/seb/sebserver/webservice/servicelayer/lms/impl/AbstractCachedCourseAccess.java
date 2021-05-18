@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,10 +49,31 @@ public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
     /** Used to clear the entire cache */
     public void clearCache() {
         final Object nativeCache = this.cache.getNativeCache();
-//        if (nativeCache instanceof Eh107Cache) {
-//
-//        }
-        this.cache.clear();
+        if (nativeCache instanceof javax.cache.Cache) {
+            try {
+                final String suffix = Constants.UNDERLINE.toString() + getLmsSetupId();
+                final Set<String> keysToRemove = new HashSet<>();
+                @SuppressWarnings({ "unchecked" })
+                final javax.cache.Cache<String, QuizData> _cache =
+                        (javax.cache.Cache<String, QuizData>) this.cache.getNativeCache();
+                for (final javax.cache.Cache.Entry<String, QuizData> entry : _cache) {
+                    if (entry.getKey().endsWith(suffix)) {
+                        keysToRemove.add(entry.getKey());
+                    }
+                }
+
+                if (!keysToRemove.isEmpty()) {
+                    synchronized (this.cache) {
+                        _cache.removeAll(keysToRemove);
+                    }
+                }
+            } catch (final Exception e) {
+                log.error("Failed to clear particular LMS Setup cache: ", e);
+                this.cache.clear();
+            }
+        } else {
+            this.cache.clear();
+        }
     }
 
     /** Get the for the given quiz id QuizData from cache .
