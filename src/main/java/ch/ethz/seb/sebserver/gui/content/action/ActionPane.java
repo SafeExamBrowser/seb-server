@@ -119,7 +119,7 @@ public class ActionPane implements TemplateComposer {
                             continue;
                         }
 
-                        de_activate_action_icon(event, parent, actionItem);
+                        de_activate_action_icon(event, parent, actionItem, ad);
                     }
 
                     if (event.decoration != null) {
@@ -131,7 +131,7 @@ public class ActionPane implements TemplateComposer {
                                     actionItemToDecorate, event.decoration._2.title);
                         }
 
-                        de_activate_action_icon(event, parent, actionItemToDecorate);
+                        de_activate_action_icon(event, parent, actionItemToDecorate, event.decoration._1);
                     }
                 });
     }
@@ -139,12 +139,13 @@ public class ActionPane implements TemplateComposer {
     private void de_activate_action_icon(
             final ActionActivationEvent event,
             final Composite parent,
-            final TreeItem actionItemToDecorate) {
+            final TreeItem actionItemToDecorate,
+            final ActionDefinition actionDef) {
 
         final PageAction action = (PageAction) actionItemToDecorate.getData(ACTION_EVENT_CALL_KEY);
         final Image image = event.activation
-                ? event.decoration._1.icon.getImage(parent.getDisplay())
-                : event.decoration._1.icon.getGreyedImage(parent.getDisplay());
+                ? actionDef.icon.getImage(parent.getDisplay())
+                : actionDef.icon.getGreyedImage(parent.getDisplay());
         actionItemToDecorate.setImage(image);
         if (event.activation) {
             actionItemToDecorate.setForeground(null);
@@ -153,7 +154,7 @@ public class ActionPane implements TemplateComposer {
                     .setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
             ActionPane.this.pageService.getPolyglotPageService().injectI18n(
                     actionItemToDecorate,
-                    (action != null) ? action.getTitle() : event.decoration._1.title);
+                    (action != null) ? action.getTitle() : actionDef.title);
         }
     }
 
