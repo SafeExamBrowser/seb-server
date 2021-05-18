@@ -36,6 +36,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEventListener;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
@@ -118,19 +119,7 @@ public class ActionPane implements TemplateComposer {
                             continue;
                         }
 
-                        final PageAction action = (PageAction) actionItem.getData(ACTION_EVENT_CALL_KEY);
-                        final Image image = event.activation
-                                ? ad.icon.getImage(parent.getDisplay())
-                                : ad.icon.getGreyedImage(parent.getDisplay());
-                        actionItem.setImage(image);
-                        if (event.activation) {
-                            actionItem.setForeground(null);
-                        } else {
-                            actionItem.setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
-                            ActionPane.this.pageService.getPolyglotPageService().injectI18n(
-                                    actionItem,
-                                    (action != null) ? action.getTitle() : ad.title);
-                        }
+                        de_activate_action_icon(event, parent, actionItem);
                     }
 
                     if (event.decoration != null) {
@@ -141,8 +130,31 @@ public class ActionPane implements TemplateComposer {
                             ActionPane.this.pageService.getPolyglotPageService().injectI18n(
                                     actionItemToDecorate, event.decoration._2.title);
                         }
+
+                        de_activate_action_icon(event, parent, actionItemToDecorate);
                     }
                 });
+    }
+
+    private void de_activate_action_icon(
+            final ActionActivationEvent event,
+            final Composite parent,
+            final TreeItem actionItemToDecorate) {
+
+        final PageAction action = (PageAction) actionItemToDecorate.getData(ACTION_EVENT_CALL_KEY);
+        final Image image = event.activation
+                ? event.decoration._1.icon.getImage(parent.getDisplay())
+                : event.decoration._1.icon.getGreyedImage(parent.getDisplay());
+        actionItemToDecorate.setImage(image);
+        if (event.activation) {
+            actionItemToDecorate.setForeground(null);
+        } else {
+            actionItemToDecorate
+                    .setForeground(new Color(parent.getDisplay(), new RGBA(150, 150, 150, 50)));
+            ActionPane.this.pageService.getPolyglotPageService().injectI18n(
+                    actionItemToDecorate,
+                    (action != null) ? action.getTitle() : event.decoration._1.title);
+        }
     }
 
     private TreeItem findAction(

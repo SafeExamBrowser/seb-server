@@ -44,6 +44,7 @@ public class PageContextImpl implements PageContext {
 
     private static final Logger log = LoggerFactory.getLogger(PageContextImpl.class);
 
+    private static final LocTextKey UNEXPECTED_ERROR = new LocTextKey("sebserver.error.unexpected");
     private static final String ENTITY_LIST_TYPE = null;
 
     private final I18nSupport i18nSupport;
@@ -311,6 +312,18 @@ public class PageContextImpl implements PageContext {
 
     @Override
     public void notifyError(final LocTextKey message, final Exception error) {
+
+        if (error == null) {
+            final MessageBox messageBox = new Message(
+                    getShell(),
+                    this.i18nSupport.getText(UNEXPECTED_ERROR),
+                    this.i18nSupport.getText(message),
+                    SWT.ERROR,
+                    this.i18nSupport);
+            messageBox.setMarkupEnabled(true);
+            messageBox.open(null);
+            return;
+        }
 
         log.error("Unexpected GUI error notified: {}", error.getMessage());
 

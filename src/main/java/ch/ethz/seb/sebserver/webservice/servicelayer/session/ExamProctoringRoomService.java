@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 import java.util.Collection;
 import java.util.Map;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -74,6 +75,8 @@ public interface ExamProctoringRoomService {
      * @param examId the exam identifier
      * @return Result refer to the RemoteProctoringRoom data or to an error when happened */
     Result<RemoteProctoringRoom> getTownhallRoomData(final Long examId);
+
+    Result<EntityKey> closeTownhallRoom(Long examId);
 
     /** Used to create a break out room for all active SEB clients given by the connectionTokens.
      * This first notifies the underling proctoring specific service layer on room creation that will create a room

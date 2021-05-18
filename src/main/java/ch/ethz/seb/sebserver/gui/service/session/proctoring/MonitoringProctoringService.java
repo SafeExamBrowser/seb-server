@@ -59,6 +59,19 @@ public class MonitoringProctoringService {
 
     private static final Logger log = LoggerFactory.getLogger(MonitoringProctoringService.class);
 
+    public static final LocTextKey OPEN_TOWNHALL_ERROR =
+            new LocTextKey("sebserver.exam.proctoring.townhall.open.error");
+    public static final LocTextKey CLOSE_TOWNHALL_ERROR =
+            new LocTextKey("sebserver.exam.proctoring.townhall.close.error");
+    public static final LocTextKey OPEN_ONE_ERROR =
+            new LocTextKey("sebserver.exam.proctoring.one.open.error");
+    public static final LocTextKey CLOSE_ONE_ERROR =
+            new LocTextKey("sebserver.exam.proctoring.one.close.error");
+    public static final LocTextKey OPEN_COLLECTING_ERROR =
+            new LocTextKey("sebserver.exam.proctoring.collecting.open.error");
+    public static final LocTextKey CLOSE_COLLECTING_ERROR =
+            new LocTextKey("sebserver.exam.proctoring.collecting.close.error");
+
     private static final LocTextKey EXAM_ROOM_NAME =
             new LocTextKey("sebserver.monitoring.exam.proctoring.room.all.name");
 
@@ -109,26 +122,32 @@ public class MonitoringProctoringService {
             final PageAction action) {
 
         if (isTownhallRoomActive(action.getEntityKey().modelId)) {
-            closeTownhallRoom(proctoringGUIService, action);
-            this.pageService.firePageEvent(
-                    new ActionActivationEvent(
-                            true,
-                            new Tuple<>(
-                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)),
-                    action.pageContext());
-            return action;
+            if (closeTownhallRoom(proctoringGUIService, action)) {
+                this.pageService.firePageEvent(
+                        new ActionActivationEvent(
+                                true,
+                                new Tuple<>(
+                                        ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                        ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)),
+                        action.pageContext());
+            } else {
+                action.pageContext().notifyError(CLOSE_TOWNHALL_ERROR, null);
+            }
+
         } else {
-            openTownhallRoom(proctoringGUIService, action);
-            this.pageService.firePageEvent(
-                    new ActionActivationEvent(
-                            true,
-                            new Tuple<>(
-                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                                    ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
-                    action.pageContext());
-            return action;
+            if (openTownhallRoom(proctoringGUIService, action)) {
+                this.pageService.firePageEvent(
+                        new ActionActivationEvent(
+                                true,
+                                new Tuple<>(
+                                        ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                        ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
+                        action.pageContext());
+            } else {
+                action.pageContext().notifyError(OPEN_TOWNHALL_ERROR, null);
+            }
         }
+        return action;
     }
 
     public void initCollectingRoomActions(
@@ -219,50 +238,56 @@ public class MonitoringProctoringService {
             final PageAction action,
             final ClientConnectionData connectionData) {
 
-        final String examId = action.getEntityKey().modelId;
+        try {
+            final String examId = action.getEntityKey().modelId;
 
-        final ProctoringServiceSettings proctoringSettings = this.pageService.getRestService()
-                .getBuilder(GetProctoringSettings.class)
-                .withURIVariable(API.PARAM_MODEL_ID, examId)
-                .call()
-                .getOrThrow();
-
-        final Optional<RemoteProctoringRoom> roomOptional =
-                this.pageService.getRestService().getBuilder(GetCollectingRooms.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, examId)
-                        .call()
-                        .getOrThrow()
-                        .stream()
-                        .filter(room -> room.id.equals(connectionData.clientConnection.remoteProctoringRoomId))
-                        .findFirst();
-
-        if (roomOptional.isPresent()) {
-            final RemoteProctoringRoom room = roomOptional.get();
-            final ProctoringRoomConnection proctoringConnectionData = this.pageService
-                    .getRestService()
-                    .getBuilder(GetProctorRoomConnection.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
-                    .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
-                    .withQueryParam(ProctoringRoomConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
+            final ProctoringServiceSettings proctoringSettings = this.pageService.getRestService()
+                    .getBuilder(GetProctoringSettings.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, examId)
                     .call()
                     .getOrThrow();
 
-            ProctoringGUIService.setCurrentProctoringWindowData(examId, proctoringConnectionData);
-            final String script = String.format(
-                    MonitoringProctoringService.OPEN_ROOM_SCRIPT,
-                    room.name,
-                    800,
-                    1200,
-                    this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                    this.remoteProctoringEndpoint);
+            final Optional<RemoteProctoringRoom> roomOptional =
+                    this.pageService.getRestService().getBuilder(GetCollectingRooms.class)
+                            .withURIVariable(API.PARAM_MODEL_ID, examId)
+                            .call()
+                            .getOrThrow()
+                            .stream()
+                            .filter(room -> room.id.equals(connectionData.clientConnection.remoteProctoringRoomId))
+                            .findFirst();
 
-            RWT.getClient()
-                    .getService(JavaScriptExecutor.class)
-                    .execute(script);
+            if (roomOptional.isPresent()) {
+                final RemoteProctoringRoom room = roomOptional.get();
+                final ProctoringRoomConnection proctoringConnectionData = this.pageService
+                        .getRestService()
+                        .getBuilder(GetProctorRoomConnection.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
+                        .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
+                        .withQueryParam(ProctoringRoomConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
+                        .call()
+                        .getOrThrow();
 
-            this.pageService.getCurrentUser()
-                    .getProctoringGUIService()
-                    .registerProctoringWindow(examId, room.name, room.name);
+                ProctoringGUIService.setCurrentProctoringWindowData(examId, proctoringConnectionData);
+                final String script = String.format(
+                        MonitoringProctoringService.OPEN_ROOM_SCRIPT,
+                        room.name,
+                        800,
+                        1200,
+                        this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
+                        this.remoteProctoringEndpoint);
+
+                RWT.getClient()
+                        .getService(JavaScriptExecutor.class)
+                        .execute(script);
+
+                this.pageService.getCurrentUser()
+                        .getProctoringGUIService()
+                        .registerProctoringWindow(examId, room.name, room.name);
+            }
+
+        } catch (final Exception e) {
+            log.error("Failed to open popup for collecting room: ", e);
+            action.pageContext().notifyError(CLOSE_COLLECTING_ERROR, e);
         }
 
         return action;
@@ -273,41 +298,49 @@ public class MonitoringProctoringService {
             final ClientConnectionData connectionData,
             final ProctoringGUIService proctoringGUIService) {
 
-        final String connectionToken = connectionData.clientConnection.connectionToken;
-        final String examId = action.getEntityKey().modelId;
+        try {
 
-        if (!proctoringGUIService.hasWindow(connectionToken)) {
-            final ProctoringRoomConnection proctoringConnectionData = proctoringGUIService
-                    .openBreakOutRoom(
-                            examId,
-                            connectionToken,
-                            connectionData.clientConnection.userSessionId,
-                            Arrays.asList(connectionToken))
-                    .onError(error -> log.error(
-                            "Failed to open single proctoring room for connection {} {}",
-                            connectionToken,
-                            error.getMessage()))
-                    .getOr(null);
+            final String connectionToken = connectionData.clientConnection.connectionToken;
+            final String examId = action.getEntityKey().modelId;
 
-            ProctoringGUIService.setCurrentProctoringWindowData(
-                    examId,
+            if (!proctoringGUIService.hasWindow(connectionToken)) {
+                final ProctoringRoomConnection proctoringConnectionData = proctoringGUIService
+                        .openBreakOutRoom(
+                                examId,
+                                connectionToken,
+                                connectionData.clientConnection.userSessionId,
+                                Arrays.asList(connectionToken))
+                        .onError(error -> log.error(
+                                "Failed to open single proctoring room for connection {} {}",
+                                connectionToken,
+                                error.getMessage()))
+                        .getOr(null);
+
+                ProctoringGUIService.setCurrentProctoringWindowData(
+                        examId,
+                        connectionToken,
+                        proctoringConnectionData);
+            }
+
+            final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
+            final String script = String.format(
+                    MonitoringProctoringService.OPEN_ROOM_SCRIPT,
                     connectionToken,
-                    proctoringConnectionData);
+                    420,
+                    640,
+                    this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
+                    this.remoteProctoringEndpoint);
+            javaScriptExecutor.execute(script);
+
+        } catch (final Exception e) {
+            log.error("Failed to open popup for one to one room: ", e);
+            action.pageContext().notifyError(OPEN_ONE_ERROR, e);
         }
 
-        final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
-        final String script = String.format(
-                MonitoringProctoringService.OPEN_ROOM_SCRIPT,
-                connectionToken,
-                420,
-                640,
-                this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                this.remoteProctoringEndpoint);
-        javaScriptExecutor.execute(script);
         return action;
     }
 
-    private PageAction openTownhallRoom(
+    private boolean openTownhallRoom(
             final ProctoringGUIService proctoringGUIService,
             final PageAction action) {
 
@@ -342,11 +375,13 @@ public class MonitoringProctoringService {
 
         } catch (final Exception e) {
             log.error("Failed to open popup for town-hall room: ", e);
+            return false;
         }
-        return action;
+
+        return true;
     }
 
-    private PageAction closeTownhallRoom(
+    private boolean closeTownhallRoom(
             final ProctoringGUIService proctoringGUIService,
             final PageAction action) {
 
@@ -360,8 +395,10 @@ public class MonitoringProctoringService {
 
         } catch (final Exception e) {
             log.error("Failed to close proctoring town-hall room for exam: {}", examId);
+            return false;
         }
-        return action;
+
+        return true;
     }
 
     private void updateTownhallButton(
@@ -384,16 +421,18 @@ public class MonitoringProctoringService {
                 this.pageService.firePageEvent(
                         new ActionActivationEvent(
                                 false,
-                                ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                                ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
+                                new Tuple<>(
+                                        ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                        ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
                         pageContext);
             }
         } else {
             this.pageService.firePageEvent(
                     new ActionActivationEvent(
                             proctoringGUIService.getNumberOfProctoringParticipants() > 0,
-                            ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                            ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM),
+                            new Tuple<>(
+                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                    ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)),
                     pageContext);
         }
     }

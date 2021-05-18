@@ -286,6 +286,9 @@ public class ExamProctoringController {
         checkAccess(institutionId, examId);
         return this.examProcotringRoomService
                 .openTownhallRoom(examId, subject)
+                .onError(error -> this.examProcotringRoomService.closeTownhallRoom(examId)
+                        .onError(err -> log.error("Failed to close town-hall after failed opening: {}",
+                                err.getMessage())))
                 .getOrThrow();
     }
 

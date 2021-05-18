@@ -246,7 +246,9 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     EntityType.EXAM,
                     examId,
                     ProctoringServiceSettings.ATTR_APP_SECRET,
-                    this.cryptor.encrypt(proctoringServiceSettings.appSecret).toString());
+                    this.cryptor.encrypt(proctoringServiceSettings.appSecret)
+                            .getOrThrow()
+                            .toString());
 
             return proctoringServiceSettings;
         });

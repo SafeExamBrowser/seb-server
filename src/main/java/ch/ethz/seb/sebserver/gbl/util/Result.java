@@ -382,7 +382,7 @@ public final class Result<T> {
 
     @Override
     public String toString() {
-        throw new RuntimeException("!!!!!!!!!!!!!");
+        throw new RuntimeException("Result.toString is probably called by mistake !!!");
         //return "Result [value=" + this.value + ", error=" + this.error + "]";
     }
 

@@ -371,15 +371,18 @@ public class MonitoringClientConnection implements TemplateComposer {
                     .call()
                     .onError(error -> log.error("Failed to get ProctoringServiceSettings", error))
                     .getOr(null);
-            final ProctoringGUIService proctoringGUIService = currentUser.getProctoringGUIService();
 
             if (procotringSettings != null && procotringSettings.enableProctoring) {
+                final ProctoringGUIService proctoringGUIService = this.resourceService
+                        .getCurrentUser()
+                        .getProctoringGUIService();
                 actionBuilder
                         .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING)
                         .withEntityKey(parentEntityKey)
                         .withExec(action -> this.monitoringProctoringService.openOneToOneRoom(
                                 action,
-                                connectionData, proctoringGUIService))
+                                connectionData,
+                                proctoringGUIService))
                         .noEventPropagation()
                         .publish()
 

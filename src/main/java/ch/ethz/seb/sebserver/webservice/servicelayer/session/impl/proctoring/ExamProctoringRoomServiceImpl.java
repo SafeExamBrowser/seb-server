@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
@@ -321,6 +322,16 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     @Override
     public boolean isTownhallRoomActive(final Long examId) {
         return this.remoteProctoringRoomDAO.isTownhallRoomActive(examId);
+    }
+
+    @Override
+    public Result<EntityKey> closeTownhallRoom(final Long examId) {
+        if (isTownhallRoomActive(examId)) {
+            return this.remoteProctoringRoomDAO.getTownhallRoom(examId)
+                    .flatMap(room -> this.remoteProctoringRoomDAO.deleteRoom(room.id));
+        }
+
+        return Result.ofRuntimeError("No active town-hall for exam: " + examId);
     }
 
     private void closeTownhall(
