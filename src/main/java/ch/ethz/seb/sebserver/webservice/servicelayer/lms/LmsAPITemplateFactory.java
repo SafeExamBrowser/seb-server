@@ -11,7 +11,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
-/** Abstract factory to create an LmsAPITemplate for specific LMS type */
+/** Abstract factory to create an LmsAPITemplate for specific LMS type.
+ * Since a LmsAPITemplate of a specific LMS type
+ * is whether a singleton component nor a simple prototype but one (singleton) instance
+ * can exist per defined LMSSetup, we need a specialized factory to build such
+ * a LmsAPITemplate for a specific LMSSetup. */
 public interface LmsAPITemplateFactory {
 
     /** Defines the LMS type if a specific implementation.
