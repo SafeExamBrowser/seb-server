@@ -168,8 +168,13 @@ public interface LmsAPIService {
                         quizzes.subList(start, end));
             }
 
+            final int mod = quizzes.size() % pageSize;
             return new Page<>(
-                    (quizzes.size() <= pageSize) ? 1 : quizzes.size() / pageSize + 1,
+                    (quizzes.size() <= pageSize)
+                            ? 1
+                            : (mod > 0)
+                                    ? quizzes.size() / pageSize + 1
+                                    : quizzes.size() / pageSize,
                     pageNumber,
                     sortAttribute,
                     quizzes.subList(start, end));
