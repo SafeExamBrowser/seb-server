@@ -46,6 +46,10 @@ public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
 
     /** Used to clear the entire cache */
     public void clearCache() {
+        final Object nativeCache = this.cache.getNativeCache();
+//        if (nativeCache instanceof Eh107Cache) {
+//
+//        }
         this.cache.clear();
     }
 
