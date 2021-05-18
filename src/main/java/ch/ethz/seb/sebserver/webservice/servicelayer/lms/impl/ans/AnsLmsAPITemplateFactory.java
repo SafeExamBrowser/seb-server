@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
+package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
@@ -24,20 +24,20 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
 @Lazy
 @Service
 @WebServiceProfile
-/** Factory for OlatLmsAPITemplate. Since a LmsAPITemplate of a specific LMS type
+/** Factory for AnsLmsAPITemplateFactory Since a LmsAPITemplate of a specific LMS type
  * is whether a singleton component nor a simple prototype but one (singleton) instance
  * can exist per defined LMSSetup, we need a specialized factory to build such
  * a LmsAPITemplate for a specific LMSSetup.
  * </p<
  * Add needed dependencies as final fields and let them inject within the constructor
- * as usual. Just add the additionally needed dependencies used to build a OlatLmsAPITemplate. */
-public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
+ * as usual. Just add the additionally needed dependencies used to build a AnsLmsAPITemplateFactory */
+public class AnsLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
     private final AsyncService asyncService;
     private final Environment environment;
     private final CacheManager cacheManager;
 
-    public OlatLmsAPITemplateFactory(
+    public AnsLmsAPITemplateFactory(
             final AsyncService asyncService,
             final Environment environment,
             final CacheManager cacheManager) {
@@ -49,13 +49,13 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
     @Override
     public LmsType lmsType() {
-        return LmsType.OPEN_OLAT;
+        return LmsType.ANS_DELFT;
     }
 
     @Override
     public Result<LmsAPITemplate> create(final APITemplateDataSupplier apiTemplateDataSupplier) {
         return Result.tryCatch(() -> {
-            return new OlatLmsAPITemplate(
+            return new AnsLmsAPITemplate(
                     apiTemplateDataSupplier,
                     this.asyncService,
                     this.environment,

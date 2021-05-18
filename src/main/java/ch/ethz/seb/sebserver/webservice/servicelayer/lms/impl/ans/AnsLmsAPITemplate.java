@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
+package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,13 +42,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
 
-public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements LmsAPITemplate {
+public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements LmsAPITemplate {
 
     // TODO add needed dependencies here
     private final APITemplateDataSupplier apiTemplateDataSupplier;
     private final Long lmsSetupId;
 
-    protected OlatLmsAPITemplate(
+    protected AnsLmsAPITemplate(
             // TODO if you need more dependencies inject them here and set the reference
             final APITemplateDataSupplier apiTemplateDataSupplier,
             final AsyncService asyncService,
@@ -63,7 +63,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     @Override
     public LmsType getType() {
-        return LmsType.OPEN_OLAT;
+        return LmsType.ANS_DELFT;
     }
 
     @Override
@@ -86,7 +86,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         // TODO check if the course API of the remote LMS is available
         // if not, create corresponding LmsSetupTestResult error
 
-        return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
+        return LmsSetupTestResult.ofOkay(LmsType.ANS_DELFT);
     }
 
     @Override
@@ -96,14 +96,14 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             return testLmsSetupSettings;
         }
 
-        if (LmsType.OPEN_OLAT.features.contains(Features.SEB_RESTRICTION)) {
+        if (LmsType.ANS_DELFT.features.contains(Features.SEB_RESTRICTION)) {
 
             // TODO check if the course API of the remote LMS is available
             // if not, create corresponding LmsSetupTestResult error
 
         }
 
-        return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
+        return LmsSetupTestResult.ofOkay(LmsType.ANS_DELFT);
     }
 
     private LmsSetupTestResult testLmsSetupSettings() {
@@ -141,10 +141,10 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         }
 
         if (!missingAttrs.isEmpty()) {
-            return LmsSetupTestResult.ofMissingAttributes(LmsType.OPEN_OLAT, missingAttrs);
+            return LmsSetupTestResult.ofMissingAttributes(LmsType.ANS_DELFT, missingAttrs);
         }
 
-        return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
+        return LmsSetupTestResult.ofOkay(LmsType.ANS_DELFT);
     }
 
     @Override
