@@ -151,8 +151,8 @@ public class ExamSessionCacheService {
             unless = "#result == null")
     public ClientConnectionDataInternal getClientConnection(final String connectionToken) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Verify ClientConnection for running exam for caching by connectionToken: {}", connectionToken);
+        if (log.isTraceEnabled()) {
+            log.trace("Verify ClientConnection for running exam for caching by connectionToken: {}", connectionToken);
         }
 
         final ClientConnection clientConnection = getClientConnectionByToken(connectionToken);

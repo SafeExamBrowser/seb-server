@@ -207,7 +207,10 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             log.trace("Running exam request for exam {}", examId);
         }
 
-        updateExamCache(examId);
+        if (this.distributedSetup) {
+            updateExamCache(examId);
+        }
+
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
 
         if (this.examSessionCacheService.isRunning(exam)) {
@@ -230,10 +233,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public Result<Collection<Exam>> getRunningExamsForInstitution(final Long institutionId) {
-        // NOTE: we evict the exam from the cache (if present) to ensure user is seeing always the current state of the Exam
         return this.examDAO.allIdsOfInstitution(institutionId)
                 .map(col -> col.stream()
-                        .map(this.examSessionCacheService::evict)
                         .map(this::getRunningExam)
                         .filter(Result::hasValue)
                         .map(Result::get)
