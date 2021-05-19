@@ -63,7 +63,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
         /** The Ans Delft binding is on the way */
         ANS_DELFT(/* Features.COURSE_API , Features.SEB_RESTRICTION */),
         /** The OpenOLAT binding is on the way */
-        OPEN_OLAT(/* Features.COURSE_API , Features.SEB_RESTRICTION */);
+        OPEN_OLAT(Features.COURSE_API, Features.SEB_RESTRICTION);
 
         public final EnumSet<Features> features;
 

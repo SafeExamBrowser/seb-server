@@ -83,12 +83,15 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final LmsSetupTestResult testLmsSetupSettings = testLmsSetupSettings();
         if (testLmsSetupSettings.hasAnyError()) {
             return testLmsSetupSettings;
+        } else {
+
         }
 
         // TODO check if the course API of the remote LMS is available
         // if not, create corresponding LmsSetupTestResult error
+        return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.OPEN_OLAT, "TODO: implement LMS access check");
 
-        return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
+        //return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
     }
 
     @Override
@@ -196,8 +199,11 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final String quizName = filterMap.getString(QuizData.FILTER_ATTR_QUIZ_NAME);
         final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
 
-        // TODO get all course / quiz data from remote LMS that matches the filter criteria.
-        //      put loaded QuizData to the cache: super.putToCache(quizDataCollection);
+        // TODO Get all course / quiz data from remote LMS that matches the filter criteria.
+        //      If the LMS API uses paging, go through all pages using the filter criteria
+        //      and collect the course data.
+        //      Transform the data from courses / quizzes from LMS into QuizData objects
+        //      Put loaded QuizData objects to the cache: super.putToCache(quizDataCollection);
         //      before returning it.
 
         return () -> {
@@ -209,6 +215,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
 
         // TODO get all quiz / course data for specified identifiers from remote LMS
+        //      Transform the data from courses / quizzes from LMS into QuizData objects
         //      and put it to the cache: super.putToCache(quizDataCollection);
         //      before returning it.
 
