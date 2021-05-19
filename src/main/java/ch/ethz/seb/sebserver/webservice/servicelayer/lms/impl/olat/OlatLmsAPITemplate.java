@@ -212,14 +212,15 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final String quizName = filterMap.getString(QuizData.FILTER_ATTR_QUIZ_NAME);
         final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
 
-        // TODO Get all course / quiz data from remote LMS that matches the filter criteria.
-        //      If the LMS API uses paging, go through all pages using the filter criteria
-        //      and collect the course data.
-        //      Transform the data from courses / quizzes from LMS into QuizData objects
-        //      Put loaded QuizData objects to the cache: super.putToCache(quizDataCollection);
-        //      before returning it.
-
         return () -> {
+
+            // TODO Get all course / quiz data from remote LMS that matches the filter criteria.
+            //      If the LMS API uses paging, go through all pages using the filter criteria
+            //      and collect the course data.
+            //      Transform the data from courses / quizzes from LMS into QuizData objects
+            //      Put loaded QuizData objects to the cache: super.putToCache(quizDataCollection);
+            //      before returning it.
+
             throw new RuntimeException("TODO");
         };
     }
@@ -227,12 +228,13 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
 
-        // TODO get all quiz / course data for specified identifiers from remote LMS
-        //      Transform the data from courses / quizzes from LMS into QuizData objects
-        //      and put it to the cache: super.putToCache(quizDataCollection);
-        //      before returning it.
-
         return () -> {
+
+            // TODO get all quiz / course data for specified identifiers from remote LMS
+            //      Transform the data from courses / quizzes from LMS into QuizData objects
+            //      and put it to the cache: super.putToCache(quizDataCollection);
+            //      before returning it.
+
             throw new RuntimeException("TODO");
         };
     }
@@ -240,11 +242,12 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     protected Supplier<QuizData> quizSupplier(final String id) {
 
-        // TODO get the specified quiz / course data for specified identifier from remote LMS
-        //      and put it to the cache: super.putToCache(quizDataCollection);
-        //      before returning it.
-
         return () -> {
+
+            // TODO get the specified quiz / course data for specified identifier from remote LMS
+            //      and put it to the cache: super.putToCache(quizDataCollection);
+            //      before returning it.
+
             throw new RuntimeException("TODO");
         };
     }
@@ -252,10 +255,11 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId) {
 
-        // TODO get the examinee's account details by the given examineeSessionId from remote LMS.
-        //      Currently only the name is needed to display on monitoring view.
-
         return () -> {
+
+            // TODO get the examinee's account details by the given examineeSessionId from remote LMS.
+            //      Currently only the name is needed to display on monitoring view.
+
             throw new RuntimeException("TODO");
         };
     }
@@ -263,7 +267,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
         return () -> {
-            throw new UnsupportedOperationException("not available yet");
+            throw new UnsupportedOperationException("No Course Chapter available for OpenOLAT LMS");
         };
     }
 
@@ -272,10 +276,13 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
         final String quizId = exam.externalId;
 
-        // TODO get the SEB client restrictions that are currently set on the remote LMS for
-        //      the given quiz / course derived from the given exam
+        return Result.tryCatch(() -> {
 
-        return Result.ofRuntimeError("TODO");
+            // TODO get the SEB client restrictions that are currently set on the remote LMS for
+            //      the given quiz / course derived from the given exam
+
+            throw new RuntimeException("TODO");
+        });
     }
 
     @Override
@@ -283,11 +290,14 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             final String externalExamId,
             final SEBRestriction sebRestrictionData) {
 
-        // TODO apply the given sebRestrictionData settings as current SEB client restriction setting
-        //      to the remote LMS for the given quiz / course.
-        //      Mainly SEBRestriction.configKeys and SEBRestriction.browserExamKeys
+        return Result.tryCatch(() -> {
 
-        return Result.ofRuntimeError("TODO");
+            // TODO apply the given sebRestrictionData settings as current SEB client restriction setting
+            //      to the remote LMS for the given quiz / course.
+            //      Mainly SEBRestriction.configKeys and SEBRestriction.browserExamKeys
+
+            throw new RuntimeException("TODO");
+        });
     }
 
     @Override
@@ -295,10 +305,13 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
         final String quizId = exam.externalId;
 
-        // TODO Release respectively delete all SEB client restrictions for the given
-        //      course / quize on the remote LMS.
+        return Result.tryCatch(() -> {
 
-        return Result.ofRuntimeError("TODO");
+            // TODO Release respectively delete all SEB client restrictions for the given
+            //      course / quize on the remote LMS.
+
+            throw new RuntimeException("TODO");
+        });
     }
 
     // TODO: This is an example of how to create a RestTemplate for the service to access the LMS API
