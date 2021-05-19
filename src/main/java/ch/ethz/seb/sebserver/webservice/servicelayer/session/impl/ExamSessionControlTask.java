@@ -116,6 +116,7 @@ class ExamSessionControlTask implements DisposableBean {
         }
 
         this.sebClientConnectionService.updatePingEvents();
+        this.sebClientConnectionService.cleanupInstructions();
         this.examProcotringRoomService.updateProctoringCollectingRooms();
     }
 

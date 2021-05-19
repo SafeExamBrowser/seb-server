@@ -59,6 +59,14 @@ public interface ClientConnectionDAO extends
      * @return Result refer to the collection of connection tokens or to an error when happened */
     Result<Collection<String>> getActiveConnctionTokens(Long examId);
 
+    /** Get all inactive connection tokens from the set of given tokens.
+     * This is usually used for cleanup purposes to filter a bunch of connection tokens
+     * by activity. Inactive connections are in state CLOSED or DISABLED
+     *
+     * @param connectionTokens The set of connection tokens to filter
+     * @return Result refer to all inactive connection tokens from the given set */
+    Result<Collection<String>> getInactiveConnctionTokens(Set<String> connectionTokens);
+
     /** Get a collection of all client connections records that needs a room update
      * and that are in the status ACTIVE.
      * This also flags the involved connections for no update needed within the

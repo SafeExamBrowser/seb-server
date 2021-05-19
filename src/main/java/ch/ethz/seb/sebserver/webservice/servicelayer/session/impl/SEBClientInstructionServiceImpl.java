@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -16,6 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -26,6 +29,7 @@ import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -56,6 +60,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
     private final Map<String, SizedArrayNonBlockingQueue<ClientInstructionRecord>> instructions;
 
     private long lastRefresh = 0;
+    private long lastClean = 0;
 
     public SEBClientInstructionServiceImpl(
             final WebserviceInfo webserviceInfo,
@@ -154,22 +159,8 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
 
     @Override
     public String getInstructionJSON(final String connectionToken) {
-        refreshCache(connectionToken);
-        if (this.instructions.isEmpty()) {
-            return null;
-        }
 
-        if (!this.instructions.containsKey(connectionToken)) {
-            return null;
-        }
-
-        final SizedArrayNonBlockingQueue<ClientInstructionRecord> queue = this.instructions.get(connectionToken);
-        if (queue.isEmpty()) {
-            return null;
-        }
-
-        // Remove the head instruction from the queue
-        final ClientInstructionRecord clientInstruction = queue.poll();
+        final ClientInstructionRecord clientInstruction = getNextInstruction(connectionToken);
         if (clientInstruction == null) {
             return null;
         }
@@ -177,7 +168,10 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
         final boolean needsConfirm = BooleanUtils.toBoolean(clientInstruction.getNeedsConfirmation());
         if (needsConfirm) {
             // add the instruction back to the queue's tail if it need a confirmation
-            queue.add(clientInstruction);
+            final SizedArrayNonBlockingQueue<ClientInstructionRecord> queue = this.instructions.get(connectionToken);
+            if (queue != null) {
+                queue.add(clientInstruction);
+            }
 
         } else {
             // otherwise remove it also from the persistent storage
@@ -222,18 +216,16 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
     @Override
     public void confirmInstructionDone(final String connectionToken, final String instructionConfirm) {
         try {
+
             final SizedArrayNonBlockingQueue<ClientInstructionRecord> queue = this.instructions.get(connectionToken);
+            final Long instructionId = Long.valueOf(instructionConfirm);
+            this.clientInstructionDAO.delete(instructionId);
             if (queue.isEmpty()) {
                 return;
             }
 
-            final Long instructionId = Long.valueOf(instructionConfirm);
-            if (queue.removeIf(instruction -> instructionId.equals(instruction.getId()))) {
-                this.clientInstructionDAO.delete(instructionId);
-            } else {
-                log.warn("SEB instruction confirmation mismatch. No pending instruction found for id: {}",
-                        instructionConfirm);
-            }
+            queue.removeIf(instruction -> instructionId.equals(instruction.getId()));
+
         } catch (final Exception e) {
             log.error(
                     "Failed to remove SEB instruction after confirmation: connectionToken: {} instructionConfirm: {} connectionToken: {}",
@@ -243,11 +235,47 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
         }
     }
 
-    private void refreshCache(final String connectionToken) {
-        if (!this.webserviceInfo.isDistributed() && !this.instructions.isEmpty()) {
-            return;
+    @Override
+    public void cleanupInstructions() {
+        try {
+
+            final long millisNowMinusOneMinute = DateTime
+                    .now(DateTimeZone.UTC)
+                    .minusMinutes(1)
+                    .getMillis();
+
+            if (this.lastClean < millisNowMinusOneMinute) {
+
+                final Collection<EntityKey> deleted = this.clientInstructionDAO
+                        .deleteAllInactive(millisNowMinusOneMinute)
+                        .getOrThrow();
+
+                if (!deleted.isEmpty()) {
+                    log.info("Deleted out-dated instructions from persistent storage: {}", deleted);
+                }
+
+                cleanupCache();
+
+                this.lastClean = System.currentTimeMillis();
+            }
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to cleanup instructions in persistent storage", e);
+        }
+    }
+
+    private ClientInstructionRecord getNextInstruction(final String connectionToken) {
+        // if we still have instruction for given connectionToken, process them first
+        final long activeTime = DateTime.now(DateTimeZone.UTC).minusMinutes(1).getMillis();
+        final SizedArrayNonBlockingQueue<ClientInstructionRecord> queue = this.instructions.computeIfAbsent(
+                connectionToken,
+                key -> new SizedArrayNonBlockingQueue<>(INSTRUCTION_QUEUE_MAX_SIZE));
+        final ClientInstructionRecord nextActive = getNextActive(activeTime, queue);
+        if (nextActive != null) {
+            return nextActive;
         }
 
+        // Since the queue is empty check periodically if there are active instructions on the persistent storage
         final long currentTimeMillis = System.currentTimeMillis();
         if (currentTimeMillis - this.lastRefresh > Constants.SECOND_IN_MILLIS) {
             this.lastRefresh = currentTimeMillis;
@@ -255,6 +283,41 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
                     .onError(error -> log.error(
                             "Failed load instructions from persistent storage and to refresh cache: ",
                             error));
+
+            if (!queue.isEmpty()) {
+                return getNextInstruction(connectionToken);
+            }
+        }
+
+        return null;
+    }
+
+    private void cleanupCache() {
+        // check if there are still queues in the cache, whether they are empty or not,
+        // for closed or disposed client connections and remove them from cache
+        synchronized (this.instructions) {
+            final Result<Collection<String>> result = this.clientConnectionDAO
+                    .getInactiveConnctionTokens(this.instructions.keySet());
+            if (result.hasValue()) {
+                result.get().stream().forEach(token -> this.instructions.remove(token));
+            }
+        }
+    }
+
+    // Go recursively through the given queue to find the next active instruction
+    private ClientInstructionRecord getNextActive(
+            final long activeTime,
+            final SizedArrayNonBlockingQueue<ClientInstructionRecord> queue) {
+
+        if (queue != null && !queue.isEmpty()) {
+            final ClientInstructionRecord rec = queue.poll();
+            if (rec.getTimestamp().longValue() < activeTime) {
+                return getNextActive(activeTime, queue);
+            } else {
+                return rec;
+            }
+        } else {
+            return null;
         }
     }
 

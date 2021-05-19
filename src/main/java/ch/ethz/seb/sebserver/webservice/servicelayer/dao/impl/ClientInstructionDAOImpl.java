@@ -9,7 +9,10 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -23,7 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -65,6 +70,7 @@ public class ClientInstructionDAOImpl implements ClientInstructionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<Collection<ClientInstructionRecord>> getAllActive(final String connectionToken) {
         return Result.tryCatch(() -> {
             final long millisNowMinusOneMinute = DateTime.now(DateTimeZone.UTC).minusMinutes(1).getMillis();
@@ -77,6 +83,37 @@ public class ClientInstructionDAOImpl implements ClientInstructionDAO {
                             SqlBuilder.isEqualTo(connectionToken))
                     .build()
                     .execute();
+        });
+    }
+
+    @Override
+    @Transactional
+    public Result<Collection<EntityKey>> deleteAllInactive(final long timestamp) {
+        return Result.tryCatch(() -> {
+
+            final List<ClientInstructionRecord> inactive = this.clientInstructionRecordMapper
+                    .selectByExample()
+                    .where(ClientInstructionRecordDynamicSqlSupport.timestamp,
+                            SqlBuilder.isLessThanOrEqualTo(timestamp))
+                    .build()
+                    .execute();
+
+            if (inactive != null && !inactive.isEmpty()) {
+
+                this.clientInstructionRecordMapper
+                        .deleteByExample()
+                        .where(ClientInstructionRecordDynamicSqlSupport.timestamp,
+                                SqlBuilder.isLessThanOrEqualTo(timestamp))
+                        .build()
+                        .execute();
+
+                return inactive.stream()
+                        .map(r -> new EntityKey(r.getId(), EntityType.CLIENT_INSTRUCTION))
+                        .collect(Collectors.toList());
+
+            }
+
+            return Collections.emptyList();
         });
     }
 

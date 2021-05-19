@@ -105,4 +105,7 @@ public interface SEBClientInstructionService {
      * @param instructionConfirm the instruction confirm identifier */
     void confirmInstructionDone(String connectionToken, String instructionConfirm);
 
+    /** Used to cleanup out-dated instructions on the persistent storage */
+    void cleanupInstructions();
+
 }

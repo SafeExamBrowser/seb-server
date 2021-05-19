@@ -129,6 +129,9 @@ public interface SEBClientConnectionService {
      * overflowed ping is back to normal, a ping back to normal event. */
     void updatePingEvents();
 
+    /** Used to cleanup old instructions from the persistent storage */
+    void cleanupInstructions();
+
     /** Notify a ping for a certain client connection.
      *
      * @param connectionToken the connection token

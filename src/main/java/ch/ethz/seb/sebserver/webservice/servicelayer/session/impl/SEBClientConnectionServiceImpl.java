@@ -547,6 +547,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     }
 
     @Override
+    public void cleanupInstructions() {
+        this.sebInstructionService.cleanupInstructions();
+    }
+
+    @Override
     public String notifyPing(
             final String connectionToken,
             final long timestamp,

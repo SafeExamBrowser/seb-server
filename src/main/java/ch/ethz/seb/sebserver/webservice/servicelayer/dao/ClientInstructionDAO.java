@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientInstructionRecord;
@@ -43,6 +44,14 @@ public interface ClientInstructionDAO {
      * @param connectionToken the connection token
      * @return Collection of all active instructions for specified connection token */
     Result<Collection<ClientInstructionRecord>> getAllActive(String connectionToken);
+
+    /** Deletes all old instructions form the persistent storage to clean-up.
+     * Old in this case means the timestamp is older then one minute or a configured time interval
+     *
+     * @param timestamp the time-stamp (milliseconds) of the time in the past from that earlier instructions are
+     *            considered inactive
+     * @return Result collection of keys of deleted entities or refer to an error when happened */
+    Result<Collection<EntityKey>> deleteAllInactive(long timestamp);
 
     /** Deletes the specified instruction form the data base
      *

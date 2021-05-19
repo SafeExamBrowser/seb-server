@@ -138,7 +138,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             return Result.ofRuntimeError("Null or empty set reference");
         }
         return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()
-                .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                .where(ClientConnectionRecordDynamicSqlSupport.id, SqlBuilder.isIn(new ArrayList<>(pks)))
                 .build()
                 .execute()
                 .stream()
@@ -221,10 +221,37 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<String>> getInactiveConnctionTokens(final Set<String> connectionTokens) {
+        return Result.tryCatch(() -> {
+            if (connectionTokens == null || connectionTokens.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return this.clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.connectionToken,
+                            SqlBuilder.isIn(new ArrayList<>(connectionTokens)))
+                    .and(ClientConnectionRecordDynamicSqlSupport.status, isNotEqualTo(ConnectionStatus.ACTIVE.name()))
+                    .and(
+                            ClientConnectionRecordDynamicSqlSupport.status,
+                            isNotEqualTo(ConnectionStatus.AUTHENTICATED.name()))
+                    .and(ClientConnectionRecordDynamicSqlSupport.status,
+                            isNotEqualTo(ConnectionStatus.CONNECTION_REQUESTED.name()))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(r -> r.getConnectionToken())
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
     @Transactional
     public Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateInactive() {
         return Result.tryCatch(() -> {
-            final Collection<ClientConnectionRecord> records = this.clientConnectionRecordMapper.selectByExample()
+            final Collection<ClientConnectionRecord> records = this.clientConnectionRecordMapper
+                    .selectByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate, isNotEqualTo(0))
                     .and(ClientConnectionRecordDynamicSqlSupport.status, isNotEqualTo(ConnectionStatus.ACTIVE.name()))
                     .build()
