@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -20,10 +21,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.cache.CacheManager;
 import org.springframework.core.env.Environment;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
+import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -45,6 +52,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCour
 public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements LmsAPITemplate {
 
     // TODO add needed dependencies here
+    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
+    private final ClientCredentialService clientCredentialService;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
     private final Long lmsSetupId;
 
@@ -52,6 +61,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
             // TODO if you need more dependencies inject them here and set the reference
 
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
+            final ClientCredentialService clientCredentialService,
             final APITemplateDataSupplier apiTemplateDataSupplier,
             final AsyncService asyncService,
             final Environment environment,
@@ -59,6 +70,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
         super(asyncService, environment, cacheManager);
 
+        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
+        this.clientCredentialService = clientCredentialService;
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
         this.lmsSetupId = apiTemplateDataSupplier.getLmsSetup().id;
     }
@@ -286,6 +299,36 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         //      course / quize on the remote LMS.
 
         return Result.ofRuntimeError("TODO");
+    }
+
+    // TODO: This is an example of how to create a RestTemplate for the service to access the LMS API
+    //       The example deals with a Http based API that is secured by an OAuth2 client-credential flow.
+    //       You might need some different template, then you have to adapt this code
+    //       To your needs.
+    private OAuth2RestTemplate createRestTemplate(final String accessTokenRequestPath) throws URISyntaxException {
+
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
+        final ProxyData proxyData = this.apiTemplateDataSupplier.getProxyData();
+
+        final CharSequence plainClientId = credentials.clientId;
+        final CharSequence plainClientSecret = this.clientCredentialService
+                .getPlainClientSecret(credentials)
+                .getOrThrow();
+
+        final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
+        details.setAccessTokenUri(lmsSetup.lmsApiUrl + accessTokenRequestPath);
+        details.setClientId(plainClientId.toString());
+        details.setClientSecret(plainClientSecret.toString());
+
+        final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                .getClientHttpRequestFactory(proxyData)
+                .getOrThrow();
+
+        final OAuth2RestTemplate template = new OAuth2RestTemplate(details);
+        template.setRequestFactory(clientHttpRequestFactory);
+
+        return template;
     }
 
 }
