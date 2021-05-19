@@ -42,6 +42,8 @@
     
     const meetAPI = new JitsiMeetExternalAPI('%%_ATTR_HOST_%%', options);
     meetAPI.executeCommand('subject', '%%_ATTR_SUBJECT_%%');
-    
+    meetAPI.on('videoConferenceJoined', (event) => {
+        meetAPI.executeCommand('setLargeVideoParticipant', event.id);
+    });
 </script>
 </html>
