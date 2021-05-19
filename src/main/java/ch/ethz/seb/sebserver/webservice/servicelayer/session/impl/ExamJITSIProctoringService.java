@@ -321,7 +321,8 @@ public class ExamJITSIProctoringService implements ExamProctoringService {
 
         long expTime = System.currentTimeMillis() + Constants.DAY_IN_MILLIS;
         if (this.examSessionService.isExamRunning(examProctoring.examId)) {
-            final Exam exam = this.examSessionService.getRunningExam(examProctoring.examId)
+            final Exam exam = this.examSessionService
+                    .getRunningExam(examProctoring.examId)
                     .getOrThrow();
             if (exam.endTime != null) {
                 expTime = exam.endTime.getMillis();

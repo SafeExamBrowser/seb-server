@@ -227,7 +227,10 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             log.trace("Running exam request for exam {}", examId);
         }
 
-        updateExamCache(examId);
+        if (this.distributedSetup) {
+            updateExamCache(examId);
+        }
+
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
 
         if (this.examSessionCacheService.isRunning(exam)) {
