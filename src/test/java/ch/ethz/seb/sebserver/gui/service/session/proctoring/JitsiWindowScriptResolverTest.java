@@ -109,7 +109,9 @@ public class JitsiWindowScriptResolverTest {
                         + "    \r\n"
                         + "    const meetAPI = new JitsiMeetExternalAPI('HOST', options);\r\n"
                         + "    meetAPI.executeCommand('subject', 'SUBJECT');\r\n"
-                        + "    \r\n"
+                        + "    meetAPI.on('videoConferenceJoined', (event) => {\r\n"
+                        + "        meetAPI.executeCommand('setLargeVideoParticipant', event.id);\r\n"
+                        + "    });\r\n"
                         + "</script>\r\n"
                         + "</html>",
                 proctoringWindowScript);
