@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -318,7 +317,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     //       The example deals with a Http based API that is secured by an OAuth2 client-credential flow.
     //       You might need some different template, then you have to adapt this code
     //       To your needs.
-    private OAuth2RestTemplate createRestTemplate(final String accessTokenRequestPath) throws URISyntaxException {
+    private OAuth2RestTemplate createRestTemplate(final String accessTokenRequestPath) {
 
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
