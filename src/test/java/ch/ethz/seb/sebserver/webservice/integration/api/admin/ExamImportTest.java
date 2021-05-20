@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
+// NOTE this test seems sometimes not to work (maybe a ordering problem)
 public class ExamImportTest extends AdministrationAPIIntegrationTester {
 
     @Autowired
