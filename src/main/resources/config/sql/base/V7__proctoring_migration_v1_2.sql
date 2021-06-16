@@ -37,7 +37,7 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (1533, 'zoomSendVideo', 'CHECKBOX', null, null, null, null, 'true')
     ;
 
-SET @proct_view_id = (SELECT id FROM view WHERE name='proctoring' AND template_id=0);
+SET @proct_view_id = (SELECT id FROM view WHERE name='proctoring' AND template_id=0 LIMIT 1);
 
 INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
     (1500, 0,  @proct_view_id, '[proctoring|Zoom]', 6, 1, 6, 1, 'NONE'),
