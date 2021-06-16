@@ -86,8 +86,6 @@ public class ZoomProctoringService implements ExamProctoringService {
             "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
     private static final String ZOOM_API_ACCESS_TOKEN_PAYLOAD =
             "{\"iss\":\"%s\",\"exp\":%s}";
-//    private static final String ZOOM_MEETING_ACCESS_TOKEN_PAYLOAD =
-//            "{\"app_key\":\"%s\",\"iat\":%s,\"exp\":%s,\"tpc\":\"%s\",\"pwd\":\"%s\"}";
 
     private static final Map<String, String> SEB_API_NAME_INSTRUCTION_NAME_MAPPING = Utils.immutableMapOf(Arrays.asList(
             new Tuple<>(
@@ -577,40 +575,6 @@ public class ZoomProctoringService implements ExamProctoringService {
 
             return encodedString.replaceAll("\\=+$", "");
 
-//            final long iat = Utils.getMillisecondsNow() / 1000;
-//            final long exp = iat + 7200;
-//
-//            final CharSequence decryptedSecret = this.cryptor.decrypt(credentials.secret);
-//            final CharSequence decryptedMeetingPWD = this.cryptor.decrypt(credentials.secret);
-//            final StringBuilder builder = new StringBuilder();
-//            final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
-//
-//            final String jwtHeaderPart = urlEncoder.encodeToString(
-//                    ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
-//            final String jwtPayload = String.format(
-//                    ZOOM_MEETING_ACCESS_TOKEN_PAYLOAD.replaceAll(" ", "").replaceAll("\n", ""),
-//                    credentials.clientIdAsString(),
-//                    iat,
-//                    exp,
-//                    subject,
-//                    decryptedMeetingPWD);
-//            final String jwtPayloadPart = urlEncoder.encodeToString(
-//                    jwtPayload.getBytes(StandardCharsets.UTF_8));
-//            final String message = jwtHeaderPart + "." + jwtPayloadPart;
-//
-//            final Mac sha256_HMAC = Mac.getInstance(TOKEN_ENCODE_ALG);
-//            final SecretKeySpec secret_key = new SecretKeySpec(
-//                    Utils.toByteArray(decryptedSecret),
-//                    TOKEN_ENCODE_ALG);
-//            sha256_HMAC.init(secret_key);
-//            final String hash = urlEncoder.encodeToString(
-//                    sha256_HMAC.doFinal(Utils.toByteArray(message)));
-//
-//            builder.append(message)
-//                    .append(".")
-//                    .append(hash);
-//
-//            return builder.toString();
         } catch (final Exception e) {
             throw new RuntimeException("Failed to create JWT for Zoom meeting access: ", e);
         }
