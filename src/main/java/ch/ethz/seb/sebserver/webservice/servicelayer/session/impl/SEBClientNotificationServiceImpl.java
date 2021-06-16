@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
@@ -43,6 +45,9 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     private final ClientEventDAO clientEventDAO;
     private final SEBClientInstructionService sebClientInstructionService;
     private final Set<Long> pendingNotifications = new HashSet<>();
+    private final Set<Long> examUpdate = new HashSet<>();
+
+    private long lastUpdate = 0;
 
     public SEBClientNotificationServiceImpl(
             final ClientEventDAO clientEventDAO,
@@ -53,26 +58,9 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     }
 
     @Override
-    public Boolean hasAnyPendingNotification(final Long clientConnectionId) {
-
-        if (this.pendingNotifications.add(clientConnectionId)) {
-            return true;
-        }
-
-        final boolean hasAnyPendingNotification = !getPendingNotifications(clientConnectionId)
-                .getOr(Collections.emptyList())
-                .isEmpty();
-
-        if (hasAnyPendingNotification) {
-            // NOTE this is a quick and dirty way to keep cache pendingNotifications cache size short.
-            // TODO find a better way to do this.
-            if (this.pendingNotifications.size() > 100) {
-                this.pendingNotifications.clear();
-            }
-            this.pendingNotifications.add(clientConnectionId);
-        }
-
-        return hasAnyPendingNotification;
+    public Boolean hasAnyPendingNotification(final ClientConnection clientConnection) {
+        updateCache(clientConnection.examId);
+        return this.pendingNotifications.contains(clientConnection.id);
     }
 
     @Override
@@ -140,6 +128,22 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     private ClientNotification removeFromCache(final ClientNotification notification) {
         this.pendingNotifications.remove(notification.connectionId);
         return notification;
+    }
+
+    private final void updateCache(final Long examId) {
+        if (System.currentTimeMillis() - this.lastUpdate > 5 * Constants.SECOND_IN_MILLIS) {
+            this.examUpdate.clear();
+            this.pendingNotifications.clear();
+            this.lastUpdate = System.currentTimeMillis();
+        }
+
+        if (!this.examUpdate.contains(examId)) {
+            this.pendingNotifications.addAll(
+                    this.clientEventDAO
+                            .getClientConnectionIdsWithPendingNotification(examId)
+                            .getOr(Collections.emptySet()));
+            this.examUpdate.add(examId);
+        }
     }
 
 }

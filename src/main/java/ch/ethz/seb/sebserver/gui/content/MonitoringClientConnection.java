@@ -254,7 +254,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                             .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_CONFIRM_NOTIFICATION)
                             .withParentEntityKey(parentEntityKey)
                             .withConfirm(() -> NOTIFICATION_LIST_CONFIRM_TEXT_KEY)
-                            .withExec(action -> this.confirmNotification(action, connectionData))
+                            .withExec(action -> this.confirmNotification(action, connectionData, t))
                             .noEventPropagation()
                             .create())
                     .withSelectionListener(this.pageService.getSelectionPublisher(
@@ -268,8 +268,10 @@ public class MonitoringClientConnection implements TemplateComposer {
                     .withConfirm(() -> NOTIFICATION_LIST_CONFIRM_TEXT_KEY)
                     .withSelect(
                             () -> notificationTable.getSelection(),
-                            action -> this.confirmNotification(action, connectionData),
+                            action -> this.confirmNotification(action, connectionData, notificationTable),
+
                             NOTIFICATION_LIST_NO_SELECTION_KEY)
+                    .noEventPropagation()
 
                     .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER), false);
 
@@ -413,9 +415,10 @@ public class MonitoringClientConnection implements TemplateComposer {
 
     private PageAction confirmNotification(
             final PageAction pageAction,
-            final ClientConnectionData connectionData) {
+            final ClientConnectionData connectionData,
+            final EntityTable<ClientNotification> table) {
 
-        final EntityKey entityKey = pageAction.getSingleSelection();
+        final EntityKey entityKey = table.getSingleSelection();
         final EntityKey parentEntityKey = pageAction.getParentEntityKey();
 
         this.pageService.getRestService()
@@ -426,13 +429,8 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .call()
                 .getOrThrow();
 
-        return pageAction
-                .withEntityKey(
-                        new EntityKey(connectionData.getConnectionId(),
-                                EntityType.CLIENT_CONNECTION))
-                .withAttribute(
-                        Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
-                        connectionData.clientConnection.connectionToken);
+        table.reset();
+        return pageAction;
     }
 
     private PageAction openExamCollectionProctorScreen(

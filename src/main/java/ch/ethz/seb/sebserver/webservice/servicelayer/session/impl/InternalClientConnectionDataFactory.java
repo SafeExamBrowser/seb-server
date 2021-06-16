@@ -47,7 +47,7 @@ public class InternalClientConnectionDataFactory {
         return new ClientConnectionDataInternal(
                 clientConnection,
                 () -> this.sebClientNotificationService
-                        .hasAnyPendingNotification(clientConnection.id),
+                        .hasAnyPendingNotification(clientConnection),
                 this.clientIndicatorFactory.createFor(clientConnection));
     }
 
