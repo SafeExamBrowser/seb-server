@@ -219,7 +219,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                 proctoringConnection.serverURL);
         attributes.put(
                 ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_ROOM,
-                proctoringConnection.roomName);
+                proctoringConnection.meetingId);
         attributes.put(
                 ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_TOKEN,
                 String.valueOf(proctoringConnection.accessToken));
