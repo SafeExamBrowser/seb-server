@@ -52,10 +52,14 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
         this.sebClientInstructionService = sebClientInstructionService;
     }
 
+    // TODO find a better (faster) way to update pending notifications
+    // get them all at certain interval with background update for example
+    // or update them all on every monitoring call
+
     @Override
     public Boolean hasAnyPendingNotification(final Long clientConnectionId) {
 
-        if (this.pendingNotifications.add(clientConnectionId)) {
+        if (this.pendingNotifications.contains(clientConnectionId)) {
             return true;
         }
 
