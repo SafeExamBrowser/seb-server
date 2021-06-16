@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
@@ -210,6 +211,31 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                 .map(ClientEventDAOImpl::toClientNotificationModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Set<Long>> getClientConnectionIdsWithPendingNotification(final Long examId) {
+        return Result.tryCatch(() -> this.clientEventRecordMapper
+                .selectByExample()
+                .leftJoin(ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                .on(
+                        ClientConnectionRecordDynamicSqlSupport.id,
+                        equalTo(ClientEventRecordDynamicSqlSupport.clientConnectionId))
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        isEqualToWhenPresent(examId))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        isEqualTo(ConnectionStatus.ACTIVE.name()))
+                .and(
+                        ClientEventRecordDynamicSqlSupport.type,
+                        isEqualTo(EventType.NOTIFICATION.id))
+                .build()
+                .execute()
+                .stream()
+                .map(ClientEventRecord::getClientConnectionId)
+                .collect(Collectors.toSet()));
     }
 
     @Override

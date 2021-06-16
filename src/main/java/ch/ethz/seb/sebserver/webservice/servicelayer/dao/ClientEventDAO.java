@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -28,10 +29,29 @@ public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
             FilterMap filterMap,
             Predicate<ExtendedClientEvent> predicate);
 
+    /** Get a specified notification by id (PK)
+     *
+     * @param notificationId The PK of the notification
+     * @return Result refer to the specified ClientNotification or to an error when happened */
     Result<ClientNotification> getPendingNotification(Long notificationId);
 
+    /** Get all pending notifications for a given client connection.
+     *
+     * @param clientConnectionId The client connection identifier
+     * @return Result refer to the list of pending notifications or to an error when happened */
     Result<List<ClientNotification>> getPendingNotifications(Long clientConnectionId);
 
+    /** Get all identifiers (PKs) of client connections of a given exam that has any pending notification
+     *
+     * @param examId the exam identifier
+     * @return Result refer to a set of identifiers of client connections or to an error when happened */
+    Result<Set<Long>> getClientConnectionIdsWithPendingNotification(Long examId);
+
+    /** Used to confirm a pending notification so that the notification is not pending anymore
+     *
+     * @param notificationId the notification identifier
+     * @param clientConnectionId the client connection identifier
+     * @return Result refer to the confirmed notification or to en error when happened */
     Result<ClientNotification> confirmPendingNotification(Long notificationId, Long clientConnectionId);
 
 }
