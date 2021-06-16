@@ -51,7 +51,7 @@ public class ExamImportTest extends AdministrationAPIIntegrationTester {
         final LmsSetup lmsSetup1 = QuizDataTest.createLmsSetupMock(
                 this,
                 getSebAdminAccess(),
-                "new LmsSetup 2",
+                "new LmsSetup 100",
                 true);
 
         // import Exam from quiz1
