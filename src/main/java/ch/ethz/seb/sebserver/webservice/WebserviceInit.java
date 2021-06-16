@@ -37,6 +37,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     private final AdminUserInitializer adminUserInitializer;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final WebserviceInfoDAO webserviceInfoDAO;
+    private final DBIntegrityChecker dbIntegrityChecker;
 
     protected WebserviceInit(
             final SEBServerInit sebServerInit,
@@ -44,7 +45,8 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
             final WebserviceInfo webserviceInfo,
             final AdminUserInitializer adminUserInitializer,
             final ApplicationEventPublisher applicationEventPublisher,
-            final WebserviceInfoDAO webserviceInfoDAO) {
+            final WebserviceInfoDAO webserviceInfoDAO,
+            final DBIntegrityChecker dbIntegrityChecker) {
 
         this.sebServerInit = sebServerInit;
         this.environment = environment;
@@ -52,6 +54,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         this.adminUserInitializer = adminUserInitializer;
         this.applicationEventPublisher = applicationEventPublisher;
         this.webserviceInfoDAO = webserviceInfoDAO;
+        this.dbIntegrityChecker = dbIntegrityChecker;
     }
 
     @Override
@@ -107,6 +110,9 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> HTTP Scheme {}", this.webserviceInfo.getHttpScheme());
         SEBServerInit.INIT_LOGGER.info("---->");
         SEBServerInit.INIT_LOGGER.info("----> Property Override Test: {}", this.webserviceInfo.getTestProperty());
+
+        // Run the data base integrity checks and fixes if configured
+        this.dbIntegrityChecker.checkIntegrity();
 
         // Create an initial admin account if requested and not already in the data-base
         this.adminUserInitializer.initAdminAccount();

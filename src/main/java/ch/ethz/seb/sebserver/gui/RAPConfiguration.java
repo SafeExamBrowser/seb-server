@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.application.AbstractEntryPoint;
 import org.eclipse.rap.rwt.application.Application;
@@ -33,6 +35,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.xeustechnologies.jcl.JarClassLoader;
+
+//import com.eclipsesource.rap.aria.Aria;
 
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
@@ -72,6 +77,7 @@ public class RAPConfiguration implements ApplicationConfiguration {
 
             application.addEntryPoint(guiEntrypoint, new RAPSpringEntryPointFactory(), properties);
             application.addEntryPoint(proctoringEntrypoint, new RAPRemoteProcotringEntryPointFactory(), properties);
+
         } catch (final RuntimeException re) {
             throw re;
         } catch (final Exception e) {
@@ -99,6 +105,7 @@ public class RAPConfiguration implements ApplicationConfiguration {
 
                 @Override
                 protected void createContents(final Composite parent) {
+
                     final HttpSession httpSession = RWT
                             .getUISession(parent.getDisplay())
                             .getHttpSession();
@@ -120,6 +127,7 @@ public class RAPConfiguration implements ApplicationConfiguration {
 
     public static final class RAPSpringEntryPointFactory implements EntryPointFactory {
 
+        private final JarClassLoader jcl = new JarClassLoader();
         private boolean initialized = false;
 
         @Override
@@ -154,6 +162,28 @@ public class RAPConfiguration implements ApplicationConfiguration {
                     final WebApplicationContext webApplicationContext = getWebApplicationContext(httpSession);
                     initSpringBasedRAPServices(webApplicationContext);
 
+                    final String ariaPluginPath = ariaPluginPath(webApplicationContext);
+                    if (StringUtils.isNotBlank(ariaPluginPath)) {
+
+                        log.debug("Try to initialize com.eclipsesource.rap.aria.Aria plugin...");
+
+                        try {
+
+                            final Class<?> forName = Class.forName(
+                                    "com.eclipsesource.rap.aria.Aria",
+                                    false,
+                                    RAPSpringEntryPointFactory.this.jcl);
+
+                            final Method method = forName.getMethod("activate");
+                            method.invoke(null);
+
+                            log.info("Initialization of com.eclipsesource.rap.aria.Aria plugin was successful");
+
+                        } catch (final Exception e) {
+                            log.error("Failed to initialize com.eclipsesource.rap.aria.Aria plugin: ", e);
+                        }
+                    }
+
                     final EntryPointService entryPointService = webApplicationContext
                             .getBean(EntryPointService.class);
 
@@ -172,11 +202,24 @@ public class RAPConfiguration implements ApplicationConfiguration {
                     final ServiceManager manager = RWT.getServiceManager();
                     final DownloadService downloadService = webApplicationContext.getBean(DownloadService.class);
                     manager.registerServiceHandler(DownloadService.DOWNLOAD_SERVICE_NAME, downloadService);
+
+                    final String ariaPluginPath = ariaPluginPath(webApplicationContext);
+                    if (StringUtils.isNotBlank(ariaPluginPath)) {
+                        this.jcl.add(ariaPluginPath);
+                    }
+
                     this.initialized = true;
                 } catch (final IllegalArgumentException iae) {
                     log.warn("Failed to register DownloadService on ServiceManager. Already registered: ", iae);
                 }
             }
+        }
+
+        private String ariaPluginPath(final WebApplicationContext webApplicationContext) {
+            return webApplicationContext
+                    .getEnvironment()
+                    .getProperty("sebserver.gui.external.lib.aria.plugin.path", "");
+
         }
     }
 
