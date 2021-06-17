@@ -50,16 +50,15 @@ public class BrowserViewModeRule implements ValueChangeRule {
         }
 
         try {
-            context.enable(KEY_TOUCH_EXIT);
-            context.enableGroup(KEY_MAIN_WINDOW_GROUP);
-
             if (KEY_TOUCH_OPTIMIZED.equals(attribute.name)) {
                 if (BooleanUtils.toBoolean(value.value)) {
+                    context.setValue(KEY_BROWSER_VIEW_MODE, "2");
+                    context.enable(KEY_TOUCH_EXIT);
                     context.disableGroup(KEY_MAIN_WINDOW_GROUP);
-                    context.setValue(
-                            KEY_BROWSER_VIEW_MODE,
-                            context.getAttributeByName(KEY_BROWSER_VIEW_MODE).defaultValue);
                 } else {
+                    if (context.getValue(KEY_BROWSER_VIEW_MODE) == null) {
+                        context.setValue(KEY_BROWSER_VIEW_MODE, "0");
+                    }
                     context.setValue(KEY_TOUCH_EXIT, Constants.FALSE_STRING);
                     context.disable(KEY_TOUCH_EXIT);
                 }
@@ -69,31 +68,29 @@ public class BrowserViewModeRule implements ValueChangeRule {
 
             if (KEY_BROWSER_VIEW_MODE.equals(attribute.name)) {
                 switch (Integer.parseInt(value.value)) {
-                    case 1: {
+                    case 0: {
+                        if (!context.getValue(KEY_TOUCH_OPTIMIZED).equals(Constants.FALSE_STRING)) {
+                            context.setValue(KEY_TOUCH_OPTIMIZED, Constants.FALSE_STRING);
+                        }
                         context.disable(KEY_TOUCH_EXIT);
-                        context.disableGroup(KEY_MAIN_WINDOW_GROUP);
-                        context.setValue(
-                                KEY_TOUCH_OPTIMIZED,
-                                context.getAttributeByName(KEY_TOUCH_OPTIMIZED).defaultValue);
+                        context.enableGroup(KEY_MAIN_WINDOW_GROUP);
                         break;
                     }
-                    case 2: {
+                    case 1: {
+                        if (!context.getValue(KEY_TOUCH_OPTIMIZED).equals(Constants.FALSE_STRING)) {
+                            context.setValue(KEY_TOUCH_OPTIMIZED, Constants.FALSE_STRING);
+                        }
+                        context.disable(KEY_TOUCH_EXIT);
                         context.disableGroup(KEY_MAIN_WINDOW_GROUP);
                         break;
                     }
                     default: {
-                        context.disable(KEY_TOUCH_EXIT);
-                        context.setValue(
-                                KEY_TOUCH_OPTIMIZED,
-                                context.getAttributeByName(KEY_TOUCH_OPTIMIZED).defaultValue);
-                        break;
                     }
                 }
             }
         } catch (final Exception e) {
             log.warn("Failed to apply rule: ", e);
         }
-
     }
 
 }
