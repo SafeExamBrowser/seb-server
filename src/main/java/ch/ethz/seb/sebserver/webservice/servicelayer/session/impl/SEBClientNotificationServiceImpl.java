@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
@@ -59,6 +60,9 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
 
     @Override
     public Boolean hasAnyPendingNotification(final ClientConnection clientConnection) {
+        if (clientConnection.status != ConnectionStatus.ACTIVE) {
+            return false;
+        }
         updateCache(clientConnection.examId);
         return this.pendingNotifications.contains(clientConnection.id);
     }

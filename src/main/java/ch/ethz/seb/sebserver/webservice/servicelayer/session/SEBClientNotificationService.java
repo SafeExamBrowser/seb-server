@@ -22,15 +22,32 @@ public interface SEBClientNotificationService {
 
     /** Indicates whether the client connection with the specified identifier has any
      * pending notification or not. Pending means a non-confirmed notification
+     * This will only check client connections in ACTIVE state.
      *
      * @param clientConnectionId the client connection identifier
      * @return true if there is any pending notification for the specified client connection */
     Boolean hasAnyPendingNotification(final ClientConnection clientConnection);
 
+    /** This gets a list of all pending notification for a given client connection independently
+     * of it current status.
+     *
+     * @param clientConnectionId The identifier of the client connection
+     * @return Result refer to pending client notifications or to an error when happened */
     Result<List<ClientNotification>> getPendingNotifications(Long clientConnectionId);
 
+    /** This is used to confirm a pending notification from SEB client side where
+     * a client event of type notification-confirm is involved
+     *
+     * @param event The notification confirmation event sent by a SEB client
+     * @param connectionToken the client connection token of the SEB client connection */
     void confirmPendingNotification(ClientEvent event, String connectionToken);
 
+    /** This is used to confirm a pending client notification from the SEB Server side
+     *
+     * @param notificationId The identifier of the client notification event
+     * @param examId the exam identifier
+     * @param connectionToken the SEB client connection token
+     * @return Result refer to the confirmed client notification or to an error when happened */
     Result<ClientNotification> confirmPendingNotification(
             Long notificationId,
             Long examId,
