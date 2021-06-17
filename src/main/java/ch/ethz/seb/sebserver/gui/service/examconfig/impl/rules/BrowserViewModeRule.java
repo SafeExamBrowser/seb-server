@@ -30,7 +30,6 @@ public class BrowserViewModeRule implements ValueChangeRule {
     private static final Logger log = LoggerFactory.getLogger(BrowserViewModeRule.class);
 
     public static final String KEY_BROWSER_VIEW_MODE = "browserViewMode";
-    public static final String KEY_TOUCH_EXIT = "enableTouchExit";
     public static final String KEY_MAIN_WINDOW_GROUP = "mainBrowserWindowWidth";
     public static final String KEY_TOUCH_OPTIMIZED = "touchOptimized";
 
@@ -53,14 +52,11 @@ public class BrowserViewModeRule implements ValueChangeRule {
             if (KEY_TOUCH_OPTIMIZED.equals(attribute.name)) {
                 if (BooleanUtils.toBoolean(value.value)) {
                     context.setValue(KEY_BROWSER_VIEW_MODE, "2");
-                    context.enable(KEY_TOUCH_EXIT);
                     context.disableGroup(KEY_MAIN_WINDOW_GROUP);
                 } else {
                     if (context.getValue(KEY_BROWSER_VIEW_MODE) == null) {
                         context.setValue(KEY_BROWSER_VIEW_MODE, "0");
                     }
-                    context.setValue(KEY_TOUCH_EXIT, Constants.FALSE_STRING);
-                    context.disable(KEY_TOUCH_EXIT);
                 }
 
                 return;
@@ -72,7 +68,6 @@ public class BrowserViewModeRule implements ValueChangeRule {
                         if (!context.getValue(KEY_TOUCH_OPTIMIZED).equals(Constants.FALSE_STRING)) {
                             context.setValue(KEY_TOUCH_OPTIMIZED, Constants.FALSE_STRING);
                         }
-                        context.disable(KEY_TOUCH_EXIT);
                         context.enableGroup(KEY_MAIN_WINDOW_GROUP);
                         break;
                     }
@@ -80,7 +75,6 @@ public class BrowserViewModeRule implements ValueChangeRule {
                         if (!context.getValue(KEY_TOUCH_OPTIMIZED).equals(Constants.FALSE_STRING)) {
                             context.setValue(KEY_TOUCH_OPTIMIZED, Constants.FALSE_STRING);
                         }
-                        context.disable(KEY_TOUCH_EXIT);
                         context.disableGroup(KEY_MAIN_WINDOW_GROUP);
                         break;
                     }
