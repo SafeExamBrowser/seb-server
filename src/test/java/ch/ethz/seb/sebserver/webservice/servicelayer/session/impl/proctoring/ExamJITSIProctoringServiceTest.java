@@ -41,7 +41,7 @@ public class ExamJITSIProctoringServiceTest {
                 false);
 
         assertEquals(
-                "{\"context\":{\"user\":{\"name\":\"Test Name\"}},\"iss\":\"test-app\",\"aud\":\"test-client\",\"sub\":\"https://test.ch\",\"room\":\"SomeRoom\",\"moderator\":false,\"exp\":1609459200}",
+                "{\"aud\":\"test-client\",\"iss\":\"test-app\",\"sub\":\"https://test.ch\",\"context\":{\"user\":{\"id\":\"Test Name\",\"name\":\"Test Name\",\"moderator\":\"false\"}},\"exp\":1609459200,\"room\":\"SomeRoom\",\"moderator\":false}",
                 accessToken);
 
         accessToken = examJITSIProctoringService.createPayload(
@@ -54,7 +54,7 @@ public class ExamJITSIProctoringServiceTest {
                 true);
 
         assertEquals(
-                "{\"context\":{\"user\":{\"name\":\"Test Name\"}},\"iss\":\"test-app\",\"aud\":\"test-client\",\"sub\":\"https://test.ch\",\"room\":\"SomeRoom\",\"moderator\":true,\"exp\":1609459200}",
+                "{\"aud\":\"test-client\",\"iss\":\"test-app\",\"sub\":\"https://test.ch\",\"context\":{\"user\":{\"id\":\"Test Name\",\"name\":\"Test Name\",\"moderator\":\"true\"}},\"exp\":1609459200,\"room\":\"SomeRoom\",\"moderator\":true}",
                 accessToken);
     }
 
@@ -83,7 +83,7 @@ public class ExamJITSIProctoringServiceTest {
                 data.serverURL);
 
         assertEquals(
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijp7InVzZXIiOnsibmFtZSI6IlRlc3QgTmFtZSJ9fSwiaXNzIjoidGVzdC1hcHAiLCJhdWQiOiJ0ZXN0LWNsaWVudCIsInN1YiI6InNlYi1qaXRzaS5leGFtcGxlLmNoIiwicm9vbSI6IlNvbWVSb29tIiwibW9kZXJhdG9yIjp0cnVlLCJleHAiOjE2MDk0NTkyMDB9.poOwfCsRjNqCizEQM3qFFWbjuX0bZLer3cqlbaPK9wc",
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ0ZXN0LWNsaWVudCIsImlzcyI6InRlc3QtYXBwIiwic3ViIjoic2ViLWppdHNpLmV4YW1wbGUuY2giLCJjb250ZXh0Ijp7InVzZXIiOnsiaWQiOiJUZXN0IE5hbWUiLCJuYW1lIjoiVGVzdCBOYW1lIiwibW9kZXJhdG9yIjoidHJ1ZSJ9fSwiZXhwIjoxNjA5NDU5MjAwLCJyb29tIjoiU29tZVJvb20iLCJtb2RlcmF0b3IiOnRydWV9.cqLcM-XjKkTfDjujJAwE2CqiJMQggRVlz2mL4fT5PuE",
                 data.accessToken);
 
     }
