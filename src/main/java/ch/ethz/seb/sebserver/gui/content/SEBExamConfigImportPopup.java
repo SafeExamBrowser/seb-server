@@ -14,16 +14,21 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessageError;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -50,7 +55,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodeNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfigOnExistingConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
 @Component
@@ -59,8 +66,18 @@ public class SEBExamConfigImportPopup {
 
     private static final Logger log = LoggerFactory.getLogger(SEBExamConfigImportPopup.class);
 
+    private static final LocTextKey EXAM_CONFIG_IMPORT_TEXT =
+            new LocTextKey("sebserver.examconfig.action.import.config.text");
+    private static final LocTextKey SEB_SETTINGS_IMPORT_TEXT =
+            new LocTextKey("sebserver.examconfig.action.import.settings.text");
+    private static final LocTextKey SEB_SETTINGS_IMPORT_AUTO_PUBLISH =
+            new LocTextKey("sebserver.examconfig.action.import.auto-publish");
     private final static PageMessageException MISSING_PASSWORD = new PageMessageException(
             new LocTextKey("sebserver.examconfig.action.import.missing-password"));
+    private static final LocTextKey MESSAGE_SAVE_INTEGRITY_VIOLATION =
+            new LocTextKey("sebserver.examconfig.action.saveToHistory.integrity-violation");
+
+    private final static String AUTO_PUBLISH_FLAG = "AUTO_PUBLISH_FLAG";
 
     private final PageService pageService;
 
@@ -152,13 +169,20 @@ public class SEBExamConfigImportPopup {
                     restCall.withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId);
                 }
 
-                final Result<Configuration> configuration = restCall
-                        .call();
-
-                if (!configuration.hasError()) {
+                final Result<Configuration> importResult = restCall.call();
+                if (!importResult.hasError()) {
                     context.publishInfo(SEBExamConfigForm.FORM_IMPORT_CONFIRM_TEXT_KEY);
+
+                    // Auto publish?
+                    if (!newConfig && BooleanUtils.toBoolean(form.getFieldValue(AUTO_PUBLISH_FLAG))) {
+                        this.pageService.getRestService()
+                                .getBuilder(SaveExamConfigHistory.class)
+                                .withURIVariable(API.PARAM_MODEL_ID, importResult.get().getModelId())
+                                .call()
+                                .onError(error -> notifyErrorOnSave(error, context));
+                    }
                 } else {
-                    handleImportError(formHandle, configuration);
+                    handleImportError(formHandle, importResult);
                 }
 
                 reloadPage(newConfig, context);
@@ -295,8 +319,17 @@ public class SEBExamConfigImportPopup {
         @Override
         public Supplier<FormHandle<ConfigurationNode>> compose(final Composite parent) {
 
-            final Composite grid = this.pageService.getWidgetFactory()
-                    .createPopupScrollComposite(parent);
+            final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
+            final Composite grid = widgetFactory.createPopupScrollComposite(parent);
+
+            final Label info = widgetFactory.labelLocalized(
+                    grid,
+                    (this.newConfig) ? EXAM_CONFIG_IMPORT_TEXT : SEB_SETTINGS_IMPORT_TEXT,
+                    true);
+            final GridData gridData = new GridData(0, 0, this.newConfig, this.newConfig);
+            gridData.horizontalIndent = 10;
+            gridData.verticalIndent = 10;
+            info.setLayoutData(gridData);
 
             final ResourceService resourceService = this.pageService.getResourceService();
             final List<Tuple<String>> examConfigTemplateResources = resourceService.getExamConfigTemplateResources();
@@ -308,6 +341,13 @@ public class SEBExamConfigImportPopup {
                             SEBExamConfigForm.FORM_IMPORT_SELECT_TEXT_KEY,
                             null,
                             API.SEB_FILE_EXTENSION))
+
+                    .addFieldIf(
+                            () -> !this.newConfig,
+                            () -> FormBuilder.checkbox(
+                                    AUTO_PUBLISH_FLAG,
+                                    SEB_SETTINGS_IMPORT_AUTO_PUBLISH,
+                                    Constants.FALSE_STRING))
 
                     .addFieldIf(
                             () -> this.newConfig,
@@ -344,6 +384,24 @@ public class SEBExamConfigImportPopup {
                 if (fieldControl instanceof FileUploadSelection) {
                     ((FileUploadSelection) fieldControl).close();
                 }
+            }
+        }
+    }
+
+    private static void notifyErrorOnSave(final Exception error, final PageContext context) {
+        if (error instanceof APIMessageError) {
+            try {
+                final List<APIMessage> errorMessages = ((APIMessageError) error).getErrorMessages();
+                final APIMessage apiMessage = errorMessages.get(0);
+                if (APIMessage.ErrorMessage.INTEGRITY_VALIDATION.isOf(apiMessage)) {
+                    context.publishPageMessage(new PageMessageException(MESSAGE_SAVE_INTEGRITY_VIOLATION));
+                } else {
+                    context.notifyUnexpectedError(error);
+                }
+            } catch (final PageMessageException e) {
+                throw e;
+            } catch (final Exception e) {
+                throw new RuntimeException(error);
             }
         }
     }

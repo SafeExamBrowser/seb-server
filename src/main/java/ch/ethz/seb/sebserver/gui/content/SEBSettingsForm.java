@@ -32,7 +32,6 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessageError;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
@@ -51,7 +50,6 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.download.SEBExamConfigPlaintextDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetSettingsPublished;
@@ -122,13 +120,6 @@ public class SEBSettingsForm implements TemplateComposer {
                 .getOrThrow();
 
         final boolean readonly = pageContext.isReadonly() || configNode.status == ConfigurationStatus.IN_USE;
-        final boolean isAttachedToExam = !readonly && this.restService
-                .getBuilder(GetExamConfigMappingNames.class)
-                .withQueryParam(ExamConfigurationMap.FILTER_ATTR_CONFIG_ID, configNode.getModelId())
-                .call()
-                .map(names -> names != null && !names.isEmpty())
-                .getOr(Boolean.FALSE);
-
         final Composite warningPanelAnchor = new Composite(pageContext.getParent(), SWT.NONE);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         warningPanelAnchor.setLayoutData(gridData);
@@ -251,7 +242,7 @@ public class SEBSettingsForm implements TemplateComposer {
                     .withExec(this.sebExamConfigImportPopup.importFunction(
                             () -> String.valueOf(tabFolder.getSelectionIndex())))
                     .noEventPropagation()
-                    .publishIf(() -> examConfigGrant.iw() && !readonly && !isAttachedToExam)
+                    .publishIf(() -> examConfigGrant.iw() && !readonly)
 
                     .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)
                     .withEntityKey(entityKey)
@@ -298,7 +289,8 @@ public class SEBSettingsForm implements TemplateComposer {
                 return;
             }
 
-            final boolean settingsPublished = this.pageService.getRestService()
+            final boolean settingsPublished = this.pageService
+                    .getRestService()
                     .getBuilder(GetSettingsPublished.class)
                     .withURIVariable(API.PARAM_MODEL_ID, this.nodeId)
                     .call()
@@ -322,34 +314,7 @@ public class SEBSettingsForm implements TemplateComposer {
         }
     }
 
-//    private Runnable publishedMessagePanelViewCallback(
-//            final Composite parent,
-//            final String nodeId) {
-//        return () -> {
-//            final boolean settingsPublished = this.restService.getBuilder(GetSettingsPublished.class)
-//                    .withURIVariable(API.PARAM_MODEL_ID, nodeId)
-//                    .call()
-//                    .onError(error -> log.warn("Failed to verify published settings. Cause: ", error.getMessage()))
-//                    .map(result -> result.settingsPublished)
-//                    .getOr(false);
-//
-//            if (!settingsPublished) {
-//                if (parent.getChildren() != null && parent.getChildren().length == 0) {
-//                    final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
-//                    final Composite warningPanel = widgetFactory.createWarningPanel(parent);
-//                    widgetFactory.labelLocalized(
-//                            warningPanel,
-//                            CustomVariant.MESSAGE,
-//                            UNPUBLISHED_MESSAGE_KEY);
-//                }
-//            } else if (parent.getChildren() != null && parent.getChildren().length > 0) {
-//                parent.getChildren()[0].dispose();
-//            }
-//            parent.getParent().layout();
-//        };
-//    }
-
-    private void notifyErrorOnSave(final Exception error, final PageContext context) {
+    public void notifyErrorOnSave(final Exception error, final PageContext context) {
         if (error instanceof APIMessageError) {
             try {
                 final List<APIMessage> errorMessages = ((APIMessageError) error).getErrorMessages();

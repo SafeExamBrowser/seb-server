@@ -324,17 +324,19 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkModify);
 
+//        final Configuration newConfig = this.configurationDAO
+//                .saveToHistory(modelId)
+//                .flatMap(this.configurationDAO::restoreToDefaultValues)
+//                .getOrThrow();
+
         final Configuration newConfig = this.configurationDAO
-                .saveToHistory(modelId)
-                .flatMap(this.configurationDAO::restoreToDefaultValues)
+                .getFollowupConfiguration(modelId)
                 .getOrThrow();
 
         final Result<Configuration> doImport = doImport(password, request, newConfig);
         if (doImport.hasError()) {
-
             // rollback of the existing values
             this.configurationDAO.undo(newConfig.configurationNodeId);
-
         }
 
         return doImport

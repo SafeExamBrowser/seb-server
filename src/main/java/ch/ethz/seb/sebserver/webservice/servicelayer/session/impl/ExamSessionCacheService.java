@@ -105,8 +105,8 @@ public class ExamSessionCacheService {
             key = "#exam.id")
     public Exam evict(final Exam exam) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Conditional eviction of running Exam from cache: {}", isRunning(exam));
+        if (log.isTraceEnabled()) {
+            log.trace("Conditional eviction of running Exam from cache: {}", isRunning(exam));
         }
 
         return exam;
@@ -117,8 +117,8 @@ public class ExamSessionCacheService {
             key = "#examId")
     public Long evict(final Long examId) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Conditional eviction of running Exam from cache: {}", examId);
+        if (log.isTraceEnabled()) {
+            log.trace("Conditional eviction of running Exam from cache: {}", examId);
         }
 
         return examId;
@@ -167,8 +167,8 @@ public class ExamSessionCacheService {
             cacheNames = CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
             key = "#connectionToken")
     public void evictClientConnection(final String connectionToken) {
-        if (log.isDebugEnabled()) {
-            log.debug("Eviction of ClientConnectionData from cache: {}", connectionToken);
+        if (log.isTraceEnabled()) {
+            log.trace("Eviction of ClientConnectionData from cache: {}", connectionToken);
         }
     }
 
@@ -197,8 +197,8 @@ public class ExamSessionCacheService {
             cacheNames = CACHE_NAME_SEB_CONFIG_EXAM,
             key = "#examId")
     public void evictDefaultSEBConfig(final Long examId) {
-        if (log.isDebugEnabled()) {
-            log.debug("Eviction of default SEB Configuration from cache for exam: {}", examId);
+        if (log.isTraceEnabled()) {
+            log.trace("Eviction of default SEB Configuration from cache for exam: {}", examId);
         }
     }
 
@@ -208,6 +208,7 @@ public class ExamSessionCacheService {
             unless = "#result == null")
     @Transactional
     public ClientEventRecord getPingRecord(final String connectionToken) {
+
         if (log.isDebugEnabled()) {
             log.debug("Verify ClientConnection for ping record to cache by connectionToken: {}", connectionToken);
         }
@@ -240,8 +241,8 @@ public class ExamSessionCacheService {
             cacheNames = CACHE_NAME_PING_RECORD,
             key = "#connectionToken")
     public void evictPingRecord(final String connectionToken) {
-        if (log.isDebugEnabled()) {
-            log.debug("Eviction of ReusableClientEventRecord from cache for connection token: {}", connectionToken);
+        if (log.isTraceEnabled()) {
+            log.trace("Eviction of ReusableClientEventRecord from cache for connection token: {}", connectionToken);
         }
     }
 

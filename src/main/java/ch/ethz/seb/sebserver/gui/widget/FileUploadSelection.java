@@ -27,6 +27,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +67,7 @@ public class FileUploadSelection extends Composite {
 
         super(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(2, false);
-        gridLayout.horizontalSpacing = 0;
+        gridLayout.horizontalSpacing = 5;
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
         gridLayout.verticalSpacing = 0;
@@ -78,14 +79,15 @@ public class FileUploadSelection extends Composite {
         if (readonly) {
             this.fileName = new Label(this, SWT.NONE);
             this.fileName.setText(i18nSupport.getText(PLEASE_SELECT_TEXT));
-            this.fileName.setLayoutData(new GridData());
+            this.fileName.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
             this.fileUpload = null;
             this.uploadHandler = null;
             this.inputReceiver = null;
         } else {
             this.fileUpload = new FileUpload(this, SWT.NONE);
+            this.fileUpload.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
             this.fileUpload.setImage(WidgetFactory.ImageIcon.IMPORT.getImage(parent.getDisplay()));
-            this.fileUpload.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+
             this.fileUpload.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(PLEASE_SELECT_TEXT)));
             this.inputReceiver = new InputReceiver();
             this.uploadHandler = new FileUploadHandler(this.inputReceiver);
@@ -96,27 +98,29 @@ public class FileUploadSelection extends Composite {
 
             this.fileName = new Label(this, SWT.NONE);
             this.fileName.setText(i18nSupport.getText(PLEASE_SELECT_TEXT));
-            this.fileName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+            this.fileName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, true));
 
-            this.fileUpload.addListener(SWT.Selection, event -> {
-                this.selection = true;
-                final String fileName = FileUploadSelection.this.fileUpload.getFileName();
-                if (fileName == null || !fileSupported(fileName)) {
-                    if (FileUploadSelection.this.errorHandler != null) {
-                        final String text = i18nSupport.getText(new LocTextKey(
-                                "sebserver.overall.upload.unsupported.file",
-                                this.supportedFileExtensions.toString()),
-                                "Unsupported image file type selected");
-                        FileUploadSelection.this.errorHandler.accept(text);
-                    }
-                    return;
-                }
-                FileUploadSelection.this.fileUpload.submit(this.uploadHandler.getUploadUrl());
-                FileUploadSelection.this.fileName.setText(fileName);
-                FileUploadSelection.this.errorHandler.accept(null);
-            });
-
+            this.fileUpload.addListener(SWT.Selection, this::selectFile);
+            this.fileName.addListener(SWT.Selection, this::selectFile);
         }
+    }
+
+    private void selectFile(final Event event) {
+        this.selection = true;
+        final String fileName = FileUploadSelection.this.fileUpload.getFileName();
+        if (fileName == null || !fileSupported(fileName)) {
+            if (FileUploadSelection.this.errorHandler != null) {
+                final String text = this.i18nSupport.getText(new LocTextKey(
+                        "sebserver.overall.upload.unsupported.file",
+                        this.supportedFileExtensions.toString()),
+                        "Unsupported image file type selected");
+                FileUploadSelection.this.errorHandler.accept(text);
+            }
+            return;
+        }
+        FileUploadSelection.this.fileUpload.submit(this.uploadHandler.getUploadUrl());
+        FileUploadSelection.this.fileName.setText(fileName);
+        FileUploadSelection.this.errorHandler.accept(null);
     }
 
     public void close() {

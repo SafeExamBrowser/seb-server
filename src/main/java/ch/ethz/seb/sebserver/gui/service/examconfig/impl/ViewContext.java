@@ -231,6 +231,17 @@ public final class ViewContext {
                 inputField);
     }
 
+    public String getValue(final String name) {
+        try {
+            final ConfigurationAttribute attributeByName = getAttributeByName(name);
+            final InputField inputField = this.inputFieldMapping.get(attributeByName.id);
+            return inputField.getValue();
+        } catch (final Exception e) {
+            log.error("Failed to get attribute value: {}, cause {}", name, e.getMessage());
+            return null;
+        }
+    }
+
     public void setValue(final String name, final String value) {
         try {
             final ConfigurationAttribute attributeByName = getAttributeByName(name);
