@@ -34,12 +34,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
@@ -69,9 +75,6 @@ public class JitsiProctoringService implements ExamProctoringService {
     private static final String JITSI_ACCESS_TOKEN_HEADER =
             "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
 
-    private static final String JITSI_ACCESS_TOKEN_PAYLOAD =
-            "{\"context\":{\"user\":{\"name\":\"%s\"}},\"iss\":\"%s\",\"aud\":\"%s\",\"sub\":\"%s\",\"room\":\"%s\"%s%s}";
-
     private static final Map<String, String> SEB_API_NAME_INSTRUCTION_NAME_MAPPING = Utils.immutableMapOf(Arrays.asList(
             new Tuple<>(
                     API.EXAM_PROCTORING_ATTR_RECEIVE_AUDIO,
@@ -100,17 +103,20 @@ public class JitsiProctoringService implements ExamProctoringService {
     private final ExamSessionService examSessionService;
     private final Cryptor cryptor;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
+    private final JSONMapper jsonMapper;
 
     protected JitsiProctoringService(
             final AuthorizationService authorizationService,
             final ExamSessionService examSessionService,
             final Cryptor cryptor,
-            final ClientHttpRequestFactoryService clientHttpRequestFactoryService) {
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
+            final JSONMapper jsonMapper) {
 
         this.authorizationService = authorizationService;
         this.examSessionService = examSessionService;
         this.cryptor = cryptor;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -393,20 +399,22 @@ public class JitsiProctoringService implements ExamProctoringService {
             final String host,
             final boolean moderator) {
 
-        final String jwtPayload = String.format(
-                JITSI_ACCESS_TOKEN_PAYLOAD.replaceAll(" ", "").replaceAll("\n", ""),
-                clientName,
-                appKey,
-                clientKey,
-                host,
-                roomName,
-                (moderator)
-                        ? ",\"moderator\":true"
-                        : ",\"moderator\":false",
-                (expTime != null)
-                        ? String.format(",\"exp\":%s", String.valueOf(expTime))
-                        : "");
-        return jwtPayload;
+        try {
+
+            final JWTContext jwtContext = new JWTContext(
+                    clientKey,
+                    appKey,
+                    host,
+                    new Context(new User(clientName, clientName, String.valueOf(moderator))),
+                    roomName,
+                    expTime);
+
+            final String content = this.jsonMapper.writeValueAsString(jwtContext);
+
+            return content;
+        } catch (final Exception e) {
+            throw new RuntimeException("Unexpected error while trying to create JWT payload: ", e);
+        }
     }
 
     private long forExam(final ProctoringServiceSettings examProctoring) {
@@ -423,6 +431,95 @@ public class JitsiProctoringService implements ExamProctoringService {
             }
         }
         return expTime;
+    }
+
+// @formatter:off
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(Include.NON_NULL)
+    private class JWTContext {
+        @JsonProperty final String aud;
+        @JsonProperty final String iss;
+        @JsonProperty final String sub;
+        @JsonProperty final Context context;
+        @JsonProperty final Long exp;
+        @JsonProperty final Long nbf;
+        @JsonProperty final String room;
+        @JsonProperty final Boolean moderator;
+
+        public JWTContext(final String aud, final String iss, final String sub, final Context context, final String room, final Long exp) {
+            this.aud = aud;
+            this.iss = iss;
+            this.sub = sub;
+            this.context = context;
+            this.room = room;
+            this.exp = exp;
+            this.nbf = null;
+            this.moderator = BooleanUtils.toBooleanObject(context.user.moderator);
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(Include.NON_NULL)
+    private class Context {
+        @JsonProperty final User user;
+        @JsonProperty final Features features;
+
+        @SuppressWarnings("unused")
+        public Context(final User user, final Features features) {
+            this.user = user;
+            this.features = features;
+        }
+        public Context(final User user) {
+            this.user = user;
+            this.features = null;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonInclude(Include.NON_NULL)
+    private class User {
+        @JsonProperty final String id;
+        @JsonProperty final String name;
+        @JsonProperty final String avatar;
+        @JsonProperty final String email;
+        @JsonProperty final String moderator;
+
+        @SuppressWarnings("unused")
+        public User(final String id, final String name, final String avatar, final String email, final String moderator) {
+            this.id = id;
+            this.name = name;
+            this.avatar = avatar;
+            this.email = email;
+            this.moderator = moderator;
+        }
+
+        public User(
+                final String id,
+                final String name,
+                final String moderator) {
+
+            this.id = id;
+            this.name = name;
+            this.avatar = null;
+            this.email = null;
+            this.moderator = moderator;
+        }
+    }
+
+    private class Features {
+        @JsonProperty final Boolean livestreaming;
+        @JsonProperty("outbound-call") final Boolean outboundcall;
+        @JsonProperty final Boolean transcription;
+        @JsonProperty final Boolean recording;
+
+        @SuppressWarnings("unused")
+        public Features(final Boolean livestreaming, final Boolean outboundcall, final Boolean transcription, final Boolean recording) {
+            this.livestreaming = livestreaming;
+            this.outboundcall = outboundcall;
+            this.transcription = transcription;
+            this.recording = recording;
+        }
     }
 
 }
