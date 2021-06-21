@@ -110,7 +110,9 @@ public class SEBExamConfigImportPopup {
                     newConfig);
 
             dialog.open(
-                    SEBExamConfigForm.FORM_IMPORT_TEXT_KEY,
+                    newConfig
+                            ? SEBExamConfigForm.FORM_IMPORT_CONFIG_TEXT_KEY
+                            : SEBExamConfigForm.FORM_IMPORT_SETTINGS_TEXT_KEY,
                     (Predicate<FormHandle<ConfigurationNode>>) formHandle -> doImport(
                             formHandle,
                             newConfig),

@@ -48,6 +48,7 @@ public class CertificateImportPopup {
 
     private final static PageMessageException MISSING_PASSWORD = new PageMessageException(
             new LocTextKey("sebserver.certificate.action.import.missing-password"));
+    private final static LocTextKey IMPORT_POPUP_TITLE = new LocTextKey("sebserver.certificate.action.import");
 
     private final PageService pageService;
 
@@ -79,7 +80,7 @@ public class CertificateImportPopup {
                     context);
 
             dialog.open(
-                    SEBExamConfigForm.FORM_IMPORT_TEXT_KEY,
+                    IMPORT_POPUP_TITLE,
                     (Predicate<FormHandle<CertificateInfo>>) formHandle -> doImport(
                             formHandle,
                             newConfig),

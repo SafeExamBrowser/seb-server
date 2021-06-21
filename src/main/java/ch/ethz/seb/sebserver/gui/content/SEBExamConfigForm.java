@@ -78,8 +78,10 @@ public class SEBExamConfigForm implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.form.template");
     static final LocTextKey FORM_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.status");
-    static final LocTextKey FORM_IMPORT_TEXT_KEY =
+    static final LocTextKey FORM_IMPORT_SETTINGS_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.import-settings");
+    static final LocTextKey FORM_IMPORT_CONFIG_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.action.import-config");
     static final LocTextKey FORM_IMPORT_SELECT_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.action.import-file-select");
     static final LocTextKey FORM_IMPORT_PASSWORD_TEXT_KEY =
