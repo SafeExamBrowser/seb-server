@@ -29,9 +29,9 @@ public class BrowserViewModeRule implements ValueChangeRule {
 
     private static final Logger log = LoggerFactory.getLogger(BrowserViewModeRule.class);
 
-    public static final String KEY_BROWSER_VIEW_MODE = "browserViewMode";
-    public static final String KEY_MAIN_WINDOW_GROUP = "mainBrowserWindowWidth";
-    public static final String KEY_TOUCH_OPTIMIZED = "touchOptimized";
+    private static final String KEY_BROWSER_VIEW_MODE = "browserViewMode";
+    private static final String KEY_MAIN_WINDOW_GROUP = "mainBrowserWindowWidth";
+    private static final String KEY_TOUCH_OPTIMIZED = "touchOptimized";
 
     @Override
     public boolean observesAttribute(final ConfigurationAttribute attribute) {
