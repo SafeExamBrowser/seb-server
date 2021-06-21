@@ -110,7 +110,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
         return Result.tryCatch(() -> {
 
             final boolean isActive = this.clientConnectionDAO
-                    .isActiveConnection(examId, connectionToken)
+                    .isInInstructionStatus(examId, connectionToken)
                     .getOr(false);
 
             if (isActive) {
@@ -124,6 +124,10 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
                 } catch (final Exception e) {
                     throw new RuntimeException("Unexpected: ", e);
                 }
+            } else {
+                log.warn(
+                        "The SEB client connection : {} is not in a ready state to process instructions. Instruction registration has been skipped",
+                        connectionToken);
             }
         });
     }
@@ -140,7 +144,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
 
             final String attributesString = Utils.toJsonObject(attributes);
             final Set<String> activeConnections = this.clientConnectionDAO
-                    .filterActive(examId, connectionTokens)
+                    .filterForInstructionStatus(examId, connectionTokens)
                     .getOrElse(Collections::emptySet);
 
             connectionTokens

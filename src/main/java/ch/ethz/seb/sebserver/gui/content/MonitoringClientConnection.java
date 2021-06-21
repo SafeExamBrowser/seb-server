@@ -364,7 +364,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 })
                 .noEventPropagation()
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER) &&
-                        connectionData.clientConnection.status == ConnectionStatus.ACTIVE);
+                        connectionData.clientConnection.status.indicatorActiveStatus);
 
         if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {
             final ProctoringServiceSettings procotringSettings = restService

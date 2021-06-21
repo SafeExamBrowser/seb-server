@@ -576,7 +576,7 @@ public final class ClientConnectionTable {
                     continue;
                 }
 
-                if (!this.connectionData.clientConnection.status.establishedStatus) {
+                if (!this.connectionData.clientConnection.status.indicatorActiveStatus) {
                     final String value = (indicatorData.indicator.type.showOnlyInActiveState)
                             ? Constants.EMPTY_NOTE
                             : IndicatorValue.getDisplayValue(indicatorValue);

@@ -530,8 +530,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public Result<Boolean> isActiveConnection(final Long examId, final String connectionToken) {
+    public Result<Boolean> isInInstructionStatus(final Long examId, final String connectionToken) {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper
                 .selectByExample()
                 .where(
@@ -540,6 +539,12 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.examId,
                         SqlBuilder.isEqualTo(examId))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()))
+                .or(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        SqlBuilder.isEqualTo(ConnectionStatus.CONNECTION_REQUESTED.name()))
                 .build()
                 .execute()
                 .stream()
@@ -566,7 +571,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Set<String>> filterActive(final Long examId, final Set<String> connectionToken) {
+    public Result<Set<String>> filterForInstructionStatus(final Long examId, final Set<String> connectionToken) {
         if (connectionToken == null || connectionToken.isEmpty()) {
             return Result.ofRuntimeError("Null or empty set reference");
         }
@@ -578,10 +583,15 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.examId,
                         SqlBuilder.isEqualTo(examId))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()))
+                .or(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        SqlBuilder.isEqualTo(ConnectionStatus.CONNECTION_REQUESTED.name()))
                 .build()
                 .execute()
                 .stream()
-                .filter(cc -> ConnectionStatus.ACTIVE.name().equals(cc.getStatus()))
                 .map(ClientConnectionRecord::getConnectionToken)
                 .collect(Collectors.toSet()));
     }

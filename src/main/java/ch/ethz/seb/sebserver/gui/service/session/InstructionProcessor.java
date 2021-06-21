@@ -72,7 +72,9 @@ public class InstructionProcessor {
             final PageContext pageContext) {
 
         final Set<String> connectionTokens = selectionFunction
-                .apply(ClientConnection.getStatusPredicate(ConnectionStatus.ACTIVE));
+                .apply(ClientConnection.getStatusPredicate(
+                        ConnectionStatus.CONNECTION_REQUESTED,
+                        ConnectionStatus.ACTIVE));
 
         if (connectionTokens.isEmpty()) {
             log.warn("Empty selection");

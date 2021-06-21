@@ -145,28 +145,27 @@ public interface ClientConnectionDAO extends
      * @return Result refer to the ClientConnection for the specified connection token or to an error if happened */
     Result<ClientConnection> byConnectionToken(String connectionToken);
 
-    /** Indicates if the client connection for exam and connection token is an active connection.
-     *
-     * @param examId the exam identifier
-     * @param connectionToken the connection token
-     * @return Result refer to the active connection flag or to an error when happened */
-    Result<Boolean> isActiveConnection(Long examId, String connectionToken);
-
     /** Use this to check whether a single ClientConnection is up to date or needs a refresh.
      *
      * @param clientConnection the actual ClientConnection (from the internal cache)
      * @return Result refer to true if the given ClientConnection is up to date */
     Result<Boolean> isUpToDate(ClientConnection clientConnection);
 
+    /** Indicates if the client connection for given exam and connection token is
+     * in a ready state to send instructions.
+     *
+     * @param examId the exam identifier
+     * @param connectionToken the connection token
+     * @return Result refer to the active connection flag or to an error when happened */
+    Result<Boolean> isInInstructionStatus(Long examId, String connectionToken);
+
     /** Filters a set of client connection tokens to a set containing only
-     * connection tokens of active client connections.
+     * connection tokens of client connections that are in a ready state to send instructions.
      *
-     * Use this if you have a bunch of client connections to filter only the active connections
-     *
-     * @param examId
-     * @param connectionToken
-     * @return */
-    Result<Set<String>> filterActive(Long examId, Set<String> connectionToken);
+     * @param examId the exam identifier
+     * @param connectionToken a Set of connection tokens to filter
+     * @return Result refer to filtered Set of connection tokens or to an error when happened */
+    Result<Set<String>> filterForInstructionStatus(Long examId, Set<String> connectionToken);
 
     /** Used to get the VDI paired connection if it already exsits.
      *

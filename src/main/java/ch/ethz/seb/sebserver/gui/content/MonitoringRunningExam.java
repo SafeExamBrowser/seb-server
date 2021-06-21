@@ -34,7 +34,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -420,7 +419,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
     private Set<EntityKey> selectionForQuitInstruction(final ClientConnectionTable clientTable) {
         final Set<String> connectionTokens = clientTable.getConnectionTokens(
-                ClientConnection.getStatusPredicate(ConnectionStatus.ACTIVE),
+                cc -> cc.status.indicatorActiveStatus,
                 true);
         if (connectionTokens == null || connectionTokens.isEmpty()) {
             return Collections.emptySet();
