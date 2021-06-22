@@ -43,6 +43,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttribut
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -62,6 +63,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     private final JSONMapper jsonMapper;
     private final Cryptor cryptor;
     private final ExamProctoringServiceFactory examProctoringServiceFactory;
+    private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
 
     private final String defaultIndicatorName;
     private final String defaultIndicatorType;
@@ -76,6 +78,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final JSONMapper jsonMapper,
             final Cryptor cryptor,
             final ExamProctoringServiceFactory examProctoringServiceFactory,
+            final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
             @Value("${sebserver.webservice.api.exam.indicator.name:Ping}") final String defaultIndicatorName,
             @Value("${sebserver.webservice.api.exam.indicator.type:LAST_PING}") final String defaultIndicatorType,
             @Value("${sebserver.webservice.api.exam.indicator.color:b4b4b4}") final String defaultIndicatorColor,
@@ -88,6 +91,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         this.jsonMapper = jsonMapper;
         this.cryptor = cryptor;
         this.examProctoringServiceFactory = examProctoringServiceFactory;
+        this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
 
         this.defaultIndicatorName = defaultIndicatorName;
         this.defaultIndicatorType = defaultIndicatorType;
@@ -199,6 +203,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                             getServerType(mapping),
                             getString(mapping, ProctoringServiceSettings.ATTR_SERVER_URL),
                             getCollectingRoomSize(mapping),
+                            this.remoteProctoringRoomDAO.isServiceInUse(examId).getOr(true),
                             getString(mapping, ProctoringServiceSettings.ATTR_APP_KEY),
                             getString(mapping, ProctoringServiceSettings.ATTR_APP_SECRET));
                 });

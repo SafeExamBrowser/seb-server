@@ -170,30 +170,6 @@ public class ZoomProctoringService implements ExamProctoringService {
                     throw new APIMessageException(
                             APIMessage.ErrorMessage.BINDING_ERROR,
                             String.valueOf(result.getStatusCode()));
-                } else {
-                    // TODO this is just for cleaning up along development process.
-                    // Remove this before finish up the Zoom integration
-
-                    try {
-                        final ProctoringServiceSettings encryptedSettings = new ProctoringServiceSettings(
-                                proctoringSettings.examId,
-                                proctoringSettings.enableProctoring,
-                                proctoringSettings.serverType,
-                                proctoringSettings.serverURL,
-                                proctoringSettings.collectingRoomSize,
-                                proctoringSettings.appKey,
-                                this.cryptor
-                                        .encrypt(proctoringSettings.appSecret)
-                                        .getOrThrow());
-
-                        disposeServiceRoomsForExam(
-                                proctoringSettings.examId,
-                                encryptedSettings)
-                                        .getOrThrow();
-
-                    } catch (final Exception e) {
-                        log.error("Failed to dev-cleanup rooms: ", e);
-                    }
                 }
 
             } catch (final Exception e) {

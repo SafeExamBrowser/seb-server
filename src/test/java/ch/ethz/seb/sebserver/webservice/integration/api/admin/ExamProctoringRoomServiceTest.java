@@ -20,6 +20,8 @@ import org.springframework.test.context.jdbc.Sql;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
@@ -60,16 +62,27 @@ public class ExamProctoringRoomServiceTest extends AdministrationAPIIntegrationT
         this.examAdminService.saveProctoringServiceSettings(
                 2L,
                 new ProctoringServiceSettings(
-                        2L, true, ProctoringServerType.JITSI_MEET, "http://jitsi.ch", 1,
+                        2L, true, ProctoringServerType.JITSI_MEET, "http://jitsi.ch", 1, false,
                         "app-key", "app.secret"));
 
         assertTrue(this.examAdminService.isProctoringEnabled(2L).get());
     }
 
-//    @Test
-//    @Order(3)
-//    public void test03_addClientConnection() {
-//        clientConnectionDAO.createNew(new ClientConnection(null, 1L, 2L, ConnectionStatus.CONNECTION_REQUESTED, CONNECTION_TOKEN_1))
-//    }
+    @Test
+    @Order(3)
+    public void test03_addClientConnection() {
+        final Result<ClientConnection> createNew = this.clientConnectionDAO.createNew(new ClientConnection(
+                null,
+                1L,
+                2L,
+                ConnectionStatus.CONNECTION_REQUESTED,
+                CONNECTION_TOKEN_1,
+                "",
+                "",
+                false,
+                "",
+                null));
+        assertFalse(createNew.hasError());
+    }
 
 }

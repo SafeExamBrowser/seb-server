@@ -57,6 +57,15 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     }
 
     @Override
+    public Result<Boolean> isServiceInUse(final Long examId) {
+        return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper
+                .countByExample()
+                .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                .build()
+                .execute() > 0);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Result<Collection<RemoteProctoringRoom>> getCollectingRooms(final Long examId) {
         return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper.selectByExample()

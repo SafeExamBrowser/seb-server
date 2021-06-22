@@ -36,6 +36,7 @@ public class ProctoringServiceSettings implements Entity {
     public static final String ATTR_APP_SECRET = "appSecret";
     public static final String ATTR_COLLECTING_ROOM_SIZE = "collectingRoomSize";
     public static final String ATTR_COLLECT_ALL_ROOM_NAME = "collectAllRoomName";
+    public static final String ATTR_SERVICE_IN_USE = "serviceInUse";
 
     @JsonProperty(Domain.EXAM.ATTR_ID)
     public final Long examId;
@@ -59,6 +60,9 @@ public class ProctoringServiceSettings implements Entity {
     @JsonProperty(ATTR_COLLECTING_ROOM_SIZE)
     public final Integer collectingRoomSize;
 
+    @JsonProperty(ATTR_SERVICE_IN_USE)
+    public final Boolean serviceInUse;
+
     @JsonCreator
     public ProctoringServiceSettings(
             @JsonProperty(Domain.EXAM.ATTR_ID) final Long examId,
@@ -66,6 +70,7 @@ public class ProctoringServiceSettings implements Entity {
             @JsonProperty(ATTR_SERVER_TYPE) final ProctoringServerType serverType,
             @JsonProperty(ATTR_SERVER_URL) final String serverURL,
             @JsonProperty(ATTR_COLLECTING_ROOM_SIZE) final Integer collectingRoomSize,
+            @JsonProperty(ATTR_SERVICE_IN_USE) final Boolean serviceInUse,
             @JsonProperty(ATTR_APP_KEY) final String appKey,
             @JsonProperty(ATTR_APP_SECRET) final CharSequence appSecret) {
 
@@ -74,6 +79,7 @@ public class ProctoringServiceSettings implements Entity {
         this.serverType = (serverType != null) ? serverType : ProctoringServerType.JITSI_MEET;
         this.serverURL = serverURL;
         this.collectingRoomSize = (collectingRoomSize != null) ? collectingRoomSize : 20;
+        this.serviceInUse = serviceInUse;
         this.appKey = appKey;
         this.appSecret = appSecret;
     }
@@ -119,6 +125,10 @@ public class ProctoringServiceSettings implements Entity {
 
     public CharSequence getAppSecret() {
         return this.appSecret;
+    }
+
+    public Boolean getServiceInUse() {
+        return this.serviceInUse;
     }
 
     @Override

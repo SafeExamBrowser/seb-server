@@ -19,6 +19,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.New
 /** Data access for RemoteProctoringRoom domain objects. */
 public interface RemoteProctoringRoomDAO {
 
+    /** Indicates if there is already any proctoring service in use for the specified exam
+     *
+     * @param examId the exam identifier
+     * @return Result refer to the indication or to an error when happened. */
+    Result<Boolean> isServiceInUse(Long examId);
+
     /** Get all collecting room records that exists for a given exam.
      *
      * @param examId the exam identifier

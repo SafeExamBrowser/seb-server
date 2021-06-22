@@ -128,8 +128,8 @@ public class ExamProctoringSettings {
 
             final boolean enabled = BooleanUtils.toBoolean(
                     form.getFieldValue(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING));
-            final ProctoringServerType serverType = ProctoringServerType.valueOf(
-                    form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE));
+            final ProctoringServerType serverType = ProctoringServerType
+                    .valueOf(form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE));
 
             examProctoring = new ProctoringServiceSettings(
                     Long.parseLong(entityKey.modelId),
@@ -137,6 +137,7 @@ public class ExamProctoringSettings {
                     serverType,
                     form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_URL),
                     Integer.parseInt(form.getFieldValue(ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE)),
+                    false,
                     form.getFieldValue(ProctoringServiceSettings.ATTR_APP_KEY),
                     form.getFieldValue(ProctoringServiceSettings.ATTR_APP_SECRET));
 
@@ -262,6 +263,11 @@ public class ExamProctoringSettings {
                                     : null))
 
                     .build();
+
+            if (proctoringSettings.serviceInUse) {
+                formHandle.getForm().getFieldInput(ProctoringServiceSettings.ATTR_SERVER_TYPE).setEnabled(false);
+                formHandle.getForm().getFieldInput(ProctoringServiceSettings.ATTR_SERVER_URL).setEnabled(false);
+            }
 
             return () -> formHandle;
         }
