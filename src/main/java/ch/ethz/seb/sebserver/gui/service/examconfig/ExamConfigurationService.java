@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.examconfig;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
@@ -74,6 +75,7 @@ public interface ExamConfigurationService {
      * @param pageContext The original PageContext that holds the state of the overall page.
      * @param configuration The configuration on which the exam configuration property page is based on.
      * @param view The View of the context
+     * @param viewContextSupplier ViewContext supplier to get context by view name
      * @param attributeMapping The attribute mapping if the properties page
      * @param rows Number of rows supported for the view.
      * @param readonly Indicates if the view shall be composed in read-only mode.
@@ -82,6 +84,7 @@ public interface ExamConfigurationService {
             PageContext pageContext,
             Configuration configuration,
             View view,
+            Function<String, ViewContext> viewContextSupplier,
             AttributeMapping attributeMapping,
             int rows,
             boolean readonly,

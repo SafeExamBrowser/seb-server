@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ public final class ViewContext {
 
     private final Configuration configuration;
     private final View view;
+    private final Function<String, ViewContext> viewContextSupplier;
     private final int rows;
 
     final AttributeMapping attributeMapping;
@@ -42,6 +44,7 @@ public final class ViewContext {
     ViewContext(
             final Configuration configuration,
             final View view,
+            final Function<String, ViewContext> viewContextSupplier,
             final int rows,
             final AttributeMapping attributeContext,
             final ValueChangeListener valueChangeListener,
@@ -55,6 +58,7 @@ public final class ViewContext {
 
         this.configuration = configuration;
         this.view = view;
+        this.viewContextSupplier = viewContextSupplier;
         this.rows = rows;
 
         this.attributeMapping = attributeContext;
@@ -145,11 +149,18 @@ public final class ViewContext {
     }
 
     public void disable(final String attributeName) {
-        disable(this.getAttributeIdByName(attributeName));
+        disable(this, this.getAttributeIdByName(attributeName));
     }
 
-    public void disable(final Long attributeId) {
-        final InputField inputField = this.inputFieldMapping.get(attributeId);
+    public void disable(final String viewName, final String attributeName) {
+        final ViewContext viewContext = this.viewContextSupplier.apply(viewName);
+        if (viewContext != null) {
+            disable(viewContext, viewContext.getAttributeIdByName(attributeName));
+        }
+    }
+
+    public void disable(final ViewContext context, final Long attributeId) {
+        final InputField inputField = context.inputFieldMapping.get(attributeId);
         if (inputField == null) {
             return;
         }
@@ -158,11 +169,18 @@ public final class ViewContext {
     }
 
     public void enable(final String attributeName) {
-        enable(this.getAttributeIdByName(attributeName));
+        enable(this, this.getAttributeIdByName(attributeName));
     }
 
-    public void enable(final Long attributeId) {
-        final InputField inputField = this.inputFieldMapping.get(attributeId);
+    public void enable(final String viewName, final String attributeName) {
+        final ViewContext viewContext = this.viewContextSupplier.apply(viewName);
+        if (viewContext != null) {
+            enable(viewContext, viewContext.getAttributeIdByName(attributeName));
+        }
+    }
+
+    public void enable(final ViewContext context, final Long attributeId) {
+        final InputField inputField = context.inputFieldMapping.get(attributeId);
         if (inputField == null) {
             return;
         }
@@ -171,11 +189,18 @@ public final class ViewContext {
     }
 
     public void disableGroup(final String attributeName) {
-        disableGroup(this.getAttributeIdByName(attributeName));
+        disableGroup(this, this.getAttributeIdByName(attributeName));
     }
 
-    public void disableGroup(final Long attributeId) {
-        final InputField inputField = this.inputFieldMapping.get(attributeId);
+    public void disableGroup(final String viewName, final String attributeName) {
+        final ViewContext viewContext = this.viewContextSupplier.apply(viewName);
+        if (viewContext != null) {
+            disableGroup(viewContext, viewContext.getAttributeIdByName(attributeName));
+        }
+    }
+
+    public void disableGroup(final ViewContext context, final Long attributeId) {
+        final InputField inputField = context.inputFieldMapping.get(attributeId);
         if (inputField == null) {
             return;
         }
@@ -183,11 +208,11 @@ public final class ViewContext {
         inputField.disable(true);
 
         try {
-            this.attributeMapping.attributeGroupMapping
+            context.attributeMapping.attributeGroupMapping
                     .get(inputField.getOrientation().groupId)
                     .stream()
                     .map(ConfigurationAttribute::getId)
-                    .map(this.inputFieldMapping::get)
+                    .map(context.inputFieldMapping::get)
                     .forEach(InputField::setDefaultValue);
         } catch (final Exception e) {
             log.warn("Failed to send attribute value update to server: ", e);
@@ -195,11 +220,18 @@ public final class ViewContext {
     }
 
     public void enableGroup(final String attributeName) {
-        enableGroup(this.getAttributeIdByName(attributeName));
+        enableGroup(this, this.getAttributeIdByName(attributeName));
     }
 
-    public void enableGroup(final Long attributeId) {
-        final InputField inputField = this.inputFieldMapping.get(attributeId);
+    public void enableGroup(final String viewName, final String attributeName) {
+        final ViewContext viewContext = this.viewContextSupplier.apply(viewName);
+        if (viewContext != null) {
+            enableGroup(viewContext, viewContext.getAttributeIdByName(attributeName));
+        }
+    }
+
+    public void enableGroup(final ViewContext context, final Long attributeId) {
+        final InputField inputField = context.inputFieldMapping.get(attributeId);
         if (inputField == null) {
             return;
         }

@@ -21,9 +21,12 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ViewContext;
 @Lazy
 @Service
 @GuiProfile
-public class HideToolbarDefaultRule implements ValueChangeRule {
+public class BrowserWindowToolbarRule implements ValueChangeRule {
 
     public static final String KEY_ENABLE_TOOLBAR = "enableBrowserWindowToolbar";
+    public static final String KEY_ADDBAR_MAIN = "browserWindowAllowAddressBar";
+    public static final String KEY_ADDBAR = "newBrowserWindowAllowAddressBar";
+    public static final String KEY_DEV_CON = "allowDeveloperConsole";
     public static final String KEY_HIDE_TOOLBAR = "hideBrowserWindowToolbar";
 
     @Override
@@ -38,8 +41,14 @@ public class HideToolbarDefaultRule implements ValueChangeRule {
             final ConfigurationValue value) {
 
         if (BooleanUtils.toBoolean(value.value)) {
+            context.enable(KEY_ADDBAR_MAIN);
+            context.enable(KEY_ADDBAR);
+            context.enable(KEY_DEV_CON);
             context.enable(KEY_HIDE_TOOLBAR);
         } else {
+            context.disable(KEY_ADDBAR_MAIN);
+            context.disable(KEY_ADDBAR);
+            context.disable(KEY_DEV_CON);
             context.disable(KEY_HIDE_TOOLBAR);
         }
     }

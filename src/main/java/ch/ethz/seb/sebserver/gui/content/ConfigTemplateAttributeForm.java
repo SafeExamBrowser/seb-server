@@ -182,6 +182,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                     valueContext,
                     configuration,
                     new View(-1L, "template", 10, 0, templateId),
+                    viewName -> null,
                     attributeMapping,
                     1, false, null);
 

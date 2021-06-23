@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -157,11 +158,17 @@ public class SEBSettingsForm implements TemplateComposer {
             tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
             final List<ViewContext> viewContexts = new ArrayList<>();
+            final Function<String, ViewContext> viewContextSupplier = viewName -> viewContexts
+                    .stream()
+                    .filter(v -> viewName.equals(v.getName()))
+                    .findFirst()
+                    .orElse(null);
             for (final View view : views) {
                 final ViewContext viewContext = this.examConfigurationService.createViewContext(
                         pageContext,
                         configuration,
                         view,
+                        viewContextSupplier,
                         attributes,
                         20,
                         readonly,

@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.tomcat.util.buf.StringUtils;
@@ -174,6 +175,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
             final PageContext pageContext,
             final Configuration configuration,
             final View view,
+            final Function<String, ViewContext> viewContextSupplier,
             final AttributeMapping attributeMapping,
             final int rows,
             final boolean readonly,
@@ -182,6 +184,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         return new ViewContext(
                 configuration,
                 view,
+                viewContextSupplier,
                 rows,
                 attributeMapping,
                 new ValueChangeListenerImpl(

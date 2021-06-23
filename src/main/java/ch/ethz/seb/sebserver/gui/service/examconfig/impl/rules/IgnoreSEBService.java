@@ -29,6 +29,8 @@ public class IgnoreSEBService implements ValueChangeRule {
     public static final String KEY_ATTR_1 = "enableWindowsUpdate";
     public static final String KEY_ATTR_2 = "enableChromeNotifications";
     public static final String KEY_ATTR_3 = "allowScreenSharing";
+    public static final String KEY_REG = "registry";
+    public static final String KEY_REG_RUNNING_SEB = "insideSebEnableSwitchUser";
 
     @Override
     public boolean observesAttribute(final ConfigurationAttribute attribute) {
@@ -51,6 +53,7 @@ public class IgnoreSEBService implements ValueChangeRule {
                 context.disable(KEY_ATTR_1);
                 context.disable(KEY_ATTR_2);
                 context.disable(KEY_ATTR_3);
+                context.disableGroup(KEY_REG, KEY_REG_RUNNING_SEB);
 
                 context.setValue(
                         KEY_SEB_SERVICE_POLICY,
@@ -69,6 +72,7 @@ public class IgnoreSEBService implements ValueChangeRule {
                 context.enable(KEY_ATTR_1);
                 context.enable(KEY_ATTR_2);
                 context.enable(KEY_ATTR_3);
+                context.enableGroup(KEY_REG, KEY_REG_RUNNING_SEB);
             }
         }
 
