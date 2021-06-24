@@ -159,7 +159,7 @@ public class IndicatorForm implements TemplateComposer {
                         FORM_DESC_TEXT_KEY,
                         typeDescription)
                         .asArea()
-                        .asHTML(true)
+                        //.asHTML(true)
                         .readonly(true)
                         .withInputSpan(6))
 
@@ -201,9 +201,10 @@ public class IndicatorForm implements TemplateComposer {
     private void updateForm(final Form form) {
         final String typeValue = form.getFieldValue(Domain.INDICATOR.ATTR_TYPE);
         if (StringUtils.isNotBlank(typeValue)) {
+            final String text = this.i18nSupport.getText(INDICATOR_TYPE_DESC_PREFIX + typeValue);
             form.setFieldValue(
                     TYPE_DESCRIPTION_FIELD_NAME,
-                    this.i18nSupport.getText(INDICATOR_TYPE_DESC_PREFIX + typeValue));
+                    Utils.formatLineBreaks(text));
             final IndicatorType type = IndicatorType.valueOf(typeValue);
             form.setFieldVisible(type.tags && !type.tagsReadonly, Domain.INDICATOR.ATTR_TAGS);
             if (!type.tags || type.tagsReadonly) {
