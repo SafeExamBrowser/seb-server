@@ -8,17 +8,25 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -87,6 +95,26 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
     }
 
     @Override
+    protected Result<Indicator> validForCreate(final Indicator entity) {
+        final Result<Indicator> validForCreate = super.validForCreate(entity);
+        if (validForCreate.hasError()) {
+            return validForCreate;
+        }
+
+        return checkThresholdConsistency(entity);
+    }
+
+    @Override
+    protected Result<Indicator> validForSave(final Indicator entity) {
+        final Result<Indicator> validForSave = super.validForSave(entity);
+        if (validForSave.hasError()) {
+            return validForSave;
+        }
+
+        return checkThresholdConsistency(entity);
+    }
+
+    @Override
     protected GrantEntity toGrantEntity(final Indicator entity) {
         if (entity == null) {
             return null;
@@ -126,6 +154,35 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
             this.examSessionService.flushCache(this.examSessionService.getRunningExam(entity.examId).getOrThrow());
         }
 
+    }
+
+    private Result<Indicator> checkThresholdConsistency(final Indicator entity) {
+        if (entity != null) {
+            final List<Threshold> emptyThresholds = entity.thresholds.stream()
+                    .filter(t -> t.getValue() == null)
+                    .collect(Collectors.toList());
+
+            if (!emptyThresholds.isEmpty()) {
+                throw new APIMessageException(APIMessage.fieldValidationError(
+                        new FieldError(
+                                Domain.EXAM.TYPE_NAME,
+                                Domain.EXAM.ATTR_SUPPORTER,
+                                "indicator:thresholds:thresholdEmpty")));
+            }
+
+            final Set<Double> values = entity.thresholds.stream()
+                    .map(t -> t.getValue())
+                    .collect(Collectors.toSet());
+
+            if (values.size() != entity.thresholds.size()) {
+                throw new APIMessageException(APIMessage.fieldValidationError(
+                        new FieldError(
+                                Domain.EXAM.TYPE_NAME,
+                                Domain.EXAM.ATTR_SUPPORTER,
+                                "indicator:thresholds:thresholdDuplicate")));
+            }
+        }
+        return Result.of(entity);
     }
 
 }
