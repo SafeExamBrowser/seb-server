@@ -23,11 +23,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService.ProctoringWindowData;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -62,6 +66,13 @@ public class JitsiMeetProctoringView extends AbstractProctoringView {
         final ProctoringGUIService proctoringGUIService = this.pageService
                 .getCurrentUser()
                 .getProctoringGUIService();
+        final ProctoringServiceSettings proctoringSettings = this.pageService
+                .getRestService()
+                .getBuilder(GetProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, proctoringWindowData.examId)
+                .call()
+                .onError(error -> log.error("Failed to get ProctoringServiceSettings", error))
+                .getOr(null);
 
         content.setLayout(gridLayout);
         final GridData headerCell = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -99,31 +110,34 @@ public class JitsiMeetProctoringView extends AbstractProctoringView {
         closeAction.addListener(SWT.Selection, event -> closeRoom(proctoringGUIService, proctoringWindowData));
 
         final BroadcastActionState broadcastActionState = new BroadcastActionState();
+        if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.BROADCAST)) {
+            final Button broadcastAudioAction = widgetFactory.buttonLocalized(footer, BROADCAST_AUDIO_ON_TEXT_KEY);
+            broadcastAudioAction.setLayoutData(new RowData());
+            broadcastAudioAction.addListener(SWT.Selection, event -> toggleBroadcastAudio(
+                    proctoringWindowData.examId,
+                    proctoringWindowData.connectionData.roomName,
+                    broadcastAudioAction));
+            broadcastAudioAction.setData(BroadcastActionState.KEY_NAME, broadcastActionState);
 
-        final Button broadcastAudioAction = widgetFactory.buttonLocalized(footer, BROADCAST_AUDIO_ON_TEXT_KEY);
-        broadcastAudioAction.setLayoutData(new RowData());
-        broadcastAudioAction.addListener(SWT.Selection, event -> toggleBroadcastAudio(
-                proctoringWindowData.examId,
-                proctoringWindowData.connectionData.roomName,
-                broadcastAudioAction));
-        broadcastAudioAction.setData(BroadcastActionState.KEY_NAME, broadcastActionState);
+            final Button broadcastVideoAction = widgetFactory.buttonLocalized(footer, BROADCAST_VIDEO_ON_TEXT_KEY);
+            broadcastVideoAction.setLayoutData(new RowData());
+            broadcastVideoAction.addListener(SWT.Selection, event -> toggleBroadcastVideo(
+                    proctoringWindowData.examId,
+                    proctoringWindowData.connectionData.roomName,
+                    broadcastVideoAction,
+                    broadcastAudioAction));
+            broadcastVideoAction.setData(BroadcastActionState.KEY_NAME, broadcastActionState);
+        }
 
-        final Button broadcastVideoAction = widgetFactory.buttonLocalized(footer, BROADCAST_VIDEO_ON_TEXT_KEY);
-        broadcastVideoAction.setLayoutData(new RowData());
-        broadcastVideoAction.addListener(SWT.Selection, event -> toggleBroadcastVideo(
-                proctoringWindowData.examId,
-                proctoringWindowData.connectionData.roomName,
-                broadcastVideoAction,
-                broadcastAudioAction));
-        broadcastVideoAction.setData(BroadcastActionState.KEY_NAME, broadcastActionState);
-
-        final Button chatAction = widgetFactory.buttonLocalized(footer, CHAT_ON_TEXT_KEY);
-        chatAction.setLayoutData(new RowData());
-        chatAction.addListener(SWT.Selection, event -> toggleChat(
-                proctoringWindowData.examId,
-                proctoringWindowData.connectionData.roomName,
-                chatAction));
-        chatAction.setData(BroadcastActionState.KEY_NAME, broadcastActionState);
+        if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.ENABLE_CHAT)) {
+            final Button chatAction = widgetFactory.buttonLocalized(footer, CHAT_ON_TEXT_KEY);
+            chatAction.setLayoutData(new RowData());
+            chatAction.addListener(SWT.Selection, event -> toggleChat(
+                    proctoringWindowData.examId,
+                    proctoringWindowData.connectionData.roomName,
+                    chatAction));
+            chatAction.setData(BroadcastActionState.KEY_NAME, broadcastActionState);
+        }
     }
 
 }

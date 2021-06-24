@@ -8,11 +8,15 @@
 
 package ch.ethz.seb.sebserver.gui.content;
 
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -67,6 +72,8 @@ public class ExamProctoringSettings {
             new LocTextKey("sebserver.exam.proctoring.form.appkey");
     private final static LocTextKey SEB_PROCTORING_FORM_SECRET =
             new LocTextKey("sebserver.exam.proctoring.form.secret");
+    private final static LocTextKey SEB_PROCTORING_FORM_FEATURES =
+            new LocTextKey("sebserver.exam.proctoring.form.features");
 
     Function<PageAction, PageAction> settingsFunction(final PageService pageService, final boolean modifyGrant) {
 
@@ -131,12 +138,20 @@ public class ExamProctoringSettings {
             final ProctoringServerType serverType = ProctoringServerType
                     .valueOf(form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE));
 
+            final String features = form.getFieldValue(ProctoringServiceSettings.ATTR_ENABLED_FEATURES);
+            final EnumSet<ProctoringFeature> featureFlags =
+                    EnumSet.copyOf(Arrays.asList(StringUtils.split(features, Constants.LIST_SEPARATOR))
+                            .stream()
+                            .map(str -> ProctoringFeature.valueOf(str))
+                            .collect(Collectors.toSet()));
+
             examProctoring = new ProctoringServiceSettings(
                     Long.parseLong(entityKey.modelId),
                     enabled,
                     serverType,
                     form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_URL),
                     Integer.parseInt(form.getFieldValue(ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE)),
+                    featureFlags,
                     false,
                     form.getFieldValue(ProctoringServiceSettings.ATTR_APP_KEY),
                     form.getFieldValue(ProctoringServiceSettings.ATTR_APP_SECRET));
@@ -239,15 +254,6 @@ public class ExamProctoringSettings {
                             ProctoringServiceSettings.ATTR_SERVER_URL,
                             SEB_PROCTORING_FORM_URL,
                             proctoringSettings.serverURL))
-                    .withDefaultSpanInput(1)
-
-                    .addField(FormBuilder.text(
-                            ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE,
-                            SEB_PROCTORING_FORM_ROOM_SIZE,
-                            String.valueOf(proctoringSettings.getCollectingRoomSize()))
-                            .asNumber(numString -> Long.parseLong(numString)))
-                    .withDefaultSpanInput(5)
-                    .withDefaultSpanEmptyCell(4)
 
                     .addField(FormBuilder.text(
                             ProctoringServiceSettings.ATTR_APP_KEY,
@@ -261,6 +267,22 @@ public class ExamProctoringSettings {
                             (proctoringSettings.appSecret != null)
                                     ? String.valueOf(proctoringSettings.appSecret)
                                     : null))
+
+                    .withDefaultSpanInput(1)
+                    .addField(FormBuilder.text(
+                            ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE,
+                            SEB_PROCTORING_FORM_ROOM_SIZE,
+                            String.valueOf(proctoringSettings.getCollectingRoomSize()))
+                            .asNumber(numString -> Long.parseLong(numString)))
+                    .withEmptyCellSeparation(true)
+                    .withDefaultSpanEmptyCell(4)
+                    .withDefaultSpanInput(5)
+
+                    .addField(FormBuilder.multiCheckboxSelection(
+                            ProctoringServiceSettings.ATTR_ENABLED_FEATURES,
+                            SEB_PROCTORING_FORM_FEATURES,
+                            StringUtils.join(proctoringSettings.enabledFeatures, Constants.LIST_SEPARATOR),
+                            resourceService::examProctoringFeaturesResources))
 
                     .build();
 

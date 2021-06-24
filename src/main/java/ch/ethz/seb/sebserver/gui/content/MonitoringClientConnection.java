@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -367,27 +368,31 @@ public class MonitoringClientConnection implements TemplateComposer {
                         connectionData.clientConnection.status.indicatorActiveStatus);
 
         if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {
-            final ProctoringServiceSettings procotringSettings = restService
+            final ProctoringServiceSettings proctoringSettings = restService
                     .getBuilder(GetProctoringSettings.class)
                     .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
                     .call()
                     .onError(error -> log.error("Failed to get ProctoringServiceSettings", error))
                     .getOr(null);
 
-            if (procotringSettings != null && procotringSettings.enableProctoring) {
+            if (proctoringSettings != null && proctoringSettings.enableProctoring) {
                 final ProctoringGUIService proctoringGUIService = this.resourceService
                         .getCurrentUser()
                         .getProctoringGUIService();
-                actionBuilder
-                        .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING)
-                        .withEntityKey(parentEntityKey)
-                        .withExec(action -> this.monitoringProctoringService.openOneToOneRoom(
-                                action,
-                                connectionData,
-                                proctoringGUIService))
-                        .noEventPropagation()
-                        .publish()
 
+                if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.ONE_TO_ONE)) {
+                    actionBuilder
+                            .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING)
+                            .withEntityKey(parentEntityKey)
+                            .withExec(action -> this.monitoringProctoringService.openOneToOneRoom(
+                                    action,
+                                    connectionData,
+                                    proctoringGUIService))
+                            .noEventPropagation()
+                            .publish();
+                }
+
+                actionBuilder
                         .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_EXAM_ROOM_PROCTORING)
                         .withEntityKey(parentEntityKey)
                         .withExec(action -> this.monitoringProctoringService.openExamCollectionProctorScreen(

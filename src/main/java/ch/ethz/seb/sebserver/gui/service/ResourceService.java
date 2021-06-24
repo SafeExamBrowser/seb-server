@@ -43,6 +43,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction.PermissionComponent;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction.WhiteListPath;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
@@ -122,6 +123,7 @@ public class ResourceService {
     public static final String SEB_RESTRICTION_PERMISSIONS_PREFIX = "sebserver.exam.form.sebrestriction.permissions.";
     public static final String SEB_CLIENT_CONFIG_PURPOSE_PREFIX = "sebserver.clientconfig.config.purpose.";
     public static final String EXAM_PROCTORING_TYPE_PREFIX = "sebserver.exam.proctoring.type.servertype.";
+    public static final String EXAM_PROCTORING_FEATURES_PREFIX = "sebserver.exam.proctoring.form.features.";
     public static final String VDI_TYPE_PREFIX = "sebserver.clientconfig.form.vditype.";
 
     private static final String DISABLE_LMS_FLAG = "sebserver.gui.webservice.lms.disable.";
@@ -417,6 +419,18 @@ public class ResourceService {
                         this.i18nSupport.getText(EXAM_PROCTORING_TYPE_PREFIX + type.name()),
                         Utils.formatLineBreaks(this.i18nSupport.getText(
                                 EXAM_PROCTORING_TYPE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> examProctoringFeaturesResources() {
+        return Arrays.stream(ProctoringFeature.values())
+                .map(type -> new Tuple3<>(
+                        type.name(),
+                        this.i18nSupport.getText(EXAM_PROCTORING_FEATURES_PREFIX + type.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                EXAM_PROCTORING_FEATURES_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
                                 StringUtils.EMPTY))))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());

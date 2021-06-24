@@ -10,13 +10,17 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -32,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -56,6 +61,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.Exa
 @WebServiceProfile
 public class ExamAdminServiceImpl implements ExamAdminService {
 
+    private static final Logger log = LoggerFactory.getLogger(ExamAdminServiceImpl.class);
+
+    private static final Object ATTR_ENABLE_PROCTORING = null;
     private final ExamDAO examDAO;
     private final IndicatorDAO indicatorDAO;
     private final AdditionalAttributesDAO additionalAttributesDAO;
@@ -203,6 +211,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                             getServerType(mapping),
                             getString(mapping, ProctoringServiceSettings.ATTR_SERVER_URL),
                             getCollectingRoomSize(mapping),
+                            getEnabledFeatures(mapping),
                             this.remoteProctoringRoomDAO.isServiceInUse(examId).getOr(true),
                             getString(mapping, ProctoringServiceSettings.ATTR_APP_KEY),
                             getString(mapping, ProctoringServiceSettings.ATTR_APP_SECRET));
@@ -254,6 +263,12 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     this.cryptor.encrypt(proctoringServiceSettings.appSecret)
                             .getOrThrow()
                             .toString());
+
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.EXAM,
+                    examId,
+                    ProctoringServiceSettings.ATTR_ENABLED_FEATURES,
+                    StringUtils.join(proctoringServiceSettings.enabledFeatures, Constants.LIST_SEPARATOR));
 
             return proctoringServiceSettings;
         });
@@ -307,6 +322,33 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             return Integer.valueOf(mapping.get(ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE).getValue());
         } else {
             return 20;
+        }
+    }
+
+    private EnumSet<ProctoringFeature> getEnabledFeatures(final Map<String, AdditionalAttributeRecord> mapping) {
+        if (mapping.containsKey(ProctoringServiceSettings.ATTR_ENABLED_FEATURES)) {
+            try {
+                final String value = mapping.get(ProctoringServiceSettings.ATTR_ENABLED_FEATURES).getValue();
+                return EnumSet.copyOf(Arrays.asList(StringUtils.split(value, Constants.LIST_SEPARATOR))
+                        .stream()
+                        .map(str -> {
+                            try {
+                                return ProctoringFeature.valueOf(str);
+                            } catch (final Exception e) {
+                                log.error(
+                                        "Failed to enabled single features for proctoring settings. Skipping. {}",
+                                        e.getMessage());
+                                return null;
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()));
+            } catch (final Exception e) {
+                log.error("Failed to get enabled features for proctoring settings. Enable all. {}", e.getMessage());
+                return EnumSet.allOf(ProctoringFeature.class);
+            }
+        } else {
+            return EnumSet.allOf(ProctoringFeature.class);
         }
     }
 

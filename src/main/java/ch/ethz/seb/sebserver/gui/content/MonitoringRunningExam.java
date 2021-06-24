@@ -34,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -260,22 +261,24 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .getOr(null);
 
         if (proctoringSettings != null && proctoringSettings.enableProctoring) {
+            if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.TOWN_HALL)) {
 
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)
-                    .withEntityKey(entityKey)
-                    .withExec(action -> this.monitoringProctoringService.toggleTownhallRoom(proctoringGUIService,
-                            action))
-                    .noEventPropagation()
-                    .publish();
+                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)
+                        .withEntityKey(entityKey)
+                        .withExec(action -> this.monitoringProctoringService.toggleTownhallRoom(proctoringGUIService,
+                                action))
+                        .noEventPropagation()
+                        .publish();
 
-            if (this.monitoringProctoringService.isTownhallRoomActive(entityKey.modelId)) {
-                this.pageService.firePageEvent(
-                        new ActionActivationEvent(
-                                true,
-                                new Tuple<>(
-                                        ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
-                                        ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
-                        pageContext);
+                if (this.monitoringProctoringService.isTownhallRoomActive(entityKey.modelId)) {
+                    this.pageService.firePageEvent(
+                            new ActionActivationEvent(
+                                    true,
+                                    new Tuple<>(
+                                            ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM,
+                                            ActionDefinition.MONITOR_EXAM_CLOSE_TOWNHALL_PROCTOR_ROOM)),
+                            pageContext);
+                }
             }
 
             this.monitoringProctoringService.initCollectingRoomActions(

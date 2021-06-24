@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
+import java.util.EnumSet;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.hibernate.validator.constraints.URL;
 
@@ -29,12 +31,20 @@ public class ProctoringServiceSettings implements Entity {
         ZOOM
     }
 
+    public enum ProctoringFeature {
+        TOWN_HALL,
+        ONE_TO_ONE,
+        BROADCAST,
+        ENABLE_CHAT
+    }
+
     public static final String ATTR_ENABLE_PROCTORING = "enableProctoring";
     public static final String ATTR_SERVER_TYPE = "serverType";
     public static final String ATTR_SERVER_URL = "serverURL";
     public static final String ATTR_APP_KEY = "appKey";
     public static final String ATTR_APP_SECRET = "appSecret";
     public static final String ATTR_COLLECTING_ROOM_SIZE = "collectingRoomSize";
+    public static final String ATTR_ENABLED_FEATURES = "enabledFeatures";
     public static final String ATTR_COLLECT_ALL_ROOM_NAME = "collectAllRoomName";
     public static final String ATTR_SERVICE_IN_USE = "serviceInUse";
 
@@ -60,6 +70,9 @@ public class ProctoringServiceSettings implements Entity {
     @JsonProperty(ATTR_COLLECTING_ROOM_SIZE)
     public final Integer collectingRoomSize;
 
+    @JsonProperty(ATTR_ENABLED_FEATURES)
+    public final EnumSet<ProctoringFeature> enabledFeatures;
+
     @JsonProperty(ATTR_SERVICE_IN_USE)
     public final Boolean serviceInUse;
 
@@ -70,6 +83,7 @@ public class ProctoringServiceSettings implements Entity {
             @JsonProperty(ATTR_SERVER_TYPE) final ProctoringServerType serverType,
             @JsonProperty(ATTR_SERVER_URL) final String serverURL,
             @JsonProperty(ATTR_COLLECTING_ROOM_SIZE) final Integer collectingRoomSize,
+            @JsonProperty(ATTR_ENABLED_FEATURES) final EnumSet<ProctoringFeature> enabledFeatures,
             @JsonProperty(ATTR_SERVICE_IN_USE) final Boolean serviceInUse,
             @JsonProperty(ATTR_APP_KEY) final String appKey,
             @JsonProperty(ATTR_APP_SECRET) final CharSequence appSecret) {
@@ -79,9 +93,11 @@ public class ProctoringServiceSettings implements Entity {
         this.serverType = (serverType != null) ? serverType : ProctoringServerType.JITSI_MEET;
         this.serverURL = serverURL;
         this.collectingRoomSize = (collectingRoomSize != null) ? collectingRoomSize : 20;
+        this.enabledFeatures = enabledFeatures != null ? enabledFeatures : EnumSet.allOf(ProctoringFeature.class);
         this.serviceInUse = serviceInUse;
         this.appKey = appKey;
         this.appSecret = appSecret;
+
     }
 
     @Override
@@ -117,6 +133,10 @@ public class ProctoringServiceSettings implements Entity {
 
     public Integer getCollectingRoomSize() {
         return this.collectingRoomSize;
+    }
+
+    public EnumSet<ProctoringFeature> getEnabledFeatures() {
+        return this.enabledFeatures;
     }
 
     public String getAppKey() {
@@ -162,7 +182,7 @@ public class ProctoringServiceSettings implements Entity {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("ProctoringSettings [examId=");
+        builder.append("ProctoringServiceSettings [examId=");
         builder.append(this.examId);
         builder.append(", enableProctoring=");
         builder.append(this.enableProctoring);
@@ -170,8 +190,16 @@ public class ProctoringServiceSettings implements Entity {
         builder.append(this.serverType);
         builder.append(", serverURL=");
         builder.append(this.serverURL);
+        builder.append(", appKey=");
+        builder.append(this.appKey);
+        builder.append(", appSecret=");
+        builder.append(this.appSecret);
         builder.append(", collectingRoomSize=");
         builder.append(this.collectingRoomSize);
+        builder.append(", enabledFeatures=");
+        builder.append(this.enabledFeatures);
+        builder.append(", serviceInUse=");
+        builder.append(this.serviceInUse);
         builder.append("]");
         return builder.toString();
     }
