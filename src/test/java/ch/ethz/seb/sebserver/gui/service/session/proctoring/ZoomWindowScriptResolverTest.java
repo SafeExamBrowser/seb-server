@@ -128,7 +128,7 @@ public class ZoomWindowScriptResolverTest {
                         + "                isShowJoiningErrorDialog: true, // optional,\r\n"
                         + "                inviteUrlFormat: '', // optional\r\n"
                         + "                loginWindow: {  // optional,\r\n"
-                        + "                    width: 400,\r\n"
+                        + "                    width: window.innerWidth - 5,\r\n"
                         + "                    height: window.innerHeight - 4\r\n"
                         + "                },\r\n"
                         + "                meetingInfo: [ // optional\r\n"
