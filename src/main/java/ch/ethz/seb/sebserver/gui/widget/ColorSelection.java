@@ -131,6 +131,7 @@ public final class ColorSelection extends Composite implements Selection {
     private void addColorSelection(final Event event) {
         final Locale locale = RWT.getLocale();
         RWT.setLocale(this.i18nSupport.getUsersLanguageLocale());
+        this.colorDialog.setRGB(this.selection);
         this.colorDialog.open(code -> {
             if (code == SWT.CANCEL) {
                 return;
@@ -142,6 +143,7 @@ public final class ColorSelection extends Composite implements Selection {
                 this.listener.handleEvent(event);
             }
         });
+
         RWT.setLocale(locale);
     }
 
