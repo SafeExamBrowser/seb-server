@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.page.impl;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -332,7 +333,7 @@ public class PageContextImpl implements PageContext {
                 : error.getMessage();
 
         if (error instanceof APIMessageError) {
-            final List<APIMessage> errorMessages = ((APIMessageError) error).getErrorMessages();
+            final Collection<APIMessage> errorMessages = ((APIMessageError) error).getAPIMessages();
             final MessageBox messageBox = new Message(
                     getShell(),
                     this.i18nSupport.getText("sebserver.error.unexpected"),

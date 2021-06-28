@@ -38,7 +38,7 @@ public class RestCallError extends RuntimeException implements APIMessageError {
     }
 
     @Override
-    public List<APIMessage> getErrorMessages() {
+    public List<APIMessage> getAPIMessages() {
         return this.errors;
     }
 

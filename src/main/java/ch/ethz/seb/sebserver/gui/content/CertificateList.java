@@ -75,6 +75,8 @@ public class CertificateList implements TemplateComposer {
             new LocTextKey("sebserver.certificate.action.import-config.confirm");
     static final LocTextKey FORM_ACTION_MESSAGE_IN_USE_TEXT_KEY =
             new LocTextKey("sebserver.certificate.action.remove.in-use");
+    static final LocTextKey FORM_ACTION_MESSAGE_REMOVE_CONFIRM_TEXT_KEY =
+            new LocTextKey("sebserver.certificate.action.remove.confirm");
 
     private final TableFilterAttribute aliasFilter = new TableFilterAttribute(
             CriteriaType.TEXT,
@@ -155,6 +157,7 @@ public class CertificateList implements TemplateComposer {
                 .publishIf(() -> grantCheck.iw())
 
                 .newAction(ActionDefinition.SEB_CERTIFICATE_REMOVE)
+                .withConfirm(() -> FORM_ACTION_MESSAGE_REMOVE_CONFIRM_TEXT_KEY)
                 .withSelect(
                         table::getSelection,
                         this::removeCertificate,

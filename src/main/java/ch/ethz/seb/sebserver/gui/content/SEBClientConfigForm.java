@@ -16,6 +16,7 @@ import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -332,14 +333,16 @@ public class SEBClientConfigForm implements TemplateComposer {
                 // VDI
 
                 .withDefaultSpanInput(2)
-                .addField(FormBuilder.singleSelection(
-                        SEBClientConfig.ATTR_VDI_TYPE,
-                        VDI_TYPE_TEXT_KEY,
-                        clientConfig.vdiType != null
-                                ? clientConfig.vdiType.name()
-                                : SEBClientConfig.VDIType.NO.name(),
-                        () -> this.pageService.getResourceService().vdiTypeResources())
-                        .mandatory(!isReadonly))
+                .addFieldIf(
+                        () -> false, // TODO skipped for version 1.2 --> 1.3 or 1.4
+                        () -> FormBuilder.singleSelection(
+                                SEBClientConfig.ATTR_VDI_TYPE,
+                                VDI_TYPE_TEXT_KEY,
+                                clientConfig.vdiType != null
+                                        ? clientConfig.vdiType.name()
+                                        : SEBClientConfig.VDIType.NO.name(),
+                                () -> this.pageService.getResourceService().vdiTypeResources())
+                                .mandatory(!isReadonly))
                 .withDefaultSpanEmptyCell(3);
 
         // VDI Attributes
@@ -472,10 +475,18 @@ public class SEBClientConfigForm implements TemplateComposer {
         };
 
         if (!isReadonly) {
-            formHandleAnchor.formHandle.getForm().getFieldInput(SEBClientConfig.ATTR_FALLBACK)
-                    .addListener(SWT.Selection, selectionListener);
-            formHandleAnchor.formHandle.getForm().getFieldInput(SEBClientConfig.ATTR_VDI_TYPE)
-                    .addListener(SWT.Selection, selectionListener);
+            final Control fallbackInput = formHandleAnchor.formHandle
+                    .getForm()
+                    .getFieldInput(SEBClientConfig.ATTR_FALLBACK);
+            if (fallbackInput != null) {
+                fallbackInput.addListener(SWT.Selection, selectionListener);
+            }
+            final Control vdiInput = formHandleAnchor.formHandle
+                    .getForm()
+                    .getFieldInput(SEBClientConfig.ATTR_VDI_TYPE);
+            if (vdiInput != null) {
+                vdiInput.addListener(SWT.Selection, selectionListener);
+            }
         }
 
         formContent.layout();

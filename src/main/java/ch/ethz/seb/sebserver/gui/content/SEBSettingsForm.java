@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
@@ -324,8 +325,8 @@ public class SEBSettingsForm implements TemplateComposer {
     public void notifyErrorOnSave(final Exception error, final PageContext context) {
         if (error instanceof APIMessageError) {
             try {
-                final List<APIMessage> errorMessages = ((APIMessageError) error).getErrorMessages();
-                final APIMessage apiMessage = errorMessages.get(0);
+                final Collection<APIMessage> errorMessages = ((APIMessageError) error).getAPIMessages();
+                final APIMessage apiMessage = errorMessages.iterator().next();
                 if (APIMessage.ErrorMessage.INTEGRITY_VALIDATION.isOf(apiMessage)) {
                     throw new PageMessageException(MESSAGE_SAVE_INTEGRITY_VIOLATION);
                 } else {

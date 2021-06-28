@@ -203,7 +203,7 @@ public class APIMessage implements Serializable {
         return ErrorMessage.FIELD_VALIDATION.of(fieldName, args);
     }
 
-    public static String toHTML(final String errorMessage, final List<APIMessage> messages) {
+    public static String toHTML(final String errorMessage, final Collection<APIMessage> messages) {
         final StringBuilder builder = new StringBuilder();
         builder.append("<b>Failure:</b>").append("<br/><br/>").append(errorMessage).append("<br/><br/>");
         builder.append("<b>Detail Messages:</b><br/><br/>");
@@ -220,7 +220,7 @@ public class APIMessage implements Serializable {
      * within an Exception and throw. The Exception will be caught a the
      * APIExceptionHandler endpoint. The APIMessage will be extracted
      * and send as response. */
-    public static class APIMessageException extends RuntimeException {
+    public static class APIMessageException extends RuntimeException implements APIMessageError {
 
         private static final long serialVersionUID = 1453431210820677296L;
 
@@ -246,6 +246,7 @@ public class APIMessage implements Serializable {
             this.apiMessages = Arrays.asList(errorMessage.of(detail, attributes));
         }
 
+        @Override
         public Collection<APIMessage> getAPIMessages() {
             return this.apiMessages;
         }
@@ -283,11 +284,11 @@ public class APIMessage implements Serializable {
     }
 
     public static boolean checkError(final Exception error, final ErrorMessage errorMessage) {
-        if (!(error instanceof APIMessageException)) {
+        if (!(error instanceof APIMessageError)) {
             return false;
         }
 
-        final APIMessageException _error = (APIMessageException) error;
+        final APIMessageError _error = (APIMessageError) error;
         return _error.getAPIMessages()
                 .stream()
                 .filter(msg -> errorMessage.messageCode.equals(msg.messageCode))

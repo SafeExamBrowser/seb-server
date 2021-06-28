@@ -381,7 +381,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         RestCallError error = (RestCallError) call.getError();
         assertEquals(
                 "[APIMessage [messageCode=1001, systemMessage=FORBIDDEN, details=No edit right grant for user: TestInstAdmin, attributes=[]]]",
-                String.valueOf(error.getErrorMessages()));
+                String.valueOf(error.getAPIMessages()));
 
         // change password
         final Result<UserInfo> passwordChange = restService
@@ -400,7 +400,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         error = (RestCallError) instNames.getError();
         assertEquals(
                 "UNAUTHORIZED",
-                String.valueOf(error.getErrorMessages().get(0).getSystemMessage()));
+                String.valueOf(error.getAPIMessages().get(0).getSystemMessage()));
 
         // login again with the new password and check roles
         restService = createRestServiceForUser(
@@ -2339,7 +2339,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     .getOrThrow();
             fail("Forbidden error message expected here");
         } catch (final RestCallError e) {
-            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            final APIMessage apiMessage = e.getAPIMessages().get(0);
             assertEquals("1001", apiMessage.messageCode);
             assertEquals("FORBIDDEN", apiMessage.systemMessage);
         }
@@ -2395,7 +2395,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     .getOrThrow();
             fail("no resource found exception expected here");
         } catch (final RestCallError e) {
-            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            final APIMessage apiMessage = e.getAPIMessages().get(0);
             assertEquals("1002", apiMessage.getMessageCode());
             assertEquals("resource not found", apiMessage.getSystemMessage());
         }
@@ -2408,7 +2408,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     .getOrThrow();
             fail("no resource found exception expected here");
         } catch (final RestCallError e) {
-            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            final APIMessage apiMessage = e.getAPIMessages().get(0);
             assertEquals("1002", apiMessage.getMessageCode());
             assertEquals("resource not found", apiMessage.getSystemMessage());
         }
@@ -2419,7 +2419,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     .getOrThrow();
             fail("no resource found exception expected here");
         } catch (final RestCallError e) {
-            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            final APIMessage apiMessage = e.getAPIMessages().get(0);
             assertEquals("1002", apiMessage.getMessageCode());
             assertEquals("resource not found", apiMessage.getSystemMessage());
         }
@@ -2430,7 +2430,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     .getOrThrow();
             fail("no resource found exception expected here");
         } catch (final RestCallError e) {
-            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            final APIMessage apiMessage = e.getAPIMessages().get(0);
             assertEquals("1002", apiMessage.getMessageCode());
             assertEquals("resource not found", apiMessage.getSystemMessage());
         }
@@ -2441,7 +2441,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     .getOrThrow();
             fail("no resource found exception expected here");
         } catch (final RestCallError e) {
-            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            final APIMessage apiMessage = e.getAPIMessages().get(0);
             assertEquals("1002", apiMessage.getMessageCode());
             assertEquals("resource not found", apiMessage.getSystemMessage());
         }
@@ -2452,7 +2452,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     .getOrThrow();
             fail("no resource found exception expected here");
         } catch (final RestCallError e) {
-            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            final APIMessage apiMessage = e.getAPIMessages().get(0);
             assertEquals("1002", apiMessage.getMessageCode());
             assertEquals("resource not found", apiMessage.getSystemMessage());
         }
@@ -2463,7 +2463,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     .getOrThrow();
             fail("no resource found exception expected here");
         } catch (final RestCallError e) {
-            final APIMessage apiMessage = e.getErrorMessages().get(0);
+            final APIMessage apiMessage = e.getAPIMessages().get(0);
             assertEquals("1002", apiMessage.getMessageCode());
             assertEquals("resource not found", apiMessage.getSystemMessage());
         }

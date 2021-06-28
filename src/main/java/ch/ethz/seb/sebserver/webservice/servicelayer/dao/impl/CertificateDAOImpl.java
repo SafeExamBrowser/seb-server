@@ -223,12 +223,7 @@ public class CertificateDAOImpl implements CertificateDAO {
 
         // dataEncipherment
         if (keyUsage[2] || keyUsage[3]) {
-            final String alias = certificates.keyStore.engineGetCertificateAlias(cert);
-            if (this.cryptor.getPrivateKey(certificates.keyStore, alias).hasValue()) {
-                result.add(CertificateType.DATA_ENCIPHERMENT_PRIVATE_KEY);
-            } else {
-                result.add(CertificateType.DATA_ENCIPHERMENT);
-            }
+            result.add(CertificateType.DATA_ENCIPHERMENT);
         }
 
         // keyCertSign
@@ -238,6 +233,11 @@ public class CertificateDAOImpl implements CertificateDAO {
 
         if (result.isEmpty()) {
             result.add(CertificateType.UNKNOWN);
+        }
+
+        final String alias = certificates.keyStore.engineGetCertificateAlias(cert);
+        if (this.cryptor.getPrivateKey(certificates.keyStore, alias).hasValue()) {
+            result.add(CertificateType.DATA_ENCIPHERMENT_PRIVATE_KEY);
         }
 
         return result;

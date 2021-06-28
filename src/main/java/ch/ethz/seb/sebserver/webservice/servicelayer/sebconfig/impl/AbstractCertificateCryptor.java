@@ -85,7 +85,7 @@ public abstract class AbstractCertificateCryptor {
 
         final String algorithm = cert.getPublicKey().getAlgorithm();
         final Cipher encryptCipher = Cipher.getInstance(algorithm);
-        encryptCipher.init(Cipher.ENCRYPT_MODE, cert);
+        encryptCipher.init(Cipher.ENCRYPT_MODE, cert.getPublicKey());
         return encryptCipher.doFinal(data, 0, length);
     }
 
@@ -99,7 +99,7 @@ public abstract class AbstractCertificateCryptor {
 
         final String algorithm = cert.getPublicKey().getAlgorithm();
         final Cipher encryptCipher = Cipher.getInstance(algorithm);
-        encryptCipher.init(Cipher.DECRYPT_MODE, cert);
+        encryptCipher.init(Cipher.DECRYPT_MODE, cert.getPublicKey());
         return encryptCipher.doFinal(encryptedData, 0, length);
     }
 

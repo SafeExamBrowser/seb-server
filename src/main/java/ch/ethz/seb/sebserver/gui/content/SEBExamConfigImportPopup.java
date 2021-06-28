@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.content;
 
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -210,7 +211,7 @@ public class SEBExamConfigImportPopup {
         final Exception error = configuration.getError();
         if (error instanceof RestCallError) {
             ((RestCallError) error)
-                    .getErrorMessages()
+                    .getAPIMessages()
                     .stream()
                     .findFirst()
                     .ifPresent(message -> {
@@ -393,8 +394,8 @@ public class SEBExamConfigImportPopup {
     private static void notifyErrorOnSave(final Exception error, final PageContext context) {
         if (error instanceof APIMessageError) {
             try {
-                final List<APIMessage> errorMessages = ((APIMessageError) error).getErrorMessages();
-                final APIMessage apiMessage = errorMessages.get(0);
+                final Collection<APIMessage> errorMessages = ((APIMessageError) error).getAPIMessages();
+                final APIMessage apiMessage = errorMessages.iterator().next();
                 if (APIMessage.ErrorMessage.INTEGRITY_VALIDATION.isOf(apiMessage)) {
                     context.publishPageMessage(new PageMessageException(MESSAGE_SAVE_INTEGRITY_VIOLATION));
                 } else {

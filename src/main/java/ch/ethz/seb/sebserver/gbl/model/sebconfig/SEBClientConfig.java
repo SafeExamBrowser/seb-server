@@ -203,10 +203,16 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         this.configPurpose = configPurpose;
 
         this.sebServerPingTime = sebServerPingTime;
-        this.vdiType = vdiType;
-        this.vdiExecutable = vdiExecutable != null ? vdiExecutable : vdiType.defaultExecutable;
-        this.vdiPath = vdiPath != null ? vdiPath : vdiType.defaultPath;
-        this.vdiArguments = vdiArguments != null ? vdiArguments : vdiType.defaultArguments;
+        this.vdiType = vdiType != null ? vdiType : VDIType.NO;
+        this.vdiExecutable = vdiExecutable != null
+                ? vdiExecutable
+                : vdiType != null ? vdiType.defaultExecutable : null;
+        this.vdiPath = vdiPath != null
+                ? vdiPath
+                : vdiType != null ? vdiType.defaultPath : null;
+        this.vdiArguments = vdiArguments != null
+                ? vdiArguments
+                : vdiType != null ? vdiType.defaultArguments : null;
 
         this.fallback = fallback;
         this.fallbackStartURL = fallbackStartURL;

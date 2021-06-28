@@ -176,7 +176,7 @@ public class CertificateImportPopup {
         final Exception error = result.getError();
         if (error instanceof RestCallError) {
             ((RestCallError) error)
-                    .getErrorMessages()
+                    .getAPIMessages()
                     .stream()
                     .findFirst()
                     .ifPresent(message -> {
