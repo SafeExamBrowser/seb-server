@@ -97,6 +97,10 @@
                     })
                 }
             })
+            
+            window.addEventListener('unload', () => {
+                ZoomMtg.leaveMeeting({});
+            });
         </script>
     </body>
 </html>
