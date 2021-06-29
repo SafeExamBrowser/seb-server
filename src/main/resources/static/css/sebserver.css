@@ -3,7 +3,8 @@
     color: #4a4a4a;
     background-image: none;
     background-color: #FFFFFF;
-    padding: 0; 
+    padding: 0;
+    border: none;
 }
 
 *:disabled {
@@ -142,9 +143,8 @@ Label.colorlight {
 
 Composite {
     background-color: transparent;
+    border: none;
 }
-
-
 
 Composite.bordered {
     border: 2px;
@@ -402,7 +402,7 @@ Combo-Field {
   padding: 3px 0px 1px 10px;
 }
 
-Combo.error, , Combo[BORDER].error {
+Combo.error, Combo[BORDER].error {
     border: 1px solid #aa0000;
     border-radius: 0 2px 2px 0;
 }

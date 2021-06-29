@@ -323,6 +323,7 @@ public class WidgetFactory {
                     return g;
                 },
                 false,
+                true,
                 false);
     }
 
@@ -340,6 +341,7 @@ public class WidgetFactory {
                     return g;
                 },
                 false,
+                true,
                 true);
     }
 

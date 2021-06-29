@@ -378,7 +378,7 @@ public interface PageService {
             final Composite parent,
             final Function<ScrolledComposite, Composite> contentFunction,
             final boolean showScrollbars) {
-        return createManagedVScrolledComposite(parent, contentFunction, showScrollbars, false);
+        return createManagedVScrolledComposite(parent, contentFunction, showScrollbars, true, false);
     }
 
     /** Creates a ScrolledComposite with content supplied the given content creation function.
@@ -391,16 +391,21 @@ public interface PageService {
      * @param parent the parent Composite of the ScrolledComposite
      * @param contentFunction the content creation function
      * @param showScrollbars indicates whether the scrollbar shall always be shown
+     * @param showBorder indicates whether a border is shown for the composite or not
      * @param fill indicates if the content shall be vertically filled
      * @return the child composite that is scrolled by the newly created ScrolledComposite */
     static Composite createManagedVScrolledComposite(
             final Composite parent,
             final Function<ScrolledComposite, Composite> contentFunction,
             final boolean showScrollbars,
+            final boolean showBorder,
             final boolean fill) {
 
-        final ScrolledComposite scrolledComposite = new ScrolledComposite(parent, SWT.BORDER | SWT.V_SCROLL);
-        scrolledComposite.setLayoutData(new GridData(SWT.FILL, (fill) ? SWT.FILL : SWT.TOP, true, true));
+        final ScrolledComposite scrolledComposite = new ScrolledComposite(
+                parent,
+                (showBorder) ? SWT.BORDER | SWT.V_SCROLL : SWT.V_SCROLL);
+        final GridData gridData = new GridData(SWT.FILL, (fill) ? SWT.FILL : SWT.TOP, true, true);
+        scrolledComposite.setLayoutData(gridData);
 
         final Composite content = contentFunction.apply(scrolledComposite);
         scrolledComposite.setContent(content);

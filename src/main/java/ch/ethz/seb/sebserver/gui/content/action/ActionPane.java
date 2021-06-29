@@ -61,9 +61,10 @@ public class ActionPane implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+        final Composite root = pageContext.getParent();
         final Map<String, Tree> actionTrees = new HashMap<>();
         final Label label = this.widgetFactory.labelLocalized(
-                pageContext.getParent(),
+                root,
                 CustomVariant.TEXT_H2,
                 TITLE_KEY);
 
@@ -75,10 +76,24 @@ public class ActionPane implements TemplateComposer {
         }
         label.setLayoutData(titleLayout);
 
+        final Composite scroll = PageService.createManagedVScrolledComposite(
+                root,
+                scrolledComposite -> {
+                    final Composite composite = new Composite(scrolledComposite, SWT.NONE);
+                    final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+                    final GridLayout gridLayout = new GridLayout();
+                    gridLayout.horizontalSpacing = 0;
+                    gridData.heightHint = 0;
+                    composite.setLayoutData(gridData);
+                    composite.setLayout(gridLayout);
+                    return composite;
+                },
+                false, false, true);
+
         label.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
                 (ActionPublishEventListener) event -> {
-                    final Composite parent = pageContext.getParent();
+                    final Composite parent = scroll;
                     final Tree treeForGroup = getTreeForGroup(actionTrees, parent, event.action.definition, true);
                     final TreeItem actionItem = ActionPane.this.widgetFactory.treeItemLocalized(
                             treeForGroup,
@@ -101,18 +116,10 @@ public class ActionPane implements TemplateComposer {
                     parent.layout();
                 });
 
-        final Composite composite = new Composite(pageContext.getParent(), SWT.NONE);
-        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
-        final GridLayout gridLayout = new GridLayout();
-        gridLayout.horizontalSpacing = 0;
-        gridData.heightHint = 0;
-        composite.setLayoutData(gridData);
-        composite.setLayout(gridLayout);
-
-        composite.setData(
+        scroll.setData(
                 PageEventListener.LISTENER_ATTRIBUTE_KEY,
                 (ActionActivationEventListener) event -> {
-                    final Composite parent = pageContext.getParent();
+                    final Composite parent = scroll;
                     for (final ActionDefinition ad : event.actions) {
                         final TreeItem actionItem = findAction(actionTrees, parent, ad);
                         if (actionItem == null) {
