@@ -164,6 +164,10 @@ public class ZoomWindowScriptResolverTest {
                         + "                    })\r\n"
                         + "                }\r\n"
                         + "            })\r\n"
+                        + "            \r\n"
+                        + "            window.addEventListener('unload', () => {\r\n"
+                        + "                ZoomMtg.leaveMeeting({});\r\n"
+                        + "            });\r\n"
                         + "        </script>\r\n"
                         + "    </body>\r\n"
                         + "</html>",
