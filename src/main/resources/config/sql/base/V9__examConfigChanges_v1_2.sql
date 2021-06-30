@@ -10,7 +10,9 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (960, 'allowFind', 'CHECKBOX', null, null, null, null, 'true'),
     (961, 'allowPDFReaderToolbar', 'CHECKBOX', null, null, null, null, 'false'),
 
-    (970, 'setVmwareConfiguration', 'CHECKBOX', null, null, null, null, 'false')
+    (970, 'setVmwareConfiguration', 'CHECKBOX', null, null, null, null, 'false'),
+    (971, 'allowedDisplaysIgnoreFailure', 'CHECKBOX', null, null, null, null, 'false')
+    
     ;
 
 -- -----------------------------------------------------
@@ -66,6 +68,11 @@ INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group
 -- insert Set VMWare Configuration
 INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
     (970, 0, 10, 'registry', 0, 7, 4, 1, 'NONE');
+    
+-- insert mac settings
+
+INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
+    (971, 0, 9, 'macSettings', 7, 11, 5, 1, 'NONE');
 
 -- -----------------------------------------------------
 -- Update old orientations
@@ -105,7 +112,11 @@ UPDATE orientation SET group_id='additionalWindow', x_position=0, y_position=14,
 UPDATE orientation SET x_position=7, y_position=11, width=5 WHERE config_attribute_id=57;
 UPDATE orientation SET x_position=7, y_position=13, width=5 WHERE config_attribute_id=58;
 
--- insert Set VMWare Configuration
+-- update Set VMWare Configuration
 UPDATE orientation SET y_position=8 WHERE config_attribute_id=406;
 UPDATE orientation SET y_position=9 WHERE config_attribute_id=407;
 UPDATE orientation SET y_position=10 WHERE config_attribute_id=408;
+
+-- update mac settings
+UPDATE orientation SET y_position=10 WHERE config_attribute_id=315;
+UPDATE orientation SET y_position=12 WHERE config_attribute_id=316;
