@@ -20,10 +20,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.cache.CacheManager;
 import org.springframework.core.env.Environment;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
+import ch.ethz.seb.sebserver.gbl.client.ProxyData;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -45,6 +51,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCour
 public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements LmsAPITemplate {
 
     // TODO add needed dependencies here
+    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
+    private final ClientCredentialService clientCredentialService;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
     private final Long lmsSetupId;
 
@@ -52,6 +60,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
             // TODO if you need more dependencies inject them here and set the reference
 
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
+            final ClientCredentialService clientCredentialService,
             final APITemplateDataSupplier apiTemplateDataSupplier,
             final AsyncService asyncService,
             final Environment environment,
@@ -59,6 +69,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
         super(asyncService, environment, cacheManager);
 
+        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
+        this.clientCredentialService = clientCredentialService;
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
         this.lmsSetupId = apiTemplateDataSupplier.getLmsSetup().id;
     }
@@ -83,12 +95,15 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final LmsSetupTestResult testLmsSetupSettings = testLmsSetupSettings();
         if (testLmsSetupSettings.hasAnyError()) {
             return testLmsSetupSettings;
+        } else {
+
         }
 
         // TODO check if the course API of the remote LMS is available
         // if not, create corresponding LmsSetupTestResult error
+        return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.OPEN_OLAT, "TODO: implement LMS access check");
 
-        return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
+        //return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
     }
 
     @Override
@@ -193,14 +208,20 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
 
+        @SuppressWarnings("unused")
         final String quizName = filterMap.getString(QuizData.FILTER_ATTR_QUIZ_NAME);
+        @SuppressWarnings("unused")
         final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
 
-        // TODO get all course / quiz data from remote LMS that matches the filter criteria.
-        //      put loaded QuizData to the cache: super.putToCache(quizDataCollection);
-        //      before returning it.
-
         return () -> {
+
+            // TODO Get all course / quiz data from remote LMS that matches the filter criteria.
+            //      If the LMS API uses paging, go through all pages using the filter criteria
+            //      and collect the course data.
+            //      Transform the data from courses / quizzes from LMS into QuizData objects
+            //      Put loaded QuizData objects to the cache: super.putToCache(quizDataCollection);
+            //      before returning it.
+
             throw new RuntimeException("TODO");
         };
     }
@@ -208,11 +229,13 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
 
-        // TODO get all quiz / course data for specified identifiers from remote LMS
-        //      and put it to the cache: super.putToCache(quizDataCollection);
-        //      before returning it.
-
         return () -> {
+
+            // TODO get all quiz / course data for specified identifiers from remote LMS
+            //      Transform the data from courses / quizzes from LMS into QuizData objects
+            //      and put it to the cache: super.putToCache(quizDataCollection);
+            //      before returning it.
+
             throw new RuntimeException("TODO");
         };
     }
@@ -220,11 +243,12 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     protected Supplier<QuizData> quizSupplier(final String id) {
 
-        // TODO get the specified quiz / course data for specified identifier from remote LMS
-        //      and put it to the cache: super.putToCache(quizDataCollection);
-        //      before returning it.
-
         return () -> {
+
+            // TODO get the specified quiz / course data for specified identifier from remote LMS
+            //      and put it to the cache: super.putToCache(quizDataCollection);
+            //      before returning it.
+
             throw new RuntimeException("TODO");
         };
     }
@@ -232,10 +256,11 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId) {
 
-        // TODO get the examinee's account details by the given examineeSessionId from remote LMS.
-        //      Currently only the name is needed to display on monitoring view.
-
         return () -> {
+
+            // TODO get the examinee's account details by the given examineeSessionId from remote LMS.
+            //      Currently only the name is needed to display on monitoring view.
+
             throw new RuntimeException("TODO");
         };
     }
@@ -243,19 +268,22 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
         return () -> {
-            throw new UnsupportedOperationException("not available yet");
+            throw new UnsupportedOperationException("No Course Chapter available for OpenOLAT LMS");
         };
     }
 
     @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
-
+        @SuppressWarnings("unused")
         final String quizId = exam.externalId;
 
-        // TODO get the SEB client restrictions that are currently set on the remote LMS for
-        //      the given quiz / course derived from the given exam
+        return Result.tryCatch(() -> {
 
-        return Result.ofRuntimeError("TODO");
+            // TODO get the SEB client restrictions that are currently set on the remote LMS for
+            //      the given quiz / course derived from the given exam
+
+            throw new RuntimeException("TODO");
+        });
     }
 
     @Override
@@ -263,22 +291,59 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             final String externalExamId,
             final SEBRestriction sebRestrictionData) {
 
-        // TODO apply the given sebRestrictionData settings as current SEB client restriction setting
-        //      to the remote LMS for the given quiz / course.
-        //      Mainly SEBRestriction.configKeys and SEBRestriction.browserExamKeys
+        return Result.tryCatch(() -> {
 
-        return Result.ofRuntimeError("TODO");
+            // TODO apply the given sebRestrictionData settings as current SEB client restriction setting
+            //      to the remote LMS for the given quiz / course.
+            //      Mainly SEBRestriction.configKeys and SEBRestriction.browserExamKeys
+
+            throw new RuntimeException("TODO");
+        });
     }
 
     @Override
     public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
-
+        @SuppressWarnings("unused")
         final String quizId = exam.externalId;
 
-        // TODO Release respectively delete all SEB client restrictions for the given
-        //      course / quize on the remote LMS.
+        return Result.tryCatch(() -> {
 
-        return Result.ofRuntimeError("TODO");
+            // TODO Release respectively delete all SEB client restrictions for the given
+            //      course / quize on the remote LMS.
+
+            throw new RuntimeException("TODO");
+        });
+    }
+
+    // TODO: This is an example of how to create a RestTemplate for the service to access the LMS API
+    //       The example deals with a Http based API that is secured by an OAuth2 client-credential flow.
+    //       You might need some different template, then you have to adapt this code
+    //       To your needs.
+    @SuppressWarnings("unused")
+    private OAuth2RestTemplate createRestTemplate(final String accessTokenRequestPath) {
+
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
+        final ProxyData proxyData = this.apiTemplateDataSupplier.getProxyData();
+
+        final CharSequence plainClientId = credentials.clientId;
+        final CharSequence plainClientSecret = this.clientCredentialService
+                .getPlainClientSecret(credentials)
+                .getOrThrow();
+
+        final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
+        details.setAccessTokenUri(lmsSetup.lmsApiUrl + accessTokenRequestPath);
+        details.setClientId(plainClientId.toString());
+        details.setClientSecret(plainClientSecret.toString());
+
+        final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                .getClientHttpRequestFactory(proxyData)
+                .getOrThrow();
+
+        final OAuth2RestTemplate template = new OAuth2RestTemplate(details);
+        template.setRequestFactory(clientHttpRequestFactory);
+
+        return template;
     }
 
 }
