@@ -449,17 +449,22 @@ public class ZoomProctoringService implements ExamProctoringService {
                 return;
             }
 
-            final ProctoringRoomConnection proctoringRoomConnection = this.getProctorRoomConnection(
-                    proctoringSettings,
-                    room.name,
-                    room.subject)
-                    .getOrThrow();
-
             clientConnections.stream()
-                    .forEach(cc -> sendJoinInstruction(
-                            proctoringSettings.examId,
-                            cc.connectionToken,
-                            proctoringRoomConnection));
+                    .forEach(cc -> {
+                        try {
+                            sendJoinInstruction(
+                                    proctoringSettings.examId,
+                                    cc.connectionToken,
+                                    getClientRoomConnection(
+                                            proctoringSettings,
+                                            cc.connectionToken,
+                                            room.name,
+                                            room.subject)
+                                                    .getOrThrow());
+                        } catch (final Exception e) {
+                            log.error("Failed to send rejoin instruction to SEB client: {}", cc.connectionToken, e);
+                        }
+                    });
         });
     }
 

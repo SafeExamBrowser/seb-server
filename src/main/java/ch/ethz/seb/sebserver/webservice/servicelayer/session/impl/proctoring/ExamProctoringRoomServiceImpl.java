@@ -630,16 +630,17 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final ClientConnectionData clientConnection = this.examSessionService
                     .getConnectionData(connectionToken)
                     .getOrThrow();
-            final String roomName = this.remoteProctoringRoomDAO
-                    .getRoomName(clientConnection.clientConnection.getRemoteProctoringRoomId())
+
+            final RemoteProctoringRoom remoteProctoringRoom = this.remoteProctoringRoomDAO
+                    .getRoom(clientConnection.clientConnection.getRemoteProctoringRoomId())
                     .getOrThrow();
 
             final ProctoringRoomConnection proctoringConnection = examProctoringService
                     .getClientRoomConnection(
                             proctoringSettings,
                             clientConnection.clientConnection.connectionToken,
-                            roomName,
-                            clientConnection.clientConnection.userSessionId)
+                            remoteProctoringRoom.name,
+                            remoteProctoringRoom.subject)
                     .getOrThrow();
 
             sendJoinInstruction(
