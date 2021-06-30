@@ -13,7 +13,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -33,15 +35,21 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
  * as usual. Just add the additionally needed dependencies used to build a AnsLmsAPITemplateFactory */
 public class AnsLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
+    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
+    private final ClientCredentialService clientCredentialService;
     private final AsyncService asyncService;
     private final Environment environment;
     private final CacheManager cacheManager;
 
     public AnsLmsAPITemplateFactory(
+            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
+            final ClientCredentialService clientCredentialService,
             final AsyncService asyncService,
             final Environment environment,
             final CacheManager cacheManager) {
 
+        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
+        this.clientCredentialService = clientCredentialService;
         this.asyncService = asyncService;
         this.environment = environment;
         this.cacheManager = cacheManager;
@@ -56,6 +64,8 @@ public class AnsLmsAPITemplateFactory implements LmsAPITemplateFactory {
     public Result<LmsAPITemplate> create(final APITemplateDataSupplier apiTemplateDataSupplier) {
         return Result.tryCatch(() -> {
             return new AnsLmsAPITemplate(
+                    this.clientHttpRequestFactoryService,
+                    this.clientCredentialService,
                     apiTemplateDataSupplier,
                     this.asyncService,
                     this.environment,
