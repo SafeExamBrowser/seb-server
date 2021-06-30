@@ -63,7 +63,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamAdminServiceImpl.class);
 
-    private static final Object ATTR_ENABLE_PROCTORING = null;
     private final ExamDAO examDAO;
     private final IndicatorDAO indicatorDAO;
     private final AdditionalAttributesDAO additionalAttributesDAO;
