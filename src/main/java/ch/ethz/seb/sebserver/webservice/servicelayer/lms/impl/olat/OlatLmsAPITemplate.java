@@ -208,7 +208,9 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
 
+        @SuppressWarnings("unused")
         final String quizName = filterMap.getString(QuizData.FILTER_ATTR_QUIZ_NAME);
+        @SuppressWarnings("unused")
         final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
 
         return () -> {
@@ -272,7 +274,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
-
+        @SuppressWarnings("unused")
         final String quizId = exam.externalId;
 
         return Result.tryCatch(() -> {
@@ -301,7 +303,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     @Override
     public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
-
+        @SuppressWarnings("unused")
         final String quizId = exam.externalId;
 
         return Result.tryCatch(() -> {
@@ -317,6 +319,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     //       The example deals with a Http based API that is secured by an OAuth2 client-credential flow.
     //       You might need some different template, then you have to adapt this code
     //       To your needs.
+    @SuppressWarnings("unused")
     private OAuth2RestTemplate createRestTemplate(final String accessTokenRequestPath) {
 
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
