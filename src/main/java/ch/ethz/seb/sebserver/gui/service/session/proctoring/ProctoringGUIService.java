@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.session.proctoring;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -202,16 +203,13 @@ public class ProctoringGUIService {
                             roomData.roomName,
                             error.getMessage()));
             closeWindow(windowName);
-        } else {
-            log.warn("No proctoring room window with name: {} found for closing.", windowName);
         }
     }
 
     public void clear() {
         this.collectingRoomsActionState.clear();
         if (!this.openWindows.isEmpty()) {
-            this.openWindows
-                    .entrySet()
+            new HashSet<>(this.openWindows.entrySet())
                     .stream()
                     .forEach(entry -> closeRoomWindow(entry.getKey()));
 

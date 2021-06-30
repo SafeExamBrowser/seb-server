@@ -59,6 +59,10 @@ public interface ExamProctoringRoomService {
      * @return Result refer to the given exam or to an error when happened */
     Result<Exam> disposeRoomsForExam(Exam exam);
 
+    /** Indicates whether the town-hall for given exam is active or not
+     *
+     * @param examId the exam identifier
+     * @return true if the town-hall for given exam is currently actice */
     boolean isTownhallRoomActive(final Long examId);
 
     /** This creates a town-hall room for a specific exam. The exam must be active and running
@@ -76,6 +80,10 @@ public interface ExamProctoringRoomService {
      * @return Result refer to the RemoteProctoringRoom data or to an error when happened */
     Result<RemoteProctoringRoom> getTownhallRoomData(final Long examId);
 
+    /** Used to close a active town-hall for given exam.
+     *
+     * @param examId The exam identifier
+     * @return Result refer to the room key of the closed town-hall or to an error when happened. */
     Result<EntityKey> closeTownhallRoom(Long examId);
 
     /** Used to create a break out room for all active SEB clients given by the connectionTokens.
@@ -109,9 +117,16 @@ public interface ExamProctoringRoomService {
      * @param roomName The room name
      * @param attributes the reconfiguration attributes
      * @return Result refer to an empty value or to an error when happened */
-    Result<Void> sendReconfigurationInstructions(
-            final Long examId,
-            final String roomName,
-            final Map<String, String> attributes);
+    Result<Void> sendReconfigurationInstructions(Long examId, String roomName, Map<String, String> attributes);
+
+    /** Notifies that a specified proctoring room has been opened by a proctor.
+     *
+     * This can be used to do instruct connection SEB clients of the room to do some initial actions,
+     * sending join instruction for the room to the SEB clients for example.
+     *
+     * @param examId The exam identifier of the proctoring room
+     * @param roomName The name of the proctoring room
+     * @return Result refer to void or to an error when happened */
+    Result<Void> notifyRoomOpened(Long examId, String roomName);
 
 }

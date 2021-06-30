@@ -101,7 +101,7 @@ class ExamSessionControlTask implements DisposableBean {
         final String updateId = this.examUpdateHandler.createUpdateId();
 
         if (log.isDebugEnabled()) {
-            log.debug("Run exam runtime update task with Id: {}", updateId);
+            log.debug("Run exam update task with Id: {}", updateId);
         }
 
         controlExamStart(updateId);
@@ -121,8 +121,8 @@ class ExamSessionControlTask implements DisposableBean {
     }
 
     private void controlExamStart(final String updateId) {
-        if (log.isDebugEnabled()) {
-            log.debug("Check starting exams: {}", updateId);
+        if (log.isTraceEnabled()) {
+            log.trace("Check starting exams: {}", updateId);
         }
 
         try {
@@ -145,8 +145,8 @@ class ExamSessionControlTask implements DisposableBean {
     }
 
     private void controlExamEnd(final String updateId) {
-        if (log.isDebugEnabled()) {
-            log.debug("Check ending exams: {}", updateId);
+        if (log.isTraceEnabled()) {
+            log.trace("Check ending exams: {}", updateId);
         }
 
         try {

@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Base64.Encoder;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -36,6 +37,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -56,8 +58,10 @@ import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
@@ -68,6 +72,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ZoomRoomRequestResponse.CreateMeetingRequest;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ZoomRoomRequestResponse.CreateUserRequest;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ZoomRoomRequestResponse.MeetingResponse;
@@ -99,7 +104,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_ALLOW_CHAT))
             .stream().collect(Collectors.toMap(Tuple::get_1, Tuple::get_2)));
 
-    private static final Map<String, String> SEB_INSTRUCTION_DEFAULTS = Utils.immutableMapOf(Arrays.asList(
+    private static final Map<String, String> SEB_RECONFIG_INSTRUCTION_DEFAULTS = Utils.immutableMapOf(Arrays.asList(
             new Tuple<>(
                     ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_RECEIVE_AUDIO,
                     Constants.FALSE_STRING),
@@ -119,6 +124,7 @@ public class ZoomProctoringService implements ExamProctoringService {
     private final ZoomRestTemplate zoomRestTemplate;
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final AuthorizationService authorizationService;
+    private final SEBClientInstructionService sebInstructionService;
 
     public ZoomProctoringService(
             final ExamSessionService examSessionService,
@@ -127,7 +133,8 @@ public class ZoomProctoringService implements ExamProctoringService {
             final AsyncService asyncService,
             final JSONMapper jsonMapper,
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
-            final AuthorizationService authorizationService) {
+            final AuthorizationService authorizationService,
+            final SEBClientInstructionService sebInstructionService) {
 
         this.examSessionService = examSessionService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
@@ -137,6 +144,7 @@ public class ZoomProctoringService implements ExamProctoringService {
         this.zoomRestTemplate = new ZoomRestTemplate(this);
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
         this.authorizationService = authorizationService;
+        this.sebInstructionService = sebInstructionService;
     }
 
     @Override
@@ -390,7 +398,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                 this.deleteAdHocMeeting(
                         proctoringSettings,
                         credentials,
-                        roomName,
+                        additionalZoomRoomData.meeting_id,
                         additionalZoomRoomData.user_id)
                         .getOrThrow();
 
@@ -404,17 +412,73 @@ public class ZoomProctoringService implements ExamProctoringService {
     }
 
     @Override
-    public Map<String, String> getDefaultInstructionAttributes() {
-        return SEB_INSTRUCTION_DEFAULTS;
+    public Map<String, String> getDefaultReconfigInstructionAttributes() {
+        return SEB_RECONFIG_INSTRUCTION_DEFAULTS;
     }
 
     @Override
-    public Map<String, String> getInstructionAttributes(final Map<String, String> attributes) {
+    public Map<String, String> mapReconfigInstructionAttributes(final Map<String, String> attributes) {
         return attributes.entrySet().stream()
                 .map(entry -> new Tuple<>(
                         SEB_API_NAME_INSTRUCTION_NAME_MAPPING.getOrDefault(entry.getKey(), entry.getKey()),
                         entry.getValue()))
                 .collect(Collectors.toMap(Tuple::get_1, Tuple::get_2));
+    }
+
+    @Override
+    public Result<Void> notifyBreakOutRoomOpened(
+            final ProctoringServiceSettings proctoringSettings,
+            final RemoteProctoringRoom room) {
+
+        // Not needed for Zoom integration so far
+
+        return Result.EMPTY;
+    }
+
+    @Override
+    public Result<Void> notifyCollectingRoomOpened(
+            final ProctoringServiceSettings proctoringSettings,
+            final RemoteProctoringRoom room,
+            final Collection<ClientConnection> clientConnections) {
+
+        return Result.tryCatch(() -> {
+
+            if (this.remoteProctoringRoomDAO.isTownhallRoomActive(proctoringSettings.examId)) {
+                // do nothing is the town-hall of this exam is open. The clients will automatically join
+                // the meeting once the town-hall has been closed
+                return;
+            }
+
+            final ProctoringRoomConnection proctoringRoomConnection = this.getProctorRoomConnection(
+                    proctoringSettings,
+                    room.name,
+                    room.subject)
+                    .getOrThrow();
+
+            clientConnections.stream()
+                    .forEach(cc -> sendJoinInstruction(
+                            proctoringSettings.examId,
+                            cc.connectionToken,
+                            proctoringRoomConnection));
+        });
+    }
+
+    private void sendJoinInstruction(
+            final Long examId,
+            final String connectionToken,
+            final ProctoringRoomConnection proctoringConnection) {
+
+        final Map<String, String> attributes = this
+                .createJoinInstructionAttributes(proctoringConnection);
+
+        this.sebInstructionService
+                .registerInstruction(
+                        examId,
+                        InstructionType.SEB_PROCTORING,
+                        attributes,
+                        connectionToken,
+                        true)
+                .onError(error -> log.error("Failed to send join instruction: {}", connectionToken, error));
     }
 
     private Result<NewRoom> createAdHocMeeting(
@@ -450,8 +514,6 @@ public class ZoomProctoringService implements ExamProctoringService {
                     createMeeting.getBody(),
                     MeetingResponse.class);
 
-            // TODO start the meeting automatically ???
-
             // Create NewRoom data with all needed information to store persistent
             final AdditionalZoomRoomData additionalZoomRoomData = new AdditionalZoomRoomData(
                     meetingResponse.id,
@@ -472,7 +534,7 @@ public class ZoomProctoringService implements ExamProctoringService {
     private Result<Void> deleteAdHocMeeting(
             final ProctoringServiceSettings proctoringSettings,
             final ClientCredentials credentials,
-            final String meetingId,
+            final Long meetingId,
             final String userId) {
 
         return Result.tryCatch(() -> {
@@ -565,6 +627,7 @@ public class ZoomProctoringService implements ExamProctoringService {
         private static final String API_ZOOM_ROOM_USER = "SEBProctoringRoomUser";
         private static final String API_CREATE_MEETING_ENDPOINT = "v2/users/{userid}/meetings";
         private static final String API_DELETE_MEETING_ENDPOINT = "v2/meetings/{meetingid}";
+        private static final String API_END_MEETING_ENDPOINT = "v2/meetings/{meetingid}/status";
 
         private final ZoomProctoringService zoomProctoringService;
         private final RestTemplate restTemplate;
@@ -671,7 +734,38 @@ public class ZoomProctoringService implements ExamProctoringService {
         public ResponseEntity<String> deleteMeeting(
                 final String zoomServerUrl,
                 final ClientCredentials credentials,
-                final String meetingId) {
+                final Long meetingId) {
+
+            // try to set set meeting status to ended first
+            try {
+
+                final String url = UriComponentsBuilder
+                        .fromUriString(zoomServerUrl)
+                        .path(API_END_MEETING_ENDPOINT)
+                        .buildAndExpand(meetingId)
+                        .toUriString();
+
+                final HttpHeaders headers = getHeaders(credentials);
+                headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+
+                final ResponseEntity<String> exchange = exchange(
+                        url,
+                        HttpMethod.PUT,
+                        "{\"action\": \"end\"}",
+                        headers);
+
+                if (log.isDebugEnabled() && exchange.getStatusCodeValue() != 204) {
+                    log.debug("Failed to set meeting to end state. Meeting: {}, http: {}",
+                            meetingId,
+                            exchange.getStatusCodeValue());
+                }
+
+            } catch (final Exception e) {
+                log.warn("Failed to end Zoom ad-hoc meeting: {} cause: {} / {}",
+                        meetingId,
+                        e.getMessage(),
+                        (e.getCause() != null) ? e.getCause().getMessage() : Constants.EMPTY_NOTE);
+            }
 
             try {
 
@@ -684,7 +778,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                 return exchange(url, HttpMethod.DELETE, credentials);
 
             } catch (final Exception e) {
-                log.error("Failed to delete Zoom ad-hoc meeting: {} cause: {} / {}",
+                log.warn("Failed to delete Zoom ad-hoc meeting: {} cause: {} / {}",
                         meetingId,
                         e.getMessage(),
                         (e.getCause() != null) ? e.getCause().getMessage() : Constants.EMPTY_NOTE);
@@ -747,21 +841,27 @@ public class ZoomProctoringService implements ExamProctoringService {
                         ? new HttpEntity<>(body, httpHeaders)
                         : new HttpEntity<>(httpHeaders);
 
-                final ResponseEntity<String> result = this.restTemplate.exchange(
-                        url, //"https://ethz.zoom.us/v2/users?Fstatus=active&page_size=30&page_number=1&data_type=Json",
-                        method,
-                        httpEntity,
-                        String.class);
+                try {
+                    final ResponseEntity<String> result = this.restTemplate.exchange(
+                            url,
+                            method,
+                            httpEntity,
+                            String.class);
 
-                if (result.getStatusCode() != HttpStatus.OK && result.getStatusCode() != HttpStatus.CREATED) {
-                    log.warn("Error response on Zoom API call to {} response status: {}", url, result.getStatusCode());
+                    if (result.getStatusCode().value() >= 400) {
+                        log.warn("Error response on Zoom API call to {} response status: {}", url,
+                                result.getStatusCode());
+                    }
+
+                    return result;
+                } catch (final RestClientResponseException rce) {
+                    return ResponseEntity
+                            .status(rce.getRawStatusCode())
+                            .body(rce.getResponseBodyAsString());
                 }
-
-                return result;
             });
             return protectedRunResult.getOrThrow();
         }
-
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

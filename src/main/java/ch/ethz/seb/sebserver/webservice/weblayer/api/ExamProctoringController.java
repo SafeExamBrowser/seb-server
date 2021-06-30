@@ -121,6 +121,26 @@ public class ExamProctoringController {
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_PROCTORING_NOTIFY_OPEN_ROOM_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public void notifyProctoringRoomOpened(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_MODEL_ID) final Long examId,
+            @RequestParam(name = ProctoringRoomConnection.ATTR_ROOM_NAME, required = true) final String roomName) {
+
+        checkAccess(institutionId, examId);
+        this.examSessionService.getRunningExam(examId)
+                .flatMap(this.authorizationService::checkRead)
+                .flatMap(exam -> this.examProcotringRoomService.notifyRoomOpened(exam.id, roomName))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_PROCTORING_ROOM_CONNECTIONS_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,

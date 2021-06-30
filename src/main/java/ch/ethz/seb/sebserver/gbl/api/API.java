@@ -182,6 +182,7 @@ public final class API {
     public static final String EXAM_PROCTORING_COLLECTING_ROOMS_SEGMENT = "/collecting-rooms";
     public static final String EXAM_PROCTORING_OPEN_BREAK_OUT_ROOM_SEGMENT = "/open";
     public static final String EXAM_PROCTORING_CLOSE_ROOM_SEGMENT = "/close";
+    public static final String EXAM_PROCTORING_NOTIFY_OPEN_ROOM_SEGMENT = "/notify-open-room";
     public static final String EXAM_PROCTORING_RECONFIGURATION_ATTRIBUTES = "/reconfiguration-attributes";
     public static final String EXAM_PROCTORING_ROOM_CONNECTIONS_PATH_SEGMENT = "/room-connections";
     public static final String EXAM_PROCTORING_ACTIVATE_TOWNHALL_ROOM = "activate-towhall-room";

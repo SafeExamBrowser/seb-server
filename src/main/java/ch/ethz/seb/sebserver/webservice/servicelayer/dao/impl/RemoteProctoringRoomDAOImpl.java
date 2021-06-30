@@ -268,6 +268,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 final Optional<RemoteProctoringRoomRecord> room =
                         this.remoteProctoringRoomRecordMapper.selectByExample()
                                 .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                                .and(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isEqualTo(0))
+                                .and(RemoteProctoringRoomRecordDynamicSqlSupport.breakOutConnections, isNull())
                                 .build()
                                 .execute()
                                 .stream()
@@ -306,6 +308,20 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 .onError(TransactionHandler::rollback);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<RemoteProctoringRoom>> getBreakoutRooms(final String connectionToken) {
+        return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper
+                .selectByExample()
+                .where(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isEqualTo(0))
+                .and(RemoteProctoringRoomRecordDynamicSqlSupport.breakOutConnections, isLike(connectionToken))
+                .build()
+                .execute()
+                .stream()
+                .map(this::toDomainModel)
+                .collect(Collectors.toList()));
+    }
+
     private RemoteProctoringRoom toDomainModel(final RemoteProctoringRoomRecord record) {
         final String breakOutConnections = record.getBreakOutConnections();
         final Collection<String> connections = StringUtils.isNotBlank(breakOutConnections)
@@ -330,6 +346,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
 
         final Long roomNumber = this.remoteProctoringRoomRecordMapper.countByExample()
                 .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                .and(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isEqualTo(0))
+                .and(RemoteProctoringRoomRecordDynamicSqlSupport.breakOutConnections, isNull())
                 .build()
                 .execute();
 

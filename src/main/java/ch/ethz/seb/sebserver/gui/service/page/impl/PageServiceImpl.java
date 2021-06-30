@@ -171,8 +171,8 @@ public class PageServiceImpl implements PageService {
         return FormTooltipMode.INPUT;
     }
 
-    @Override
     @SuppressWarnings("unchecked")
+    @Override
     public <T extends PageEvent> void firePageEvent(final T event, final PageContext pageContext) {
         final Class<? extends PageEvent> typeClass = event.getClass();
         final List<PageEventListener<T>> listeners = new ArrayList<>();

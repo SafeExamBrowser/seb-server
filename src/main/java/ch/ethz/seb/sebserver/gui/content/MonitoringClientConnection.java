@@ -392,14 +392,14 @@ public class MonitoringClientConnection implements TemplateComposer {
                             .publish();
                 }
 
-                actionBuilder
-                        .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_EXAM_ROOM_PROCTORING)
-                        .withEntityKey(parentEntityKey)
-                        .withExec(action -> this.monitoringProctoringService.openExamCollectionProctorScreen(
-                                action,
-                                connectionData))
-                        .noEventPropagation()
-                        .publish();
+//                actionBuilder
+//                        .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_EXAM_ROOM_PROCTORING)
+//                        .withEntityKey(parentEntityKey)
+//                        .withExec(action -> this.monitoringProctoringService.openExamCollectionProctorScreen(
+//                                action,
+//                                connectionData))
+//                        .noEventPropagation()
+//                        .publish();
 
                 clientConnectionDetails.setStatusChangeListener(ccd -> {
                     this.pageService.firePageEvent(

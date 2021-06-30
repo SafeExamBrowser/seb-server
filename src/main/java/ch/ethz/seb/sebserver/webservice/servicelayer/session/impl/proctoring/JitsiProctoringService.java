@@ -14,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Base64.Encoder;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -50,8 +51,10 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -207,12 +210,12 @@ public class JitsiProctoringService implements ExamProctoringService {
     }
 
     @Override
-    public Map<String, String> getDefaultInstructionAttributes() {
+    public Map<String, String> getDefaultReconfigInstructionAttributes() {
         return SEB_INSTRUCTION_DEFAULTS;
     }
 
     @Override
-    public Map<String, String> getInstructionAttributes(final Map<String, String> attributes) {
+    public Map<String, String> mapReconfigInstructionAttributes(final Map<String, String> attributes) {
         final Map<String, String> result = attributes
                 .entrySet()
                 .stream()
@@ -308,6 +311,28 @@ public class JitsiProctoringService implements ExamProctoringService {
                     false)
                             .getOrThrow();
         });
+    }
+
+    @Override
+    public Result<Void> notifyBreakOutRoomOpened(
+            final ProctoringServiceSettings proctoringSettings,
+            final RemoteProctoringRoom room) {
+
+        // Does nothing since the join instructions for break-out rooms has been sent by the overal service
+
+        return Result.EMPTY;
+    }
+
+    @Override
+    public Result<Void> notifyCollectingRoomOpened(
+            final ProctoringServiceSettings proctoringSettings,
+            final RemoteProctoringRoom room,
+            final Collection<ClientConnection> clientConnections) {
+
+        // Does nothing at the moment
+        // TODO check if we need something similar for Jitsi as it is implemented for Zoom
+        //      --> send join instructions to all involved client connections except them in one to one room.
+        return Result.EMPTY;
     }
 
     protected Result<ProctoringRoomConnection> createProctoringConnection(

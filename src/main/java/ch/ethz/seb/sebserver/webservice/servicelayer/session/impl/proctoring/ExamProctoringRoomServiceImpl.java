@@ -280,6 +280,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     cc.getExamId(),
                     cc.getRemoteProctoringRoomId());
 
+            this.cleanupBreakOutRooms(cc);
+
             this.clientConnectionDAO
                     .removeFromProctoringRoom(cc.getId(), cc.getConnectionToken())
                     .onError(error -> log.error("Failed to remove client connection form room: ", error))
@@ -334,6 +336,37 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         return Result.ofRuntimeError("No active town-hall for exam: " + examId);
     }
 
+    @Override
+    public Result<Void> notifyRoomOpened(final Long examId, final String roomName) {
+        return Result.tryCatch(() -> {
+            final ProctoringServiceSettings proctoringSettings = this.examAdminService
+                    .getProctoringServiceSettings(examId)
+                    .getOrThrow();
+
+            final ExamProctoringService examProctoringService = this.examAdminService
+                    .getExamProctoringService(proctoringSettings.serverType)
+                    .getOrThrow();
+
+            final RemoteProctoringRoom room = this.remoteProctoringRoomDAO
+                    .getRoom(examId, roomName)
+                    .getOrThrow();
+
+            if (room.townhallRoom || !room.breakOutConnections.isEmpty()) {
+                examProctoringService
+                        .notifyBreakOutRoomOpened(proctoringSettings, room)
+                        .getOrThrow();
+            } else {
+                final Collection<ClientConnection> clientConnections = this.clientConnectionDAO
+                        .getCollectingRoomConnections(examId, roomName)
+                        .getOrThrow();
+
+                examProctoringService
+                        .notifyCollectingRoomOpened(proctoringSettings, room, clientConnections)
+                        .getOrThrow();
+            }
+        });
+    }
+
     private void closeTownhall(
             final Long examId,
             final ProctoringServiceSettings proctoringSettings,
@@ -348,7 +381,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         this.sendReconfigurationInstructions(
                 examId,
                 connectionTokens,
-                examProctoringService.getDefaultInstructionAttributes());
+                examProctoringService.getDefaultReconfigInstructionAttributes());
 
         // Close and delete town-hall room
         this.remoteProctoringRoomDAO
@@ -383,7 +416,35 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         this.sendReconfigurationInstructions(
                 examId,
                 connectionTokens,
-                examProctoringService.getDefaultInstructionAttributes());
+                examProctoringService.getDefaultReconfigInstructionAttributes());
+    }
+
+    private void cleanupBreakOutRooms(final ClientConnectionRecord cc) {
+
+        // check if there is a break-out room with matching single connection token
+        final Collection<RemoteProctoringRoom> roomsToCleanup = this.remoteProctoringRoomDAO
+                .getBreakoutRooms(cc.getConnectionToken())
+                .getOrThrow();
+
+        roomsToCleanup.stream().forEach(room -> {
+            final ExamProctoringService examProctoringService = this.examAdminService
+                    .getExamProctoringService(room.examId)
+                    .getOrThrow();
+
+            final ProctoringServiceSettings proctoringSettings = this.examAdminService
+                    .getProctoringServiceSettings(room.examId)
+                    .getOrThrow();
+
+            // Dispose the proctoring room on service side
+            examProctoringService
+                    .disposeBreakOutRoom(proctoringSettings, room.name)
+                    .getOrThrow();
+
+            // Delete room on persistent
+            this.remoteProctoringRoomDAO
+                    .deleteRoom(room.id)
+                    .getOrThrow();
+        });
     }
 
     private void closeBreakOutRoom(
@@ -396,7 +457,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         this.sendReconfigurationInstructions(
                 examId,
                 remoteProctoringRoom.breakOutConnections,
-                examProctoringService.getDefaultInstructionAttributes());
+                examProctoringService.getDefaultReconfigInstructionAttributes());
 
         // Dispose the proctoring room on service side
         examProctoringService
@@ -458,7 +519,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             sendReconfigurationInstructions(
                     examId,
                     connectionTokens,
-                    examProctoringService.getInstructionAttributes(attributes));
+                    examProctoringService.mapReconfigInstructionAttributes(attributes));
         });
     }
 
@@ -523,7 +584,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                             .getClientRoomConnection(
                                     proctoringSettings,
                                     connectionToken,
-                                    examProctoringService.verifyRoomName(roomName, connectionToken),
+                                    roomName,
                                     (StringUtils.isNotBlank(subject)) ? subject : roomName)
                             .onError(error -> log.error(
                                     "Failed to get client room connection data for {} cause: {}",

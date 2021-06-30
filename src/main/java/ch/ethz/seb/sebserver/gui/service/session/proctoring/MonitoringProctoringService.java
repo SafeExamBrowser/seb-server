@@ -51,6 +51,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctorin
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.IsTownhallRoomAvailable;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.NotifyProctoringRoomOpened;
 
 @Lazy
 @Component
@@ -488,6 +489,12 @@ public class MonitoringProctoringService {
         this.pageService.getCurrentUser()
                 .getProctoringGUIService()
                 .registerProctoringWindow(String.valueOf(room.examId), room.name, room.name);
+
+        this.pageService.getRestService().getBuilder(NotifyProctoringRoomOpened.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
+                .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
+                .call()
+                .onError(error -> log.error("Failed to notify proctoring room opened: ", error));
 
         return action;
     }

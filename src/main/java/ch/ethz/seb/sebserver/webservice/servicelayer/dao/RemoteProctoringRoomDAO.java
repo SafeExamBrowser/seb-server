@@ -117,6 +117,13 @@ public interface RemoteProctoringRoomDAO {
      * @param examId the exam identifier
      * @param roomId the room record identifier (PK)
      * @return Result refer to the actual collecting room record or to an error when happened */
-    Result<RemoteProctoringRoom> releasePlaceInCollectingRoom(final Long examId, Long roomId);
+    Result<RemoteProctoringRoom> releasePlaceInCollectingRoom(Long examId, Long roomId);
+
+    /** Get currently active break-out rooms for given connectionToken
+     *
+     * @param examId The exam identifier of the connection
+     * @param connectionTokens The connection token of the client connection
+     * @return Result refer to active break-out rooms or to an error when happened */
+    Result<Collection<RemoteProctoringRoom>> getBreakoutRooms(String connectionToken);
 
 }

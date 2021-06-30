@@ -142,6 +142,7 @@ public interface ZoomRoomRequestResponse {
             @JsonProperty final int jbh_time = 0;
             @JsonProperty final boolean use_pmi = false;
             @JsonProperty final String audio = "voip";
+            @JsonProperty final boolean waiting_room = false;
         }
     }
 

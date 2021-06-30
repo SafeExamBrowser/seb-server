@@ -41,7 +41,9 @@ public class ProctoringServlet extends HttpServlet {
 
     private final Collection<ProctoringWindowScriptResolver> proctoringWindowScriptResolver;
 
-    public ProctoringServlet(final Collection<ProctoringWindowScriptResolver> proctoringWindowScriptResolver) {
+    public ProctoringServlet(
+            final Collection<ProctoringWindowScriptResolver> proctoringWindowScriptResolver) {
+
         this.proctoringWindowScriptResolver = proctoringWindowScriptResolver;
     }
 
@@ -78,6 +80,7 @@ public class ProctoringServlet extends HttpServlet {
         } else {
             resp.getOutputStream().println(script);
         }
+
     }
 
     private boolean isAuthenticated(
