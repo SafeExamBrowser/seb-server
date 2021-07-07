@@ -21,7 +21,7 @@ public final class ServerPushContext {
 
     public final Composite anchor;
     public final Predicate<ServerPushContext> runAgain;
-    public final Function<Exception, Boolean> errorHandler;
+    final Function<Exception, Boolean> errorHandler;
     boolean internalStop = false;
 
     public ServerPushContext(
@@ -34,6 +34,12 @@ public final class ServerPushContext {
                 : error -> true;
         this.anchor = anchor;
         this.runAgain = runAgain;
+    }
+
+    public void reportError(final Exception error) {
+        if (this.errorHandler != null) {
+            this.internalStop = this.errorHandler.apply(error);
+        }
     }
 
     public boolean runAgain() {

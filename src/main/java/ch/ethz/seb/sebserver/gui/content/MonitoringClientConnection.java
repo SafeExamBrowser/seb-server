@@ -36,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.content.MonitoringRunningExam.ProctoringUpdateErrorHandler;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
@@ -269,11 +270,14 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         final Supplier<EntityTable<ClientNotification>> notificationTableSupplier = _notificationTableSupplier;
         // server push update
+        final ProctoringUpdateErrorHandler proctoringUpdateErrorHandler =
+                new ProctoringUpdateErrorHandler(this.pageService, pageContext);
+
         this.serverPushService.runServerPush(
                 new ServerPushContext(
                         content,
                         Utils.truePredicate(),
-                        MonitoringRunningExam.createServerPushUpdateErrorHandler(this.pageService, pageContext)),
+                        proctoringUpdateErrorHandler),
                 this.pollInterval,
                 context -> clientConnectionDetails.updateData(),
                 context -> clientConnectionDetails.updateGUI(notificationTableSupplier, pageContext));

@@ -47,6 +47,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
@@ -152,6 +153,7 @@ public class MonitoringProctoringService {
     }
 
     public void initCollectingRoomActions(
+            final ServerPushContext pushContext,
             final PageContext pageContext,
             final PageActionBuilder actionBuilder,
             final ProctoringServiceSettings proctoringSettings,
@@ -159,6 +161,7 @@ public class MonitoringProctoringService {
 
         proctoringGUIService.clearCollectingRoomActionState();
         updateCollectingRoomActions(
+                pushContext,
                 pageContext,
                 actionBuilder,
                 proctoringSettings,
@@ -166,6 +169,7 @@ public class MonitoringProctoringService {
     }
 
     public void updateCollectingRoomActions(
+            final ServerPushContext pushContext,
             final PageContext pageContext,
             final PageActionBuilder actionBuilder,
             final ProctoringServiceSettings proctoringSettings,
@@ -179,7 +183,7 @@ public class MonitoringProctoringService {
                 .getBuilder(GetCollectingRooms.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
-                .onError(error -> log.error("Failed to update proctoring rooms on GUI {}", error.getMessage()))
+                .onError(error -> pushContext.reportError(error))
                 .getOr(Collections.emptyList())
                 .stream()
                 .forEach(room -> {

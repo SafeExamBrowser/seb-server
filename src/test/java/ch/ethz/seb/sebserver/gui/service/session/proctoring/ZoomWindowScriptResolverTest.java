@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService
 public class ZoomWindowScriptResolverTest {
 
     @Test
-    public void testJitsiWindowScriptResolver() {
+    public void testZoomWindowScriptResolver() {
         final DefaultResourceLoader defaultResourceLoader = new DefaultResourceLoader();
         final Resource resource = defaultResourceLoader.getResource(ZoomWindowScriptResolver.RES_PATH);
         final ZoomWindowScriptResolver zoomWindowScriptResolver = new ZoomWindowScriptResolver(resource);
@@ -166,9 +166,6 @@ public class ZoomWindowScriptResolverTest {
                         + "            })\r\n"
                         + "            \r\n"
                         + "            window.addEventListener('unload', () => {\r\n"
-                        + "                ZoomMtg.muteAll({\r\n"
-                        + "                    muteAll: true\r\n"
-                        + "                });\r\n"
                         + "                ZoomMtg.endMeeting({});\r\n"
                         + "            });\r\n"
                         + "        </script>\r\n"
