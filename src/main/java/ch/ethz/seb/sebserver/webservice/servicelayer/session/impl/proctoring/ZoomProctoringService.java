@@ -57,6 +57,7 @@ import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -443,8 +444,13 @@ public class ZoomProctoringService implements ExamProctoringService {
 
         return Result.tryCatch(() -> {
 
+            if (!proctoringSettings.enabledFeatures.contains(ProctoringFeature.SEND_REJOIN_COLLECTING_ROOM)) {
+                // do nothing if the rejoin feature is not enabled
+                return;
+            }
+
             if (this.remoteProctoringRoomDAO.isTownhallRoomActive(proctoringSettings.examId)) {
-                // do nothing is the town-hall of this exam is open. The clients will automatically join
+                // do nothing if the town-hall of this exam is open. The clients will automatically join
                 // the meeting once the town-hall has been closed
                 return;
             }
@@ -502,6 +508,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     proctoringSettings.serverURL,
                     credentials,
                     roomName);
+
             final UserResponse userResponse = this.jsonMapper.readValue(
                     createUser.getBody(),
                     UserResponse.class);
@@ -514,7 +521,9 @@ public class ZoomProctoringService implements ExamProctoringService {
                     userResponse.id,
                     subject,
                     duration,
-                    meetingPwd);
+                    meetingPwd,
+                    proctoringSettings.enabledFeatures.contains(ProctoringFeature.WAITING_ROOM));
+
             final MeetingResponse meetingResponse = this.jsonMapper.readValue(
                     createMeeting.getBody(),
                     MeetingResponse.class);
@@ -525,6 +534,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     userResponse.id,
                     meetingResponse.start_url,
                     meetingResponse.join_url);
+
             final String additionalZoomRoomDataString = this.jsonMapper
                     .writeValueAsString(additionalZoomRoomData);
 
@@ -563,23 +573,29 @@ public class ZoomProctoringService implements ExamProctoringService {
             final StringBuilder builder = new StringBuilder();
             final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
 
-            final String jwtHeaderPart = urlEncoder.encodeToString(
-                    ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
+            final String jwtHeaderPart = urlEncoder
+                    .encodeToString(ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
+
             final String jwtPayload = String.format(
-                    ZOOM_API_ACCESS_TOKEN_PAYLOAD.replaceAll(" ", "").replaceAll("\n", ""),
+                    ZOOM_API_ACCESS_TOKEN_PAYLOAD
+                            .replaceAll(" ", "")
+                            .replaceAll("\n", ""),
                     credentials.clientIdAsString(),
                     expTime);
-            final String jwtPayloadPart = urlEncoder.encodeToString(
-                    jwtPayload.getBytes(StandardCharsets.UTF_8));
+
+            final String jwtPayloadPart = urlEncoder
+                    .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
+
             final String message = jwtHeaderPart + "." + jwtPayloadPart;
 
             final Mac sha256_HMAC = Mac.getInstance(TOKEN_ENCODE_ALG);
             final SecretKeySpec secret_key = new SecretKeySpec(
                     Utils.toByteArray(decryptedSecret),
                     TOKEN_ENCODE_ALG);
+
             sha256_HMAC.init(secret_key);
-            final String hash = urlEncoder.encodeToString(
-                    sha256_HMAC.doFinal(Utils.toByteArray(message)));
+            final String hash = urlEncoder
+                    .encodeToString(sha256_HMAC.doFinal(Utils.toByteArray(message)));
 
             builder.append(message)
                     .append(".")
@@ -710,7 +726,8 @@ public class ZoomProctoringService implements ExamProctoringService {
                 final String userId,
                 final String topic,
                 final int duration,
-                final CharSequence password) {
+                final CharSequence password,
+                final boolean waitingRoom) {
 
             try {
 
@@ -723,7 +740,8 @@ public class ZoomProctoringService implements ExamProctoringService {
                 final CreateMeetingRequest createRoomRequest = new CreateMeetingRequest(
                         topic,
                         duration,
-                        password);
+                        password,
+                        waitingRoom);
 
                 final String body = this.zoomProctoringService.jsonMapper.writeValueAsString(createRoomRequest);
                 final HttpHeaders headers = getHeaders(credentials);

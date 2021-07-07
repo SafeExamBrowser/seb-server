@@ -70,6 +70,10 @@ public class WidgetFactory {
     private static final String ADD_HTML_ATTR_TEST_ID = "test-id";
     private static final String SUB_TITLE_TExT_SUFFIX = ".subtitle";
 
+    public enum AriaRole {
+        link
+    }
+
     private static final Logger log = LoggerFactory.getLogger(WidgetFactory.class);
 
     public static final int TEXT_AREA_INPUT_MIN_HEIGHT = 100;
@@ -363,18 +367,21 @@ public class WidgetFactory {
 
     public Button buttonLocalized(final Composite parent, final String locTextKey) {
         final Button button = new Button(parent, SWT.NONE);
+        setAttribute(button, "role", "button");
         this.polyglotPageService.injectI18n(button, new LocTextKey(locTextKey));
         return button;
     }
 
     public Button buttonLocalized(final Composite parent, final LocTextKey locTextKey) {
         final Button button = new Button(parent, SWT.NONE);
+        setAttribute(button, "role", "button");
         this.polyglotPageService.injectI18n(button, locTextKey);
         return button;
     }
 
     public Button buttonLocalized(final Composite parent, final CustomVariant variant, final String locTextKey) {
         final Button button = new Button(parent, SWT.NONE);
+        setAttribute(button, "role", "button");
         this.polyglotPageService.injectI18n(button, new LocTextKey(locTextKey));
         button.setData(RWT.CUSTOM_VARIANT, variant.key);
         return button;
@@ -387,6 +394,7 @@ public class WidgetFactory {
             final LocTextKey toolTipKey) {
 
         final Button button = new Button(parent, type);
+        setAttribute(button, "role", "button");
         this.polyglotPageService.injectI18n(button, locTextKey, toolTipKey);
         return button;
     }
@@ -453,42 +461,85 @@ public class WidgetFactory {
         return labelLocalized;
     }
 
-    public Text textInput(final Composite content) {
-        return textInput(content, false, false);
+    public Text textInput(final Composite content, final LocTextKey label) {
+        return textInput(content, false, false, this.i18nSupport.getText(label));
     }
 
-    public Text textLabel(final Composite content) {
-        return textInput(content, false, true);
+    public Text textInput(final Composite content, final String label) {
+        return textInput(content, false, false, label);
     }
 
-    public Text passwordInput(final Composite content) {
-        return textInput(content, true, false);
+    public Text passwordInput(final Composite content, final LocTextKey label) {
+        return textInput(content, true, false, this.i18nSupport.getText(label));
     }
 
-    public Text textAreaInput(final Composite content, final boolean readonly) {
-        return readonly
+    public Text passwordInput(final Composite content, final String label) {
+        return textInput(content, true, false, label);
+    }
+
+    public Text textAreaInput(
+            final Composite content,
+            final boolean readonly,
+            final LocTextKey label) {
+
+        return textAreaInput(content, readonly, this.i18nSupport.getText(label));
+    }
+
+    public Text textAreaInput(
+            final Composite content,
+            final boolean readonly,
+            final String label) {
+
+        final Text input = readonly
                 ? new Text(content, SWT.LEFT | SWT.MULTI)
                 : new Text(content, SWT.LEFT | SWT.BORDER | SWT.MULTI);
+        if (label != null) {
+            WidgetFactory.setAttribute(input, "aria-label", label);
+        }
+        return input;
     }
 
-    public Text textInput(final Composite content, final boolean password, final boolean readonly) {
-        return readonly
+    public Text textInput(
+            final Composite content,
+            final boolean password,
+            final boolean readonly,
+            final LocTextKey label) {
+
+        return textInput(content, password, readonly, this.i18nSupport.getText(label));
+    }
+
+    public Text textInput(
+            final Composite content,
+            final boolean password,
+            final boolean readonly,
+            final String label) {
+
+        final Text input = readonly
                 ? new Text(content, SWT.LEFT)
                 : new Text(content, (password)
                         ? SWT.LEFT | SWT.BORDER | SWT.PASSWORD
                         : SWT.LEFT | SWT.BORDER);
-    }
 
-    public Text numberInput(final Composite content, final Consumer<String> numberCheck) {
-        return numberInput(content, numberCheck, false);
-    }
-
-    public Text numberInput(final Composite content, final Consumer<String> numberCheck, final boolean readonly) {
-        if (readonly) {
-            return new Text(content, SWT.LEFT | SWT.READ_ONLY);
+        if (label != null) {
+            WidgetFactory.setAttribute(input, "aria-label", label);
         }
+        return input;
+    }
 
-        final Text numberInput = new Text(content, SWT.RIGHT | SWT.BORDER);
+    public Text numberInput(final Composite content, final Consumer<String> numberCheck, final LocTextKey label) {
+        return numberInput(content, numberCheck, false, label);
+    }
+
+    public Text numberInput(
+            final Composite content,
+            final Consumer<String> numberCheck,
+            final boolean readonly,
+            final LocTextKey label) {
+
+        final Text numberInput = new Text(content, (readonly) ? SWT.LEFT | SWT.READ_ONLY : SWT.RIGHT | SWT.BORDER);
+        if (label != null) {
+            WidgetFactory.setAttribute(numberInput, "aria-label", this.i18nSupport.getText(label));
+        }
         if (numberCheck != null) {
             numberInput.addListener(SWT.Verify, event -> {
                 final String value = event.text;
@@ -884,11 +935,11 @@ public class WidgetFactory {
         setAttribute(widget, ADD_HTML_ATTR_TEST_ID, value);
     }
 
-    public static void setARIARole(final Widget widget, final String value) {
-        setAttribute(widget, ADD_HTML_ATTR_ARIA_ROLE, value);
+    public static void setARIARole(final Widget widget, final AriaRole role) {
+        setAttribute(widget, ADD_HTML_ATTR_ARIA_ROLE, role.name());
     }
 
-    private static void setAttribute(final Widget widget, final String name, final String value) {
+    public static void setAttribute(final Widget widget, final String name, final String value) {
         if (!widget.isDisposed()) {
             final String $el = widget instanceof Text ? "$input" : "$el";
             final String id = WidgetUtil.getId(widget);

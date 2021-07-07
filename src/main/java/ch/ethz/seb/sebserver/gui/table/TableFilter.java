@@ -321,7 +321,9 @@ public class TableFilter<ROW> {
             final Composite innerComposite = createInnerComposite(parent);
             final GridData gridData = new GridData(SWT.FILL, SWT.END, true, true);
 
-            this.textInput = TableFilter.this.entityTable.widgetFactory.textInput(innerComposite);
+            this.textInput = TableFilter.this.entityTable.widgetFactory.textInput(
+                    innerComposite,
+                    super.attribute.columnName);
             this.textInput.setLayoutData(gridData);
             return this;
         }

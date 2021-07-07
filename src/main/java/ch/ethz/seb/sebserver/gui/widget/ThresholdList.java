@@ -152,7 +152,8 @@ public final class ThresholdList extends Composite {
                     } else {
                         Double.parseDouble(s);
                     }
-                });
+                },
+                VALUE_TEXT_KEY);
         final GridData valueCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
         valueInput.setLayoutData(valueCell);
 

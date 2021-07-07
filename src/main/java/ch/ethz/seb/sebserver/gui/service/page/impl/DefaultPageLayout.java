@@ -46,6 +46,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.widget.Message;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.AriaRole;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
@@ -285,6 +286,8 @@ public class DefaultPageLayout implements TemplateComposer {
                     log.error("Invalid markup for 'Imprint'", e);
                 }
             });
+
+            WidgetFactory.setARIARole(imprint, AriaRole.link);
         }
         if (StringUtils.isNoneBlank(i18nSupport.getText(ABOUT_TEXT_KEY, ""))) {
             final Label about = this.widgetFactory.labelLocalized(
@@ -299,6 +302,8 @@ public class DefaultPageLayout implements TemplateComposer {
                     log.error("Invalid markup for 'About'", e);
                 }
             });
+
+            WidgetFactory.setARIARole(about, AriaRole.link);
         }
         if (StringUtils.isNoneBlank(i18nSupport.getText(HELP_TEXT_KEY, ""))) {
             final Label help = this.widgetFactory.labelLocalized(
@@ -318,6 +323,7 @@ public class DefaultPageLayout implements TemplateComposer {
                 }
             });
 
+            WidgetFactory.setARIARole(help, AriaRole.link);
         }
         this.widgetFactory.labelLocalized(
                 footerRight,

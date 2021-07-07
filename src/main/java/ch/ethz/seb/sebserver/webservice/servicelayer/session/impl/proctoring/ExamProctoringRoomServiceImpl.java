@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
@@ -230,7 +231,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             } else if (remoteProctoringRoom.townhallRoom) {
                 closeTownhall(examId, settings, examProctoringService);
             } else {
-                closeCollectingRoom(examId, roomName, examProctoringService);
+                closeCollectingRoom(examId, roomName, settings, examProctoringService);
             }
         });
     }
@@ -377,11 +378,13 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 .getActiveConnectionTokens(examId)
                 .getOrThrow();
 
-        // Send default settings to clients
-        this.sendReconfigurationInstructions(
-                examId,
-                connectionTokens,
-                examProctoringService.getDefaultReconfigInstructionAttributes());
+        // Send default settings to clients if fearture is enabled
+        if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.RESET_BROADCAST_ON_LAVE)) {
+            this.sendReconfigurationInstructions(
+                    examId,
+                    connectionTokens,
+                    examProctoringService.getDefaultReconfigInstructionAttributes());
+        }
 
         // Close and delete town-hall room
         this.remoteProctoringRoomDAO
@@ -403,6 +406,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     private void closeCollectingRoom(
             final Long examId,
             final String roomName,
+            final ProctoringServiceSettings proctoringSettings,
             final ExamProctoringService examProctoringService) {
 
         // get all connections of the room
@@ -412,11 +416,13 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 .map(cc -> cc.connectionToken)
                 .collect(Collectors.toList());
 
-        // Send default settings to clients
-        this.sendReconfigurationInstructions(
-                examId,
-                connectionTokens,
-                examProctoringService.getDefaultReconfigInstructionAttributes());
+        // Send default settings to clients if feature is enabled
+        if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.RESET_BROADCAST_ON_LAVE)) {
+            this.sendReconfigurationInstructions(
+                    examId,
+                    connectionTokens,
+                    examProctoringService.getDefaultReconfigInstructionAttributes());
+        }
     }
 
     private void cleanupBreakOutRooms(final ClientConnectionRecord cc) {
@@ -453,11 +459,13 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final ExamProctoringService examProctoringService,
             final RemoteProctoringRoom remoteProctoringRoom) {
 
-        // Send default settings to clients
-        this.sendReconfigurationInstructions(
-                examId,
-                remoteProctoringRoom.breakOutConnections,
-                examProctoringService.getDefaultReconfigInstructionAttributes());
+        // Send default settings to clients if feature is enabled
+        if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.RESET_BROADCAST_ON_LAVE)) {
+            this.sendReconfigurationInstructions(
+                    examId,
+                    remoteProctoringRoom.breakOutConnections,
+                    examProctoringService.getDefaultReconfigInstructionAttributes());
+        }
 
         // Dispose the proctoring room on service side
         examProctoringService

@@ -99,6 +99,9 @@
             })
             
             window.addEventListener('unload', () => {
+                ZoomMtg.muteAll({
+                    muteAll: true
+                });
                 ZoomMtg.endMeeting({});
             });
         </script>
