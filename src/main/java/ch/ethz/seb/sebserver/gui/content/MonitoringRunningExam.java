@@ -174,7 +174,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         this.serverPushService.runServerPush(
                 new ServerPushContext(
                         content,
-                        context -> clientTable.getUpdateErrors() > 5,
+                        context -> clientTable.getUpdateErrors() < 5,
                         createServerPushUpdateErrorHandler(this.pageService, pageContext)),
                 this.pollInterval,
                 context -> clientTable.updateValues(),
