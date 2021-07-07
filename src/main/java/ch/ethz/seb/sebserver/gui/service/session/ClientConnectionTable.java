@@ -116,6 +116,8 @@ public final class ClientConnectionTable {
     private boolean forceUpdateAll = false;
     private boolean updateInProgress = false;
 
+    private int updateErrors = 0;
+
     public ClientConnectionTable(
             final PageService pageService,
             final Composite tableRoot,
@@ -186,6 +188,10 @@ public final class ClientConnectionTable {
         this.tableMapping = new LinkedHashMap<>();
         this.sessionIds = new LinkedMultiValueMap<>();
         this.table.layout();
+    }
+
+    public int getUpdateErrors() {
+        return this.updateErrors;
     }
 
     public WidgetFactory getWidgetFactory() {
@@ -320,44 +326,53 @@ public final class ClientConnectionTable {
     }
 
     private void updateValuesAsync() {
-        if (this.statusFilterChanged || this.forceUpdateAll) {
-            this.toDelete.clear();
-            this.toDelete.addAll(this.tableMapping.keySet());
-        }
-        this.restCallBuilder
-                .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam)
-                .call()
-                .get(error -> {
-                    log.error("Unexpected error while trying to get client connection table data: ", error);
-                    recoverFromDisposedRestTemplate(error);
-                    return Collections.emptyList();
-                })
-                .forEach(data -> {
-                    final UpdatableTableItem tableItem = this.tableMapping.computeIfAbsent(
-                            data.getConnectionId(),
-                            UpdatableTableItem::new);
-                    tableItem.push(data);
-                    if (this.statusFilterChanged || this.forceUpdateAll) {
-                        this.toDelete.remove(data.getConnectionId());
+
+        try {
+
+            if (this.statusFilterChanged || this.forceUpdateAll) {
+                this.toDelete.clear();
+                this.toDelete.addAll(this.tableMapping.keySet());
+            }
+            this.restCallBuilder
+                    .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam)
+                    .call()
+                    .get(error -> {
+                        log.error("Unexpected error while trying to get client connection table data: ", error);
+                        recoverFromDisposedRestTemplate(error);
+                        return Collections.emptyList();
+                    })
+                    .forEach(data -> {
+                        final UpdatableTableItem tableItem = this.tableMapping.computeIfAbsent(
+                                data.getConnectionId(),
+                                UpdatableTableItem::new);
+                        tableItem.push(data);
+                        if (this.statusFilterChanged || this.forceUpdateAll) {
+                            this.toDelete.remove(data.getConnectionId());
+                        }
+                    });
+
+            if (!this.toDelete.isEmpty()) {
+                this.toDelete.forEach(id -> {
+                    final UpdatableTableItem item = this.tableMapping.remove(id);
+                    if (item != null) {
+                        final List<Long> list = this.sessionIds.get(item.connectionData.clientConnection.userSessionId);
+                        if (list != null) {
+                            list.remove(id);
+                        }
                     }
                 });
+                this.statusFilterChanged = false;
+                this.toDelete.clear();
+            }
 
-        if (!this.toDelete.isEmpty()) {
-            this.toDelete.forEach(id -> {
-                final UpdatableTableItem item = this.tableMapping.remove(id);
-                if (item != null) {
-                    final List<Long> list = this.sessionIds.get(item.connectionData.clientConnection.userSessionId);
-                    if (list != null) {
-                        list.remove(id);
-                    }
-                }
-            });
-            this.statusFilterChanged = false;
-            this.toDelete.clear();
+            this.forceUpdateAll = false;
+            this.updateInProgress = false;
+            this.updateErrors = 0;
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while updating client connection table: ", e);
+            this.updateErrors++;
         }
-
-        this.forceUpdateAll = false;
-        this.updateInProgress = false;
     }
 
     public void updateGUI() {
