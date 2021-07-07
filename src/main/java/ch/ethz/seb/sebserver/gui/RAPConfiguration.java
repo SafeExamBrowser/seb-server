@@ -73,6 +73,12 @@ public class RAPConfiguration implements ApplicationConfiguration {
             properties.put(WebClient.FAVICON, "fav_icon");
 
             application.addEntryPoint(guiEntrypoint, new RAPSpringEntryPointFactory(), properties);
+
+            properties.put(WebClient.PAGE_TITLE, "SEB Server Proctoring");
+            properties.put(WebClient.BODY_HTML, "<big>Loading Application<big>");
+            properties.put(WebClient.THEME_ID, DEFAULT_THEME_NAME);
+            properties.put(WebClient.FAVICON, "fav_icon");
+
             application.addEntryPoint(proctoringEntrypoint, new RAPRemoteProcotringEntryPointFactory(), properties);
 
         } catch (final RuntimeException re) {

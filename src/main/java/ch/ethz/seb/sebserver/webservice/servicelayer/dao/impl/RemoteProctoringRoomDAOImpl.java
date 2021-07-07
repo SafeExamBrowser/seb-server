@@ -322,6 +322,24 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 .collect(Collectors.toList()));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<String>> getConnectionsInBreakoutRooms(final Long examId) {
+        return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper
+                .selectByExample()
+                .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                .and(RemoteProctoringRoomRecordDynamicSqlSupport.breakOutConnections, isNotNull())
+                .build()
+                .execute()
+                .stream()
+                .flatMap(room -> Arrays.asList(
+                        StringUtils.split(
+                                room.getBreakOutConnections(),
+                                Constants.LIST_SEPARATOR_CHAR))
+                        .stream())
+                .collect(Collectors.toList()));
+    }
+
     private RemoteProctoringRoom toDomainModel(final RemoteProctoringRoomRecord record) {
         final String breakOutConnections = record.getBreakOutConnections();
         final Collection<String> connections = StringUtils.isNotBlank(breakOutConnections)

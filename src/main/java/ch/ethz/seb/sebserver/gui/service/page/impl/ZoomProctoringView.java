@@ -17,6 +17,7 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -77,6 +78,11 @@ public class ZoomProctoringView extends AbstractProctoringView {
         content.setLayout(gridLayout);
         final GridData headerCell = new GridData(SWT.FILL, SWT.FILL, true, true);
         content.setLayoutData(headerCell);
+
+        final Label title = this.pageService
+                .getWidgetFactory()
+                .label(content, proctoringWindowData.connectionData.subject);
+        title.setLayoutData(new GridData(SWT.CENTER, SWT.TOP, true, false));
 
         parent.addListener(SWT.Dispose, event -> closeRoom(proctoringGUIService, proctoringWindowData));
 

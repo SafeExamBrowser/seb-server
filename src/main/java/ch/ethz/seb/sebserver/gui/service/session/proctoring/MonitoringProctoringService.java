@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.gui.service.session.proctoring;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -48,7 +47,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.IsTownhallRoomAvailable;
@@ -81,6 +79,7 @@ public class MonitoringProctoringService {
     static final String OPEN_ROOM_SCRIPT =
             "try {\n" +
             "var existingWin = window.open('', '%s', 'height=%s,width=%s,location=no,scrollbars=yes,status=no,menubar=0,toolbar=no,titlebar=no,dialog=no');\n" +
+            "existingWin.document.title = '%s';\n" +
             "if(existingWin.location.href === 'about:blank'){\n" +
             "    existingWin.location.href = '%s%s';\n" +
             "    existingWin.focus();\n" +
@@ -208,7 +207,7 @@ public class MonitoringProctoringService {
                                             if (actualRoomSize <= 0) {
                                                 return _action;
                                             }
-                                            return showExamProctoringRoom(proctoringSettings, room, _action);
+                                            return openExamProctoringRoom(proctoringSettings, room, _action);
                                         })
                                         .withNameAttributes(
                                                 room.subject,
@@ -239,60 +238,48 @@ public class MonitoringProctoringService {
         updateTownhallButton(proctoringGUIService, pageContext);
     }
 
-    public PageAction openExamCollectionProctorScreen(
-            final PageAction action,
-            final ClientConnectionData connectionData) {
+    private PageAction openExamProctoringRoom(
+            final ProctoringServiceSettings proctoringSettings,
+            final RemoteProctoringRoom room,
+            final PageAction action) {
 
-        try {
-            final String examId = action.getEntityKey().modelId;
+        final ProctoringRoomConnection proctoringConnectionData = this.pageService
+                .getRestService()
+                .getBuilder(GetProctorRoomConnection.class)
+                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
+                .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
+                .withQueryParam(ProctoringRoomConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
+                .call()
+                .getOrThrow();
 
-            final ProctoringServiceSettings proctoringSettings = this.pageService.getRestService()
-                    .getBuilder(GetProctoringSettings.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, examId)
+        ProctoringGUIService.setCurrentProctoringWindowData(
+                String.valueOf(proctoringSettings.examId),
+                proctoringConnectionData);
+
+        final String script = String.format(
+                OPEN_ROOM_SCRIPT,
+                room.name,
+                800,
+                1200,
+                room.name,
+                this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
+                this.remoteProctoringEndpoint);
+
+        RWT.getClient()
+                .getService(JavaScriptExecutor.class)
+                .execute(script);
+
+        final boolean newWindow = this.pageService.getCurrentUser()
+                .getProctoringGUIService()
+                .registerProctoringWindow(String.valueOf(room.examId), room.name, room.name);
+
+        if (newWindow) {
+            this.pageService.getRestService()
+                    .getBuilder(NotifyProctoringRoomOpened.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
+                    .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
                     .call()
-                    .getOrThrow();
-
-            final Optional<RemoteProctoringRoom> roomOptional =
-                    this.pageService.getRestService().getBuilder(GetCollectingRooms.class)
-                            .withURIVariable(API.PARAM_MODEL_ID, examId)
-                            .call()
-                            .getOrThrow()
-                            .stream()
-                            .filter(room -> room.id.equals(connectionData.clientConnection.remoteProctoringRoomId))
-                            .findFirst();
-
-            if (roomOptional.isPresent()) {
-                final RemoteProctoringRoom room = roomOptional.get();
-                final ProctoringRoomConnection proctoringConnectionData = this.pageService
-                        .getRestService()
-                        .getBuilder(GetProctorRoomConnection.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
-                        .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
-                        .withQueryParam(ProctoringRoomConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
-                        .call()
-                        .getOrThrow();
-
-                ProctoringGUIService.setCurrentProctoringWindowData(examId, proctoringConnectionData);
-                final String script = String.format(
-                        MonitoringProctoringService.OPEN_ROOM_SCRIPT,
-                        room.name,
-                        800,
-                        1200,
-                        this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                        this.remoteProctoringEndpoint);
-
-                RWT.getClient()
-                        .getService(JavaScriptExecutor.class)
-                        .execute(script);
-
-                this.pageService.getCurrentUser()
-                        .getProctoringGUIService()
-                        .registerProctoringWindow(examId, room.name, room.name);
-            }
-
-        } catch (final Exception e) {
-            log.error("Failed to open popup for collecting room: ", e);
-            action.pageContext().notifyError(CLOSE_COLLECTING_ERROR, e);
+                    .onError(error -> log.error("Failed to notify proctoring room opened: ", error));
         }
 
         return action;
@@ -333,6 +320,7 @@ public class MonitoringProctoringService {
                     connectionToken,
                     420,
                     640,
+                    connectionData.clientConnection.userSessionId,
                     this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
                     this.remoteProctoringEndpoint);
             javaScriptExecutor.execute(script);
@@ -374,6 +362,7 @@ public class MonitoringProctoringService {
                     windowName,
                     800,
                     1200,
+                    "Town-Hall",
                     this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
                     this.remoteProctoringEndpoint);
             javaScriptExecutor.execute(script);
@@ -458,49 +447,6 @@ public class MonitoringProctoringService {
         } catch (final Exception e) {
             log.warn("Failed to set Proctor-Room-Activation: ", e.getMessage());
         }
-    }
-
-    private PageAction showExamProctoringRoom(
-            final ProctoringServiceSettings proctoringSettings,
-            final RemoteProctoringRoom room,
-            final PageAction action) {
-
-        final ProctoringRoomConnection proctoringConnectionData = this.pageService
-                .getRestService()
-                .getBuilder(GetProctorRoomConnection.class)
-                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
-                .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
-                .withQueryParam(ProctoringRoomConnection.ATTR_SUBJECT, Utils.encodeFormURL_UTF_8(room.subject))
-                .call()
-                .getOrThrow();
-
-        ProctoringGUIService.setCurrentProctoringWindowData(
-                String.valueOf(proctoringSettings.examId),
-                proctoringConnectionData);
-
-        final String script = String.format(
-                OPEN_ROOM_SCRIPT,
-                room.name,
-                800,
-                1200,
-                this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                this.remoteProctoringEndpoint);
-
-        RWT.getClient()
-                .getService(JavaScriptExecutor.class)
-                .execute(script);
-
-        this.pageService.getCurrentUser()
-                .getProctoringGUIService()
-                .registerProctoringWindow(String.valueOf(room.examId), room.name, room.name);
-
-        this.pageService.getRestService().getBuilder(NotifyProctoringRoomOpened.class)
-                .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
-                .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
-                .call()
-                .onError(error -> log.error("Failed to notify proctoring room opened: ", error));
-
-        return action;
     }
 
 }

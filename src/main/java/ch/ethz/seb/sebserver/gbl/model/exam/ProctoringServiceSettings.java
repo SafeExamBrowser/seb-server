@@ -36,9 +36,6 @@ public class ProctoringServiceSettings implements Entity {
         ONE_TO_ONE,
         BROADCAST,
         ENABLE_CHAT,
-        WAITING_ROOM,
-        SEND_REJOIN_COLLECTING_ROOM,
-        RESET_BROADCAST_ON_LAVE
     }
 
     public static final String ATTR_ENABLE_PROCTORING = "enableProctoring";

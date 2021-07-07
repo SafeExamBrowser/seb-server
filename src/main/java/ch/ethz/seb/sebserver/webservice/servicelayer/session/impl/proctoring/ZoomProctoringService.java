@@ -29,6 +29,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -57,7 +58,6 @@ import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -126,6 +126,8 @@ public class ZoomProctoringService implements ExamProctoringService {
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final AuthorizationService authorizationService;
     private final SEBClientInstructionService sebInstructionService;
+    private final boolean enableWaitingRoom;
+    private final boolean sendRejoinForCollectingRoom;
 
     public ZoomProctoringService(
             final ExamSessionService examSessionService,
@@ -135,7 +137,9 @@ public class ZoomProctoringService implements ExamProctoringService {
             final JSONMapper jsonMapper,
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
             final AuthorizationService authorizationService,
-            final SEBClientInstructionService sebInstructionService) {
+            final SEBClientInstructionService sebInstructionService,
+            @Value("${sebserver.webservice.proctoring.enableWaitingRoom:false}") final boolean enableWaitingRoom,
+            @Value("${sebserver.webservice.proctoring.sendRejoinForCollectingRoom:true}") final boolean sendRejoinForCollectingRoom) {
 
         this.examSessionService = examSessionService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
@@ -146,6 +150,8 @@ public class ZoomProctoringService implements ExamProctoringService {
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
         this.authorizationService = authorizationService;
         this.sebInstructionService = sebInstructionService;
+        this.enableWaitingRoom = enableWaitingRoom;
+        this.sendRejoinForCollectingRoom = sendRejoinForCollectingRoom;
     }
 
     @Override
@@ -444,13 +450,13 @@ public class ZoomProctoringService implements ExamProctoringService {
 
         return Result.tryCatch(() -> {
 
-            if (!proctoringSettings.enabledFeatures.contains(ProctoringFeature.SEND_REJOIN_COLLECTING_ROOM)) {
-                // do nothing if the rejoin feature is not enabled
+            if (!this.sendRejoinForCollectingRoom) {
+                // does nothing if the rejoin feature is not enabled
                 return;
             }
 
             if (this.remoteProctoringRoomDAO.isTownhallRoomActive(proctoringSettings.examId)) {
-                // do nothing if the town-hall of this exam is open. The clients will automatically join
+                // does nothing if the town-hall of this exam is open. The clients will automatically join
                 // the meeting once the town-hall has been closed
                 return;
             }
@@ -522,7 +528,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     subject,
                     duration,
                     meetingPwd,
-                    proctoringSettings.enabledFeatures.contains(ProctoringFeature.WAITING_ROOM));
+                    this.enableWaitingRoom);
 
             final MeetingResponse meetingResponse = this.jsonMapper.readValue(
                     createMeeting.getBody(),

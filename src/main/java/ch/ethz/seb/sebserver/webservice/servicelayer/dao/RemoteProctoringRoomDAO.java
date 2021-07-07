@@ -121,9 +121,15 @@ public interface RemoteProctoringRoomDAO {
 
     /** Get currently active break-out rooms for given connectionToken
      *
-     * @param examId The exam identifier of the connection
      * @param connectionTokens The connection token of the client connection
      * @return Result refer to active break-out rooms or to an error when happened */
     Result<Collection<RemoteProctoringRoom>> getBreakoutRooms(String connectionToken);
+
+    /** Get a list of client connection tokens of connections that currently are in
+     * break-out rooms, including the town-hall room
+     *
+     * @param examId The exam identifier of the connection
+     * @return Result refer to active break-out rooms or to an error when happened */
+    Result<Collection<String>> getConnectionsInBreakoutRooms(Long examId);
 
 }

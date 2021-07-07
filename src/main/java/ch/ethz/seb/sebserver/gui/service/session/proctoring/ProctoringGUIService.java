@@ -117,12 +117,14 @@ public class ProctoringGUIService {
         this.collectingRoomsActionState.clear();
     }
 
-    public void registerProctoringWindow(
+    public boolean registerProctoringWindow(
             final String examId,
             final String windowName,
             final String roomName) {
 
-        this.openWindows.put(windowName, new RoomData(roomName, examId));
+        return this.openWindows.putIfAbsent(
+                windowName,
+                new RoomData(roomName, examId)) == null;
     }
 
     public String getTownhallWindowName(final String examId) {

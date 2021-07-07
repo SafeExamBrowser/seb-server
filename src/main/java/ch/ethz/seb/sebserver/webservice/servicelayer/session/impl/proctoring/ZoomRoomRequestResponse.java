@@ -138,8 +138,7 @@ public interface ZoomRoomRequestResponse {
         @JsonIgnoreProperties(ignoreUnknown = true)
         static class Settings {
             @JsonProperty final boolean host_video = false;
-            @JsonProperty final boolean participant_video = false;
-            @JsonProperty final boolean mute_upon_entry = true;
+            @JsonProperty final boolean mute_upon_entry = false;
             @JsonProperty final boolean join_before_host;
             @JsonProperty final int jbh_time = 0;
             @JsonProperty final boolean use_pmi = false;

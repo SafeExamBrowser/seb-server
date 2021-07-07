@@ -567,6 +567,14 @@ public class ResourceService {
                 .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + name, name);
     }
 
+    public List<Tuple<String>> localizedClientConnectionStatusResources() {
+        return Arrays.stream(ConnectionStatus.values())
+                .map(type -> new Tuple<>(type.name(),
+                        this.i18nSupport.getText(SEB_CONNECTION_STATUS_KEY_PREFIX + type.name())))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
     public String localizedExamTypeName(final ExamConfigurationMap examMap) {
         if (examMap.examType == null) {
             return Constants.EMPTY_NOTE;
