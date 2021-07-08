@@ -398,9 +398,6 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                             record.getId(),
                             RemoteProctoringRoom.ATTR_IS_OPEN)
                     .map(rec -> rec.getValue())
-                    .onError(error -> log.error("Failed to get open flag for proctoring room: {} : {}",
-                            record.getName(),
-                            error.getMessage()))
                     .getOrElse(() -> Constants.FALSE_STRING));
         }
     }
