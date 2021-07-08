@@ -201,14 +201,11 @@ public class MonitoringProctoringService {
                         final PageAction action =
                                 actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM)
                                         .withEntityKey(entityKey)
-                                        .withExec(_action -> {
-                                            final int actualRoomSize = proctoringGUIService
-                                                    .getActualCollectingRoomSize(room.name);
-                                            if (actualRoomSize <= 0) {
-                                                return _action;
-                                            }
-                                            return openExamProctoringRoom(proctoringSettings, room, _action);
-                                        })
+                                        .withExec(_action -> openExamProctoringRoom(
+                                                proctoringGUIService,
+                                                proctoringSettings,
+                                                room,
+                                                _action))
                                         .withNameAttributes(
                                                 room.subject,
                                                 room.roomSize,
@@ -229,6 +226,7 @@ public class MonitoringProctoringService {
                                                     .withParentEntityKey(entityKey);
                                             this.proctorRoomConnectionsPopup.show(pc, collectingRoom.subject);
                                         }));
+
                         processProctorRoomActionActivation(
                                 proctoringGUIService.getCollectingRoomActionItem(room.name),
                                 room, pageContext);
@@ -239,9 +237,14 @@ public class MonitoringProctoringService {
     }
 
     private PageAction openExamProctoringRoom(
+            final ProctoringGUIService proctoringGUIService,
             final ProctoringServiceSettings proctoringSettings,
             final RemoteProctoringRoom room,
             final PageAction action) {
+
+        if (!proctoringGUIService.isCollectingRoomEnabled(room.name)) {
+            return action;
+        }
 
         final ProctoringRoomConnection proctoringConnectionData = this.pageService
                 .getRestService()
@@ -437,13 +440,16 @@ public class MonitoringProctoringService {
             final PageContext pageContext) {
 
         try {
+
+            final boolean active = room.roomSize > 0 && !room.isOpen;
             final Display display = pageContext.getRoot().getDisplay();
             final PageAction action = (PageAction) treeItem.getData(ActionPane.ACTION_EVENT_CALL_KEY);
-            final Image image = room.roomSize > 0
+            final Image image = active
                     ? action.definition.icon.getImage(display)
                     : action.definition.icon.getGreyedImage(display);
             treeItem.setImage(image);
-            treeItem.setForeground(room.roomSize > 0 ? null : new Color(display, Constants.GREY_DISABLED));
+            treeItem.setForeground(active ? null : new Color(display, Constants.GREY_DISABLED));
+
         } catch (final Exception e) {
             log.warn("Failed to set Proctor-Room-Activation: ", e.getMessage());
         }

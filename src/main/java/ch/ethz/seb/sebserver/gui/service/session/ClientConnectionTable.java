@@ -354,7 +354,7 @@ public final class ClientConnectionTable {
                                 data.getConnectionId(),
                                 UpdatableTableItem::new);
                         tableItem.push(data);
-                        if (this.statusFilterChanged || this.forceUpdateAll) {
+                        if (this.statusFilterChanged || this.forceUpdateAll || needsSync) {
                             this.toDelete.remove(data.getConnectionId());
                         }
                     });

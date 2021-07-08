@@ -78,7 +78,6 @@ public class ProctoringGUIService {
                     final RemoteProctoringRoom remoteProctoringRoom = getRemoteProctoringRoom(item);
                     if (remoteProctoringRoom != null && remoteProctoringRoom.roomSize > 0) {
                         showConnectionsPopup.accept(remoteProctoringRoom);
-                        //this.proctorRoomConnectionsPopup.show(pc, remoteProctoringRoom.subject);
                     }
                 }
             });
@@ -99,12 +98,13 @@ public class ProctoringGUIService {
                 .orElse(null);
     }
 
-    public int getActualCollectingRoomSize(final String roomName) {
+    public boolean isCollectingRoomEnabled(final String roomName) {
         try {
-            return this.collectingRoomsActionState.get(roomName).a.roomSize;
+            final Pair<RemoteProctoringRoom, TreeItem> pair = this.collectingRoomsActionState.get(roomName);
+            return pair.a.roomSize > 0 && !pair.a.isOpen;
         } catch (final Exception e) {
             log.error("Failed to get actual collecting room size for room: {} cause: ", roomName, e.getMessage());
-            return -1;
+            return false;
         }
     }
 

@@ -22,8 +22,10 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RemoteProctoringRoom {
 
+    public static final String ATTR_IS_OPEN = "isOpen";
+
     public static final RemoteProctoringRoom NULL_ROOM = new RemoteProctoringRoom(
-            null, null, null, null, null, false, null, null, null);
+            null, null, null, null, null, false, null, null, null, false);
 
     @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID)
     public final Long id;
@@ -52,6 +54,9 @@ public class RemoteProctoringRoom {
     @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ROOM_DATA)
     public final String additionalRoomData;
 
+    @JsonProperty(ATTR_IS_OPEN)
+    public final Boolean isOpen;
+
     @JsonCreator
     public RemoteProctoringRoom(
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID) final Long id,
@@ -62,7 +67,8 @@ public class RemoteProctoringRoom {
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_TOWNHALL_ROOM) final Boolean townhallRoom,
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_BREAK_OUT_CONNECTIONS) final Collection<String> breakOutConnections,
             @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_JOIN_KEY) final CharSequence joinKey,
-            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ROOM_DATA) final String additionalRoomData) {
+            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ROOM_DATA) final String additionalRoomData,
+            @JsonProperty(ATTR_IS_OPEN) final Boolean isOpen) {
 
         this.id = id;
         this.examId = examId;
@@ -73,6 +79,7 @@ public class RemoteProctoringRoom {
         this.breakOutConnections = Utils.immutableCollectionOf(breakOutConnections);
         this.joinKey = joinKey;
         this.additionalRoomData = additionalRoomData;
+        this.isOpen = isOpen;
     }
 
     public Long getId() {
@@ -111,6 +118,10 @@ public class RemoteProctoringRoom {
         return this.additionalRoomData;
     }
 
+    public Boolean getIsOpen() {
+        return this.isOpen;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -128,6 +139,12 @@ public class RemoteProctoringRoom {
         builder.append(this.townhallRoom);
         builder.append(", breakOutConnections=");
         builder.append(this.breakOutConnections);
+        builder.append(", joinKey=");
+        builder.append(this.joinKey);
+        builder.append(", additionalRoomData=");
+        builder.append(this.additionalRoomData);
+        builder.append(", isOpen=");
+        builder.append(this.isOpen);
         builder.append("]");
         return builder.toString();
     }

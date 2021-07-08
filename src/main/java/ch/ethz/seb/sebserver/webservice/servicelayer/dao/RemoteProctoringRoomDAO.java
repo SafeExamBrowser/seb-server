@@ -132,4 +132,6 @@ public interface RemoteProctoringRoomDAO {
      * @return Result refer to active break-out rooms or to an error when happened */
     Result<Collection<String>> getConnectionsInBreakoutRooms(Long examId);
 
+    void setCollectingRoomOpenFlag(Long roomId, boolean isOpen);
+
 }

@@ -394,6 +394,9 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 examProctoringService
                         .notifyCollectingRoomOpened(proctoringSettings, room, clientConnections)
                         .getOrThrow();
+
+                this.remoteProctoringRoomDAO
+                        .setCollectingRoomOpenFlag(room.id, true);
             }
         });
     }
@@ -445,6 +448,19 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 .stream()
                 .map(cc -> cc.connectionToken)
                 .collect(Collectors.toList());
+
+        final RemoteProctoringRoom room = this.remoteProctoringRoomDAO
+                .getRoom(examId, roomName)
+                .onError(error -> log.error("Failed to get room for setting closed: {} {} {}",
+                        examId,
+                        roomName,
+                        error.getMessage()))
+                .getOr(null);
+
+        if (room != null) {
+            this.remoteProctoringRoomDAO
+                    .setCollectingRoomOpenFlag(room.id, false);
+        }
 
         // Send default settings to clients if feature is enabled
         if (this.sendBroadcastReset) {
