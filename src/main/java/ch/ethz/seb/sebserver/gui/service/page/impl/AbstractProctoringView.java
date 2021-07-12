@@ -93,12 +93,16 @@ public abstract class AbstractProctoringView implements RemoteProctoringView {
         final BroadcastActionState state =
                 (BroadcastActionState) videoAction.getData(BroadcastActionState.KEY_NAME);
 
-        this.pageService.getPolyglotPageService().injectI18n(
-                audioAction,
-                state.video ? BROADCAST_AUDIO_ON_TEXT_KEY : BROADCAST_AUDIO_OFF_TEXT_KEY);
-        this.pageService.getPolyglotPageService().injectI18n(
-                videoAction,
-                state.video ? BROADCAST_VIDEO_ON_TEXT_KEY : BROADCAST_VIDEO_OFF_TEXT_KEY);
+        if (audioAction != null) {
+            this.pageService.getPolyglotPageService().injectI18n(
+                    audioAction,
+                    state.video ? BROADCAST_AUDIO_ON_TEXT_KEY : BROADCAST_AUDIO_OFF_TEXT_KEY);
+        }
+        if (videoAction != null) {
+            this.pageService.getPolyglotPageService().injectI18n(
+                    videoAction,
+                    state.video ? BROADCAST_VIDEO_ON_TEXT_KEY : BROADCAST_VIDEO_OFF_TEXT_KEY);
+        }
 
         state.video = !state.video;
         state.audio = state.video;

@@ -117,13 +117,13 @@ public class ZoomProctoringView extends AbstractProctoringView {
 
         final BroadcastActionState broadcastActionState = new BroadcastActionState();
         if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.BROADCAST)) {
-            final Button broadcastAudioAction = widgetFactory.buttonLocalized(footer, BROADCAST_AUDIO_ON_TEXT_KEY);
-            broadcastAudioAction.setLayoutData(new RowData());
-            broadcastAudioAction.addListener(SWT.Selection, event -> toggleBroadcastAudio(
-                    proctoringWindowData.examId,
-                    proctoringWindowData.connectionData.roomName,
-                    broadcastAudioAction));
-            broadcastAudioAction.setData(BroadcastActionState.KEY_NAME, broadcastActionState);
+//            final Button broadcastAudioAction = widgetFactory.buttonLocalized(footer, BROADCAST_AUDIO_ON_TEXT_KEY);
+//            broadcastAudioAction.setLayoutData(new RowData());
+//            broadcastAudioAction.addListener(SWT.Selection, event -> toggleBroadcastAudio(
+//                    proctoringWindowData.examId,
+//                    proctoringWindowData.connectionData.roomName,
+//                    broadcastAudioAction));
+//            broadcastAudioAction.setData(BroadcastActionState.KEY_NAME, broadcastActionState);
 
             final Button broadcastVideoAction = widgetFactory.buttonLocalized(footer, BROADCAST_VIDEO_ON_TEXT_KEY);
             broadcastVideoAction.setLayoutData(new RowData());
@@ -131,7 +131,7 @@ public class ZoomProctoringView extends AbstractProctoringView {
                     proctoringWindowData.examId,
                     proctoringWindowData.connectionData.roomName,
                     broadcastVideoAction,
-                    broadcastAudioAction));
+                    null));
             broadcastVideoAction.setData(BroadcastActionState.KEY_NAME, broadcastActionState);
         }
         if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.ENABLE_CHAT)) {
