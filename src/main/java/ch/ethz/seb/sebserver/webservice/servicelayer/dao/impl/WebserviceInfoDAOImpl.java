@@ -47,6 +47,20 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
         this.forceMaster = forceMaster;
     }
 
+    @Override
+    @Transactional
+    public boolean isInitialized() {
+        try {
+            this.webserviceServerInfoRecordMapper
+                    .selectByExample()
+                    .build()
+                    .execute();
+            return true;
+        } catch (final Exception e) {
+            return false;
+        }
+    }
+
     @Transactional
     @Override
     public boolean register(final String uuid, final String address) {

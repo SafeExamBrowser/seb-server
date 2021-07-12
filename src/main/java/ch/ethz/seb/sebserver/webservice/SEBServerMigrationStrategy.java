@@ -41,21 +41,27 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
     @Override
     public void migrate(final Flyway flyway) {
         try {
+
             // If we are in a distributed setup only apply migration task if this is the master service
-            if (this.webserviceInfo.isDistributed()
-                    && !this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID())) {
+            // or if there was no data base initialization yet at all.
+            if (this.webserviceInfo.isDistributed()) {
+                if (this.webserviceInfoDAO.isInitialized()) {
+                    final boolean isMaster = this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID());
+                    if (!isMaster) {
+                        log.info(
+                                "Skip migration task since this is not a master instance: {}",
+                                this.webserviceInfo.getWebserviceUUID());
 
-                log.info(
-                        "Skip migration task since this is not a master instance: {}",
-                        this.webserviceInfo.getWebserviceUUID());
-
-                return;
+                        return;
+                    }
+                }
             }
 
             if (this.cleanDBOnStartup) {
                 flyway.clean();
             }
             flyway.migrate();
+
         } catch (final Exception e) {
             log.error("Failed to apply migration task: ", e);
         }
