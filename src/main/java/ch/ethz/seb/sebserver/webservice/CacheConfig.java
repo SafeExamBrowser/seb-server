@@ -60,7 +60,5 @@ public class CacheConfig extends JCacheConfigurerSupport {
             log.error("Failed to initialize caching with EHCache. Fallback to simple caching");
             return new ConcurrentMapCacheManager();
         }
-
     }
-
 }

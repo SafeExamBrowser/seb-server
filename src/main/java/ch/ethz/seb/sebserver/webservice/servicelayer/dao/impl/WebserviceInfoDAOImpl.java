@@ -173,7 +173,7 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
                     .execute();
             return true;
         } catch (final Exception e) {
-            log.error("Failed to register webservice: uuid: {}", uuid, e);
+            log.warn("Failed to unregister webservice: uuid: {}, cause: ", uuid, e);
             return false;
         }
     }

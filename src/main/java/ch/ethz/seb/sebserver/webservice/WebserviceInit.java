@@ -130,6 +130,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
 
         SEBServerInit.INIT_LOGGER.info("---->");
         SEBServerInit.INIT_LOGGER.info("----> Unregister Webservice: {}", this.webserviceInfo.getWebserviceUUID());
+
         this.webserviceInfoDAO.unregister(this.webserviceInfo.getWebserviceUUID());
 
         SEBServerInit.INIT_LOGGER.info("---->");
