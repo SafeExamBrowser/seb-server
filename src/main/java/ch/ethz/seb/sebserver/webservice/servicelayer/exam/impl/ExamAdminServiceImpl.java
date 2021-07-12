@@ -328,20 +328,22 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         if (mapping.containsKey(ProctoringServiceSettings.ATTR_ENABLED_FEATURES)) {
             try {
                 final String value = mapping.get(ProctoringServiceSettings.ATTR_ENABLED_FEATURES).getValue();
-                return EnumSet.copyOf(Arrays.asList(StringUtils.split(value, Constants.LIST_SEPARATOR))
-                        .stream()
-                        .map(str -> {
-                            try {
-                                return ProctoringFeature.valueOf(str);
-                            } catch (final Exception e) {
-                                log.error(
-                                        "Failed to enabled single features for proctoring settings. Skipping. {}",
-                                        e.getMessage());
-                                return null;
-                            }
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet()));
+                return StringUtils.isNotBlank(value)
+                        ? EnumSet.copyOf(Arrays.asList(StringUtils.split(value, Constants.LIST_SEPARATOR))
+                                .stream()
+                                .map(str -> {
+                                    try {
+                                        return ProctoringFeature.valueOf(str);
+                                    } catch (final Exception e) {
+                                        log.error(
+                                                "Failed to enabled single features for proctoring settings. Skipping. {}",
+                                                e.getMessage());
+                                        return null;
+                                    }
+                                })
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toSet()))
+                        : EnumSet.noneOf(ProctoringFeature.class);
             } catch (final Exception e) {
                 log.error("Failed to get enabled features for proctoring settings. Enable all. {}", e.getMessage());
                 return EnumSet.allOf(ProctoringFeature.class);

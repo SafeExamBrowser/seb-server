@@ -635,7 +635,8 @@ public class ExamDAOImpl implements ExamDAO {
                     .execute();
 
             // delete all additional attributes
-            this.additionalAttributeRecordMapper.deleteByExample()
+            this.additionalAttributeRecordMapper
+                    .deleteByExample()
                     .where(AdditionalAttributeRecordDynamicSqlSupport.entityType, isEqualTo(EntityType.EXAM.name()))
                     .and(AdditionalAttributeRecordDynamicSqlSupport.entityId, isIn(ids))
                     .build()

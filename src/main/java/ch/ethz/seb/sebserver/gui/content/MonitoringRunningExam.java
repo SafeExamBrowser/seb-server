@@ -149,13 +149,22 @@ public class MonitoringRunningExam implements TemplateComposer {
                 restService.getBuilder(GetClientConnectionDataList.class)
                         .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId());
 
+        final ProctoringUpdateErrorHandler proctoringUpdateErrorHandler =
+                new ProctoringUpdateErrorHandler(this.pageService, pageContext);
+
+        final ServerPushContext pushContext = new ServerPushContext(
+                content,
+                Utils.truePredicate(),
+                proctoringUpdateErrorHandler);
+
         final ClientConnectionTable clientTable = new ClientConnectionTable(
                 this.pageService,
                 tablePane,
                 this.asyncRunner,
                 exam,
                 indicators,
-                restCall);
+                restCall,
+                pushContext);
 
         clientTable
                 .withDefaultAction(
@@ -172,10 +181,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         ActionDefinition.MONITOR_EXAM_NEW_PROCTOR_ROOM));
 
         this.serverPushService.runServerPush(
-                new ServerPushContext(
-                        content,
-                        Utils.truePredicate(),
-                        createServerPushUpdateErrorHandler(this.pageService, pageContext)),
+                pushContext,
                 this.pollInterval,
                 context -> clientTable.updateValues(),
                 updateTableGUI(clientTable));
@@ -281,18 +287,26 @@ public class MonitoringRunningExam implements TemplateComposer {
                 }
             }
 
+            final ProctoringUpdateErrorHandler proctoringUpdateErrorHandler =
+                    new ProctoringUpdateErrorHandler(this.pageService, pageContext);
+
+            final ServerPushContext pushContext = new ServerPushContext(
+                    parent,
+                    Utils.truePredicate(),
+                    proctoringUpdateErrorHandler);
+
             this.monitoringProctoringService.initCollectingRoomActions(
+                    pushContext,
                     pageContext,
                     actionBuilder,
                     proctoringSettings,
                     proctoringGUIService);
+
             this.serverPushService.runServerPush(
-                    new ServerPushContext(
-                            parent,
-                            Utils.truePredicate(),
-                            createServerPushUpdateErrorHandler(this.pageService, pageContext)),
+                    pushContext,
                     this.proctoringRoomUpdateInterval,
                     context -> this.monitoringProctoringService.updateCollectingRoomActions(
+                            context,
                             pageContext,
                             actionBuilder,
                             proctoringSettings,
@@ -422,7 +436,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
     private Set<EntityKey> selectionForQuitInstruction(final ClientConnectionTable clientTable) {
         final Set<String> connectionTokens = clientTable.getConnectionTokens(
-                cc -> cc.status.indicatorActiveStatus,
+                cc -> cc.status.clientActiveStatus,
                 true);
         if (connectionTokens == null || connectionTokens.isEmpty()) {
             return Collections.emptySet();
@@ -480,30 +494,53 @@ public class MonitoringRunningExam implements TemplateComposer {
         };
     }
 
-    static final Function<Exception, Boolean> createServerPushUpdateErrorHandler(
-            final PageService pageService,
-            final PageContext pageContext) {
+    static final class ProctoringUpdateErrorHandler implements Function<Exception, Boolean> {
 
-        return error -> {
-            log.error("Fialed to update server push: {}", error.getMessage());
+        private final PageService pageService;
+        private final PageContext pageContext;
+
+        private int errors = 0;
+
+        public ProctoringUpdateErrorHandler(
+                final PageService pageService,
+                final PageContext pageContext) {
+
+            this.pageService = pageService;
+            this.pageContext = pageContext;
+        }
+
+        private boolean checkUserSession() {
             try {
-                pageService.getCurrentUser().get();
+                this.pageService.getCurrentUser().get();
+                return true;
             } catch (final Exception e) {
-                log.error("Failed to verify current user after server push error: {}", e.getMessage());
-                log.info("Force logout and session cleanup...");
-                pageContext.forwardToLoginPage();
-                final MessageBox logoutSuccess = new Message(
-                        pageContext.getShell(),
-                        pageService.getI18nSupport().getText("sebserver.logout"),
-                        Utils.formatLineBreaks(
-                                pageService.getI18nSupport().getText("sebserver.logout.invalid-session.message")),
-                        SWT.ICON_INFORMATION,
-                        pageService.getI18nSupport());
-                logoutSuccess.open(null);
+                try {
+                    this.pageContext.forwardToLoginPage();
+                    final MessageBox logoutSuccess = new Message(
+                            this.pageContext.getShell(),
+                            this.pageService.getI18nSupport().getText("sebserver.logout"),
+                            Utils.formatLineBreaks(
+                                    this.pageService.getI18nSupport()
+                                            .getText("sebserver.logout.invalid-session.message")),
+                            SWT.ICON_INFORMATION,
+                            this.pageService.getI18nSupport());
+                    logoutSuccess.open(null);
+                } catch (final Exception ee) {
+                    log.warn("Unable to auto-logout: ", ee.getMessage());
+                }
                 return true;
             }
-            return false;
-        };
+        }
+
+        @Override
+        public Boolean apply(final Exception error) {
+            this.errors++;
+            log.error("Failed to update server push: {}", error.getMessage());
+            if (this.errors > 5) {
+                checkUserSession();
+            }
+            return this.errors > 5;
+        }
     }
 
 }

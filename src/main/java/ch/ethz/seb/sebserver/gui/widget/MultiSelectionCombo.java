@@ -8,9 +8,11 @@
 
 package ch.ethz.seb.sebserver.gui.widget;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.util.Tuple;
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.widgets.DropDown;
 import org.eclipse.swt.SWT;
@@ -25,10 +27,9 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 
 public final class MultiSelectionCombo extends Composite implements Selection {
 
@@ -68,7 +69,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         setLayout(gridLayout);
 
         this.addListener(SWT.Resize, this::adaptColumnWidth);
-        this.textInput = widgetFactory.textInput(this);
+        this.textInput = widgetFactory.textInput(this, "selection");
         this.textCell = new GridData(SWT.LEFT, SWT.CENTER, true, true);
         this.textInput.setLayoutData(this.textCell);
         this.dropDown = new DropDown(this.textInput, SWT.NONE);

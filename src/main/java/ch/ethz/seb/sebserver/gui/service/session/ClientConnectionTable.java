@@ -61,6 +61,7 @@ import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.DisposedOAuth2RestTemplateException;
 import ch.ethz.seb.sebserver.gui.service.session.IndicatorData.ThresholdColor;
@@ -95,6 +96,8 @@ public final class ClientConnectionTable {
     private final AsyncRunner asyncRunner;
     private final Exam exam;
     private final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder;
+    private final ServerPushContext pushConext;
+
     private final Map<Long, IndicatorData> indicatorMapping;
     private final Table table;
     private final ColorData colorData;
@@ -116,18 +119,22 @@ public final class ClientConnectionTable {
     private boolean forceUpdateAll = false;
     private boolean updateInProgress = false;
 
+    //private int updateErrors = 0;
+
     public ClientConnectionTable(
             final PageService pageService,
             final Composite tableRoot,
             final AsyncRunner asyncRunner,
             final Exam exam,
             final Collection<Indicator> indicators,
-            final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder) {
+            final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder,
+            final ServerPushContext pushConext) {
 
         this.pageService = pageService;
         this.asyncRunner = asyncRunner;
         this.exam = exam;
         this.restCallBuilder = restCallBuilder;
+        this.pushConext = pushConext;
 
         final WidgetFactory widgetFactory = pageService.getWidgetFactory();
         final ResourceService resourceService = pageService.getResourceService();
@@ -187,6 +194,10 @@ public final class ClientConnectionTable {
         this.sessionIds = new LinkedMultiValueMap<>();
         this.table.layout();
     }
+
+//    public int getUpdateErrors() {
+//        return this.updateErrors;
+//    }
 
     public WidgetFactory getWidgetFactory() {
         return this.pageService.getWidgetFactory();
@@ -316,48 +327,58 @@ public final class ClientConnectionTable {
         }
 
         this.updateInProgress = true;
-        this.asyncRunner.runAsync(this::updateValuesAsync);
+        final boolean needsSync = this.tableMapping != null &&
+                this.table != null &&
+                this.tableMapping.size() != this.table.getItemCount();
+        this.asyncRunner.runAsync(() -> updateValuesAsync(needsSync));
     }
 
-    private void updateValuesAsync() {
-        if (this.statusFilterChanged || this.forceUpdateAll) {
-            this.toDelete.clear();
-            this.toDelete.addAll(this.tableMapping.keySet());
-        }
-        this.restCallBuilder
-                .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam)
-                .call()
-                .get(error -> {
-                    log.error("Unexpected error while trying to get client connection table data: ", error);
-                    recoverFromDisposedRestTemplate(error);
-                    return Collections.emptyList();
-                })
-                .forEach(data -> {
-                    final UpdatableTableItem tableItem = this.tableMapping.computeIfAbsent(
-                            data.getConnectionId(),
-                            UpdatableTableItem::new);
-                    tableItem.push(data);
-                    if (this.statusFilterChanged || this.forceUpdateAll) {
-                        this.toDelete.remove(data.getConnectionId());
+    private void updateValuesAsync(final boolean needsSync) {
+
+        try {
+
+            if (this.statusFilterChanged || this.forceUpdateAll || needsSync) {
+                this.toDelete.clear();
+                this.toDelete.addAll(this.tableMapping.keySet());
+            }
+            this.restCallBuilder
+                    .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam)
+                    .call()
+                    .get(error -> {
+                        recoverFromDisposedRestTemplate(error);
+                        this.pushConext.reportError(error);
+                        return Collections.emptyList();
+                    })
+                    .forEach(data -> {
+                        final UpdatableTableItem tableItem = this.tableMapping.computeIfAbsent(
+                                data.getConnectionId(),
+                                UpdatableTableItem::new);
+                        tableItem.push(data);
+                        if (this.statusFilterChanged || this.forceUpdateAll || needsSync) {
+                            this.toDelete.remove(data.getConnectionId());
+                        }
+                    });
+
+            if (!this.toDelete.isEmpty()) {
+                this.toDelete.forEach(id -> {
+                    final UpdatableTableItem item = this.tableMapping.remove(id);
+                    if (item != null) {
+                        final List<Long> list = this.sessionIds.get(item.connectionData.clientConnection.userSessionId);
+                        if (list != null) {
+                            list.remove(id);
+                        }
                     }
                 });
+                this.statusFilterChanged = false;
+                this.toDelete.clear();
+            }
 
-        if (!this.toDelete.isEmpty()) {
-            this.toDelete.forEach(id -> {
-                final UpdatableTableItem item = this.tableMapping.remove(id);
-                if (item != null) {
-                    final List<Long> list = this.sessionIds.get(item.connectionData.clientConnection.userSessionId);
-                    if (list != null) {
-                        list.remove(id);
-                    }
-                }
-            });
-            this.statusFilterChanged = false;
-            this.toDelete.clear();
+            this.forceUpdateAll = false;
+            this.updateInProgress = false;
+
+        } catch (final Exception e) {
+            this.pushConext.reportError(e);
         }
-
-        this.forceUpdateAll = false;
-        this.updateInProgress = false;
     }
 
     public void updateGUI() {
@@ -576,7 +597,7 @@ public final class ClientConnectionTable {
                     continue;
                 }
 
-                if (!this.connectionData.clientConnection.status.indicatorActiveStatus) {
+                if (!this.connectionData.clientConnection.status.clientActiveStatus) {
                     final String value = (indicatorData.indicator.type.showOnlyInActiveState)
                             ? Constants.EMPTY_NOTE
                             : IndicatorValue.getDisplayValue(indicatorValue);

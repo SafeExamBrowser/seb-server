@@ -119,10 +119,10 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         }
 
         final Text textInput = (this.isNumber)
-                ? builder.widgetFactory.numberInput(fieldGrid, this.numberCheck, readonly)
+                ? builder.widgetFactory.numberInput(fieldGrid, this.numberCheck, readonly, this.label)
                 : (this.isArea)
-                        ? builder.widgetFactory.textAreaInput(fieldGrid, readonly)
-                        : builder.widgetFactory.textInput(fieldGrid, this.isPassword, readonly);
+                        ? builder.widgetFactory.textAreaInput(fieldGrid, readonly, this.label)
+                        : builder.widgetFactory.textInput(fieldGrid, this.isPassword, readonly, this.label);
 
         if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {
             builder.pageService.getPolyglotPageService().injectI18nTooltip(

@@ -33,12 +33,19 @@ public interface ExamProctoringRoomService {
      * @return Result refer to the resulting collection of ClientConnection or to an error when happened */
     Result<Collection<ClientConnection>> getRoomConnections(Long roomId);
 
-    /** Get a collection of all ClientConnection that are currently connected to a specified collecting room.
+    /** Get a collection of all ClientConnection that are registered to a specified collecting room.
      *
      * @param examId The exam identifier of the room
      * @param roomName The room name
      * @return Result refer to the resulting collection of ClientConnection or to an error when happened */
     Result<Collection<ClientConnection>> getCollectingRoomConnections(Long examId, String roomName);
+
+    /** Get a collection of all ClientConnection that are currently connected to a specified collecting room.
+     *
+     * @param examId The exam identifier of the room
+     * @param roomName The room name
+     * @return Result refer to the resulting collection of ClientConnection or to an error when happened */
+    Result<Collection<ClientConnection>> getActiveCollectingRoomConnections(Long examId, String roomName);
 
     /** This is internally used to update client connections that are flagged for updating
      * the proctoring room assignment.

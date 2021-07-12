@@ -139,11 +139,12 @@ public class ExamProctoringSettings {
                     .valueOf(form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE));
 
             final String features = form.getFieldValue(ProctoringServiceSettings.ATTR_ENABLED_FEATURES);
-            final EnumSet<ProctoringFeature> featureFlags =
-                    EnumSet.copyOf(Arrays.asList(StringUtils.split(features, Constants.LIST_SEPARATOR))
+            final EnumSet<ProctoringFeature> featureFlags = (StringUtils.isNotBlank(features))
+                    ? EnumSet.copyOf(Arrays.asList(StringUtils.split(features, Constants.LIST_SEPARATOR))
                             .stream()
                             .map(str -> ProctoringFeature.valueOf(str))
-                            .collect(Collectors.toSet()));
+                            .collect(Collectors.toSet()))
+                    : EnumSet.noneOf(ProctoringFeature.class);
 
             examProctoring = new ProctoringServiceSettings(
                     Long.parseLong(entityKey.modelId),

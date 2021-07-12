@@ -34,12 +34,12 @@ public final class ClientConnection implements GrantEntity {
 
         public final boolean connectingStatus;
         public final boolean establishedStatus;
-        public final boolean indicatorActiveStatus;
+        public final boolean clientActiveStatus;
 
         ConnectionStatus(final boolean connectingStatus, final boolean establishedStatus) {
             this.connectingStatus = connectingStatus;
             this.establishedStatus = establishedStatus;
-            this.indicatorActiveStatus = connectingStatus || establishedStatus;
+            this.clientActiveStatus = connectingStatus || establishedStatus;
         }
 
     }

@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO
 @Component
 @WebServiceProfile
 public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
+
+    private static final Logger log = LoggerFactory.getLogger(AdditionalAttributesDAOImpl.class);
 
     private final AdditionalAttributeRecordMapper additionalAttributeRecordMapper;
 
@@ -164,14 +168,21 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
 
     @Override
     @Transactional
-    public void deleteAll(final Long entityId) {
-        this.additionalAttributeRecordMapper
-                .deleteByExample()
-                .where(
-                        AdditionalAttributeRecordDynamicSqlSupport.entityId,
-                        SqlBuilder.isEqualTo(entityId))
-                .build()
-                .execute();
+    public void deleteAll(final EntityType type, final Long entityId) {
+        try {
+            this.additionalAttributeRecordMapper
+                    .deleteByExample()
+                    .where(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityType,
+                            SqlBuilder.isEqualTo(type.name()))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityId,
+                            SqlBuilder.isEqualTo(entityId))
+                    .build()
+                    .execute();
+        } catch (final Exception e) {
+            log.warn("Failed to delete all additional attributes for: {} cause: {}", entityId, e.getMessage());
+        }
     }
 
 }

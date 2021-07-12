@@ -15,6 +15,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -43,6 +44,8 @@ public class MonitoringExamSearchPopup {
             new LocTextKey("sebserver.monitoring.search.list.name");
     private static final LocTextKey TABLE_COLUMN_IP_ADDRESS =
             new LocTextKey("sebserver.monitoring.search.list.ip");
+    private static final LocTextKey TABLE_COLUMN_STATUS =
+            new LocTextKey("sebserver.monitoring.search.list.status");
 
     private final PageService pageService;
 
@@ -50,9 +53,16 @@ public class MonitoringExamSearchPopup {
             new TableFilterAttribute(CriteriaType.TEXT, ClientConnection.FILTER_ATTR_SESSION_ID);
     private final TableFilterAttribute ipFilter =
             new TableFilterAttribute(CriteriaType.TEXT, ClientConnection.FILTER_ATTR_IP_STRING);
+    private final TableFilterAttribute statusFilter;
 
     protected MonitoringExamSearchPopup(final PageService pageService) {
         this.pageService = pageService;
+
+        this.statusFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                ClientConnection.FILTER_ATTR_STATUS,
+                ConnectionStatus.ACTIVE.name(),
+                pageService.getResourceService()::localizedClientConnectionStatusResources);
     }
 
     public void show(final PageContext pageContext) {
@@ -60,6 +70,7 @@ public class MonitoringExamSearchPopup {
                 pageContext.getParent().getShell(),
                 this.pageService.getWidgetFactory());
         dialog.setLargeDialogWidth();
+        dialog.setDialogHeight(380);
         dialog.open(
                 TITLE_TEXT_KEY,
                 pageContext,
@@ -89,6 +100,12 @@ public class MonitoringExamSearchPopup {
                         TABLE_COLUMN_IP_ADDRESS,
                         ClientConnection::getClientAddress)
                                 .withFilter(this.ipFilter))
+
+                .withColumn(new ColumnDefinition<>(
+                        Domain.CLIENT_CONNECTION.ATTR_STATUS,
+                        TABLE_COLUMN_STATUS,
+                        ClientConnection::getStatus)
+                                .withFilter(this.statusFilter))
 
                 .withDefaultAction(t -> actionBuilder
                         .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)

@@ -61,9 +61,9 @@ public final class LmsSetup implements GrantEntity, Activatable {
         /** The Moodle binding features only the course access API so far */
         MOODLE(Features.COURSE_API /* , Features.SEB_RESTRICTION */),
         /** The Ans Delft binding is on the way */
-        ANS_DELFT(Features.COURSE_API, Features.SEB_RESTRICTION),
+        ANS_DELFT(),
         /** The OpenOLAT binding is on the way */
-        OPEN_OLAT(Features.COURSE_API, Features.SEB_RESTRICTION);
+        OPEN_OLAT();
 
         public final EnumSet<Features> features;
 

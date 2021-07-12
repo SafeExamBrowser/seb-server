@@ -216,28 +216,30 @@ public class CertificateDAOImpl implements CertificateDAO {
         final boolean[] keyUsage = cert.getKeyUsage();
         final EnumSet<CertificateType> result = EnumSet.noneOf(CertificateType.class);
 
-        // digitalSignature
-        if (keyUsage[0]) {
-            result.add(CertificateType.DIGITAL_SIGNATURE);
-        }
+        if (keyUsage != null) {
+            // digitalSignature
+            if (keyUsage[0]) {
+                result.add(CertificateType.DIGITAL_SIGNATURE);
+            }
 
-        // dataEncipherment
-        if (keyUsage[2] || keyUsage[3]) {
-            result.add(CertificateType.DATA_ENCIPHERMENT);
-        }
+            // dataEncipherment
+            if (keyUsage[2] || keyUsage[3]) {
+                result.add(CertificateType.DATA_ENCIPHERMENT);
+            }
 
-        // keyCertSign
-        if (keyUsage[5]) {
-            result.add(CertificateType.KEY_CERT_SIGN);
-        }
-
-        if (result.isEmpty()) {
-            result.add(CertificateType.UNKNOWN);
+            // keyCertSign
+            if (keyUsage[5]) {
+                result.add(CertificateType.KEY_CERT_SIGN);
+            }
         }
 
         final String alias = certificates.keyStore.engineGetCertificateAlias(cert);
         if (this.cryptor.getPrivateKey(certificates.keyStore, alias).hasValue()) {
             result.add(CertificateType.DATA_ENCIPHERMENT_PRIVATE_KEY);
+        }
+
+        if (result.isEmpty()) {
+            result.add(CertificateType.UNKNOWN);
         }
 
         return result;

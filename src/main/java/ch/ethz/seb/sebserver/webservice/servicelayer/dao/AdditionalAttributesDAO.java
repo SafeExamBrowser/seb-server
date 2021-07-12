@@ -69,7 +69,8 @@ public interface AdditionalAttributesDAO {
 
     /** Use this to delete all additional attributes for a given entity.
      *
+     * @param type the entity type
      * @param entityId the entity identifier (primary-key) */
-    void deleteAll(Long entityId);
+    void deleteAll(EntityType type, Long entityId);
 
 }

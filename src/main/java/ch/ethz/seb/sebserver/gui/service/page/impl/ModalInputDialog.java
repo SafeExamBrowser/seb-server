@@ -49,6 +49,7 @@ public class ModalInputDialog<T> extends Dialog {
     private int dialogWidth = DEFAULT_DIALOG_WIDTH;
     private int dialogHeight = DEFAULT_DIALOG_HEIGHT;
     private int buttonWidth = DEFAULT_DIALOG_BUTTON_WIDTH;
+    private boolean forceHeight = false;
 
     public ModalInputDialog(
             final Shell parent,
@@ -75,6 +76,7 @@ public class ModalInputDialog<T> extends Dialog {
 
     public ModalInputDialog<T> setDialogHeight(final int dialogHeight) {
         this.dialogHeight = dialogHeight;
+        this.forceHeight = true;
         return this;
     }
 
@@ -215,6 +217,9 @@ public class ModalInputDialog<T> extends Dialog {
     }
 
     private int calcDialogHeight(final Composite main) {
+        if (this.forceHeight) {
+            return this.dialogHeight;
+        }
         final int actualHeight = main.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
         final int displayHeight = main.getDisplay().getClientArea().height;
         final int availableHeight = (displayHeight < actualHeight + 100)

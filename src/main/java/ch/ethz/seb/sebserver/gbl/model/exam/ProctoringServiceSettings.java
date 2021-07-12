@@ -35,7 +35,7 @@ public class ProctoringServiceSettings implements Entity {
         TOWN_HALL,
         ONE_TO_ONE,
         BROADCAST,
-        ENABLE_CHAT
+        ENABLE_CHAT,
     }
 
     public static final String ATTR_ENABLE_PROCTORING = "enableProctoring";

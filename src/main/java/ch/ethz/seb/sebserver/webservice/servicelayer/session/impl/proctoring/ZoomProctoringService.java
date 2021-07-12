@@ -29,6 +29,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -125,6 +126,8 @@ public class ZoomProctoringService implements ExamProctoringService {
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final AuthorizationService authorizationService;
     private final SEBClientInstructionService sebInstructionService;
+    private final boolean enableWaitingRoom;
+    private final boolean sendRejoinForCollectingRoom;
 
     public ZoomProctoringService(
             final ExamSessionService examSessionService,
@@ -134,7 +137,9 @@ public class ZoomProctoringService implements ExamProctoringService {
             final JSONMapper jsonMapper,
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
             final AuthorizationService authorizationService,
-            final SEBClientInstructionService sebInstructionService) {
+            final SEBClientInstructionService sebInstructionService,
+            @Value("${sebserver.webservice.proctoring.enableWaitingRoom:false}") final boolean enableWaitingRoom,
+            @Value("${sebserver.webservice.proctoring.sendRejoinForCollectingRoom:true}") final boolean sendRejoinForCollectingRoom) {
 
         this.examSessionService = examSessionService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
@@ -145,6 +150,8 @@ public class ZoomProctoringService implements ExamProctoringService {
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
         this.authorizationService = authorizationService;
         this.sebInstructionService = sebInstructionService;
+        this.enableWaitingRoom = enableWaitingRoom;
+        this.sendRejoinForCollectingRoom = sendRejoinForCollectingRoom;
     }
 
     @Override
@@ -443,23 +450,33 @@ public class ZoomProctoringService implements ExamProctoringService {
 
         return Result.tryCatch(() -> {
 
+            if (!this.sendRejoinForCollectingRoom) {
+                // does nothing if the rejoin feature is not enabled
+                return;
+            }
+
             if (this.remoteProctoringRoomDAO.isTownhallRoomActive(proctoringSettings.examId)) {
-                // do nothing is the town-hall of this exam is open. The clients will automatically join
+                // does nothing if the town-hall of this exam is open. The clients will automatically join
                 // the meeting once the town-hall has been closed
                 return;
             }
 
-            final ProctoringRoomConnection proctoringRoomConnection = this.getProctorRoomConnection(
-                    proctoringSettings,
-                    room.name,
-                    room.subject)
-                    .getOrThrow();
-
             clientConnections.stream()
-                    .forEach(cc -> sendJoinInstruction(
-                            proctoringSettings.examId,
-                            cc.connectionToken,
-                            proctoringRoomConnection));
+                    .forEach(cc -> {
+                        try {
+                            sendJoinInstruction(
+                                    proctoringSettings.examId,
+                                    cc.connectionToken,
+                                    getClientRoomConnection(
+                                            proctoringSettings,
+                                            cc.connectionToken,
+                                            room.name,
+                                            room.subject)
+                                                    .getOrThrow());
+                        } catch (final Exception e) {
+                            log.error("Failed to send rejoin instruction to SEB client: {}", cc.connectionToken, e);
+                        }
+                    });
         });
     }
 
@@ -497,6 +514,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     proctoringSettings.serverURL,
                     credentials,
                     roomName);
+
             final UserResponse userResponse = this.jsonMapper.readValue(
                     createUser.getBody(),
                     UserResponse.class);
@@ -509,7 +527,9 @@ public class ZoomProctoringService implements ExamProctoringService {
                     userResponse.id,
                     subject,
                     duration,
-                    meetingPwd);
+                    meetingPwd,
+                    this.enableWaitingRoom);
+
             final MeetingResponse meetingResponse = this.jsonMapper.readValue(
                     createMeeting.getBody(),
                     MeetingResponse.class);
@@ -520,6 +540,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     userResponse.id,
                     meetingResponse.start_url,
                     meetingResponse.join_url);
+
             final String additionalZoomRoomDataString = this.jsonMapper
                     .writeValueAsString(additionalZoomRoomData);
 
@@ -558,23 +579,29 @@ public class ZoomProctoringService implements ExamProctoringService {
             final StringBuilder builder = new StringBuilder();
             final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
 
-            final String jwtHeaderPart = urlEncoder.encodeToString(
-                    ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
+            final String jwtHeaderPart = urlEncoder
+                    .encodeToString(ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
+
             final String jwtPayload = String.format(
-                    ZOOM_API_ACCESS_TOKEN_PAYLOAD.replaceAll(" ", "").replaceAll("\n", ""),
+                    ZOOM_API_ACCESS_TOKEN_PAYLOAD
+                            .replaceAll(" ", "")
+                            .replaceAll("\n", ""),
                     credentials.clientIdAsString(),
                     expTime);
-            final String jwtPayloadPart = urlEncoder.encodeToString(
-                    jwtPayload.getBytes(StandardCharsets.UTF_8));
+
+            final String jwtPayloadPart = urlEncoder
+                    .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
+
             final String message = jwtHeaderPart + "." + jwtPayloadPart;
 
             final Mac sha256_HMAC = Mac.getInstance(TOKEN_ENCODE_ALG);
             final SecretKeySpec secret_key = new SecretKeySpec(
                     Utils.toByteArray(decryptedSecret),
                     TOKEN_ENCODE_ALG);
+
             sha256_HMAC.init(secret_key);
-            final String hash = urlEncoder.encodeToString(
-                    sha256_HMAC.doFinal(Utils.toByteArray(message)));
+            final String hash = urlEncoder
+                    .encodeToString(sha256_HMAC.doFinal(Utils.toByteArray(message)));
 
             builder.append(message)
                     .append(".")
@@ -705,7 +732,8 @@ public class ZoomProctoringService implements ExamProctoringService {
                 final String userId,
                 final String topic,
                 final int duration,
-                final CharSequence password) {
+                final CharSequence password,
+                final boolean waitingRoom) {
 
             try {
 
@@ -718,7 +746,8 @@ public class ZoomProctoringService implements ExamProctoringService {
                 final CreateMeetingRequest createRoomRequest = new CreateMeetingRequest(
                         topic,
                         duration,
-                        password);
+                        password,
+                        waitingRoom);
 
                 final String body = this.zoomProctoringService.jsonMapper.writeValueAsString(createRoomRequest);
                 final HttpHeaders headers = getHeaders(credentials);

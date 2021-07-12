@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService
 public class ZoomWindowScriptResolverTest {
 
     @Test
-    public void testJitsiWindowScriptResolver() {
+    public void testZoomWindowScriptResolver() {
         final DefaultResourceLoader defaultResourceLoader = new DefaultResourceLoader();
         final Resource resource = defaultResourceLoader.getResource(ZoomWindowScriptResolver.RES_PATH);
         final ZoomWindowScriptResolver zoomWindowScriptResolver = new ZoomWindowScriptResolver(resource);

@@ -123,7 +123,8 @@ public interface ZoomRoomRequestResponse {
         public CreateMeetingRequest(
                 final String topic,
                 final int duration,
-                final CharSequence password) {
+                final CharSequence password,
+                final boolean waitingRoom) {
 
             this.type = 2; // Scheduled Meeting
             this.start_time = DateTime.now(DateTimeZone.UTC).toString("yyyy-MM-dd'T'HH:mm:ss");
@@ -131,18 +132,24 @@ public interface ZoomRoomRequestResponse {
             this.timezone = DateTimeZone.UTC.getID();
             this.topic = topic;
             this.password = password;
-            this.settings = new Settings();
+            this.settings = new Settings(waitingRoom);
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)
         static class Settings {
-            @JsonProperty final boolean host_video = true;
-            @JsonProperty final boolean participant_video = true;
-            @JsonProperty final boolean join_before_host = true;
+            @JsonProperty final boolean host_video = false;
+            @JsonProperty final boolean mute_upon_entry = false;
+            @JsonProperty final boolean join_before_host;
             @JsonProperty final int jbh_time = 0;
             @JsonProperty final boolean use_pmi = false;
             @JsonProperty final String audio = "voip";
-            @JsonProperty final boolean waiting_room = false;
+            @JsonProperty final boolean waiting_room;
+            @JsonProperty final boolean allow_multiple_devices = false;
+
+            public Settings(final boolean waitingRoom) {
+                this.join_before_host = !waitingRoom;
+                this.waiting_room = waitingRoom;
+            }
         }
     }
 

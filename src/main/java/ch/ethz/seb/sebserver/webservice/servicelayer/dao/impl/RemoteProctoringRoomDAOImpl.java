@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RemoteProctoringRoomRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RemoteProctoringRoomRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RemoteProctoringRoomRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.NewRoom;
@@ -49,11 +50,14 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     private static final Object RESERVE_ROOM_LOCK = new Object();
 
     private final RemoteProctoringRoomRecordMapper remoteProctoringRoomRecordMapper;
+    private final AdditionalAttributesDAO additionalAttributesDAO;
 
     protected RemoteProctoringRoomDAOImpl(
-            final RemoteProctoringRoomRecordMapper remoteProctoringRoomRecordMapper) {
+            final RemoteProctoringRoomRecordMapper remoteProctoringRoomRecordMapper,
+            final AdditionalAttributesDAO additionalAttributesDAO) {
 
         this.remoteProctoringRoomRecordMapper = remoteProctoringRoomRecordMapper;
+        this.additionalAttributesDAO = additionalAttributesDAO;
     }
 
     @Override
@@ -227,6 +231,10 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     @Transactional
     public Result<EntityKey> deleteRoom(final Long roomId) {
         return Result.tryCatch(() -> {
+
+            this.additionalAttributesDAO
+                    .deleteAll(EntityType.REMOTE_PROCTORING_ROOM, roomId);
+
             this.remoteProctoringRoomRecordMapper
                     .deleteByPrimaryKey(roomId);
 
@@ -249,7 +257,15 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     .execute();
 
             return ids.stream()
-                    .map(id -> new EntityKey(String.valueOf(id), EntityType.REMOTE_PROCTORING_ROOM))
+                    .map(roomId -> {
+                        this.additionalAttributesDAO.deleteAll(
+                                EntityType.REMOTE_PROCTORING_ROOM,
+                                roomId);
+                        return roomId;
+                    })
+                    .map(roomId -> new EntityKey(
+                            String.valueOf(roomId),
+                            EntityType.REMOTE_PROCTORING_ROOM))
                     .collect(Collectors.toList());
 
         });
@@ -322,6 +338,37 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 .collect(Collectors.toList()));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<String>> getConnectionsInBreakoutRooms(final Long examId) {
+        return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper
+                .selectByExample()
+                .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                .and(RemoteProctoringRoomRecordDynamicSqlSupport.breakOutConnections, isNotNull())
+                .build()
+                .execute()
+                .stream()
+                .flatMap(room -> Arrays.asList(
+                        StringUtils.split(
+                                room.getBreakOutConnections(),
+                                Constants.LIST_SEPARATOR_CHAR))
+                        .stream())
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional
+    public void setCollectingRoomOpenFlag(final Long roomId, final boolean isOpen) {
+        this.additionalAttributesDAO.saveAdditionalAttribute(
+                EntityType.REMOTE_PROCTORING_ROOM,
+                roomId,
+                RemoteProctoringRoom.ATTR_IS_OPEN,
+                BooleanUtils.toStringTrueFalse(isOpen))
+                .onError(error -> log.error("Failed to set open flag for proctoring room: {} : {}",
+                        roomId,
+                        error.getMessage()));
+    }
+
     private RemoteProctoringRoom toDomainModel(final RemoteProctoringRoomRecord record) {
         final String breakOutConnections = record.getBreakOutConnections();
         final Collection<String> connections = StringUtils.isNotBlank(breakOutConnections)
@@ -337,7 +384,22 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 BooleanUtils.toBooleanObject(record.getTownhallRoom()),
                 connections,
                 record.getJoinKey(),
-                record.getRoomData());
+                record.getRoomData(),
+                isOpen(record));
+    }
+
+    private boolean isOpen(final RemoteProctoringRoomRecord record) {
+        if (record.getTownhallRoom() != 0 || !StringUtils.isBlank(record.getBreakOutConnections())) {
+            return false;
+        } else {
+            return BooleanUtils.toBoolean(this.additionalAttributesDAO
+                    .getAdditionalAttribute(
+                            EntityType.REMOTE_PROCTORING_ROOM,
+                            record.getId(),
+                            RemoteProctoringRoom.ATTR_IS_OPEN)
+                    .map(rec -> rec.getValue())
+                    .getOrElse(() -> Constants.FALSE_STRING));
+        }
     }
 
     private RemoteProctoringRoomRecord createNewCollectingRoom(

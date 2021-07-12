@@ -12,10 +12,12 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.internal.widgets.IControlAdapter;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
@@ -27,6 +29,8 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -42,6 +46,11 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 public class LoginPage implements TemplateComposer {
 
     private static final Logger log = LoggerFactory.getLogger(LoginPage.class);
+
+    private static final LocTextKey TEXT_REGISTER = new LocTextKey("sebserver.login.register");
+    private static final LocTextKey TEXT_LOGIN = new LocTextKey("sebserver.login.login");
+    private static final LocTextKey TEXT_PWD = new LocTextKey("sebserver.login.pwd");
+    private static final LocTextKey TEXT_USERNAME = new LocTextKey("sebserver.login.username");
 
     private final PageService pageService;
     private final AuthorizationContextHolder authorizationContextHolder;
@@ -67,7 +76,6 @@ public class LoginPage implements TemplateComposer {
     public void compose(final PageContext pageContext) {
         final Composite parent = pageContext.getParent();
         WidgetFactory.setTestId(parent, "login-page");
-        WidgetFactory.setARIARole(parent, "composite");
 
         final Composite loginGroup = new Composite(parent, SWT.NONE);
         final GridLayout rowLayout = new GridLayout();
@@ -76,16 +84,17 @@ public class LoginPage implements TemplateComposer {
         loginGroup.setLayout(rowLayout);
         loginGroup.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.LOGIN.key);
 
-        final Label name = this.widgetFactory.labelLocalized(loginGroup, "sebserver.login.username");
+        final Label name = this.widgetFactory.labelLocalized(loginGroup, TEXT_USERNAME);
         name.setLayoutData(new GridData(300, -1));
         name.setAlignment(SWT.BOTTOM);
-        final Text loginName = this.widgetFactory.textInput(loginGroup);
+        final Text loginName = this.widgetFactory.textInput(loginGroup, TEXT_USERNAME);
         loginName.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
+
         GridData gridData = new GridData(SWT.FILL, SWT.TOP, false, false);
         gridData.verticalIndent = 10;
-        final Label pwd = this.widgetFactory.labelLocalized(loginGroup, "sebserver.login.pwd");
+        final Label pwd = this.widgetFactory.labelLocalized(loginGroup, TEXT_PWD);
         pwd.setLayoutData(gridData);
-        final Text loginPassword = this.widgetFactory.passwordInput(loginGroup);
+        final Text loginPassword = this.widgetFactory.passwordInput(loginGroup, TEXT_PWD);
         loginPassword.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
 
         final Composite buttons = new Composite(loginGroup, SWT.NONE);
@@ -93,7 +102,7 @@ public class LoginPage implements TemplateComposer {
         buttons.setLayout(new GridLayout(2, false));
         buttons.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.LOGIN_BACK.key);
 
-        final Button loginButton = this.widgetFactory.buttonLocalized(buttons, "sebserver.login.login");
+        final Button loginButton = this.widgetFactory.buttonLocalized(buttons, TEXT_LOGIN);
         gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
         gridData.verticalIndent = 10;
         loginButton.setLayoutData(gridData);
@@ -127,12 +136,17 @@ public class LoginPage implements TemplateComposer {
         });
 
         if (this.registeringEnabled) {
-            final Button registerButton = this.widgetFactory.buttonLocalized(buttons, "sebserver.login.register");
+            final Button registerButton = this.widgetFactory.buttonLocalized(buttons, TEXT_REGISTER);
             gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
             gridData.verticalIndent = 10;
             registerButton.setLayoutData(gridData);
             registerButton.addListener(SWT.Selection, event -> pageContext.forwardToPage(this.defaultRegisterPage));
         }
+
+        ComposerService.traversePageTree(
+                parent,
+                comp -> comp instanceof Control,
+                comp -> comp.getAdapter(IControlAdapter.class).setTabIndex(0));
     }
 
     private void login(

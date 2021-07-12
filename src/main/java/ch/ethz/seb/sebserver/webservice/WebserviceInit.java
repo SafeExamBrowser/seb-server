@@ -86,6 +86,10 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("---->");
         SEBServerInit.INIT_LOGGER.info("----> *** Info:");
 
+        if (this.webserviceInfo.isDistributed()) {
+            SEBServerInit.INIT_LOGGER.info("----> Distributed Setup: {}", this.webserviceInfo.getWebserviceUUID());
+        }
+
         try {
             SEBServerInit.INIT_LOGGER.info("----> Server address: {}", this.environment.getProperty("server.address"));
             SEBServerInit.INIT_LOGGER.info("----> Server port: {}", this.environment.getProperty("server.port"));
@@ -126,6 +130,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
 
         SEBServerInit.INIT_LOGGER.info("---->");
         SEBServerInit.INIT_LOGGER.info("----> Unregister Webservice: {}", this.webserviceInfo.getWebserviceUUID());
+
         this.webserviceInfoDAO.unregister(this.webserviceInfo.getWebserviceUUID());
 
         SEBServerInit.INIT_LOGGER.info("---->");
