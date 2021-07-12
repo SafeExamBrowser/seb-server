@@ -189,7 +189,7 @@ public class ClientConnectionDetails {
                     final double value = indValue.getValue();
                     final String displayValue = IndicatorValue.getDisplayValue(indValue);
 
-                    if (!this.connectionData.clientConnection.status.indicatorActiveStatus) {
+                    if (!this.connectionData.clientConnection.status.clientActiveStatus) {
 
                         form.setFieldValue(
                                 indData.indicator.name,

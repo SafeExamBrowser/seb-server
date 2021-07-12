@@ -14,14 +14,12 @@ import java.util.function.Predicate;
 
 import org.springframework.cache.CacheManager;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -185,19 +183,7 @@ public interface ExamSessionService {
      * @param connection ClientConnectionData instance
      * @return true if the given ClientConnectionData is an active SEB client connection */
     static boolean isActiveConnection(final ClientConnectionData connection) {
-        if (connection.clientConnection.status.establishedStatus) {
-            return true;
-        }
-
-        if (connection.clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
-            final Long creationTime = connection.clientConnection.getCreationTime();
-            final long millisecondsNow = Utils.getMillisecondsNow();
-            if (millisecondsNow - creationTime < 30 * Constants.SECOND_IN_MILLIS) {
-                return true;
-            }
-        }
-
-        return false;
+        return connection.clientConnection.status.clientActiveStatus;
     }
 
 }
