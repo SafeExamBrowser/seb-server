@@ -17,28 +17,45 @@ import org.joda.time.DateTimeZone;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
+    private static final int PING_COUNT_INTERVAL_FOR_PERSISTENT_UPDATE = 3;
+
     private final Set<EventType> EMPTY_SET = Collections.unmodifiableSet(EnumSet.noneOf(EventType.class));
 
-    protected final ClientEventExtensionMapper clientEventExtensionMapper;
-    protected final IndicatorDistributedRequestCache indicatorDistributedRequestCache;
+    protected final ClientEventDAO clientEventDAO;
 
     protected long pingLatency;
     protected int pingCount = 0;
     protected int pingNumber = 0;
 
-    protected AbstractPingIndicator(
-            final ClientEventExtensionMapper clientEventExtensionMapper,
-            final IndicatorDistributedRequestCache indicatorDistributedRequestCache) {
+    protected ClientEventRecord pingRecord = null;
 
+    protected AbstractPingIndicator(final ClientEventDAO clientEventDAO) {
         super();
-        this.clientEventExtensionMapper = clientEventExtensionMapper;
-        this.indicatorDistributedRequestCache = indicatorDistributedRequestCache;
+        this.clientEventDAO = clientEventDAO;
+    }
+
+    @Override
+    public void init(
+            final Indicator indicatorDefinition,
+            final Long connectionId,
+            final boolean active,
+            final boolean cachingEnabled) {
+
+        super.init(indicatorDefinition, connectionId, active, cachingEnabled);
+
+        if (!this.cachingEnabled) {
+            this.pingRecord = this.clientEventDAO
+                    .initPingEvent(this.connectionId)
+                    .getOr(null);
+        }
     }
 
     public final void notifyPing(final long timestamp, final int pingNumber) {
@@ -47,32 +64,23 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
         super.currentValue = now;
         this.pingCount++;
         this.pingNumber = pingNumber;
-    }
+        super.lastPersistentUpdate = now;
 
-    @Override
-    public final double computeValueAt(final long timestamp) {
-        if (this.cachingEnabled) {
-            return timestamp;
-        } else {
-            try {
-                return this.indicatorDistributedRequestCache
-                        .getPingTimes(this.examId)
-                        .getOrDefault(this.connectionId, 0L);
+        if (!this.cachingEnabled &&
+                this.pingCount > PING_COUNT_INTERVAL_FOR_PERSISTENT_UPDATE &&
+                this.pingRecord != null) {
 
-            } catch (final Exception e) {
-                return Double.NaN;
-            }
+            // Update last ping time on persistent storage
+            this.pingRecord.setClientTime(timestamp);
+            this.pingRecord.setServerTime(Utils.getMillisecondsNow());
+            this.clientEventDAO.updatePingEvent(this.pingRecord);
+            this.pingCount = 0;
         }
     }
 
     @Override
     public Set<EventType> observedEvents() {
         return this.EMPTY_SET;
-    }
-
-    @JsonIgnore
-    public int getPingCount() {
-        return this.pingCount;
     }
 
     @JsonIgnore

@@ -64,11 +64,6 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
     public double computeValueAt(final long timestamp) {
         try {
 
-            // TODO to boost performance here within a distributed setup, invent a new cache for all log count values
-            //      of the running exam. So all indicators get the values from cache and only one single SQL call
-            //      is needed for one update.
-            //      This cache then is only valid for one (GUI) update cycle and the cache must to be flushed before
-
             final List<ClientEventRecord> execute = this.clientEventRecordMapper.selectByExample()
                     .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
                     .and(ClientEventRecordDynamicSqlSupport.type, isIn(this.eventTypeIds))

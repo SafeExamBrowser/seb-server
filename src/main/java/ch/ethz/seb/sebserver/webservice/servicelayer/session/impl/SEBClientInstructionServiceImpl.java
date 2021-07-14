@@ -48,6 +48,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientInstructionServiceImpl.class);
 
+    private static final long PERSISTENT_UPDATE_INTERVAL = 2 * Constants.SECOND_IN_MILLIS;
     private static final int INSTRUCTION_QUEUE_MAX_SIZE = 10;
     private static final String JSON_INST = "instruction";
     private static final String JSON_ATTR = "attributes";
@@ -281,9 +282,9 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
 
         // Since the queue is empty check periodically if there are active instructions on the persistent storage
         final long currentTimeMillis = System.currentTimeMillis();
-        if (currentTimeMillis - this.lastRefresh > Constants.SECOND_IN_MILLIS) {
+        if (currentTimeMillis - this.lastRefresh > PERSISTENT_UPDATE_INTERVAL) {
             this.lastRefresh = currentTimeMillis;
-            loadInstructions(connectionToken)
+            loadInstructions()
                     .onError(error -> log.error(
                             "Failed load instructions from persistent storage and to refresh cache: ",
                             error));
@@ -300,8 +301,10 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
         // check if there are still queues in the cache, whether they are empty or not,
         // for closed or disposed client connections and remove them from cache
         synchronized (this.instructions) {
+
             final Result<Collection<String>> result = this.clientConnectionDAO
                     .getInactiveConnctionTokens(this.instructions.keySet());
+
             if (result.hasValue()) {
                 result.get().stream().forEach(token -> this.instructions.remove(token));
             }
@@ -323,12 +326,6 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
         } else {
             return null;
         }
-    }
-
-    private Result<Void> loadInstructions(final String connectionToken) {
-        return Result.tryCatch(() -> this.clientInstructionDAO.getAllActive(connectionToken)
-                .getOrThrow()
-                .forEach(this::putToCacheIfAbsent));
     }
 
     private Result<Void> loadInstructions() {

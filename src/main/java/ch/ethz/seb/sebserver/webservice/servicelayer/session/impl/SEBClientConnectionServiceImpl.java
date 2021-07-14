@@ -43,7 +43,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.PingHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
@@ -68,7 +67,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final CacheManager cacheManager;
     private final EventHandlingStrategy eventHandlingStrategy;
     private final ClientConnectionDAO clientConnectionDAO;
-    private final PingHandlingStrategy pingHandlingStrategy;
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final SEBClientInstructionService sebInstructionService;
     private final SEBClientNotificationService sebClientNotificationService;
@@ -78,7 +76,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     protected SEBClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
-            final PingHandlingStrategyFactory pingHandlingStrategyFactory,
+
             final SEBClientConfigDAO sebClientConfigDAO,
             final SEBClientInstructionService sebInstructionService,
             final SEBClientNotificationService sebClientNotificationService,
@@ -88,7 +86,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();
         this.cacheManager = examSessionService.getCacheManager();
         this.clientConnectionDAO = examSessionService.getClientConnectionDAO();
-        this.pingHandlingStrategy = pingHandlingStrategyFactory.get();
         this.eventHandlingStrategy = eventHandlingStrategyFactory.get();
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.sebInstructionService = sebInstructionService;
@@ -368,11 +365,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         updatedClientConnection);
             }
 
-            // notify ping handler about established connection
-            this.pingHandlingStrategy.initForConnection(
-                    updatedClientConnection.id,
-                    connectionToken);
-
             return updatedClientConnection;
         });
     }
@@ -557,7 +549,13 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final long timestamp,
             final int pingNumber) {
 
-        this.pingHandlingStrategy.notifyPing(connectionToken, timestamp, pingNumber);
+        final ClientConnectionDataInternal activeClientConnection =
+                this.examSessionCacheService.getClientConnection(connectionToken);
+
+        if (activeClientConnection != null) {
+            activeClientConnection.notifyPing(timestamp, pingNumber);
+        }
+
         return this.sebInstructionService.getInstructionJSON(connectionToken);
     }
 

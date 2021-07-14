@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.push;
 import java.util.function.Consumer;
 
 import org.eclipse.rap.rwt.service.ServerPushSession;
+import org.eclipse.swt.SWTException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -70,6 +71,8 @@ public class ServerPushService {
                             business.accept(context);
                             doUpdate(context, update);
 
+                        } catch (final SWTException swte) {
+                            log.error("Disposed GUI widget(s) while update: {}", swte.getMessage());
                         } catch (final Exception e) {
                             log.error("Unexpected error while do business for server push service", e);
                             context.internalStop = context.errorHandler.apply(e);

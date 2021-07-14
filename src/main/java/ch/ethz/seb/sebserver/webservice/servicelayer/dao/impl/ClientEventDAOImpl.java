@@ -243,7 +243,8 @@ public class ClientEventDAOImpl implements ClientEventDAO {
     public Result<ClientNotification> confirmPendingNotification(final Long notificationId,
             final Long clientConnectionId) {
         return Result.tryCatch(() -> {
-            final Long pk = this.clientEventRecordMapper.selectIdsByExample()
+            final Long pk = this.clientEventRecordMapper
+                    .selectIdsByExample()
                     .where(ClientEventRecordDynamicSqlSupport.id, isEqualTo(notificationId))
                     .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.NOTIFICATION.id))
                     .build()
@@ -310,6 +311,64 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         });
+    }
+
+    @Override
+    @Transactional
+    public Result<ClientEventRecord> initPingEvent(final Long connectionId) {
+        return Result.tryCatch(() -> {
+            final List<ClientEventRecord> lastPingRec = this.clientEventRecordMapper
+                    .selectByExample()
+                    .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(connectionId))
+                    .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
+                    .build()
+                    .execute();
+
+            if (lastPingRec != null && !lastPingRec.isEmpty()) {
+                return lastPingRec.get(0);
+            }
+
+            final long millisecondsNow = Utils.getMillisecondsNow();
+            final ClientEventRecord clientEventRecord = new ClientEventRecord();
+            clientEventRecord.setClientConnectionId(connectionId);
+            clientEventRecord.setType(EventType.LAST_PING.id);
+            clientEventRecord.setClientTime(millisecondsNow);
+            clientEventRecord.setServerTime(millisecondsNow);
+            this.clientEventRecordMapper.insert(clientEventRecord);
+
+            try {
+
+                return this.clientEventRecordMapper
+                        .selectByExample()
+                        .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(connectionId))
+                        .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
+                        .build()
+                        .execute()
+                        .get(0);
+
+            } catch (final Exception e) {
+                return clientEventRecord;
+            }
+
+        });
+    }
+
+    @Override
+    @Transactional
+    public void updatePingEvent(final ClientEventRecord pingRecord) {
+        try {
+            this.clientEventRecordMapper.updateByPrimaryKeySelective(pingRecord);
+        } catch (final Exception e) {
+            log.error("Failed to update ping event: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Long> getLastPing(final Long pk) {
+        return Result.tryCatch(() -> this.clientEventRecordMapper
+                .selectByPrimaryKey(pk)
+                .getClientTime());
     }
 
     private Result<ClientEventRecord> recordById(final Long id) {

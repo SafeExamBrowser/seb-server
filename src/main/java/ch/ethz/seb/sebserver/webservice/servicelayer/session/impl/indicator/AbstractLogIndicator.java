@@ -37,8 +37,14 @@ public abstract class AbstractLogIndicator extends AbstractClientIndicator {
     }
 
     @Override
-    public void init(final Indicator indicatorDefinition, final Long connectionId, final boolean cachingEnabled) {
-        super.init(indicatorDefinition, connectionId, cachingEnabled);
+    public void init(
+            final Indicator indicatorDefinition,
+            final Long connectionId,
+            final boolean active,
+            final boolean cachingEnabled) {
+
+        super.init(indicatorDefinition, connectionId, active, cachingEnabled);
+
         if (indicatorDefinition == null || StringUtils.isBlank(indicatorDefinition.tags)) {
             this.tags = null;
         } else {

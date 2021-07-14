@@ -8,18 +8,21 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 
 public abstract class AbstractClientIndicator implements ClientIndicator {
+
+    private static final long PERSISTENT_UPDATE_INTERVAL = 3 * Constants.SECOND_IN_MILLIS;
 
     protected Long indicatorId;
     protected Long examId;
     protected Long connectionId;
     protected boolean cachingEnabled;
+    protected boolean active = true;
+    protected long lastPersistentUpdate = 0;
 
     protected boolean valueInitializes = false;
     protected double currentValue = Double.NaN;
@@ -28,11 +31,13 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
     public void init(
             final Indicator indicatorDefinition,
             final Long connectionId,
+            final boolean active,
             final boolean cachingEnabled) {
 
         this.indicatorId = (indicatorDefinition != null) ? indicatorDefinition.id : -1;
         this.examId = (indicatorDefinition != null) ? indicatorDefinition.examId : -1;
         this.connectionId = connectionId;
+        this.active = active;
         this.cachingEnabled = cachingEnabled;
     }
 
@@ -58,9 +63,19 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
     @Override
     public double getValue() {
-        if (!this.valueInitializes || !this.cachingEnabled) {
-            this.currentValue = computeValueAt(DateTime.now(DateTimeZone.UTC).getMillis());
+        if (!this.valueInitializes) {
+            final long now = Utils.getMillisecondsNow();
+            this.currentValue = computeValueAt(now);
+            this.lastPersistentUpdate = now;
             this.valueInitializes = true;
+        }
+
+        if (!this.cachingEnabled && this.active) {
+            final long now = System.currentTimeMillis();
+            if (now - this.lastPersistentUpdate > PERSISTENT_UPDATE_INTERVAL) {
+                this.currentValue = computeValueAt(now);
+                this.lastPersistentUpdate = now;
+            }
         }
 
         return this.currentValue;

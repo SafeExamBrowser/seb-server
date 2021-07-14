@@ -27,8 +27,9 @@ public interface ClientIndicator extends IndicatorValue {
      *
      * @param indicatorDefinition The indicator definition that defines type and thresholds of the indicator
      * @param connectionId the connection identifier to that this ClientIndicator is associated to
+     * @param active indicates whether the connection is still an a active state or not
      * @param cachingEnabled defines whether indicator value caching is enabled or not. */
-    void init(Indicator indicatorDefinition, Long connectionId, boolean cachingEnabled);
+    void init(Indicator indicatorDefinition, Long connectionId, boolean active, boolean cachingEnabled);
 
     /** Get the exam identifier of the client connection of this ClientIndicator
      *
