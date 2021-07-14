@@ -228,10 +228,10 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
 
         checkReadPrivilege(institutionId);
-        return this.examDAO.allByQuizId(modelId)
+        return this.examDAO.allInstitutionIdsByQuizId(modelId)
                 .map(ids -> ids
                         .stream()
-                        .map(id -> new EntityKey(id, EntityType.EXAM))
+                        .map(id -> new EntityKey(id, EntityType.INSTITUTION))
                         .collect(Collectors.toList()))
                 .getOrThrow();
     }
@@ -255,10 +255,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         final Collection<APIMessage> result = this.examSessionService
                 .checkExamConsistency(modelId)
                 .getOrThrow();
-
-        if (includeRestriction) {
-            // TODO include seb restriction check and status
-        }
 
         return result;
     }
