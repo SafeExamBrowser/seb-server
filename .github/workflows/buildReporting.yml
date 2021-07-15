@@ -56,12 +56,17 @@ jobs:
       id: short-sha
     -
       name: Store short SHA as environment variable
-      run: |
-         echo $SHA
-         echo $TAG_NAME
-         echo ${{ env.TAG_NAME }}
+      run: echo $SHA
       env: 
         SHA: ${{ steps.short-sha.outputs.sha }}
+        
+      name: Set env
+      run: echo "TAG_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+    -
+      name: Test tag name
+      run: |
+        echo $TAG_NAME
+        echo ${{ env.TAG_NAME }}
     -
       name: Checkout repository
       uses: actions/checkout@v2
