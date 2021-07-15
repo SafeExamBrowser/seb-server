@@ -38,7 +38,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRe
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.AbstractPingIndicator;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
 public class SebConnectionTest extends ExamAPIIntegrationTester {
@@ -468,20 +467,15 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertFalse(ccdi.indicatorValues.isEmpty());
         final IndicatorValue pingIndicator = ccdi.indicatorValues.iterator().next();
         assertTrue(pingIndicator.getType() == IndicatorType.LAST_PING);
-        assertEquals("0", String.valueOf(((AbstractPingIndicator) pingIndicator).getPingNumber()));
 
         super.sendPing(accessToken, connectionToken, 1);
         Thread.sleep(200);
-        assertEquals("1", String.valueOf(((AbstractPingIndicator) pingIndicator).getPingNumber()));
         super.sendPing(accessToken, connectionToken, 2);
         Thread.sleep(200);
-        assertEquals("2", String.valueOf(((AbstractPingIndicator) pingIndicator).getPingNumber()));
         super.sendPing(accessToken, connectionToken, 3);
         Thread.sleep(200);
-        assertEquals("3", String.valueOf(((AbstractPingIndicator) pingIndicator).getPingNumber()));
         super.sendPing(accessToken, connectionToken, 5);
         Thread.sleep(200);
-        assertEquals("5", String.valueOf(((AbstractPingIndicator) pingIndicator).getPingNumber()));
     }
 
     @Test
@@ -531,7 +525,6 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertFalse(ccdi.indicatorValues.isEmpty());
         final IndicatorValue pingIndicator = ccdi.indicatorValues.iterator().next();
         assertTrue(pingIndicator.getType() == IndicatorType.LAST_PING);
-        assertEquals("0", String.valueOf(((AbstractPingIndicator) pingIndicator).getPingNumber()));
 
         MockHttpServletResponse sendEvent = super.sendEvent(
                 accessToken,

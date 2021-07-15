@@ -15,26 +15,21 @@ import java.util.Set;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
-    private static final int PING_COUNT_INTERVAL_FOR_PERSISTENT_UPDATE = 2;
+    private static final long INTERVAL_FOR_PERSISTENT_UPDATE = Constants.SECOND_IN_MILLIS;
 
     private final Set<EventType> EMPTY_SET = Collections.unmodifiableSet(EnumSet.noneOf(EventType.class));
 
     protected final ClientEventDAO clientEventDAO;
 
-    protected long pingLatency;
-    protected int pingCount = 0;
-    protected int pingNumber = 0;
-
+    private long lastUpdate = 0;
     protected ClientEventRecord pingRecord = null;
 
     protected AbstractPingIndicator(final ClientEventDAO clientEventDAO) {
@@ -60,32 +55,25 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
     public final void notifyPing(final long timestamp, final int pingNumber) {
         final long now = DateTime.now(DateTimeZone.UTC).getMillis();
-        this.pingLatency = now - timestamp;
         super.currentValue = now;
-        this.pingCount++;
-        this.pingNumber = pingNumber;
         super.lastPersistentUpdate = now;
 
-        if (!this.cachingEnabled &&
-                this.pingCount > PING_COUNT_INTERVAL_FOR_PERSISTENT_UPDATE &&
-                this.pingRecord != null) {
+        if (!this.cachingEnabled && this.pingRecord != null) {
 
             // Update last ping time on persistent storage
-            this.pingRecord.setClientTime(timestamp);
-            this.pingRecord.setServerTime(Utils.getMillisecondsNow());
-            this.clientEventDAO.updatePingEvent(this.pingRecord);
-            this.pingCount = 0;
+            final long millisecondsNow = System.currentTimeMillis();
+            if (millisecondsNow - this.lastUpdate > INTERVAL_FOR_PERSISTENT_UPDATE) {
+                this.pingRecord.setClientTime(timestamp);
+                this.pingRecord.setServerTime(millisecondsNow);
+                this.clientEventDAO.updatePingEvent(this.pingRecord);
+                this.lastUpdate = millisecondsNow;
+            }
         }
     }
 
     @Override
     public Set<EventType> observedEvents() {
         return this.EMPTY_SET;
-    }
-
-    @JsonIgnore
-    public int getPingNumber() {
-        return this.pingNumber;
     }
 
     public abstract ClientEventRecord updateLogEvent(final long now);
