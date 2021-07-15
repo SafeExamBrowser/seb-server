@@ -277,7 +277,7 @@ public class QuizLookupList implements TemplateComposer {
                     .map(key -> Long.valueOf(key.modelId))
                     .collect(Collectors.toList());
 
-            if (existingImports != null && !existingImports.contains(institutionId)) {
+            if (existingImports != null && !existingImports.isEmpty() && !existingImports.contains(institutionId)) {
                 return TEXT_KEY_CONFIRM_EXISTING;
             } else {
                 return null;

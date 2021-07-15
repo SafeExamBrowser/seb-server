@@ -133,7 +133,10 @@ public class StringConverter implements AttributeValueConverter {
 
         // decrypt internally encrypted password and hash it for export
         // NOTE: see special case description in ExamConfigXMLParser.createConfigurationValue
-        final String plainText = this.clientCredentialService.decrypt(value).toString();
+        final String plainText = this.clientCredentialService
+                .decrypt(value)
+                .getOrThrow()
+                .toString();
         if (plainText.endsWith(Constants.IMPORTED_PASSWORD_MARKER)) {
             return plainText.replace(Constants.IMPORTED_PASSWORD_MARKER, StringUtils.EMPTY);
         } else {

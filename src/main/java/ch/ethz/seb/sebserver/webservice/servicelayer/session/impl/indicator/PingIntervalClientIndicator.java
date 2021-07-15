@@ -134,7 +134,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
                         .getLastPing(super.pingRecord.getId());
 
                 if (!lastPing.hasError()) {
-                    return lastPing.get();
+                    return Math.max(this.currentValue, lastPing.get().doubleValue());
                 } else {
                     log.error("Failed to get last ping from persistent: {}", lastPing.getError().getMessage());
                 }
