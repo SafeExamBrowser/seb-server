@@ -87,10 +87,10 @@ jobs:
       name: Build with Maven
       run: mvn clean install -Dmaven.test.skip=true -Dsebserver-version="${{ env.TAG_NAME }}" 
       env: 
-         sebserver-version: ${{ env.SHA }}
+         sebserver-version: ${{ env.TAG_NAME }}
     -
       name: Simplify package name
-      run: mv target/seb-server-${{ env.SHA }}.jar target/seb-server.jar
+      run: mv target/seb-server-${{ env.TAG_NAME }}.jar target/seb-server.jar
     -
       uses: actions/upload-artifact@v2
       with:
