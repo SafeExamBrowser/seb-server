@@ -25,7 +25,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
-    private static final int PING_COUNT_INTERVAL_FOR_PERSISTENT_UPDATE = 3;
+    private static final int PING_COUNT_INTERVAL_FOR_PERSISTENT_UPDATE = 2;
 
     private final Set<EventType> EMPTY_SET = Collections.unmodifiableSet(EnumSet.noneOf(EventType.class));
 

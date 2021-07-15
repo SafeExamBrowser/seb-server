@@ -15,7 +15,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 
 public abstract class AbstractClientIndicator implements ClientIndicator {
 
-    private static final long PERSISTENT_UPDATE_INTERVAL = 3 * Constants.SECOND_IN_MILLIS;
+    private static final long PERSISTENT_UPDATE_INTERVAL = 1 * Constants.SECOND_IN_MILLIS;
 
     protected Long indicatorId;
     protected Long examId;

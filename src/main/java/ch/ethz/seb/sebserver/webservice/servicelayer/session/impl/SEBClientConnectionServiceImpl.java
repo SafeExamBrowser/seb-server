@@ -16,8 +16,6 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
@@ -35,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
@@ -512,7 +511,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         try {
 
             final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
-            final long now = DateTime.now(DateTimeZone.UTC).getMillis();
+            final long now = Utils.getMillisecondsNow();
             this.examSessionService
                     .getExamDAO()
                     .allRunningExamIds()
@@ -730,8 +729,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private ClientConnectionDataInternal reloadConnectionCache(final String connectionToken) {
         // evict cached ClientConnection
         this.examSessionCacheService.evictClientConnection(connectionToken);
-        // evict also cached ping record
-        this.examSessionCacheService.evictPingRecord(connectionToken);
         // and load updated ClientConnection into cache
         return this.examSessionCacheService.getClientConnection(connectionToken);
     }

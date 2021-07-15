@@ -13,6 +13,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -553,9 +554,10 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<Boolean> isUpToDate(final ClientConnection clientConnection) {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper
-                .selectByExample()
+                .countByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.connectionToken,
                         SqlBuilder.isEqualTo(clientConnection.connectionToken))
@@ -563,10 +565,31 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         ClientConnectionRecordDynamicSqlSupport.updateTime,
                         SqlBuilder.isEqualTo(clientConnection.updateTime))
                 .build()
-                .execute()
-                .stream()
-                .findFirst()
-                .isPresent());
+                .execute() > 0);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Set<String>> getClientConnectionsOutOfSyc(final Long examId, final Set<Long> timestamps) {
+        return Result.tryCatch(() -> {
+            final Set<String> result = new HashSet<>();
+
+            this.clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.examId,
+                            SqlBuilder.isEqualTo(examId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .forEach(cc -> {
+                        if (!timestamps.contains(cc.getUpdateTime())) {
+                            result.add(cc.getConnectionToken());
+                        }
+                    });
+
+            return result;
+        });
     }
 
     @Override
