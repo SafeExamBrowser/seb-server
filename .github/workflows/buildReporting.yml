@@ -56,7 +56,10 @@ jobs:
       id: short-sha
     -
       name: Store short SHA as environment variable
-      run: echo $SHA
+      run: |
+         echo $SHA
+         echo $TAG_NAME
+         echo ${{ env.TAG_NAME }}
       env: 
         SHA: ${{ steps.short-sha.outputs.sha }}
     -
