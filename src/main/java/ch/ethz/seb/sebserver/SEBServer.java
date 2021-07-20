@@ -37,7 +37,7 @@ import ch.ethz.seb.sebserver.gbl.profile.ProdWebServiceProfile;
  * SEB-Server uses Spring's profiles to consequently separate sub-components of the webservice
  * and GUI and can be used to start the components on separate servers or within the same
  * server instance. Additional to the usual profiles like dev, prod, test there are combining
- * profiles like dev-ws, dev-gui and prod-ws, prod-gui */
+ * profiles like dev-ws, dev-gui and prod-ws, prod-gui test */
 @SpringBootApplication(exclude = {
         UserDetailsServiceAutoConfiguration.class,
 })
