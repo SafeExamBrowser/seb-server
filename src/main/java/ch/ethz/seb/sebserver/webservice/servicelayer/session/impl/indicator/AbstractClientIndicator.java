@@ -8,9 +8,10 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
+import org.joda.time.DateTimeUtils;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 
 public abstract class AbstractClientIndicator implements ClientIndicator {
@@ -63,15 +64,14 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
     @Override
     public double getValue() {
+        final long now = DateTimeUtils.currentTimeMillis();
         if (!this.valueInitializes) {
-            final long now = Utils.getMillisecondsNow();
             this.currentValue = computeValueAt(now);
             this.lastPersistentUpdate = now;
             this.valueInitializes = true;
         }
 
         if (!this.cachingEnabled && this.active) {
-            final long now = System.currentTimeMillis();
             if (now - this.lastPersistentUpdate > PERSISTENT_UPDATE_INTERVAL) {
                 this.currentValue = computeValueAt(now);
                 this.lastPersistentUpdate = now;

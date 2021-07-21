@@ -512,6 +512,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
             final long now = Utils.getMillisecondsNow();
+            final Consumer<ClientConnectionDataInternal> missingPingUpdate = missingPingUpdate(now);
             this.examSessionService
                     .getExamDAO()
                     .allRunningExamIds()
@@ -529,8 +530,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .map(token -> cache.get(token, ClientConnectionDataInternal.class))
                     .filter(Objects::nonNull)
                     .filter(connection -> connection.pingIndicator != null &&
-                            connection.clientConnection.status.establishedStatus)
-                    .forEach(missingPingUpdate(now));
+                            connection.clientConnection.status.clientActiveStatus)
+                    .forEach(connection -> missingPingUpdate.accept(connection));
 
         } catch (final Exception e) {
             log.error("Failed to update ping events: ", e);

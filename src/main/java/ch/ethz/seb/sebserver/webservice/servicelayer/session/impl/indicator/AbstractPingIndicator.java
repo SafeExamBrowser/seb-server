@@ -13,6 +13,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.DateTimeZone;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -61,7 +62,7 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
         if (!this.cachingEnabled && this.pingRecord != null) {
 
             // Update last ping time on persistent storage
-            final long millisecondsNow = System.currentTimeMillis();
+            final long millisecondsNow = DateTimeUtils.currentTimeMillis();
             if (millisecondsNow - this.lastUpdate > INTERVAL_FOR_PERSISTENT_UPDATE) {
                 this.pingRecord.setClientTime(timestamp);
                 this.pingRecord.setServerTime(millisecondsNow);
