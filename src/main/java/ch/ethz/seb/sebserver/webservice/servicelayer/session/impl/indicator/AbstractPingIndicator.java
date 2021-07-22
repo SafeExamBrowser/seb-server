@@ -20,7 +20,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
@@ -28,14 +27,15 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
     private final Set<EventType> EMPTY_SET = Collections.unmodifiableSet(EnumSet.noneOf(EventType.class));
 
-    protected final ClientEventDAO clientEventDAO;
+    protected final DistributedPingCache distributedPingCache;
 
-    private long lastUpdate = 0;
-    protected ClientEventRecord pingRecord = null;
+    private final long lastUpdate = 0;
+    protected Long pingRecord = null;
 
-    protected AbstractPingIndicator(final ClientEventDAO clientEventDAO) {
+    protected AbstractPingIndicator(final DistributedPingCache distributedPingCache) {
+
         super();
-        this.clientEventDAO = clientEventDAO;
+        this.distributedPingCache = distributedPingCache;
     }
 
     @Override
@@ -47,10 +47,12 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
         super.init(indicatorDefinition, connectionId, active, cachingEnabled);
 
-        if (!this.cachingEnabled) {
-            this.pingRecord = this.clientEventDAO
-                    .initPingEvent(this.connectionId)
-                    .getOr(null);
+        if (!this.cachingEnabled && this.active) {
+            this.pingRecord = this.distributedPingCache.initPingForConnection(this.connectionId);
+            if (this.pingRecord == null) {
+                // try once again
+                this.pingRecord = this.distributedPingCache.initPingForConnection(this.connectionId);
+            }
         }
     }
 
@@ -64,10 +66,7 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
             // Update last ping time on persistent storage
             final long millisecondsNow = DateTimeUtils.currentTimeMillis();
             if (millisecondsNow - this.lastUpdate > INTERVAL_FOR_PERSISTENT_UPDATE) {
-                this.pingRecord.setClientTime(timestamp);
-                this.pingRecord.setServerTime(millisecondsNow);
-                this.clientEventDAO.updatePingEvent(this.pingRecord);
-                this.lastUpdate = millisecondsNow;
+                this.distributedPingCache.updatePing(this.pingRecord, millisecondsNow);
             }
         }
     }

@@ -45,6 +45,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedPingCache;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
 
 @Lazy
@@ -71,6 +72,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final SEBClientNotificationService sebClientNotificationService;
     private final WebserviceInfo webserviceInfo;
     private final ExamAdminService examAdminService;
+    private final DistributedPingCache distributedPingCache;
 
     protected SEBClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
@@ -79,7 +81,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final SEBClientConfigDAO sebClientConfigDAO,
             final SEBClientInstructionService sebInstructionService,
             final SEBClientNotificationService sebClientNotificationService,
-            final ExamAdminService examAdminService) {
+            final ExamAdminService examAdminService,
+            final DistributedPingCache distributedPingCache) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();
@@ -91,6 +94,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.sebClientNotificationService = sebClientNotificationService;
         this.webserviceInfo = sebInstructionService.getWebserviceInfo();
         this.examAdminService = examAdminService;
+        this.distributedPingCache = distributedPingCache;
     }
 
     @Override
@@ -453,6 +457,12 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 updatedClientConnection = clientConnection;
             }
 
+            // delete stored ping if this is a distributed setup
+            if (this.webserviceInfo.isDistributed()) {
+                this.distributedPingCache
+                        .deletePingForConnection(updatedClientConnection.id);
+            }
+
             reloadConnectionCache(connectionToken);
             return updatedClientConnection;
         });
@@ -501,6 +511,12 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 updatedClientConnection = clientConnection;
             }
 
+            // delete stored ping if this is a distributed setup
+            if (this.webserviceInfo.isDistributed()) {
+                this.distributedPingCache
+                        .deletePingForConnection(updatedClientConnection.id);
+            }
+
             reloadConnectionCache(connectionToken);
             return updatedClientConnection;
         });
@@ -510,6 +526,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     public void updatePingEvents() {
         try {
 
+            final boolean distributed = this.webserviceInfo.isDistributed();
             final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
             final long now = Utils.getMillisecondsNow();
             final Consumer<ClientConnectionDataInternal> missingPingUpdate = missingPingUpdate(now);
@@ -518,7 +535,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .allRunningExamIds()
                     .getOrThrow()
                     .stream()
-                    .flatMap(examId -> (this.webserviceInfo.isDistributed())
+                    .flatMap(examId -> distributed
                             ? this.clientConnectionDAO
                                     .getConnectionTokensNoCache(examId)
                                     .getOrThrow()
