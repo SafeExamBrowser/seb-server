@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -122,20 +124,20 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             }
 
             try {
-
+                final Map<String, Object> uriVars = new HashMap<>();
+                uriVars.put(API.INFO_PARAM_INST_SUFFIX, institutionalEndpoint);
+                final String uriString = this.webserviceURIService.getURIBuilder()
+                        .path(API.INFO_ENDPOINT + API.INFO_INST_ENDPOINT)
+                        .uriVariables(uriVars)
+                        .toUriString();
                 final RestTemplate restTemplate = new RestTemplate();
                 final List<EntityName> institutions = restTemplate
                         .exchange(
-                                this.webserviceURIService.getURIBuilder()
-                                        .path(API.INFO_ENDPOINT + API.INFO_INST_ENDPOINT)
-                                        .toUriString(),
+                                uriString,
                                 HttpMethod.GET,
                                 HttpEntity.EMPTY,
                                 new ParameterizedTypeReference<List<EntityName>>() {
-                                },
-                                institutionalEndpoint,
-                                API.INFO_PARAM_INST_SUFFIX,
-                                institutionalEndpoint)
+                                })
                         .getBody();
 
                 if (institutions != null && !institutions.isEmpty()) {
@@ -248,12 +250,15 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
                     .getOrThrow();
 
             restTemplate.setRequestFactory(clientHttpRequestFactory);
-
+            final Map<String, Object> uriVars = new HashMap<>();
+            uriVars.put(API.INFO_PARAM_INST_SUFFIX, institutionalEndpoint);
+            final String uriString = this.webserviceURIService.getURIBuilder()
+                    .path(API.INFO_ENDPOINT + API.INSTITUTIONAL_LOGO_PATH)
+                    .uriVariables(uriVars)
+                    .toUriString();
             final ResponseEntity<String> exchange = restTemplate
                     .exchange(
-                            this.webserviceURIService.getURIBuilder()
-                                    .path(API.INFO_ENDPOINT + API.INSTITUTIONAL_LOGO_PATH)
-                                    .toUriString(),
+                            uriString,
                             HttpMethod.GET,
                             HttpEntity.EMPTY,
                             String.class,
