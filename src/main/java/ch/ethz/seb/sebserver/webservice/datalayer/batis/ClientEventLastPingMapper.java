@@ -33,7 +33,7 @@ public interface ClientEventLastPingMapper {
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
     @ResultType(ClientEventLastPingRecord.class)
     @ConstructorArgs({
-            @Arg(column = "client_connection_id", javaType = Long.class, jdbcType = JdbcType.BIGINT),
+            @Arg(column = "id", javaType = Long.class, jdbcType = JdbcType.BIGINT),
             @Arg(column = "server_time", javaType = Long.class, jdbcType = JdbcType.BIGINT),
     })
     Collection<ClientEventLastPingRecord> selectMany(SelectStatementProvider select);
@@ -42,7 +42,7 @@ public interface ClientEventLastPingMapper {
         return SelectDSL.selectWithMapper(
                 this::selectMany,
 
-                ClientEventRecordDynamicSqlSupport.clientConnectionId.as("client_connection_id"),
+                ClientEventRecordDynamicSqlSupport.clientConnectionId.as("id"),
                 ClientEventRecordDynamicSqlSupport.serverTime.as("server_time"))
 
                 .from(ClientEventRecordDynamicSqlSupport.clientEventRecord);
@@ -50,14 +50,14 @@ public interface ClientEventLastPingMapper {
 
     final class ClientEventLastPingRecord {
 
-        public final Long connectionId;
+        public final Long id;
         public final Long lastPingTime;
 
         public ClientEventLastPingRecord(
-                final Long client_connection_id,
+                final Long id,
                 final Long server_time) {
 
-            this.connectionId = client_connection_id;
+            this.id = id;
             this.lastPingTime = server_time;
         }
     }

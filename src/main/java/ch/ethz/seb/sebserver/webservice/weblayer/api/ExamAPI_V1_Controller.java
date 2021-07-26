@@ -270,7 +270,9 @@ public class ExamAPI_V1_Controller {
         final String instructionConfirm = request.getParameter(API.EXAM_API_PING_INSTRUCTION_CONFIRM);
 
         if (log.isTraceEnabled()) {
-            log.trace("****************** SEB client connection: {}", connectionToken);
+            log.trace("****************** SEB client connection: {} ip: ",
+                    connectionToken,
+                    getClientAddress(request));
         }
 
         if (instructionConfirm != null) {
@@ -351,32 +353,6 @@ public class ExamAPI_V1_Controller {
             }
 
             final ServletOutputStream outputStream = response.getOutputStream();
-
-//            try {
-//
-//                final ClientConnectionData connection = this.examSessionService
-//                        .getConnectionData(connectionToken)
-//                        .getOrThrow();
-//
-//                // exam integrity check
-//                if (connection.clientConnection.examId == null ||
-//                        !this.examSessionService.isExamRunning(connection.clientConnection.examId)) {
-//
-//                    log.error("Missing exam identifier or requested exam is not running for connection: {}",
-//                            connection);
-//                    throw new IllegalStateException("Missing exam identifier or requested exam is not running");
-//                }
-//            } catch (final Exception e) {
-//
-//                log.error("Unexpected error: ", e);
-//
-//                final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
-//                outputStream.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
-//                response.setStatus(HttpStatus.BAD_REQUEST.value());
-//                outputStream.flush();
-//                outputStream.close();
-//                return;
-//            }
 
             try {
 

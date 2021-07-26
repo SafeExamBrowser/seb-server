@@ -82,17 +82,6 @@
         </resources>
     </cache>
     
-    <cache alias="LAST_PING_TIME_CACHE">
-        <key-type>java.lang.Long</key-type>
-        <value-type>org.ehcache.impl.internal.concurrent.ConcurrentHashMap</value-type>
-        <expiry>
-            <ttl unit="hours">24</ttl>
-        </expiry>
-        <resources>
-            <heap unit="entries">10</heap>
-        </resources>
-    </cache>
-    
     <cache alias="QUIZ_DATA_CACHE">
         <key-type>java.lang.String</key-type>
         <value-type>ch.ethz.seb.sebserver.gbl.model.exam.QuizData</value-type>

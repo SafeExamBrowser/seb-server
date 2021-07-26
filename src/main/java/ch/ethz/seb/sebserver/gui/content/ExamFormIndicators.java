@@ -92,7 +92,7 @@ public class ExamFormIndicators implements TemplateComposer {
                                 entityKey.modelId))
                         .withEmptyMessage(INDICATOR_EMPTY_LIST_MESSAGE)
                         .withMarkup()
-                        .withPaging(5)
+                        .withPaging(100)
                         .hideNavigation()
                         .withColumn(new ColumnDefinition<>(
                                 Domain.INDICATOR.ATTR_NAME,

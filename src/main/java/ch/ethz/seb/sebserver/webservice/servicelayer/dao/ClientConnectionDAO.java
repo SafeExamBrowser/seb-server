@@ -42,6 +42,11 @@ public interface ClientConnectionDAO extends
             unless = "#result.hasError()")
     Result<Collection<String>> getConnectionTokens(Long examId);
 
+    @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, key = "#examId")
+    default void evictConnectionTokenCache(final Long examId) {
+
+    }
+
     /** Get a list of all connection tokens of all connections (no matter what state)
      * of an exam.
      *
@@ -150,6 +155,8 @@ public interface ClientConnectionDAO extends
      * @param clientConnection the actual ClientConnection (from the internal cache)
      * @return Result refer to true if the given ClientConnection is up to date */
     Result<Boolean> isUpToDate(ClientConnection clientConnection);
+
+    Result<Set<String>> getClientConnectionsOutOfSyc(Long examId, Set<Long> timestamps);
 
     /** Indicates if the client connection for given exam and connection token is
      * in a ready state to send instructions.

@@ -13,54 +13,61 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.DateTimeZone;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
+    private static final long INTERVAL_FOR_PERSISTENT_UPDATE = Constants.SECOND_IN_MILLIS;
+
     private final Set<EventType> EMPTY_SET = Collections.unmodifiableSet(EnumSet.noneOf(EventType.class));
 
-    protected final ClientEventExtensionMapper clientEventExtensionMapper;
-    protected final IndicatorDistributedRequestCache indicatorDistributedRequestCache;
+    protected final ClientEventDAO clientEventDAO;
 
-    protected long pingLatency;
-    protected int pingCount = 0;
-    protected int pingNumber = 0;
+    private long lastUpdate = 0;
+    protected ClientEventRecord pingRecord = null;
 
-    protected AbstractPingIndicator(
-            final ClientEventExtensionMapper clientEventExtensionMapper,
-            final IndicatorDistributedRequestCache indicatorDistributedRequestCache) {
-
+    protected AbstractPingIndicator(final ClientEventDAO clientEventDAO) {
         super();
-        this.clientEventExtensionMapper = clientEventExtensionMapper;
-        this.indicatorDistributedRequestCache = indicatorDistributedRequestCache;
+        this.clientEventDAO = clientEventDAO;
+    }
+
+    @Override
+    public void init(
+            final Indicator indicatorDefinition,
+            final Long connectionId,
+            final boolean active,
+            final boolean cachingEnabled) {
+
+        super.init(indicatorDefinition, connectionId, active, cachingEnabled);
+
+        if (!this.cachingEnabled) {
+            this.pingRecord = this.clientEventDAO
+                    .initPingEvent(this.connectionId)
+                    .getOr(null);
+        }
     }
 
     public final void notifyPing(final long timestamp, final int pingNumber) {
         final long now = DateTime.now(DateTimeZone.UTC).getMillis();
-        this.pingLatency = now - timestamp;
         super.currentValue = now;
-        this.pingCount++;
-        this.pingNumber = pingNumber;
-    }
+        super.lastPersistentUpdate = now;
 
-    @Override
-    public final double computeValueAt(final long timestamp) {
-        if (this.cachingEnabled) {
-            return timestamp;
-        } else {
-            try {
-                return this.indicatorDistributedRequestCache
-                        .getPingTimes(this.examId)
-                        .getOrDefault(this.connectionId, 0L);
+        if (!this.cachingEnabled && this.pingRecord != null) {
 
-            } catch (final Exception e) {
-                return Double.NaN;
+            // Update last ping time on persistent storage
+            final long millisecondsNow = DateTimeUtils.currentTimeMillis();
+            if (millisecondsNow - this.lastUpdate > INTERVAL_FOR_PERSISTENT_UPDATE) {
+                this.pingRecord.setClientTime(timestamp);
+                this.pingRecord.setServerTime(millisecondsNow);
+                this.clientEventDAO.updatePingEvent(this.pingRecord);
+                this.lastUpdate = millisecondsNow;
             }
         }
     }
@@ -68,16 +75,6 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
     @Override
     public Set<EventType> observedEvents() {
         return this.EMPTY_SET;
-    }
-
-    @JsonIgnore
-    public int getPingCount() {
-        return this.pingCount;
-    }
-
-    @JsonIgnore
-    public int getPingNumber() {
-        return this.pingNumber;
     }
 
     public abstract ClientEventRecord updateLogEvent(final long now);

@@ -11,8 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 import java.math.BigDecimal;
 import java.util.Comparator;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -27,9 +26,9 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventExtensionMapper;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 
 @Lazy
 @Component(IndicatorType.Names.LAST_PING)
@@ -38,22 +37,30 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     private static final Logger log = LoggerFactory.getLogger(PingIntervalClientIndicator.class);
 
-    long pingErrorThreshold;
-    boolean missingPing = false;
-    boolean hidden = false;
+    // This is the default ping error threshold that is set if the threshold cannot be get
+    // from the ping threshold settings. If the last ping is older then this interval back in time
+    // then the ping is considered and marked as missing
+    private static final long DEFAULT_PING_ERROR_THRESHOLD = Constants.SECOND_IN_MILLIS * 5;
 
-    public PingIntervalClientIndicator(
-            final ClientEventExtensionMapper clientEventExtensionMapper,
-            final IndicatorDistributedRequestCache indicatorDistributedRequestCache) {
+    private long pingErrorThreshold;
+    private boolean missingPing = false;
+    private boolean hidden = false;
 
-        super(clientEventExtensionMapper, indicatorDistributedRequestCache);
+    public PingIntervalClientIndicator(final ClientEventDAO clientEventDAO) {
+        super(clientEventDAO);
         this.cachingEnabled = true;
-        this.currentValue = computeValueAt(Utils.getMillisecondsNow());
     }
 
     @Override
-    public void init(final Indicator indicatorDefinition, final Long connectionId, final boolean cachingEnabled) {
-        super.init(indicatorDefinition, connectionId, cachingEnabled);
+    public void init(
+            final Indicator indicatorDefinition,
+            final Long connectionId,
+            final boolean active,
+            final boolean cachingEnabled) {
+
+        super.init(indicatorDefinition, connectionId, active, cachingEnabled);
+
+        this.currentValue = computeValueAt(DateTimeUtils.currentTimeMillis());
 
         try {
             indicatorDefinition
@@ -64,12 +71,13 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
         } catch (final Exception e) {
             log.error("Failed to initialize pingErrorThreshold: {}", e.getMessage());
-            this.pingErrorThreshold = Constants.SECOND_IN_MILLIS * 5;
+            this.pingErrorThreshold = DEFAULT_PING_ERROR_THRESHOLD;
         }
 
         if (!cachingEnabled) {
             try {
-                this.missingPing = this.pingErrorThreshold < getValue();
+                final double value = getValue();
+                this.missingPing = this.pingErrorThreshold < value;
             } catch (final Exception e) {
                 log.error("Failed to initialize missingPing: {}", e.getMessage());
                 this.missingPing = false;
@@ -100,7 +108,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     @Override
     public double getValue() {
-        final long now = DateTime.now(DateTimeZone.UTC).getMillis();
+        final long now = DateTimeUtils.currentTimeMillis();
         return now - super.getValue();
     }
 
@@ -112,6 +120,33 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     @Override
     public void notifyValueChange(final ClientEventRecord clientEventRecord) {
 
+    }
+
+    @Override
+    public final double computeValueAt(final long timestamp) {
+
+        if (!this.cachingEnabled && super.pingRecord != null) {
+
+            // if this indicator is not missing ping
+            if (!this.isMissingPing()) {
+
+                final Result<Long> lastPing = this.clientEventDAO
+                        .getLastPing(super.pingRecord.getId());
+
+                if (!lastPing.hasError()) {
+                    if (Double.isNaN(this.currentValue)) {
+                        return lastPing.get().doubleValue();
+                    }
+                    return Math.max(this.currentValue, lastPing.get().doubleValue());
+                } else {
+                    log.error("Failed to get last ping from persistent: {}", lastPing.getError().getMessage());
+                }
+            }
+
+            return this.currentValue;
+        }
+
+        return !this.valueInitializes ? timestamp : this.currentValue;
     }
 
     @Override

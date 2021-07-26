@@ -476,12 +476,8 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
 
             final Map<String, CourseData> finalCourseDataRef = courseData;
             courseQuizData.quizzes
-                    .forEach(quiz -> {
-                        final CourseData course = finalCourseDataRef.get(quiz.course);
-                        if (course != null) {
-                            course.quizzes.add(quiz);
-                        }
-                    });
+                    .stream()
+                    .forEach(quiz -> fillSelectedQuizzes(quizIds, finalCourseDataRef, quiz));
 
             final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
                     ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
@@ -507,6 +503,27 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get quizzes for ids", e);
             return Collections.emptyList();
+        }
+    }
+
+    private void fillSelectedQuizzes(
+            final Set<String> quizIds,
+            final Map<String, CourseData> finalCourseDataRef,
+            final CourseQuiz quiz) {
+        try {
+            final CourseData course = finalCourseDataRef.get(quiz.course);
+            if (course != null) {
+                final String internalQuizId = getInternalQuizId(
+                        quiz.course_module,
+                        course.id,
+                        course.short_name,
+                        course.idnumber);
+                if (quizIds.contains(internalQuizId)) {
+                    course.quizzes.add(quiz);
+                }
+            }
+        } catch (final Exception e) {
+            log.error("Failed to verify selected quiz for course: {}", e.getMessage());
         }
     }
 

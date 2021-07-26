@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.eclipse.swt.widgets.Composite;
 import org.joda.time.DateTime;
@@ -100,6 +101,8 @@ public class QuizLookupList implements TemplateComposer {
             new LocTextKey("sebserver.quizdiscovery.quiz.import.out.dated");
     private final static LocTextKey TEXT_KEY_CONFIRM_EXISTING =
             new LocTextKey("sebserver.quizdiscovery.quiz.import.existing.confirm");
+    private final static LocTextKey TEXT_KEY_EXISTING =
+            new LocTextKey("sebserver.quizdiscovery.quiz.import.existing");
 
     private final static String TEXT_KEY_ADDITIONAL_ATTR_PREFIX =
             "sebserver.quizdiscovery.quiz.details.additional.";
@@ -147,6 +150,7 @@ public class QuizLookupList implements TemplateComposer {
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
+        final Long institutionId = currentUser.get().institutionId;
 
         // content page layout with title
         final Composite content = this.widgetFactory.defaultPageLayout(
@@ -242,10 +246,10 @@ public class QuizLookupList implements TemplateComposer {
                 .publish(false)
 
                 .newAction(ActionDefinition.QUIZ_DISCOVERY_EXAM_IMPORT)
-                .withConfirm(importQuizConfirm(table, restService))
+                .withConfirm(importQuizConfirm(institutionId, table, restService))
                 .withSelect(
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
-                        action -> this.importQuizData(action, table),
+                        action -> this.importQuizData(institutionId, action, table, restService),
                         EMPTY_SELECTION_TEXT)
                 .publishIf(() -> examGrant.im(), false);
     }
@@ -257,6 +261,7 @@ public class QuizLookupList implements TemplateComposer {
     }
 
     private Function<PageAction, LocTextKey> importQuizConfirm(
+            final Long institutionId,
             final EntityTable<QuizData> table,
             final RestService restService) {
 
@@ -264,12 +269,15 @@ public class QuizLookupList implements TemplateComposer {
             action.getSingleSelection();
             final QuizData selectedROWData = table.getSingleSelectedROWData();
 
-            final Collection<EntityKey> existingImports = restService.getBuilder(CheckExamImported.class)
+            final Collection<Long> existingImports = restService.getBuilder(CheckExamImported.class)
                     .withURIVariable(API.PARAM_MODEL_ID, selectedROWData.id)
                     .call()
-                    .getOrThrow();
+                    .getOrThrow()
+                    .stream()
+                    .map(key -> Long.valueOf(key.modelId))
+                    .collect(Collectors.toList());
 
-            if (existingImports != null && !existingImports.isEmpty()) {
+            if (existingImports != null && !existingImports.isEmpty() && !existingImports.contains(institutionId)) {
                 return TEXT_KEY_CONFIRM_EXISTING;
             } else {
                 return null;
@@ -278,8 +286,10 @@ public class QuizLookupList implements TemplateComposer {
     }
 
     private PageAction importQuizData(
+            final Long institutionId,
             final PageAction action,
-            final EntityTable<QuizData> table) {
+            final EntityTable<QuizData> table,
+            final RestService restService) {
 
         action.getSingleSelection();
         final QuizData selectedROWData = table.getSingleSelectedROWData();
@@ -289,6 +299,18 @@ public class QuizLookupList implements TemplateComposer {
             if (selectedROWData.endTime.isBefore(now)) {
                 throw new PageMessageException(NO_IMPORT_OF_OUT_DATED_QUIZ);
             }
+        }
+
+        final Collection<Long> existingImports = restService.getBuilder(CheckExamImported.class)
+                .withURIVariable(API.PARAM_MODEL_ID, selectedROWData.id)
+                .call()
+                .getOrThrow()
+                .stream()
+                .map(key -> Long.valueOf(key.modelId))
+                .collect(Collectors.toList());
+
+        if (existingImports.contains(institutionId)) {
+            throw new PageMessageException(TEXT_KEY_EXISTING);
         }
 
         return action

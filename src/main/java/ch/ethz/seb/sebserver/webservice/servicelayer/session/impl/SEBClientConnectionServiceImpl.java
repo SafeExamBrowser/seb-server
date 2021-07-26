@@ -16,8 +16,6 @@ import java.util.function.Predicate;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
@@ -35,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
@@ -43,7 +42,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.PingHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
@@ -68,7 +66,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final CacheManager cacheManager;
     private final EventHandlingStrategy eventHandlingStrategy;
     private final ClientConnectionDAO clientConnectionDAO;
-    private final PingHandlingStrategy pingHandlingStrategy;
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final SEBClientInstructionService sebInstructionService;
     private final SEBClientNotificationService sebClientNotificationService;
@@ -78,7 +75,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     protected SEBClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
-            final PingHandlingStrategyFactory pingHandlingStrategyFactory,
+
             final SEBClientConfigDAO sebClientConfigDAO,
             final SEBClientInstructionService sebInstructionService,
             final SEBClientNotificationService sebClientNotificationService,
@@ -88,7 +85,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();
         this.cacheManager = examSessionService.getCacheManager();
         this.clientConnectionDAO = examSessionService.getClientConnectionDAO();
-        this.pingHandlingStrategy = pingHandlingStrategyFactory.get();
         this.eventHandlingStrategy = eventHandlingStrategyFactory.get();
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.sebInstructionService = sebInstructionService;
@@ -368,11 +364,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         updatedClientConnection);
             }
 
-            // notify ping handler about established connection
-            this.pingHandlingStrategy.initForConnection(
-                    updatedClientConnection.id,
-                    connectionToken);
-
             return updatedClientConnection;
         });
     }
@@ -520,7 +511,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         try {
 
             final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
-            final long now = DateTime.now(DateTimeZone.UTC).getMillis();
+            final long now = Utils.getMillisecondsNow();
+            final Consumer<ClientConnectionDataInternal> missingPingUpdate = missingPingUpdate(now);
             this.examSessionService
                     .getExamDAO()
                     .allRunningExamIds()
@@ -538,8 +530,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .map(token -> cache.get(token, ClientConnectionDataInternal.class))
                     .filter(Objects::nonNull)
                     .filter(connection -> connection.pingIndicator != null &&
-                            connection.clientConnection.status.establishedStatus)
-                    .forEach(missingPingUpdate(now));
+                            connection.clientConnection.status.clientActiveStatus)
+                    .forEach(connection -> missingPingUpdate.accept(connection));
 
         } catch (final Exception e) {
             log.error("Failed to update ping events: ", e);
@@ -557,7 +549,13 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final long timestamp,
             final int pingNumber) {
 
-        this.pingHandlingStrategy.notifyPing(connectionToken, timestamp, pingNumber);
+        final ClientConnectionDataInternal activeClientConnection =
+                this.examSessionCacheService.getClientConnection(connectionToken);
+
+        if (activeClientConnection != null) {
+            activeClientConnection.notifyPing(timestamp, pingNumber);
+        }
+
         return this.sebInstructionService.getInstructionJSON(connectionToken);
     }
 
@@ -732,8 +730,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private ClientConnectionDataInternal reloadConnectionCache(final String connectionToken) {
         // evict cached ClientConnection
         this.examSessionCacheService.evictClientConnection(connectionToken);
-        // evict also cached ping record
-        this.examSessionCacheService.evictPingRecord(connectionToken);
         // and load updated ClientConnection into cache
         return this.examSessionCacheService.getClientConnection(connectionToken);
     }

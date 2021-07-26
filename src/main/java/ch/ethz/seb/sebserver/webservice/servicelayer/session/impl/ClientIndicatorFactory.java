@@ -81,6 +81,7 @@ public class ClientIndicatorFactory {
                     indicator.init(
                             indicatorDef,
                             clientConnection.id,
+                            clientConnection.status.clientActiveStatus,
                             this.enableCaching);
 
                     result.add(indicator);
@@ -105,9 +106,11 @@ public class ClientIndicatorFactory {
                         null,
                         null,
                         Arrays.asList(new Indicator.Threshold(5000d, null, null)));
+
                 pingIndicator.init(
                         indicator,
                         clientConnection.id,
+                        clientConnection.status.clientActiveStatus,
                         this.enableCaching);
                 result.add(pingIndicator);
             }

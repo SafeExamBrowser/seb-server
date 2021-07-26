@@ -517,7 +517,10 @@ public class ExamConfigXMLParser extends DefaultHandler {
                     attribute.id,
                     listIndex,
                     StringUtils.isNotBlank(value)
-                            ? this.cryptor.encrypt(value + Constants.IMPORTED_PASSWORD_MARKER).toString()
+                            ? this.cryptor
+                                    .encrypt(value + Constants.IMPORTED_PASSWORD_MARKER)
+                                    .getOrThrow()
+                                    .toString()
                             : value);
         }
 

@@ -15,12 +15,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.mybatis.dynamic.sql.SqlBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,9 +37,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientConnectionMinMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientConnectionMinMapper.ClientConnectionMinRecord;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -49,7 +45,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.IndicatorDistributedRequestCache;
 
 @Lazy
 @Service
@@ -59,37 +54,33 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     private static final Logger log = LoggerFactory.getLogger(ExamSessionServiceImpl.class);
 
     private final ClientConnectionDAO clientConnectionDAO;
-    private final ClientConnectionMinMapper clientConnectionMinMapper;
     private final IndicatorDAO indicatorDAO;
     private final ExamSessionCacheService examSessionCacheService;
     private final ExamDAO examDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final CacheManager cacheManager;
     private final SEBRestrictionService sebRestrictionService;
-    private final IndicatorDistributedRequestCache indicatorDistributedRequestCache;
     private final boolean distributedSetup;
+
+    private long lastConnectionTokenCacheUpdate = 0;
 
     protected ExamSessionServiceImpl(
             final ExamSessionCacheService examSessionCacheService,
-            final ClientConnectionMinMapper clientConnectionMinMapper,
             final ExamDAO examDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ClientConnectionDAO clientConnectionDAO,
             final IndicatorDAO indicatorDAO,
             final CacheManager cacheManager,
             final SEBRestrictionService sebRestrictionService,
-            final IndicatorDistributedRequestCache indicatorDistributedRequestCache,
             @Value("${sebserver.webservice.distributed:false}") final boolean distributedSetup) {
 
         this.examSessionCacheService = examSessionCacheService;
-        this.clientConnectionMinMapper = clientConnectionMinMapper;
         this.examDAO = examDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.cacheManager = cacheManager;
         this.indicatorDAO = indicatorDAO;
         this.sebRestrictionService = sebRestrictionService;
-        this.indicatorDistributedRequestCache = indicatorDistributedRequestCache;
         this.distributedSetup = distributedSetup;
     }
 
@@ -324,19 +315,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
             final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
                     .getClientConnection(connectionToken);
+
             if (activeClientConnection == null) {
                 throw new NoSuchElementException("Client Connection with token: " + connectionToken);
-            }
-
-            if (this.distributedSetup) {
-
-                final Boolean upToDate = this.clientConnectionDAO
-                        .isUpToDate(activeClientConnection.clientConnection)
-                        .getOr(false);
-                if (!upToDate) {
-                    this.examSessionCacheService.evictClientConnection(connectionToken);
-                    return this.examSessionCacheService.getClientConnection(connectionToken);
-                }
             }
 
             return activeClientConnection;
@@ -349,35 +330,20 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final Long examId,
             final Predicate<ClientConnectionData> filter) {
 
-        if (this.distributedSetup) {
+        return Result.tryCatch(() -> {
 
-            // if we run in distributed mode, we have to get the connection tokens of the exam
-            // always from the persistent storage and update the client connection cache
-            // before by remove out-dated client connection. This is done within the update_time
-            // of the client connection record that is set on every update in the persistent
-            // storage. So if the update_time of the cached client connection doesen't match the
-            // update_time from persistent, we need to flush this particular client connection from the cache
-            this.indicatorDistributedRequestCache.evictPingTimes(examId);
-            return Result.tryCatch(() -> this.clientConnectionMinMapper.selectByExample()
-                    .where(
-                            ClientConnectionRecordDynamicSqlSupport.examId,
-                            SqlBuilder.isEqualTo(examId))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(this.distributedClientConnectionUpdateFunction(filter))
-                    .filter(filter)
-                    .collect(Collectors.toList()));
+            updateClientConnections(examId);
 
-        } else {
-            return Result.tryCatch(() -> this.clientConnectionDAO
+            return this.clientConnectionDAO
                     .getConnectionTokens(examId)
                     .getOrThrow()
                     .stream()
-                    .map(this.examSessionCacheService::getClientConnection)
+                    .map(token -> getConnectionData(token).getOr(null))
+                    .filter(Objects::nonNull)
                     .filter(filter)
-                    .collect(Collectors.toList()));
-        }
+                    .collect(Collectors.toList());
+
+        });
     }
 
     @Override
@@ -415,32 +381,43 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                     .forEach(token -> {
                         // evict client connection
                         this.examSessionCacheService.evictClientConnection(token);
-                        // evict also cached ping record
-                        this.examSessionCacheService.evictPingRecord(token);
                     });
 
             return exam;
         });
     }
 
-    private Function<ClientConnectionMinRecord, ClientConnectionDataInternal> distributedClientConnectionUpdateFunction(
-            final Predicate<ClientConnectionData> filter) {
+    // If we are in a distributed setup the active connection token cache get flushed
+    // at least every second. This allows caching over multiple monitoring requests but
+    // ensure an update every second for new incoming connections
+    private void updateClientConnections(final Long examId) {
 
-        return cd -> {
-            ClientConnectionDataInternal clientConnection = this.examSessionCacheService
-                    .getClientConnection(cd.connection_token);
+        try {
+            if (this.distributedSetup &&
+                    System.currentTimeMillis() - this.lastConnectionTokenCacheUpdate > Constants.SECOND_IN_MILLIS) {
 
-            if (filter.test(clientConnection)) {
-                if (cd.update_time != null &&
-                        !cd.update_time.equals(clientConnection.clientConnection.updateTime)) {
+                // go trough all client connection and update the ones that not up to date
+                this.clientConnectionDAO.evictConnectionTokenCache(examId);
 
-                    this.examSessionCacheService.evictClientConnection(cd.connection_token);
-                    clientConnection = this.examSessionCacheService
-                            .getClientConnection(cd.connection_token);
-                }
+                final Set<Long> timestamps = this.clientConnectionDAO
+                        .getConnectionTokens(examId)
+                        .getOrThrow()
+                        .stream()
+                        .map(this.examSessionCacheService::getClientConnection)
+                        .filter(Objects::nonNull)
+                        .map(cc -> cc.getClientConnection().updateTime)
+                        .collect(Collectors.toSet());
+
+                this.clientConnectionDAO.getClientConnectionsOutOfSyc(examId, timestamps)
+                        .getOrElse(() -> Collections.emptySet())
+                        .stream()
+                        .forEach(this.examSessionCacheService::evictClientConnection);
+
+                this.lastConnectionTokenCacheUpdate = System.currentTimeMillis();
             }
-            return clientConnection;
-        };
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to update client connections: ", e);
+        }
     }
 
 }

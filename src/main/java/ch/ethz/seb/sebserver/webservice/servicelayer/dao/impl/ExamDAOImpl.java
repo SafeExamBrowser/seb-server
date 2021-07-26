@@ -59,6 +59,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDyn
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DuplicateResourceException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
@@ -139,7 +140,7 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    public Result<Collection<Long>> allByQuizId(final String quizId) {
+    public Result<Collection<Long>> allInstitutionIdsByQuizId(final String quizId) {
         return Result.tryCatch(() -> {
             return this.examRecordMapper.selectByExample()
                     .where(
@@ -151,7 +152,7 @@ public class ExamDAOImpl implements ExamDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(rec -> rec.getId())
+                    .map(rec -> rec.getInstitutionId())
                     .collect(Collectors.toList());
         });
     }
@@ -331,23 +332,9 @@ public class ExamDAOImpl implements ExamDAO {
             // used to save instead of create a new one
             if (records != null && records.size() > 0) {
                 final ExamRecord examRecord = records.get(0);
-                // if the same institution tries to import an exam that already exists
-                // open the existing. otherwise create new one if requested
+                // if the same institution tries to import an exam that already exists throw an error
                 if (exam.institutionId.equals(examRecord.getInstitutionId())) {
-                    final ExamRecord newRecord = new ExamRecord(
-                            examRecord.getId(),
-                            null, null, null, null, null,
-                            (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
-                            null, // quitPassword
-                            null, // browser keys
-                            null, // status
-                            null, // lmsSebRestriction (deprecated)
-                            null, // updating
-                            null, // lastUpdate
-                            BooleanUtils.toIntegerObject(exam.active));
-
-                    this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
-                    return this.examRecordMapper.selectByPrimaryKey(examRecord.getId());
+                    throw new DuplicateResourceException(EntityType.EXAM, exam.externalId);
                 }
             }
 

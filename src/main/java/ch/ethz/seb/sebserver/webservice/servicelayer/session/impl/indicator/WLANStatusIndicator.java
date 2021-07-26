@@ -30,8 +30,13 @@ public class WLANStatusIndicator extends AbstractLogNumberIndicator {
     }
 
     @Override
-    public void init(final Indicator indicatorDefinition, final Long connectionId, final boolean cachingEnabled) {
-        super.init(indicatorDefinition, connectionId, cachingEnabled);
+    public void init(
+            final Indicator indicatorDefinition,
+            final Long connectionId,
+            final boolean active,
+            final boolean cachingEnabled) {
+
+        super.init(indicatorDefinition, connectionId, active, cachingEnabled);
         super.tags = new String[] { API.LOG_EVENT_TAG_WLAN_STATUS };
     }
 

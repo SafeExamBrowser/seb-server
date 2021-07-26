@@ -195,10 +195,6 @@ public final class ClientConnectionTable {
         this.table.layout();
     }
 
-//    public int getUpdateErrors() {
-//        return this.updateErrors;
-//    }
-
     public WidgetFactory getWidgetFactory() {
         return this.pageService.getWidgetFactory();
     }
@@ -337,6 +333,7 @@ public final class ClientConnectionTable {
 
         try {
 
+            // TODO forceUpdateAll doeasn't work on distributed
             if (this.statusFilterChanged || this.forceUpdateAll || needsSync) {
                 this.toDelete.clear();
                 this.toDelete.addAll(this.tableMapping.keySet());

@@ -232,7 +232,7 @@ public class UserAccountList implements TemplateComposer {
                 .newAction(ActionDefinition.USER_ACCOUNT_TOGGLE_ACTIVITY)
                 .withExec(this.pageService.activationToggleActionFunction(table, EMPTY_SELECTION_TEXT_KEY))
                 .withConfirm(this.pageService.confirmDeactivation(table))
-                .publishIf(() -> userGrant.m(), false);
+                .publishIf(() -> userGrant.im(), false);
     }
 
     private PageAction editAction(final PageAction pageAction) {

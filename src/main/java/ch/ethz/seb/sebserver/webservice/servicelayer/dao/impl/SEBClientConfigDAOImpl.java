@@ -577,7 +577,10 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     EntityType.SEB_CLIENT_CONFIGURATION,
                     configId,
                     SEBClientConfig.ATTR_FALLBACK_PASSWORD,
-                    this.clientCredentialService.encrypt(sebClientConfig.fallbackPassword).toString());
+                    this.clientCredentialService
+                            .encrypt(sebClientConfig.fallbackPassword)
+                            .getOrThrow()
+                            .toString());
         } else {
             this.additionalAttributesDAO.delete(
                     EntityType.SEB_CLIENT_CONFIGURATION,
@@ -590,7 +593,10 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     EntityType.SEB_CLIENT_CONFIGURATION,
                     configId,
                     SEBClientConfig.ATTR_QUIT_PASSWORD,
-                    this.clientCredentialService.encrypt(sebClientConfig.quitPassword).toString());
+                    this.clientCredentialService
+                            .encrypt(sebClientConfig.quitPassword)
+                            .getOrThrow()
+                            .toString());
         } else {
             this.additionalAttributesDAO.delete(
                     EntityType.SEB_CLIENT_CONFIGURATION,

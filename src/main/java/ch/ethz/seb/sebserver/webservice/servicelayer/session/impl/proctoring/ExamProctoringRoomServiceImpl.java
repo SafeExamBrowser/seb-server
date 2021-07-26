@@ -280,25 +280,11 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                             proctoringRoom.id)
                     .getOrThrow();
 
-            final Result<RemoteProctoringRoom> townhallRoomResult = this.remoteProctoringRoomDAO
-                    .getTownhallRoom(cc.getExamId());
+            applyProcotringInstruction(
+                    cc.getExamId(),
+                    cc.getConnectionToken())
+                            .getOrThrow();
 
-            if (townhallRoomResult.hasValue()) {
-                final RemoteProctoringRoom townhallRoom = townhallRoomResult.get();
-                applyProcotringInstruction(
-                        cc.getExamId(),
-                        cc.getConnectionToken(),
-                        townhallRoom.name,
-                        townhallRoom.subject)
-                                .getOrThrow();
-            } else {
-                applyProcotringInstruction(
-                        cc.getExamId(),
-                        cc.getConnectionToken(),
-                        proctoringRoom.name,
-                        proctoringRoom.subject)
-                                .getOrThrow();
-            }
         } catch (final Exception e) {
             log.error("Failed to assign connection to collecting room: {}", cc, e);
         }
@@ -601,9 +587,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
     private Result<Void> applyProcotringInstruction(
             final Long examId,
-            final String connectionToken,
-            final String roomName,
-            final String subject) {
+            final String connectionToken) {
 
         return Result.tryCatch(() -> {
             final ProctoringServiceSettings settings = this.examAdminService
@@ -614,10 +598,32 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
-            sendJoinCollectingRoomInstructions(
-                    settings,
-                    Arrays.asList(connectionToken),
-                    examProctoringService);
+            final Result<RemoteProctoringRoom> townhallRoomResult = this.remoteProctoringRoomDAO
+                    .getTownhallRoom(examId);
+
+            if (townhallRoomResult.hasValue()) {
+
+                final RemoteProctoringRoom townhallRoom = townhallRoomResult.get();
+                final ProctoringRoomConnection roomConnection = examProctoringService.getClientRoomConnection(
+                        settings,
+                        connectionToken,
+                        townhallRoom.name,
+                        townhallRoom.subject)
+                        .getOrThrow();
+
+                sendJoinInstruction(
+                        examId,
+                        connectionToken,
+                        roomConnection,
+                        examProctoringService);
+            } else {
+
+                sendJoinCollectingRoomInstructions(
+                        settings,
+                        Arrays.asList(connectionToken),
+                        examProctoringService);
+
+            }
         });
     }
 

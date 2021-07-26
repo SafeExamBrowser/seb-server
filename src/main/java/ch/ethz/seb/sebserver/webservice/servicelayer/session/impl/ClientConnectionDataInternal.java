@@ -75,7 +75,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     @Override
     @JsonProperty(ATTR_MISSING_PING)
     public Boolean getMissingPing() {
-        return this.pingIndicator.isMissingPing();
+        return this.pingIndicator != null && this.pingIndicator.isMissingPing();
     }
 
     @Override

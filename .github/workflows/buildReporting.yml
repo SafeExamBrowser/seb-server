@@ -60,6 +60,14 @@ jobs:
       env: 
         SHA: ${{ steps.short-sha.outputs.sha }}
     -
+      name: Set env
+      run: echo "TAG_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+    -
+      name: Test tag name
+      run: |
+        echo $TAG_NAME
+        echo ${{ env.TAG_NAME }}
+    -
       name: Checkout repository
       uses: actions/checkout@v2
     -
@@ -77,12 +85,12 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
     -
       name: Build with Maven
-      run: mvn clean install -Dmaven.test.skip=true -Dsebserver-version="${{ env.SHA }}" 
+      run: mvn clean install -Dmaven.test.skip=true -Dsebserver-version="${{ env.TAG_NAME }}" 
       env: 
-         sebserver-version: ${{ env.SHA }}
+         sebserver-version: ${{ env.TAG_NAME }}
     -
       name: Simplify package name
-      run: mv target/seb-server-${{ env.SHA }}.jar target/seb-server.jar
+      run: mv target/seb-server-${{ env.TAG_NAME }}.jar target/seb-server.jar
     -
       uses: actions/upload-artifact@v2
       with:

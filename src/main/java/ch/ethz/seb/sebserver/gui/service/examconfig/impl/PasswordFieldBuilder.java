@@ -169,7 +169,10 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
         public String getValue() {
             final CharSequence pwd = this.control.getValue();
             if (StringUtils.isNotBlank(pwd)) {
-                return this.cryptor.encrypt(pwd).toString();
+                return this.cryptor
+                        .encrypt(pwd)
+                        .getOrThrow()
+                        .toString();
             }
 
             return StringUtils.EMPTY;

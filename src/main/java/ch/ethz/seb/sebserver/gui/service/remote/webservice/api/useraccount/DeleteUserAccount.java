@@ -28,7 +28,7 @@ public class DeleteUserAccount extends RestCall<EntityProcessingReport> {
 
     public DeleteUserAccount() {
         super(new TypeKey<>(
-                CallType.ACTIVATION_DEACTIVATE,
+                CallType.DELETE,
                 EntityType.USER,
                 new TypeReference<EntityProcessingReport>() {
                 }),

@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -243,7 +242,8 @@ public class ClientEventDAOImpl implements ClientEventDAO {
     public Result<ClientNotification> confirmPendingNotification(final Long notificationId,
             final Long clientConnectionId) {
         return Result.tryCatch(() -> {
-            final Long pk = this.clientEventRecordMapper.selectIdsByExample()
+            final Long pk = this.clientEventRecordMapper
+                    .selectIdsByExample()
                     .where(ClientEventRecordDynamicSqlSupport.id, isEqualTo(notificationId))
                     .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.NOTIFICATION.id))
                     .build()
@@ -295,21 +295,97 @@ public class ClientEventDAOImpl implements ClientEventDAO {
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
-            return all
+
+            final List<Long> pks = all
                     .stream()
                     .map(EntityKey::getModelId)
                     .map(Long::parseLong)
-                    .map(pk -> {
-                        final int deleted = this.clientEventRecordMapper.deleteByPrimaryKey(pk);
-                        if (deleted == 1) {
-                            return new EntityKey(String.valueOf(pk), EntityType.CLIENT_EVENT);
-                        } else {
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
+
+            this.clientEventRecordMapper
+                    .deleteByExample()
+                    .where(ClientEventRecordDynamicSqlSupport.id, isIn(pks))
+                    .build()
+                    .execute();
+
+            return pks
+                    .stream()
+                    .map(pk -> new EntityKey(String.valueOf(pk), EntityType.CLIENT_EVENT))
+                    .collect(Collectors.toList());
+
+//            return all
+//                    .stream()
+//                    .map(EntityKey::getModelId)
+//                    .map(Long::parseLong)
+//                    .map(pk -> {
+//                        final int deleted = this.clientEventRecordMapper.deleteByPrimaryKey(pk);
+//                        if (deleted == 1) {
+//                            return new EntityKey(String.valueOf(pk), EntityType.CLIENT_EVENT);
+//                        } else {
+//                            return null;
+//                        }
+//                    })
+//                    .filter(Objects::nonNull)
+//                    .collect(Collectors.toList());
         });
+    }
+
+    @Override
+    @Transactional
+    public Result<ClientEventRecord> initPingEvent(final Long connectionId) {
+        return Result.tryCatch(() -> {
+            final List<ClientEventRecord> lastPingRec = this.clientEventRecordMapper
+                    .selectByExample()
+                    .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(connectionId))
+                    .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
+                    .build()
+                    .execute();
+
+            if (lastPingRec != null && !lastPingRec.isEmpty()) {
+                return lastPingRec.get(0);
+            }
+
+            final long millisecondsNow = Utils.getMillisecondsNow();
+            final ClientEventRecord clientEventRecord = new ClientEventRecord();
+            clientEventRecord.setClientConnectionId(connectionId);
+            clientEventRecord.setType(EventType.LAST_PING.id);
+            clientEventRecord.setClientTime(millisecondsNow);
+            clientEventRecord.setServerTime(millisecondsNow);
+            this.clientEventRecordMapper.insert(clientEventRecord);
+
+            try {
+
+                return this.clientEventRecordMapper
+                        .selectByExample()
+                        .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(connectionId))
+                        .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
+                        .build()
+                        .execute()
+                        .get(0);
+
+            } catch (final Exception e) {
+                return clientEventRecord;
+            }
+
+        });
+    }
+
+    @Override
+    @Transactional
+    public void updatePingEvent(final ClientEventRecord pingRecord) {
+        try {
+            this.clientEventRecordMapper.updateByPrimaryKeySelective(pingRecord);
+        } catch (final Exception e) {
+            log.error("Failed to update ping event: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Long> getLastPing(final Long pk) {
+        return Result.tryCatch(() -> this.clientEventRecordMapper
+                .selectByPrimaryKey(pk)
+                .getServerTime());
     }
 
     private Result<ClientEventRecord> recordById(final Long id) {
