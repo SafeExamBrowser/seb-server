@@ -144,4 +144,12 @@ action form the right action pane to open up a pop-up containing all related inf
 
 Currently there is no export functionality to export all interessting SEB client logs to a CSV table for example. But such a feature will probably come
 with a next version of SEB Server.
+
+**Delete filtered client logs**
+
+To delete all currently filtered client logs, please use the "Delete Logs" action form the right action pane. 
+
+.. note:: 
+    On deletion, all available logs will permanantly be deleted from the persistent storage. So please make sure you want to delete all
+    logs that are currently displayed in the list before deleting.
  

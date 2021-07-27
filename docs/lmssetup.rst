@@ -206,6 +206,20 @@ Once the client registration was successful the client id and client secret can 
 
 To be able to create an LMS Setup for Moodle you need a Moodle administrator or manager account. You can then use this account in the LMS Setup to connect the the LMS.
 
+Since SEB Server uses some functions from the Moodles mobile API, you have to make sure the web services for mobile apps are enabled within your Moodle setup.
+To do so please login to Moodel with an administrator account and go to "Side Administration", scroll down to "Mobile App" and choose "Mobile Settings.
+
+.. image:: images/lmssetup/moodle_mobile.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/documentation/docs/images/lmssetup/moodle_mobile.png
+    
+If you have a restrictive Moodle setup and troubles with the Moodle API account to use with SEB Server, please try to import the following 
+Moodle role profile within youe Moodle instance. This profile will create a SEB Server role within Moodle that can be used to apply to an 
+API account to be used with SEB Server. The role defines only the necessary privileges and functions needed for SEB Server communication.
+
+Moodle role and account settings: :download:`XML <files/webservice_seb-server.xml>`
+
+
 
 .. _lms-setup-rest-plugin-label:
 
