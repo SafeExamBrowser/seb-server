@@ -30,4 +30,4 @@ SEB Server release, to embed into an exam configuration for SEB to allow certifi
    connection_config
    exam_config
    config_template
-   certifications
+   certificates

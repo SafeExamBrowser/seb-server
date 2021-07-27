@@ -146,7 +146,7 @@ a SEB client must know the same certificate that is been used for encryption whi
 - Create an new connection configuration or use the list filter and / or the list navigation to find the needed connection configuration.
 - Fill in the settings as usual and for password encryption define a password in the "Configuration Password" field and confirm the password in the "Confirm Password" field.
 - For a certificate based encryption select one of the given certificates within the "Encrypt with Certificate" setting.
-- To upload new certificates that can be used for encryption, please refer to: :ref:`certifications-label`
+- To upload new certificates that can be used for encryption, please refer to: :ref:`certificates-label`
 - "Use asymmetric only encryption" if you have use SEB Clients with version before 2.2. For more details on this subject please see: `SEB Configuration <https://www.safeexambrowser.org/windows/win_usermanual_en.html#configuration>`_
 - Save and activate the connection configuration. The connection configuration will then be encrypted by either password or certificate on export.
 

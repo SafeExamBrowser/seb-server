@@ -83,24 +83,25 @@ In the detail view you are also able to use the instructions "Quit SEB Client" a
 Live Proctoring
 ---------------
 
+.. note::
+    This feature is still in a prototype state and not all functionality meight work as expected. Basically the meeting features
+    are given or restricted by the meeting service that is used and the API and GUI that is given by that meeting service client
+
+    
+**Collecting Rooms**
+
 When the exam live proctoring feature is enabled for the running exam (see :ref:`sebProctoringSettings-label`), SEB Server will automatically create and collect 
 connected SEB clients into so called collecting rooms. The size of this collecting rooms can be defined within the proctoring settings in the exam.
-One ore more proctor can then open such a collecting room and SEB Server will join the proctor to the meeting where the participants of this room can be seen.
+One proctor can then open such a collecting room by left-clicking on the room action. 
+SEB Server will then open a proctoring window and join the proctor to the meeting where the participants of this room can be seen.
 
 .. image:: images/monitoring/proctoringExam.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringExam.png
     
-Within a live proctoring window you can user the enabled features of the used meeting service. And you are able to communicate with the SEB clients by using one
-or more of the following features:
-
-- **Start Audio Broadcast** Will enforce the SEB clients within the particular room to enable receive audio and a proctor can speak to the students that are in the meeting.
-- **Start Video Broadcast** Will enforce the SEB clients within the particular room to enable receive audio and video and proctor is shown to the students that are in the meeting and can speak to them as well.
-- **Enable Chat** Will enforce the SEB clients within the particular room to enable the chat feature and a proctor is able to chat with all students in the meeting.
-
-.. image:: images/monitoring/proctoringWindow.png
-    :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringWindow.png
+A proctor is also able to view the names of all participants of a room by right-clicking on the specified room action.
+SEB server will then open a dialog with a list of all participants. Double-clicking on a particular participant will automatically
+load the detailed monitoring view of that participant.
     
 **Town-hall Feature**
     
@@ -120,6 +121,22 @@ When the single room is closed the connected SEB clients is enforced to leave th
 .. image:: images/monitoring/proctoringClient.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringClient.png
+
+**Boradcast Features**
+
+Within a live proctoring window a proctor can use the enabled features of the integrated meeting service. And is able to communicate with the SEB clients by using one
+of the following features if available for the service:
+
+- **Start Audio Broadcast** Will enforce the SEB clients within the particular room to enable receive audio and a proctor can speak to the students that are in the meeting.
+- **Start Video Broadcast** Will enforce the SEB clients within the particular room to enable receive audio and video and proctor is shown to the students that are in the meeting and can speak to them as well.
+- **Enable Chat** Will enforce the SEB clients within the particular room to enable the chat feature and a proctor is able to chat with all students in the meeting.
+
+While a broadcast feature is enabled by a proctor, the SEB Server sends an instruction to each SEB client that is within the same meeting to display the meeting client.
+A Student as well as a proctor is then able to use all the features of the meeting client of the integrated meeting service.
+
+.. image:: images/monitoring/proctoringWindow.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringWindow.png
 
 
 All SEB Client Logs
@@ -152,4 +169,12 @@ To delete all currently filtered client logs, please use the "Delete Logs" actio
 .. note:: 
     On deletion, all available logs will permanantly be deleted from the persistent storage. So please make sure you want to delete all
     logs that are currently displayed in the list before deleting.
+    
+    
+**Known Issues**
+
+- Within the Zoom service it often happens that a participant appear twice in a room or meeting. This is probably caused by SEB clients rejoining the meetings while rooms or feature settings are changed.
+- In Zoom it is not possible to fully control a participant microphone. Therefore it may happen that participant can hear each other even if no proctor is in the meeting.
+- Within Jitsi Meet service when a proctor leaves the room it currently happens that a random participant became host/moderator since it is not possible in Jitsi Meet to have a meeting without host. We try to mitigate the problem with the `moderator plugin <https://github.com/nvonahsen/jitsi-token-moderation-plugin>`_ or `Jitsi Meet SaS <https://jaas.8x8.vc/#/>`_
+- In both services while broadcasting, it is not guaranteed that a student always see the proctor. Usually the meeting service shows or pins the participant that is currently speaking automatically.
  

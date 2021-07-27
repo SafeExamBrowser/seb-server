@@ -1,12 +1,12 @@
-.. _certifications-label:
+.. _certificates-label:
 
-Certifications
+Certificates
 ====================
 
 Overview
 --------
 
-To be bale to upload and store certificates within SEB Server is a new feature since SEB Server version 1.2. This allows an institutional administrator
+Import and store X.509 certificates within SEB Server is a new feature since SEB Server version 1.2. This allows an institutional administrator
 or an exam administrator to upload and store certificates for further use within SEB Server.
 
 .. note:: 
