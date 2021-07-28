@@ -10,19 +10,33 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.cache.CacheManager;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
+
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -47,19 +61,21 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat.OlatLmsData.AssessmentData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat.OlatLmsData.UserData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat.OlatLmsData.RestrictionData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat.OlatLmsData.RestrictionDataPost;
 
 public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements LmsAPITemplate {
 
-    // TODO add needed dependencies here
+    private static final Logger log = LoggerFactory.getLogger(OlatLmsAPITemplate.class);
+
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final ClientCredentialService clientCredentialService;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
     private final Long lmsSetupId;
 
     protected OlatLmsAPITemplate(
-
-            // TODO if you need more dependencies inject them here and set the reference
-
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final ClientCredentialService clientCredentialService,
             final APITemplateDataSupplier apiTemplateDataSupplier,
@@ -95,32 +111,33 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final LmsSetupTestResult testLmsSetupSettings = testLmsSetupSettings();
         if (testLmsSetupSettings.hasAnyError()) {
             return testLmsSetupSettings;
-        } else {
-
         }
-
-        // TODO check if the course API of the remote LMS is available
-        // if not, create corresponding LmsSetupTestResult error
-        return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.OPEN_OLAT, "TODO: implement LMS access check");
-
-        //return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
+        // TODO: improve error handling
+        try {
+            final RestTemplate restTemplate = this.getRestTemplate().get();
+        }
+        catch (Exception e) {
+            return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.OPEN_OLAT, "Unspecific error connecting to OLAT API");
+        }
+        return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
     }
 
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
-        final LmsSetupTestResult testLmsSetupSettings = testLmsSetupSettings();
+        // TODO: Any reason to implement a separate check or is this good enough?
+        return testCourseAccessAPI();
+
+        /*final LmsSetupTestResult testLmsSetupSettings = testLmsSetupSettings();
         if (testLmsSetupSettings.hasAnyError()) {
             return testLmsSetupSettings;
         }
 
         if (LmsType.OPEN_OLAT.features.contains(Features.SEB_RESTRICTION)) {
 
-            // TODO check if the course API of the remote LMS is available
-            // if not, create corresponding LmsSetupTestResult error
-
         }
 
         return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
+        */
     }
 
     private LmsSetupTestResult testLmsSetupSettings() {
@@ -207,62 +224,96 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
-
-        @SuppressWarnings("unused")
-        final String quizName = filterMap.getString(QuizData.FILTER_ATTR_QUIZ_NAME);
-        @SuppressWarnings("unused")
-        final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
-
         return () -> {
-
-            // TODO Get all course / quiz data from remote LMS that matches the filter criteria.
-            //      If the LMS API uses paging, go through all pages using the filter criteria
-            //      and collect the course data.
-            //      Transform the data from courses / quizzes from LMS into QuizData objects
-            //      Put loaded QuizData objects to the cache: super.putToCache(quizDataCollection);
-            //      before returning it.
-
-            throw new RuntimeException("TODO");
+          List<QuizData> res = getRestTemplate()
+                .map(t -> this.collectAllQuizzes(t, filterMap))
+                .getOrThrow();
+          super.putToCache(res);
+          return res;
         };
+    }
+
+    private String examUrl(long olatTestId) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        // TODO: at the moment, we don't know olatTestId because we get the assessment mode id (a.key), not the test id.
+        return lmsSetup.lmsApiUrl + "/auth/RepositoryEntry/" + olatTestId;
+    }
+
+    private List<QuizData> collectAllQuizzes(final OlatLmsRestTemplate restTemplate, final FilterMap filterMap) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final String quizName = filterMap.getString(QuizData.FILTER_ATTR_QUIZ_NAME);
+        final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
+        final long fromCutTime = (quizFromTime != null) ? Utils.toUnixTimeInSeconds(quizFromTime) : -1;
+
+        String url = "/restapi/assessment_modes/seb?";
+        if (fromCutTime != -1) { url = String.format("%sdateFrom=%s&", url, fromCutTime); }
+        if (quizName != null) { url = String.format("%sname=%s&", url, quizName); }
+
+        final List<AssessmentData> as = this.apiGetList(restTemplate, url, new ParameterizedTypeReference<List<AssessmentData>>(){});
+        return as.stream()
+          .map(a -> new QuizData(
+                String.format("%d", a.key),
+                lmsSetup.getInstitutionId(),
+                lmsSetup.id,
+                lmsSetup.getLmsType(),
+                a.name,
+                a.description,
+                Utils.toDateTimeUTC(a.dateFrom),
+                Utils.toDateTimeUTC(a.dateTo),
+                examUrl(a.key),
+                new HashMap<String, String>()))
+          .collect(Collectors.toList());
     }
 
     @Override
     protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
-
-        return () -> {
-
-            // TODO get all quiz / course data for specified identifiers from remote LMS
-            //      Transform the data from courses / quizzes from LMS into QuizData objects
-            //      and put it to the cache: super.putToCache(quizDataCollection);
-            //      before returning it.
-
-            throw new RuntimeException("TODO");
-        };
+        return () -> ids.stream().map(id -> quizSupplier(id).get()).collect(Collectors.toList());
     }
 
     @Override
     protected Supplier<QuizData> quizSupplier(final String id) {
-
-        return () -> {
-
-            // TODO get the specified quiz / course data for specified identifier from remote LMS
-            //      and put it to the cache: super.putToCache(quizDataCollection);
-            //      before returning it.
-
-            throw new RuntimeException("TODO");
-        };
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        return () -> getRestTemplate()
+              .map(t -> this.quizById(t, id))
+              .getOrThrow();
     }
 
+    private QuizData quizById(final OlatLmsRestTemplate restTemplate, final String id) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final String url = String.format("/restapi/assessment_modes/%s", id);
+        final AssessmentData a = this.apiGet(restTemplate, url, AssessmentData.class);
+        return new QuizData(
+                String.format("%d", a.key),
+                lmsSetup.getInstitutionId(),
+                lmsSetup.id,
+                lmsSetup.getLmsType(),
+                a.name,
+                a.description,
+                Utils.toDateTimeUTC(a.dateFrom),
+                Utils.toDateTimeUTC(a.dateTo),
+                examUrl(a.key),
+                new HashMap<String, String>());
+    }
+
+    private ExamineeAccountDetails getExamineeById(final RestTemplate restTemplate, final String id) {
+        final String url = String.format("/restapi/users/%s/name_username", id);
+        final UserData u = this.apiGet(restTemplate, url, UserData.class);
+        final Map<String, String> attrs = new HashMap<>();
+        return new ExamineeAccountDetails(
+                  String.valueOf(u.key),
+                  u.lastName + ", " + u.firstName,
+                  u.username,
+                  // TODO: other placeholder value? null?
+                  "OLAT does not provide email addresses",
+                  attrs);
+    }
+
+
     @Override
-    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId) {
-
-        return () -> {
-
-            // TODO get the examinee's account details by the given examineeSessionId from remote LMS.
-            //      Currently only the name is needed to display on monitoring view.
-
-            throw new RuntimeException("TODO");
-        };
+    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String id) {
+        return () -> getRestTemplate()
+                .map(t -> this.getExamineeById(t, id))
+                .getOrThrow();
     }
 
     @Override
@@ -272,33 +323,43 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         };
     }
 
+    private SEBRestriction getRestrictionForAssignmentId(final RestTemplate restTemplate, String id) {
+        final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
+        final RestrictionData r = this.apiGet(restTemplate, url, RestrictionData.class);
+        return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());
+    }
+
+    private SEBRestriction setRestrictionForAssignmentId(final RestTemplate restTemplate, String id, SEBRestriction restriction) {
+        final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
+        final RestrictionDataPost post = new RestrictionDataPost();
+        post.browserExamKeys = new ArrayList<>(restriction.browserExamKeys);
+        post.configKeys = new ArrayList<>(restriction.configKeys);
+        final RestrictionData r = this.apiPost(restTemplate, url, post, RestrictionDataPost.class, RestrictionData.class);
+        return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());
+    }
+
+    private SEBRestriction deleteRestrictionForAssignmentId(final RestTemplate restTemplate, String id) {
+        final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
+        final RestrictionData r = this.apiDelete(restTemplate, url, RestrictionData.class);
+        // OLAT returns RestrictionData with null values upon deletion.
+        // We return it here for consistency, even though SEB server does not need it
+        return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());
+    }
+
     @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
-        @SuppressWarnings("unused")
-        final String quizId = exam.externalId;
-
-        return Result.tryCatch(() -> {
-
-            // TODO get the SEB client restrictions that are currently set on the remote LMS for
-            //      the given quiz / course derived from the given exam
-
-            throw new RuntimeException("TODO");
-        });
+        return Result.of(getRestTemplate()
+                .map(t -> this.getRestrictionForAssignmentId(t, exam.externalId))
+                .getOrThrow());
     }
 
     @Override
     public Result<SEBRestriction> applySEBClientRestriction(
             final String externalExamId,
             final SEBRestriction sebRestrictionData) {
-
-        return Result.tryCatch(() -> {
-
-            // TODO apply the given sebRestrictionData settings as current SEB client restriction setting
-            //      to the remote LMS for the given quiz / course.
-            //      Mainly SEBRestriction.configKeys and SEBRestriction.browserExamKeys
-
-            throw new RuntimeException("TODO");
-        });
+        return Result.of(getRestTemplate()
+                .map(t -> this.setRestrictionForAssignmentId(t, externalExamId, sebRestrictionData))
+                .getOrThrow());
     }
 
     @Override
@@ -306,22 +367,57 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         @SuppressWarnings("unused")
         final String quizId = exam.externalId;
 
-        return Result.tryCatch(() -> {
-
-            // TODO Release respectively delete all SEB client restrictions for the given
-            //      course / quize on the remote LMS.
-
-            throw new RuntimeException("TODO");
-        });
+        return Result.of(getRestTemplate()
+                .map(t -> this.deleteRestrictionForAssignmentId(t, exam.externalId))
+                .map(x -> exam)
+                .getOrThrow());
     }
 
-    // TODO: This is an example of how to create a RestTemplate for the service to access the LMS API
-    //       The example deals with a Http based API that is secured by an OAuth2 client-credential flow.
-    //       You might need some different template, then you have to adapt this code
-    //       To your needs.
-    @SuppressWarnings("unused")
-    private OAuth2RestTemplate createRestTemplate(final String accessTokenRequestPath) {
+    private <T> T apiGet(final RestTemplate restTemplate, String url, Class<T> type) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final ResponseEntity<T> res = restTemplate.exchange(
+                lmsSetup.lmsApiUrl + url,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                type);
+        return res.getBody();
+    }
 
+    private <T> List<T> apiGetList(final RestTemplate restTemplate, String url, ParameterizedTypeReference<List<T>> type) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final ResponseEntity<List<T>> res = restTemplate.exchange(
+                lmsSetup.lmsApiUrl + url,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                type);
+        return res.getBody();
+    }
+
+    private <P,R> R apiPost(final RestTemplate restTemplate, String url, P post, Class<P> postType, Class<R> responseType) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("content-type", "application/json");
+        HttpEntity<P> requestEntity = new HttpEntity<>(post, httpHeaders);
+        final ResponseEntity<R> res = restTemplate.exchange(
+                lmsSetup.lmsApiUrl + url,
+                HttpMethod.POST,
+                requestEntity,
+                responseType);
+        return res.getBody();
+    }
+
+    private <T> T apiDelete(final RestTemplate restTemplate, String url, Class<T> type) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final ResponseEntity<T> res = restTemplate.exchange(
+                lmsSetup.lmsApiUrl + url,
+                HttpMethod.DELETE,
+                HttpEntity.EMPTY,
+                type);
+        return res.getBody();
+    }
+
+    private Result<OlatLmsRestTemplate> getRestTemplate() {
+        // TODO: cache/reuse authenticated template for more than 1 request?
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
         final ProxyData proxyData = this.apiTemplateDataSupplier.getProxyData();
@@ -332,7 +428,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 .getOrThrow();
 
         final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
-        details.setAccessTokenUri(lmsSetup.lmsApiUrl + accessTokenRequestPath);
+        details.setAccessTokenUri(lmsSetup.lmsApiUrl + "/restapi/auth/");
         details.setClientId(plainClientId.toString());
         details.setClientSecret(plainClientSecret.toString());
 
@@ -340,10 +436,10 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 .getClientHttpRequestFactory(proxyData)
                 .getOrThrow();
 
-        final OAuth2RestTemplate template = new OAuth2RestTemplate(details);
+        final OlatLmsRestTemplate template = new OlatLmsRestTemplate(details);
         template.setRequestFactory(clientHttpRequestFactory);
 
-        return template;
+        return Result.of(template);
     }
 
 }
