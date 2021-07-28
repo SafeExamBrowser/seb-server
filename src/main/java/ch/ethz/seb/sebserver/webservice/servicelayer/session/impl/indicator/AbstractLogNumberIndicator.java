@@ -86,6 +86,7 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
             } else {
                 return super.currentValue;
             }
+
         } catch (final Exception e) {
             log.error("Failed to get indicator number from persistent storage: {}", e.getMessage());
             return this.currentValue;

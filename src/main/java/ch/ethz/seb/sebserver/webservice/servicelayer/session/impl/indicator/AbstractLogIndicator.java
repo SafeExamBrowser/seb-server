@@ -44,6 +44,7 @@ public abstract class AbstractLogIndicator extends AbstractClientIndicator {
             final boolean cachingEnabled) {
 
         super.init(indicatorDefinition, connectionId, active, cachingEnabled);
+        super.persistentUpdateInterval = 2 * Constants.SECOND_IN_MILLIS;
 
         if (indicatorDefinition == null || StringUtils.isBlank(indicatorDefinition.tags)) {
             this.tags = null;

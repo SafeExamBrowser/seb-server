@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 
 /** A Service to handle running exam sessions */
@@ -177,6 +178,15 @@ public interface ExamSessionService {
      * @param exam The Exam instance
      * @return Result with reference to the given Exam or to an error if happened */
     Result<Exam> flushCache(final Exam exam);
+
+    /** Is is supposed to be the single access point to internally get client connection
+     * data for a specified connection token.
+     * This uses the client connection data cache for lookup and also synchronizes asynchronous
+     * cache calls to prevent parallel creation of ClientConnectionDataInternal
+     *
+     * @param connectionToken the connection token of the active SEB client connection
+     * @return ClientConnectionDataInternal by synchronized cache lookup or null if not available */
+    ClientConnectionDataInternal getConnectionDataInternal(String connectionToken);
 
     /** Checks if the given ClientConnectionData is an active SEB client connection.
      *
