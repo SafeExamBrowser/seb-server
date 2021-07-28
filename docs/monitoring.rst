@@ -102,6 +102,10 @@ SEB Server will then open a proctoring window and join the proctor to the meetin
 A proctor is also able to view the names of all participants of a room by right-clicking on the specified room action.
 SEB server will then open a dialog with a list of all participants. Double-clicking on a particular participant will automatically
 load the detailed monitoring view of that participant.
+
+.. note:: 
+    A collecting room, once created will live as long as the exam is running and not has been deleted. When the exam ends or is been deleted,
+    the collecting room will automatically get deleted on the SEB Server's persistent storage as well as on the meeting service side if needed.
     
 **Town-hall Feature**
     

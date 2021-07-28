@@ -37,8 +37,8 @@ create these collecting rooms while SEB clients are connecting to the running ex
 
 After you have all the settings set, use "OK" to confirm the settings. SEB Server will then try to connect to the meeting service with the given settings and check the access.
 
-Another part of proctoring settings can be found in the "Exam Configuration" "SEB Settings". There is a new tab with the name "Proctoring" where all SEB settings for proctoring are available.
-These settings are directly used by a SEB client that supports the proctoring feature. 
+The SEB client settings for proctoring can be found in the "Exam Configuration" "SEB Settings". There is a new tab with the name "Proctoring" where all SEB settings for proctoring are available.
+These settings are directly used by a SEB client that supports the proctoring feature. SEB will initialize with this settings when connecting to SEB Server and also will use this settings as default settings during an exam.
     
 .. image:: images/exam/proctoringSEBSettings.png
     :align: center
