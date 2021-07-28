@@ -19,15 +19,17 @@ public final class OlatLmsData {
     static public final class AssessmentData {
         /* OLAT API example:
           {
-            "key":7405568,
-            "name":"Test1",
-            "description":"",
-            "courseName":"test",
-            "dateFrom":1626515100000,
-            "dateTo":1626523260000
+            "courseName": "course 1",
+            "dateFrom": 1624420800000,
+            "dateTo": 1624658400000,
+            "description": "",
+            "assessmentModeKey": 6356992,
+            “repositoryEntryKey”: 462324,
+            "name": "SEB test"
           }
          */
-        public long key;
+        public long assessmentModeKey;
+        public long repositoryEntryKey;
         public String name;
         public String description;
         public String courseName;

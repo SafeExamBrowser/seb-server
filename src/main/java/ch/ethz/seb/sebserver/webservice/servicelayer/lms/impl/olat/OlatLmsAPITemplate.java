@@ -252,7 +252,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final List<AssessmentData> as = this.apiGetList(restTemplate, url, new ParameterizedTypeReference<List<AssessmentData>>(){});
         return as.stream()
           .map(a -> new QuizData(
-                String.format("%d", a.key),
+                String.format("%d", a.assessmentModeKey),
                 lmsSetup.getInstitutionId(),
                 lmsSetup.id,
                 lmsSetup.getLmsType(),
@@ -260,7 +260,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 a.description,
                 Utils.toDateTimeUTC(a.dateFrom),
                 Utils.toDateTimeUTC(a.dateTo),
-                examUrl(a.key),
+                examUrl(a.repositoryEntryKey),
                 new HashMap<String, String>()))
           .collect(Collectors.toList());
     }
@@ -283,7 +283,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final String url = String.format("/restapi/assessment_modes/%s", id);
         final AssessmentData a = this.apiGet(restTemplate, url, AssessmentData.class);
         return new QuizData(
-                String.format("%d", a.key),
+                String.format("%d", a.assessmentModeKey),
                 lmsSetup.getInstitutionId(),
                 lmsSetup.id,
                 lmsSetup.getLmsType(),
@@ -291,7 +291,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 a.description,
                 Utils.toDateTimeUTC(a.dateFrom),
                 Utils.toDateTimeUTC(a.dateTo),
-                examUrl(a.key),
+                examUrl(a.repositoryEntryKey),
                 new HashMap<String, String>());
     }
 
