@@ -159,8 +159,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .getOrThrow();
 
             // load client connection data into cache
-            final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-                    .getClientConnection(connectionToken);
+            final ClientConnectionDataInternal activeClientConnection = this.examSessionService
+                    .getConnectionDataInternal(connectionToken);
 
             if (activeClientConnection == null) {
                 log.warn("Failed to load ClientConnectionDataInternal into cache on update");
@@ -567,7 +567,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final int pingNumber) {
 
         final ClientConnectionDataInternal activeClientConnection =
-                this.examSessionCacheService.getClientConnection(connectionToken);
+                this.examSessionService.getConnectionDataInternal(connectionToken);
 
         if (activeClientConnection != null) {
             activeClientConnection.notifyPing(timestamp, pingNumber);
@@ -583,7 +583,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         try {
             final ClientConnectionDataInternal activeClientConnection =
-                    this.examSessionCacheService.getClientConnection(connectionToken);
+                    this.examSessionService.getConnectionDataInternal(connectionToken);
 
             if (activeClientConnection != null) {
 
@@ -748,7 +748,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         // evict cached ClientConnection
         this.examSessionCacheService.evictClientConnection(connectionToken);
         // and load updated ClientConnection into cache
-        return this.examSessionCacheService.getClientConnection(connectionToken);
+        return this.examSessionService.getConnectionDataInternal(connectionToken);
     }
 
     private Consumer<ClientConnectionDataInternal> missingPingUpdate(final long now) {

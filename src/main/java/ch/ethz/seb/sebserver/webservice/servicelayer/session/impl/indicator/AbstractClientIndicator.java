@@ -23,6 +23,7 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
     protected Long connectionId;
     protected boolean cachingEnabled;
     protected boolean active = true;
+    protected long persistentUpdateInterval = PERSISTENT_UPDATE_INTERVAL;
     protected long lastPersistentUpdate = 0;
 
     protected boolean valueInitializes = false;
@@ -72,7 +73,7 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
         }
 
         if (!this.cachingEnabled && this.active) {
-            if (now - this.lastPersistentUpdate > PERSISTENT_UPDATE_INTERVAL) {
+            if (now - this.lastPersistentUpdate > this.persistentUpdateInterval) {
                 this.currentValue = computeValueAt(now);
                 this.lastPersistentUpdate = now;
             }

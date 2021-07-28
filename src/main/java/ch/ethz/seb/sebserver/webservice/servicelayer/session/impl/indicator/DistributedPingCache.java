@@ -70,7 +70,12 @@ public class DistributedPingCache implements DisposableBean {
     @Transactional
     public Long initPingForConnection(final Long connectionId) {
         try {
-            Long recordId = this.clientEventLastPingMapper
+
+            if (log.isDebugEnabled()) {
+                log.trace("*** Initialize ping record for SEB connection: {}", connectionId);
+            }
+
+            final Long recordId = this.clientEventLastPingMapper
                     .pingRecordIdByConnectionId(connectionId);
 
             if (recordId == null) {
@@ -82,12 +87,41 @@ public class DistributedPingCache implements DisposableBean {
                 clientEventRecord.setServerTime(millisecondsNow);
                 this.clientEventRecordMapper.insert(clientEventRecord);
 
-                recordId = this.clientEventLastPingMapper.pingRecordIdByConnectionId(connectionId);
+                try {
+                    // This also double-check by trying again. If we have more then one entry here
+                    // this will throw an exception that causes a rollback
+                    return this.clientEventLastPingMapper
+                            .pingRecordIdByConnectionId(connectionId);
+
+                } catch (final Exception e) {
+
+                    log.warn("Detected multiple client ping entries for connection: " + connectionId
+                            + ". Force rollback to prevent");
+
+                    // force rollback
+                    throw new RuntimeException("Detected multiple client ping entries");
+                }
             }
 
             return recordId;
         } catch (final Exception e) {
+
             log.error("Failed to initialize ping for connection -> {}", connectionId, e);
+
+            // force rollback
+            throw new RuntimeException("Failed to initialize ping for connection -> " + connectionId, e);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Long getPingRecordIdForConnectionId(final Long connectionId) {
+        try {
+
+            return this.clientEventLastPingMapper
+                    .pingRecordIdByConnectionId(connectionId);
+
+        } catch (final Exception e) {
+            log.error("Failed to get ping record for connection id: {} cause: {}", connectionId, e.getMessage());
             return null;
         }
     }
@@ -108,6 +142,10 @@ public class DistributedPingCache implements DisposableBean {
     public void deletePingForConnection(final Long connectionId) {
         try {
 
+            if (log.isDebugEnabled()) {
+                log.debug("*** Delete ping record for SEB connection: {}", connectionId);
+            }
+
             this.clientEventRecordMapper
                     .deleteByExample()
                     .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(connectionId))
@@ -124,7 +162,11 @@ public class DistributedPingCache implements DisposableBean {
         try {
             Long ping = this.pingCache.get(pingRecordId);
             if (ping == null) {
-                log.debug("******* Get and cache ping time: {}", pingRecordId);
+
+                if (log.isDebugEnabled()) {
+                    log.debug("*** Get and cache ping time: {}", pingRecordId);
+                }
+
                 ping = this.clientEventLastPingMapper.selectPingTimeByPrimaryKey(pingRecordId);
                 if (ping != null) {
                     this.pingCache.put(pingRecordId, ping);
@@ -145,7 +187,9 @@ public class DistributedPingCache implements DisposableBean {
             return;
         }
 
-        log.debug("****** Update distributed ping cache: {}", this.pingCache);
+        if (log.isDebugEnabled()) {
+            log.trace("*** Update distributed ping cache: {}", this.pingCache);
+        }
 
         try {
             final ArrayList<Long> pks = new ArrayList<>(this.pingCache.keySet());
@@ -181,7 +225,6 @@ public class DistributedPingCache implements DisposableBean {
                 log.error("Failed to cancel distributed ping cache update task: ", e);
             }
         }
-
     }
 
 }
