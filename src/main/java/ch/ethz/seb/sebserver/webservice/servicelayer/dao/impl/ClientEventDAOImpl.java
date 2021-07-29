@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.joda.time.DateTimeUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -312,21 +313,6 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                     .stream()
                     .map(pk -> new EntityKey(String.valueOf(pk), EntityType.CLIENT_EVENT))
                     .collect(Collectors.toList());
-
-//            return all
-//                    .stream()
-//                    .map(EntityKey::getModelId)
-//                    .map(Long::parseLong)
-//                    .map(pk -> {
-//                        final int deleted = this.clientEventRecordMapper.deleteByPrimaryKey(pk);
-//                        if (deleted == 1) {
-//                            return new EntityKey(String.valueOf(pk), EntityType.CLIENT_EVENT);
-//                        } else {
-//                            return null;
-//                        }
-//                    })
-//                    .filter(Objects::nonNull)
-//                    .collect(Collectors.toList());
         });
     }
 
@@ -345,7 +331,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                 return lastPingRec.get(0);
             }
 
-            final long millisecondsNow = Utils.getMillisecondsNow();
+            final long millisecondsNow = DateTimeUtils.currentTimeMillis();
             final ClientEventRecord clientEventRecord = new ClientEventRecord();
             clientEventRecord.setClientConnectionId(connectionId);
             clientEventRecord.setType(EventType.LAST_PING.id);

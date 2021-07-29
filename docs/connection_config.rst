@@ -55,6 +55,7 @@ Short description of all attributes of a connection configuration:
   **Starting an Exam**; Will cause SEB to use this connection configuration settings on startup but won't change local SEB settings.
   **Configuring a connection**; Will cause SEB to use this connection configuration settings and also save it as local SEB settings.
 - **Configuration Password**: Used to encrypt the connection configuration with a password. A SEB client will prompt this password while loading a password protected connection configuration.
+- **Encrypt with Certificate**: Since version 1.2. Used to encrypt the connection configuration with a certificate. The same certificate must be known by a SEB client to be able to load the configuration.
 - **With Fallback**: Select this to see and define a fallback strategy for SEB clients using this connection configuration in case of SEB Server service unavailability.
 - **Fallback URL**: Defines a start URL that is loaded by the SEB client in a fallback case.
 - **Connection Attempts**: Defines the number of attempts a SEB client will try to unsuccessfully connect to the SEB Server service until it switches to the fallback case.
@@ -89,7 +90,7 @@ configuration settings in the following ways:
 
 - Connection configuration with "Starting an Exam" setting and fallback strategy:
     Show warning with options "retry", "fallback" (load Fallback URL) and "quit".
-
+    
 
 Use Cases
 ---------
@@ -134,4 +135,22 @@ that connects with this connection configuration will then receive an HTTP 401 U
 - Use the list filter and / or the list navigation to find the needed connection configuration and select the row of this connection configuration.
 - Now use the "Deactivate Connection Configuration" action from the right action pane to deactivate the connection configuration.
 - The connection configuration is now deactivated and SEB client using this connection configuration are not able to connect to SEB Server anymore.
+
+**Encrypt the Connection Configuration by password or certificate**
+
+To secure the used connection configuration you want to encrypt it with either password or certificate encryption. If you encrypt a connection
+configuration by password, SEB will promt the user for the password while loading the configuration whereas by using certificate encryption,
+a SEB client must know the same certificate that is been used for encryption while loading the configuration.
+
+- Sign in as an institutional administrator and select the "Connection Configuration" sub-menu of the "SEB Configuration" main-menu on the left.
+- Create an new connection configuration or use the list filter and / or the list navigation to find the needed connection configuration.
+- Fill in the settings as usual and for password encryption define a password in the "Configuration Password" field and confirm the password in the "Confirm Password" field.
+- For a certificate based encryption select one of the given certificates within the "Encrypt with Certificate" setting.
+- To upload new certificates that can be used for encryption, please refer to: :ref:`certificates-label`
+- "Use asymmetric only encryption" if you use SEB Clients with version before 2.2. For more details on this subject please see: `SEB Configuration <https://safeexambrowser.org/developer/seb-file-format.html>`_
+- Save and activate the connection configuration. The connection configuration will then be encrypted by either password or certificate on export.
+
+.. image:: images/connection_config/encrypt.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/connection_config/encrypt.png
 

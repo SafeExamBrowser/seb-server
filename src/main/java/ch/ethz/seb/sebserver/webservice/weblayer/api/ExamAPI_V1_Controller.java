@@ -270,7 +270,7 @@ public class ExamAPI_V1_Controller {
         final String instructionConfirm = request.getParameter(API.EXAM_API_PING_INSTRUCTION_CONFIRM);
 
         if (log.isTraceEnabled()) {
-            log.trace("****************** SEB client connection: {} ip: ",
+            log.trace("****************** SEB client connection: {} ip: {}",
                     connectionToken,
                     getClientAddress(request));
         }

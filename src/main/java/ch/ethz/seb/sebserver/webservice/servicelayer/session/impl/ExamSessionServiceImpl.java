@@ -309,12 +309,19 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
+    public ClientConnectionDataInternal getConnectionDataInternal(final String connectionToken) {
+        synchronized (this.examSessionCacheService) {
+            return this.examSessionCacheService.getClientConnection(connectionToken);
+        }
+    }
+
+    @Override
     public Result<ClientConnectionData> getConnectionData(final String connectionToken) {
 
         return Result.tryCatch(() -> {
 
-            final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-                    .getClientConnection(connectionToken);
+            final ClientConnectionDataInternal activeClientConnection =
+                    getConnectionDataInternal(connectionToken);
 
             if (activeClientConnection == null) {
                 throw new NoSuchElementException("Client Connection with token: " + connectionToken);
@@ -403,7 +410,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                         .getConnectionTokens(examId)
                         .getOrThrow()
                         .stream()
-                        .map(this.examSessionCacheService::getClientConnection)
+                        .map(this::getConnectionDataInternal)
                         .filter(Objects::nonNull)
                         .map(cc -> cc.getClientConnection().updateTime)
                         .collect(Collectors.toSet());

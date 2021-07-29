@@ -19,6 +19,10 @@ with context defines default values and also to be able to only see change the a
 This feature is currently in an experimental state and may be changed and / or expanded within future releases of SEB Server. See 
 :ref:`config-template-label`
 
+An new feature since SEB Server version 1.2 is the integrated certificate store where an administator is able to upload and register
+certificates. The certificates can then be used to encrypt and secure a connection configuration for example. Or as planed for another
+SEB Server release, to embed into an exam configuration for SEB to allow certificate pinning on SEB - LMS communication.
+
 
 .. toctree::
    :maxdepth: 1
@@ -26,3 +30,4 @@ This feature is currently in an experimental state and may be changed and / or e
    connection_config
    exam_config
    config_template
+   certificates

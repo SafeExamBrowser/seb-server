@@ -26,9 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 
 @Lazy
 @Component(IndicatorType.Names.LAST_PING)
@@ -46,8 +44,8 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     private boolean missingPing = false;
     private boolean hidden = false;
 
-    public PingIntervalClientIndicator(final ClientEventDAO clientEventDAO) {
-        super(clientEventDAO);
+    public PingIntervalClientIndicator(final DistributedPingCache distributedPingCache) {
+        super(distributedPingCache);
         this.cachingEnabled = true;
     }
 
@@ -129,17 +127,10 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
             // if this indicator is not missing ping
             if (!this.isMissingPing()) {
-
-                final Result<Long> lastPing = this.clientEventDAO
-                        .getLastPing(super.pingRecord.getId());
-
-                if (!lastPing.hasError()) {
-                    if (Double.isNaN(this.currentValue)) {
-                        return lastPing.get().doubleValue();
-                    }
-                    return Math.max(this.currentValue, lastPing.get().doubleValue());
-                } else {
-                    log.error("Failed to get last ping from persistent: {}", lastPing.getError().getMessage());
+                final Long lastPing = this.distributedPingCache.getLastPing(super.pingRecord);
+                if (lastPing != null) {
+                    final double doubleValue = lastPing.doubleValue();
+                    return Math.max(Double.isNaN(this.currentValue) ? doubleValue : this.currentValue, doubleValue);
                 }
             }
 
