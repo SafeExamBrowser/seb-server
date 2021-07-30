@@ -34,25 +34,26 @@ public class OlatLmsRestTemplate extends RestTemplate {
     public OlatLmsRestTemplate(ClientCredentialsResourceDetails details) {
         super();
         this.details = details;
-        authenticate();
 
         // Add X-OLAT-TOKEN request header to every request done using this RestTemplate
         this.getInterceptors().add(new ClientHttpRequestInterceptor(){
             @Override
             public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-                request.getHeaders().set("accept", "application/json");
-                // if we don't have a token (this is normal during authentication), just do the call
-                if (token == null) { return execution.execute(request, body); }
+                // if there's no token, authenticate first
+                if (token == null) { authenticate(); }
+                // when authenticating, just do a normal call
+                else if (token == "authenticating") { return execution.execute(request, body); }
                 // otherwise, add the X-OLAT-TOKEN
+                request.getHeaders().set("accept", "application/json");
                 request.getHeaders().set("X-OLAT-TOKEN", token);
                 ClientHttpResponse response = execution.execute(request, body);
-                log.debug("OLAT [regular API call] Response Headers: {}", response.getHeaders());
+                log.debug("OLAT [regular API call] {} Headers: {}", response.getStatusCode(), response.getHeaders());
                 // If we get a 401, re-authenticate and try once more
                 if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                     authenticate();
                     request.getHeaders().set("X-OLAT-TOKEN", token);
                     response = execution.execute(request, body);
-                    log.debug("OLAT [retry API call] Response Headers: {}", response.getHeaders());
+                    log.debug("OLAT [retry API call] {} Headers: {}", response.getStatusCode(), response.getHeaders());
                 }
                 return response;
             }
@@ -61,16 +62,21 @@ public class OlatLmsRestTemplate extends RestTemplate {
 
     private void authenticate() {
         // Authenticate with OLAT and store the received X-OLAT-TOKEN
-        token = null;
+        token = "authenticating";
         final String authUrl = String.format("%s%s?password=%s",
                 details.getAccessTokenUri(),
                 details.getClientId(),
                 details.getClientSecret());
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        ResponseEntity<String> response = this.getForEntity(authUrl, String.class);
-        HttpHeaders responseHeaders = response.getHeaders();
-        log.debug("OLAT [authenticate] Response Headers: {}", responseHeaders);
-        token = responseHeaders.getFirst("X-OLAT-TOKEN");
+        try {
+            ResponseEntity<String> response = this.getForEntity(authUrl, String.class);
+            HttpHeaders responseHeaders = response.getHeaders();
+            log.debug("OLAT [authenticate] {} Headers: {}", response.getStatusCode(), responseHeaders);
+            token = responseHeaders.getFirst("X-OLAT-TOKEN");
+        }
+        catch (Exception e) {
+            token = null;
+            throw e;
+        }
     }
 
 
