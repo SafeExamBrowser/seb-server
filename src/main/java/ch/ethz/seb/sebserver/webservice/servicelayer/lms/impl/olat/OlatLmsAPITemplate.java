@@ -75,6 +75,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     private final APITemplateDataSupplier apiTemplateDataSupplier;
     private final Long lmsSetupId;
 
+    private OlatLmsRestTemplate cachedRestTemplate;
+
     protected OlatLmsAPITemplate(
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final ClientCredentialService clientCredentialService,
@@ -112,9 +114,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         if (testLmsSetupSettings.hasAnyError()) {
             return testLmsSetupSettings;
         }
-        // TODO: improve error handling
         try {
-            final RestTemplate restTemplate = this.getRestTemplate().get();
+            this.getRestTemplate().get();
         }
         catch (Exception e) {
             return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.OPEN_OLAT, "Unspecific error connecting to OLAT API");
@@ -124,20 +125,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
-        // TODO: Any reason to implement a separate check or is this good enough?
         return testCourseAccessAPI();
-
-        /*final LmsSetupTestResult testLmsSetupSettings = testLmsSetupSettings();
-        if (testLmsSetupSettings.hasAnyError()) {
-            return testLmsSetupSettings;
-        }
-
-        if (LmsType.OPEN_OLAT.features.contains(Features.SEB_RESTRICTION)) {
-
-        }
-
-        return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
-        */
     }
 
     private LmsSetupTestResult testLmsSetupSettings() {
@@ -233,10 +221,9 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         };
     }
 
-    private String examUrl(long olatTestId) {
+    private String examUrl(long olatRepositoryId) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
-        // TODO: at the moment, we don't know olatTestId because we get the assessment mode id (a.key), not the test id.
-        return lmsSetup.lmsApiUrl + "/auth/RepositoryEntry/" + olatTestId;
+        return lmsSetup.lmsApiUrl + "/auth/RepositoryEntry/" + olatRepositoryId;
     }
 
     private List<QuizData> collectAllQuizzes(final OlatLmsRestTemplate restTemplate, final FilterMap filterMap) {
@@ -251,8 +238,9 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
         final List<AssessmentData> as = this.apiGetList(restTemplate, url, new ParameterizedTypeReference<List<AssessmentData>>(){});
         return as.stream()
-          .map(a -> new QuizData(
-                String.format("%d", a.assessmentModeKey),
+          .map(a -> {
+          return new QuizData(
+                String.format("%d", a.key),
                 lmsSetup.getInstitutionId(),
                 lmsSetup.id,
                 lmsSetup.getLmsType(),
@@ -261,7 +249,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 Utils.toDateTimeUTC(a.dateFrom),
                 Utils.toDateTimeUTC(a.dateTo),
                 examUrl(a.repositoryEntryKey),
-                new HashMap<String, String>()))
+                new HashMap<String, String>());})
           .collect(Collectors.toList());
     }
 
@@ -283,7 +271,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final String url = String.format("/restapi/assessment_modes/%s", id);
         final AssessmentData a = this.apiGet(restTemplate, url, AssessmentData.class);
         return new QuizData(
-                String.format("%d", a.assessmentModeKey),
+                String.format("%d", a.key),
                 lmsSetup.getInstitutionId(),
                 lmsSetup.id,
                 lmsSetup.getLmsType(),
@@ -303,8 +291,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                   String.valueOf(u.key),
                   u.lastName + ", " + u.firstName,
                   u.username,
-                  // TODO: other placeholder value? null?
-                  "OLAT does not provide email addresses",
+                  "OLAT API does not provide email addresses",
                   attrs);
     }
 
@@ -348,18 +335,16 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
-        return Result.of(getRestTemplate()
-                .map(t -> this.getRestrictionForAssignmentId(t, exam.externalId))
-                .getOrThrow());
+        return getRestTemplate()
+                .map(t -> this.getRestrictionForAssignmentId(t, exam.externalId));
     }
 
     @Override
     public Result<SEBRestriction> applySEBClientRestriction(
             final String externalExamId,
             final SEBRestriction sebRestrictionData) {
-        return Result.of(getRestTemplate()
-                .map(t -> this.setRestrictionForAssignmentId(t, externalExamId, sebRestrictionData))
-                .getOrThrow());
+        return getRestTemplate()
+                .map(t -> this.setRestrictionForAssignmentId(t, externalExamId, sebRestrictionData));
     }
 
     @Override
@@ -367,10 +352,9 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         @SuppressWarnings("unused")
         final String quizId = exam.externalId;
 
-        return Result.of(getRestTemplate()
+        return getRestTemplate()
                 .map(t -> this.deleteRestrictionForAssignmentId(t, exam.externalId))
-                .map(x -> exam)
-                .getOrThrow());
+                .map(x -> exam);
     }
 
     private <T> T apiGet(final RestTemplate restTemplate, String url, Class<T> type) {
@@ -417,29 +401,33 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     }
 
     private Result<OlatLmsRestTemplate> getRestTemplate() {
-        // TODO: cache/reuse authenticated template for more than 1 request?
-        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
-        final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
-        final ProxyData proxyData = this.apiTemplateDataSupplier.getProxyData();
+        return Result.tryCatch(() -> {
+            if (this.cachedRestTemplate != null) { return this.cachedRestTemplate; }
+            final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+            final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
+            final ProxyData proxyData = this.apiTemplateDataSupplier.getProxyData();
 
-        final CharSequence plainClientId = credentials.clientId;
-        final CharSequence plainClientSecret = this.clientCredentialService
-                .getPlainClientSecret(credentials)
-                .getOrThrow();
+            final CharSequence plainClientId = credentials.clientId;
+            final CharSequence plainClientSecret = this.clientCredentialService
+                    .getPlainClientSecret(credentials)
+                    .getOrThrow();
 
-        final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
-        details.setAccessTokenUri(lmsSetup.lmsApiUrl + "/restapi/auth/");
-        details.setClientId(plainClientId.toString());
-        details.setClientSecret(plainClientSecret.toString());
+            final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
+            details.setAccessTokenUri(lmsSetup.lmsApiUrl + "/restapi/auth/");
+            details.setClientId(plainClientId.toString());
+            details.setClientSecret(plainClientSecret.toString());
 
-        final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
-                .getClientHttpRequestFactory(proxyData)
-                .getOrThrow();
+            final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                    .getClientHttpRequestFactory(proxyData)
+                    .getOrThrow();
 
-        final OlatLmsRestTemplate template = new OlatLmsRestTemplate(details);
-        template.setRequestFactory(clientHttpRequestFactory);
+            final OlatLmsRestTemplate template = new OlatLmsRestTemplate(details);
+            template.setRequestFactory(clientHttpRequestFactory);
 
-        return Result.of(template);
+            this.cachedRestTemplate = template;
+
+            return this.cachedRestTemplate;
+        });
     }
 
 }

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -25,35 +26,53 @@ import org.springframework.http.client.ClientHttpResponse;
 
 public class OlatLmsRestTemplate extends RestTemplate {
 
-  private static final Logger log = LoggerFactory.getLogger(OlatLmsRestTemplate.class);
+    private static final Logger log = LoggerFactory.getLogger(OlatLmsRestTemplate.class);
 
-  public String token;
+    public String token;
+    private ClientCredentialsResourceDetails details;
 
-  public OlatLmsRestTemplate(ClientCredentialsResourceDetails details) {
+    public OlatLmsRestTemplate(ClientCredentialsResourceDetails details) {
         super();
-
-        // Authenticate with OLAT and store the received X-OLAT-TOKEN
-        final String authUrl = String.format("%s%s?password=%s",
-                details.getAccessTokenUri(),
-                details.getClientId(),
-                details.getClientSecret());
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.set("accept", "application/json");
-        ResponseEntity<String> response = this.getForEntity(authUrl, String.class);
-        HttpHeaders responseHeaders = response.getHeaders();
-        log.debug("OLAT Auth Response Headers: {}", responseHeaders);
-        token = responseHeaders.getFirst("X-OLAT-TOKEN");
+        this.details = details;
+        authenticate();
 
         // Add X-OLAT-TOKEN request header to every request done using this RestTemplate
         this.getInterceptors().add(new ClientHttpRequestInterceptor(){
             @Override
             public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-              request.getHeaders().set("X-OLAT-TOKEN", token);
-              request.getHeaders().set("accept", "application/json");
-              HttpHeaders responseHeaders = response.getHeaders();
-              return execution.execute(request, body);
+                request.getHeaders().set("accept", "application/json");
+                // if we don't have a token (this is normal during authentication), just do the call
+                if (token == null) { return execution.execute(request, body); }
+                // otherwise, add the X-OLAT-TOKEN
+                request.getHeaders().set("X-OLAT-TOKEN", token);
+                ClientHttpResponse response = execution.execute(request, body);
+                log.debug("OLAT [regular API call] Response Headers: {}", response.getHeaders());
+                // If we get a 401, re-authenticate and try once more
+                if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                    authenticate();
+                    request.getHeaders().set("X-OLAT-TOKEN", token);
+                    response = execution.execute(request, body);
+                    log.debug("OLAT [retry API call] Response Headers: {}", response.getHeaders());
+                }
+                return response;
             }
         });
-  }
+    }
+
+    private void authenticate() {
+        // Authenticate with OLAT and store the received X-OLAT-TOKEN
+        token = null;
+        final String authUrl = String.format("%s%s?password=%s",
+                details.getAccessTokenUri(),
+                details.getClientId(),
+                details.getClientSecret());
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        ResponseEntity<String> response = this.getForEntity(authUrl, String.class);
+        HttpHeaders responseHeaders = response.getHeaders();
+        log.debug("OLAT [authenticate] Response Headers: {}", responseHeaders);
+        token = responseHeaders.getFirst("X-OLAT-TOKEN");
+    }
+
+
 }
 

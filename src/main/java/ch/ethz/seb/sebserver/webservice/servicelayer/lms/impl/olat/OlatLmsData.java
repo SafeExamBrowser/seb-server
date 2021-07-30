@@ -23,12 +23,12 @@ public final class OlatLmsData {
             "dateFrom": 1624420800000,
             "dateTo": 1624658400000,
             "description": "",
-            "assessmentModeKey": 6356992,
+            "key": 6356992,
             “repositoryEntryKey”: 462324,
             "name": "SEB test"
           }
          */
-        public long assessmentModeKey;
+        public long key;
         public long repositoryEntryKey;
         public String name;
         public String description;
