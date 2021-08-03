@@ -42,7 +42,7 @@ public class OlatLmsRestTemplate extends RestTemplate {
                 // if there's no token, authenticate first
                 if (token == null) { authenticate(); }
                 // when authenticating, just do a normal call
-                else if (token == "authenticating") { return execution.execute(request, body); }
+                else if (token.equals("authenticating")) { return execution.execute(request, body); }
                 // otherwise, add the X-OLAT-TOKEN
                 request.getHeaders().set("accept", "application/json");
                 request.getHeaders().set("X-OLAT-TOKEN", token);
