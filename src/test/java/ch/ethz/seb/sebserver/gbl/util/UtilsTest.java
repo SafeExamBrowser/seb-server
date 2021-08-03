@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.eclipse.swt.graphics.RGB;
+import org.joda.time.DateTimeUtils;
 import org.junit.Test;
 
 public class UtilsTest {
@@ -64,6 +65,15 @@ public class UtilsTest {
         final RGB color = new RGB(255, 255, 255);
         assertEquals("ffffff", Utils.parseColorString(color));
 
+    }
+
+    @Test
+    public void testTimestamp() {
+        final long currentTimeMillis = DateTimeUtils.currentTimeMillis();
+        final long millisecondsNow = Utils.getMillisecondsNow();
+        System.out.println("************* currentTimeMillis: " + currentTimeMillis);
+        System.out.println("************* millisecondsNow: " + millisecondsNow);
+        System.out.println("************* div: " + (millisecondsNow - currentTimeMillis));
     }
 
 }

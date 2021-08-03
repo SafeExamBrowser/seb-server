@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.graphics.RGB;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -522,11 +523,11 @@ public final class Utils {
     }
 
     public static long getMillisecondsNow() {
-        return DateTime.now(DateTimeZone.UTC).getMillis();
+        return DateTimeUtils.currentTimeMillis();
     }
 
     public static long getSecondsNow() {
-        return DateTime.now(DateTimeZone.UTC).getMillis() / 1000;
+        return getMillisecondsNow() / 1000;
     }
 
     public static RGB toRGB(final String rgbString) {
