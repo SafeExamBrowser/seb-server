@@ -118,7 +118,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             this.getRestTemplate().get();
         }
         catch (Exception e) {
-            return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.OPEN_OLAT, "Unspecific error connecting to OLAT API");
+            log.error("Failed to access OLAT course API: ", e);
+            return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.OPEN_OLAT, e.getMessage());
         }
         return LmsSetupTestResult.ofOkay(LmsType.OPEN_OLAT);
     }
@@ -349,9 +350,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     @Override
     public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
-        @SuppressWarnings("unused")
         final String quizId = exam.externalId;
-
         return getRestTemplate()
                 .map(t -> this.deleteRestrictionForAssignmentId(t, exam.externalId))
                 .map(x -> exam);
@@ -403,6 +402,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     private Result<OlatLmsRestTemplate> getRestTemplate() {
         return Result.tryCatch(() -> {
             if (this.cachedRestTemplate != null) { return this.cachedRestTemplate; }
+
             final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
             final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
             final ProxyData proxyData = this.apiTemplateDataSupplier.getProxyData();
@@ -425,7 +425,6 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             template.setRequestFactory(clientHttpRequestFactory);
 
             this.cachedRestTemplate = template;
-
             return this.cachedRestTemplate;
         });
     }

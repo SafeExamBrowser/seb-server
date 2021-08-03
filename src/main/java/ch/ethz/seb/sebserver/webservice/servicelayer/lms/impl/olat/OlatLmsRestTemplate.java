@@ -28,7 +28,7 @@ public class OlatLmsRestTemplate extends RestTemplate {
 
     private static final Logger log = LoggerFactory.getLogger(OlatLmsRestTemplate.class);
 
-    public String token;
+    private String token;
     private ClientCredentialsResourceDetails details;
 
     public OlatLmsRestTemplate(ClientCredentialsResourceDetails details) {
@@ -68,8 +68,8 @@ public class OlatLmsRestTemplate extends RestTemplate {
                 details.getClientId(),
                 details.getClientSecret());
         try {
-            ResponseEntity<String> response = this.getForEntity(authUrl, String.class);
-            HttpHeaders responseHeaders = response.getHeaders();
+            final ResponseEntity<String> response = this.getForEntity(authUrl, String.class);
+            final HttpHeaders responseHeaders = response.getHeaders();
             log.debug("OLAT [authenticate] {} Headers: {}", response.getStatusCode(), responseHeaders);
             token = responseHeaders.getFirst("X-OLAT-TOKEN");
         }
