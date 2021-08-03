@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
@@ -43,6 +45,20 @@ import ch.ethz.seb.sebserver.gui.widget.Message;
 public class ComposerServiceImpl implements ComposerService {
 
     private static final Logger log = LoggerFactory.getLogger(ComposerServiceImpl.class);
+
+    public static final String TABINDEX_RESET_SCRIPT =
+            "try {\n"
+                    + "    document.body.setAttribute(\"tabindex\", \"0\");\n"
+                    + "    var items = document.body.getElementsByTagName('div');\n"
+                    + "    console.log('*** '+items.length);\n"
+                    + "    for (i = 0; i < items.length; i++) {\n"
+                    + "        if(items[i].hasAttribute(\"tabindex\")) {\n"
+                    + "            items[i].setAttribute(\"tabindex\", \"0\");\n"
+                    + "        }\n"
+                    + "    }\n"
+                    + "} catch (error) {\n"
+                    + "  console.error(error);\n"
+                    + "}";
 
     private final Class<? extends PageDefinition> loginPageType = DefaultLoginPage.class;
     private final Class<? extends PageDefinition> mainPageType = DefaultMainPage.class;
@@ -138,6 +154,11 @@ public class ComposerServiceImpl implements ComposerService {
             PageService.clearComposite(pageContext.getParent());
 
             try {
+
+                // apply tabindex reset script
+                final JavaScriptExecutor executor = RWT.getClient().getService(JavaScriptExecutor.class);
+                executor.execute(ComposerServiceImpl.TABINDEX_RESET_SCRIPT);
+
                 composer.compose(pageContext);
                 PageService.updateScrolledComposite(pageContext.getParent());
 

@@ -11,8 +11,9 @@ package ch.ethz.seb.sebserver.gui.service.page;
 /** interface defining a RAP page template composer */
 public interface TemplateComposer {
 
-    /** Validate given PageContext for completeness to compose a specific  TemplateComposer implementation
-     *  Default returns always true.
+    /** Validate given PageContext for completeness to compose a specific TemplateComposer implementation
+     * Default returns always true.
+     *
      * @param pageContext The PageContext instance to check
      * @return true if the PageContext contains all mandatory data to compose this page template */
     default boolean validate(final PageContext pageContext) {

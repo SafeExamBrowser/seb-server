@@ -58,6 +58,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.impl.ComposerServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.page.impl.DefaultPageLayout;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 
@@ -944,6 +945,14 @@ public class WidgetFactory {
             final String $el = widget instanceof Text ? "$input" : "$el";
             final String id = WidgetUtil.getId(widget);
             exec("rap.getObject( '", id, "' ).", $el, ".attr( '", name, "', '", value, "' );");
+
+            // apply tabindex reset script
+            final JavaScriptExecutor executor = RWT.getClient().getService(JavaScriptExecutor.class);
+            executor.execute(ComposerServiceImpl.TABINDEX_RESET_SCRIPT);
+//            exec("rap.getObject( '", id, "' ).", $el, ".attr( 'tabindex', '0' );");
+//            if (widget instanceof Text) {
+//                exec("rap.getObject( '", id, "' ).$el.attr( 'tabindex', '0' );");
+//            }
         }
     }
 

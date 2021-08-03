@@ -12,12 +12,10 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.internal.widgets.IControlAdapter;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
@@ -30,7 +28,6 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -142,11 +139,6 @@ public class LoginPage implements TemplateComposer {
             registerButton.setLayoutData(gridData);
             registerButton.addListener(SWT.Selection, event -> pageContext.forwardToPage(this.defaultRegisterPage));
         }
-
-        ComposerService.traversePageTree(
-                parent,
-                comp -> comp instanceof Control,
-                comp -> comp.getAdapter(IControlAdapter.class).setTabIndex(0));
     }
 
     private void login(
