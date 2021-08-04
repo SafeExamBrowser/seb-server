@@ -147,7 +147,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
             // release the update-locks on involved exams
             for (final Long examId : examIdsFirstCheck) {
-                this.examDAO.releaseLock(examId, updateId)
+                this.examDAO
+                        .releaseLock(examId, updateId)
                         .onError(t -> log.error("Failed to release lock for Exam: {}", examId, t));
             }
 
