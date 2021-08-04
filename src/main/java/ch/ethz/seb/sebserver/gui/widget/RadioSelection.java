@@ -44,6 +44,11 @@ public final class RadioSelection extends Composite implements Selection {
     }
 
     @Override
+    public void setAriaLabel(final String label) {
+        WidgetFactory.setARIALabel(this, label);
+    }
+
+    @Override
     public Type type() {
         return Type.RADIO;
     }

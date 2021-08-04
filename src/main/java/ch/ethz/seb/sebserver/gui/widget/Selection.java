@@ -49,6 +49,8 @@ public interface Selection {
 
     void setToolTipText(String tooltipText);
 
+    void setAriaLabel(String label);
+
     default void applyToolTipsForItems(final List<Tuple<String>> mapping) {
         throw new UnsupportedOperationException("Must be implemented for this specific Selection");
     }

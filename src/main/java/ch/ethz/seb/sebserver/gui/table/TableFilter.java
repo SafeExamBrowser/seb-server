@@ -375,7 +375,8 @@ public class TableFilter<ROW> {
                     .selectionLocalized(
                             ch.ethz.seb.sebserver.gui.widget.Selection.Type.SINGLE,
                             innerComposite,
-                            resourceSupplier);
+                            resourceSupplier,
+                            this.attribute.columnName);
 
             this.selector
                     .adaptToControl()

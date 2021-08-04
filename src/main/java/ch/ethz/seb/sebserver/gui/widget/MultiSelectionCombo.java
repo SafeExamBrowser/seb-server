@@ -102,6 +102,11 @@ public final class MultiSelectionCombo extends Composite implements Selection {
     }
 
     @Override
+    public void setAriaLabel(final String label) {
+        WidgetFactory.setARIALabel(this.dropDown, label);
+    }
+
+    @Override
     public Type type() {
         return Type.MULTI_COMBO;
     }

@@ -128,6 +128,11 @@ public final class ColorSelection extends Composite implements Selection {
         this.selection = null;
     }
 
+    @Override
+    public void setAriaLabel(final String label) {
+        WidgetFactory.setARIALabel(this, label);
+    }
+
     private void addColorSelection(final Event event) {
         final Locale locale = RWT.getLocale();
         RWT.setLocale(this.i18nSupport.getUsersLanguageLocale());

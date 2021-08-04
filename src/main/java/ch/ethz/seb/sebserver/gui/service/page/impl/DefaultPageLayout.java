@@ -104,6 +104,8 @@ public class DefaultPageLayout implements TemplateComposer {
         skeletonLayout.horizontalSpacing = 0;
         pageContext.getParent().setLayout(skeletonLayout);
 
+        WidgetFactory.resetTabindex(pageContext.getParent());
+
         composeHeader(pageContext);
         composeLogoBar(pageContext);
         composeContent(pageContext);

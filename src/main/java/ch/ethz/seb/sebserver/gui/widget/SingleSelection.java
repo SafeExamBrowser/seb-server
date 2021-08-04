@@ -109,4 +109,9 @@ public final class SingleSelection extends Combo implements Selection {
         }
     }
 
+    @Override
+    public void setAriaLabel(final String label) {
+        WidgetFactory.setARIALabel(this, label);
+    }
+
 }

@@ -58,7 +58,6 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
-import ch.ethz.seb.sebserver.gui.service.page.impl.ComposerServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.page.impl.DefaultPageLayout;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 
@@ -68,11 +67,20 @@ import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 public class WidgetFactory {
 
     private static final String ADD_HTML_ATTR_ARIA_ROLE = "role";
+    private static final String ADD_HTML_ATTR_ARIA_LABEL = "aria-label";
     private static final String ADD_HTML_ATTR_TEST_ID = "test-id";
     private static final String SUB_TITLE_TExT_SUFFIX = ".subtitle";
 
     public enum AriaRole {
-        link
+        link,
+        button,
+        list,
+        listitem,
+        grid,
+        row,
+        rowgroup,
+        columnheader,
+        gridcell
     }
 
     private static final Logger log = LoggerFactory.getLogger(WidgetFactory.class);
@@ -368,21 +376,21 @@ public class WidgetFactory {
 
     public Button buttonLocalized(final Composite parent, final String locTextKey) {
         final Button button = new Button(parent, SWT.NONE);
-        setAttribute(button, "role", "button");
+        setARIARole(button, AriaRole.button);
         this.polyglotPageService.injectI18n(button, new LocTextKey(locTextKey));
         return button;
     }
 
     public Button buttonLocalized(final Composite parent, final LocTextKey locTextKey) {
         final Button button = new Button(parent, SWT.NONE);
-        setAttribute(button, "role", "button");
+        setARIARole(button, AriaRole.button);
         this.polyglotPageService.injectI18n(button, locTextKey);
         return button;
     }
 
     public Button buttonLocalized(final Composite parent, final CustomVariant variant, final String locTextKey) {
         final Button button = new Button(parent, SWT.NONE);
-        setAttribute(button, "role", "button");
+        setARIARole(button, AriaRole.button);
         this.polyglotPageService.injectI18n(button, new LocTextKey(locTextKey));
         button.setData(RWT.CUSTOM_VARIANT, variant.key);
         return button;
@@ -395,7 +403,7 @@ public class WidgetFactory {
             final LocTextKey toolTipKey) {
 
         final Button button = new Button(parent, type);
-        setAttribute(button, "role", "button");
+        setARIARole(button, AriaRole.button);
         this.polyglotPageService.injectI18n(button, locTextKey, toolTipKey);
         return button;
     }
@@ -495,7 +503,7 @@ public class WidgetFactory {
                 ? new Text(content, SWT.LEFT | SWT.MULTI)
                 : new Text(content, SWT.LEFT | SWT.BORDER | SWT.MULTI);
         if (label != null) {
-            WidgetFactory.setAttribute(input, "aria-label", label);
+            WidgetFactory.setARIALabel(input, label);
         }
         return input;
     }
@@ -522,7 +530,7 @@ public class WidgetFactory {
                         : SWT.LEFT | SWT.BORDER);
 
         if (label != null) {
-            WidgetFactory.setAttribute(input, "aria-label", label);
+            WidgetFactory.setARIALabel(input, label);
         }
         return input;
     }
@@ -539,7 +547,7 @@ public class WidgetFactory {
 
         final Text numberInput = new Text(content, (readonly) ? SWT.LEFT | SWT.READ_ONLY : SWT.RIGHT | SWT.BORDER);
         if (label != null) {
-            WidgetFactory.setAttribute(numberInput, "aria-label", this.i18nSupport.getText(label));
+            setARIALabel(numberInput, this.i18nSupport.getText(label));
         }
         if (numberCheck != null) {
             numberInput.addListener(SWT.Verify, event -> {
@@ -643,30 +651,35 @@ public class WidgetFactory {
     public Tree treeLocalized(final Composite parent, final int style) {
         final Tree tree = new Tree(parent, style);
         this.polyglotPageService.injectI18n(tree);
+        setARIARole(tree, AriaRole.list);
         return tree;
     }
 
     public TreeItem treeItemLocalized(final Tree parent, final String locTextKey) {
         final TreeItem item = new TreeItem(parent, SWT.NONE);
         this.polyglotPageService.injectI18n(item, new LocTextKey(locTextKey));
+        setARIARole(item, AriaRole.listitem);
         return item;
     }
 
     public TreeItem treeItemLocalized(final Tree parent, final LocTextKey locTextKey) {
         final TreeItem item = new TreeItem(parent, SWT.NONE);
         this.polyglotPageService.injectI18n(item, locTextKey);
+        setARIARole(item, AriaRole.listitem);
         return item;
     }
 
     public TreeItem treeItemLocalized(final TreeItem parent, final String locTextKey) {
         final TreeItem item = new TreeItem(parent, SWT.NONE);
         this.polyglotPageService.injectI18n(item, new LocTextKey(locTextKey));
+        setARIARole(item, AriaRole.listitem);
         return item;
     }
 
     public TreeItem treeItemLocalized(final TreeItem parent, final LocTextKey locTextKey) {
         final TreeItem item = new TreeItem(parent, SWT.NONE);
         this.polyglotPageService.injectI18n(item, locTextKey);
+        setARIARole(item, AriaRole.listitem);
         return item;
     }
 
@@ -749,24 +762,27 @@ public class WidgetFactory {
         if (listener != null) {
             imageButton.addListener(SWT.MouseDown, listener);
         }
+        setARIARole(imageButton, AriaRole.button);
         return imageButton;
     }
 
     public Selection selectionLocalized(
             final Selection.Type type,
             final Composite parent,
-            final Supplier<List<Tuple<String>>> itemsSupplier) {
+            final Supplier<List<Tuple<String>>> itemsSupplier,
+            final LocTextKey label) {
 
-        return this.selectionLocalized(type, parent, itemsSupplier, null, null);
+        return this.selectionLocalized(type, parent, itemsSupplier, null, null, label);
     }
 
     public Selection selectionLocalized(
             final Selection.Type type,
             final Composite parent,
             final Supplier<List<Tuple<String>>> itemsSupplier,
-            final LocTextKey toolTipTextKey) {
+            final String label) {
 
-        return this.selectionLocalized(type, parent, itemsSupplier, toolTipTextKey, null);
+        return this.selectionLocalized(
+                type, parent, itemsSupplier, null, null, label);
     }
 
     public Selection selectionLocalized(
@@ -774,9 +790,9 @@ public class WidgetFactory {
             final Composite parent,
             final Supplier<List<Tuple<String>>> itemsSupplier,
             final LocTextKey toolTipTextKey,
-            final Supplier<List<Tuple<String>>> itemsToolTipSupplier) {
+            final LocTextKey label) {
 
-        return selectionLocalized(type, parent, itemsSupplier, toolTipTextKey, itemsToolTipSupplier, null);
+        return this.selectionLocalized(type, parent, itemsSupplier, toolTipTextKey, null, label);
     }
 
     public Selection selectionLocalized(
@@ -785,7 +801,46 @@ public class WidgetFactory {
             final Supplier<List<Tuple<String>>> itemsSupplier,
             final LocTextKey toolTipTextKey,
             final Supplier<List<Tuple<String>>> itemsToolTipSupplier,
-            final String actionLocTextPrefix) {
+            final String label) {
+
+        return selectionLocalized(
+                type, parent, itemsSupplier, toolTipTextKey, itemsToolTipSupplier, null, label);
+    }
+
+    public Selection selectionLocalized(
+            final Selection.Type type,
+            final Composite parent,
+            final Supplier<List<Tuple<String>>> itemsSupplier,
+            final LocTextKey toolTipTextKey,
+            final Supplier<List<Tuple<String>>> itemsToolTipSupplier,
+            final LocTextKey label) {
+
+        return selectionLocalized(
+                type, parent, itemsSupplier, toolTipTextKey, itemsToolTipSupplier, null,
+                this.i18nSupport.getText(label));
+    }
+
+    public Selection selectionLocalized(
+            final Selection.Type type,
+            final Composite parent,
+            final Supplier<List<Tuple<String>>> itemsSupplier,
+            final LocTextKey toolTipTextKey,
+            final Supplier<List<Tuple<String>>> itemsToolTipSupplier,
+            final String actionLocTextPrefix,
+            final LocTextKey label) {
+        return selectionLocalized(
+                type, parent, itemsSupplier, toolTipTextKey, itemsToolTipSupplier, actionLocTextPrefix,
+                this.i18nSupport.getText(label));
+    }
+
+    public Selection selectionLocalized(
+            final Selection.Type type,
+            final Composite parent,
+            final Supplier<List<Tuple<String>>> itemsSupplier,
+            final LocTextKey toolTipTextKey,
+            final Supplier<List<Tuple<String>>> itemsToolTipSupplier,
+            final String actionLocTextPrefix,
+            final String label) {
 
         final Selection selection;
         switch (type) {
@@ -835,6 +890,10 @@ public class WidgetFactory {
             };
             selection.adaptToControl().setData(POLYGLOT_WIDGET_FUNCTION_KEY, updateFunction);
             updateFunction.accept(selection);
+        }
+
+        if (label != null) {
+            selection.setAriaLabel(label);
         }
 
         return selection;
@@ -940,19 +999,28 @@ public class WidgetFactory {
         setAttribute(widget, ADD_HTML_ATTR_ARIA_ROLE, role.name());
     }
 
+    public static void setARIALabel(final Widget widget, final String label) {
+        setAttribute(widget, ADD_HTML_ATTR_ARIA_LABEL, label);
+    }
+
     public static void setAttribute(final Widget widget, final String name, final String value) {
         if (!widget.isDisposed()) {
             final String $el = widget instanceof Text ? "$input" : "$el";
             final String id = WidgetUtil.getId(widget);
             exec("rap.getObject( '", id, "' ).", $el, ".attr( '", name, "', '", value, "' );");
+            resetTabindex(widget);
+        }
+    }
 
-            // apply tabindex reset script
-            final JavaScriptExecutor executor = RWT.getClient().getService(JavaScriptExecutor.class);
-            executor.execute(ComposerServiceImpl.TABINDEX_RESET_SCRIPT);
-//            exec("rap.getObject( '", id, "' ).", $el, ".attr( 'tabindex', '0' );");
-//            if (widget instanceof Text) {
-//                exec("rap.getObject( '", id, "' ).$el.attr( 'tabindex', '0' );");
-//            }
+    public static void resetTabindex(final Widget widget) {
+        if (!widget.isDisposed()) {
+            final String $el = widget instanceof Text ? "$input" : "$el";
+            final String id = WidgetUtil.getId(widget);
+
+            exec("rap.getObject( '", id, "' ).", $el, ".attr( 'tabindex', '0' );");
+            if (widget instanceof Text) {
+                exec("rap.getObject( '", id, "' ).$el.attr( 'tabindex', '0' );");
+            }
         }
     }
 

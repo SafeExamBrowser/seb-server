@@ -159,7 +159,8 @@ public final class ThresholdList extends Composite {
 
         final Selection selector = this.widgetFactory.selectionLocalized(
                 Type.COLOR, this, null, null, null,
-                COLOR_SELECTION_TEXT_KEY);
+                COLOR_SELECTION_TEXT_KEY,
+                (String) null);
         final GridData selectorCell = new GridData(SWT.FILL, SWT.CENTER, true, false);
         selectorCell.horizontalIndent = 2;
         selector.adaptToControl().setLayoutData(selectorCell);

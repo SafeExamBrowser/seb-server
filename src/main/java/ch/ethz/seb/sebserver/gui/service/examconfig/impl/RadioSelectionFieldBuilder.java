@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.widget.RadioSelection;
@@ -61,7 +62,8 @@ public class RadioSelectionFieldBuilder extends SelectionFieldBuilder implements
                 innerGrid,
                 () -> this.getLocalizedResources(attribute, viewContext),
                 null,
-                () -> this.getLocalizedResourcesAsToolTip(attribute, viewContext))
+                () -> this.getLocalizedResourcesAsToolTip(attribute, viewContext),
+                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name)
                 .getTypeInstance();
 
         selection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
