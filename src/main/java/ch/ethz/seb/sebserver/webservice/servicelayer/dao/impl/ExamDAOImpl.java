@@ -574,7 +574,8 @@ public class ExamDAOImpl implements ExamDAO {
         }
 
         return Result.tryCatch(() -> {
-            final Collection<Long> result = this.examRecordMapper.selectIdsByExample()
+            final Collection<Long> result = this.examRecordMapper
+                    .selectIdsByExample()
                     .where(ExamRecordDynamicSqlSupport.lastupdate, isEqualTo(updateId))
                     .build()
                     .execute()
@@ -594,6 +595,39 @@ public class ExamDAOImpl implements ExamDAO {
     public Result<Boolean> isLocked(final Long examId) {
         return this.recordById(examId)
                 .map(rec -> BooleanUtils.toBooleanObject(rec.getUpdating()));
+    }
+
+    @Override
+    @Transactional
+    public void releaseAgedLocks() {
+        try {
+
+            final List<ExamRecord> lockedRecords = this.examRecordMapper
+                    .selectByExample()
+                    .where(ExamRecordDynamicSqlSupport.updating, isNotEqualTo(0))
+                    .build()
+                    .execute();
+
+            if (lockedRecords != null && !lockedRecords.isEmpty()) {
+                final long millisecondsNow = Utils.getMillisecondsNow();
+                lockedRecords.stream().forEach(record -> {
+                    try {
+                        final String lastUpdateString = record.getLastupdate();
+                        if (StringUtils.isNotBlank(lastUpdateString)) {
+                            final String[] split = StringUtils.split(lastUpdateString, Constants.UNDERLINE);
+                            final long timestamp = Long.parseLong(split[2]);
+                            if (millisecondsNow - timestamp > Constants.MINUTE_IN_MILLIS) {
+                                forceUnlock(record.getId()).getOrThrow();
+                            }
+                        }
+                    } catch (final Exception e) {
+                        log.warn("Failed to release aged write lock for exam: {} cause:", record, e.getMessage());
+                    }
+                });
+            }
+        } catch (final Exception e) {
+            log.error("Failed to release aged write locks: {}", e.getMessage());
+        }
     }
 
     @Override
