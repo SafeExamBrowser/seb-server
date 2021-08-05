@@ -72,6 +72,11 @@ public class ExamProctoringSettings {
             new LocTextKey("sebserver.exam.proctoring.form.appkey");
     private final static LocTextKey SEB_PROCTORING_FORM_SECRET =
             new LocTextKey("sebserver.exam.proctoring.form.secret");
+    private final static LocTextKey SEB_PROCTORING_FORM_SDKKEY =
+            new LocTextKey("sebserver.exam.proctoring.form.sdkkey");
+    private final static LocTextKey SEB_PROCTORING_FORM_SDKSECRET =
+            new LocTextKey("sebserver.exam.proctoring.form.sdksecret");
+
     private final static LocTextKey SEB_PROCTORING_FORM_FEATURES =
             new LocTextKey("sebserver.exam.proctoring.form.features");
 
@@ -155,7 +160,9 @@ public class ExamProctoringSettings {
                     featureFlags,
                     false,
                     form.getFieldValue(ProctoringServiceSettings.ATTR_APP_KEY),
-                    form.getFieldValue(ProctoringServiceSettings.ATTR_APP_SECRET));
+                    form.getFieldValue(ProctoringServiceSettings.ATTR_APP_SECRET),
+                    form.getFieldValue(ProctoringServiceSettings.ATTR_SDK_KEY),
+                    form.getFieldValue(ProctoringServiceSettings.ATTR_SDK_SECRET));
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get settings from form: ", e);
@@ -225,6 +232,8 @@ public class ExamProctoringSettings {
                     .copyOf(content)
                     .clearEntityKeys();
 
+            final boolean isZoom = proctoringSettings.serverType == ProctoringServerType.ZOOM;
+
             final FormHandle<ProctoringServiceSettings> formHandle = this.pageService.formBuilder(
                     formContext)
                     .withDefaultSpanInput(5)
@@ -249,7 +258,8 @@ public class ExamProctoringSettings {
                             ProctoringServiceSettings.ATTR_SERVER_TYPE,
                             SEB_PROCTORING_FORM_TYPE,
                             proctoringSettings.serverType.name(),
-                            resourceService::examProctoringTypeResources))
+                            resourceService::examProctoringTypeResources)
+                            .withSelectionListener(this::serviceSelection))
 
                     .addField(FormBuilder.text(
                             ProctoringServiceSettings.ATTR_SERVER_URL,
@@ -268,6 +278,21 @@ public class ExamProctoringSettings {
                             (proctoringSettings.appSecret != null)
                                     ? String.valueOf(proctoringSettings.appSecret)
                                     : null))
+
+                    .addField(FormBuilder.text(
+                            ProctoringServiceSettings.ATTR_SDK_KEY,
+                            SEB_PROCTORING_FORM_SDKKEY,
+                            proctoringSettings.sdkKey)
+                            .visibleIf(isZoom))
+                    .withEmptyCellSeparation(false)
+
+                    .addField(FormBuilder.password(
+                            ProctoringServiceSettings.ATTR_SDK_SECRET,
+                            SEB_PROCTORING_FORM_SDKSECRET,
+                            (proctoringSettings.sdkSecret != null)
+                                    ? String.valueOf(proctoringSettings.sdkSecret)
+                                    : null)
+                            .visibleIf(isZoom))
 
                     .withDefaultSpanInput(1)
                     .addField(FormBuilder.text(
@@ -293,6 +318,14 @@ public class ExamProctoringSettings {
             }
 
             return () -> formHandle;
+        }
+
+        private void serviceSelection(final Form form) {
+            final boolean isZoom = ProctoringServerType.ZOOM.name()
+                    .equals(form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE));
+
+            form.setFieldVisible(isZoom, ProctoringServiceSettings.ATTR_SDK_KEY);
+            form.setFieldVisible(isZoom, ProctoringServiceSettings.ATTR_SDK_SECRET);
         }
     }
 

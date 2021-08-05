@@ -54,6 +54,7 @@ public final class ClientInstruction {
             public static final String ZOOM_USER_NAME = "zoomUserName";
             public static final String ZOOM_API_KEY = "zoomAPIKey";
             public static final String ZOOM_TOKEN = "zoomToken";
+            public static final String ZOOM_SDK_TOKEN = "zoomSDKToken";
             public static final String ZOOM_MEETING_KEY = "zoomMeetingKey";
             public static final String ZOOM_RECEIVE_AUDIO = "zoomReceiveAudio";
             public static final String ZOOM_RECEIVE_VIDEO = "zoomReceiveVideo";
