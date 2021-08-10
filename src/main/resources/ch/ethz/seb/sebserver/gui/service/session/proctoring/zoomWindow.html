@@ -89,6 +89,11 @@
                         passWord: config.passWord,
                         success(res) {
                              console.log('JOIN SUCCESS')
+                             ZoomMtg.getAttendeeslist({
+                                success: function (res) {
+                                        console.log(res, "get getAttendeeslist");
+                                   }
+                                });
                         },
                         error(res) {
                             console.warn('JOIN ERROR')
