@@ -157,6 +157,7 @@ Composite.header {
 
 Composite.logo {
     background-color: #1F407A;
+    margin: 0 0 0 0;
 }
 
 Composite.bgLogo {
@@ -164,12 +165,14 @@ Composite.bgLogo {
     background-image: url(static/images/sebserver-logo.png);
     background-repeat: no-repeat;
     background-position: left center;
+    margin: 0 0 0 0;
 }
 
 Composite.bgLogoNoImage {
     background-color: transparent;
     background-repeat: no-repeat;
     background-position: left center;
+    margin: 0 0 0 0;
 }
 
 Composite.bgContent {
