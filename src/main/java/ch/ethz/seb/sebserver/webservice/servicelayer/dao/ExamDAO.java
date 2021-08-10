@@ -128,6 +128,9 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @return Result refer to the lock-check-result or to an error if happened */
     Result<Boolean> isLocked(Long examId);
 
+    /** This checks if there are write locks that are out of date and release such. */
+    void releaseAgedLocks();
+
     /** Use this to check if the exam with the specified identifier is up to date
      *
      * @param examId the exam identifier

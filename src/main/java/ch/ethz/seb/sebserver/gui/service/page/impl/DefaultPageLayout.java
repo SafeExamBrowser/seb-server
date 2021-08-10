@@ -164,13 +164,15 @@ public class DefaultPageLayout implements TemplateComposer {
 
     private void composeLogoBar(final PageContext pageContext) {
         final Composite logoBar = new Composite(pageContext.getParent(), SWT.NONE);
-        final GridData logoBarCell = new GridData(SWT.FILL, SWT.TOP, false, false);
+        final GridData logoBarCell = new GridData(SWT.FILL, SWT.TOP, true, false);
         logoBarCell.minimumHeight = 80;
         logoBarCell.heightHint = 80;
+        logoBarCell.horizontalIndent = 0;
         logoBar.setLayoutData(logoBarCell);
         logoBar.setData(RWT.CUSTOM_VARIANT, "logo");
-        final GridLayout logoBarLayout = new GridLayout(2, false);
+        final GridLayout logoBarLayout = new GridLayout(2, true);
         logoBarLayout.horizontalSpacing = 0;
+        logoBarLayout.verticalSpacing = 0;
         logoBarLayout.marginHeight = 0;
         logoBar.setLayout(logoBarLayout);
 
@@ -179,7 +181,7 @@ public class DefaultPageLayout implements TemplateComposer {
         logoCell.minimumHeight = LOGO_IMAGE_MAX_HEIGHT;
         logoCell.heightHint = LOGO_IMAGE_MAX_HEIGHT;
         logoCell.minimumWidth = LOGO_IMAGE_MAX_WIDTH;
-        logoCell.horizontalIndent = 50;
+        logoCell.horizontalIndent = 0;
         logo.setLayoutData(logoCell);
 
         // try to get institutional logo first. If no success, use default logo
@@ -206,8 +208,8 @@ public class DefaultPageLayout implements TemplateComposer {
         contentBackground.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
         contentBackground.setData(RWT.CUSTOM_VARIANT, "bgContent");
         final GridLayout innerGrid = new GridLayout();
-        innerGrid.marginLeft = 50;
-        innerGrid.marginRight = 50;
+        innerGrid.marginLeft = 55;
+        innerGrid.marginRight = 55;
         innerGrid.marginHeight = 0;
         innerGrid.marginWidth = 0;
 

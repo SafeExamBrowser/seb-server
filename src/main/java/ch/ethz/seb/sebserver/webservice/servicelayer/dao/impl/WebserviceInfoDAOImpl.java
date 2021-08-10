@@ -108,7 +108,7 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
                             new WebserviceServerInfoRecord(masterRec.getId(), null, null, null, now));
 
                     if (log.isDebugEnabled()) {
-                        log.debug("Update master webservice {} time: {}", uuid, now);
+                        log.trace("Update master webservice {} time: {}", uuid, now);
                     }
 
                     return true;

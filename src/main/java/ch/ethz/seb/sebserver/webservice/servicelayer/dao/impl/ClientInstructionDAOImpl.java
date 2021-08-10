@@ -131,6 +131,7 @@ public class ClientInstructionDAOImpl implements ClientInstructionDAO {
     }
 
     @Override
+    @Transactional
     public Result<ClientInstructionRecord> insert(
             final Long examId,
             final InstructionType type,
