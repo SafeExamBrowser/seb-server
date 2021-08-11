@@ -454,8 +454,8 @@ public class ActivitiesPane implements TemplateComposer {
     private void handleSelection(final PageContext composerCtx, final Event event) {
         try {
             final Tree tree = (Tree) event.widget;
-            TreeItem treeItem = (event.item == null && tree.getSelectionCount() == 1)
-                    ? treeItem = tree.getSelection()[0]
+            final TreeItem treeItem = (event.item == null && tree.getSelectionCount() == 1)
+                    ? tree.getSelection()[0]
                     : (TreeItem) event.item;
 
             if (treeItem.getItemCount() > 0 && !treeItem.getExpanded()) {
