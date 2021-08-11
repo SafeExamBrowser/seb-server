@@ -270,7 +270,7 @@ public final class Indicator implements Entity {
 
         @Override
         public int compareTo(final Threshold o) {
-            return Double.compare(this.value, (o != null) ? o.value : 0);
+            return Double.compare(this.value, (o != null) ? o.value : -1);
         }
 
     }
