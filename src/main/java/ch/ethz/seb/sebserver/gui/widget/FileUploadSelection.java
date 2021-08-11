@@ -36,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.AriaRole;
 
 public class FileUploadSelection extends Composite {
 
@@ -63,7 +64,8 @@ public class FileUploadSelection extends Composite {
             final Composite parent,
             final I18nSupport i18nSupport,
             final Collection<String> supportedFiles,
-            final boolean readonly) {
+            final boolean readonly,
+            final LocTextKey ariaLabel) {
 
         super(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(2, false);
@@ -80,6 +82,9 @@ public class FileUploadSelection extends Composite {
             this.fileName = new Label(this, SWT.NONE);
             this.fileName.setText(i18nSupport.getText(PLEASE_SELECT_TEXT));
             this.fileName.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
+            if (ariaLabel != null) {
+                WidgetFactory.setARIALabel(this.fileName, i18nSupport.getText(ariaLabel));
+            }
             this.fileUpload = null;
             this.uploadHandler = null;
             this.inputReceiver = null;
@@ -87,6 +92,11 @@ public class FileUploadSelection extends Composite {
             this.fileUpload = new FileUpload(this, SWT.NONE);
             this.fileUpload.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true));
             this.fileUpload.setImage(WidgetFactory.ImageIcon.IMPORT.getImage(parent.getDisplay()));
+
+            if (ariaLabel != null) {
+                WidgetFactory.setARIALabel(this.fileUpload, i18nSupport.getText(ariaLabel));
+            }
+            WidgetFactory.setARIARole(this.fileUpload, AriaRole.button);
 
             this.fileUpload.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(PLEASE_SELECT_TEXT)));
             this.inputReceiver = new InputReceiver();

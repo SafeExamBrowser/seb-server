@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -80,7 +79,8 @@ public class WidgetFactory {
         row,
         rowgroup,
         columnheader,
-        gridcell
+        gridcell,
+        dialog
     }
 
     private static final Logger log = LoggerFactory.getLogger(WidgetFactory.class);
@@ -400,10 +400,14 @@ public class WidgetFactory {
             final Composite parent,
             final int type,
             final LocTextKey locTextKey,
-            final LocTextKey toolTipKey) {
+            final LocTextKey toolTipKey,
+            final LocTextKey ariaLabel) {
 
         final Button button = new Button(parent, type);
         setARIARole(button, AriaRole.button);
+        if (ariaLabel != null) {
+            setARIALabel(button, this.i18nSupport.getText(ariaLabel));
+        }
         this.polyglotPageService.injectI18n(button, locTextKey, toolTipKey);
         return button;
     }
@@ -742,27 +746,35 @@ public class WidgetFactory {
         return label;
     }
 
-    public Label imageButton(
+    public Label mandatoryLabel(
             final ImageIcon type,
             final Composite parent,
             final LocTextKey toolTip) {
 
-        return this.imageButton(type, parent, toolTip, null);
+        final Label imageButton = labelLocalized(parent, (LocTextKey) null, toolTip);
+        imageButton.setImage(type.getImage(parent.getDisplay()));
+        return imageButton;
     }
 
-    public Label imageButton(
+    public Button imageButton(
             final ImageIcon type,
             final Composite parent,
             final LocTextKey toolTip,
             final Listener listener) {
 
-        final Label imageButton = labelLocalized(parent, (LocTextKey) null, toolTip);
-        imageButton.setData(RWT.CUSTOM_VARIANT, CustomVariant.IMAGE_BUTTON.name());
-        imageButton.setImage(type.getImage(parent.getDisplay()));
+        final Button imageButton = new Button(parent, SWT.NONE);
+        this.polyglotPageService.injectI18n(imageButton, null, toolTip);
+        imageButton.setData(RWT.CUSTOM_VARIANT, CustomVariant.IMAGE_BUTTON.key);
+        final Image image = type.getImage(parent.getDisplay());
+        imageButton.setImage(image);
         if (listener != null) {
             imageButton.addListener(SWT.MouseDown, listener);
+            imageButton.addListener(SWT.Selection, listener);
         }
         setARIARole(imageButton, AriaRole.button);
+        if (toolTip != null) {
+            setARIALabel(imageButton, this.i18nSupport.getText(toolTip));
+        }
         return imageButton;
     }
 
@@ -899,30 +911,40 @@ public class WidgetFactory {
         return selection;
     }
 
-    public DateTime dateSelector(final Composite parent) {
-        RWT.setLocale(Locale.GERMANY);
+    public DateTime dateSelector(final Composite parent, final LocTextKey label) {
+        RWT.setLocale(this.i18nSupport.getUsersFormatLocale());
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         final DateTime dateTime = new DateTime(parent, SWT.DATE | SWT.BORDER | SWT.DROP_DOWN);
         dateTime.setLayoutData(gridData);
+        if (label != null) {
+            setARIALabel(dateTime, this.i18nSupport.getText(label));
+        }
         return dateTime;
     }
 
-    public DateTime timeSelector(final Composite parent) {
+    public DateTime timeSelector(final Composite parent, final LocTextKey label) {
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         final DateTime dateTime = new DateTime(parent, SWT.TIME | SWT.BORDER | SWT.SHORT);
         dateTime.setLayoutData(gridData);
+        if (label != null) {
+            setARIALabel(dateTime, this.i18nSupport.getText(label));
+        }
         return dateTime;
     }
 
-    public DateTime timeSelectorWithSeconds(final Composite parent) {
+    public DateTime timeSelectorWithSeconds(final Composite parent, final LocTextKey label) {
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         final DateTime dateTime = new DateTime(parent, SWT.TIME | SWT.BORDER | SWT.MEDIUM);
         dateTime.setLayoutData(gridData);
+        if (label != null) {
+            setARIALabel(dateTime, this.i18nSupport.getText(label));
+        }
         return dateTime;
     }
 
     public ColorDialog getColorDialog(final Composite parent) {
-        return new ColorDialog(parent.getShell(), SWT.NONE);
+        final ColorDialog colorDialog = new ColorDialog(parent.getShell(), SWT.NONE);
+        return colorDialog;
     }
 
     public ThresholdList thresholdList(
@@ -945,14 +967,16 @@ public class WidgetFactory {
     public ImageUploadSelection logoImageUploadLocalized(
             final Composite parent,
             final LocTextKey locTextKey,
-            final boolean readonly) {
+            final boolean readonly,
+            final LocTextKey label) {
 
         return imageUploadLocalized(
                 parent,
                 locTextKey,
                 readonly,
                 DefaultPageLayout.LOGO_IMAGE_MAX_WIDTH,
-                DefaultPageLayout.LOGO_IMAGE_MAX_HEIGHT);
+                DefaultPageLayout.LOGO_IMAGE_MAX_HEIGHT,
+                label);
     }
 
     public ImageUploadSelection imageUploadLocalized(
@@ -960,7 +984,8 @@ public class WidgetFactory {
             final LocTextKey locTextKey,
             final boolean readonly,
             final int maxWidth,
-            final int maxHeight) {
+            final int maxHeight,
+            final LocTextKey label) {
 
         final ImageUploadSelection imageUpload = new ImageUploadSelection(
                 parent,
@@ -968,7 +993,8 @@ public class WidgetFactory {
                 this.i18nSupport,
                 readonly,
                 maxWidth,
-                maxHeight);
+                maxHeight,
+                label);
 
         this.polyglotPageService.injectI18n(imageUpload, locTextKey);
         return imageUpload;
@@ -977,13 +1003,15 @@ public class WidgetFactory {
     public FileUploadSelection fileUploadSelection(
             final Composite parent,
             final boolean readonly,
-            final Collection<String> supportedFiles) {
+            final Collection<String> supportedFiles,
+            final LocTextKey label) {
 
         final FileUploadSelection fileUploadSelection = new FileUploadSelection(
                 parent,
                 this.i18nSupport,
                 supportedFiles,
-                readonly);
+                readonly,
+                label);
 
         if (supportedFiles != null) {
             supportedFiles.forEach(fileUploadSelection::withSupportFor);

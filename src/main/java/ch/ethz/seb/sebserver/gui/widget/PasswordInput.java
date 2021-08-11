@@ -13,9 +13,9 @@ import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -30,15 +30,21 @@ public class PasswordInput extends Composite {
             new LocTextKey("sebserver.overall.action.showPassword.tooltip");
 
     private final Composite inputAnchor;
-    private final Label visibilityButton;
+    private final Button visibilityButton;
 
     private Text passwordInputField = null;
     private boolean isPlainText = true;
     private boolean isEditable = true;
+    private String label = null;
 
-    public PasswordInput(final Composite parent, final WidgetFactory widgetFactory) {
+    public PasswordInput(
+            final Composite parent,
+            final WidgetFactory widgetFactory,
+            final LocTextKey label) {
+
         super(parent, SWT.NONE);
 
+        this.label = widgetFactory.getI18nSupport().getText(label);
         GridLayout gridLayout = new GridLayout(2, false);
         gridLayout.horizontalSpacing = 0;
         gridLayout.verticalSpacing = 0;
@@ -105,6 +111,10 @@ public class PasswordInput extends Composite {
         } else {
             passwordInput.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.PLAIN_PWD.key);
             this.visibilityButton.setImage(WidgetFactory.ImageIcon.VISIBILITY_OFF.getImage(getDisplay()));
+        }
+
+        if (this.label != null) {
+            WidgetFactory.setARIALabel(passwordInput, this.label);
         }
 
         this.passwordInputField = passwordInput;

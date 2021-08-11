@@ -74,7 +74,8 @@ public class CheckBoxBuilder implements InputFieldBuilder {
                 (orientation.title == TitleOrientation.NONE)
                         ? ExamConfigurationService.attributeNameLocKey(attribute)
                         : null,
-                ExamConfigurationService.getToolTipKey(attribute, i18nSupport));
+                ExamConfigurationService.getToolTipKey(attribute, i18nSupport),
+                ExamConfigurationService.attributeNameLocKey(attribute));
 
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         gridData.verticalIndent = 0;

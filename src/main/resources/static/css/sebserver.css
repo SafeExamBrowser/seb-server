@@ -517,6 +517,30 @@ Button {
     padding: 5px 6px 5px 6px;
 }
 
+Button.imageButton,
+Button:hover.imageButton,
+Button:hover.imageButton,
+Button:default.imageButton,
+Button:pressed.imageButton {
+    font: 12px Arial, Helvetica, sans-serif;
+    background-color: transparent;
+    background-gradient-color: transparent;
+    background-image: gradient( linear, left top, left bottom, from( transparent ), to( transparent ) );
+    padding: 0px 0px 0px 0px;
+}
+
+Button[PUSH].imageButton,
+Button[PUSH]:hover.imageButton,
+Button[PUSH]:hover.imageButton,
+Button[PUSH]:default.imageButton,
+Button[PUSH]:pressed.imageButton {
+    font: 12px Arial, Helvetica, sans-serif;
+    background-color: transparent;
+    background-gradient-color: transparent;
+    background-image: gradient( linear, left top, left bottom, from( transparent ), to( transparent ) );
+    padding: 0px 0px 0px 0px;
+}
+
 /* Push Buttons */
 Button[PUSH],
 Button[PUSH]:default {

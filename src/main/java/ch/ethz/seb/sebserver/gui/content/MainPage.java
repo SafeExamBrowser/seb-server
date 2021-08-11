@@ -15,8 +15,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -96,12 +96,12 @@ public class MainPage implements TemplateComposer {
                 },
                 false);
 
-        final Label toggleView = this.widgetFactory.imageButton(
+        final Button toggleView = this.widgetFactory.imageButton(
                 ImageIcon.MAXIMIZE,
                 content,
                 new LocTextKey("sebserver.mainpage.maximize.tooltip"),
                 event -> {
-                    final Label ib = (Label) event.widget;
+                    final Button ib = (Button) event.widget;
                     if ((Boolean) ib.getData("fullScreen")) {
                         mainSash.setWeights(DEFAULT_SASH_WEIGHTS);
                         ib.setData("fullScreen", false);

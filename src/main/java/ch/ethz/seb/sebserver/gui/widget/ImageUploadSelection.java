@@ -40,8 +40,10 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.AriaRole;
 
 public final class ImageUploadSelection extends Composite {
 
@@ -71,7 +73,8 @@ public final class ImageUploadSelection extends Composite {
             final I18nSupport i18nSupport,
             final boolean readonly,
             final int maxWidth,
-            final int maxHeight) {
+            final int maxHeight,
+            final LocTextKey ariaLabel) {
 
         super(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(1, false);
@@ -92,6 +95,11 @@ public final class ImageUploadSelection extends Composite {
             final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
             gridData.horizontalIndent = 0;
             this.fileUpload.setLayoutData(gridData);
+
+            if (ariaLabel != null) {
+                WidgetFactory.setARIALabel(this.fileUpload, i18nSupport.getText(ariaLabel));
+            }
+            WidgetFactory.setARIARole(this.fileUpload, AriaRole.button);
 
             final FileUploadHandler uploadHandler = new FileUploadHandler(new ImageReceiver());
             this.fileUpload.addListener(SWT.Selection, event -> {

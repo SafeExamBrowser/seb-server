@@ -20,7 +20,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
@@ -110,6 +109,14 @@ public abstract class FieldBuilder<T> {
 
     abstract void build(FormBuilder builder);
 
+    protected LocTextKey getARIALabel(final FormBuilder builder) {
+        LocTextKey label = this.label;
+        if (this.isMandatory) {
+            label = new LocTextKey("sebserver.form.mandatory.label", builder.i18nSupport.getText(this.label));
+        }
+        return label;
+    }
+
     protected static Control createTitleLabel(
             final Composite parent,
             final FormBuilder builder,
@@ -142,16 +149,8 @@ public abstract class FieldBuilder<T> {
                 1,
                 fieldBuilder.titleValign);
 
-        if (hasTooltip && builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.LEFT) {
-            final Label info = builder.widgetFactory.imageButton(
-                    WidgetFactory.ImageIcon.HELP,
-                    infoGrid,
-                    fieldBuilder.tooltip);
-            info.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
-        }
-
         if (fieldBuilder.isMandatory) {
-            final Label mandatory = builder.widgetFactory.imageButton(
+            final Label mandatory = builder.widgetFactory.mandatoryLabel(
                     WidgetFactory.ImageIcon.MANDATORY,
                     infoGrid,
                     MANDATORY_TEXT_KEY);

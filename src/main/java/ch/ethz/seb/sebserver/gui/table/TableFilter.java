@@ -20,6 +20,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Label;
@@ -199,13 +200,13 @@ public class TableFilter<ROW> {
 
         final GridData gridData = new GridData(SWT.FILL, SWT.BOTTOM, true, true);
         gridData.heightHint = 20;
-        final Label imageButton = this.entityTable.widgetFactory.imageButton(
+        final Button imageButton = this.entityTable.widgetFactory.imageButton(
                 ImageIcon.SEARCH,
                 inner,
                 new LocTextKey("sebserver.overall.action.filter"),
                 event -> this.entityTable.applyFilter());
         imageButton.setLayoutData(gridData);
-        final Label imageButton2 = this.entityTable.widgetFactory.imageButton(
+        final Button imageButton2 = this.entityTable.widgetFactory.imageButton(
                 ImageIcon.CANCEL,
                 inner,
                 new LocTextKey("sebserver.overall.action.filter.clear"),
@@ -267,6 +268,10 @@ public class TableFilter<ROW> {
             inner.setLayoutData(this.rowData);
             return inner;
         }
+
+        protected LocTextKey getAriaLabel() {
+            return new LocTextKey("sebserver.form.tablefilter.label", this.attribute.columnName);
+        }
     }
 
     private static class NullFilter extends FilterComponent {
@@ -323,7 +328,8 @@ public class TableFilter<ROW> {
 
             this.textInput = TableFilter.this.entityTable.widgetFactory.textInput(
                     innerComposite,
-                    super.attribute.columnName);
+                    getAriaLabel());
+
             this.textInput.setLayoutData(gridData);
             return this;
         }
@@ -376,7 +382,7 @@ public class TableFilter<ROW> {
                             ch.ethz.seb.sebserver.gui.widget.Selection.Type.SINGLE,
                             innerComposite,
                             resourceSupplier,
-                            this.attribute.columnName);
+                            getAriaLabel());
 
             this.selector
                     .adaptToControl()
@@ -430,7 +436,9 @@ public class TableFilter<ROW> {
         @Override
         FilterComponent build(final Composite parent) {
             final Composite innerComposite = createInnerComposite(parent);
-            this.selector = TableFilter.this.entityTable.widgetFactory.dateSelector(innerComposite);
+            this.selector = TableFilter.this.entityTable.widgetFactory.dateSelector(
+                    innerComposite,
+                    getAriaLabel());
             return this;
         }
 
@@ -523,15 +531,15 @@ public class TableFilter<ROW> {
 
             final WidgetFactory wf = TableFilter.this.entityTable.widgetFactory;
             wf.labelLocalized(this.innerComposite, DATE_FROM_TEXT);
-            this.fromDateSelector = wf.dateSelector(this.innerComposite);
+            this.fromDateSelector = wf.dateSelector(this.innerComposite, getAriaLabel());
             if (this.withTime) {
-                this.fromTimeSelector = wf.timeSelector(this.innerComposite);
+                this.fromTimeSelector = wf.timeSelector(this.innerComposite, getAriaLabel());
             }
 
             wf.labelLocalized(this.innerComposite, DATE_TO_TEXT);
-            this.toDateSelector = wf.dateSelector(this.innerComposite);
+            this.toDateSelector = wf.dateSelector(this.innerComposite, getAriaLabel());
             if (this.withTime) {
-                this.toTimeSelector = wf.timeSelector(this.innerComposite);
+                this.toTimeSelector = wf.timeSelector(this.innerComposite, getAriaLabel());
             }
 
             return this;

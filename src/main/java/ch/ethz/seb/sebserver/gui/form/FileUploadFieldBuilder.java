@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.Collection;
 
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -18,6 +17,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
 
 public class FileUploadFieldBuilder extends FieldBuilder<String> {
@@ -41,7 +41,8 @@ public class FileUploadFieldBuilder extends FieldBuilder<String> {
         final FileUploadSelection fileUpload = builder.widgetFactory.fileUploadSelection(
                 fieldGrid,
                 builder.readonly || this.readonly,
-                this.supportedFiles);
+                this.supportedFiles,
+                getARIALabel(builder));
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         fileUpload.setLayoutData(gridData);
         fileUpload.setFileName(this.value);

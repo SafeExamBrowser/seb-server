@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gui.form.FieldBuilder;
+import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -73,11 +74,22 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
         final Composite innerGrid = InputFieldBuilder
                 .createInnerGrid(parent, attribute, orientation);
 
-        final PasswordInput passwordInput = new PasswordInput(innerGrid, this.widgetFactory);
+        final LocTextKey attributeNameLocKey = ExamConfigurationService.attributeNameLocKey(attribute);
+        final PasswordInput passwordInput = new PasswordInput(
+                innerGrid,
+                this.widgetFactory,
+                attributeNameLocKey);
         final GridData passwordInputLD = new GridData(SWT.FILL, SWT.FILL, true, true);
         passwordInput.setLayoutData(passwordInputLD);
 
-        final PasswordInput confirmInput = new PasswordInput(innerGrid, this.widgetFactory);
+        final LocTextKey confirmNameLocKey =
+                new LocTextKey(
+                        "sebserver.form.confirm.label",
+                        viewContext.i18nSupport.getText(attributeNameLocKey));
+        final PasswordInput confirmInput = new PasswordInput(
+                innerGrid,
+                this.widgetFactory,
+                confirmNameLocKey);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         gridData.verticalIndent = 14;
         confirmInput.setLayoutData(gridData);

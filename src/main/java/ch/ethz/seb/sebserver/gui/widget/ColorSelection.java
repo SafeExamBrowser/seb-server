@@ -18,6 +18,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -83,7 +84,7 @@ public final class ColorSelection extends Composite implements Selection {
         this.colorLabel.setLayoutData(gridData);
         this.colorLabel.setData(RWT.CUSTOM_VARIANT, CustomVariant.LIGHT_COLOR_LABEL.key);
 
-        final Label imageButton = widgetFactory.imageButton(
+        final Button imageButton = widgetFactory.imageButton(
                 ImageIcon.COLOR,
                 this,
                 (StringUtils.isNotBlank(tooltipKeyPrefix)

@@ -51,7 +51,7 @@ public class GridTable extends Composite {
 
     private final WidgetFactory widgetFactory;
     private final List<Column> columns;
-    private final Label addAction;
+    private final Button addAction;
     private final List<Row> rows;
     private final String locTextKeyPrefix;
     private Listener listener;
@@ -222,7 +222,7 @@ public class GridTable extends Composite {
 
     final class Row {
         final List<ControlAdapter> cells;
-        final Label removeAction;
+        final Button removeAction;
 
         protected Row(final List<ControlAdapter> cells) {
             this.cells = cells;

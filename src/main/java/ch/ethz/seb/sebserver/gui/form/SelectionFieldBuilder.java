@@ -76,7 +76,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
                 (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) ? this.tooltip : null,
                 null,
                 actionKey,
-                this.label);
+                getARIALabel(builder));
 
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         ((Control) selection).setLayoutData(gridData);

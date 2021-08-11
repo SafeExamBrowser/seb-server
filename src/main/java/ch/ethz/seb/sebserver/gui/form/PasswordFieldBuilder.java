@@ -33,7 +33,11 @@ public class PasswordFieldBuilder extends FieldBuilder<CharSequence> {
         final Control titleLabel = createTitleLabel(builder.formParent, builder, this);
         final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
 
-        final PasswordInput input = new PasswordInput(fieldGrid, builder.widgetFactory);
+        final PasswordInput input = new PasswordInput(
+                fieldGrid,
+                builder.widgetFactory,
+                getARIALabel(builder));
+
         input.setEditable(!readonly);
         input.setValue((StringUtils.isNotBlank(this.value))
                 ? builder.cryptor.decrypt(this.value)

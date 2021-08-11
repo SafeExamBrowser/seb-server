@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -16,6 +15,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
 
 public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
@@ -46,7 +46,8 @@ public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
                 new LocTextKey("sebserver.overall.upload"),
                 builder.readonly || this.readonly,
                 this.maxWidth,
-                this.maxHeight);
+                this.maxHeight,
+                getARIALabel(builder));
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         imageUpload.setLayoutData(gridData);
         imageUpload.setImageBase64(this.value);

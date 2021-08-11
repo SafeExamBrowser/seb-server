@@ -395,6 +395,13 @@ Button {
     padding: 5px 6px 5px 6px;
 }
 
+Button[PUSH]:hover.imageButton {
+    font: 12px Arial, Helvetica, sans-serif;
+    padding: 5px 6px 5px 6px;
+    background-color: transparent;
+    background-repeat: no-repeat;
+}
+
 /* Push Buttons */
 Button[PUSH],
 Button[PUSH]:default {

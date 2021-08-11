@@ -118,11 +118,12 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
             return;
         }
 
+        final LocTextKey label = getARIALabel(builder);
         final Text textInput = (this.isNumber)
-                ? builder.widgetFactory.numberInput(fieldGrid, this.numberCheck, readonly, this.label)
+                ? builder.widgetFactory.numberInput(fieldGrid, this.numberCheck, readonly, label)
                 : (this.isArea)
-                        ? builder.widgetFactory.textAreaInput(fieldGrid, readonly, this.label)
-                        : builder.widgetFactory.textInput(fieldGrid, this.isPassword, readonly, this.label);
+                        ? builder.widgetFactory.textAreaInput(fieldGrid, readonly, label)
+                        : builder.widgetFactory.textInput(fieldGrid, this.isPassword, readonly, label);
 
         if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {
             builder.pageService.getPolyglotPageService().injectI18nTooltip(

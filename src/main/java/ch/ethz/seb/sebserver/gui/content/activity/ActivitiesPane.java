@@ -16,6 +16,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +45,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 @Lazy
 @Component
 public class ActivitiesPane implements TemplateComposer {
+
+    private static final Logger log = LoggerFactory.getLogger(ActivitiesPane.class);
 
     private static final String SKIP_EXPAND = "SKIP_EXPAND";
 
@@ -361,7 +365,12 @@ public class ActivitiesPane implements TemplateComposer {
         //--------------------------------------------------------------------------------------
 
         // register page listener and initialize navigation data
-        navigation.addListener(SWT.Selection, event -> handleSelection(pageContext, event));
+        navigation.addListener(SWT.MouseUp, event -> handleSelection(pageContext, event));
+        navigation.addListener(SWT.KeyDown, event -> {
+            if (event.keyCode == 13 || event.keyCode == 32) {
+                handleSelection(pageContext, event);
+            }
+        });
         navigation.addListener(SWT.Expand, event -> {
             final TreeItem item = (TreeItem) event.item;
             selectCurrentItem(navigation, item);
@@ -406,69 +415,83 @@ public class ActivitiesPane implements TemplateComposer {
     }
 
     private TreeItem getDefaultSelectionFor(final Tree navigation, final CurrentUser currentUser2) {
-        if (this.currentUser.get().hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN)) {
-            return navigation.getItem(0);
-        } else if (this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN)) {
-            return findItemByActionDefinition(
-                    navigation.getItems(),
-                    ActivityDefinition.SEB_EXAM_CONFIG);
-        } else if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER)) {
-            return findItemByActionDefinition(
-                    navigation.getItems(),
-                    ActivityDefinition.MONITORING_EXAMS);
-        } else {
+        try {
+            if (this.currentUser.get().hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN)) {
+                return navigation.getItem(0);
+            } else if (this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN)) {
+                return findItemByActionDefinition(
+                        navigation.getItems(),
+                        ActivityDefinition.SEB_EXAM_CONFIG);
+            } else if (this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER)) {
+                return findItemByActionDefinition(
+                        navigation.getItems(),
+                        ActivityDefinition.MONITORING_EXAMS);
+            } else {
+                return navigation.getItem(0);
+            }
+        } catch (final Exception e) {
             return navigation.getItem(0);
         }
     }
 
     private void selectCurrentItem(final Tree navigation, final TreeItem item) {
-        final PageState currentState = this.pageService.getCurrentState();
-        if (currentState == null) {
-            return;
-        }
-        final TreeItem currentItem = findItemByActionDefinition(
-                item.getItems(),
-                currentState.definition.activityAnchor());
-        if (currentItem != null) {
-            navigation.select(currentItem);
+        try {
+            final PageState currentState = this.pageService.getCurrentState();
+            if (currentState == null) {
+                return;
+            }
+            final TreeItem currentItem = findItemByActionDefinition(
+                    item.getItems(),
+                    currentState.definition.activityAnchor());
+            if (currentItem != null) {
+                navigation.select(currentItem);
+            }
+        } catch (final Exception e) {
+            log.warn("Failed to select current navigation item: {}", e.getMessage());
         }
     }
 
     private void handleSelection(final PageContext composerCtx, final Event event) {
-        final Tree tree = (Tree) event.widget;
-        final TreeItem treeItem = (TreeItem) event.item;
+        try {
+            final Tree tree = (Tree) event.widget;
+            TreeItem treeItem = (event.item == null && tree.getSelectionCount() == 1)
+                    ? treeItem = tree.getSelection()[0]
+                    : (TreeItem) event.item;
 
-        if (treeItem.getItemCount() > 0 && !treeItem.getExpanded()) {
-            return;
-        }
+            if (treeItem.getItemCount() > 0 && !treeItem.getExpanded()) {
+                return;
+            }
 
-        final PageAction action = getActivitySelection(treeItem);
-        // if there is no form action associated with the treeItem and the treeItem has sub items, toggle the item state
-        if (action == null) {
-            handleParentSelection(tree, treeItem);
-            return;
-        }
+            final PageAction action = getActivitySelection(treeItem);
+            // if there is no form action associated with the treeItem and the treeItem has sub items, toggle the item state
+            if (action == null) {
+                handleParentSelection(tree, treeItem);
+                return;
+            }
 
-        final PageState currentState = this.pageService.getCurrentState();
-        if (currentState != null && currentState.definition == action.definition.targetState) {
-            return;
-        }
+            final PageState currentState = this.pageService.getCurrentState();
+            if (currentState != null && currentState.definition == action.definition.targetState) {
+                return;
+            }
 
-        this.pageService.executePageAction(
-                action,
-                resultAction -> {
-                    if (resultAction.hasError()) {
-                        tree.deselect(treeItem);
-                        if (currentState != null) {
-                            final TreeItem item = findItemByActionDefinition(
-                                    tree.getItems(),
-                                    currentState.activityAnchor());
-                            if (item != null) {
-                                tree.select(item);
+            this.pageService.executePageAction(
+                    action,
+                    resultAction -> {
+                        if (resultAction.hasError()) {
+                            tree.deselect(treeItem);
+                            if (currentState != null) {
+                                final TreeItem item = findItemByActionDefinition(
+                                        tree.getItems(),
+                                        currentState.activityAnchor());
+                                if (item != null) {
+                                    tree.select(item);
+                                }
                             }
                         }
-                    }
-                });
+                    });
+        } catch (final Exception e) {
+            log.warn("Failed to select navigation bar: {} cause: {}", event, e.getMessage());
+        }
     }
 
     private void handleParentSelection(final Tree tree, final TreeItem treeItem) {
