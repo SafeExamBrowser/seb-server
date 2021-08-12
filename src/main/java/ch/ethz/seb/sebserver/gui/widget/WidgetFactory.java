@@ -829,7 +829,7 @@ public class WidgetFactory {
 
         return selectionLocalized(
                 type, parent, itemsSupplier, toolTipTextKey, itemsToolTipSupplier, null,
-                this.i18nSupport.getText(label));
+                (label != null) ? this.i18nSupport.getText(label) : null);
     }
 
     public Selection selectionLocalized(
@@ -842,7 +842,7 @@ public class WidgetFactory {
             final LocTextKey label) {
         return selectionLocalized(
                 type, parent, itemsSupplier, toolTipTextKey, itemsToolTipSupplier, actionLocTextPrefix,
-                this.i18nSupport.getText(label));
+                (label != null) ? this.i18nSupport.getText(label) : null);
     }
 
     public Selection selectionLocalized(
