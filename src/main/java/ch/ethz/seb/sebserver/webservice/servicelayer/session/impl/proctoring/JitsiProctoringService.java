@@ -378,6 +378,7 @@ public class JitsiProctoringService implements ExamProctoringService {
                     null,
                     null,
                     null,
+                    null,
                     clientName);
         });
     }

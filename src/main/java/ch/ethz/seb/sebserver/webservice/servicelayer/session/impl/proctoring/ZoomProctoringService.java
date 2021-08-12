@@ -214,6 +214,9 @@ public class ZoomProctoringService implements ExamProctoringService {
         attributes.put(
                 ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_TOKEN,
                 String.valueOf(proctoringConnection.accessToken));
+        attributes.put(
+                ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_SDK_TOKEN,
+                String.valueOf(proctoringConnection.sdkToken));
         if (StringUtils.isNotBlank(proctoringConnection.apiKey)) {
             attributes.put(
                     ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.ZOOM_API_KEY,
@@ -262,6 +265,19 @@ public class ZoomProctoringService implements ExamProctoringService {
                     String.valueOf(additionalZoomRoomData.meeting_id),
                     true);
 
+            String sdkJWT = null;
+            if (StringUtils.isNotBlank(proctoringSettings.sdkKey)) {
+
+                final ClientCredentials sdkCredentials = new ClientCredentials(
+                        proctoringSettings.sdkKey,
+                        proctoringSettings.sdkSecret,
+                        remoteProctoringRoom.joinKey);
+
+                sdkJWT = this.createJWTForSDKAccess(
+                        sdkCredentials,
+                        String.valueOf(additionalZoomRoomData.meeting_id));
+            }
+
             return new ProctoringRoomConnection(
                     ProctoringServerType.ZOOM,
                     null,
@@ -270,6 +286,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     roomName,
                     subject,
                     jwt,
+                    sdkJWT,
                     credentials.accessToken,
                     credentials.clientId,
                     String.valueOf(additionalZoomRoomData.meeting_id),
@@ -308,6 +325,19 @@ public class ZoomProctoringService implements ExamProctoringService {
                     .getConnectionData(connectionToken)
                     .getOrThrow();
 
+            String sdkJWT = null;
+            if (StringUtils.isNotBlank(proctoringSettings.sdkKey)) {
+
+                final ClientCredentials sdkCredentials = new ClientCredentials(
+                        proctoringSettings.sdkKey,
+                        proctoringSettings.sdkSecret,
+                        remoteProctoringRoom.joinKey);
+
+                sdkJWT = this.createJWTForSDKAccess(
+                        sdkCredentials,
+                        String.valueOf(additionalZoomRoomData.meeting_id));
+            }
+
             return new ProctoringRoomConnection(
                     ProctoringServerType.ZOOM,
                     connectionToken,
@@ -316,6 +346,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     roomName,
                     subject,
                     jwt,
+                    sdkJWT,
                     credentials.accessToken,
                     credentials.clientId,
                     String.valueOf(additionalZoomRoomData.meeting_id),
@@ -611,6 +642,13 @@ public class ZoomProctoringService implements ExamProctoringService {
         } catch (final Exception e) {
             throw new RuntimeException("Failed to create JWT for Zoom API access: ", e);
         }
+    }
+
+    private String createJWTForSDKAccess(
+            final ClientCredentials sdkCredentials,
+            final String meetingId) {
+
+        return createJWTForMeetingAccess(sdkCredentials, meetingId, false);
     }
 
     private String createJWTForMeetingAccess(

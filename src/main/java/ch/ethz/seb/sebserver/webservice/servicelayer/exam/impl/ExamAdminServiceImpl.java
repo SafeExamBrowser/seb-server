@@ -213,7 +213,9 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                             getEnabledFeatures(mapping),
                             this.remoteProctoringRoomDAO.isServiceInUse(examId).getOr(true),
                             getString(mapping, ProctoringServiceSettings.ATTR_APP_KEY),
-                            getString(mapping, ProctoringServiceSettings.ATTR_APP_SECRET));
+                            getString(mapping, ProctoringServiceSettings.ATTR_APP_SECRET),
+                            getString(mapping, ProctoringServiceSettings.ATTR_SDK_KEY),
+                            getString(mapping, ProctoringServiceSettings.ATTR_SDK_SECRET));
                 });
     }
 
@@ -262,6 +264,22 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     this.cryptor.encrypt(proctoringServiceSettings.appSecret)
                             .getOrThrow()
                             .toString());
+
+            if (StringUtils.isNotBlank(proctoringServiceSettings.appKey)) {
+                this.additionalAttributesDAO.saveAdditionalAttribute(
+                        EntityType.EXAM,
+                        examId,
+                        ProctoringServiceSettings.ATTR_SDK_KEY,
+                        proctoringServiceSettings.sdkKey);
+
+                this.additionalAttributesDAO.saveAdditionalAttribute(
+                        EntityType.EXAM,
+                        examId,
+                        ProctoringServiceSettings.ATTR_SDK_SECRET,
+                        this.cryptor.encrypt(proctoringServiceSettings.sdkSecret)
+                                .getOrThrow()
+                                .toString());
+            }
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,

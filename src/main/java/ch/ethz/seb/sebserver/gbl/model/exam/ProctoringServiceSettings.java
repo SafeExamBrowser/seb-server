@@ -43,6 +43,8 @@ public class ProctoringServiceSettings implements Entity {
     public static final String ATTR_SERVER_URL = "serverURL";
     public static final String ATTR_APP_KEY = "appKey";
     public static final String ATTR_APP_SECRET = "appSecret";
+    public static final String ATTR_SDK_KEY = "sdkKey";
+    public static final String ATTR_SDK_SECRET = "sdkSecret";
     public static final String ATTR_COLLECTING_ROOM_SIZE = "collectingRoomSize";
     public static final String ATTR_ENABLED_FEATURES = "enabledFeatures";
     public static final String ATTR_COLLECT_ALL_ROOM_NAME = "collectAllRoomName";
@@ -67,6 +69,12 @@ public class ProctoringServiceSettings implements Entity {
     @JsonProperty(ATTR_APP_SECRET)
     public final CharSequence appSecret;
 
+    @JsonProperty(ATTR_SDK_KEY)
+    public final String sdkKey;
+
+    @JsonProperty(ATTR_SDK_SECRET)
+    public final CharSequence sdkSecret;
+
     @JsonProperty(ATTR_COLLECTING_ROOM_SIZE)
     public final Integer collectingRoomSize;
 
@@ -86,7 +94,9 @@ public class ProctoringServiceSettings implements Entity {
             @JsonProperty(ATTR_ENABLED_FEATURES) final EnumSet<ProctoringFeature> enabledFeatures,
             @JsonProperty(ATTR_SERVICE_IN_USE) final Boolean serviceInUse,
             @JsonProperty(ATTR_APP_KEY) final String appKey,
-            @JsonProperty(ATTR_APP_SECRET) final CharSequence appSecret) {
+            @JsonProperty(ATTR_APP_SECRET) final CharSequence appSecret,
+            @JsonProperty(ATTR_SDK_KEY) final String sdkKey,
+            @JsonProperty(ATTR_SDK_SECRET) final CharSequence sdkSecret) {
 
         this.examId = examId;
         this.enableProctoring = BooleanUtils.isTrue(enableProctoring);
@@ -97,6 +107,8 @@ public class ProctoringServiceSettings implements Entity {
         this.serviceInUse = serviceInUse;
         this.appKey = appKey;
         this.appSecret = appSecret;
+        this.sdkKey = sdkKey;
+        this.sdkSecret = sdkSecret;
 
     }
 
@@ -147,6 +159,14 @@ public class ProctoringServiceSettings implements Entity {
         return this.appSecret;
     }
 
+    public String getSdkKey() {
+        return this.sdkKey;
+    }
+
+    public CharSequence getSdkSecret() {
+        return this.sdkSecret;
+    }
+
     public Boolean getServiceInUse() {
         return this.serviceInUse;
     }
@@ -193,7 +213,11 @@ public class ProctoringServiceSettings implements Entity {
         builder.append(", appKey=");
         builder.append(this.appKey);
         builder.append(", appSecret=");
-        builder.append(this.appSecret);
+        builder.append("--");
+        builder.append(", sdkKey=");
+        builder.append(this.sdkKey);
+        builder.append(", sdkSecret=");
+        builder.append("--");
         builder.append(", collectingRoomSize=");
         builder.append(this.collectingRoomSize);
         builder.append(", enabledFeatures=");
