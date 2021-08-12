@@ -23,6 +23,7 @@ public class ProctoringRoomConnection {
     public static final String ATTR_ROOM_NAME = "roomName";
     public static final String ATTR_SUBJECT = "subject";
     public static final String ATTR_ACCESS_TOKEN = "accessToken";
+    public static final String ATTR_SDK_TOKEN = "sdkToken";
     public static final String ATTR_CONNECTION_URL = "connectionURL";
     public static final String ATTR_USER_NAME = "userName";
     public static final String ATTR_ROOM_KEY = "roomKey";
@@ -50,6 +51,9 @@ public class ProctoringRoomConnection {
     @JsonProperty(ATTR_ACCESS_TOKEN)
     public final CharSequence accessToken;
 
+    @JsonProperty(ATTR_SDK_TOKEN)
+    public final CharSequence sdkToken;
+
     @JsonProperty(ATTR_ROOM_KEY)
     public final CharSequence roomKey;
 
@@ -71,6 +75,7 @@ public class ProctoringRoomConnection {
             @JsonProperty(ATTR_ROOM_NAME) final String roomName,
             @JsonProperty(ATTR_SUBJECT) final String subject,
             @JsonProperty(ATTR_ACCESS_TOKEN) final CharSequence accessToken,
+            @JsonProperty(ATTR_SDK_TOKEN) final CharSequence sdkToken,
             @JsonProperty(ATTR_ROOM_KEY) final CharSequence roomKey,
             @JsonProperty(ATTR_API_KEY) final CharSequence apiKey,
             @JsonProperty(ATTR_MEETING_ID) final String meetingId,
@@ -83,6 +88,7 @@ public class ProctoringRoomConnection {
         this.roomName = roomName;
         this.subject = subject;
         this.accessToken = accessToken;
+        this.sdkToken = sdkToken;
         this.roomKey = roomKey;
         this.apiKey = apiKey;
         this.meetingId = meetingId;
@@ -103,6 +109,10 @@ public class ProctoringRoomConnection {
 
     public CharSequence getAccessToken() {
         return this.accessToken;
+    }
+
+    public CharSequence getSdkToken() {
+        return this.sdkToken;
     }
 
     public CharSequence getRoomKey() {

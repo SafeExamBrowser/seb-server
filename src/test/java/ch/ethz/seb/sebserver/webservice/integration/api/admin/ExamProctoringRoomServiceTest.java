@@ -63,7 +63,7 @@ public class ExamProctoringRoomServiceTest extends AdministrationAPIIntegrationT
                 2L,
                 new ProctoringServiceSettings(
                         2L, true, ProctoringServerType.JITSI_MEET, "http://jitsi.ch", 1, null, false,
-                        "app-key", "app.secret"));
+                        "app-key", "app.secret", "sdk-key", "sdk.secret"));
 
         assertTrue(this.examAdminService.isProctoringEnabled(2L).get());
     }
