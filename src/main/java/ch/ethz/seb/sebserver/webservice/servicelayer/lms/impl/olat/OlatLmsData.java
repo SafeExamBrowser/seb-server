@@ -11,22 +11,22 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public final class OlatLmsData {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     static public final class AssessmentData {
-        /* OLAT API example:
-          {
-            "courseName": "course 1",
-            "dateFrom": 1624420800000,
-            "dateTo": 1624658400000,
-            "description": "",
-            "key": 6356992,
-            “repositoryEntryKey”: 462324,
-            "name": "SEB test"
-          }
+        /*
+         * OLAT API example:
+         * {
+         * "courseName": "course 1",
+         * "dateFrom": 1624420800000,
+         * "dateTo": 1624658400000,
+         * "description": "",
+         * "key": 6356992,
+         * “repositoryEntryKey”: 462324,
+         * "name": "SEB test"
+         * }
          */
         public long key;
         public long repositoryEntryKey;
@@ -39,13 +39,14 @@ public final class OlatLmsData {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     static final class UserData {
-        /* OLAT API example:
-          {
-            "firstName": "OpenOLAT",
-            "key": 360448,
-            "lastName": "Administrator",
-            "username": "administrator"
-          }
+        /*
+         * OLAT API example:
+         * {
+         * "firstName": "OpenOLAT",
+         * "key": 360448,
+         * "lastName": "Administrator",
+         * "username": "administrator"
+         * }
          */
         public long key;
         public String firstName;
@@ -55,12 +56,13 @@ public final class OlatLmsData {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     static final class RestrictionData {
-        /* OLAT API example:
-          {
-            "browserExamKeys": [ "1" ],
-            "configKeys": null,
-            "key": 8028160
-          }
+        /*
+         * OLAT API example:
+         * {
+         * "browserExamKeys": [ "1" ],
+         * "configKeys": null,
+         * "key": 8028160
+         * }
          */
         public long key;
         public List<String> browserExamKeys;
@@ -69,16 +71,15 @@ public final class OlatLmsData {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     static final class RestrictionDataPost {
-        /* OLAT API example:
-          {
-            "configKeys": ["a", "b"],
-            "browserExamKeys": ["1", "2"]
-          }
+        /*
+         * OLAT API example:
+         * {
+         * "configKeys": ["a", "b"],
+         * "browserExamKeys": ["1", "2"]
+         * }
          */
         public List<String> browserExamKeys;
         public List<String> configKeys;
     }
 
 }
-
-
