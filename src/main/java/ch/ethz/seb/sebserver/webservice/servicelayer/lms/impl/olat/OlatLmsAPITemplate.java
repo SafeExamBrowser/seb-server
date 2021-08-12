@@ -10,33 +10,28 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.DefaultUriBuilderFactory.EncodingMode;
-
+import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -50,7 +45,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
@@ -62,9 +56,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat.OlatLmsData.AssessmentData;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat.OlatLmsData.UserData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat.OlatLmsData.RestrictionData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat.OlatLmsData.RestrictionDataPost;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat.OlatLmsData.UserData;
 
 public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements LmsAPITemplate {
 
@@ -116,8 +110,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         }
         try {
             this.getRestTemplate().get();
-        }
-        catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Failed to access OLAT course API: ", e);
             return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.OPEN_OLAT, e.getMessage());
         }
@@ -214,15 +207,15 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
         return () -> {
-          List<QuizData> res = getRestTemplate()
-                .map(t -> this.collectAllQuizzes(t, filterMap))
-                .getOrThrow();
-          super.putToCache(res);
-          return res;
+            final List<QuizData> res = getRestTemplate()
+                    .map(t -> this.collectAllQuizzes(t, filterMap))
+                    .getOrThrow();
+            super.putToCache(res);
+            return res;
         };
     }
 
-    private String examUrl(long olatRepositoryId) {
+    private String examUrl(final long olatRepositoryId) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         return lmsSetup.lmsApiUrl + "/auth/RepositoryEntry/" + olatRepositoryId;
     }
@@ -234,24 +227,31 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final long fromCutTime = (quizFromTime != null) ? Utils.toUnixTimeInSeconds(quizFromTime) : -1;
 
         String url = "/restapi/assessment_modes/seb?";
-        if (fromCutTime != -1) { url = String.format("%sdateFrom=%s&", url, fromCutTime); }
-        if (quizName != null) { url = String.format("%sname=%s&", url, quizName); }
+        if (fromCutTime != -1) {
+            url = String.format("%sdateFrom=%s&", url, fromCutTime);
+        }
+        if (quizName != null) {
+            url = String.format("%sname=%s&", url, quizName);
+        }
 
-        final List<AssessmentData> as = this.apiGetList(restTemplate, url, new ParameterizedTypeReference<List<AssessmentData>>(){});
+        final List<AssessmentData> as =
+                this.apiGetList(restTemplate, url, new ParameterizedTypeReference<List<AssessmentData>>() {
+                });
         return as.stream()
-          .map(a -> {
-          return new QuizData(
-                String.format("%d", a.key),
-                lmsSetup.getInstitutionId(),
-                lmsSetup.id,
-                lmsSetup.getLmsType(),
-                a.name,
-                a.description,
-                Utils.toDateTimeUTC(a.dateFrom),
-                Utils.toDateTimeUTC(a.dateTo),
-                examUrl(a.repositoryEntryKey),
-                new HashMap<String, String>());})
-          .collect(Collectors.toList());
+                .map(a -> {
+                    return new QuizData(
+                            String.format("%d", a.key),
+                            lmsSetup.getInstitutionId(),
+                            lmsSetup.id,
+                            lmsSetup.getLmsType(),
+                            a.name,
+                            a.description,
+                            Utils.toDateTimeUTC(a.dateFrom),
+                            Utils.toDateTimeUTC(a.dateTo),
+                            examUrl(a.repositoryEntryKey),
+                            new HashMap<String, String>());
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -261,10 +261,9 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     @Override
     protected Supplier<QuizData> quizSupplier(final String id) {
-        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         return () -> getRestTemplate()
-              .map(t -> this.quizById(t, id))
-              .getOrThrow();
+                .map(t -> this.quizById(t, id))
+                .getOrThrow();
     }
 
     private QuizData quizById(final OlatLmsRestTemplate restTemplate, final String id) {
@@ -289,13 +288,12 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final UserData u = this.apiGet(restTemplate, url, UserData.class);
         final Map<String, String> attrs = new HashMap<>();
         return new ExamineeAccountDetails(
-                  String.valueOf(u.key),
-                  u.lastName + ", " + u.firstName,
-                  u.username,
-                  "OLAT API does not provide email addresses",
-                  attrs);
+                String.valueOf(u.key),
+                u.lastName + ", " + u.firstName,
+                u.username,
+                "OLAT API does not provide email addresses",
+                attrs);
     }
-
 
     @Override
     protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String id) {
@@ -311,22 +309,27 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         };
     }
 
-    private SEBRestriction getRestrictionForAssignmentId(final RestTemplate restTemplate, String id) {
+    private SEBRestriction getRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
         final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
         final RestrictionData r = this.apiGet(restTemplate, url, RestrictionData.class);
         return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());
     }
 
-    private SEBRestriction setRestrictionForAssignmentId(final RestTemplate restTemplate, String id, SEBRestriction restriction) {
+    private SEBRestriction setRestrictionForAssignmentId(
+            final RestTemplate restTemplate,
+            final String id,
+            final SEBRestriction restriction) {
+
         final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
         final RestrictionDataPost post = new RestrictionDataPost();
         post.browserExamKeys = new ArrayList<>(restriction.browserExamKeys);
         post.configKeys = new ArrayList<>(restriction.configKeys);
-        final RestrictionData r = this.apiPost(restTemplate, url, post, RestrictionDataPost.class, RestrictionData.class);
+        final RestrictionData r =
+                this.apiPost(restTemplate, url, post, RestrictionDataPost.class, RestrictionData.class);
         return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());
     }
 
-    private SEBRestriction deleteRestrictionForAssignmentId(final RestTemplate restTemplate, String id) {
+    private SEBRestriction deleteRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
         final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
         final RestrictionData r = this.apiDelete(restTemplate, url, RestrictionData.class);
         // OLAT returns RestrictionData with null values upon deletion.
@@ -350,13 +353,12 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     @Override
     public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
-        final String quizId = exam.externalId;
         return getRestTemplate()
                 .map(t -> this.deleteRestrictionForAssignmentId(t, exam.externalId))
                 .map(x -> exam);
     }
 
-    private <T> T apiGet(final RestTemplate restTemplate, String url, Class<T> type) {
+    private <T> T apiGet(final RestTemplate restTemplate, final String url, final Class<T> type) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final ResponseEntity<T> res = restTemplate.exchange(
                 lmsSetup.lmsApiUrl + url,
@@ -366,7 +368,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         return res.getBody();
     }
 
-    private <T> List<T> apiGetList(final RestTemplate restTemplate, String url, ParameterizedTypeReference<List<T>> type) {
+    private <T> List<T> apiGetList(final RestTemplate restTemplate, final String url,
+            final ParameterizedTypeReference<List<T>> type) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final ResponseEntity<List<T>> res = restTemplate.exchange(
                 lmsSetup.lmsApiUrl + url,
@@ -376,11 +379,12 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         return res.getBody();
     }
 
-    private <P,R> R apiPost(final RestTemplate restTemplate, String url, P post, Class<P> postType, Class<R> responseType) {
+    private <P, R> R apiPost(final RestTemplate restTemplate, final String url, final P post, final Class<P> postType,
+            final Class<R> responseType) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set("content-type", "application/json");
-        HttpEntity<P> requestEntity = new HttpEntity<>(post, httpHeaders);
+        final HttpEntity<P> requestEntity = new HttpEntity<>(post, httpHeaders);
         final ResponseEntity<R> res = restTemplate.exchange(
                 lmsSetup.lmsApiUrl + url,
                 HttpMethod.POST,
@@ -389,7 +393,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         return res.getBody();
     }
 
-    private <T> T apiDelete(final RestTemplate restTemplate, String url, Class<T> type) {
+    private <T> T apiDelete(final RestTemplate restTemplate, final String url, final Class<T> type) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final ResponseEntity<T> res = restTemplate.exchange(
                 lmsSetup.lmsApiUrl + url,
@@ -401,7 +405,9 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     private Result<OlatLmsRestTemplate> getRestTemplate() {
         return Result.tryCatch(() -> {
-            if (this.cachedRestTemplate != null) { return this.cachedRestTemplate; }
+            if (this.cachedRestTemplate != null) {
+                return this.cachedRestTemplate;
+            }
 
             final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
             final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
