@@ -265,7 +265,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                             .getOrThrow()
                             .toString());
 
-            if (StringUtils.isNotBlank(proctoringServiceSettings.appKey)) {
+            if (StringUtils.isNotBlank(proctoringServiceSettings.sdkKey)) {
                 this.additionalAttributesDAO.saveAdditionalAttribute(
                         EntityType.EXAM,
                         examId,
