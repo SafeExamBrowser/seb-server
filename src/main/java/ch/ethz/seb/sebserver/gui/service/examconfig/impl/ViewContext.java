@@ -293,14 +293,22 @@ public final class ViewContext {
     }
 
     void setValuesToInputFields(final Collection<ConfigurationValue> values) {
-        this.inputFieldMapping
-                .values()
-                .forEach(field -> {
-                    final ConfigurationValue initValue = field.initValue(values);
-                    if (initValue != null) {
-                        this.valueChangeListener.notifyGUI(this, field.getAttribute(), initValue);
-                    }
-                });
+        try {
+            this.inputFieldMapping
+                    .values()
+                    .forEach(field -> {
+                        try {
+                            final ConfigurationValue initValue = field.initValue(values);
+                            if (initValue != null) {
+                                this.valueChangeListener.notifyGUI(this, field.getAttribute(), initValue);
+                            }
+                        } catch (final Exception e) {
+                            log.error("Failed to initialize SEB setting: {}", field.getAttribute(), e);
+                        }
+                    });
+        } catch (final Exception e) {
+            log.error("Unexpected error while initialize SEB settings: ", e);
+        }
     }
 
     /** Removes all registered InputFields with the given attribute ids
