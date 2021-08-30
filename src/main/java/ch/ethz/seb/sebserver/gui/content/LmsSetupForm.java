@@ -357,7 +357,7 @@ public class LmsSetupForm implements TemplateComposer {
         }
 
         try {
-            return this.resourceService.lmsTypeResources().get(0)._1;
+            return LmsType.MOCKUP.name();
         } catch (final Exception e) {
             return null;
         }

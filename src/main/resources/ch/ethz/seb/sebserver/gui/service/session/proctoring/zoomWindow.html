@@ -1,17 +1,17 @@
 <html>
     <head>
         <meta charset='utf-8' />
-        <link type='text/css' rel='stylesheet' href='https://source.zoom.us/1.9.0/css/bootstrap.css' />
-        <link type='text/css' rel='stylesheet' href='https://source.zoom.us/1.9.0/css/react-select.css' />
+        <link type='text/css' rel='stylesheet' href='https://source.zoom.us/1.9.1/css/bootstrap.css' />
+        <link type='text/css' rel='stylesheet' href='https://source.zoom.us/1.9.1/css/react-select.css' />
     </head>
     <body>
-        <script src='https://source.zoom.us/1.9.0/lib/vendor/react.min.js'></script>
-        <script src='https://source.zoom.us/1.9.0/lib/vendor/react-dom.min.js'></script>
-        <script src='https://source.zoom.us/1.9.0/lib/vendor/redux.min.js'></script>
-        <script src='https://source.zoom.us/1.9.0/lib/vendor/redux-thunk.min.js'></script>
-        <script src='https://source.zoom.us/1.9.0/lib/vendor/jquery.min.js'></script>
-        <script src='https://source.zoom.us/1.9.0/lib/vendor/lodash.min.js'></script>
-        <script src='https://source.zoom.us/zoom-meeting-1.9.0.min.js'></script>
+        <script src='https://source.zoom.us/1.9.1/lib/vendor/react.min.js'></script>
+        <script src='https://source.zoom.us/1.9.1/lib/vendor/react-dom.min.js'></script>
+        <script src='https://source.zoom.us/1.9.1/lib/vendor/redux.min.js'></script>
+        <script src='https://source.zoom.us/1.9.1/lib/vendor/redux-thunk.min.js'></script>
+        <script src='https://source.zoom.us/1.9.1/lib/vendor/jquery.min.js'></script>
+        <script src='https://source.zoom.us/1.9.1/lib/vendor/lodash.min.js'></script>
+        <script src='https://source.zoom.us/zoom-meeting-1.9.1.min.js'></script>
         <script src='https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9/crypto-js.min.js'></script>
         <script type='text/javascript'>
 
@@ -19,7 +19,7 @@
             console.log(JSON.stringify(ZoomMtg.checkSystemRequirements()));
 
             console.log('Initializing Zoom...');
-            ZoomMtg.setZoomJSLib('https://source.zoom.us/1.9.0/lib', '/av');
+            ZoomMtg.setZoomJSLib('https://source.zoom.us/1.9.1/lib', '/av');
             ZoomMtg.preLoadWasm();
             ZoomMtg.prepareJssdk();
 
@@ -89,11 +89,6 @@
                         passWord: config.passWord,
                         success(res) {
                              console.log('JOIN SUCCESS')
-                             ZoomMtg.getAttendeeslist({
-                                success: function (res) {
-                                        console.log(res, "get getAttendeeslist");
-                                   }
-                                });
                         },
                         error(res) {
                             console.warn('JOIN ERROR')
