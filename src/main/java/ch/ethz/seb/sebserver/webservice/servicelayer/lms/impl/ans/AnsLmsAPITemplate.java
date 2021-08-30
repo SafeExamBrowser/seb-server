@@ -9,20 +9,33 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
+import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -36,7 +49,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
@@ -47,20 +59,22 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.AccessibilitySettingsData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.AssignmentData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.UserData;
 
 public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements LmsAPITemplate {
 
-    // TODO add needed dependencies here
+    private static final Logger log = LoggerFactory.getLogger(AnsLmsAPITemplate.class);
 
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final ClientCredentialService clientCredentialService;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
     private final Long lmsSetupId;
 
+    private AnsPersonalRestTemplate cachedRestTemplate;
+
     protected AnsLmsAPITemplate(
-
-            // TODO if you need more dependencies inject them here and set the reference
-
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final ClientCredentialService clientCredentialService,
             final APITemplateDataSupplier apiTemplateDataSupplier,
@@ -97,28 +111,19 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
         if (testLmsSetupSettings.hasAnyError()) {
             return testLmsSetupSettings;
         }
-
-        // TODO check if the course API of the remote LMS is available
-        // if not, create corresponding LmsSetupTestResult error
+        try {
+            this.getRestTemplate().get();
+        } catch (final RuntimeException e) {
+            log.error("Failed to access Ans course API: ", e);
+            return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.ANS_DELFT, e.getMessage());
+        }
 
         return LmsSetupTestResult.ofOkay(LmsType.ANS_DELFT);
     }
 
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
-        final LmsSetupTestResult testLmsSetupSettings = testLmsSetupSettings();
-        if (testLmsSetupSettings.hasAnyError()) {
-            return testLmsSetupSettings;
-        }
-
-        if (LmsType.ANS_DELFT.features.contains(Features.SEB_RESTRICTION)) {
-
-            // TODO check if the course API of the remote LMS is available
-            // if not, create corresponding LmsSetupTestResult error
-
-        }
-
-        return LmsSetupTestResult.ofOkay(LmsType.ANS_DELFT);
+        return testCourseAccessAPI();
     }
 
     private LmsSetupTestResult testLmsSetupSettings() {
@@ -203,58 +208,126 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
         return super.protectedQuizRequest(id);
     }
 
+    private List<QuizData> collectAllQuizzes(final AnsPersonalRestTemplate restTemplate) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final List<QuizData> quizDatas = getAssignments(restTemplate)
+                .stream()
+                .map(a -> quizDataFromAnsData(lmsSetup, a))
+                .collect(Collectors.toList());
+        quizDatas.forEach(q -> super.putToCache(q));
+        return quizDatas;
+    }
+
+    private QuizData getQuizByAssignmentId(final RestTemplate restTemplate, final String id) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final AssignmentData a = getAssignmentById(restTemplate, id);
+        return quizDataFromAnsData(lmsSetup, a);
+    }
+
+    private QuizData quizDataFromAnsData(final LmsSetup lmsSetup, final AssignmentData a) {
+        // In Ans, one assignment can have multiple timeslots, but the SEB restriciton
+        // is done at the assignment level, so timeslots don't really matter.
+        // An assignment's start_at and end_at dates indicate when the first timeslot starts
+        // and the last timeslot ends. If these are null, there are no timeslots, yet.
+        // In that case, we create a placeholder timeslot to display in SEB server.
+        if (a.start_at == null) {
+            a.start_at = java.time.Instant.now().plus(365, java.time.temporal.ChronoUnit.DAYS).toString();
+            a.end_at = java.time.Instant.now().plus(366, java.time.temporal.ChronoUnit.DAYS).toString();
+        }
+        final DateTime startTime = new DateTime(a.start_at);
+        final DateTime endTime = new DateTime(a.end_at);
+        final Map<String, String> attrs = new HashMap<>();
+        attrs.put("assignment_id", String.valueOf(a.id));
+        return new QuizData(
+                String.valueOf(a.id),
+                lmsSetup.getInstitutionId(),
+                lmsSetup.id,
+                lmsSetup.getLmsType(),
+                String.format("%s", a.name),
+                String.format(""),
+                startTime,
+                endTime,
+                a.start_url,
+                attrs);
+    }
+
+    private List<AssignmentData> getAssignments(final RestTemplate restTemplate) {
+        // NOTE: at the moment, seb_server_enabled cannot be set inside the Ans GUI,
+        // only via the API, so we need to list all assignments. Maybe in the future,
+        // we can only list those for which seb server has been enabled in Ans (like in OLAT):
+        //final String url = "/api/v2/search/assignments?query=seb_server_enabled:true";
+        final String url = "/api/v2/search/assignments";
+        return this.apiGetList(restTemplate, url, new ParameterizedTypeReference<List<AssignmentData>>() {
+        });
+    }
+
+    private AssignmentData getAssignmentById(final RestTemplate restTemplate, final String id) {
+        final String url = String.format("/api/v2/assignments/%s", id);
+        return this.apiGet(restTemplate, url, AssignmentData.class);
+    }
+
+    private List<QuizData> getQuizzesByIds(final RestTemplate restTemplate, final Set<String> ids) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        return ids.stream().map(id -> {
+            final String url = String.format("/api/v2/assignments/%s", id);
+            return this.apiGet(restTemplate, url, AssignmentData.class);
+        }).map(a -> {
+            final QuizData quizData = quizDataFromAnsData(lmsSetup, a);
+            super.putToCache(quizData);
+            return quizData;
+        })
+                .collect(Collectors.toList());
+    }
+
     @Override
     protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
-
-        @SuppressWarnings("unused")
-        final String quizName = filterMap.getString(QuizData.FILTER_ATTR_QUIZ_NAME);
-        @SuppressWarnings("unused")
-        final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
-
+        // We cannot filter by from-date or partial names using the Ans search API.
+        // Only exact matches are permitted. So we're not implementing filtering
+        // on the API level and always retrieve all assignments and let SEB server
+        // do the filtering.
         return () -> {
-
-            // TODO get all course / quiz data from remote LMS that matches the filter criteria.
-            //      put loaded QuizData to the cache: super.putToCache(quizDataCollection);
-            //      before returning it.
-
-            throw new RuntimeException("TODO");
+            final List<QuizData> res = getRestTemplate()
+                    .map(this::collectAllQuizzes)
+                    .getOrThrow();
+            super.putToCache(res);
+            return res;
         };
     }
 
     @Override
     protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
-        return () -> {
-
-            // TODO get all quiz / course data for specified identifiers from remote LMS
-            //      and put it to the cache: super.putToCache(quizDataCollection);
-            //      before returning it.
-
-            throw new RuntimeException("TODO");
-        };
+        return () -> getRestTemplate()
+                .map(t -> this.getQuizzesByIds(t, ids))
+                .getOrThrow();
     }
 
     @Override
     protected Supplier<QuizData> quizSupplier(final String id) {
-        return () -> {
+        return () -> getRestTemplate()
+                .map(t -> this.getQuizByAssignmentId(t, id))
+                .getOrThrow();
+    }
 
-            // TODO get the specified quiz / course data for specified identifier from remote LMS
-            //      and put it to the cache: super.putToCache(quizDataCollection);
-            //      before returning it.
-
-            throw new RuntimeException("TODO");
-        };
+    private ExamineeAccountDetails getExamineeById(final RestTemplate restTemplate, final String id) {
+        final String url = String.format("/api/v2/users/%s", id);
+        final UserData u = this.apiGet(restTemplate, url, UserData.class);
+        final Map<String, String> attrs = new HashMap<>();
+        attrs.put("role", u.role);
+        attrs.put("affiliation", u.affiliation);
+        attrs.put("active", u.active ? "yes" : "no");
+        return new ExamineeAccountDetails(
+                String.valueOf(u.id),
+                u.last_name + ", " + u.first_name,
+                u.external_id,
+                u.email_address,
+                attrs);
     }
 
     @Override
-    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId) {
-
-        return () -> {
-
-            // TODO get the examinee's account details by the given examineeSessionId from remote LMS.
-            //      Currently only the name is needed to display on monitoring view.
-
-            throw new RuntimeException("TODO");
-        };
+    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String id) {
+        return () -> getRestTemplate()
+                .map(t -> this.getExamineeById(t, id))
+                .getOrThrow();
     }
 
     @Override
@@ -266,79 +339,169 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
 
     @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
+        return getRestTemplate()
+                .map(t -> this.getRestrictionForAssignmentId(t, exam.externalId));
+    }
+
+    private SEBRestriction getRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
+        final String url = String.format("/api/v2/assignments/%s", id);
+        final AssignmentData assignment = this.apiGet(restTemplate, url, AssignmentData.class);
+        final AccessibilitySettingsData ts = assignment.accessibility_settings;
+        return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>());
+    }
+
+    private SEBRestriction setRestrictionForAssignmentId(final RestTemplate restTemplate, final String id,
+            final SEBRestriction restriction) {
+        final String url = String.format("/api/v2/assignments/%s", id);
+        final AssignmentData assignment = getAssignmentById(restTemplate, id);
+        assignment.accessibility_settings.config_keys = new ArrayList<>(restriction.configKeys);
+        assignment.accessibility_settings.seb_server_enabled = true;
         @SuppressWarnings("unused")
-        final String quizId = exam.externalId;
+        final AssignmentData r =
+                this.apiPatch(restTemplate, url, assignment, AssignmentData.class, AssignmentData.class);
+        final AccessibilitySettingsData ts = assignment.accessibility_settings;
+        return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>());
+    }
 
-        return Result.tryCatch(() -> {
-
-            // TODO get the SEB client restrictions that are currently set on the remote LMS for
-            //      the given quiz / course derived from the given exam
-
-            throw new RuntimeException("TODO");
-
-        });
+    private SEBRestriction deleteRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
+        final String url = String.format("/api/v2/assignments/%s", id);
+        final AssignmentData assignment = getAssignmentById(restTemplate, id);
+        assignment.accessibility_settings.config_keys = null;
+        assignment.accessibility_settings.seb_server_enabled = false;
+        @SuppressWarnings("unused")
+        final AssignmentData r =
+                this.apiPatch(restTemplate, url, assignment, AssignmentData.class, AssignmentData.class);
+        final AccessibilitySettingsData ts = assignment.accessibility_settings;
+        return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>());
     }
 
     @Override
     public Result<SEBRestriction> applySEBClientRestriction(
             final String externalExamId,
             final SEBRestriction sebRestrictionData) {
-
-        return Result.tryCatch(() -> {
-
-            // TODO apply the given sebRestrictionData settings as current SEB client restriction setting
-            //      to the remote LMS for the given quiz / course.
-            //      Mainly SEBRestriction.configKeys and SEBRestriction.browserExamKeys
-
-            throw new RuntimeException("TODO");
-
-        });
+        return getRestTemplate()
+                .map(t -> this.setRestrictionForAssignmentId(t, externalExamId, sebRestrictionData));
     }
 
     @Override
     public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
-        @SuppressWarnings("unused")
-        final String quizId = exam.externalId;
-
-        return Result.tryCatch(() -> {
-
-            // TODO Release respectively delete all SEB client restrictions for the given
-            //      course / quize on the remote LMS.
-
-            throw new RuntimeException("TODO");
-
-        });
+        return getRestTemplate()
+                .map(t -> this.deleteRestrictionForAssignmentId(t, exam.externalId))
+                .map(x -> exam);
     }
 
-    // TODO: This is an example of how to create a RestTemplate for the service to access the LMS API
-    //       The example deals with a Http based API that is secured by an OAuth2 client-credential flow.
-    //       You might need some different template, then you have to adapt this code
-    //       To your needs.
-    @SuppressWarnings("unused")
-    private OAuth2RestTemplate createRestTemplate(final String accessTokenRequestPath) {
+    private enum LinkRel {
+        FIRST, LAST, PREV, NEXT
+    }
 
+    private class PageLink {
+        public final String link;
+        public final LinkRel rel;
+
+        public PageLink(final String l, final LinkRel r) {
+            this.link = l;
+            this.rel = r;
+        }
+    }
+
+    private List<PageLink> parseLinks(final String header) {
+        // Extracts the individual links from a header that looks like this:
+        // <https://staging.ans.app/api/v2/search/assignments?query=seb_server_enabled%3Atrue&page=1&items=20>; rel="first",<https://staging.ans.app/api/v2/search/assignments?query=seb_server_enabled%3Atrue&page=1&items=20>; rel="last"
+        final Stream<String> links = Arrays.stream(header.split(","));
+        return links
+                .map(s -> {
+                    final String[] pair = s.split(";");
+                    final String link = pair[0].trim().substring(1).replaceFirst(".$", ""); // remove < >
+                    final String relName = pair[1].trim().substring(5).replaceFirst(".$", ""); // remove rel=" "
+                    return new PageLink(link, LinkRel.valueOf(relName.toUpperCase(Locale.ROOT)));
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Optional<PageLink> getNextLink(final List<PageLink> links) {
+        return links.stream().filter(l -> l.rel == LinkRel.NEXT).findFirst();
+    }
+
+    private <T> List<T> apiGetList(final RestTemplate restTemplate, final String url,
+            final ParameterizedTypeReference<List<T>> type) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
-        final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
-        final ProxyData proxyData = this.apiTemplateDataSupplier.getProxyData();
+        return apiGetListPages(restTemplate, lmsSetup.lmsApiUrl + url, type);
+    }
 
-        final CharSequence plainClientId = credentials.clientId;
-        final CharSequence plainClientSecret = this.clientCredentialService
-                .getPlainClientSecret(credentials)
-                .getOrThrow();
+    private <T> List<T> apiGetListPages(final RestTemplate restTemplate, final String link,
+            final ParameterizedTypeReference<List<T>> type) {
+        // unlike the other api methods, this one takes an explicit link
+        // instead of prepending lmsSetup.lmsApiUrl. This is done because Ans
+        // provides absolute links for pagination. This method calls itself
+        // recursively to retrieve multiple pages.
+        final HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.set("accept", "application/json");
+        final ResponseEntity<List<T>> response = restTemplate.exchange(
+                link,
+                HttpMethod.GET,
+                new HttpEntity<>(requestHeaders),
+                type);
+        final List<T> page = response.getBody();
+        final HttpHeaders responseHeaders = response.getHeaders();
+        final List<PageLink> links = parseLinks(responseHeaders.getFirst("link"));
+        final List<T> nextPage = getNextLink(links).map(l -> {
+            return apiGetListPages(restTemplate, l.link, type);
+        }).orElse(new ArrayList<T>());
+        page.addAll(nextPage);
+        return page;
+    }
 
-        final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
-        details.setAccessTokenUri(lmsSetup.lmsApiUrl + accessTokenRequestPath);
-        details.setClientId(plainClientId.toString());
-        details.setClientSecret(plainClientSecret.toString());
+    private <T> T apiGet(final RestTemplate restTemplate, final String url, final Class<T> type) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.set("accept", "application/json");
+        final ResponseEntity<T> res = restTemplate.exchange(
+                lmsSetup.lmsApiUrl + url,
+                HttpMethod.GET,
+                new HttpEntity<>(requestHeaders),
+                type);
+        return res.getBody();
+    }
 
-        final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
-                .getClientHttpRequestFactory(proxyData)
-                .getOrThrow();
+    private <P, R> R apiPatch(final RestTemplate restTemplate, final String url, final P patch,
+            final Class<P> patchType, final Class<R> responseType) {
+        final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
+        final HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.set("content-type", "application/json");
+        final HttpEntity<P> requestEntity = new HttpEntity<>(patch, requestHeaders);
+        final ResponseEntity<R> res = restTemplate.exchange(
+                lmsSetup.lmsApiUrl + url,
+                HttpMethod.PATCH,
+                requestEntity,
+                responseType);
+        return res.getBody();
+    }
 
-        final OAuth2RestTemplate template = new OAuth2RestTemplate(details);
-        template.setRequestFactory(clientHttpRequestFactory);
+    private Result<AnsPersonalRestTemplate> getRestTemplate() {
+        return Result.tryCatch(() -> {
+            if (this.cachedRestTemplate != null) {
+                return this.cachedRestTemplate;
+            }
 
-        return template;
+            final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
+            final ProxyData proxyData = this.apiTemplateDataSupplier.getProxyData();
+            final CharSequence plainClientSecret = this.clientCredentialService
+                    .getPlainClientSecret(credentials)
+                    .getOrThrow();
+
+            final ClientCredentialsResourceDetails details = new ClientCredentialsResourceDetails();
+            details.setClientSecret(plainClientSecret.toString());
+
+            final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
+                    .getClientHttpRequestFactory(proxyData)
+                    .getOrThrow();
+
+            final AnsPersonalRestTemplate template = new AnsPersonalRestTemplate(details);
+            template.setRequestFactory(clientHttpRequestFactory);
+
+            this.cachedRestTemplate = template;
+            return this.cachedRestTemplate;
+        });
     }
 
 }
