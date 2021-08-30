@@ -236,6 +236,8 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
         }
         final DateTime startTime = new DateTime(a.start_at);
         final DateTime endTime = new DateTime(a.end_at);
+        final Map<String, String> attrs = new HashMap<>();
+        attrs.put("assignment_id", String.valueOf(a.id));
         return new QuizData(
                 String.valueOf(a.id),
                 lmsSetup.getInstitutionId(),
@@ -246,7 +248,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
                 startTime,
                 endTime,
                 a.start_url,
-                Map.of("assignment_id", String.valueOf(a.id)));
+                attrs);
     }
 
     private List<AssignmentData> getAssignments(final RestTemplate restTemplate) {
