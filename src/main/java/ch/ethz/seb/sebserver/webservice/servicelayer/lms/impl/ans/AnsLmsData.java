@@ -35,6 +35,8 @@ public final class AnsLmsData {
               "end_at": "2021-08-18T12:00:00.000+02:00",
               "created_at": "2021-06-21T12:24:28.538+02:00",
               "updated_at": "2021-08-17T03:41:56.747+02:00",
+              "trashed": false,
+              "start_url": "https://staging.ans.app/digital_test/assignments/78805/results/new",
               "accessibility_settings": {
                 "attempts": 1,
                 "restricted_access_to_other_pages": false,
@@ -43,7 +45,10 @@ public final class AnsLmsData {
                 "feedback": false,
                 "forced_test_navigation": false,
                 "cannot_reopen_question_groups": false,
-                "seb_server_enabled": true
+                "seb_server_enabled": true,
+                "config_keys": [
+                  "9dd14ac828617116a1230c71b9a1aa9e06f43b32d9fa7db67f4fa113a6896e83e"
+                ]
               },
               "grades_settings": {
                 "grade_calculation": "formula",
@@ -64,6 +69,7 @@ public final class AnsLmsData {
         public String external_id;
         public String start_at;
         public String end_at;
+        public String start_url;
         public AccessibilitySettingsData accessibility_settings;
     }
 

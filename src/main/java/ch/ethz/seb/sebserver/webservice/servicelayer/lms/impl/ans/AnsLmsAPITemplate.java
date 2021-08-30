@@ -259,16 +259,15 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
           lmsSetup.id,
           lmsSetup.getLmsType(),
           String.format("%s", a.name),
-          String.format(""), // TODO: what to show here?
+          String.format(""),
           startTime,
           endTime,
-          // TODO: Waiting for Ans to implement supplying of the correct URL
-          String.format("not implemented by Ans"),
+          a.start_url,
           Map.of("assignment_id", String.valueOf(a.id)));
     }
 
     private List<AssignmentData> getAssignments(final RestTemplate restTemplate) {
-        // TODO: at the moment, seb_server_enabled cannot be set inside the Ans GUI,
+        // NOTE: at the moment, seb_server_enabled cannot be set inside the Ans GUI,
         // only via the API, so we need to list all assignments. Maybe in the future,
         // we can only list those for which seb server has been enabled in Ans (like in OLAT):
         //final String url = "/api/v2/search/assignments?query=seb_server_enabled:true";
