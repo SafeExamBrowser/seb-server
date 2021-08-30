@@ -12,33 +12,31 @@ import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.springframework.web.client.RestTemplate;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpRequest;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
+import org.springframework.web.client.RestTemplate;
 
 public class AnsPersonalRestTemplate extends RestTemplate {
-  private static final Logger log = LoggerFactory.getLogger(AnsPersonalRestTemplate.class);
-  public String token;
-  public AnsPersonalRestTemplate(ClientCredentialsResourceDetails details) {
-        super();
-        token = details.getClientSecret();
-        this.getInterceptors().add(new ClientHttpRequestInterceptor(){
-            @Override
-            public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-              request.getHeaders().set("Authorization", "Bearer " + token);
-              //log.debug("Matching curl: curl -X GET {} -H  'accept: application/json' -H  'Authorization: Bearer {}'", request.getURI(), token);
-              ClientHttpResponse response = execution.execute(request, body);
-              log.debug("Response Headers      : {}", response.getHeaders());
-              return response;
-            }
-        }); 
-  }
-}
+    private static final Logger log = LoggerFactory.getLogger(AnsPersonalRestTemplate.class);
+    public String token;
 
+    public AnsPersonalRestTemplate(final ClientCredentialsResourceDetails details) {
+        super();
+        this.token = details.getClientSecret();
+        this.getInterceptors().add(new ClientHttpRequestInterceptor() {
+            @Override
+            public ClientHttpResponse intercept(final HttpRequest request, final byte[] body,
+                    final ClientHttpRequestExecution execution) throws IOException {
+
+                request.getHeaders().set("Authorization", "Bearer " + AnsPersonalRestTemplate.this.token);
+                //log.debug("Matching curl: curl -X GET {} -H  'accept: application/json' -H  'Authorization: Bearer {}'", request.getURI(), token);
+                final ClientHttpResponse response = execution.execute(request, body);
+                log.debug("Response Headers      : {}", response.getHeaders());
+                return response;
+            }
+        });
+    }
+}
