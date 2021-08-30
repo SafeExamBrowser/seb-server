@@ -50,6 +50,7 @@ public final class Exam implements GrantEntity {
             Boolean.FALSE,
             null,
             Boolean.FALSE,
+            null,
             null);
 
     public static final String FILTER_ATTR_TYPE = "type";
@@ -127,6 +128,9 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_LASTUPDATE)
     public final String lastUpdate;
 
+    @JsonProperty(EXAM.ATTR_EXAM_TEMPLATE_ID)
+    public final Long examTemplateId;
+
     @JsonCreator
     public Exam(
             @JsonProperty(EXAM.ATTR_ID) final Long id,
@@ -145,7 +149,8 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_LMS_SEB_RESTRICTION) final Boolean sebRestriction,
             @JsonProperty(EXAM.ATTR_BROWSER_KEYS) final String browserExamKeys,
             @JsonProperty(EXAM.ATTR_ACTIVE) final Boolean active,
-            @JsonProperty(EXAM.ATTR_LASTUPDATE) final String lastUpdate) {
+            @JsonProperty(EXAM.ATTR_LASTUPDATE) final String lastUpdate,
+            @JsonProperty(EXAM.ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -163,6 +168,7 @@ public final class Exam implements GrantEntity {
         this.browserExamKeys = browserExamKeys;
         this.active = (active != null) ? active : Boolean.TRUE;
         this.lastUpdate = lastUpdate;
+        this.examTemplateId = examTemplateId;
 
         this.supporter = (supporter != null)
                 ? Collections.unmodifiableCollection(supporter)
@@ -191,6 +197,7 @@ public final class Exam implements GrantEntity {
         this.active = mapper.getBoolean(EXAM.ATTR_ACTIVE);
         this.supporter = mapper.getStringSet(EXAM.ATTR_SUPPORTER);
         this.lastUpdate = null;
+        this.examTemplateId = mapper.getLong(EXAM.ATTR_EXAM_TEMPLATE_ID);
     }
 
     public Exam(final QuizData quizData) {
@@ -215,6 +222,7 @@ public final class Exam implements GrantEntity {
         this.active = null;
         this.supporter = null;
         this.lastUpdate = null;
+        this.examTemplateId = null;
     }
 
     @Override
@@ -310,6 +318,10 @@ public final class Exam implements GrantEntity {
 
     public Boolean getActive() {
         return this.active;
+    }
+
+    public Long getExamTemplateId() {
+        return this.examTemplateId;
     }
 
     @Override

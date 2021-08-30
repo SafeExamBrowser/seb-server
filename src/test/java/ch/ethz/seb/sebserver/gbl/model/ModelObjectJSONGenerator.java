@@ -195,7 +195,7 @@ public class ModelObjectJSONGenerator {
                 1L, 1L, 1L, "externalId", "name", "description", DateTime.now(), DateTime.now(),
                 "startURL", ExamType.BYOD, "owner",
                 Arrays.asList("user1", "user2"),
-                ExamStatus.RUNNING, false, "browserExamKeys", true, null);
+                ExamStatus.RUNNING, false, "browserExamKeys", true, null, null);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 

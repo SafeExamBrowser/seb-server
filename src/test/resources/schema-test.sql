@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS `exam` (
   `updating` INT(1) NOT NULL,
   `lastUpdate` VARCHAR(255) NULL,
   `active` INT(1) NOT NULL,
+  `exam_template_id` BIGINT UNSIGNED NULL,
   PRIMARY KEY (`id`),
   INDEX `lms_setup_key_idx` (`lms_setup_id` ASC),
   INDEX `institution_key_idx` (`institution_id` ASC),
@@ -598,6 +599,34 @@ CREATE TABLE IF NOT EXISTS `certificate` (
   CONSTRAINT `certificateInstitution`
     FOREIGN KEY (`institution_id`)
     REFERENCES `institution` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+;
+
+-- -----------------------------------------------------
+-- Table `exam_template`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `exam_template` ;
+
+CREATE TABLE IF NOT EXISTS `exam_template` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `institution_id` BIGINT UNSIGNED NOT NULL,
+  `configuration_template_id` BIGINT UNSIGNED NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `description` VARCHAR(4000) NULL,
+  `indicators_json` VARCHAR(8000) NULL,
+  `other_exam_attributes_json` VARCHAR(4000) NULL,
+  PRIMARY KEY (`id`),
+  INDEX `examTemplateInstitutionRef_idx` (`institution_id` ASC),
+  INDEX `examTemplateConfigTemplateRef_idx` (`configuration_template_id` ASC),
+  CONSTRAINT `examTemplateInstitutionRef`
+    FOREIGN KEY (`institution_id`)
+    REFERENCES `institution` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `examTemplateConfigTemplateRef`
+    FOREIGN KEY (`configuration_template_id`)
+    REFERENCES `configuration_node` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;

@@ -13,8 +13,8 @@ INSERT IGNORE INTO additional_attributes VALUES
     ;
     
 INSERT IGNORE INTO exam VALUES
-    (1, 1, 1, 'quiz1', 'super-admin', 'super-admin', 'MANAGED', null, null, 'UP_COMING', 1, 0, null, 1),
-    (2, 1, 1, 'quiz6', 'super-admin', 'super-admin', 'MANAGED', null, null, 'RUNNING', 1, 0, null, 1)
+    (1, 1, 1, 'quiz1', 'super-admin', 'super-admin', 'MANAGED', null, null, 'UP_COMING', 1, 0, null, 1, null),
+    (2, 1, 1, 'quiz6', 'super-admin', 'super-admin', 'MANAGED', null, null, 'RUNNING', 1, 0, null, 1, null)
     ;
     
 INSERT IGNORE INTO indicator VALUES

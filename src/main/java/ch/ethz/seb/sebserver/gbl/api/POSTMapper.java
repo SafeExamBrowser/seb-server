@@ -21,6 +21,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -32,6 +34,8 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 /** A POST parameter mapper that wraps all parameter from a POST request given by a MultiValueMap<String, String> and
  * defines API specific convenience functions to access this parameter with given type and conversion of needed. */
 public class POSTMapper {
+
+    private static final Logger log = LoggerFactory.getLogger(POSTMapper.class);
 
     public static final POSTMapper EMPTY_MAP = new POSTMapper(null, null);
 
@@ -121,7 +125,12 @@ public class POSTMapper {
             return null;
         }
 
-        return Long.parseLong(value);
+        try {
+            return Long.parseLong(value);
+        } catch (final Exception e) {
+            log.error("Failed to parse long value for attribute: {}", name, e.getMessage());
+            return null;
+        }
     }
 
     public Short getShort(final String name) {

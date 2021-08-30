@@ -251,7 +251,7 @@ public class ExamDAOImpl implements ExamDAO {
                             examRecord.getId(),
                             null, null, null, null, null, null, null, null,
                             status.name(),
-                            null, null, null, null);
+                            null, null, null, null, null);
 
                     this.examRecordMapper.updateByPrimaryKeySelective(newExamRecord);
                     return this.examRecordMapper.selectByPrimaryKey(examId);
@@ -288,8 +288,8 @@ public class ExamDAOImpl implements ExamDAO {
                     1, // seb restriction (deprecated)
                     null, // updating
                     null, // lastUpdate
-                    null // active
-            );
+                    null, // active
+                    exam.examTemplateId);
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(exam.id);
@@ -307,7 +307,7 @@ public class ExamDAOImpl implements ExamDAO {
                     examId,
                     null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(sebRestriction),
-                    null, null, null);
+                    null, null, null, null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(examId);
@@ -354,7 +354,8 @@ public class ExamDAOImpl implements ExamDAO {
                     1, // seb restriction (deprecated)
                     BooleanUtils.toInteger(false),
                     null, // lastUpdate
-                    BooleanUtils.toInteger(true));
+                    BooleanUtils.toInteger(true),
+                    exam.examTemplateId);
 
             this.examRecordMapper.insert(examRecord);
             return examRecord;
@@ -370,7 +371,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             final List<Long> ids = extractListOfPKs(all);
             final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
-                    null, null, null, null, null, null, null, null, BooleanUtils.toInteger(active));
+                    null, null, null, null, null, null, null, null, BooleanUtils.toInteger(active), null);
 
             this.examRecordMapper.updateByExampleSelective(examRecord)
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
@@ -502,7 +503,7 @@ public class ExamDAOImpl implements ExamDAO {
                     null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(true),
                     updateId,
-                    null);
+                    null, null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
             return newRecord;
@@ -533,7 +534,7 @@ public class ExamDAOImpl implements ExamDAO {
                     null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(false),
                     updateId,
-                    null);
+                    null, null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
             return newRecord;
@@ -556,7 +557,7 @@ public class ExamDAOImpl implements ExamDAO {
                     examId,
                     null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(false),
-                    null, null);
+                    null, null, null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return examRecord.getId();
@@ -950,7 +951,7 @@ public class ExamDAOImpl implements ExamDAO {
                                         record.getId(),
                                         null, null,
                                         recoveredQuizData.id,
-                                        null, null, null, null, null, null, null, null, null, null));
+                                        null, null, null, null, null, null, null, null, null, null, null));
 
                                 log.debug("Successfully recovered exam quiz data to new externalId {}",
                                         recoveredQuizData.id);
@@ -1002,7 +1003,8 @@ public class ExamDAOImpl implements ExamDAO {
                     BooleanUtils.toBooleanObject(record.getLmsSebRestriction()),
                     record.getBrowserKeys(),
                     BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : null),
-                    record.getLastupdate());
+                    record.getLastupdate(),
+                    record.getExamTemplateId());
         });
     }
 
