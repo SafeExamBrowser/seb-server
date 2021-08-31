@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -78,6 +79,10 @@ public class FilterMap extends POSTMapper {
 
     public String getUserUsername() {
         return getSQLWildcard(UserInfo.FILTER_ATTR_USER_NAME);
+    }
+
+    public String getExamTemplateName() {
+        return getSQLWildcard(ExamTemplate.FILTER_ATTR_NAME);
     }
 
     public String getUserEmail() {

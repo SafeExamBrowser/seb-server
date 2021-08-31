@@ -6,55 +6,55 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ExamRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.939+02:00", comments="Source Table: exam")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.776+02:00", comments="Source Table: exam")
     public static final ExamRecord examRecord = new ExamRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.939+02:00", comments="Source field: exam.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.777+02:00", comments="Source field: exam.id")
     public static final SqlColumn<Long> id = examRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.939+02:00", comments="Source field: exam.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.777+02:00", comments="Source field: exam.institution_id")
     public static final SqlColumn<Long> institutionId = examRecord.institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.939+02:00", comments="Source field: exam.lms_setup_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.777+02:00", comments="Source field: exam.lms_setup_id")
     public static final SqlColumn<Long> lmsSetupId = examRecord.lmsSetupId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.939+02:00", comments="Source field: exam.external_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.777+02:00", comments="Source field: exam.external_id")
     public static final SqlColumn<String> externalId = examRecord.externalId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.939+02:00", comments="Source field: exam.owner")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.778+02:00", comments="Source field: exam.owner")
     public static final SqlColumn<String> owner = examRecord.owner;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.940+02:00", comments="Source field: exam.supporter")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.778+02:00", comments="Source field: exam.supporter")
     public static final SqlColumn<String> supporter = examRecord.supporter;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.940+02:00", comments="Source field: exam.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.778+02:00", comments="Source field: exam.type")
     public static final SqlColumn<String> type = examRecord.type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.940+02:00", comments="Source field: exam.quit_password")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.778+02:00", comments="Source field: exam.quit_password")
     public static final SqlColumn<String> quitPassword = examRecord.quitPassword;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.940+02:00", comments="Source field: exam.browser_keys")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.778+02:00", comments="Source field: exam.browser_keys")
     public static final SqlColumn<String> browserKeys = examRecord.browserKeys;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.940+02:00", comments="Source field: exam.status")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.778+02:00", comments="Source field: exam.status")
     public static final SqlColumn<String> status = examRecord.status;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.940+02:00", comments="Source field: exam.lms_seb_restriction")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.778+02:00", comments="Source field: exam.lms_seb_restriction")
     public static final SqlColumn<Integer> lmsSebRestriction = examRecord.lmsSebRestriction;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.940+02:00", comments="Source field: exam.updating")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.779+02:00", comments="Source field: exam.updating")
     public static final SqlColumn<Integer> updating = examRecord.updating;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.941+02:00", comments="Source field: exam.lastupdate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.779+02:00", comments="Source field: exam.lastupdate")
     public static final SqlColumn<String> lastupdate = examRecord.lastupdate;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.941+02:00", comments="Source field: exam.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.779+02:00", comments="Source field: exam.active")
     public static final SqlColumn<Integer> active = examRecord.active;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.941+02:00", comments="Source field: exam.exam_template_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.779+02:00", comments="Source field: exam.exam_template_id")
     public static final SqlColumn<Long> examTemplateId = examRecord.examTemplateId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T15:10:37.939+02:00", comments="Source Table: exam")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-08-30T16:41:06.777+02:00", comments="Source Table: exam")
     public static final class ExamRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 
