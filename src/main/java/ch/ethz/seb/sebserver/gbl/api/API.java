@@ -204,4 +204,6 @@ public final class API {
     public static final String CERTIFICATE_ALIAS = "alias";
     public static final String CERTIFICATE_ALIAS_VAR_PATH_SEGMENT = "/{" + CERTIFICATE_ALIAS + "}";
 
+    public static final String EXAM_TEMPLATE_ENDPOINT = "/exam-template";
+
 }

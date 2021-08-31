@@ -12,6 +12,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -145,15 +146,52 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
     @Override
     @Transactional
     public Result<ExamTemplate> save(final ExamTemplate data) {
-        // TODO Auto-generated method stub
-        return null;
+        return Result.tryCatch(() -> {
+
+            checkUniqueName(data);
+
+            final Collection<Indicator> indicatorTemplates = data.getIndicatorTemplates();
+            final String indicatorsJSON = (indicatorTemplates != null && !indicatorTemplates.isEmpty())
+                    ? this.jsonMapper.writeValueAsString(indicatorTemplates)
+                    : null;
+
+            final Map<String, String> examAttributes = data.getExamAttributes();
+            final String examAttributesJSON = (examAttributes != null && !examAttributes.isEmpty())
+                    ? this.jsonMapper.writeValueAsString(examAttributes)
+                    : null;
+
+            final ExamTemplateRecord newRecord = new ExamTemplateRecord(
+                    null,
+                    data.institutionId,
+                    data.configTemplateId,
+                    data.name,
+                    data.description,
+                    indicatorsJSON,
+                    examAttributesJSON);
+
+            this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
+            return this.examTemplateRecordMapper.selectByPrimaryKey(data.id);
+        })
+                .flatMap(this::toDomainModel)
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
-        // TODO Auto-generated method stub
-        return null;
+        return Result.tryCatch(() -> {
+
+            final List<Long> ids = extractListOfPKs(all);
+
+            this.examTemplateRecordMapper.deleteByExample()
+                    .where(ExamTemplateRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
+            return ids.stream()
+                    .map(id -> new EntityKey(id, EntityType.EXAM_TEMPLATE))
+                    .collect(Collectors.toList());
+        });
     }
 
     private Result<ExamTemplateRecord> recordById(final Long id) {

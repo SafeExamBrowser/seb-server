@@ -324,11 +324,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkModify);
 
-//        final Configuration newConfig = this.configurationDAO
-//                .saveToHistory(modelId)
-//                .flatMap(this.configurationDAO::restoreToDefaultValues)
-//                .getOrThrow();
-
         final Configuration newConfig = this.configurationDAO
                 .getFollowupConfiguration(modelId)
                 .getOrThrow();
