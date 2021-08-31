@@ -27,9 +27,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
@@ -267,8 +267,8 @@ public class InstitutionDAOImpl implements InstitutionDAO {
 
         if (count != null && count > 0) {
             throw new FieldValidationException(
-                    API.IMPORT_FILE_ATTR_NAME,
-                    "certificate:certificate:exists");
+                    Domain.INSTITUTION.ATTR_NAME,
+                    "institution:name:name.notunique");
         }
     }
 }
