@@ -43,13 +43,17 @@ public class ZoomWindowScriptResolver implements ProctoringWindowScriptResolver 
     private static final String ATTR_ROOM_NAME = "ATTR_ROOM_NAME";
     private static final String ATTR_HOST = "ATTR_HOST";
     private static final String ATTR_USER_NAME = "ATTR_USER_NAME";
+    private static final String ATTR_ZOOM_SDK_VERSION = "ZOOM_SDK_VERSION";
 
     private final Resource resourceFile;
+    private final String zoomSDKVersion;
 
     public ZoomWindowScriptResolver(
-            @Value(RES_PATH) final Resource resourceFile) {
+            @Value(RES_PATH) final Resource resourceFile,
+            @Value("${sebserver.gui.proctoring.zoom.websdk.version:1.9.8}") final String zoomSDKVersion) {
 
         this.resourceFile = resourceFile;
+        this.zoomSDKVersion = zoomSDKVersion;
     }
 
     @Override
@@ -76,6 +80,7 @@ public class ZoomWindowScriptResolver implements ProctoringWindowScriptResolver 
         }
         args.put(ATTR_SUBJECT, data.connectionData.subject);
         args.put(ATTR_USER_NAME, data.connectionData.userName);
+        args.put(ATTR_ZOOM_SDK_VERSION, this.zoomSDKVersion);
 
         final String htmlWindow = getHTMLWindow();
         final String replace = new StringSubstitutor(

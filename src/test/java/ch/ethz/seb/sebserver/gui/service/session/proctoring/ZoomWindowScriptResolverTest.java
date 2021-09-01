@@ -24,7 +24,7 @@ public class ZoomWindowScriptResolverTest {
     public void testZoomWindowScriptResolver() {
         final DefaultResourceLoader defaultResourceLoader = new DefaultResourceLoader();
         final Resource resource = defaultResourceLoader.getResource(ZoomWindowScriptResolver.RES_PATH);
-        final ZoomWindowScriptResolver zoomWindowScriptResolver = new ZoomWindowScriptResolver(resource);
+        final ZoomWindowScriptResolver zoomWindowScriptResolver = new ZoomWindowScriptResolver(resource, "1.9.8");
 
         final ProctoringWindowData proctoringWindowDataZoom = new ProctoringWindowData(
                 "0",
@@ -70,17 +70,16 @@ public class ZoomWindowScriptResolverTest {
                 "<html>\r\n"
                         + "    <head>\r\n"
                         + "        <meta charset='utf-8' />\r\n"
-                        + "        <link type='text/css' rel='stylesheet' href='https://source.zoom.us/1.9.1/css/bootstrap.css' />\r\n"
-                        + "        <link type='text/css' rel='stylesheet' href='https://source.zoom.us/1.9.1/css/react-select.css' />\r\n"
+                        + "        <link type='text/css' rel='stylesheet' href='https://source.zoom.us/1.9.8/css/bootstrap.css' />\r\n"
+                        + "        <link type='text/css' rel='stylesheet' href='https://source.zoom.us/1.9.8/css/react-select.css' />\r\n"
                         + "    </head>\r\n"
                         + "    <body>\r\n"
-                        + "        <script src='https://source.zoom.us/1.9.1/lib/vendor/react.min.js'></script>\r\n"
-                        + "        <script src='https://source.zoom.us/1.9.1/lib/vendor/react-dom.min.js'></script>\r\n"
-                        + "        <script src='https://source.zoom.us/1.9.1/lib/vendor/redux.min.js'></script>\r\n"
-                        + "        <script src='https://source.zoom.us/1.9.1/lib/vendor/redux-thunk.min.js'></script>\r\n"
-                        + "        <script src='https://source.zoom.us/1.9.1/lib/vendor/jquery.min.js'></script>\r\n"
-                        + "        <script src='https://source.zoom.us/1.9.1/lib/vendor/lodash.min.js'></script>\r\n"
-                        + "        <script src='https://source.zoom.us/zoom-meeting-1.9.1.min.js'></script>\r\n"
+                        + "        <script src='https://source.zoom.us/1.9.8/lib/vendor/react.min.js'></script>\r\n"
+                        + "        <script src='https://source.zoom.us/1.9.8/lib/vendor/react-dom.min.js'></script>\r\n"
+                        + "        <script src='https://source.zoom.us/1.9.8/lib/vendor/redux.min.js'></script>\r\n"
+                        + "        <script src='https://source.zoom.us/1.9.8/lib/vendor/redux-thunk.min.js'></script>\r\n"
+                        + "        <script src='https://source.zoom.us/1.9.8/lib/vendor/lodash.min.js'></script>\r\n"
+                        + "        <script src='https://source.zoom.us/zoom-meeting-1.9.8.min.js'></script>\r\n"
                         + "        <script src='https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9/crypto-js.min.js'></script>\r\n"
                         + "        <script type='text/javascript'>\r\n"
                         + "\r\n"
@@ -88,7 +87,7 @@ public class ZoomWindowScriptResolverTest {
                         + "            console.log(JSON.stringify(ZoomMtg.checkSystemRequirements()));\r\n"
                         + "\r\n"
                         + "            console.log('Initializing Zoom...');\r\n"
-                        + "            ZoomMtg.setZoomJSLib('https://source.zoom.us/1.9.1/lib', '/av');\r\n"
+                        + "            ZoomMtg.setZoomJSLib('https://source.zoom.us/1.9.8/lib', '/av');\r\n"
                         + "            ZoomMtg.preLoadWasm();\r\n"
                         + "            ZoomMtg.prepareJssdk();\r\n"
                         + "\r\n"
