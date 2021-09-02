@@ -139,6 +139,18 @@ public final class Indicator implements Entity {
         this.thresholds = postParams.getThresholds();
     }
 
+    /** This initialize an indicator for an exam template */
+    public Indicator(final Long id, final Long examTemplateId, final POSTMapper postParams) {
+        this.id = id;
+        this.examId = examTemplateId;
+        this.name = postParams.getString(Domain.INDICATOR.ATTR_NAME);
+        this.type = postParams.getEnum(Domain.INDICATOR.ATTR_TYPE, IndicatorType.class);
+        this.defaultColor = postParams.getString(Domain.INDICATOR.ATTR_COLOR);
+        this.defaultIcon = postParams.getString(Domain.INDICATOR.ATTR_ICON);
+        this.tags = postParams.getString(Domain.INDICATOR.ATTR_TAGS);
+        this.thresholds = postParams.getThresholds();
+    }
+
     @Override
     public String getModelId() {
         return (this.id == null) ? null : String.valueOf(this.id);

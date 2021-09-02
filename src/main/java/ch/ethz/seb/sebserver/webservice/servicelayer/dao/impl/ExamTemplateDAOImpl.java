@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +26,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -99,8 +102,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                         ExamTemplateRecordDynamicSqlSupport.name,
                         isLikeWhenPresent(filterMap.getExamTemplateName()))
                 .and(
-                        ExamTemplateRecordDynamicSqlSupport.configurationTemplateId,
-                        isEqualToWhenPresent(filterMap.getLong(ExamTemplate.FILTER_ATTR_CONFIG_TEMPLATE)))
+                        ExamTemplateRecordDynamicSqlSupport.examType,
+                        isEqualToWhenPresent(filterMap.getString(ExamTemplate.FILTER_ATTR_EXAM_TYPE)))
                 .build()
                 .execute()
                 .stream()
@@ -133,6 +136,12 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     data.configTemplateId,
                     data.name,
                     data.description,
+                    (data.examType != null)
+                            ? data.examType.name()
+                            : null,
+                    (data.supporter != null)
+                            ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
+                            : null,
                     indicatorsJSON,
                     examAttributesJSON);
 
@@ -166,6 +175,12 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     data.configTemplateId,
                     data.name,
                     data.description,
+                    (data.examType != null)
+                            ? data.examType.name()
+                            : null,
+                    (data.supporter != null)
+                            ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
+                            : null,
                     indicatorsJSON,
                     examAttributesJSON);
 
@@ -223,11 +238,21 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     })
                     : null;
 
+            final Collection<String> supporter = (StringUtils.isNotBlank(record.getSupporter()))
+                    ? Arrays.asList(StringUtils.split(record.getSupporter(), Constants.LIST_SEPARATOR_CHAR))
+                    : null;
+
+            final ExamType examType = (record.getExamType() != null)
+                    ? ExamType.valueOf(record.getExamType())
+                    : ExamType.UNDEFINED;
+
             return new ExamTemplate(
                     record.getId(),
                     record.getInstitutionId(),
                     record.getName(),
                     record.getDescription(),
+                    examType,
+                    supporter,
                     record.getConfigurationTemplateId(),
                     indicators,
                     examAttributes);

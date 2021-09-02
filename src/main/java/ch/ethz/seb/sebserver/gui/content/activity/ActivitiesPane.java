@@ -300,6 +300,17 @@ public class ActivitiesPane implements TemplateComposer {
                         actionBuilder
                                 .newAction(ActionDefinition.EXAM_VIEW_LIST)
                                 .create());
+
+                // Exam Template
+                final TreeItem examTemplate = this.widgetFactory.treeItemLocalized(
+                        examAdmin,
+                        ActivityDefinition.EXAM_TEMPLATE.displayName);
+                injectActivitySelection(
+                        examTemplate,
+                        actionBuilder
+                                .newAction(ActionDefinition.EXAM_TEMPLATE_VIEW_LIST)
+                                .create());
+
             }
 
             examAdmin.setExpanded(this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN));

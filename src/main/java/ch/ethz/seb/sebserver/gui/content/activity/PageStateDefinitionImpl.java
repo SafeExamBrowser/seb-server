@@ -8,32 +8,35 @@
 
 package ch.ethz.seb.sebserver.gui.content.activity;
 
-import ch.ethz.seb.sebserver.gui.content.CertificateList;
-import ch.ethz.seb.sebserver.gui.content.ConfigTemplateAttributeForm;
-import ch.ethz.seb.sebserver.gui.content.ConfigTemplateForm;
-import ch.ethz.seb.sebserver.gui.content.ConfigTemplateList;
-import ch.ethz.seb.sebserver.gui.content.ExamForm;
-import ch.ethz.seb.sebserver.gui.content.ExamList;
-import ch.ethz.seb.sebserver.gui.content.IndicatorForm;
-import ch.ethz.seb.sebserver.gui.content.InstitutionForm;
-import ch.ethz.seb.sebserver.gui.content.InstitutionList;
-import ch.ethz.seb.sebserver.gui.content.LmsSetupForm;
-import ch.ethz.seb.sebserver.gui.content.LmsSetupList;
-import ch.ethz.seb.sebserver.gui.content.MonitoringClientConnection;
-import ch.ethz.seb.sebserver.gui.content.MonitoringRunningExam;
-import ch.ethz.seb.sebserver.gui.content.MonitoringRunningExamList;
-import ch.ethz.seb.sebserver.gui.content.QuizLookupList;
-import ch.ethz.seb.sebserver.gui.content.SEBClientConfigForm;
-import ch.ethz.seb.sebserver.gui.content.SEBClientConfigList;
-import ch.ethz.seb.sebserver.gui.content.SEBClientEvents;
-import ch.ethz.seb.sebserver.gui.content.SEBExamConfigForm;
-import ch.ethz.seb.sebserver.gui.content.SEBExamConfigList;
-import ch.ethz.seb.sebserver.gui.content.SEBSettingsForm;
-import ch.ethz.seb.sebserver.gui.content.UserAccountChangePasswordForm;
-import ch.ethz.seb.sebserver.gui.content.UserAccountForm;
-import ch.ethz.seb.sebserver.gui.content.UserAccountList;
-import ch.ethz.seb.sebserver.gui.content.UserActivityLogs;
 import ch.ethz.seb.sebserver.gui.content.action.ActionPane;
+import ch.ethz.seb.sebserver.gui.content.admin.InstitutionForm;
+import ch.ethz.seb.sebserver.gui.content.admin.InstitutionList;
+import ch.ethz.seb.sebserver.gui.content.admin.UserAccountChangePasswordForm;
+import ch.ethz.seb.sebserver.gui.content.admin.UserAccountForm;
+import ch.ethz.seb.sebserver.gui.content.admin.UserAccountList;
+import ch.ethz.seb.sebserver.gui.content.admin.UserActivityLogs;
+import ch.ethz.seb.sebserver.gui.content.configs.CertificateList;
+import ch.ethz.seb.sebserver.gui.content.configs.ConfigTemplateAttributeForm;
+import ch.ethz.seb.sebserver.gui.content.configs.ConfigTemplateForm;
+import ch.ethz.seb.sebserver.gui.content.configs.ConfigTemplateList;
+import ch.ethz.seb.sebserver.gui.content.configs.SEBClientConfigForm;
+import ch.ethz.seb.sebserver.gui.content.configs.SEBClientConfigList;
+import ch.ethz.seb.sebserver.gui.content.configs.SEBExamConfigForm;
+import ch.ethz.seb.sebserver.gui.content.configs.SEBExamConfigList;
+import ch.ethz.seb.sebserver.gui.content.configs.SEBSettingsForm;
+import ch.ethz.seb.sebserver.gui.content.exam.ExamForm;
+import ch.ethz.seb.sebserver.gui.content.exam.ExamList;
+import ch.ethz.seb.sebserver.gui.content.exam.ExamTemplateForm;
+import ch.ethz.seb.sebserver.gui.content.exam.ExamTemplateIndicatorForm;
+import ch.ethz.seb.sebserver.gui.content.exam.ExamTemplateList;
+import ch.ethz.seb.sebserver.gui.content.exam.IndicatorForm;
+import ch.ethz.seb.sebserver.gui.content.exam.LmsSetupForm;
+import ch.ethz.seb.sebserver.gui.content.exam.LmsSetupList;
+import ch.ethz.seb.sebserver.gui.content.exam.QuizLookupList;
+import ch.ethz.seb.sebserver.gui.content.monitoring.MonitoringClientConnection;
+import ch.ethz.seb.sebserver.gui.content.monitoring.MonitoringRunningExam;
+import ch.ethz.seb.sebserver.gui.content.monitoring.MonitoringRunningExamList;
+import ch.ethz.seb.sebserver.gui.content.monitoring.SEBClientEvents;
 import ch.ethz.seb.sebserver.gui.service.page.Activity;
 import ch.ethz.seb.sebserver.gui.service.page.PageStateDefinition;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -59,6 +62,11 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
     EXAM_VIEW(Type.FORM_VIEW, ExamForm.class, ActivityDefinition.EXAM),
     EXAM_EDIT(Type.FORM_EDIT, ExamForm.class, ActivityDefinition.EXAM),
     INDICATOR_EDIT(Type.FORM_EDIT, IndicatorForm.class, ActivityDefinition.EXAM),
+
+    EXAM_TEMPLATE_LIST(Type.LIST_VIEW, ExamTemplateList.class, ActivityDefinition.EXAM_TEMPLATE),
+    EXAM_TEMPLATE_VIEW(Type.LIST_VIEW, ExamTemplateForm.class, ActivityDefinition.EXAM_TEMPLATE),
+    EXAM_TEMPLATE_EDIT(Type.FORM_EDIT, ExamTemplateForm.class, ActivityDefinition.EXAM_TEMPLATE),
+    EXAM_TEMPLATE_INDICATOR_EDIT(Type.FORM_EDIT, ExamTemplateIndicatorForm.class, ActivityDefinition.EXAM_TEMPLATE),
 
     SEB_CLIENT_CONFIG_LIST(Type.LIST_VIEW, SEBClientConfigList.class, ActivityDefinition.SEB_CLIENT_CONFIG),
     SEB_CLIENT_CONFIG_VIEW(Type.FORM_VIEW, SEBClientConfigForm.class, ActivityDefinition.SEB_CLIENT_CONFIG),

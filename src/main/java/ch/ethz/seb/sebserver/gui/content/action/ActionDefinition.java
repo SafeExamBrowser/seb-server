@@ -379,6 +379,56 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
 
+    EXAM_TEMPLATE_VIEW_LIST(
+            new LocTextKey("sebserver.examtemplate.action.list"),
+            PageStateDefinitionImpl.EXAM_TEMPLATE_LIST),
+    EXAM_TEMPLATE_VIEW_FROM_LIST(
+            new LocTextKey("sebserver.examtemplate.action.list.view"),
+            ImageIcon.SHOW,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
+            ActionCategory.EXAM_TEMPLATE_LIST),
+    EXAM_TEMPLATE_MODIFY_FROM_LIST(
+            new LocTextKey("sebserver.examtemplate.action.list.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_EDIT,
+            ActionCategory.EXAM_TEMPLATE_LIST),
+    EXAM_TEMPLATE_NEW(
+            new LocTextKey("sebserver.examtemplate.action.list.new"),
+            ImageIcon.TEMPLATE,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_EDIT,
+            ActionCategory.LIST_VARIA),
+    EXAM_TEMPLATE_MODIFY(
+            new LocTextKey("sebserver.examtemplate.action.list.edit"),
+            ImageIcon.TEMPLATE,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_EDIT,
+            ActionCategory.LIST_VARIA),
+    EXAM_TEMPLATE_SAVE(
+            new LocTextKey("sebserver.examtemplate.action.save"),
+            ImageIcon.SAVE,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
+            ActionCategory.FORM),
+    EXAM_TEMPLATE_CANCEL_MODIFY(
+            new LocTextKey("sebserver.overall.action.modify.cancel"),
+            ImageIcon.CANCEL,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
+            ActionCategory.FORM),
+
+    EXAM_TEMPLATE_INDICATOR_NEW(
+            new LocTextKey("sebserver.examtemplate.indicator.action.list.new"),
+            ImageIcon.INDICATOR,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_INDICATOR_EDIT,
+            ActionCategory.EXAM_TEMPLATE_INDICATOR_LIST),
+    EXAM_TEMPLATE_INDICATOR_MODIFY_FROM_LIST(
+            new LocTextKey("sebserver.examtemplate.indicator.action.list.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_INDICATOR_EDIT,
+            ActionCategory.EXAM_TEMPLATE_INDICATOR_LIST),
+    EXAM_TEMPLATE_INDICATOR_DELETE_FROM_LIST(
+            new LocTextKey("sebserver.examtemplate.indicator.action.list.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
+            ActionCategory.EXAM_TEMPLATE_INDICATOR_LIST),
+
     SEB_CLIENT_CONFIG_LIST(
             new LocTextKey("sebserver.clientconfig.list.title"),
             PageStateDefinitionImpl.SEB_CLIENT_CONFIG_LIST),

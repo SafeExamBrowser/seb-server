@@ -124,6 +124,18 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .create();
 
+        // grants for exam templates
+        addPrivilege(EntityType.EXAM_TEMPLATE)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .andForRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.EXAM_SUPPORTER)
+                .withOwnerPrivilege(PrivilegeType.MODIFY)
+                .create();
+
         // grants for configuration node
         addPrivilege(EntityType.CONFIGURATION_NODE)
                 .forRole(UserRole.SEB_SERVER_ADMIN)

@@ -40,6 +40,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction.PermissionComponent;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction.WhiteListPath;
@@ -582,6 +583,15 @@ public class ResourceService {
 
         return this.i18nSupport
                 .getText(ResourceService.EXAM_TYPE_PREFIX + examMap.examType.name());
+    }
+
+    public String localizedExamTypeName(final ExamTemplate examTemplate) {
+        if (examTemplate.examType == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.i18nSupport
+                .getText(ResourceService.EXAM_TYPE_PREFIX + examTemplate.examType.name());
     }
 
     public String localizedExamTypeName(final Exam exam) {

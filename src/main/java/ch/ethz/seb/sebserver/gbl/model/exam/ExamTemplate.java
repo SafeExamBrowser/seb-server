@@ -24,12 +24,13 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM_TEMPLATE;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ExamTemplate implements GrantEntity {
 
-    public static final String FILTER_ATTR_CONFIG_TEMPLATE = EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID;
+    public static final String FILTER_ATTR_EXAM_TYPE = EXAM_TEMPLATE.ATTR_EXAM_TYPE;
 
     @JsonProperty(EXAM_TEMPLATE.ATTR_ID)
     public final Long id;
@@ -47,6 +48,12 @@ public class ExamTemplate implements GrantEntity {
     @JsonProperty(EXAM_TEMPLATE.ATTR_DESCRIPTION)
     public final String description;
 
+    @JsonProperty(EXAM_TEMPLATE.ATTR_EXAM_TYPE)
+    public final ExamType examType;
+
+    @JsonProperty(EXAM_TEMPLATE.ATTR_SUPPORTER)
+    public final Collection<String> supporter;
+
     @JsonProperty(EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID)
     public final Long configTemplateId;
 
@@ -62,6 +69,8 @@ public class ExamTemplate implements GrantEntity {
             @JsonProperty(EXAM_TEMPLATE.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(EXAM_TEMPLATE.ATTR_NAME) final String name,
             @JsonProperty(EXAM_TEMPLATE.ATTR_DESCRIPTION) final String description,
+            @JsonProperty(EXAM_TEMPLATE.ATTR_EXAM_TYPE) final ExamType examType,
+            @JsonProperty(EXAM_TEMPLATE.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID) final Long configTemplateId,
             @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES) final Collection<Indicator> indicatorTemplates,
             @JsonProperty(EXAM_TEMPLATE.ATTR_EXAM_ATTRIBUTES) final Map<String, String> examAttributes) {
@@ -70,6 +79,8 @@ public class ExamTemplate implements GrantEntity {
         this.institutionId = institutionId;
         this.name = name;
         this.description = description;
+        this.examType = examType;
+        this.supporter = supporter;
         this.configTemplateId = configTemplateId;
         this.indicatorTemplates = Utils.immutableCollectionOf(indicatorTemplates);
         this.examAttributes = Utils.immutableMapOf(examAttributes);
@@ -84,6 +95,8 @@ public class ExamTemplate implements GrantEntity {
         this.institutionId = institutionId;
         this.name = mapper.getString(Domain.EXAM_TEMPLATE.ATTR_NAME);
         this.description = mapper.getString(Domain.EXAM_TEMPLATE.ATTR_DESCRIPTION);
+        this.examType = mapper.getEnum(EXAM_TEMPLATE.ATTR_EXAM_TYPE, ExamType.class, ExamType.UNDEFINED);
+        this.supporter = mapper.getStringSet(EXAM_TEMPLATE.ATTR_SUPPORTER);
         this.configTemplateId = mapper.getLong(Domain.EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID);
         this.indicatorTemplates = Collections.emptyList();
         this.examAttributes = Utils.immutableMapOf(examAttributes);
@@ -131,6 +144,14 @@ public class ExamTemplate implements GrantEntity {
         return this.examAttributes;
     }
 
+    public ExamType getExamType() {
+        return this.examType;
+    }
+
+    public Collection<String> getSupporter() {
+        return this.supporter;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -173,6 +194,10 @@ public class ExamTemplate implements GrantEntity {
         builder.append(this.name);
         builder.append(", description=");
         builder.append(this.description);
+        builder.append(", examType=");
+        builder.append(this.examType);
+        builder.append(", supporter=");
+        builder.append(this.supporter);
         builder.append(", configTemplateId=");
         builder.append(this.configTemplateId);
         builder.append(", indicatorTemplates=");
@@ -181,6 +206,10 @@ public class ExamTemplate implements GrantEntity {
         builder.append(this.examAttributes);
         builder.append("]");
         return builder.toString();
+    }
+
+    public static ExamTemplate createNew(final Long institutionId) {
+        return new ExamTemplate(null, institutionId, null, null, ExamType.UNDEFINED, null, null, null, null);
     }
 
 }

@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS `exam_template` (
   `configuration_template_id` BIGINT UNSIGNED NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `description` VARCHAR(4000) NULL,
+  `exam_type` VARCHAR(45) NULL,
+  `supporter` VARCHAR(4000) NULL,
   `indicator_templates` VARCHAR(8000) NULL,
   `exam_attributes` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`),
