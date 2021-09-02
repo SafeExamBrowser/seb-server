@@ -87,7 +87,7 @@ jobs:
       name: Build with Maven
       run: mvn clean install -Dmaven.test.skip=true -Dsebserver-version="${{ env.TAG_NAME }}" 
       env: 
-         sebserver-version: ${{ env.TAG_NAME }}
+         sebserver-version: ${{ env.TAG_NAME }} (${{ env.SHA }})
     -
       name: Simplify package name
       run: mv target/seb-server-${{ env.TAG_NAME }}.jar target/seb-server.jar
