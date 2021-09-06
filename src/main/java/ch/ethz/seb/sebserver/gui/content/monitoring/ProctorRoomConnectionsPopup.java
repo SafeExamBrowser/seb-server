@@ -11,6 +11,14 @@ package ch.ethz.seb.sebserver.gui.content.monitoring;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +38,8 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRoomConnections;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -42,6 +52,8 @@ public class ProctorRoomConnectionsPopup {
             new LocTextKey("sebserver.monitoring.search.list.empty");
     private static final LocTextKey TABLE_COLUMN_NAME =
             new LocTextKey("sebserver.monitoring.search.list.name");
+
+    public static final String PAGE_ATTR_JOIN_LINK = "PAGE_ATTR_JOIN_LINK";
 
     private final PageService pageService;
 
@@ -64,6 +76,28 @@ public class ProctorRoomConnectionsPopup {
     private void compose(final PageContext pageContext, final ModalInputDialog<Void> dialog) {
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
+        final String joinLink = pageContext.getAttribute(PAGE_ATTR_JOIN_LINK);
+
+        if (StringUtils.isNotBlank(joinLink)) {
+            final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
+
+            final Composite titleComp = widgetFactory.voidComposite(pageContext.getParent());
+            final GridLayout layout = (GridLayout) titleComp.getLayout();
+            layout.numColumns = 2;
+            layout.makeColumnsEqualWidth = false;
+
+            final Label label = widgetFactory.label(titleComp, "Join URL: ");
+            label.setLayoutData(new GridData());
+            label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
+
+            final Text textInput = widgetFactory.textInput(titleComp, joinLink);
+            final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
+            textInput.setLayoutData(gridData);
+            textInput.setText(joinLink);
+            textInput.setEditable(false);
+
+            titleComp.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+        }
 
         final PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(pageContext.clearEntityKeys());

@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.session.proctoring;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -24,9 +25,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
@@ -95,17 +99,20 @@ public class MonitoringProctoringService {
     private final PageService pageService;
     private final GuiServiceInfo guiServiceInfo;
     private final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup;
+    private final JSONMapper jsonMapper;
     private final String remoteProctoringEndpoint;
 
     public MonitoringProctoringService(
             final PageService pageService,
             final GuiServiceInfo guiServiceInfo,
             final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup,
+            final JSONMapper jsonMapper,
             @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint) {
 
         this.pageService = pageService;
         this.guiServiceInfo = guiServiceInfo;
         this.proctorRoomConnectionsPopup = proctorRoomConnectionsPopup;
+        this.jsonMapper = jsonMapper;
         this.remoteProctoringEndpoint = remoteProctoringEndpoint;
     }
 
@@ -218,14 +225,8 @@ public class MonitoringProctoringService {
                                 _treeItem -> proctoringGUIService.registerCollectingRoomAction(
                                         room,
                                         _treeItem,
-                                        collectingRoom -> {
-                                            final PageContext pc = pageContext.copy()
-                                                    .clearAttributes()
-                                                    .withEntityKey(new EntityKey(collectingRoom.name,
-                                                            EntityType.REMOTE_PROCTORING_ROOM))
-                                                    .withParentEntityKey(entityKey);
-                                            this.proctorRoomConnectionsPopup.show(pc, collectingRoom.subject);
-                                        }));
+                                        collectingRoom -> showCollectingRoomPopup(pageContext, entityKey,
+                                                collectingRoom)));
 
                         processProctorRoomActionActivation(
                                 proctoringGUIService.getCollectingRoomActionItem(room.name),
@@ -234,6 +235,34 @@ public class MonitoringProctoringService {
                 });
 
         updateTownhallButton(proctoringGUIService, pageContext);
+    }
+
+    private void showCollectingRoomPopup(
+            final PageContext pageContext,
+            final EntityKey entityKey,
+            final RemoteProctoringRoom collectingRoom) {
+
+        final String additionalRoomData = collectingRoom.getAdditionalRoomData();
+        String joinURL = null;
+        try {
+            final Map<String, String> roomData = this.jsonMapper.readValue(
+                    additionalRoomData,
+                    new TypeReference<Map<String, String>>() {
+                    });
+            joinURL = roomData.get("start_url");
+        } catch (final Exception e) {
+
+        }
+        final PageContext pc = pageContext.copy()
+                .clearAttributes()
+                .withEntityKey(
+                        new EntityKey(collectingRoom.name,
+                                EntityType.REMOTE_PROCTORING_ROOM))
+                .withParentEntityKey(entityKey)
+                .withAttribute(
+                        ProctorRoomConnectionsPopup.PAGE_ATTR_JOIN_LINK,
+                        joinURL);
+        this.proctorRoomConnectionsPopup.show(pc, collectingRoom.subject);
     }
 
     private PageAction openExamProctoringRoom(
