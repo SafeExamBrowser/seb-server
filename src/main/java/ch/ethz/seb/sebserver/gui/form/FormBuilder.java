@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
@@ -279,12 +279,12 @@ public class FormBuilder {
     public static ThresholdListBuilder thresholdList(
             final String name,
             final LocTextKey label,
-            final Indicator indicator) {
+            final List<Threshold> thresholds) {
 
         return new ThresholdListBuilder(
                 name,
                 label,
-                indicator.thresholds);
+                thresholds);
     }
 
     public static ImageUploadFieldBuilder imageUpload(final String name, final LocTextKey label, final String value) {

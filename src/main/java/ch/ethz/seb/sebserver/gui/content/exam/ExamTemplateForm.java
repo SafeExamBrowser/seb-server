@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -36,9 +36,9 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamTemplateIndicator;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplateIndicatorPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -133,6 +133,9 @@ public class ExamTemplateForm implements TemplateComposer {
                 .putStaticValueIf(() -> !isNew,
                         Domain.EXAM_TEMPLATE.ATTR_ID,
                         examTemplate.getModelId())
+                .putStaticValueIf(() -> !isNew,
+                        Domain.EXAM_TEMPLATE.ATTR_INSTITUTION_ID,
+                        String.valueOf(examTemplate.getInstitutionId()))
 
                 .addField(FormBuilder.text(
                         Domain.EXAM_TEMPLATE.ATTR_NAME,
@@ -176,9 +179,6 @@ public class ExamTemplateForm implements TemplateComposer {
         // propagate content actions to action-pane
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
-                .newAction(ActionDefinition.EXAM_TEMPLATE_NEW)
-                .publishIf(() -> userGrant.iw() && readonly)
-
                 .newAction(ActionDefinition.EXAM_TEMPLATE_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> userGrant.im() && readonly)
@@ -207,9 +207,9 @@ public class ExamTemplateForm implements TemplateComposer {
             final PageActionBuilder actionBuilder = this.pageService
                     .pageActionBuilder(pageContext.clearEntityKeys());
 
-            final EntityTable<Indicator> indicatorTable =
+            final EntityTable<IndicatorTemplate> indicatorTable =
                     this.pageService
-                            .entityTableBuilder(this.restService.getRestCall(GetExamTemplateIndicatorPage.class))
+                            .entityTableBuilder(this.restService.getRestCall(GetIndicatorTemplatePage.class))
                             .withRestCallAdapter(builder -> builder.withURIVariable(
                                     API.PARAM_PARENT_MODEL_ID,
                                     entityKey.modelId))
@@ -220,36 +220,36 @@ public class ExamTemplateForm implements TemplateComposer {
                             .withColumn(new ColumnDefinition<>(
                                     Domain.INDICATOR.ATTR_NAME,
                                     INDICATOR_NAME_COLUMN_KEY,
-                                    Indicator::getName)
+                                    IndicatorTemplate::getName)
                                             .widthProportion(2))
                             .withColumn(new ColumnDefinition<>(
                                     Domain.INDICATOR.ATTR_TYPE,
                                     INDICATOR_TYPE_COLUMN_KEY,
                                     this::indicatorTypeName)
                                             .widthProportion(1))
-                            .withColumn(new ColumnDefinition<>(
+                            .withColumn(new ColumnDefinition<IndicatorTemplate>(
                                     Domain.THRESHOLD.REFERENCE_NAME,
                                     INDICATOR_THRESHOLD_COLUMN_KEY,
-                                    ExamFormIndicators::thresholdsValue)
+                                    it -> ExamFormIndicators.thresholdsValue(it.thresholds, it.type))
                                             .asMarkup()
                                             .widthProportion(4))
                             .withDefaultActionIf(
                                     () -> userGrant.im(),
                                     () -> actionBuilder
-                                            .newAction(ActionDefinition.EXAM_TEMPLATE_INDICATOR_MODIFY_FROM_LIST)
+                                            .newAction(ActionDefinition.INDICATOR_TEMPLATE_MODIFY_FROM_LIST)
                                             .withParentEntityKey(entityKey)
                                             .create())
 
                             .withSelectionListener(this.pageService.getSelectionPublisher(
                                     pageContext,
-                                    ActionDefinition.EXAM_TEMPLATE_INDICATOR_MODIFY_FROM_LIST,
-                                    ActionDefinition.EXAM_TEMPLATE_INDICATOR_DELETE_FROM_LIST))
+                                    ActionDefinition.INDICATOR_TEMPLATE_MODIFY_FROM_LIST,
+                                    ActionDefinition.INDICATOR_TEMPLATE_DELETE_FROM_LIST))
 
                             .compose(pageContext.copyOf(content));
 
             actionBuilder
 
-                    .newAction(ActionDefinition.EXAM_TEMPLATE_INDICATOR_MODIFY_FROM_LIST)
+                    .newAction(ActionDefinition.INDICATOR_TEMPLATE_MODIFY_FROM_LIST)
                     .withParentEntityKey(entityKey)
                     .withSelect(
                             indicatorTable::getSelection,
@@ -257,7 +257,7 @@ public class ExamTemplateForm implements TemplateComposer {
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> userGrant.im() && indicatorTable.hasAnyContent(), false)
 
-                    .newAction(ActionDefinition.EXAM_TEMPLATE_INDICATOR_DELETE_FROM_LIST)
+                    .newAction(ActionDefinition.INDICATOR_TEMPLATE_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
                     .withSelect(
                             indicatorTable::getSelection,
@@ -265,7 +265,7 @@ public class ExamTemplateForm implements TemplateComposer {
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> userGrant.im() && indicatorTable.hasAnyContent(), false)
 
-                    .newAction(ActionDefinition.EXAM_TEMPLATE_INDICATOR_NEW)
+                    .newAction(ActionDefinition.INDICATOR_TEMPLATE_NEW)
                     .withParentEntityKey(entityKey)
                     .publishIf(() -> userGrant.im());
         }
@@ -275,14 +275,14 @@ public class ExamTemplateForm implements TemplateComposer {
         final EntityKey entityKey = action.getEntityKey();
         final EntityKey indicatorKey = action.getSingleSelection();
         this.resourceService.getRestService()
-                .getBuilder(DeleteExamTemplateIndicator.class)
+                .getBuilder(DeleteIndicatorTemplate.class)
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, entityKey.modelId)
                 .withURIVariable(API.PARAM_MODEL_ID, indicatorKey.modelId)
                 .call();
         return action;
     }
 
-    private String indicatorTypeName(final Indicator indicator) {
+    private String indicatorTypeName(final IndicatorTemplate indicator) {
         if (indicator.type == null) {
             return Constants.EMPTY_NOTE;
         }

@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
+import java.util.List;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
@@ -18,6 +20,8 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -104,10 +108,10 @@ public class ExamFormIndicators implements TemplateComposer {
                                 INDICATOR_TYPE_COLUMN_KEY,
                                 this::indicatorTypeName)
                                         .widthProportion(1))
-                        .withColumn(new ColumnDefinition<>(
+                        .withColumn(new ColumnDefinition<Indicator>(
                                 Domain.THRESHOLD.REFERENCE_NAME,
                                 INDICATOR_THRESHOLD_COLUMN_KEY,
-                                ExamFormIndicators::thresholdsValue)
+                                i -> thresholdsValue(i.thresholds, i.type))
                                         .asMarkup()
                                         .widthProportion(4))
                         .withDefaultActionIf(
@@ -166,12 +170,15 @@ public class ExamFormIndicators implements TemplateComposer {
                 .getText(ResourceService.EXAM_INDICATOR_TYPE_PREFIX + indicator.type.name());
     }
 
-    static String thresholdsValue(final Indicator indicator) {
-        if (indicator.thresholds.isEmpty()) {
+    static String thresholdsValue(
+            final List<Threshold> thresholds,
+            final IndicatorType indicatorType) {
+
+        if (thresholds.isEmpty()) {
             return Constants.EMPTY_NOTE;
         }
 
-        final StringBuilder builder = indicator.thresholds
+        final StringBuilder builder = thresholds
                 .stream()
                 .reduce(
                         new StringBuilder(),
@@ -183,7 +190,7 @@ public class ExamFormIndicators implements TemplateComposer {
                                         ? "color: #4a4a4a; "
                                         : "color: #FFFFFF;")
                                 .append("'>")
-                                .append(Indicator.getDisplayValue(indicator.type, threshold.value))
+                                .append(Indicator.getDisplayValue(indicatorType, threshold.value))
                                 .append(" (")
                                 .append(threshold.color)
                                 .append(")")

@@ -34,7 +34,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
@@ -125,7 +125,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
             checkUniqueName(data);
 
-            final Collection<Indicator> indicatorTemplates = data.getIndicatorTemplates();
+            final Collection<IndicatorTemplate> indicatorTemplates = data.getIndicatorTemplates();
             final String indicatorsJSON = (indicatorTemplates != null && !indicatorTemplates.isEmpty())
                     ? this.jsonMapper.writeValueAsString(indicatorTemplates)
                     : null;
@@ -158,7 +158,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
             checkUniqueName(data);
 
-            final Collection<Indicator> indicatorTemplates = data.getIndicatorTemplates();
+            final Collection<IndicatorTemplate> indicatorTemplates = data.getIndicatorTemplates();
             final String indicatorsJSON = (indicatorTemplates != null && !indicatorTemplates.isEmpty())
                     ? this.jsonMapper.writeValueAsString(indicatorTemplates)
                     : null;
@@ -232,9 +232,10 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
         return Result.tryCatch(() -> {
 
             final String indicatorTemplatesString = record.getIndicatorTemplates();
-            final Collection<Indicator> indicators = (StringUtils.isNotBlank(indicatorTemplatesString))
-                    ? this.jsonMapper.readValue(indicatorTemplatesString, new TypeReference<Collection<Indicator>>() {
-                    })
+            final Collection<IndicatorTemplate> indicators = (StringUtils.isNotBlank(indicatorTemplatesString))
+                    ? this.jsonMapper.readValue(indicatorTemplatesString,
+                            new TypeReference<Collection<IndicatorTemplate>>() {
+                            })
                     : null;
 
             final Map<String, String> examAttributes = this.additionalAttributesDAO

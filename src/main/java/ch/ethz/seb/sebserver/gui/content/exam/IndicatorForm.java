@@ -99,7 +99,7 @@ public class IndicatorForm implements TemplateComposer {
 
         // get data or create new. Handle error if happen
         final Indicator indicator = (isNew)
-                ? Indicator.createNew(exam)
+                ? Indicator.createNew(exam.getModelId())
                 : restService
                         .getBuilder(GetIndicator.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
@@ -176,7 +176,7 @@ public class IndicatorForm implements TemplateComposer {
                 .addField(FormBuilder.thresholdList(
                         Domain.THRESHOLD.REFERENCE_NAME,
                         FORM_THRESHOLDS_TEXT_KEY,
-                        indicator))
+                        indicator.thresholds))
 
                 .buildFor((isNew)
                         ? restService.getRestCall(NewIndicator.class)

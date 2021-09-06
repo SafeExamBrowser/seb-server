@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS `exam_template` ;
 CREATE TABLE IF NOT EXISTS `exam_template` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
-  `configuration_template_id` BIGINT UNSIGNED NOT NULL,
+  `configuration_template_id` BIGINT UNSIGNED NULL,
   `name` VARCHAR(255) NOT NULL,
   `description` VARCHAR(4000) NULL,
   `exam_type` VARCHAR(45) NULL,

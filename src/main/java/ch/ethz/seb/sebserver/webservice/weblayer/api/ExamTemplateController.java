@@ -41,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -82,7 +83,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<Indicator> getIndicatorPage(
+    public Page<IndicatorTemplate> getIndicatorPage(
             @PathVariable final String modelId,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -119,7 +120,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Indicator getIndicatorBy(
+    public IndicatorTemplate getIndicatorBy(
             @PathVariable final String parentModelId,
             @PathVariable final String modelId,
             @RequestParam(
@@ -144,13 +145,11 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     }
 
     @RequestMapping(
-            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
+            path = API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Indicator createIndicator(
-            @PathVariable final String parentModelId,
+    public IndicatorTemplate createIndicatorTemplate(
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
@@ -161,19 +160,21 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         // check write privilege for requested institution and concrete entityType
         this.checkWritePrivilege(institutionId);
 
-        final ExamTemplate examTemplate = super.entityDAO
-                .byModelId(parentModelId)
-                .getOrThrow();
-
         final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
                 .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
 
-        final Indicator newIndicator = new Indicator(
+        final String examTemplateId = postMap.getString(IndicatorTemplate.ATTR_EXAM_TEMPLATE_ID);
+
+        final ExamTemplate examTemplate = super.entityDAO
+                .byModelId(examTemplateId)
+                .getOrThrow();
+
+        final IndicatorTemplate newIndicator = new IndicatorTemplate(
                 (long) examTemplate.getIndicatorTemplates().size(),
-                Long.parseLong(parentModelId),
+                Long.parseLong(examTemplateId),
                 postMap);
 
-        final ArrayList<Indicator> indicators = new ArrayList<>(examTemplate.indicatorTemplates);
+        final ArrayList<IndicatorTemplate> indicators = new ArrayList<>(examTemplate.indicatorTemplates);
         indicators.add(newIndicator);
         final ExamTemplate newExamTemplate = new ExamTemplate(
                 examTemplate.id,
@@ -189,29 +190,26 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     }
 
     @RequestMapping(
-            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT
-                    + API.MODEL_ID_VAR_PATH_SEGMENT,
+            path = API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT,
             method = RequestMethod.PUT,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Indicator saveIndicatorPut(
-            @PathVariable final String parentModelId,
-            @PathVariable final String modelId,
+    public IndicatorTemplate saveIndicatorPut(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @Valid @RequestBody final Indicator modifyData) {
+            @Valid @RequestBody final IndicatorTemplate modifyData) {
 
         // check modify privilege for requested institution and concrete entityType
         this.checkModifyPrivilege(institutionId);
 
         final ExamTemplate examTemplate = super.entityDAO
-                .byModelId(parentModelId)
+                .byPK(modifyData.examTemplateId)
                 .getOrThrow();
 
-        final List<Indicator> newIndicators = examTemplate.indicatorTemplates
+        final String modelId = modifyData.getModelId();
+        final List<IndicatorTemplate> newIndicators = examTemplate.indicatorTemplates
                 .stream()
                 .map(i -> {
                     if (modelId.equals(i.getModelId())) {
@@ -241,7 +239,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                     + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntityKey deleteIndicator(
+    public EntityKey deleteIndicatorTemplate(
             @PathVariable final String parentModelId,
             @PathVariable final String modelId,
             @RequestParam(
@@ -256,7 +254,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .byModelId(parentModelId)
                 .getOrThrow();
 
-        final List<Indicator> newIndicators = examTemplate.indicatorTemplates
+        final List<IndicatorTemplate> newIndicators = examTemplate.indicatorTemplates
                 .stream()
                 .filter(i -> !modelId.equals(i.getModelId()))
                 .collect(Collectors.toList());
@@ -285,11 +283,11 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         return ExamTemplateRecordDynamicSqlSupport.examTemplateRecord;
     }
 
-    static Function<Collection<Indicator>, List<Indicator>> pageSort(final String sort) {
+    static Function<Collection<IndicatorTemplate>, List<IndicatorTemplate>> pageSort(final String sort) {
 
         final String sortBy = PageSortOrder.decode(sort);
         return indicators -> {
-            final List<Indicator> list = indicators.stream().collect(Collectors.toList());
+            final List<IndicatorTemplate> list = indicators.stream().collect(Collectors.toList());
             if (StringUtils.isBlank(sort)) {
                 return list;
             }

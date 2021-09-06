@@ -59,7 +59,7 @@ public class ExamTemplate implements GrantEntity {
     public final Long configTemplateId;
 
     @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES)
-    public final Collection<Indicator> indicatorTemplates;
+    public final Collection<IndicatorTemplate> indicatorTemplates;
 
     @JsonProperty(ATTR_EXAM_ATTRIBUTES)
     public final Map<String, String> examAttributes;
@@ -73,7 +73,7 @@ public class ExamTemplate implements GrantEntity {
             @JsonProperty(EXAM_TEMPLATE.ATTR_EXAM_TYPE) final ExamType examType,
             @JsonProperty(EXAM_TEMPLATE.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID) final Long configTemplateId,
-            @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES) final Collection<Indicator> indicatorTemplates,
+            @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES) final Collection<IndicatorTemplate> indicatorTemplates,
             @JsonProperty(ATTR_EXAM_ATTRIBUTES) final Map<String, String> examAttributes) {
 
         this.id = id;
@@ -136,7 +136,7 @@ public class ExamTemplate implements GrantEntity {
         return this.configTemplateId;
     }
 
-    public Collection<Indicator> getIndicatorTemplates() {
+    public Collection<IndicatorTemplate> getIndicatorTemplates() {
         return this.indicatorTemplates;
     }
 

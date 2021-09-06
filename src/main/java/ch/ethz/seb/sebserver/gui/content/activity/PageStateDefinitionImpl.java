@@ -27,9 +27,9 @@ import ch.ethz.seb.sebserver.gui.content.configs.SEBSettingsForm;
 import ch.ethz.seb.sebserver.gui.content.exam.ExamForm;
 import ch.ethz.seb.sebserver.gui.content.exam.ExamList;
 import ch.ethz.seb.sebserver.gui.content.exam.ExamTemplateForm;
-import ch.ethz.seb.sebserver.gui.content.exam.ExamTemplateIndicatorForm;
 import ch.ethz.seb.sebserver.gui.content.exam.ExamTemplateList;
 import ch.ethz.seb.sebserver.gui.content.exam.IndicatorForm;
+import ch.ethz.seb.sebserver.gui.content.exam.IndicatorTemplateForm;
 import ch.ethz.seb.sebserver.gui.content.exam.LmsSetupForm;
 import ch.ethz.seb.sebserver.gui.content.exam.LmsSetupList;
 import ch.ethz.seb.sebserver.gui.content.exam.QuizLookupList;
@@ -66,7 +66,7 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
     EXAM_TEMPLATE_LIST(Type.LIST_VIEW, ExamTemplateList.class, ActivityDefinition.EXAM_TEMPLATE),
     EXAM_TEMPLATE_VIEW(Type.LIST_VIEW, ExamTemplateForm.class, ActivityDefinition.EXAM_TEMPLATE),
     EXAM_TEMPLATE_EDIT(Type.FORM_EDIT, ExamTemplateForm.class, ActivityDefinition.EXAM_TEMPLATE),
-    EXAM_TEMPLATE_INDICATOR_EDIT(Type.FORM_EDIT, ExamTemplateIndicatorForm.class, ActivityDefinition.EXAM_TEMPLATE),
+    INDICATOR_TEMPLATE_EDIT(Type.FORM_EDIT, IndicatorTemplateForm.class, ActivityDefinition.EXAM_TEMPLATE),
 
     SEB_CLIENT_CONFIG_LIST(Type.LIST_VIEW, SEBClientConfigList.class, ActivityDefinition.SEB_CLIENT_CONFIG),
     SEB_CLIENT_CONFIG_VIEW(Type.FORM_VIEW, SEBClientConfigForm.class, ActivityDefinition.SEB_CLIENT_CONFIG),

@@ -17,27 +17,27 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Page;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetExamTemplateIndicatorPage extends RestCall<Page<Indicator>> {
+public class DeleteIndicatorTemplate extends RestCall<EntityKey> {
 
-    public GetExamTemplateIndicatorPage() {
+    public DeleteIndicatorTemplate() {
         super(new TypeKey<>(
-                CallType.GET_PAGE,
+                CallType.DELETE,
                 EntityType.INDICATOR,
-                new TypeReference<Page<Indicator>>() {
+                new TypeReference<EntityKey>() {
                 }),
-                HttpMethod.GET,
-                MediaType.APPLICATION_FORM_URLENCODED,
+                HttpMethod.DELETE,
+                MediaType.APPLICATION_JSON,
                 API.EXAM_TEMPLATE_ENDPOINT
                         + API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
-                        + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT);
+                        + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT
+                        + API.MODEL_ID_VAR_PATH_SEGMENT);
     }
 
 }

@@ -19,7 +19,7 @@ public enum ActionCategory {
     QUIZ_LIST(new LocTextKey("sebserver.quizdiscovery.list.actions"), 1),
     EXAM_LIST(new LocTextKey("sebserver.exam.list.actions"), 1),
     EXAM_TEMPLATE_LIST(new LocTextKey("sebserver.examtemplate.list.actions"), 1),
-    EXAM_TEMPLATE_INDICATOR_LIST(new LocTextKey("sebserver.examtemplate.indicator.list.actions"), 2),
+    INDICATOR_TEMPLATE_LIST(new LocTextKey("sebserver.examtemplate.indicator.list.actions"), 1),
     EXAM_CONFIG_MAPPING_LIST(new LocTextKey("sebserver.exam.configuration.list.actions"), 1),
     INDICATOR_LIST(new LocTextKey("sebserver.exam.indicator.list.actions"), 2),
     SEB_CLIENT_CONFIG_LIST(new LocTextKey("sebserver.clientconfig.list.actions"), 1),

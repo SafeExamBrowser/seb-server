@@ -217,8 +217,12 @@ public final class Indicator implements Entity {
         return builder.toString();
     }
 
-    public static Indicator createNew(final Exam exam) {
-        return new Indicator(null, exam.id, null, null, null, null, null, null);
+    public static Indicator createNew(final String examId) {
+        try {
+            return new Indicator(null, Long.parseLong(examId), null, null, null, null, null, null);
+        } catch (final Exception e) {
+            return new Indicator(null, null, null, null, null, null, null, null);
+        }
     }
 
     public static String getDisplayValue(final IndicatorType indicatorType, final Double value) {
