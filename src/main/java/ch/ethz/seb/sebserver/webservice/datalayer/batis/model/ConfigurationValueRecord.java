@@ -3,25 +3,25 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ConfigurationValueRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.811+02:00", comments="Source field: configuration_value.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.812+02:00", comments="Source field: configuration_value.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.configuration_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.812+02:00", comments="Source field: configuration_value.configuration_id")
     private Long configurationId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.configuration_attribute_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.812+02:00", comments="Source field: configuration_value.configuration_attribute_id")
     private Long configurationAttributeId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.list_index")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.812+02:00", comments="Source field: configuration_value.list_index")
     private Integer listIndex;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.812+02:00", comments="Source field: configuration_value.value")
     private String value;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source Table: configuration_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.811+02:00", comments="Source Table: configuration_value")
     public ConfigurationValueRecord(Long id, Long institutionId, Long configurationId, Long configurationAttributeId, Integer listIndex, String value) {
         this.id = id;
         this.institutionId = institutionId;
@@ -31,32 +31,32 @@ public class ConfigurationValueRecord {
         this.value = value;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.811+02:00", comments="Source field: configuration_value.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.812+02:00", comments="Source field: configuration_value.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.configuration_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.812+02:00", comments="Source field: configuration_value.configuration_id")
     public Long getConfigurationId() {
         return configurationId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.configuration_attribute_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.812+02:00", comments="Source field: configuration_value.configuration_attribute_id")
     public Long getConfigurationAttributeId() {
         return configurationAttributeId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.list_index")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.812+02:00", comments="Source field: configuration_value.list_index")
     public Integer getListIndex() {
         return listIndex;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-01T16:43:20.563+02:00", comments="Source field: configuration_value.value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.812+02:00", comments="Source field: configuration_value.value")
     public String getValue() {
         return value;
     }
@@ -65,7 +65,7 @@ public class ConfigurationValueRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration_value
      *
-     * @mbg.generated Wed Sep 01 16:43:20 CEST 2021
+     * @mbg.generated Mon Sep 06 08:54:24 CEST 2021
      */
     @Override
     public String toString() {
@@ -87,7 +87,7 @@ public class ConfigurationValueRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration_value
      *
-     * @mbg.generated Wed Sep 01 16:43:20 CEST 2021
+     * @mbg.generated Mon Sep 06 08:54:24 CEST 2021
      */
     @Override
     public boolean equals(Object that) {
@@ -113,7 +113,7 @@ public class ConfigurationValueRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration_value
      *
-     * @mbg.generated Wed Sep 01 16:43:20 CEST 2021
+     * @mbg.generated Mon Sep 06 08:54:24 CEST 2021
      */
     @Override
     public int hashCode() {

@@ -13,6 +13,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +41,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecor
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamTemplateRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -52,13 +54,16 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
     private final ExamTemplateRecordMapper examTemplateRecordMapper;
+    private final AdditionalAttributesDAO additionalAttributesDAO;
     private final JSONMapper jsonMapper;
 
     public ExamTemplateDAOImpl(
             final ExamTemplateRecordMapper examTemplateRecordMapper,
+            final AdditionalAttributesDAO additionalAttributesDAO,
             final JSONMapper jsonMapper) {
 
         this.examTemplateRecordMapper = examTemplateRecordMapper;
+        this.additionalAttributesDAO = additionalAttributesDAO;
         this.jsonMapper = jsonMapper;
     }
 
@@ -125,11 +130,6 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     ? this.jsonMapper.writeValueAsString(indicatorTemplates)
                     : null;
 
-            final Map<String, String> examAttributes = data.getExamAttributes();
-            final String examAttributesJSON = (examAttributes != null && !examAttributes.isEmpty())
-                    ? this.jsonMapper.writeValueAsString(examAttributes)
-                    : null;
-
             final ExamTemplateRecord newRecord = new ExamTemplateRecord(
                     null,
                     data.institutionId,
@@ -142,8 +142,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     (data.supporter != null)
                             ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
-                    indicatorsJSON,
-                    examAttributesJSON);
+                    indicatorsJSON);
 
             this.examTemplateRecordMapper.insert(newRecord);
             return newRecord;
@@ -164,11 +163,6 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     ? this.jsonMapper.writeValueAsString(indicatorTemplates)
                     : null;
 
-            final Map<String, String> examAttributes = data.getExamAttributes();
-            final String examAttributesJSON = (examAttributes != null && !examAttributes.isEmpty())
-                    ? this.jsonMapper.writeValueAsString(examAttributes)
-                    : null;
-
             final ExamTemplateRecord newRecord = new ExamTemplateRecord(
                     null,
                     data.institutionId,
@@ -181,10 +175,21 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     (data.supporter != null)
                             ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
-                    indicatorsJSON,
-                    examAttributesJSON);
+                    indicatorsJSON);
 
             this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
+
+            if (!data.examAttributes.isEmpty()) {
+                data.examAttributes
+                        .entrySet()
+                        .stream()
+                        .forEach(entry -> this.additionalAttributesDAO.saveAdditionalAttribute(
+                                EntityType.EXAM_TEMPLATE,
+                                data.id,
+                                entry.getKey(),
+                                entry.getValue()));
+            }
+
             return this.examTemplateRecordMapper.selectByPrimaryKey(data.id);
         })
                 .flatMap(this::toDomainModel)
@@ -232,11 +237,14 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     })
                     : null;
 
-            final String examAttributesString = record.getExamAttributes();
-            final Map<String, String> examAttributes = (StringUtils.isNotBlank(examAttributesString))
-                    ? this.jsonMapper.readValue(examAttributesString, new TypeReference<Map<String, String>>() {
-                    })
-                    : null;
+            final Map<String, String> examAttributes = this.additionalAttributesDAO
+                    .getAdditionalAttributes(EntityType.EXAM_TEMPLATE, record.getId())
+                    .map(attrs -> attrs.stream()
+                            .collect(Collectors.toMap(
+                                    attr -> attr.getName(),
+                                    attr -> attr.getValue())))
+                    .onError(error -> log.error("Failed to load exam attributes for template: {}", record, error))
+                    .getOrElse(() -> Collections.emptyMap());
 
             final Collection<String> supporter = (StringUtils.isNotBlank(record.getSupporter()))
                     ? Arrays.asList(StringUtils.split(record.getSupporter(), Constants.LIST_SEPARATOR_CHAR))

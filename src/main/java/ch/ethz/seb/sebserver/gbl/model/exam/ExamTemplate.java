@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 public class ExamTemplate implements GrantEntity {
 
     public static final String FILTER_ATTR_EXAM_TYPE = EXAM_TEMPLATE.ATTR_EXAM_TYPE;
+    public static final String ATTR_EXAM_ATTRIBUTES = "EXAM_ATTRIBUTES";
 
     @JsonProperty(EXAM_TEMPLATE.ATTR_ID)
     public final Long id;
@@ -60,7 +61,7 @@ public class ExamTemplate implements GrantEntity {
     @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES)
     public final Collection<Indicator> indicatorTemplates;
 
-    @JsonProperty(EXAM_TEMPLATE.ATTR_EXAM_ATTRIBUTES)
+    @JsonProperty(ATTR_EXAM_ATTRIBUTES)
     public final Map<String, String> examAttributes;
 
     @JsonCreator
@@ -73,7 +74,7 @@ public class ExamTemplate implements GrantEntity {
             @JsonProperty(EXAM_TEMPLATE.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID) final Long configTemplateId,
             @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES) final Collection<Indicator> indicatorTemplates,
-            @JsonProperty(EXAM_TEMPLATE.ATTR_EXAM_ATTRIBUTES) final Map<String, String> examAttributes) {
+            @JsonProperty(ATTR_EXAM_ATTRIBUTES) final Map<String, String> examAttributes) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -88,7 +89,6 @@ public class ExamTemplate implements GrantEntity {
 
     public ExamTemplate(
             final Long institutionId,
-            final Map<String, String> examAttributes,
             final POSTMapper mapper) {
 
         this.id = null;
@@ -99,7 +99,7 @@ public class ExamTemplate implements GrantEntity {
         this.supporter = mapper.getStringSet(EXAM_TEMPLATE.ATTR_SUPPORTER);
         this.configTemplateId = mapper.getLong(Domain.EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID);
         this.indicatorTemplates = Collections.emptyList();
-        this.examAttributes = Utils.immutableMapOf(examAttributes);
+        this.examAttributes = Utils.immutableMapOf(null);
     }
 
     @Override

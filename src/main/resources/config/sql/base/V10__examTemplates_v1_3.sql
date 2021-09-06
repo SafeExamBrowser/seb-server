@@ -1,6 +1,8 @@
 -- -----------------------------------------------------
 -- Table `exam_template`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `exam_template` ;
+
 CREATE TABLE IF NOT EXISTS `exam_template` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
@@ -9,8 +11,7 @@ CREATE TABLE IF NOT EXISTS `exam_template` (
   `description` VARCHAR(4000) NULL,
   `exam_type` VARCHAR(45) NULL,
   `supporter` VARCHAR(4000) NULL,
-  `indicator_templates` VARCHAR(8000) NULL,
-  `exam_attributes` VARCHAR(4000) NULL,
+  `indicator_templates` VARCHAR(6000) NULL,
   PRIMARY KEY (`id`),
   INDEX `examTemplateInstitutionRef_idx` (`institution_id` ASC),
   INDEX `examTemplateConfigTemplateRef_idx` (`configuration_template_id` ASC),

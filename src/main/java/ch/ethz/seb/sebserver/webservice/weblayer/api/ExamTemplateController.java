@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -33,15 +32,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
@@ -65,20 +59,21 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
 
     private static final Logger log = LoggerFactory.getLogger(ExamTemplateController.class);
 
-    private final JSONMapper jsonMapper;
-
     protected ExamTemplateController(
             final AuthorizationService authorization,
             final BulkActionService bulkActionService,
             final EntityDAO<ExamTemplate, ExamTemplate> entityDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
-            final BeanValidationService beanValidationService,
-            final JSONMapper jsonMapper) {
+            final BeanValidationService beanValidationService) {
 
-        super(authorization, bulkActionService, entityDAO, userActivityLogDAO, paginationService,
+        super(
+                authorization,
+                bulkActionService,
+                entityDAO,
+                userActivityLogDAO,
+                paginationService,
                 beanValidationService);
-        this.jsonMapper = jsonMapper;
     }
 
     @RequestMapping(
@@ -282,19 +277,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     @Override
     protected ExamTemplate createNew(final POSTMapper postParams) {
         final Long institutionId = postParams.getLong(API.PARAM_INSTITUTION_ID);
-        final String attributesJson = postParams.getString(Domain.EXAM_TEMPLATE.ATTR_EXAM_ATTRIBUTES);
-        Map<String, String> examAttributes;
-        try {
-            examAttributes = (StringUtils.isNotBlank(attributesJson))
-                    ? this.jsonMapper.readValue(attributesJson, new TypeReference<Map<String, String>>() {
-                    })
-                    : null;
-            return new ExamTemplate(institutionId, examAttributes, postParams);
-
-        } catch (final JsonProcessingException e) {
-            log.error("Failed to parse exam template attributes: ", e);
-            return new ExamTemplate(institutionId, null, postParams);
-        }
+        return new ExamTemplate(institutionId, postParams);
     }
 
     @Override
