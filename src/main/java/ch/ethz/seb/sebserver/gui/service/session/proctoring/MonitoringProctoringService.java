@@ -10,8 +10,10 @@ package ch.ethz.seb.sebserver.gui.service.session.proctoring;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
 import org.eclipse.swt.graphics.Color;
@@ -24,9 +26,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
@@ -79,14 +84,19 @@ public class MonitoringProctoringService {
     static final String OPEN_ROOM_SCRIPT =
             "try {\n" +
             "var existingWin = window.open('', '%s', 'height=%s,width=%s,location=no,scrollbars=yes,status=no,menubar=0,toolbar=no,titlebar=no,dialog=no');\n" +
-            "existingWin.document.title = '%s';\n" +
+            "try {\n" +
             "if(existingWin.location.href === 'about:blank'){\n" +
+            "    existingWin.document.title = '%s';\n" +
             "    existingWin.location.href = '%s%s';\n" +
             "    existingWin.focus();\n" +
             "} else {\n" +
             "    existingWin.focus();\n" +
             "}" +
-            "}\n" +
+            "} catch(secErr) {\n" +
+            "    alert(\"Unexpected Javascript Error happened: \" + secErr);\n"+
+            "    existingWin.focus();\n" +
+            "}" +
+            "}" +
             "catch(err) {\n" +
             "    alert(\"Unexpected Javascript Error happened: \" + err);\n"+
             "}";
@@ -95,17 +105,20 @@ public class MonitoringProctoringService {
     private final PageService pageService;
     private final GuiServiceInfo guiServiceInfo;
     private final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup;
+    private final JSONMapper jsonMapper;
     private final String remoteProctoringEndpoint;
 
     public MonitoringProctoringService(
             final PageService pageService,
             final GuiServiceInfo guiServiceInfo,
             final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup,
+            final JSONMapper jsonMapper,
             @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint) {
 
         this.pageService = pageService;
         this.guiServiceInfo = guiServiceInfo;
         this.proctorRoomConnectionsPopup = proctorRoomConnectionsPopup;
+        this.jsonMapper = jsonMapper;
         this.remoteProctoringEndpoint = remoteProctoringEndpoint;
     }
 
@@ -259,33 +272,66 @@ public class MonitoringProctoringService {
                 String.valueOf(proctoringSettings.examId),
                 proctoringConnectionData);
 
-        final String script = String.format(
-                OPEN_ROOM_SCRIPT,
-                room.name,
-                800,
-                1200,
-                room.name,
-                this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                this.remoteProctoringEndpoint);
+        if (proctoringSettings.useZoomAppClientForCollectingRoom &&
+                StringUtils.isNotBlank(extractZoomStartLink(room))) {
 
-        RWT.getClient()
-                .getService(JavaScriptExecutor.class)
-                .execute(script);
+            final String startLink = extractZoomStartLink(room);
+            final String script = String.format(
+                    OPEN_ROOM_SCRIPT,
+                    room.name,
+                    800,
+                    1200,
+                    room.name,
+                    startLink,
+                    "");
 
-        final boolean newWindow = this.pageService.getCurrentUser()
-                .getProctoringGUIService()
-                .registerProctoringWindow(String.valueOf(room.examId), room.name, room.name);
+            RWT.getClient()
+                    .getService(JavaScriptExecutor.class)
+                    .execute(script);
 
-        if (newWindow) {
-            this.pageService.getRestService()
-                    .getBuilder(NotifyProctoringRoomOpened.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
-                    .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
-                    .call()
-                    .onError(error -> log.error("Failed to notify proctoring room opened: ", error));
+        } else {
+
+            final String script = String.format(
+                    OPEN_ROOM_SCRIPT,
+                    room.name,
+                    800,
+                    1200,
+                    room.name,
+                    this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
+                    this.remoteProctoringEndpoint);
+
+            RWT.getClient()
+                    .getService(JavaScriptExecutor.class)
+                    .execute(script);
+
+            final boolean newWindow = this.pageService.getCurrentUser()
+                    .getProctoringGUIService()
+                    .registerProctoringWindow(String.valueOf(room.examId), room.name, room.name);
+
+            if (newWindow) {
+                this.pageService.getRestService()
+                        .getBuilder(NotifyProctoringRoomOpened.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(proctoringSettings.examId))
+                        .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room.name)
+                        .call()
+                        .onError(error -> log.error("Failed to notify proctoring room opened: ", error));
+            }
+
         }
 
         return action;
+    }
+
+    private String extractZoomStartLink(final RemoteProctoringRoom room) {
+        try {
+            final Map<String, String> data =
+                    this.jsonMapper.readValue(room.additionalRoomData, new TypeReference<Map<String, String>>() {
+                    });
+            return data.get("start_url");
+        } catch (final Exception e) {
+            log.error("Failed to extract Zoom start link: ", e);
+            return null;
+        }
     }
 
     public PageAction openOneToOneRoom(
@@ -320,9 +366,9 @@ public class MonitoringProctoringService {
             final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
             final String script = String.format(
                     MonitoringProctoringService.OPEN_ROOM_SCRIPT,
-                    connectionToken,
-                    420,
-                    640,
+                    connectionData.clientConnection.userSessionId,
+                    800,
+                    1200,
                     connectionData.clientConnection.userSessionId,
                     this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
                     this.remoteProctoringEndpoint);

@@ -215,7 +215,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                             getString(mapping, ProctoringServiceSettings.ATTR_APP_KEY),
                             getString(mapping, ProctoringServiceSettings.ATTR_APP_SECRET),
                             getString(mapping, ProctoringServiceSettings.ATTR_SDK_KEY),
-                            getString(mapping, ProctoringServiceSettings.ATTR_SDK_SECRET));
+                            getString(mapping, ProctoringServiceSettings.ATTR_SDK_SECRET),
+                            getBoolean(mapping, ProctoringServiceSettings.ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM));
                 });
     }
 
@@ -287,6 +288,12 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     ProctoringServiceSettings.ATTR_ENABLED_FEATURES,
                     StringUtils.join(proctoringServiceSettings.enabledFeatures, Constants.LIST_SEPARATOR));
 
+            this.additionalAttributesDAO.saveAdditionalAttribute(
+                    EntityType.EXAM,
+                    examId,
+                    ProctoringServiceSettings.ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM,
+                    String.valueOf(proctoringServiceSettings.useZoomAppClientForCollectingRoom));
+
             return proctoringServiceSettings;
         });
     }
@@ -331,6 +338,14 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             return mapping.get(name).getValue();
         } else {
             return null;
+        }
+    }
+
+    private Boolean getBoolean(final Map<String, AdditionalAttributeRecord> mapping, final String name) {
+        if (mapping.containsKey(name)) {
+            return BooleanUtils.toBooleanObject(mapping.get(name).getValue());
+        } else {
+            return false;
         }
     }
 
