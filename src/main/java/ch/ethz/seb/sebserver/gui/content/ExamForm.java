@@ -390,7 +390,7 @@ public class ExamForm implements TemplateComposer {
                 .withExec(this.examCreateClientConfigPopup.exportFunction(
                         exam.institutionId,
                         exam.getName()))
-                .publishIf(() -> writeGrant && readonly)
+                .publishIf(() -> modifyGrant && readonly)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
                 .withEntityKey(entityKey)
