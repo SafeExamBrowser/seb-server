@@ -89,7 +89,7 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
             @PathVariable final Long modelId) {
 
         this.authorization.check(
-                PrivilegeType.MODIFY,
+                PrivilegeType.READ,
                 EntityType.LMS_SETUP,
                 institutionId);
 

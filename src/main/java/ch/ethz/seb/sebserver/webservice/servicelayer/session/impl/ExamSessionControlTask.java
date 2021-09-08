@@ -133,7 +133,7 @@ class ExamSessionControlTask implements DisposableBean {
                     .getOrThrow()
                     .stream()
                     .filter(exam -> exam.startTime.minus(this.examTimePrefix).isBefore(now))
-                    .map(exam -> this.examUpdateHandler.setRunning(exam, updateId))
+                    .flatMap(exam -> Result.skipOnError(this.examUpdateHandler.setRunning(exam, updateId)))
                     .collect(Collectors.toMap(Exam::getId, Exam::getName));
 
             if (!updated.isEmpty()) {
@@ -158,10 +158,8 @@ class ExamSessionControlTask implements DisposableBean {
                     .getOrThrow()
                     .stream()
                     .filter(exam -> exam.endTime != null && exam.endTime.plus(this.examTimeSuffix).isBefore(now))
-                    .map(exam -> this.examUpdateHandler.setFinished(exam, updateId))
-                    .map(this.examProcotringRoomService::disposeRoomsForExam)
-                    .filter(result -> !result.hasError())
-                    .map(Result::get)
+                    .flatMap(exam -> Result.skipOnError(this.examUpdateHandler.setFinished(exam, updateId)))
+                    .flatMap(exam -> Result.skipOnError(this.examProcotringRoomService.disposeRoomsForExam(exam)))
                     .collect(Collectors.toMap(Exam::getId, Exam::getName));
 
             if (!updated.isEmpty()) {

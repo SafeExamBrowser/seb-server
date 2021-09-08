@@ -389,7 +389,7 @@ public class ExamForm implements TemplateComposer {
                 .withExec(this.examCreateClientConfigPopup.exportFunction(
                         exam.institutionId,
                         exam.getName()))
-                .publishIf(() -> writeGrant && readonly)
+                .publishIf(() -> editable && readonly)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
                 .withEntityKey(entityKey)
@@ -415,13 +415,13 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant))
                 .noEventPropagation()
-                .publishIf(() -> proctoringEnabled && readonly)
+                .publishIf(() -> editable && proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_OFF)
                 .withEntityKey(entityKey)
                 .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant))
                 .noEventPropagation()
-                .publishIf(() -> !proctoringEnabled && readonly)
+                .publishIf(() -> editable && !proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_DELETE)
                 .withEntityKey(entityKey)

@@ -49,6 +49,7 @@ public class ProctoringServiceSettings implements Entity {
     public static final String ATTR_ENABLED_FEATURES = "enabledFeatures";
     public static final String ATTR_COLLECT_ALL_ROOM_NAME = "collectAllRoomName";
     public static final String ATTR_SERVICE_IN_USE = "serviceInUse";
+    public static final String ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM = "useZoomAppClientForCollectingRoom";
 
     @JsonProperty(Domain.EXAM.ATTR_ID)
     public final Long examId;
@@ -84,6 +85,9 @@ public class ProctoringServiceSettings implements Entity {
     @JsonProperty(ATTR_SERVICE_IN_USE)
     public final Boolean serviceInUse;
 
+    @JsonProperty(ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM)
+    public final Boolean useZoomAppClientForCollectingRoom;
+
     @JsonCreator
     public ProctoringServiceSettings(
             @JsonProperty(Domain.EXAM.ATTR_ID) final Long examId,
@@ -96,7 +100,8 @@ public class ProctoringServiceSettings implements Entity {
             @JsonProperty(ATTR_APP_KEY) final String appKey,
             @JsonProperty(ATTR_APP_SECRET) final CharSequence appSecret,
             @JsonProperty(ATTR_SDK_KEY) final String sdkKey,
-            @JsonProperty(ATTR_SDK_SECRET) final CharSequence sdkSecret) {
+            @JsonProperty(ATTR_SDK_SECRET) final CharSequence sdkSecret,
+            @JsonProperty(ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM) final Boolean useZoomAppClientForCollectingRoom) {
 
         this.examId = examId;
         this.enableProctoring = BooleanUtils.isTrue(enableProctoring);
@@ -109,7 +114,7 @@ public class ProctoringServiceSettings implements Entity {
         this.appSecret = appSecret;
         this.sdkKey = sdkKey;
         this.sdkSecret = sdkSecret;
-
+        this.useZoomAppClientForCollectingRoom = BooleanUtils.toBoolean(useZoomAppClientForCollectingRoom);
     }
 
     @Override
@@ -169,6 +174,10 @@ public class ProctoringServiceSettings implements Entity {
 
     public Boolean getServiceInUse() {
         return this.serviceInUse;
+    }
+
+    public Boolean getUseZoomAppClientForCollectingRoom() {
+        return this.useZoomAppClientForCollectingRoom;
     }
 
     @Override

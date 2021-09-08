@@ -849,7 +849,7 @@ public class ExamDAOImpl implements ExamDAO {
                     // No course access on the LMS. This means we can't get any quizzes from this LMSSetup at the moment
                     // All exams are marked as corrupt because of LMS Setup failure
 
-                    log.warn("Failed to get quizzes form LMS Setup. No access to LMS {}", lmsSetup);
+                    log.warn("Failed to get quizzes form LMS Setup. No access to LMS {}", lmsSetup.lmsSetup());
 
                     return recordMapping.entrySet()
                             .stream()
