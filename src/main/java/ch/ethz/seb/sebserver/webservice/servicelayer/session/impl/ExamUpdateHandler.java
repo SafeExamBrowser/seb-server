@@ -64,14 +64,15 @@ class ExamUpdateHandler {
                     final DateTime now = DateTime.now(DateTimeZone.UTC);
                     if (exam.getStatus() == ExamStatus.UP_COMING
                             && exam.endTime.plus(this.examTimeSuffix).isBefore(now)) {
-                        return setRunning(exam, this.createUpdateId());
+                        return setRunning(exam, this.createUpdateId())
+                                .getOr(exam);
                     } else {
                         return exam;
                     }
                 });
     }
 
-    Exam setRunning(final Exam exam, final String updateId) {
+    Result<Exam> setRunning(final Exam exam, final String updateId) {
         if (log.isDebugEnabled()) {
             log.debug("Update exam as running: {}", exam);
         }
@@ -85,11 +86,10 @@ class ExamUpdateHandler {
                 .flatMap(this.sebRestrictionService::applySEBClientRestriction)
                 .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
                 .onError(error -> this.examDAO.forceUnlock(exam.id)
-                        .onError(unlockError -> log.error("Failed to force unlock update look for exam: {}", exam.id)))
-                .getOrThrow();
+                        .onError(unlockError -> log.error("Failed to force unlock update look for exam: {}", exam.id)));
     }
 
-    Exam setFinished(final Exam exam, final String updateId) {
+    Result<Exam> setFinished(final Exam exam, final String updateId) {
         if (log.isDebugEnabled()) {
             log.debug("Update exam as finished: {}", exam);
         }
@@ -102,8 +102,7 @@ class ExamUpdateHandler {
                         updateId))
                 .flatMap(this.sebRestrictionService::releaseSEBClientRestriction)
                 .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
-                .onError(error -> this.examDAO.forceUnlock(exam.id))
-                .getOrThrow();
+                .onError(error -> this.examDAO.forceUnlock(exam.id));
     }
 
 }
