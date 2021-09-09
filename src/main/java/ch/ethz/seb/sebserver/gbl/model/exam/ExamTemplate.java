@@ -15,6 +15,8 @@ import java.util.Map;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -64,6 +66,9 @@ public class ExamTemplate implements GrantEntity {
     @JsonProperty(ATTR_EXAM_ATTRIBUTES)
     public final Map<String, String> examAttributes;
 
+    @JsonProperty(EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT)
+    public final Boolean institutionalDefault;
+
     @JsonCreator
     public ExamTemplate(
             @JsonProperty(EXAM_TEMPLATE.ATTR_ID) final Long id,
@@ -73,6 +78,7 @@ public class ExamTemplate implements GrantEntity {
             @JsonProperty(EXAM_TEMPLATE.ATTR_EXAM_TYPE) final ExamType examType,
             @JsonProperty(EXAM_TEMPLATE.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID) final Long configTemplateId,
+            @JsonProperty(EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT) final Boolean institutionalDefault,
             @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES) final Collection<IndicatorTemplate> indicatorTemplates,
             @JsonProperty(ATTR_EXAM_ATTRIBUTES) final Map<String, String> examAttributes) {
 
@@ -84,6 +90,7 @@ public class ExamTemplate implements GrantEntity {
         this.supporter = supporter;
         this.configTemplateId = configTemplateId;
         this.indicatorTemplates = Utils.immutableCollectionOf(indicatorTemplates);
+        this.institutionalDefault = BooleanUtils.toBoolean(institutionalDefault);
         this.examAttributes = Utils.immutableMapOf(examAttributes);
     }
 
@@ -98,6 +105,7 @@ public class ExamTemplate implements GrantEntity {
         this.examType = mapper.getEnum(EXAM_TEMPLATE.ATTR_EXAM_TYPE, ExamType.class, ExamType.UNDEFINED);
         this.supporter = mapper.getStringSet(EXAM_TEMPLATE.ATTR_SUPPORTER);
         this.configTemplateId = mapper.getLong(Domain.EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID);
+        this.institutionalDefault = mapper.getBooleanObject(Domain.EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT);
         this.indicatorTemplates = Collections.emptyList();
         this.examAttributes = Utils.immutableMapOf(null);
     }
@@ -134,6 +142,10 @@ public class ExamTemplate implements GrantEntity {
 
     public Long getConfigTemplateId() {
         return this.configTemplateId;
+    }
+
+    public Boolean getInstitutionalDefault() {
+        return this.institutionalDefault;
     }
 
     public Collection<IndicatorTemplate> getIndicatorTemplates() {
@@ -204,12 +216,14 @@ public class ExamTemplate implements GrantEntity {
         builder.append(this.indicatorTemplates);
         builder.append(", examAttributes=");
         builder.append(this.examAttributes);
+        builder.append(", institutionalDefault=");
+        builder.append(this.institutionalDefault);
         builder.append("]");
         return builder.toString();
     }
 
     public static ExamTemplate createNew(final Long institutionId) {
-        return new ExamTemplate(null, institutionId, null, null, ExamType.UNDEFINED, null, null, null, null);
+        return new ExamTemplate(null, institutionId, null, null, ExamType.UNDEFINED, null, null, false, null, null);
     }
 
 }

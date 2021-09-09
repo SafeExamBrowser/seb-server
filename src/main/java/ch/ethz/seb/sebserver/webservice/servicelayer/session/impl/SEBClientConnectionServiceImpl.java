@@ -23,6 +23,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
@@ -207,37 +208,28 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             checkExamIntegrity(examId, clientConnection);
 
             // connection integrity check
-            if (clientConnection.status != ConnectionStatus.CONNECTION_REQUESTED) {
-                log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
+            if (!clientConnection.status.clientActiveStatus) {
+                log.error("ClientConnection integrity violation: client connection is not in active state: {}",
                         clientConnection);
                 throw new IllegalArgumentException(
-                        "ClientConnection integrity violation: client connection is not in expected state");
+                        "ClientConnection integrity violation: client connection is not in active state");
             }
 
             if (examId != null) {
                 checkExamIntegrity(examId);
             }
 
-            // userSessionId integrity check
-            if (userSessionId != null &&
-                    clientConnection.userSessionId != null &&
-                    !userSessionId.equals(clientConnection.userSessionId)) {
-
-                log.error(
-                        "User session identifier integrity violation: another User session identifier is already set for the connection: {}",
-                        clientConnection);
-                throw new IllegalArgumentException(
-                        "User session identifier integrity violation: another User session identifier is already set for the connection");
-            }
-
+            updateUserSessionId(userSessionId, clientConnection, examId);
             final ClientConnection updatedClientConnection = this.clientConnectionDAO
                     .save(new ClientConnection(
                             clientConnection.id,
                             null,
                             examId,
-                            (userSessionId != null) ? ConnectionStatus.AUTHENTICATED : null,
+                            (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED)
+                                    ? ConnectionStatus.AUTHENTICATED
+                                    : null,
                             null,
-                            userSessionId,
+                            null,
                             null,
                             clientId,
                             null,
@@ -299,7 +291,14 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
                 log.warn("ClientConnection integrity warning: client connection is not authenticated: {}",
                         clientConnection);
-            } else if (clientConnection.status != ConnectionStatus.AUTHENTICATED) {
+            } else if (clientConnection.status == ConnectionStatus.ACTIVE) {
+                log.warn(
+                        "ClientConnection integrity warning: client connection is already active. Patching new user id: {}",
+                        clientConnection.userSessionId);
+
+                return reloadConnectionCache(connectionToken).clientConnection;
+
+            } else if (!clientConnection.status.clientActiveStatus) {
                 log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
                         clientConnection);
                 throw new IllegalArgumentException(
@@ -673,13 +672,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             ClientConnection clientConnection,
             final Long examId) {
 
-        if (StringUtils.isNoneBlank(userSessionId)) {
+        if (StringUtils.isNotBlank(userSessionId)) {
             if (StringUtils.isNoneBlank(clientConnection.userSessionId)) {
-                log.error(
+                log.warn(
                         "ClientConnection integrity violation: clientConnection has already a userSessionId: {} : {}",
                         userSessionId, clientConnection);
-                throw new IllegalArgumentException(
-                        "ClientConnection integrity violation: clientConnection has already a userSessionId");
             }
 
             // try to get user account display name
@@ -696,10 +693,22 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 log.warn("Unexpected error while trying to get user account display name: {}", e.getMessage());
             }
 
+            if (StringUtils.isNotBlank(clientConnection.userSessionId)) {
+                log.warn(
+                        "ClientConnection integrity; a new userSessionId was sent by SEB userSessionId: {} : {}",
+                        userSessionId, clientConnection);
+
+                accountId = accountId +
+                        Constants.SPACE + Constants.SLASH + Constants.SPACE +
+                        Constants.SQUARE_BRACE_OPEN +
+                        clientConnection.userSessionId +
+                        Constants.SQUARE_BRACE_CLOSE;
+            }
+
             // create new ClientConnection for update
             final ClientConnection authenticatedClientConnection = new ClientConnection(
                     clientConnection.id, null, null,
-                    ConnectionStatus.AUTHENTICATED, null,
+                    null, null,
                     accountId, null, null, null, null, null, null, null, null);
 
             clientConnection = this.clientConnectionDAO

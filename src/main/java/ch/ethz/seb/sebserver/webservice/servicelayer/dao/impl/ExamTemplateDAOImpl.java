@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -76,6 +77,34 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
     @Transactional(readOnly = true)
     public Result<ExamTemplate> byPK(final Long id) {
         return recordById(id)
+                .flatMap(this::toDomainModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<ExamTemplate> getInstitutionalDefault(final Long institutionId) {
+        return Result.tryCatch(() -> {
+
+            final List<ExamTemplateRecord> defaults = this.examTemplateRecordMapper.selectByExample()
+                    .where(
+                            ExamTemplateRecordDynamicSqlSupport.institutionId,
+                            isEqualTo(institutionId))
+                    .and(
+                            ExamTemplateRecordDynamicSqlSupport.institutionalDefault,
+                            isNotEqualTo(0))
+                    .build()
+                    .execute();
+
+            if (defaults == null || defaults.isEmpty()) {
+                throw new ResourceNotFoundException(EntityType.EXAM_TEMPLATE, String.valueOf(institutionId));
+            }
+
+            if (defaults.size() != 1) {
+                throw new IllegalStateException("Expected one default but was: " + defaults.size());
+            }
+
+            return defaults.get(0);
+        })
                 .flatMap(this::toDomainModel);
     }
 
@@ -142,7 +171,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     (data.supporter != null)
                             ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
-                    indicatorsJSON);
+                    indicatorsJSON,
+                    BooleanUtils.toInteger(data.institutionalDefault));
 
             this.examTemplateRecordMapper.insert(newRecord);
             return newRecord;
@@ -157,6 +187,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
         return Result.tryCatch(() -> {
 
             checkUniqueName(data);
+            checkUniqueDefault(data);
 
             final Collection<IndicatorTemplate> indicatorTemplates = data.getIndicatorTemplates();
             final String indicatorsJSON = (indicatorTemplates != null && !indicatorTemplates.isEmpty())
@@ -175,7 +206,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     (data.supporter != null)
                             ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
-                    indicatorsJSON);
+                    indicatorsJSON,
+                    BooleanUtils.toInteger(data.institutionalDefault));
 
             this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
 
@@ -263,6 +295,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     examType,
                     supporter,
                     record.getConfigurationTemplateId(),
+                    BooleanUtils.toBooleanObject(record.getInstitutionalDefault()),
                     indicators,
                     examAttributes);
         });
@@ -280,6 +313,42 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             throw new FieldValidationException(
                     "name",
                     "examTemplate:name:exists");
+        }
+    }
+
+    private void checkUniqueDefault(final ExamTemplate data) {
+        if (data.institutionalDefault) {
+            try {
+
+                this.examTemplateRecordMapper.selectByExample()
+                        .where(
+                                ExamTemplateRecordDynamicSqlSupport.institutionId,
+                                isEqualTo(data.institutionId))
+                        .and(
+                                ExamTemplateRecordDynamicSqlSupport.institutionalDefault,
+                                isNotEqualTo(0))
+                        .build()
+                        .execute()
+                        .stream()
+                        .forEach(this::resetDefault);
+
+            } catch (final Exception e) {
+                log.error("Unexpected error while trying to reset institutional default", e);
+            }
+        }
+    }
+
+    private void resetDefault(final ExamTemplateRecord record) {
+        try {
+
+            this.examTemplateRecordMapper
+                    .updateByPrimaryKeySelective(new ExamTemplateRecord(
+                            record.getId(),
+                            null, null, null, null, null, null, null,
+                            0));
+
+        } catch (final Exception e) {
+            log.error("Failed to reset institutional default for exam template: {}", record, e);
         }
     }
 

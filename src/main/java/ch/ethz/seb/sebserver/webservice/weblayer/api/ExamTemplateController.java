@@ -179,6 +179,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         final ExamTemplate newExamTemplate = new ExamTemplate(
                 examTemplate.id,
                 null, null, null, null, null, null,
+                examTemplate.institutionalDefault,
                 indicators,
                 null);
 
@@ -223,6 +224,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         final ExamTemplate newExamTemplate = new ExamTemplate(
                 examTemplate.id,
                 null, null, null, null, null, null,
+                examTemplate.institutionalDefault,
                 newIndicators,
                 null);
 
@@ -262,6 +264,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         final ExamTemplate newExamTemplate = new ExamTemplate(
                 examTemplate.id,
                 null, null, null, null, null, null,
+                examTemplate.institutionalDefault,
                 newIndicators,
                 null);
 

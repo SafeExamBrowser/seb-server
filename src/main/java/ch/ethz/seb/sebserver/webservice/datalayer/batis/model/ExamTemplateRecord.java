@@ -3,32 +3,35 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ExamTemplateRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.833+02:00", comments="Source field: exam_template.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.configuration_template_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.configuration_template_id")
     private Long configurationTemplateId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.name")
     private String name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.description")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.description")
     private String description;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.exam_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.exam_type")
     private String examType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.supporter")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.supporter")
     private String supporter;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.indicator_templates")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.indicator_templates")
     private String indicatorTemplates;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.893+02:00", comments="Source Table: exam_template")
-    public ExamTemplateRecord(Long id, Long institutionId, Long configurationTemplateId, String name, String description, String examType, String supporter, String indicatorTemplates) {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.institutional_default")
+    private Integer institutionalDefault;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.833+02:00", comments="Source Table: exam_template")
+    public ExamTemplateRecord(Long id, Long institutionId, Long configurationTemplateId, String name, String description, String examType, String supporter, String indicatorTemplates, Integer institutionalDefault) {
         this.id = id;
         this.institutionId = institutionId;
         this.configurationTemplateId = configurationTemplateId;
@@ -37,53 +40,59 @@ public class ExamTemplateRecord {
         this.examType = examType;
         this.supporter = supporter;
         this.indicatorTemplates = indicatorTemplates;
+        this.institutionalDefault = institutionalDefault;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.configuration_template_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.configuration_template_id")
     public Long getConfigurationTemplateId() {
         return configurationTemplateId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.name")
     public String getName() {
         return name;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.description")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.description")
     public String getDescription() {
         return description;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.exam_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.exam_type")
     public String getExamType() {
         return examType;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.supporter")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.supporter")
     public String getSupporter() {
         return supporter;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-06T08:54:24.894+02:00", comments="Source field: exam_template.indicator_templates")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.indicator_templates")
     public String getIndicatorTemplates() {
         return indicatorTemplates;
+    }
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-09-09T09:01:24.834+02:00", comments="Source field: exam_template.institutional_default")
+    public Integer getInstitutionalDefault() {
+        return institutionalDefault;
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table exam_template
      *
-     * @mbg.generated Mon Sep 06 08:54:24 CEST 2021
+     * @mbg.generated Thu Sep 09 09:01:24 CEST 2021
      */
     @Override
     public String toString() {
@@ -99,6 +108,7 @@ public class ExamTemplateRecord {
         sb.append(", examType=").append(examType);
         sb.append(", supporter=").append(supporter);
         sb.append(", indicatorTemplates=").append(indicatorTemplates);
+        sb.append(", institutionalDefault=").append(institutionalDefault);
         sb.append("]");
         return sb.toString();
     }
@@ -107,7 +117,7 @@ public class ExamTemplateRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table exam_template
      *
-     * @mbg.generated Mon Sep 06 08:54:24 CEST 2021
+     * @mbg.generated Thu Sep 09 09:01:24 CEST 2021
      */
     @Override
     public boolean equals(Object that) {
@@ -128,14 +138,15 @@ public class ExamTemplateRecord {
             && (this.getDescription() == null ? other.getDescription() == null : this.getDescription().equals(other.getDescription()))
             && (this.getExamType() == null ? other.getExamType() == null : this.getExamType().equals(other.getExamType()))
             && (this.getSupporter() == null ? other.getSupporter() == null : this.getSupporter().equals(other.getSupporter()))
-            && (this.getIndicatorTemplates() == null ? other.getIndicatorTemplates() == null : this.getIndicatorTemplates().equals(other.getIndicatorTemplates()));
+            && (this.getIndicatorTemplates() == null ? other.getIndicatorTemplates() == null : this.getIndicatorTemplates().equals(other.getIndicatorTemplates()))
+            && (this.getInstitutionalDefault() == null ? other.getInstitutionalDefault() == null : this.getInstitutionalDefault().equals(other.getInstitutionalDefault()));
     }
 
     /**
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table exam_template
      *
-     * @mbg.generated Mon Sep 06 08:54:24 CEST 2021
+     * @mbg.generated Thu Sep 09 09:01:24 CEST 2021
      */
     @Override
     public int hashCode() {
@@ -149,6 +160,7 @@ public class ExamTemplateRecord {
         result = prime * result + ((getExamType() == null) ? 0 : getExamType().hashCode());
         result = prime * result + ((getSupporter() == null) ? 0 : getSupporter().hashCode());
         result = prime * result + ((getIndicatorTemplates() == null) ? 0 : getIndicatorTemplates().hashCode());
+        result = prime * result + ((getInstitutionalDefault() == null) ? 0 : getInstitutionalDefault().hashCode());
         return result;
     }
 }

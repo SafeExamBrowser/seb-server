@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `exam_template` (
   `exam_type` VARCHAR(45) NULL,
   `supporter` VARCHAR(4000) NULL,
   `indicator_templates` VARCHAR(6000) NULL,
+  `institutional_default` INT(1) UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   INDEX `examTemplateInstitutionRef_idx` (`institution_id` ASC),
   INDEX `examTemplateConfigTemplateRef_idx` (`configuration_template_id` ASC),

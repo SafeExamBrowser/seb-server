@@ -51,6 +51,7 @@ public final class Constants {
     public static final Character ANGLE_BRACE_CLOSE = '>';
     public static final Character COLON = ':';
     public static final Character SEMICOLON = ';';
+    public static final Character SPACE = ' ';
     public static final Character PERCENTAGE = '%';
     public static final Character SLASH = '/';
     public static final Character BACKSLASH = '\\';

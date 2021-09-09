@@ -220,7 +220,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertEquals("AUTHENTICATED", String.valueOf(clientConnectionRecord.getStatus()));
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
-        assertEquals("userSessionId", clientConnectionRecord.getExamUserSessionId());
+        assertEquals("-- (userSessionId)", clientConnectionRecord.getExamUserSessionId());
         assertTrue(clientConnectionRecord.getVdi() == 0);
         assertNull(clientConnectionRecord.getVirtualClientAddress());
 
