@@ -174,6 +174,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 Long.parseLong(examTemplateId),
                 postMap);
 
+        this.beanValidationService.validateBean(newIndicator)
+                .getOrThrow();
+
         final ArrayList<IndicatorTemplate> indicators = new ArrayList<>(examTemplate.indicatorTemplates);
         indicators.add(newIndicator);
         final ExamTemplate newExamTemplate = new ExamTemplate(

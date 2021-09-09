@@ -768,7 +768,6 @@ public class WidgetFactory {
         final Image image = type.getImage(parent.getDisplay());
         imageButton.setImage(image);
         if (listener != null) {
-            imageButton.addListener(SWT.MouseDown, listener);
             imageButton.addListener(SWT.Selection, listener);
         }
         setARIARole(imageButton, AriaRole.button);

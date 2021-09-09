@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -53,8 +54,15 @@ public class ExamTemplateList implements TemplateComposer {
             new LocTextKey("sebserver.examtemplate.list.column.name");
     public final static LocTextKey COLUMN_TITLE_EXAM_TYPE_KEY =
             new LocTextKey("sebserver.examtemplate.list.column.examType");
+    public final static LocTextKey COLUMN_TITLE_DEFAULT_KEY =
+            new LocTextKey("sebserver.examtemplate.list.column.default");
     public final static LocTextKey EMPTY_LIST_TEXT_KEY =
             new LocTextKey("sebserver.examtemplate.list.empty");
+
+    public final static LocTextKey COLUMN_TITLE_DEFAULT_TRUE_KEY =
+            new LocTextKey("sebserver.examtemplate.list.column.default.true");
+    public final static LocTextKey COLUMN_TITLE_DEFAULT_FALSE_KEY =
+            new LocTextKey("sebserver.examtemplate.list.column.default.false");
 
     public static final LocTextKey NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION =
             new LocTextKey("sebserver.examtemplate.list.action.no.modify.privilege");
@@ -94,6 +102,7 @@ public class ExamTemplateList implements TemplateComposer {
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
+        final I18nSupport i18nSupport = this.pageService.getI18nSupport();
 
         // content page layout with title
         final Composite content = widgetFactory.defaultPageLayout(
@@ -141,6 +150,13 @@ public class ExamTemplateList implements TemplateComposer {
                                 this.resourceService::localizedExamTypeName)
                                         .withFilter(this.typeFilter)
                                         .sortable())
+
+                        .withColumn(new ColumnDefinition<ExamTemplate>(
+                                Domain.EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT,
+                                COLUMN_TITLE_DEFAULT_KEY,
+                                et -> (et.institutionalDefault)
+                                        ? i18nSupport.getText(COLUMN_TITLE_DEFAULT_TRUE_KEY)
+                                        : i18nSupport.getText(COLUMN_TITLE_DEFAULT_FALSE_KEY)))
 
                         .withDefaultAction(actionBuilder
                                 .newAction(ActionDefinition.EXAM_TEMPLATE_VIEW_FROM_LIST)

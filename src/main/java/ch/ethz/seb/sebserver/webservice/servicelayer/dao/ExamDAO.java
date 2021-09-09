@@ -12,6 +12,7 @@ import java.util.Collection;
 
 import org.springframework.cache.annotation.CacheEvict;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
@@ -144,5 +145,12 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @param sebRestriction the seb-restriction flag value
      * @return Result refer to the updated Exam or to an error if happened */
     Result<Exam> setSEBRestriction(Long examId, boolean sebRestriction);
+
+    /** This deletes the exam template reference of all exams that has a given
+     * template reference.
+     * 
+     * @param examTemplateId The exam template reference identifier
+     * @return Result refer to the collection of entity keys of all involved exams or to an error when happened */
+    Result<Collection<EntityKey>> deleteTemplateReferences(Long examTemplateId);
 
 }

@@ -135,7 +135,7 @@ public class IndicatorTemplateForm implements TemplateComposer {
                         Domain.EXAM.ATTR_INSTITUTION_ID,
                         String.valueOf(examTemplate.getInstitutionId()))
                 .putStaticValue(
-                        Domain.INDICATOR.ATTR_EXAM_ID,
+                        IndicatorTemplate.ATTR_EXAM_TEMPLATE_ID,
                         parentEntityKey.getModelId())
                 .addField(FormBuilder.text(
                         Domain.EXAM_TEMPLATE.ATTR_NAME,

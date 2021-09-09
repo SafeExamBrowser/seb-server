@@ -38,6 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -59,9 +61,11 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
+import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -105,13 +109,22 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfi
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplatePage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplates;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplate;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfigMapping;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamConfigMapping;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
@@ -2565,6 +2578,119 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 //                " tried token endpoints: [/oauth2/access_token]]]", String.valueOf(testResult.errors));
 
         // TODO how to mockup an Open edX response
+    }
+
+    @Test
+    @Order(22)
+    // *************************************
+    // Use Case 22: Login as TestInstAdmin and create new Exam Template
+    //  - login as TestInstAdmin : 987654321
+    //  - check exam template list is empty
+    //  - create new exam template with existing configuration template
+    //  - check exam template list contains created exam template
+    //  - add indicator templates to the exam template
+    public void testUsecase22_CreateExamTemplate() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "TestInstAdmin",
+                "987654321",
+                new GetExamTemplatePage(),
+                new GetExamTemplate(),
+                new GetExamTemplates(),
+                new NewExamTemplate(),
+                new NewExamConfig(),
+                new SaveExamTemplate(),
+                new GetIndicatorTemplatePage(),
+                new NewIndicatorTemplate(),
+                new SaveIndicatorTemplate(),
+                new GetIndicatorTemplate());
+
+        Page<ExamTemplate> examTemplatePage = restService
+                .getBuilder(GetExamTemplatePage.class)
+                .call()
+                .getOrThrow();
+
+        assertTrue(examTemplatePage.isEmpty());
+
+        // create new exam config template
+        final ConfigurationNode configTemplate = restService
+                .getBuilder(NewExamConfig.class)
+                .withFormParam(Domain.CONFIGURATION_NODE.ATTR_NAME, "templateTest")
+                .withFormParam(Domain.CONFIGURATION_NODE.ATTR_TYPE, ConfigurationType.TEMPLATE.name())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(configTemplate);
+        assertEquals("templateTest", configTemplate.name);
+
+        // create exam template with config template reference
+        final ExamTemplate examTemplate = restService
+                .getBuilder(NewExamTemplate.class)
+                .withFormParam(Domain.EXAM_TEMPLATE.ATTR_NAME, "examTemplate")
+                .withFormParam(Domain.EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID, configTemplate.getModelId())
+                .withFormParam(Domain.EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT, "true")
+                .withFormParam(Domain.EXAM_TEMPLATE.ATTR_EXAM_TYPE, ExamType.MANAGED.name())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(examTemplate);
+        assertEquals("examTemplate", examTemplate.name);
+        assertTrue(examTemplate.institutionalDefault);
+        assertEquals(configTemplate.institutionId, examTemplate.institutionId);
+        assertEquals(configTemplate.id, examTemplate.configTemplateId);
+
+        // get list again and check entry
+        examTemplatePage = restService
+                .getBuilder(GetExamTemplatePage.class)
+                .call()
+                .getOrThrow();
+
+        assertFalse(examTemplatePage.isEmpty());
+        final ExamTemplate templateFromList = examTemplatePage.getContent().iterator().next();
+        assertNotNull(templateFromList);
+        assertEquals("examTemplate", templateFromList.name);
+        assertTrue(templateFromList.institutionalDefault);
+        assertEquals(configTemplate.institutionId, templateFromList.institutionId);
+        assertEquals(configTemplate.id, templateFromList.configTemplateId);
+
+        // create new indicator template
+        final MultiValueMap<String, String> thresholds = new LinkedMultiValueMap<>();
+        thresholds.add(Domain.THRESHOLD.REFERENCE_NAME, "1|000001");
+        thresholds.add(Domain.THRESHOLD.REFERENCE_NAME, "2|000002");
+        thresholds.add(Domain.THRESHOLD.REFERENCE_NAME, "3|000003");
+        final IndicatorTemplate indicatorTemplate = restService
+                .getBuilder(NewIndicatorTemplate.class)
+                .withFormParam(IndicatorTemplate.ATTR_EXAM_TEMPLATE_ID, examTemplate.getModelId())
+                .withFormParam(Domain.INDICATOR.ATTR_NAME, "Errors")
+                .withFormParam(Domain.INDICATOR.ATTR_TYPE, IndicatorType.ERROR_COUNT.name)
+                .withFormParam(Domain.INDICATOR.ATTR_COLOR, "000001")
+                .withFormParams(thresholds)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(indicatorTemplate);
+        assertEquals(examTemplate.id, indicatorTemplate.examTemplateId);
+        assertEquals("Errors", indicatorTemplate.name);
+        assertTrue(indicatorTemplate.thresholds.size() == 3);
+
+        // get indicator list for template
+        final Page<IndicatorTemplate> indicatorList = restService
+                .getBuilder(GetIndicatorTemplatePage.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, examTemplate.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(indicatorList);
+        assertFalse(indicatorList.isEmpty());
+        assertTrue(indicatorList.content.size() == 1);
+
+        // TODO save exam template
+
+        // TODO edit indicator template
+
+        // TODO remove indicator template
+
+        // TODO delete exam template
+
     }
 
 }

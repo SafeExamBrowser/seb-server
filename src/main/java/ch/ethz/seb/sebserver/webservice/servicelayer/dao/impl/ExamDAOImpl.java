@@ -721,6 +721,53 @@ public class ExamDAOImpl implements ExamDAO {
                 .execute());
     }
 
+    @Override
+    @Transactional
+    public Result<Collection<EntityKey>> deleteTemplateReferences(final Long examTemplateId) {
+        return Result.tryCatch(() -> {
+
+            final List<ExamRecord> records = this.examRecordMapper.selectByExample()
+                    .where(
+                            ExamRecordDynamicSqlSupport.examTemplateId,
+                            isEqualTo(examTemplateId))
+                    .build()
+                    .execute();
+
+            if (records == null || records.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            final ArrayList<EntityKey> result = new ArrayList<>();
+            for (final ExamRecord rec : records) {
+
+                try {
+                    this.examRecordMapper.updateByPrimaryKey(new ExamRecord(
+                            rec.getId(),
+                            rec.getInstitutionId(),
+                            rec.getLmsSetupId(),
+                            rec.getExternalId(),
+                            rec.getOwner(),
+                            rec.getSupporter(),
+                            rec.getType(),
+                            rec.getQuitPassword(),
+                            rec.getBrowserKeys(),
+                            rec.getStatus(),
+                            rec.getLmsSebRestriction(),
+                            rec.getUpdating(),
+                            rec.getLastupdate(),
+                            rec.getActive(),
+                            null));
+
+                    result.add(new EntityKey(rec.getId(), EntityType.EXAM));
+                } catch (final Exception e) {
+                    log.error("Failed to delete template references for exam: {}", rec, e);
+                }
+            }
+
+            return result;
+        });
+    }
+
     private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
         return Result.tryCatch(() -> toDependencies(
                 this.examRecordMapper.selectByExample()

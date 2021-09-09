@@ -232,11 +232,15 @@ public class POSTMapper {
             return Collections.emptyList();
         }
 
-        return thresholdStrings.stream()
+        return thresholdStrings
+                .stream()
                 .map(ts -> {
                     try {
                         final String[] split = StringUtils.split(ts, Constants.EMBEDDED_LIST_SEPARATOR);
-                        return new Threshold(Double.parseDouble(split[0]), split[1], null);
+                        return new Threshold(Double.parseDouble(
+                                split[0]),
+                                (split.length > 1) ? split[1] : null,
+                                (split.length > 2) ? split[2] : null);
                     } catch (final Exception e) {
                         return null;
                     }

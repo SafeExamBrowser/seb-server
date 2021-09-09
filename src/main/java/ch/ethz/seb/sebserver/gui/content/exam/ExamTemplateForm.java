@@ -61,6 +61,8 @@ public class ExamTemplateForm implements TemplateComposer {
             new LocTextKey("sebserver.examtemplate.form.name");
     private static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.examtemplate.form.description");
+    private static final LocTextKey FORM_DEFAULT_TEXT_KEY =
+            new LocTextKey("sebserver.examtemplate.form.default");
     private static final LocTextKey FORM_TYPE_TEXT_KEY =
             new LocTextKey("sebserver.examtemplate.form.examType");
     private static final LocTextKey FORM_CONFIG_TEMPLATE_TEXT_KEY =
@@ -149,6 +151,11 @@ public class ExamTemplateForm implements TemplateComposer {
                         examTemplate.description)
                         .asArea())
 
+                .addField(FormBuilder.checkbox(
+                        Domain.EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT,
+                        FORM_DEFAULT_TEXT_KEY,
+                        String.valueOf(examTemplate.getInstitutionalDefault())))
+
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM_TEMPLATE.ATTR_EXAM_TYPE,
                         FORM_TYPE_TEXT_KEY,
@@ -159,11 +166,10 @@ public class ExamTemplateForm implements TemplateComposer {
                 .addFieldIf(
                         () -> !examConfigTemplateResources.isEmpty(),
                         () -> FormBuilder.singleSelection(
-                                Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
+                                Domain.EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID,
                                 FORM_CONFIG_TEMPLATE_TEXT_KEY,
                                 String.valueOf(examTemplate.configTemplateId),
-                                this.resourceService::getExamConfigTemplateResources)
-                                .readonly(!isNew))
+                                this.resourceService::getExamConfigTemplateResources))
 
                 .addField(FormBuilder.multiComboSelection(
                         Domain.EXAM_TEMPLATE.ATTR_SUPPORTER,

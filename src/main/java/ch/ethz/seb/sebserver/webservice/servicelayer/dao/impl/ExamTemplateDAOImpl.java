@@ -44,6 +44,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDy
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamTemplateRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
@@ -56,15 +57,18 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
     private final ExamTemplateRecordMapper examTemplateRecordMapper;
     private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final ExamDAO examDAO;
     private final JSONMapper jsonMapper;
 
     public ExamTemplateDAOImpl(
             final ExamTemplateRecordMapper examTemplateRecordMapper,
             final AdditionalAttributesDAO additionalAttributesDAO,
+            final ExamDAO examDAO,
             final JSONMapper jsonMapper) {
 
         this.examTemplateRecordMapper = examTemplateRecordMapper;
         this.additionalAttributesDAO = additionalAttributesDAO;
+        this.examDAO = examDAO;
         this.jsonMapper = jsonMapper;
     }
 
@@ -195,8 +199,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     : null;
 
             final ExamTemplateRecord newRecord = new ExamTemplateRecord(
+                    data.id,
                     null,
-                    data.institutionId,
                     data.configTemplateId,
                     data.name,
                     data.description,
@@ -233,7 +237,20 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
+            log.info("Delete exam templates: {}", all);
+
             final List<Long> ids = extractListOfPKs(all);
+
+            ids.stream()
+                    .forEach(id -> {
+                        final Collection<EntityKey> deletedReferences = this.examDAO
+                                .deleteTemplateReferences(id)
+                                .getOrThrow();
+
+                        if (deletedReferences != null && !deletedReferences.isEmpty()) {
+                            log.info("Deleted template references for exams: {}", deletedReferences);
+                        }
+                    });
 
             this.examTemplateRecordMapper.deleteByExample()
                     .where(ExamTemplateRecordDynamicSqlSupport.id, isIn(ids))
