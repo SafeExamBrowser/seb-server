@@ -412,6 +412,11 @@ public enum ActionDefinition {
             ImageIcon.CANCEL,
             PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
             ActionCategory.FORM),
+    EXAM_TEMPLATE_DELETE(
+            new LocTextKey("sebserver.examtemplate.form.action.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_LIST,
+            ActionCategory.FORM),
 
     INDICATOR_TEMPLATE_NEW(
             new LocTextKey("sebserver.examtemplate.indicator.action.list.new"),

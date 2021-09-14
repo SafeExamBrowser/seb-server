@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
@@ -104,12 +105,14 @@ public class UserActivityLogController extends ReadonlyEntityController<UserActi
             return new EntityProcessingReport(
                     Collections.emptyList(),
                     Collections.emptyList(),
-                    Arrays.asList(new ErrorEntry(null, APIMessage.ErrorMessage.UNEXPECTED.of(delete.getError()))));
+                    Arrays.asList(new ErrorEntry(null, APIMessage.ErrorMessage.UNEXPECTED.of(delete.getError()))),
+                    BulkActionType.HARD_DELETE);
         } else {
             return new EntityProcessingReport(
                     sources,
                     delete.get(),
-                    Collections.emptyList());
+                    Collections.emptyList(),
+                    BulkActionType.HARD_DELETE);
         }
     }
 

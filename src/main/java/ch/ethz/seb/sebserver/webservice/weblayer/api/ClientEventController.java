@@ -150,12 +150,14 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
             return new EntityProcessingReport(
                     Collections.emptyList(),
                     Collections.emptyList(),
-                    Arrays.asList(new ErrorEntry(null, APIMessage.ErrorMessage.UNEXPECTED.of(delete.getError()))));
+                    Arrays.asList(new ErrorEntry(null, APIMessage.ErrorMessage.UNEXPECTED.of(delete.getError()))),
+                    BulkActionType.HARD_DELETE);
         } else {
             return new EntityProcessingReport(
                     sources,
                     delete.get(),
-                    Collections.emptyList());
+                    Collections.emptyList(),
+                    BulkActionType.HARD_DELETE);
         }
     }
 

@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
@@ -31,6 +32,7 @@ public class EntityProcessingReport {
     public static final String ATTR_SOURCE = "source";
     public static final String ATTR_RESULTS = "results";
     public static final String ATTR_ERRORS = "errors";
+    public static final String ATTR_TYPE = "bulkActionType";
 
     /** A set of entity-keys that are or were processed by a bulk action- or other process with a EntityProcessingReport
      * result. */
@@ -43,16 +45,20 @@ public class EntityProcessingReport {
     /** A set of error entries that defines an error if happened. */
     @JsonProperty(value = ATTR_ERRORS, required = true)
     public final Set<ErrorEntry> errors;
+    @JsonProperty(value = ATTR_TYPE, required = true)
+    public final BulkActionType bulkActionType;
 
     @JsonCreator
     public EntityProcessingReport(
             @JsonProperty(value = ATTR_SOURCE, required = true) final Collection<EntityKey> source,
             @JsonProperty(value = ATTR_RESULTS, required = true) final Collection<EntityKey> results,
-            @JsonProperty(value = ATTR_ERRORS, required = true) final Collection<ErrorEntry> errors) {
+            @JsonProperty(value = ATTR_ERRORS, required = true) final Collection<ErrorEntry> errors,
+            @JsonProperty(value = ATTR_TYPE, required = true) final BulkActionType bulkActionType) {
 
         this.source = Utils.immutableSetOf(source);
         this.results = Utils.immutableSetOf(results);
         this.errors = Utils.immutableSetOf(errors);
+        this.bulkActionType = bulkActionType;
     }
 
     @JsonIgnore
@@ -119,7 +125,8 @@ public class EntityProcessingReport {
         return new EntityProcessingReport(
                 Collections.emptyList(),
                 Collections.emptyList(),
-                Arrays.asList(new ErrorEntry(null, APIMessage.ErrorMessage.RESOURCE_NOT_FOUND.of())));
+                Arrays.asList(new ErrorEntry(null, APIMessage.ErrorMessage.RESOURCE_NOT_FOUND.of())),
+                null);
     }
 
 }

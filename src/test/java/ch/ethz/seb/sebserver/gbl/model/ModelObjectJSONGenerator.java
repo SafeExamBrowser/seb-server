@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
@@ -298,7 +299,8 @@ public class ModelObjectJSONGenerator {
                 Arrays.asList(new EntityKey(1L, EntityType.EXAM)),
                 Arrays.asList(new EntityKey(1L, EntityType.INDICATOR), new EntityKey(2L, EntityType.INDICATOR)),
                 Arrays.asList(new EntityProcessingReport.ErrorEntry(new EntityKey(2L, EntityType.INDICATOR),
-                        APIMessage.ErrorMessage.UNEXPECTED.of())));
+                        APIMessage.ErrorMessage.UNEXPECTED.of())),
+                BulkActionType.HARD_DELETE);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 

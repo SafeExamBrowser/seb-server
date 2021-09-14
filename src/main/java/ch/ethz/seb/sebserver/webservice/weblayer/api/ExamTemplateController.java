@@ -190,6 +190,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .save(newExamTemplate)
                 .getOrThrow();
 
+        this.userActivityLogDAO.logCreate(newIndicator)
+                .onError(error -> log.error("Failed to log indicator template creation: {}", newIndicator, error));
+
         return newIndicator;
     }
 
@@ -235,6 +238,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .save(newExamTemplate)
                 .getOrThrow();
 
+        this.userActivityLogDAO.logModify(modifyData)
+                .onError(error -> log.error("Failed to log indicator template modification: {}", modifyData, error));
+
         return modifyData;
     }
 
@@ -259,10 +265,14 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .byModelId(parentModelId)
                 .getOrThrow();
 
-        final List<IndicatorTemplate> newIndicators = examTemplate.indicatorTemplates
+        final IndicatorTemplate toDelete = examTemplate.indicatorTemplates
                 .stream()
-                .filter(i -> !modelId.equals(i.getModelId()))
-                .collect(Collectors.toList());
+                .filter(i -> modelId.equals(i.getModelId()))
+                .findFirst()
+                .orElse(null);
+
+        final List<IndicatorTemplate> newIndicators = new ArrayList<>(examTemplate.indicatorTemplates);
+        newIndicators.remove(toDelete);
 
         final ExamTemplate newExamTemplate = new ExamTemplate(
                 examTemplate.id,
@@ -274,6 +284,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         super.entityDAO
                 .save(newExamTemplate)
                 .getOrThrow();
+
+        this.userActivityLogDAO.logDelete(toDelete)
+                .onError(error -> log.error("Failed to log indicator template modification: {}", toDelete, error));
 
         return new EntityKey(modelId, EntityType.INDICATOR);
     }

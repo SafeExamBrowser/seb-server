@@ -153,7 +153,8 @@ public class BulkActionServiceImpl implements BulkActionService {
                     action.result.stream()
                             .filter(Result::hasError)
                             .map(this::createErrorEntry)
-                            .collect(Collectors.toList()));
+                            .collect(Collectors.toList()),
+                    action.type);
         });
     }
 

@@ -20,6 +20,8 @@ import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.WebDataBinder;
@@ -61,6 +63,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
  * @param <T> The concrete Entity domain-model type used on all GET, PUT
  * @param <M> The concrete Entity domain-model type used for POST methods (new) */
 public abstract class EntityController<T extends Entity, M extends Entity> {
+
+    private static final Logger log = LoggerFactory.getLogger(EntityController.class);
 
     protected final AuthorizationService authorization;
     protected final BulkActionService bulkActionService;
@@ -341,6 +345,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         return this.entityDAO.byModelId(modelId)
                 .flatMap(this::checkWriteAccess)
                 .flatMap(this::validForDelete)
+                .flatMap(this::logDelete)
                 .flatMap(entity -> bulkDelete(entity, convertToEntityType(addIncludes, includes)))
                 .flatMap(this::notifyDeleted)
                 .flatMap(pair -> this.logBulkAction(pair.b))
@@ -371,7 +376,9 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         }
 
         final EntityType entityType = this.entityDAO.entityType();
-        final Collection<EntityKey> sources = ids.stream()
+        final Collection<EntityKey> sources = ids
+                .stream()
+                .map(this::logDelete)
                 .map(id -> new EntityKey(id, entityType))
                 .collect(Collectors.toList());
 
@@ -383,6 +390,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
 
         return this.bulkActionService
                 .createReport(bulkAction)
+                .flatMap(this::logBulkAction)
                 .flatMap(this::notifyAllDeleted)
                 .getOrThrow();
     }
@@ -589,12 +597,42 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         return this.userActivityLogDAO.logModify(entity);
     }
 
+    /** Makes a DELETE user activity log for the specified entity.
+     * This may be overwritten if the create user activity log should be skipped.
+     *
+     * @param entity the Entity instance
+     * @return Result refer to the logged Entity instance or to an error if happened */
+    protected String logDelete(final String modelId) {
+        try {
+            return this.entityDAO
+                    .byModelId(modelId)
+                    .flatMap(this::logDelete)
+                    .map(Entity::getModelId)
+                    .getOrThrow();
+        } catch (final Exception e) {
+            log.warn("Failed to log delete for entity id: {}", modelId, e);
+            return modelId;
+        }
+    }
+
+    /** Makes a DELETE user activity log for the specified entity.
+     * This may be overwritten if the create user activity log should be skipped.
+     *
+     * @param entity the Entity instance
+     * @return Result refer to the logged Entity instance or to an error if happened */
+    protected Result<T> logDelete(final T entity) {
+        return this.userActivityLogDAO.logDelete(entity);
+    }
+
     /** Makes user activity log for a bulk action.
      *
      * @param bulkActionReport the EntityProcessingReport
      * @return Result of entity */
     protected Result<EntityProcessingReport> logBulkAction(final EntityProcessingReport bulkActionReport) {
-        // TODO
+
+        this.userActivityLogDAO.logBulkAction(bulkActionReport)
+                .onError(error -> log.warn("Failed to log audit for bulk action: {}", bulkActionReport, error));
+
         return Result.of(bulkActionReport);
     }
 

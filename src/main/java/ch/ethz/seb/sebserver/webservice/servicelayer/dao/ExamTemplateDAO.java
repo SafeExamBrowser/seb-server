@@ -10,9 +10,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
 /** Concrete EntityDAO interface of ExamTemplate entities */
-public interface ExamTemplateDAO extends EntityDAO<ExamTemplate, ExamTemplate> {
+public interface ExamTemplateDAO extends EntityDAO<ExamTemplate, ExamTemplate>, BulkActionSupportDAO<ExamTemplate> {
 
     /** Used to get the ExamTemplate that is set as default for a given institution.
      *

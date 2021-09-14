@@ -12,6 +12,8 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +38,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplatePage;
@@ -51,6 +54,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Component
 @GuiProfile
 public class ExamTemplateForm implements TemplateComposer {
+
+    private static final Logger log = LoggerFactory.getLogger(ExamTemplateForm.class);
 
     public static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.examtemplate.form.title");
@@ -84,6 +89,9 @@ public class ExamTemplateForm implements TemplateComposer {
             new LocTextKey("sebserver.examtemplate.indicator.list.pleaseSelect");
     private static final LocTextKey INDICATOR_EMPTY_LIST_MESSAGE =
             new LocTextKey("sebserver.examtemplate.indicator.list.empty");
+
+    private static final LocTextKey EXAM_TEMPLATE_DELETE_CONFIRM =
+            new LocTextKey("sebserver.examtemplate.form.action.delete.confirm");
 
     private final PageService pageService;
     private final ResourceService resourceService;
@@ -200,6 +208,12 @@ public class ExamTemplateForm implements TemplateComposer {
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !readonly)
 
+                .newAction(ActionDefinition.EXAM_TEMPLATE_DELETE)
+                .withEntityKey(entityKey)
+                .withConfirm(() -> EXAM_TEMPLATE_DELETE_CONFIRM)
+                .withExec(this::deleteExamTemplate)
+                .publishIf(() -> userGrant.iw() && readonly)
+
         ;
 
         if (readonly) {
@@ -275,6 +289,14 @@ public class ExamTemplateForm implements TemplateComposer {
                     .withParentEntityKey(entityKey)
                     .publishIf(() -> userGrant.im());
         }
+    }
+
+    private PageAction deleteExamTemplate(final PageAction action) {
+        this.pageService.getRestService().getBuilder(DeleteExamTemplate.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .call()
+                .onError(error -> action.pageContext().notifyUnexpectedError(error));
+        return action;
     }
 
     private PageAction deleteSelectedIndicator(final PageAction action) {
