@@ -70,6 +70,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
@@ -86,6 +87,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final ExamDAO examDAO;
     private final UserDAO userDAO;
     private final ExamAdminService examAdminService;
+    private final ExamTemplateService examTemplateService;
     private final LmsAPIService lmsAPIService;
     private final ExamConfigService sebExamConfigService;
     private final ExamSessionService examSessionService;
@@ -101,6 +103,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final LmsAPIService lmsAPIService,
             final UserDAO userDAO,
             final ExamAdminService examAdminService,
+            final ExamTemplateService examTemplateService,
             final ExamConfigService sebExamConfigService,
             final ExamSessionService examSessionService,
             final SEBRestrictionService sebRestrictionService) {
@@ -115,6 +118,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.examDAO = examDAO;
         this.userDAO = userDAO;
         this.examAdminService = examAdminService;
+        this.examTemplateService = examTemplateService;
         this.lmsAPIService = lmsAPIService;
         this.sebExamConfigService = sebExamConfigService;
         this.examSessionService = examSessionService;
@@ -459,9 +463,10 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     @Override
     protected Result<Exam> notifyCreated(final Exam entity) {
-        return this.examAdminService
-                .addDefaultIndicator(entity)
-                .flatMap(this.examAdminService::saveAdditionalAttributes)
+        return this.examTemplateService
+                .addDefinedIndicators(entity)
+                .flatMap(this.examTemplateService::initAdditionalAttributes)
+                .flatMap(this.examTemplateService::initExamConfiguration)
                 .flatMap(this.examAdminService::applyAdditionalSEBRestrictions);
     }
 
@@ -470,7 +475,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return Result.tryCatch(() -> {
             this.examSessionService.flushCache(entity);
             return entity;
-        }).flatMap(this.examAdminService::saveAdditionalAttributes);
+        }).flatMap(this.examAdminService::saveLMSAttributes);
     }
 
     @Override

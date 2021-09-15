@@ -75,6 +75,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplateNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExams;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
@@ -780,6 +781,18 @@ public class ResourceService {
                                 String.valueOf(CertificateInfo.CertificateType.DATA_ENCIPHERMENT_PRIVATE_KEY))
                         .call()
                         .onError(error -> log.warn("Failed to get identity certificate names: {}", error.getMessage()))
+                        .getOr(Collections.emptyList())
+                        .stream())
+                .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> examTemplateResources() {
+        return Stream.concat(
+                Stream.of(new EntityName("", EntityType.EXAM_TEMPLATE, "")),
+                this.restService.getBuilder(GetExamTemplateNames.class)
+                        .call()
+                        .onError(error -> log.warn("Failed to get exam template names: {}", error.getMessage()))
                         .getOr(Collections.emptyList())
                         .stream())
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))

@@ -91,9 +91,15 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
             final String value) {
 
         return Result.tryCatch(() -> {
+
             if (value == null) {
                 throw new IllegalArgumentException(
                         "value cannot be null. Use delete to delete an additional attribute");
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Save additional attribute. Type: {}, entity: {}, name: {}, value: {}",
+                        type, entityId, name, value);
             }
 
             final Optional<Long> id = this.additionalAttributeRecordMapper
@@ -150,26 +156,43 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
     @Override
     @Transactional
     public void delete(final EntityType type, final Long entityId, final String name) {
-        this.additionalAttributeRecordMapper
-                .deleteByExample()
-                .where(
-                        AdditionalAttributeRecordDynamicSqlSupport.entityType,
-                        SqlBuilder.isEqualTo(type.name()))
-                .and(
-                        AdditionalAttributeRecordDynamicSqlSupport.entityId,
-                        SqlBuilder.isEqualTo(entityId))
-                .and(
-                        AdditionalAttributeRecordDynamicSqlSupport.name,
-                        SqlBuilder.isEqualTo(name))
-                .build()
-                .execute();
 
+        try {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Delete additional attribute. Type: {}, entity: {}, name: {}",
+                        type, entityId, name);
+            }
+
+            this.additionalAttributeRecordMapper
+                    .deleteByExample()
+                    .where(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityType,
+                            SqlBuilder.isEqualTo(type.name()))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityId,
+                            SqlBuilder.isEqualTo(entityId))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.name,
+                            SqlBuilder.isEqualTo(name))
+                    .build()
+                    .execute();
+        } catch (final Exception e) {
+            log.error("Failed to delete additional attribute: Type: {}, entity: {}, name: {}",
+                    type, entityId, name, e);
+        }
     }
 
     @Override
     @Transactional
     public void deleteAll(final EntityType type, final Long entityId) {
         try {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Delete all additional attributes. Type: {}, entity: {}",
+                        type, entityId);
+            }
+
             this.additionalAttributeRecordMapper
                     .deleteByExample()
                     .where(
@@ -181,7 +204,7 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
                     .build()
                     .execute();
         } catch (final Exception e) {
-            log.warn("Failed to delete all additional attributes for: {} cause: {}", entityId, e.getMessage());
+            log.error("Failed to delete all additional attributes for: {} cause: {}", entityId, e);
         }
     }
 

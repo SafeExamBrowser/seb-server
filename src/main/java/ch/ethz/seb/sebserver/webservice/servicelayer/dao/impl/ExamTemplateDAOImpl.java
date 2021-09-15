@@ -329,7 +329,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
         final Long count = this.examTemplateRecordMapper
                 .countByExample()
                 .where(ExamTemplateRecordDynamicSqlSupport.name, isEqualTo(examTemplate.name))
-                .and(ExamTemplateRecordDynamicSqlSupport.id, isNotEqualToWhenPresent(examTemplate.institutionId))
+                .and(ExamTemplateRecordDynamicSqlSupport.institutionId, isEqualTo(examTemplate.institutionId))
+                .and(ExamTemplateRecordDynamicSqlSupport.id, isNotEqualToWhenPresent(examTemplate.id))
                 .build()
                 .execute();
 

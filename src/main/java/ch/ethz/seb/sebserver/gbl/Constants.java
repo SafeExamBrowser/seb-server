@@ -84,12 +84,14 @@ public final class Constants {
     public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     public static final String TIME_ZONE_OFFSET_TAIL_FORMAT = "|ZZ";
 
-    //public static final String DEFAULT_DISPLAY_DATE_TIME_FORMAT = "MM-dd-yyyy HH:mm:ss";
-    public static final String DEFAULT_DISPLAY_DATE_FORMAT = "MM-dd-yyyy";
+    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
     public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
 
     public static final DateTimeFormatter STANDARD_DATE_TIME_FORMATTER = DateTimeFormat
             .forPattern(DEFAULT_DATE_TIME_FORMAT)
+            .withZoneUTC();
+    public static final DateTimeFormatter STANDARD_DATE_FORMATTER = DateTimeFormat
+            .forPattern(DEFAULT_DATE_FORMAT)
             .withZoneUTC();
 
     public static final String XML_VERSION_HEADER =

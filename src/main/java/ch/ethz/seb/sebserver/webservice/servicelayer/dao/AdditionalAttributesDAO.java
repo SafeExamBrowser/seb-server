@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -54,6 +56,26 @@ public interface AdditionalAttributesDAO {
             Long entityId,
             String name,
             String value);
+
+    /** Use this to save an additional attributes for a specific entity.
+     * If an additional attribute with specified name already exists for the specified entity
+     * this updates just the value for this additional attribute. Otherwise create a new instance
+     * of additional attribute with the given data
+     *
+     * @param type the entity type
+     * @param entityId the entity identifier (primary key)
+     * @param attributes Map of attributes to save for */
+    default Result<Collection<AdditionalAttributeRecord>> saveAdditionalAttributes(
+            final EntityType type,
+            final Long entityId,
+            final Map<String, String> attributes) {
+
+        return Result.tryCatch(() -> attributes.entrySet()
+                .stream()
+                .map(attr -> saveAdditionalAttribute(type, entityId, attr.getKey(), attr.getValue()))
+                .flatMap(Result::onErrorLogAndSkip)
+                .collect(Collectors.toList()));
+    }
 
     /** Use this to delete an additional attribute by identifier (primary-key)
      *

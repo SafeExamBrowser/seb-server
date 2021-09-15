@@ -12,8 +12,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -54,8 +52,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @Component
 @GuiProfile
 public class ExamTemplateForm implements TemplateComposer {
-
-    private static final Logger log = LoggerFactory.getLogger(ExamTemplateForm.class);
 
     public static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.examtemplate.form.title");

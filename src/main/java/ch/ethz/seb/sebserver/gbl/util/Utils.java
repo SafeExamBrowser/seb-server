@@ -712,4 +712,12 @@ public final class Utils {
             return false; // Either timeout or unreachable or failed DNS lookup.
         }
     }
+
+    public static String replaceAll(final String template, final Map<String, String> values) {
+        String result = template;
+        for (final Map.Entry<String, String> e : values.entrySet()) {
+            result = result.replace(e.getKey(), e.getValue());
+        }
+        return result;
+    }
 }

@@ -133,15 +133,15 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 EntityType.EXAM_TEMPLATE,
                 institutionId);
 
-        final ExamTemplate examTemplate = super.entityDAO
+        return super.entityDAO
                 .byModelId(parentModelId)
+                .map(t -> t.indicatorTemplates
+                        .stream()
+                        .filter(i -> modelId.equals(i.getModelId()))
+                        .findFirst()
+                        .orElseThrow(() -> new ResourceNotFoundException(EntityType.INDICATOR, parentModelId)))
                 .getOrThrow();
 
-        return examTemplate.indicatorTemplates
-                .stream()
-                .filter(i -> modelId.equals(i.getModelId()))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException(EntityType.INDICATOR, parentModelId));
     }
 
     @RequestMapping(
@@ -220,7 +220,15 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .stream()
                 .map(i -> {
                     if (modelId.equals(i.getModelId())) {
-                        return modifyData;
+                        return new IndicatorTemplate(
+                                modifyData.id,
+                                modifyData.examTemplateId,
+                                modifyData.name,
+                                (modifyData.type != null) ? modifyData.type : i.type,
+                                (modifyData.defaultColor != null) ? modifyData.defaultColor : i.defaultColor,
+                                (modifyData.defaultIcon != null) ? modifyData.defaultIcon : i.defaultIcon,
+                                (modifyData.tags != null) ? modifyData.tags : i.tags,
+                                (modifyData.thresholds != null) ? modifyData.thresholds : i.thresholds);
                     } else {
                         return i;
                     }

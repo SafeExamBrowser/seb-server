@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -41,6 +42,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -58,6 +60,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
@@ -104,6 +107,10 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.form.quizurl");
     private static final LocTextKey FORM_LMSSETUP_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.lmssetup");
+    private static final LocTextKey FORM_EXAM_TEMPLATE_TEXT_KEY =
+            new LocTextKey("sebserver.exam.form.examTemplate");
+    private static final LocTextKey FORM_EXAM_TEMPLATE_ERROR =
+            new LocTextKey("sebserver.exam.form.examTemplate.error");
 
     private final static LocTextKey CONSISTENCY_MESSAGE_TITLE =
             new LocTextKey("sebserver.exam.consistency.title");
@@ -330,6 +337,17 @@ public class ExamForm implements TemplateComposer {
                         .withEmptyCellSeparation(false))
 
                 .addField(FormBuilder.singleSelection(
+                        Domain.EXAM.ATTR_EXAM_TEMPLATE_ID,
+                        FORM_EXAM_TEMPLATE_TEXT_KEY,
+                        (exam.examTemplateId == null) ? null : String.valueOf(exam.examTemplateId),
+                        this.resourceService::examTemplateResources)
+                        .withSelectionListener(form -> this.processTemplateSelection(form, formContext))
+                        .withLabelSpan(2)
+                        .withInputSpan(4)
+                        .withEmptyCellSpan(2)
+                        .mandatory(!readonly))
+
+                .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_TYPE,
                         FORM_TYPE_TEXT_KEY,
                         (exam.type != null) ? String.valueOf(exam.type) : Exam.ExamType.UNDEFINED.name(),
@@ -445,6 +463,28 @@ public class ExamForm implements TemplateComposer {
                             .withAttribute(ATTR_READ_GRANT, String.valueOf(userGrantCheck.r()))
                             .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
                             .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
+        }
+    }
+
+    private void processTemplateSelection(final Form form, final PageContext context) {
+        try {
+            final String templateId = form.getFieldValue(Domain.EXAM.ATTR_EXAM_TEMPLATE_ID);
+            if (StringUtils.isNotBlank(templateId)) {
+                final ExamTemplate examTemplate = this.pageService.getRestService().getBuilder(GetExamTemplate.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, templateId)
+                        .call()
+                        .getOrThrow();
+
+                form.setFieldValue(Domain.EXAM.ATTR_TYPE, examTemplate.examType.name());
+                form.setFieldValue(
+                        Domain.EXAM.ATTR_SUPPORTER,
+                        StringUtils.join(examTemplate.supporter, Constants.LIST_SEPARATOR));
+            } else {
+                form.setFieldValue(Domain.EXAM.ATTR_TYPE, Exam.ExamType.UNDEFINED.name());
+                form.setFieldValue(Domain.EXAM.ATTR_SUPPORTER, null);
+            }
+        } catch (final Exception e) {
+            context.notifyError(FORM_EXAM_TEMPLATE_ERROR, e);
         }
     }
 

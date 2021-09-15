@@ -136,6 +136,29 @@ public final class ExamConfigurationMap implements GrantEntity {
         this.configStatus = postParams.getEnum(Domain.CONFIGURATION_NODE.ATTR_STATUS, ConfigurationStatus.class);
     }
 
+    public ExamConfigurationMap(
+            final Long institutionId,
+            final Long examId,
+            final Long configurationNodeId,
+            final String userNames) {
+
+        this.id = null;
+        this.institutionId = institutionId;
+        this.examId = examId;
+        this.examName = null;
+        this.examDescription = null;
+        this.examStartTime = null;
+        this.examType = null;
+        this.configurationNodeId = configurationNodeId;
+        this.userNames = userNames;
+        this.encryptSecret = null;
+        this.confirmEncryptSecret = null;
+
+        this.configName = null;
+        this.configDescription = null;
+        this.configStatus = null;
+    }
+
     @Override
     public EntityType entityType() {
         return EntityType.EXAM_CONFIGURATION_MAP;

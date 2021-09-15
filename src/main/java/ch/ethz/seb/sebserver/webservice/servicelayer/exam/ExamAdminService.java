@@ -16,23 +16,17 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringServi
 
 public interface ExamAdminService {
 
-    /** Adds a default indicator that is defined by configuration to a given exam.
+    /** Saves additional attributes for the exam that are specific to a type of LMS
      *
-     * @param exam The Exam to add the default indicator
-     * @return Result refer to the Exam with added default indicator or to an error if happened */
-    Result<Exam> addDefaultIndicator(Exam exam);
-
-    /** Saves additional attributes for a specified Exam on creation or on update.
-     *
-     * @param exam The Exam to add the default indicator
-     * @return Result refer */
-    Result<Exam> saveAdditionalAttributes(Exam exam);
+     * @param exam The Exam to add the LMS specific attributes
+     * @return Result refer to the created exam or to an error when happened */
+    Result<Exam> saveLMSAttributes(Exam exam);
 
     /** Applies all additional SEB restriction attributes that are defined by the
      * type of the LMS of a given Exam to this given Exam.
      *
      * @param exam the Exam to apply all additional SEB restriction attributes
-     * @return the Exam */
+     * @return Result refer to the created exam or to an error when happened */
     Result<Exam> applyAdditionalSEBRestrictions(Exam exam);
 
     /** Indicates whether a specific exam is been restricted with SEB restriction feature on the LMS or not.

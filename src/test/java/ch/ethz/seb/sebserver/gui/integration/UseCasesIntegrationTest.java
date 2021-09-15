@@ -102,6 +102,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMapping;
@@ -2602,7 +2603,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetIndicatorTemplatePage(),
                 new NewIndicatorTemplate(),
                 new SaveIndicatorTemplate(),
-                new GetIndicatorTemplate());
+                new DeleteIndicatorTemplate(),
+                new GetIndicatorTemplate(),
+                new GetExamConfigNodeNames());
 
         Page<ExamTemplate> examTemplatePage = restService
                 .getBuilder(GetExamTemplatePage.class)
@@ -2653,11 +2656,11 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals(configTemplate.id, templateFromList.configTemplateId);
 
         // create new indicator template
-        final MultiValueMap<String, String> thresholds = new LinkedMultiValueMap<>();
+        MultiValueMap<String, String> thresholds = new LinkedMultiValueMap<>();
         thresholds.add(Domain.THRESHOLD.REFERENCE_NAME, "1|000001");
         thresholds.add(Domain.THRESHOLD.REFERENCE_NAME, "2|000002");
         thresholds.add(Domain.THRESHOLD.REFERENCE_NAME, "3|000003");
-        final IndicatorTemplate indicatorTemplate = restService
+        IndicatorTemplate indicatorTemplate = restService
                 .getBuilder(NewIndicatorTemplate.class)
                 .withFormParam(IndicatorTemplate.ATTR_EXAM_TEMPLATE_ID, examTemplate.getModelId())
                 .withFormParam(Domain.INDICATOR.ATTR_NAME, "Errors")
@@ -2683,11 +2686,118 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(indicatorList.isEmpty());
         assertTrue(indicatorList.content.size() == 1);
 
-        // TODO save exam template
+        // get exam config template for use
+        final List<EntityName> configTemplateNames = restService.getBuilder(GetExamConfigNodeNames.class)
+                .withQueryParam(ConfigurationNode.FILTER_ATTR_TYPE, ConfigurationType.TEMPLATE.name())
+                .call()
+                .getOrThrow();
 
-        // TODO edit indicator template
+        assertNotNull(configTemplateNames);
+        assertFalse(configTemplateNames.isEmpty());
+        final EntityName configTemplateName = configTemplateNames.get(0);
 
-        // TODO remove indicator template
+        // edit/save exam template
+        ExamTemplate savedTemplate = restService
+                .getBuilder(SaveExamTemplate.class)
+                .withBody(new ExamTemplate(
+                        examTemplate.id,
+                        examTemplate.institutionId,
+                        examTemplate.name,
+                        "New Description",
+                        null,
+                        null,
+                        Long.parseLong(configTemplateName.modelId), // assosiate with given config template
+                        null,
+                        null,
+                        null))
+                .call()
+                .getOrThrow();
+
+        assertNotNull(savedTemplate);
+        assertEquals("New Description", savedTemplate.description);
+        assertNotNull(savedTemplate.configTemplateId);
+
+        // edit/save indicator template
+        IndicatorTemplate savedIndicatorTemplate = restService
+                .getBuilder(SaveIndicatorTemplate.class)
+                .withBody(new IndicatorTemplate(
+                        indicatorTemplate.id,
+                        indicatorTemplate.examTemplateId,
+                        "New Errors",
+                        indicatorTemplate.type,
+                        null, null, null, null))
+                .call()
+                .getOrThrow();
+
+        assertNotNull(savedIndicatorTemplate);
+        assertEquals("New Errors", savedIndicatorTemplate.name);
+
+        savedTemplate = restService
+                .getBuilder(GetExamTemplate.class)
+                .withURIVariable(API.PARAM_MODEL_ID, savedTemplate.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(savedTemplate);
+        assertNotNull(savedTemplate.indicatorTemplates);
+        assertFalse(savedTemplate.indicatorTemplates.isEmpty());
+
+        savedIndicatorTemplate = savedTemplate.indicatorTemplates.iterator().next();
+        assertNotNull(savedIndicatorTemplate);
+        assertEquals("New Errors", savedIndicatorTemplate.name);
+
+        // create/remove indicator template
+        thresholds = new LinkedMultiValueMap<>();
+        thresholds.add(Domain.THRESHOLD.REFERENCE_NAME, "1|000001");
+        thresholds.add(Domain.THRESHOLD.REFERENCE_NAME, "2|000002");
+        thresholds.add(Domain.THRESHOLD.REFERENCE_NAME, "3|000003");
+        indicatorTemplate = restService
+                .getBuilder(NewIndicatorTemplate.class)
+                .withFormParam(IndicatorTemplate.ATTR_EXAM_TEMPLATE_ID, examTemplate.getModelId())
+                .withFormParam(Domain.INDICATOR.ATTR_NAME, "Errors")
+                .withFormParam(Domain.INDICATOR.ATTR_TYPE, IndicatorType.ERROR_COUNT.name)
+                .withFormParam(Domain.INDICATOR.ATTR_COLOR, "000001")
+                .withFormParams(thresholds)
+                .call()
+                .getOrThrow();
+
+        savedTemplate = restService
+                .getBuilder(GetExamTemplate.class)
+                .withURIVariable(API.PARAM_MODEL_ID, savedTemplate.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(savedTemplate);
+        assertNotNull(savedTemplate.indicatorTemplates);
+        assertFalse(savedTemplate.indicatorTemplates.isEmpty());
+        assertTrue(savedTemplate.indicatorTemplates.size() == 2);
+        final Iterator<IndicatorTemplate> iterator = savedTemplate.indicatorTemplates.iterator();
+        final IndicatorTemplate next1 = iterator.next();
+        final IndicatorTemplate next2 = iterator.next();
+        assertEquals("New Errors", next1.name);
+        assertEquals("Errors", next2.name);
+
+        final EntityKey entityKey = restService
+                .getBuilder(DeleteIndicatorTemplate.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, savedTemplate.getModelId())
+                .withURIVariable(API.PARAM_MODEL_ID, next2.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(entityKey);
+        savedTemplate = restService
+                .getBuilder(GetExamTemplate.class)
+                .withURIVariable(API.PARAM_MODEL_ID, savedTemplate.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(savedTemplate);
+        assertNotNull(savedTemplate.indicatorTemplates);
+        assertFalse(savedTemplate.indicatorTemplates.isEmpty());
+        assertTrue(savedTemplate.indicatorTemplates.size() == 1);
+        assertEquals("New Errors", savedTemplate.indicatorTemplates.iterator().next().name);
+
+        // TODO create exam from template
 
         // TODO delete exam template
 
