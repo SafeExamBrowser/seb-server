@@ -262,7 +262,6 @@ public class MonitoringClientConnection implements TemplateComposer {
 
                             NOTIFICATION_LIST_NO_SELECTION_KEY)
                     .noEventPropagation()
-
                     .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER), false);
 
             _notificationTableSupplier = () -> notificationTable;
@@ -396,15 +395,6 @@ public class MonitoringClientConnection implements TemplateComposer {
                             .publish();
                 }
 
-//                actionBuilder
-//                        .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_EXAM_ROOM_PROCTORING)
-//                        .withEntityKey(parentEntityKey)
-//                        .withExec(action -> this.monitoringProctoringService.openExamCollectionProctorScreen(
-//                                action,
-//                                connectionData))
-//                        .noEventPropagation()
-//                        .publish();
-
                 clientConnectionDetails.setStatusChangeListener(ccd -> {
                     this.pageService.firePageEvent(
                             new ActionActivationEvent(
@@ -425,6 +415,11 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         final EntityKey entityKey = table.getSingleSelection();
         final EntityKey parentEntityKey = pageAction.getParentEntityKey();
+
+        if (entityKey == null) {
+            pageAction.pageContext().publishInfo(NOTIFICATION_LIST_NO_SELECTION_KEY);
+            return pageAction;
+        }
 
         this.pageService.getRestService()
                 .getBuilder(ConfirmPendingClientNotification.class)

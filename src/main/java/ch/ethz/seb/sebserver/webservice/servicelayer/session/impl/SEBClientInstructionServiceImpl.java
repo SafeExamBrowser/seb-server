@@ -34,7 +34,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.SizedArrayNonBlockingQueue;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientInstructionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -143,7 +142,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
 
         return Result.tryCatch(() -> {
 
-            final String attributesString = Utils.toJsonObject(attributes);
+            final String attributesString = this.jsonMapper.writeValueAsString(attributes);
             final Set<String> activeConnections = this.clientConnectionDAO
                     .filterForInstructionStatus(examId, connectionTokens)
                     .getOrElse(Collections::emptySet);
