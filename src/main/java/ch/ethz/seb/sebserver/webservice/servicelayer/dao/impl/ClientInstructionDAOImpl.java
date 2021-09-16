@@ -10,10 +10,12 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlBuilder;
@@ -153,10 +155,12 @@ public class ClientInstructionDAOImpl implements ClientInstructionDAO {
 
             if (needsConfirmation) {
 
-                final Map<String, String> attrs = this.jsonMapper.readValue(
-                        attributes,
-                        new TypeReference<Map<String, String>>() {
-                        });
+                final Map<String, String> attrs = (StringUtils.isNotBlank(attributes))
+                        ? this.jsonMapper.readValue(
+                                attributes,
+                                new TypeReference<Map<String, String>>() {
+                                })
+                        : new HashMap<>();
                 attrs.put(API.EXAM_API_PING_INSTRUCTION_CONFIRM, String.valueOf(clientInstructionRecord.getId()));
 
                 this.clientInstructionRecordMapper.updateByPrimaryKeySelective(

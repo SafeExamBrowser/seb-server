@@ -200,6 +200,43 @@ public class ClientEventDAOImpl implements ClientEventDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<ClientNotification> getPendingNotificationByValue(
+            final Long clientConnectionId,
+            final Long notificationValueId) {
+
+        return Result.tryCatch(() -> {
+
+            final List<ClientEventRecord> records = this.clientEventRecordMapper
+                    .selectByExample()
+                    .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(clientConnectionId))
+                    .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.NOTIFICATION.id))
+                    .build()
+                    .execute();
+
+            if (log.isDebugEnabled()) {
+                log.debug("Found notification for clientConnectionId: {} notification: {}",
+                        clientConnectionId,
+                        records);
+            }
+
+            return records.stream()
+                    .filter(rec -> {
+                        final BigDecimal numericValue = rec.getNumericValue();
+                        if (numericValue == null) {
+                            return false;
+                        }
+                        return numericValue.longValue() == notificationValueId;
+                    })
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Failed to find pending notification event for confirm:" + notificationValueId));
+
+        })
+                .flatMap(ClientEventDAOImpl::toClientNotificationModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<List<ClientNotification>> getPendingNotifications(final Long clientConnectionId) {
         return Result.tryCatch(() -> this.clientEventRecordMapper
                 .selectByExample()
@@ -240,8 +277,8 @@ public class ClientEventDAOImpl implements ClientEventDAO {
 
     @Override
     @Transactional
-    public Result<ClientNotification> confirmPendingNotification(final Long notificationId,
-            final Long clientConnectionId) {
+    public Result<ClientNotification> confirmPendingNotification(final Long notificationId) {
+
         return Result.tryCatch(() -> {
             final Long pk = this.clientEventRecordMapper
                     .selectIdsByExample()
