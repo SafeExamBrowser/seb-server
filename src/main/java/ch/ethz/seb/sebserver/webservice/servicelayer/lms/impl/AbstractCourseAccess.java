@@ -143,7 +143,14 @@ public abstract class AbstractCourseAccess {
 
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
         final Supplier<ExamineeAccountDetails> accountDetailsSupplier = accountDetailsSupplier(examineeSessionId);
-        return this.accountDetailRequest.protectedRun(accountDetailsSupplier);
+        return this.accountDetailRequest.protectedRun(() -> {
+            try {
+                return accountDetailsSupplier.get();
+            } catch (final Exception e) {
+                log.error("Unexpected error while trying to get examinee account details: ", e);
+                throw e;
+            }
+        });
     }
 
     /** Default implementation that uses getExamineeAccountDetails to geht the examinee name

@@ -324,7 +324,7 @@ public final class Result<T> {
         }
     }
 
-    public static Result<Void> tryCatch(final Runnable runnable) {
+    public static Result<Void> tryCatch(final TryCatchRunnable runnable) {
         try {
             runnable.run();
             return Result.EMPTY;
@@ -387,6 +387,10 @@ public final class Result<T> {
 
     public interface TryCatchSupplier<T> {
         T get() throws Exception;
+    }
+
+    public interface TryCatchRunnable {
+        void run() throws Exception;
     }
 
 }

@@ -587,35 +587,6 @@ public final class Utils {
         return (hexString.length() < 2) ? "0" + hexString : hexString;
     }
 
-    public static String toJsonObject(final Map<String, String> attributes) {
-        if (attributes == null || attributes.isEmpty()) {
-            return StringUtils.EMPTY;
-        }
-
-        final StringBuilder builder = attributes
-                .entrySet()
-                .stream()
-                .reduce(
-                        new StringBuilder(Constants.CURLY_BRACE_OPEN),
-                        (sb, entry) -> sb
-                                .append(Constants.DOUBLE_QUOTE)
-                                .append(entry.getKey())
-                                .append(Constants.DOUBLE_QUOTE)
-                                .append(Constants.COLON)
-                                .append(getJSONValue(entry.getValue()))
-                                .append(Constants.COMMA),
-                        StringBuilder::append)
-                .append(Constants.CURLY_BRACE_CLOSE);
-
-        if (builder.length() > 0) {
-            return builder
-                    .deleteCharAt(builder.length() - 1)
-                    .toString();
-        } else {
-            return StringUtils.EMPTY;
-        }
-    }
-
     private static String getJSONValue(final String value) {
         if (Constants.TRUE_STRING.equalsIgnoreCase(value) || Constants.FALSE_STRING.equalsIgnoreCase(value)) {
             return value.toLowerCase();
