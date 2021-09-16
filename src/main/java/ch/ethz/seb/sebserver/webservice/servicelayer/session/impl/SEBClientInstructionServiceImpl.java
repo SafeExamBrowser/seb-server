@@ -158,7 +158,6 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
                     .filter(Objects::nonNull)
                     .forEach(this::putToCache);
         });
-
     }
 
     @Override
