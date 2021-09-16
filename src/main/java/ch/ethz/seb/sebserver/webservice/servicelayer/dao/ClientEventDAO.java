@@ -59,9 +59,8 @@ public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
     /** Used to confirm a pending notification so that the notification is not pending anymore
      *
      * @param notificationId the notification identifier
-     * @param clientConnectionId the client connection identifier
      * @return Result refer to the confirmed notification or to en error when happened */
-    Result<ClientNotification> confirmPendingNotification(Long notificationId, Long clientConnectionId);
+    Result<ClientNotification> confirmPendingNotification(Long notificationId);
 
     Result<ClientEventRecord> initPingEvent(Long connectionId);
 

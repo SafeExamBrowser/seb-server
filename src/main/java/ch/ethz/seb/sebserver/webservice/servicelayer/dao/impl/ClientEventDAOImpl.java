@@ -277,9 +277,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
 
     @Override
     @Transactional
-    public Result<ClientNotification> confirmPendingNotification(
-            final Long notificationId,
-            final Long clientConnectionId) {
+    public Result<ClientNotification> confirmPendingNotification(final Long notificationId) {
 
         return Result.tryCatch(() -> {
             final Long pk = this.clientEventRecordMapper
