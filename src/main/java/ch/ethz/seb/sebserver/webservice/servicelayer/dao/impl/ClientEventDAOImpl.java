@@ -210,17 +210,26 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                     .selectByExample()
                     .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(clientConnectionId))
                     .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.NOTIFICATION.id))
-                    .and(
-                            ClientEventRecordDynamicSqlSupport.numericValue,
-                            isEqualTo(new BigDecimal(notificationValueId)))
                     .build()
                     .execute();
 
-            if (records.size() != 1) {
-                log.warn("Expected one notification event log but found: ", records.size());
+            if (log.isDebugEnabled()) {
+                log.debug("Found notification for clientConnectionId: {} notification: {}",
+                        clientConnectionId,
+                        records);
             }
 
-            return records.get(0);
+            return records.stream()
+                    .filter(rec -> {
+                        final BigDecimal numericValue = rec.getNumericValue();
+                        if (numericValue == null) {
+                            return false;
+                        }
+                        return numericValue.longValue() == notificationValueId;
+                    })
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Failed to find pending notification event for confirm:" + notificationValueId));
 
         })
                 .flatMap(ClientEventDAOImpl::toClientNotificationModel);
