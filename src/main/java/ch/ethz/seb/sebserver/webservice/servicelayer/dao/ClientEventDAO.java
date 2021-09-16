@@ -36,6 +36,14 @@ public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
      * @return Result refer to the specified ClientNotification or to an error when happened */
     Result<ClientNotification> getPendingNotification(Long notificationId);
 
+    /** Get a pending notification by the notification value identifier (sent by SEB)
+     *
+     * @param notificationValueId notification value identifier (sent by SEB)
+     * @return Result refer to the specified ClientNotification or to an error when happened */
+    Result<ClientNotification> getPendingNotificationByValue(
+            Long clientConnectionId,
+            Long notificationValueId);
+
     /** Get all pending notifications for a given client connection.
      *
      * @param clientConnectionId The client connection identifier

@@ -200,6 +200,34 @@ public class ClientEventDAOImpl implements ClientEventDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<ClientNotification> getPendingNotificationByValue(
+            final Long clientConnectionId,
+            final Long notificationValueId) {
+
+        return Result.tryCatch(() -> {
+
+            final List<ClientEventRecord> records = this.clientEventRecordMapper
+                    .selectByExample()
+                    .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(clientConnectionId))
+                    .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.NOTIFICATION.id))
+                    .and(
+                            ClientEventRecordDynamicSqlSupport.numericValue,
+                            isEqualTo(new BigDecimal(notificationValueId)))
+                    .build()
+                    .execute();
+
+            if (records.size() != 1) {
+                log.warn("Expected one notification event log but found: ", records.size());
+            }
+
+            return records.get(0);
+
+        })
+                .flatMap(ClientEventDAOImpl::toClientNotificationModel);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<List<ClientNotification>> getPendingNotifications(final Long clientConnectionId) {
         return Result.tryCatch(() -> this.clientEventRecordMapper
                 .selectByExample()
@@ -240,8 +268,10 @@ public class ClientEventDAOImpl implements ClientEventDAO {
 
     @Override
     @Transactional
-    public Result<ClientNotification> confirmPendingNotification(final Long notificationId,
+    public Result<ClientNotification> confirmPendingNotification(
+            final Long notificationId,
             final Long clientConnectionId) {
+
         return Result.tryCatch(() -> {
             final Long pk = this.clientEventRecordMapper
                     .selectIdsByExample()

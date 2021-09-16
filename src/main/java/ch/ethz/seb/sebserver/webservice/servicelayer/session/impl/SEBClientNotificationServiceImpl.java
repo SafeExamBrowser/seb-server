@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
@@ -44,6 +45,7 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     private static final String CONFIRM_INSTRUCTION_ATTR_TYPE = "type";
 
     private final ClientEventDAO clientEventDAO;
+    private final ClientConnectionDAO clientConnectionDAO;
     private final SEBClientInstructionService sebClientInstructionService;
     private final Set<Long> pendingNotifications = new HashSet<>();
     private final Set<Long> examUpdate = new HashSet<>();
@@ -52,9 +54,11 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
 
     public SEBClientNotificationServiceImpl(
             final ClientEventDAO clientEventDAO,
+            final ClientConnectionDAO clientConnectionDAO,
             final SEBClientInstructionService sebClientInstructionService) {
 
         this.clientEventDAO = clientEventDAO;
+        this.clientConnectionDAO = clientConnectionDAO;
         this.sebClientInstructionService = sebClientInstructionService;
     }
 
@@ -75,13 +79,18 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     @Override
     public void confirmPendingNotification(final ClientEvent event, final String connectionToken) {
         try {
+
+            final ClientConnection clientConnection = this.clientConnectionDAO
+                    .byConnectionToken(connectionToken)
+                    .getOrThrow();
             final Long notificationId = (long) event.getValue();
 
-            this.clientEventDAO.getPendingNotification(notificationId)
+            this.clientEventDAO.getPendingNotificationByValue(clientConnection.id, notificationId)
                     .flatMap(notification -> this.clientEventDAO.confirmPendingNotification(
                             notificationId,
                             notification.connectionId))
-                    .map(this::removeFromCache);
+                    .map(this::removeFromCache)
+                    .onError(error -> log.error("Failed to confirm pending notification: {}", event, error));
 
         } catch (final Exception e) {
             log.error(
@@ -101,7 +110,8 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
                 .flatMap(notification -> this.clientEventDAO.confirmPendingNotification(
                         notificationId,
                         notification.connectionId))
-                .map(this::removeFromCache);
+                .map(this::removeFromCache)
+                .onError(error -> log.error("Failed to confirm pending notification: {}", notificationId, error));
     }
 
     @Override

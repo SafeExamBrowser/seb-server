@@ -115,12 +115,17 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
 
             if (isActive) {
                 try {
-                    final String attributesString = this.jsonMapper.writeValueAsString(attributes);
+
+                    final String attributesString = (attributes != null && !attributes.isEmpty())
+                            ? this.jsonMapper.writeValueAsString(attributes)
+                            : null;
+
                     this.clientInstructionDAO
                             .insert(examId, type, attributesString, connectionToken, needsConfirm)
                             .map(this::putToCache)
                             .onError(error -> log.error("Failed to register instruction: {}", error.getMessage()))
                             .getOrThrow();
+
                 } catch (final Exception e) {
                     throw new RuntimeException("Unexpected: ", e);
                 }
