@@ -83,8 +83,8 @@ public class ServerPushService {
                 });
             }
 
-            if (log.isInfoEnabled()) {
-                log.info("Stop Server Push Session on: {}", Thread.currentThread().getName());
+            if (log.isDebugEnabled()) {
+                log.debug("Stop Server Push Session on: {}", Thread.currentThread().getName());
             }
 
             try {
@@ -100,7 +100,9 @@ public class ServerPushService {
 
         });
 
-        log.info("Start new Server Push Session on: {}", bgThread.getName());
+        if (log.isDebugEnabled()) {
+            log.debug("Start new Server Push Session on: {}", bgThread.getName());
+        }
 
         bgThread.setDaemon(true);
         bgThread.start();

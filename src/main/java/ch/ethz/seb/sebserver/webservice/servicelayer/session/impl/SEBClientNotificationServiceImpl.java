@@ -22,13 +22,13 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
@@ -51,20 +51,25 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     private final Set<Long> examUpdate = new HashSet<>();
 
     private long lastUpdate = 0;
+    private long updateInterval = 5 * Constants.SECOND_IN_MILLIS;
 
     public SEBClientNotificationServiceImpl(
             final ClientEventDAO clientEventDAO,
             final ClientConnectionDAO clientConnectionDAO,
-            final SEBClientInstructionService sebClientInstructionService) {
+            final SEBClientInstructionService sebClientInstructionService,
+            final WebserviceInfo webserviceInfo) {
 
         this.clientEventDAO = clientEventDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.sebClientInstructionService = sebClientInstructionService;
+        if (webserviceInfo.isDistributed()) {
+            this.updateInterval = Constants.SECOND_IN_MILLIS;
+        }
     }
 
     @Override
     public Boolean hasAnyPendingNotification(final ClientConnection clientConnection) {
-        if (clientConnection.status != ConnectionStatus.ACTIVE) {
+        if (!clientConnection.status.clientActiveStatus) {
             return false;
         }
         updateCache(clientConnection.examId);
@@ -141,7 +146,7 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     }
 
     private final void updateCache(final Long examId) {
-        if (System.currentTimeMillis() - this.lastUpdate > 5 * Constants.SECOND_IN_MILLIS) {
+        if (System.currentTimeMillis() - this.lastUpdate > this.updateInterval) {
             this.examUpdate.clear();
             this.pendingNotifications.clear();
             this.lastUpdate = System.currentTimeMillis();

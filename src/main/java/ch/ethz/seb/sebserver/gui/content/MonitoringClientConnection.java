@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.gui.content;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,10 +194,9 @@ public class MonitoringClientConnection implements TemplateComposer {
                 indicators);
 
         // NOTIFICATIONS
-        final boolean hasNotifications = BooleanUtils.isTrue(connectionData.pendingNotification());
         Supplier<EntityTable<ClientNotification>> _notificationTableSupplier = () -> null;
-        if (hasNotifications) {
-            final PageService.PageActionBuilder actionBuilder = this.pageService
+        if (connectionData.clientConnection.status.clientActiveStatus) {
+            final PageService.PageActionBuilder notificationActionBuilder = this.pageService
                     .pageActionBuilder(
                             pageContext
                                     .clearAttributes()
@@ -240,7 +238,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                             this::getServerTime)
                                     .sortable()
                                     .widthProportion(1))
-                    .withDefaultAction(t -> actionBuilder
+                    .withDefaultAction(t -> notificationActionBuilder
                             .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_CONFIRM_NOTIFICATION)
                             .withParentEntityKey(parentEntityKey)
                             .withConfirm(() -> NOTIFICATION_LIST_CONFIRM_TEXT_KEY)
@@ -252,7 +250,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                             ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_CONFIRM_NOTIFICATION))
                     .compose(pageContext.copyOf(content));
 
-            actionBuilder
+            notificationActionBuilder
                     .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_CONFIRM_NOTIFICATION)
                     .withParentEntityKey(parentEntityKey)
                     .withConfirm(() -> NOTIFICATION_LIST_CONFIRM_TEXT_KEY)

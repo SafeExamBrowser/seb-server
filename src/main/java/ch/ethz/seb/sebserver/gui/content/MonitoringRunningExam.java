@@ -41,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -92,6 +93,7 @@ public class MonitoringRunningExam implements TemplateComposer {
     private final InstructionProcessor instructionProcessor;
     private final MonitoringExamSearchPopup monitoringExamSearchPopup;
     private final MonitoringProctoringService monitoringProctoringService;
+    private final boolean distributedSetup;
     private final long pollInterval;
     private final long proctoringRoomUpdateInterval;
 
@@ -102,6 +104,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             final InstructionProcessor instructionProcessor,
             final MonitoringExamSearchPopup monitoringExamSearchPopup,
             final MonitoringProctoringService monitoringProctoringService,
+            final GuiServiceInfo guiServiceInfo,
             @Value("${sebserver.gui.webservice.poll-interval:1000}") final long pollInterval,
             @Value("${sebserver.gui.remote.proctoring.rooms.update.poll-interval:5000}") final long proctoringRoomUpdateInterval) {
 
@@ -113,6 +116,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         this.instructionProcessor = instructionProcessor;
         this.monitoringProctoringService = monitoringProctoringService;
         this.pollInterval = pollInterval;
+        this.distributedSetup = guiServiceInfo.isDistributedSetup();
         this.monitoringExamSearchPopup = monitoringExamSearchPopup;
         this.proctoringRoomUpdateInterval = proctoringRoomUpdateInterval;
     }
@@ -164,7 +168,8 @@ public class MonitoringRunningExam implements TemplateComposer {
                 exam,
                 indicators,
                 restCall,
-                pushContext);
+                pushContext,
+                this.distributedSetup);
 
         clientTable
                 .withDefaultAction(
