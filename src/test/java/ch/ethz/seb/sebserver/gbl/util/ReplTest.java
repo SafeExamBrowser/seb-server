@@ -42,4 +42,10 @@ public class ReplTest {
 //        assertEquals(Constants.DAY_IN_MIN, interv.toDurationMillis() / Constants.MINUTE_IN_MILLIS);
 //    }
 
+//    @Test
+//    public void testBooleanMatch() {
+//        assertTrue(Boolean.valueOf(false) == Boolean.valueOf(false));
+//        assertTrue(new Boolean(false) == new Boolean(false));
+//    }
+
 }

@@ -28,6 +28,7 @@ public class GuiServiceInfo {
     private final String contextPath;
     private final UriComponentsBuilder internalServerURIBuilder;
     private final UriComponentsBuilder externalServerURIBuilder;
+    private final boolean distributedSetup;
 
     public GuiServiceInfo(
             @Value("${server.address}") final String internalServer,
@@ -36,7 +37,8 @@ public class GuiServiceInfo {
             @Value("${sebserver.gui.http.external.servername}") final String externalServer,
             @Value("${sebserver.gui.http.external.port}") final String externalPort,
             @Value("${sebserver.gui.entrypoint:/gui}") final String entryPoint,
-            @Value("${server.servlet.context-path:/}") final String contextPath) {
+            @Value("${server.servlet.context-path:/}") final String contextPath,
+            @Value("${sebserver.webservice.distributed:false}") final boolean distributedSetup) {
 
         if (StringUtils.isBlank(externalScheme)) {
             throw new RuntimeException("Missing mandatory inital parameter sebserver.gui.http.external.servername");
@@ -69,6 +71,8 @@ public class GuiServiceInfo {
         if (StringUtils.isNotBlank(contextPath) && !contextPath.equals("/")) {
             this.externalServerURIBuilder.path(contextPath);
         }
+
+        this.distributedSetup = distributedSetup;
     }
 
     public String getExternalScheme() {
@@ -105,6 +109,10 @@ public class GuiServiceInfo {
 
     public UriComponentsBuilder getExternalServerURIBuilder() {
         return this.externalServerURIBuilder.cloneBuilder();
+    }
+
+    public boolean isDistributedSetup() {
+        return this.distributedSetup;
     }
 
 }

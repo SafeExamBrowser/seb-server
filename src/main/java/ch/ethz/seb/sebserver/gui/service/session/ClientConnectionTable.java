@@ -97,6 +97,7 @@ public final class ClientConnectionTable {
     private final Exam exam;
     private final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder;
     private final ServerPushContext pushConext;
+    private final boolean distributedSetup;
 
     private final Map<Long, IndicatorData> indicatorMapping;
     private final Table table;
@@ -119,8 +120,6 @@ public final class ClientConnectionTable {
     private boolean forceUpdateAll = false;
     private boolean updateInProgress = false;
 
-    //private int updateErrors = 0;
-
     public ClientConnectionTable(
             final PageService pageService,
             final Composite tableRoot,
@@ -128,13 +127,15 @@ public final class ClientConnectionTable {
             final Exam exam,
             final Collection<Indicator> indicators,
             final RestCall<Collection<ClientConnectionData>>.RestCallBuilder restCallBuilder,
-            final ServerPushContext pushConext) {
+            final ServerPushContext pushConext,
+            final boolean distributedSetup) {
 
         this.pageService = pageService;
         this.asyncRunner = asyncRunner;
         this.exam = exam;
         this.restCallBuilder = restCallBuilder;
         this.pushConext = pushConext;
+        this.distributedSetup = distributedSetup;
 
         final WidgetFactory widgetFactory = pageService.getWidgetFactory();
         final ResourceService resourceService = pageService.getResourceService();
@@ -332,9 +333,8 @@ public final class ClientConnectionTable {
     private void updateValuesAsync(final boolean needsSync) {
 
         try {
-
-            // TODO forceUpdateAll doeasn't work on distributed
-            if (this.statusFilterChanged || this.forceUpdateAll || needsSync) {
+            final boolean sync = this.statusFilterChanged || this.forceUpdateAll || needsSync || this.distributedSetup;
+            if (sync) {
                 this.toDelete.clear();
                 this.toDelete.addAll(this.tableMapping.keySet());
             }
@@ -351,7 +351,7 @@ public final class ClientConnectionTable {
                                 data.getConnectionId(),
                                 UpdatableTableItem::new);
                         tableItem.push(data);
-                        if (this.statusFilterChanged || this.forceUpdateAll || needsSync) {
+                        if (sync) {
                             this.toDelete.remove(data.getConnectionId());
                         }
                     });
@@ -680,8 +680,11 @@ public final class ClientConnectionTable {
                     !this.connectionData.dataEquals(connectionData);
             final boolean statusChanged = this.connectionData == null ||
                     this.connectionData.clientConnection.status != connectionData.clientConnection.status;
+            final boolean notificationChanged = this.connectionData == null ||
+                    BooleanUtils.toBoolean(this.connectionData.pendingNotification) != BooleanUtils
+                            .toBoolean(connectionData.pendingNotification);
 
-            if (statusChanged) {
+            if (statusChanged || notificationChanged) {
                 ClientConnectionTable.this.needsSort = true;
             }
 

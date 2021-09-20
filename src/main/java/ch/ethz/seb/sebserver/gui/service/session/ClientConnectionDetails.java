@@ -25,7 +25,6 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
@@ -69,6 +68,7 @@ public class ClientConnectionDetails {
 
     private ClientConnectionData connectionData = null;
     private boolean statusChanged = true;
+    private long startTime = -1;
     private Consumer<ClientConnectionData> statusChangeListener = null;
 
     public ClientConnectionDetails(
@@ -147,12 +147,21 @@ public class ClientConnectionDetails {
                                     .toBoolean(connectionData.missingPing);
         }
         this.connectionData = connectionData;
-
+        if (this.startTime < 0) {
+            this.startTime = System.currentTimeMillis();
+        }
     }
 
     public void updateGUI(
             final Supplier<EntityTable<ClientNotification>> notificationTableSupplier,
             final PageContext pageContext) {
+
+        // Note: This is to update the whole page (by reload) only when the status has changed
+        //       while this page was open. This prevent constant page reloads.
+        if (this.statusChanged && System.currentTimeMillis() - this.startTime > Constants.SECOND_IN_MILLIS) {
+            reloadPage(pageContext);
+            return;
+        }
 
         if (this.connectionData == null) {
             return;
@@ -214,16 +223,8 @@ public class ClientConnectionDetails {
 
         // update notifications
         final EntityTable<ClientNotification> notificationTable = notificationTableSupplier.get();
-        if (notificationTable != null && this.connectionData.clientConnection.status == ConnectionStatus.CLOSED) {
-            reloadPage(pageContext);
-        } else {
-            if (BooleanUtils.isTrue(this.connectionData.pendingNotification())) {
-                if (notificationTable == null) {
-                    reloadPage(pageContext);
-                } else {
-                    notificationTable.refreshPageSize();
-                }
-            }
+        if (notificationTable != null) {
+            notificationTable.refreshPageSize();
         }
     }
 
