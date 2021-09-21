@@ -36,8 +36,12 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
             final boolean active,
             final boolean cachingEnabled) {
 
-        this.indicatorId = (indicatorDefinition != null) ? indicatorDefinition.id : -1;
-        this.examId = (indicatorDefinition != null) ? indicatorDefinition.examId : -1;
+        this.indicatorId = (indicatorDefinition != null && indicatorDefinition.id != null)
+                ? indicatorDefinition.id
+                : -1;
+        this.examId = (indicatorDefinition != null && indicatorDefinition.examId != null)
+                ? indicatorDefinition.examId
+                : -1;
         this.connectionId = connectionId;
         this.active = active;
         this.cachingEnabled = cachingEnabled;
