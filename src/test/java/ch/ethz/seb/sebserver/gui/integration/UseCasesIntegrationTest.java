@@ -28,7 +28,6 @@ import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTimeUtils;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
@@ -2813,7 +2812,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals("New Errors", savedTemplate.indicatorTemplates.iterator().next().name);
 
         // create exam from template
-        DateTimeUtils.setCurrentMillisFixed(0);
         // check quizzes are defines
         final String userId = restService
                 .getBuilder(GetUserAccountNames.class)
@@ -2857,13 +2855,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call();
 
         assertFalse(dependenciesCall.hasError());
-        final Set<EntityDependency> dependencies = new LinkedHashSet<>(dependenciesCall.get());
-        assertEquals(
-                "[EntityDependency [parent=EntityKey [modelId=3, entityType=EXAM], self=EntityKey [modelId=5, entityType=INDICATOR], name=New Errors, description=ERROR_COUNT], "
-                        + "EntityDependency [parent=EntityKey [modelId=3, entityType=EXAM], self=EntityKey [modelId=4, entityType=EXAM_CONFIGURATION_MAP], name=Demo Quiz 6 (MOCKUP) / 2019-01-01 Demo Quiz 6 (MOCKUP), description= Demo Quiz Mockup  / This has automatically been created from the exam template: examTemplate at: 1970-01-01]]",
-                dependencies.toString());
-
-        DateTimeUtils.setCurrentMillisSystem();
+        assertTrue(dependenciesCall.get().size() == 2);
 
         // delete exam template
         final Result<EntityProcessingReport> deleteTemplateCall = restService
