@@ -198,7 +198,7 @@ public final class PageAction {
             PageAction.this.pageContext.publishPageMessage(pme);
             return Result.ofError(pme);
         } catch (final RestCallError restCallError) {
-            if (!restCallError.isFieldValidationError()) {
+            if (restCallError.isUnexpectedError()) {
                 log.error("Failed to execute action: {} | error: {} | cause: {}",
                         PageAction.this.getName(),
                         restCallError.getMessage(),

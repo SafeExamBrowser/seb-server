@@ -43,6 +43,7 @@ public class APIMessage implements Serializable {
         RESOURCE_NOT_FOUND("1002", HttpStatus.NOT_FOUND, "resource not found"),
         ILLEGAL_API_ARGUMENT("1010", HttpStatus.BAD_REQUEST, "Illegal API request argument"),
         UNEXPECTED("1100", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal server-side error"),
+
         FIELD_VALIDATION("1200", HttpStatus.BAD_REQUEST, "Field validation error"),
         INTEGRITY_VALIDATION("1201", HttpStatus.BAD_REQUEST, "Action would lied to an integrity violation"),
         PASSWORD_MISMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match confirmed password"),
@@ -57,7 +58,12 @@ public class APIMessage implements Serializable {
         EXAM_CONSISTENCY_VALIDATION_INDICATOR("1403", HttpStatus.OK, "No Indicator defined for the Exam"),
         EXAM_CONSISTENCY_VALIDATION_LMS_CONNECTION("1404", HttpStatus.OK, "No Connection To LMS"),
         EXAM_CONSISTENCY_VALIDATION_INVALID_ID_REFERENCE("1405", HttpStatus.OK,
-                "There seems to be an invalid exam - course identifier reference. The course cannot be found");
+                "There seems to be an invalid exam - course identifier reference. The course cannot be found"),
+
+        EXAM_IMPORT_ERROR_AUTO_CONFIG("1500", HttpStatus.BAD_REQUEST,
+                "Failed to automatically create and link exam configuration from exam template"),
+        EXAM_IMPORT_ERROR_AUTO_CONFIG_LINKING("1500", HttpStatus.BAD_REQUEST,
+                "Failed to automatically link auto-generated exam configuration");
 
         public final String messageCode;
         public final HttpStatus httpStatus;
@@ -244,6 +250,20 @@ public class APIMessage implements Serializable {
         public APIMessageException(final ErrorMessage errorMessage, final String detail, final String... attributes) {
             super(errorMessage.systemMessage);
             this.apiMessages = Arrays.asList(errorMessage.of(detail, attributes));
+        }
+
+        public APIMessageException(final ErrorMessage errorMessage, final Exception errorCause) {
+            super(errorMessage.systemMessage);
+            this.apiMessages = Arrays.asList(errorMessage.of(errorCause));
+        }
+
+        public APIMessageException(
+                final ErrorMessage errorMessage,
+                final Exception errorCause,
+                final String... attributes) {
+
+            super(errorMessage.systemMessage);
+            this.apiMessages = Arrays.asList(errorMessage.of(errorCause, attributes));
         }
 
         @Override

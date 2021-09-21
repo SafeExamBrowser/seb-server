@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.content.exam;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
@@ -45,6 +46,7 @@ import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
+import ch.ethz.seb.sebserver.gui.form.FormPostException;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -56,6 +58,7 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
@@ -126,6 +129,11 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.consistency.no-lms-connection");
     private final static LocTextKey CONSISTENCY_MESSAGEINVALID_ID_REFERENCE =
             new LocTextKey("sebserver.exam.consistency.invalid-lms-id");
+
+    private final static LocTextKey AUTO_GEN_CONFIG_ERROR_TITLE =
+            new LocTextKey("sebserver.exam.autogen.error.config.title");
+    private final static LocTextKey AUTO_GEN_CONFIG_ERROR_TEXT =
+            new LocTextKey("sebserver.exam.autogen.error.config.text");
 
     private final Map<String, LocTextKey> consistencyMessageMapping;
     private final PageService pageService;
@@ -493,19 +501,50 @@ public class ExamForm implements TemplateComposer {
             final FormHandle<Exam> formHandle,
             final boolean applySEBRestriction) {
 
-        // process normal save first
-        final PageAction processFormSave = formHandle.processFormSave(action);
+        try {
+            // process normal save first
+            final PageAction processFormSave = formHandle.processFormSave(action);
 
-        // when okay and the exam sebRestriction is true
-        if (applySEBRestriction) {
-            this.examSEBRestrictionSettings.setSEBRestriction(
-                    processFormSave,
-                    true,
-                    this.restService,
-                    t -> log.error("Failed to initially restrict the course for SEB on LMS: {}", t.getMessage()));
+            // when okay and the exam sebRestriction is true
+            if (applySEBRestriction) {
+                this.examSEBRestrictionSettings.setSEBRestriction(
+                        processFormSave,
+                        true,
+                        this.restService,
+                        t -> log.error("Failed to initially restrict the course for SEB on LMS: {}", t.getMessage()));
+            }
+
+            return processFormSave;
+
+        } catch (final Exception e) {
+            // try to geht the created exam id
+            Throwable error = e;
+            if (e instanceof FormPostException) {
+                error = ((FormPostException) e).getCause();
+            }
+            if (error instanceof RestCallError) {
+                final List<APIMessage> apiMessages = ((RestCallError) error).getAPIMessages();
+                if (apiMessages != null && !apiMessages.isEmpty()) {
+                    final APIMessage apiMessage = apiMessages.get(0);
+                    final String examIdAttr = apiMessage.attributes
+                            .stream()
+                            .filter(attr -> attr.startsWith(API.PARAM_MODEL_ID))
+                            .findFirst().orElse(null);
+                    if (examIdAttr != null) {
+                        final String[] split = StringUtils.split(
+                                examIdAttr,
+                                Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
+                        if (API.PARAM_MODEL_ID.equals(split[0])) {
+                            action.pageContext().publishPageMessage(
+                                    AUTO_GEN_CONFIG_ERROR_TITLE,
+                                    AUTO_GEN_CONFIG_ERROR_TEXT);
+                            return action.withEntityKey(new EntityKey(split[1], EntityType.EXAM));
+                        }
+                    }
+                }
+            }
+            throw e;
         }
-
-        return processFormSave;
     }
 
     private boolean testSEBRestrictionAPI(final Exam exam) {

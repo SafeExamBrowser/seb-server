@@ -177,6 +177,11 @@ public class FormHandle<T extends Entity> {
 
     private void handleUnexpectedError(final Exception error) {
         try {
+
+            if (error instanceof RestCallError && !((RestCallError) error).isUnexpectedError()) {
+                return;
+            }
+
             if (error instanceof TooManyRequests) {
                 final TooManyRequests.Code code = ((TooManyRequests) error).code;
                 if (code != null) {

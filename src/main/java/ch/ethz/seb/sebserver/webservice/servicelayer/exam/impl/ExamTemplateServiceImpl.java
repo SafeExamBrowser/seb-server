@@ -24,6 +24,9 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -77,11 +80,11 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             final IndicatorDAO indicatorDAO,
             final JSONMapper jsonMapper,
 
-            @Value("${sebserver.webservice.api.exam.indicator.name:Ping}") final String defaultIndicatorName,
-            @Value("${sebserver.webservice.api.exam.indicator.type:LAST_PING}") final String defaultIndicatorType,
-            @Value("${sebserver.webservice.api.exam.indicator.color:b4b4b4}") final String defaultIndicatorColor,
-            @Value("${sebserver.webservice.api.exam.indicator.thresholds:[{\"value\":2000.0,\"color\":\"22b14c\"},{\"value\":5000.0,\"color\":\"ff7e00\"},{\"value\":10000.0,\"color\":\"ed1c24\"}]}") final String defaultIndicatorThresholds,
-            @Value("${sebserver.webservice.configtemplate.examconfig.default.name:") final String defaultExamConfigNameTemplate,
+            @Value("${sebserver.webservice.api.exam.indicator.name:}") final String defaultIndicatorName,
+            @Value("${sebserver.webservice.api.exam.indicator.type:}") final String defaultIndicatorType,
+            @Value("${sebserver.webservice.api.exam.indicator.color:}") final String defaultIndicatorColor,
+            @Value("${sebserver.webservice.api.exam.indicator.thresholds:}") final String defaultIndicatorThresholds,
+            @Value("${sebserver.webservice.configtemplate.examconfig.default.name:}") final String defaultExamConfigNameTemplate,
             @Value("${sebserver.webservice.configtemplate.examconfig.default.description:}") final String defaultExamConfigDescTemplate) {
 
         this.examTemplateDAO = examTemplateDAO;
@@ -173,22 +176,28 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                 if (examTemplate.configTemplateId != null) {
 
                     // create new exam configuration for the exam
+                    final ConfigurationNode configurationNode = new ConfigurationNode(
+                            null,
+                            exam.institutionId,
+                            examTemplate.configTemplateId,
+                            replaceVars(this.defaultExamConfigNameTemplate, exam, examTemplate),
+                            replaceVars(this.defaultExamConfigDescTemplate, exam, examTemplate),
+                            ConfigurationType.EXAM_CONFIG,
+                            exam.owner,
+                            ConfigurationStatus.CONSTRUCTION);
+
                     final ConfigurationNode examConfig = this.configurationNodeDAO
-                            .createNew(new ConfigurationNode(
-                                    null,
-                                    exam.institutionId,
-                                    examTemplate.configTemplateId,
-                                    replaceVars(this.defaultExamConfigNameTemplate, exam, examTemplate),
-                                    replaceVars(this.defaultExamConfigDescTemplate, exam, examTemplate),
-                                    ConfigurationType.EXAM_CONFIG,
-                                    exam.owner,
-                                    ConfigurationStatus.CONSTRUCTION))
+                            .createNew(configurationNode)
                             .onError(error -> log.error(
-                                    "Failed to create exam configuration for exam: {} from template: {}",
-                                    exam,
-                                    examTemplate,
+                                    "Failed to create exam configuration for exam: {} from template: {} examConfig: {}",
+                                    exam.name,
+                                    examTemplate.name,
+                                    configurationNode,
                                     error))
-                            .getOrThrow();
+                            .getOrThrow(error -> new APIMessageException(
+                                    ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG,
+                                    error,
+                                    API.PARAM_MODEL_ID + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + exam.id));
 
                     // map the exam configuration to the exam
                     this.examConfigurationMapDAO.createNew(new ExamConfigurationMap(
@@ -201,7 +210,10 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                                     exam,
                                     examConfig,
                                     error))
-                            .getOrThrow();
+                            .getOrThrow(error -> new APIMessageException(
+                                    ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG_LINKING,
+                                    error,
+                                    API.PARAM_MODEL_ID + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + exam.id));
 
                 }
             } else {
@@ -268,6 +280,13 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
     private Result<Exam> addDefaultIndicator(final Exam exam) {
         return Result.tryCatch(() -> {
+
+            if (StringUtils.isBlank(this.defaultIndicatorName)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("No default indicator defined for exam: {}", exam.externalId);
+                }
+                return exam;
+            }
 
             if (log.isDebugEnabled()) {
                 log.debug("Init default indicator for exam: {}", exam.externalId);
