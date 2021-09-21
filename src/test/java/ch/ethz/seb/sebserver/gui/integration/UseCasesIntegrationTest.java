@@ -2857,7 +2857,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .call();
 
         assertFalse(dependenciesCall.hasError());
-        final Set<EntityDependency> dependencies = dependenciesCall.get();
+        final Set<EntityDependency> dependencies = new LinkedHashSet<>(dependenciesCall.get());
         assertEquals(
                 "[EntityDependency [parent=EntityKey [modelId=3, entityType=EXAM], self=EntityKey [modelId=5, entityType=INDICATOR], name=New Errors, description=ERROR_COUNT], "
                         + "EntityDependency [parent=EntityKey [modelId=3, entityType=EXAM], self=EntityKey [modelId=4, entityType=EXAM_CONFIGURATION_MAP], name=Demo Quiz 6 (MOCKUP) / 2019-01-01 Demo Quiz 6 (MOCKUP), description= Demo Quiz Mockup  / This has automatically been created from the exam template: examTemplate at: 1970-01-01]]",
