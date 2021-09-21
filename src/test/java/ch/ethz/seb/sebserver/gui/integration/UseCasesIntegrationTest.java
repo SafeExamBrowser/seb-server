@@ -28,6 +28,7 @@ import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
@@ -101,13 +102,16 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ExamConfigurationServic
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamDependencies;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
@@ -2590,6 +2594,10 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     //  - create new exam template with existing configuration template
     //  - check exam template list contains created exam template
     //  - add indicator templates to the exam template
+    //  - add configuration template to exam templare
+    //  - create exam from template
+    //  - delete exam template
+    //  - delete exam
     public void testUsecase22_CreateExamTemplate() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
@@ -2604,8 +2612,15 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new NewIndicatorTemplate(),
                 new SaveIndicatorTemplate(),
                 new DeleteIndicatorTemplate(),
+                new DeleteExamTemplate(),
                 new GetIndicatorTemplate(),
-                new GetExamConfigNodeNames());
+                new GetExamConfigNodeNames(),
+                new GetUserAccountNames(),
+                new GetQuizPage(),
+                new ImportAsExam(),
+                new GetExamDependencies(),
+                new GetExam(),
+                new DeleteExam());
 
         Page<ExamTemplate> examTemplatePage = restService
                 .getBuilder(GetExamTemplatePage.class)
@@ -2797,9 +2812,92 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertTrue(savedTemplate.indicatorTemplates.size() == 1);
         assertEquals("New Errors", savedTemplate.indicatorTemplates.iterator().next().name);
 
-        // TODO create exam from template
+        // create exam from template
+        DateTimeUtils.setCurrentMillisFixed(0);
+        // check quizzes are defines
+        final String userId = restService
+                .getBuilder(GetUserAccountNames.class)
+                .call()
+                .get()
+                .stream()
+                .filter(userName -> userName.name != null && userName.name.startsWith("examSupport2"))
+                .findFirst()
+                .map(EntityName::getModelId)
+                .orElse(null);
+        final QuizData quizData = restService
+                .getBuilder(GetQuizPage.class)
+                .call()
+                .get().content
+                        .stream()
+                        .filter(q -> q.name.contains("Demo Quiz 6"))
+                        .findFirst()
+                        .get();
 
-        // TODO delete exam template
+        // import quiz as exam
+        final Result<Exam> newExamResult = restService
+                .getBuilder(ImportAsExam.class)
+                .withFormParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, String.valueOf(quizData.lmsSetupId))
+                .withFormParam(QuizData.QUIZ_ATTR_ID, quizData.id)
+                .withFormParam(Domain.EXAM.ATTR_SUPPORTER, userId)
+                .withFormParam(Domain.EXAM.ATTR_EXAM_TEMPLATE_ID, savedTemplate.getModelId())
+                .call();
+
+        assertFalse(newExamResult.hasError());
+        final Exam exam = newExamResult.get();
+        assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
+        // get dependencies report for exam
+        final Result<Set<EntityDependency>> dependenciesCall = restService
+                .getBuilder(GetExamDependencies.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
+                .withQueryParam(API.PARAM_BULK_ACTION_ADD_INCLUDES, Constants.TRUE_STRING)
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.INDICATOR.name())
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.EXAM_CONFIGURATION_MAP.name())
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.CONFIGURATION_NODE.name())
+                .call();
+
+        assertFalse(dependenciesCall.hasError());
+        final Set<EntityDependency> dependencies = dependenciesCall.get();
+        assertEquals(
+                "[EntityDependency [parent=EntityKey [modelId=3, entityType=EXAM], self=EntityKey [modelId=5, entityType=INDICATOR], name=New Errors, description=ERROR_COUNT], "
+                        + "EntityDependency [parent=EntityKey [modelId=3, entityType=EXAM], self=EntityKey [modelId=4, entityType=EXAM_CONFIGURATION_MAP], name=Demo Quiz 6 (MOCKUP) / 2019-01-01 Demo Quiz 6 (MOCKUP), description= Demo Quiz Mockup  / This has automatically been created from the exam template: examTemplate at: 1970-01-01]]",
+                dependencies.toString());
+
+        DateTimeUtils.setCurrentMillisSystem();
+
+        // delete exam template
+        final Result<EntityProcessingReport> deleteTemplateCall = restService
+                .getBuilder(DeleteExamTemplate.class)
+                .withURIVariable(API.PARAM_MODEL_ID, savedTemplate.getModelId())
+                .call();
+
+        assertFalse(deleteTemplateCall.hasError());
+        final Result<Exam> examCall = restService
+                .getBuilder(GetExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call();
+        assertFalse(examCall.hasError());
+        final Exam exam2 = examCall.get();
+        assertNull(exam2.examTemplateId);
+
+        // delete exam
+        final Result<EntityProcessingReport> deleteExamCall = restService
+                .getBuilder(DeleteExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam2.getModelId())
+                .withQueryParam(API.PARAM_BULK_ACTION_ADD_INCLUDES, Constants.TRUE_STRING)
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.INDICATOR.name())
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.EXAM_CONFIGURATION_MAP.name())
+                .withQueryParam(API.PARAM_BULK_ACTION_INCLUDES, EntityType.CONFIGURATION_NODE.name())
+                .call();
+
+        assertFalse(deleteExamCall.hasError());
+        final EntityProcessingReport entityProcessingReport = deleteExamCall.get();
+        assertTrue(entityProcessingReport.getErrors().isEmpty());
+        assertEquals(
+                "[EntityKey [modelId=5, entityType=INDICATOR], "
+                        + "EntityKey [modelId=4, entityType=EXAM_CONFIGURATION_MAP], "
+                        + "EntityKey [modelId=3, entityType=EXAM]]",
+                new LinkedHashSet<>(entityProcessingReport.getResults()).toString());
 
     }
 
