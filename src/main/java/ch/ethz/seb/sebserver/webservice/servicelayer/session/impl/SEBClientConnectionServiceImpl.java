@@ -675,11 +675,16 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         if (StringUtils.isNoneBlank(userSessionId)) {
             if (StringUtils.isNoneBlank(clientConnection.userSessionId)) {
-                log.error(
-                        "ClientConnection integrity violation: clientConnection has already a userSessionId: {} : {}",
-                        userSessionId, clientConnection);
-                throw new IllegalArgumentException(
-                        "ClientConnection integrity violation: clientConnection has already a userSessionId");
+                if (clientConnection.userSessionId.contains(userSessionId)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("SEB sent LMS userSessionId but clientConnection has already a userSessionId");
+                    }
+                } else {
+                    log.warn(
+                            "Possible client integrity violation: clientConnection has already a userSessionId: {} : {}",
+                            userSessionId, clientConnection.userSessionId);
+                }
+                return clientConnection;
             }
 
             // try to get user account display name

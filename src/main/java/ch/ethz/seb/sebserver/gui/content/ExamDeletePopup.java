@@ -26,16 +26,20 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputWizard;
@@ -43,6 +47,7 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputWizard.WizardAction
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputWizard.WizardPage;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamDependencies;
@@ -76,6 +81,8 @@ public class ExamDeletePopup {
 
     private final static LocTextKey DELETE_CONFIRM_TITLE =
             new LocTextKey("sebserver.exam.delete.confirm.title");
+    private final static LocTextKey DELETE_ERROR_CONSISTENCY =
+            new LocTextKey("sebserver.exam.action.delete.consistency.error");
 
     private final PageService pageService;
 
@@ -126,7 +133,23 @@ public class ExamDeletePopup {
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name());
 
-            final EntityProcessingReport report = restCallBuilder.call().getOrThrow();
+            final Result<EntityProcessingReport> deleteCall = restCallBuilder.call();
+            if (deleteCall.hasError()) {
+                final Exception error = deleteCall.getError();
+                if (error instanceof RestCallError) {
+                    final APIMessage message = ((RestCallError) error)
+                            .getAPIMessages()
+                            .stream()
+                            .findFirst()
+                            .orElse(null);
+                    if (message != null && ErrorMessage.INTEGRITY_VALIDATION.isOf(message)) {
+                        pageContext.publishPageMessage(new PageMessageException(DELETE_ERROR_CONSISTENCY));
+                        return false;
+                    }
+                }
+            }
+
+            final EntityProcessingReport report = deleteCall.getOrThrow();
 
             final PageAction action = this.pageService.pageActionBuilder(pageContext)
                     .newAction(ActionDefinition.EXAM_VIEW_LIST)

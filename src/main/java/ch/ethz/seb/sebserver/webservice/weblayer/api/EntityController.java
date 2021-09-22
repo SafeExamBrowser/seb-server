@@ -372,6 +372,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
 
         final EntityType entityType = this.entityDAO.entityType();
         final Collection<EntityKey> sources = ids.stream()
+                .map(id -> {
+                    return this.entityDAO.byModelId(id)
+                            .flatMap(exam -> this.validForDelete(exam))
+                            .getOr(null);
+                })
+                .filter(Objects::nonNull)
+                .map(exam -> exam.getModelId())
                 .map(id -> new EntityKey(id, entityType))
                 .collect(Collectors.toList());
 

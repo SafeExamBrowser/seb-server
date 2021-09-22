@@ -165,8 +165,8 @@ public class BulkActionServiceImpl implements BulkActionService {
         final Exception error = bulkActionSingleResult.getError();
 
         log.error(
-                "Unexpected error on bulk action processing. This error is reported to the caller: {}",
-                error.getMessage());
+                "Unexpected error on bulk action processing. This error is reported to the caller: ",
+                error);
 
         if (error instanceof BulkActionEntityException) {
             return new ErrorEntry(
