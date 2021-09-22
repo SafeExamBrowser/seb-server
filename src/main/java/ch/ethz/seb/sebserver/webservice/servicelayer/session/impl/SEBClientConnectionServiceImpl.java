@@ -673,10 +673,15 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final Long examId) {
 
         if (StringUtils.isNotBlank(userSessionId)) {
-            if (StringUtils.isNoneBlank(clientConnection.userSessionId)) {
-                log.warn(
-                        "ClientConnection integrity violation: clientConnection has already a userSessionId: {} : {}",
-                        userSessionId, clientConnection);
+
+            if (StringUtils.isNoneBlank(clientConnection.userSessionId)
+                    && clientConnection.userSessionId.contains(userSessionId)) {
+
+                if (log.isDebugEnabled()) {
+                    log.debug("SEB sent LMS userSessionId but clientConnection has already a userSessionId");
+                }
+
+                return clientConnection;
             }
 
             // try to get user account display name

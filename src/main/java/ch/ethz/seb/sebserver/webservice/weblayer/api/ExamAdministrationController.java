@@ -500,6 +500,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         }
     }
 
+    @Override
+    protected Result<Exam> validForDelete(final Exam entity) {
+        return checkNoActiveSEBClientConnections(entity);
+    }
+
     private Exam checkExamSupporterRole(final Exam exam) {
         final Set<String> examSupporter = this.userDAO.all(
                 this.authorization.getUserService().getCurrentUser().getUserInfo().institutionId,

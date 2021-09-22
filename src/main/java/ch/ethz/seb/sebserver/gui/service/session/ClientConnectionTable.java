@@ -293,8 +293,13 @@ public final class ClientConnectionTable {
         final Set<EntityKey> result = new HashSet<>();
         for (int i = 0; i < selectionIndices.length; i++) {
             final UpdatableTableItem updatableTableItem =
-                    new ArrayList<>(this.tableMapping.values()).get(selectionIndices[0]);
-            result.add(new EntityKey(updatableTableItem.connectionId, EntityType.CLIENT_CONNECTION));
+                    new ArrayList<>(this.tableMapping.values())
+                            .stream()
+                            .findFirst()
+                            .orElse(null);
+            if (updatableTableItem != null) {
+                result.add(new EntityKey(updatableTableItem.connectionId, EntityType.CLIENT_CONNECTION));
+            }
         }
         return result;
     }
