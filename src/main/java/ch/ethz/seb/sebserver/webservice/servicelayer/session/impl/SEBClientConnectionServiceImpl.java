@@ -184,6 +184,23 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final String clientId) {
 
         return Result.tryCatch(() -> {
+
+            final ClientConnection clientConnection = getClientConnection(connectionToken);
+            checkInstitutionalIntegrity(institutionId, clientConnection);
+            checkExamIntegrity(examId, clientConnection);
+
+            // connection integrity check
+            if (!clientConnection.status.clientActiveStatus) {
+                log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
+                        clientConnection);
+                throw new IllegalArgumentException(
+                        "ClientConnection integrity violation: client connection is not in expected state");
+            }
+
+            if (examId != null) {
+                checkExamIntegrity(examId);
+            }
+
             if (log.isDebugEnabled()) {
                 log.debug(
                         "SEB client connection, update ClientConnection for "
@@ -201,35 +218,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         clientId);
             }
 
-            final ClientConnection clientConnection = getClientConnection(connectionToken);
-
-            checkInstitutionalIntegrity(institutionId, clientConnection);
-            checkExamIntegrity(examId, clientConnection);
-
-            // connection integrity check
-            if (clientConnection.status != ConnectionStatus.CONNECTION_REQUESTED) {
-                log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
-                        clientConnection);
-                throw new IllegalArgumentException(
-                        "ClientConnection integrity violation: client connection is not in expected state");
-            }
-
-            if (examId != null) {
-                checkExamIntegrity(examId);
-            }
-
             // userSessionId integrity check
-            if (userSessionId != null &&
-                    clientConnection.userSessionId != null &&
-                    !userSessionId.equals(clientConnection.userSessionId)) {
-
-                log.error(
-                        "User session identifier integrity violation: another User session identifier is already set for the connection: {}",
-                        clientConnection);
-                throw new IllegalArgumentException(
-                        "User session identifier integrity violation: another User session identifier is already set for the connection");
-            }
-
+            updateUserSessionId(userSessionId, clientConnection, examId);
             final ClientConnection updatedClientConnection = this.clientConnectionDAO
                     .save(new ClientConnection(
                             clientConnection.id,
@@ -273,6 +263,34 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         return Result.tryCatch(() -> {
 
+            ClientConnection clientConnection = getClientConnection(connectionToken);
+
+            // connection integrity check
+            if (clientConnection.status == ConnectionStatus.ACTIVE) {
+                if (clientConnection.clientAddress != null && clientConnection.clientAddress.equals(clientAddress)) {
+                    // It seems that this is the same SEB that tries to establish the connection once again.
+                    // Just log this and return already established connection
+                    if (log.isDebugEnabled()) {
+                        log.debug(
+                                "SEB retired to establish an already established client connection. Client adress: {} : {}",
+                                clientConnection.clientAddress,
+                                clientAddress);
+                    }
+                    return clientConnection;
+                } else {
+                    // It seems that this is a request from an other device then the original
+                    log.error("ClientConnection integrity violation: client connection mismatch: {}",
+                            clientConnection);
+                    throw new IllegalArgumentException(
+                            "ClientConnection integrity violation: client connection mismatch");
+                }
+            } else if (!clientConnection.status.clientActiveStatus) {
+                log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
+                        clientConnection);
+                throw new IllegalArgumentException(
+                        "ClientConnection integrity violation: client connection is not in expected state");
+            }
+
             if (log.isDebugEnabled()) {
                 log.debug(
                         "SEB client connection, establish ClientConnection for "
@@ -290,7 +308,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         clientId);
             }
 
-            ClientConnection clientConnection = getClientConnection(connectionToken);
             checkInstitutionalIntegrity(institutionId, clientConnection);
             checkExamIntegrity(examId, clientConnection);
             clientConnection = updateUserSessionId(userSessionId, clientConnection, examId);
