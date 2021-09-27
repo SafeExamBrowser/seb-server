@@ -185,38 +185,22 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     @Override
     @Transactional
     public Result<ConfigurationNode> save(final ConfigurationNode data) {
-        return Result.tryCatch(() -> {
+        return checkUniqueName(data)
+                .map(_d -> {
 
-            final Long count = this.configurationNodeRecordMapper.countByExample()
-                    .where(
-                            ConfigurationNodeRecordDynamicSqlSupport.name,
-                            isEqualTo(data.name))
-                    .and(
-                            ConfigurationNodeRecordDynamicSqlSupport.id,
-                            isNotEqualTo(data.id))
-                    .and(
-                            ConfigurationNodeRecordDynamicSqlSupport.institutionId,
-                            isNotEqualTo(data.institutionId))
-                    .build()
-                    .execute();
+                    final ConfigurationNodeRecord newRecord = new ConfigurationNodeRecord(
+                            data.id,
+                            null,
+                            null,
+                            null,
+                            data.name,
+                            data.description,
+                            null,
+                            (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name());
 
-            if (count != null && count > 0) {
-                throw new FieldValidationException("name", "configurationNode:name:exists");
-            }
-
-            final ConfigurationNodeRecord newRecord = new ConfigurationNodeRecord(
-                    data.id,
-                    null,
-                    null,
-                    null,
-                    data.name,
-                    data.description,
-                    null,
-                    (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name());
-
-            this.configurationNodeRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return this.configurationNodeRecordMapper.selectByPrimaryKey(data.id);
-        })
+                    this.configurationNodeRecordMapper.updateByPrimaryKeySelective(newRecord);
+                    return this.configurationNodeRecordMapper.selectByPrimaryKey(data.id);
+                })
                 .flatMap(ConfigurationNodeDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
@@ -313,6 +297,32 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                         String.valueOf(id));
             }
             return record;
+        });
+    }
+
+    private Result<ConfigurationNode> checkUniqueName(final ConfigurationNode data) {
+        return Result.tryCatch(() -> {
+            final Long count = this.configurationNodeRecordMapper.countByExample()
+                    .where(
+                            ConfigurationNodeRecordDynamicSqlSupport.name,
+                            isEqualTo(data.name))
+                    .and(
+                            ConfigurationNodeRecordDynamicSqlSupport.type,
+                            isNotEqualTo(data.type.name()))
+                    .and(
+                            ConfigurationNodeRecordDynamicSqlSupport.id,
+                            isNotEqualTo(data.id))
+                    .and(
+                            ConfigurationNodeRecordDynamicSqlSupport.institutionId,
+                            isNotEqualTo(data.institutionId))
+                    .build()
+                    .execute();
+
+            if (count != null && count > 0) {
+                throw new FieldValidationException("name", "configurationNode:name:exists");
+            }
+
+            return data;
         });
     }
 

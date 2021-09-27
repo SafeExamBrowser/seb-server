@@ -1027,7 +1027,10 @@ public class WidgetFactory {
     }
 
     public static void setARIALabel(final Widget widget, final String label) {
-        setAttribute(widget, ADD_HTML_ATTR_ARIA_LABEL, label);
+        setAttribute(
+                widget,
+                ADD_HTML_ATTR_ARIA_LABEL,
+                Utils.escapeHTML_XML_EcmaScript(label));
     }
 
     public static void setAttribute(final Widget widget, final String name, final String value) {

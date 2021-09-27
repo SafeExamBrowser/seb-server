@@ -128,6 +128,9 @@ class ConfigurationDAOBatchService {
                             ConfigurationNodeRecordDynamicSqlSupport.name,
                             isEqualTo(data.name))
                     .and(
+                            ConfigurationNodeRecordDynamicSqlSupport.type,
+                            SqlBuilder.isEqualTo(data.type.name()))
+                    .and(
                             ConfigurationNodeRecordDynamicSqlSupport.institutionId,
                             SqlBuilder.isEqualTo(data.institutionId))
                     .build()
@@ -356,6 +359,9 @@ class ConfigurationDAOBatchService {
                             ConfigurationNodeRecordDynamicSqlSupport.name,
                             isEqualTo(copyInfo.name))
                     .and(
+                            ConfigurationNodeRecordDynamicSqlSupport.type,
+                            SqlBuilder.isEqualTo(copyInfo.configurationType.name()))
+                    .and(
                             ConfigurationNodeRecordDynamicSqlSupport.institutionId,
                             isEqualTo(institutionId))
                     .build()
@@ -406,9 +412,9 @@ class ConfigurationDAOBatchService {
 
         if (BooleanUtils.toBoolean(copyInfo.withHistory)) {
             configs.forEach(configRec -> this.copyConfiguration(
-                            configRec.getInstitutionId(),
-                            configRec.getId(),
-                            newNodeRec.getId()));
+                    configRec.getInstitutionId(),
+                    configRec.getId(),
+                    newNodeRec.getId()));
         } else {
             configs
                     .stream()
@@ -764,37 +770,37 @@ class ConfigurationDAOBatchService {
 
         final List<ConfigurationValueRecord> templateValues = getTemplateValues(configNode);
         templateValues.forEach(templateValue -> {
-                    final Long existingId = this.batchConfigurationValueRecordMapper
-                            .selectIdsByExample()
-                            .where(
-                                    ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                                    isEqualTo(config.getId()))
-                            .and(
-                                    ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                                    isEqualTo(templateValue.getConfigurationAttributeId()))
-                            .and(
-                                    ConfigurationValueRecordDynamicSqlSupport.listIndex,
-                                    isEqualTo(templateValue.getListIndex()))
-                            .build()
-                            .execute()
-                            .stream()
-                            .findFirst()
-                            .orElse(null);
+            final Long existingId = this.batchConfigurationValueRecordMapper
+                    .selectIdsByExample()
+                    .where(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                            isEqualTo(config.getId()))
+                    .and(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                            isEqualTo(templateValue.getConfigurationAttributeId()))
+                    .and(
+                            ConfigurationValueRecordDynamicSqlSupport.listIndex,
+                            isEqualTo(templateValue.getListIndex()))
+                    .build()
+                    .execute()
+                    .stream()
+                    .findFirst()
+                    .orElse(null);
 
-                    final ConfigurationValueRecord valueRec = new ConfigurationValueRecord(
-                            existingId,
-                            configNode.institutionId,
-                            config.getId(),
-                            templateValue.getConfigurationAttributeId(),
-                            templateValue.getListIndex(),
-                            templateValue.getValue());
+            final ConfigurationValueRecord valueRec = new ConfigurationValueRecord(
+                    existingId,
+                    configNode.institutionId,
+                    config.getId(),
+                    templateValue.getConfigurationAttributeId(),
+                    templateValue.getListIndex(),
+                    templateValue.getValue());
 
-                    if (existingId != null) {
-                        this.batchConfigurationValueRecordMapper.updateByPrimaryKey(valueRec);
-                    } else {
-                        this.batchConfigurationValueRecordMapper.insert(valueRec);
-                    }
-                });
+            if (existingId != null) {
+                this.batchConfigurationValueRecordMapper.updateByPrimaryKey(valueRec);
+            } else {
+                this.batchConfigurationValueRecordMapper.insert(valueRec);
+            }
+        });
 
         this.batchSqlSessionTemplate.flushStatements();
     }
