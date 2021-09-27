@@ -87,7 +87,7 @@ public final class ConfigurationNode implements GrantEntity {
         this.templateId = (templateId != null) ? templateId : DEFAULT_TEMPLATE_ID;
         this.name = name;
         this.description = description;
-        this.type = type;
+        this.type = (type != null) ? type : ConfigurationType.EXAM_CONFIG;
         this.owner = owner;
         this.status = status;
     }
