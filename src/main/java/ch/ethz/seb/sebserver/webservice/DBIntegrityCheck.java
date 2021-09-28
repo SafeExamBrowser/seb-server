@@ -10,12 +10,19 @@ package ch.ethz.seb.sebserver.webservice;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
+/** Defines a data base integrity check and fix if available. */
 public interface DBIntegrityCheck {
 
+    /** The name of the database integrity check */
     String name();
 
+    /** The description of the database integrity check */
     String description();
 
+    /** Apply the check and fix it if not correct and a fix id provided
+     *
+     * @param tryFix indicates if a fix shall be applied if the check fails and a fix is implemented
+     * @return check result message */
     Result<String> applyCheck(boolean tryFix);
 
 }
