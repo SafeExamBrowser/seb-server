@@ -25,6 +25,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -56,7 +57,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 /** Abstract Entity-Controller that defines generic Entity rest API endpoints that are supported
@@ -136,7 +136,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      * @return Page of domain-model-entities of specified type */
     @Operation(
             summary = "Get a page of the specific domain entity. Sorting and filtering is applied before paging",
-            requestBody = @RequestBody(
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
                     @Parameter(
@@ -217,7 +217,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     @Operation(
             summary = "Get a filtered list of specific entity name keys.\n" +
                     "An entity name key is a minimal entity data object with the entity-type, modelId and the name of the entity.",
-            requestBody = @RequestBody(
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
                     @Parameter(
@@ -345,7 +345,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public T create(
-            @RequestParam final MultiValueMap<String, String> formParams,
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -355,7 +355,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         // check write privilege for requested institution and concrete entityType
         this.checkWritePrivilege(institutionId);
 
-        final POSTMapper postMap = new POSTMapper(formParams, request.getQueryString())
+        final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
                 .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
 
         final M requestModel = this.createNew(postMap);
