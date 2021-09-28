@@ -16,9 +16,27 @@ import org.springframework.context.annotation.Lazy;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.OAuthFlow;
+import io.swagger.v3.oas.annotations.security.OAuthFlows;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 
 @Configuration
 @WebServiceProfile
+@OpenAPIDefinition(info = @Info(title = "SEB Server", version = "v1"))
+@SecurityScheme(
+        name = "oauth2",
+        type = SecuritySchemeType.OAUTH2,
+        bearerFormat = "JWT",
+        flows = @OAuthFlows(
+                password = @OAuthFlow(
+                        tokenUrl = "/oauth/token"
+
+                )
+
+        ))
 public class WebserviceConfig {
 
     @Lazy

@@ -25,7 +25,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -54,12 +53,18 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 /** Abstract Entity-Controller that defines generic Entity rest API endpoints that are supported
  * by all entity types.
  *
  * @param <T> The concrete Entity domain-model type used on all GET, PUT
  * @param <M> The concrete Entity domain-model type used for POST methods (new) */
+@SecurityRequirement(name = "oauth2")
 public abstract class EntityController<T extends Entity, M extends Entity> {
 
     protected final AuthorizationService authorization;
@@ -129,6 +134,39 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      *            descending sort order.
      * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering.
      * @return Page of domain-model-entities of specified type */
+    @Operation(
+            summary = "Get a page of the specific domain entity. Sorting and filtering is applied before paging",
+            requestBody = @RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = Page.ATTR_PAGE_NUMBER,
+                            description = "The number of the page to get from the whole list. If the page does not exists, the API retruns with the first page."),
+                    @Parameter(
+                            name = Page.ATTR_PAGE_SIZE,
+                            description = "The size of the page to get."),
+                    @Parameter(
+                            name = Page.ATTR_SORT,
+                            description = "the sort parameter to sort the list of entities before paging\n"
+                                    + "the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for\n"
+                                    + "descending sort order. Note that not all entity-model attribute are suited for sorting while the most are.",
+                            example = "-name"),
+                    @Parameter(
+                            name = API.PARAM_INSTITUTION_ID,
+                            description = "The institution identifier of the request.\n"
+                                    + "Default is the institution identifier of the institution of the current user"),
+                    @Parameter(
+                            name = "filterCriteria",
+                            description = "Additional filter criterias \n" +
+                                    "The filter criteria attributes accepted by this API depend on the actual entity model (domain entity)\n"
+                                    + "and are query of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM.\n"
+                                    + "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}\n"
+                                    + "Usually filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing\n"
+                                    + "a given text-snippet.",
+                            example = "{\"name\":\"ethz\"}",
+                            required = false,
+                            allowEmptyValue = true)
+            })
     @RequestMapping(
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
@@ -141,13 +179,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
             @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
         // at least current user must have read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
+        final FilterMap filterMap = new FilterMap(filterCriteria, request.getQueryString());
         populateFilterMap(filterMap, institutionId, sort);
 
         return this.paginationService.getPage(
@@ -176,6 +214,28 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // * GET (names)
     // ******************
 
+    @Operation(
+            summary = "Get a filtered list of specific entity name keys.\n" +
+                    "An entity name key is a minimal entity data object with the entity-type, modelId and the name of the entity.",
+            requestBody = @RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = API.PARAM_INSTITUTION_ID,
+                            description = "The institution identifier of the request.\n"
+                                    + "Default is the institution identifier of the institution of the current user"),
+                    @Parameter(
+                            name = "filterCriteria",
+                            description = "Additional filter criterias \n" +
+                                    "The filter criteria attributes accepted by this API depend on the actual entity model (domain entity)\n"
+                                    + "and are query of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM.\n"
+                                    + "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}\n"
+                                    + "Usually filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing\n"
+                                    + "a given text-snippet.",
+                            example = "{\"name\":\"ethz\"}",
+                            required = false,
+                            allowEmptyValue = true)
+            })
     @RequestMapping(
             path = API.NAMES_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -186,13 +246,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @RequestParam final MultiValueMap<String, String> filterCriteria,
             final HttpServletRequest request) {
 
         // at least current user must have read access for specified entity type within its own institution
         checkReadPrivilege(institutionId);
 
-        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
+        final FilterMap filterMap = new FilterMap(filterCriteria, request.getQueryString());
 
         // if current user has no read access for specified entity type within other institution then its own institution,
         // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
@@ -285,7 +345,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public T create(
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @RequestParam final MultiValueMap<String, String> formParams,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -295,7 +355,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         // check write privilege for requested institution and concrete entityType
         this.checkWritePrivilege(institutionId);
 
-        final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
+        final POSTMapper postMap = new POSTMapper(formParams, request.getQueryString())
                 .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
 
         final M requestModel = this.createNew(postMap);
