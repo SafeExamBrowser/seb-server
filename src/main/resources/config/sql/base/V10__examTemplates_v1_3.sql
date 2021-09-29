@@ -1,8 +1,6 @@
 -- -----------------------------------------------------
 -- Table `exam_template`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `exam_template` ;
-
 CREATE TABLE IF NOT EXISTS `exam_template` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
