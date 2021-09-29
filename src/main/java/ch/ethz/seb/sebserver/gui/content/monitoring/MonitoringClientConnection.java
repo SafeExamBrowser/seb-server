@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.content.monitoring;
 
 import java.util.Collection;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.eclipse.swt.widgets.Composite;
@@ -32,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -171,6 +173,10 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .call()
                 .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error))
                 .getOrThrow();
+        final UserInfo user = currentUser.get();
+        final boolean supporting = user.hasRole(UserRole.EXAM_SUPPORTER) &&
+                exam.supporter.contains(user.uuid);
+        final BooleanSupplier isExamSupporter = () -> supporting || user.hasRole(UserRole.EXAM_ADMIN);
 
         final Collection<Indicator> indicators = restService.getBuilder(GetIndicators.class)
                 .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, parentEntityKey.modelId)
@@ -260,7 +266,7 @@ public class MonitoringClientConnection implements TemplateComposer {
 
                             NOTIFICATION_LIST_NO_SELECTION_KEY)
                     .noEventPropagation()
-                    .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER), false);
+                    .publishIf(isExamSupporter, false);
 
             _notificationTableSupplier = () -> notificationTable;
         }
@@ -353,7 +359,7 @@ public class MonitoringClientConnection implements TemplateComposer {
         actionBuilder
                 .newAction(ActionDefinition.MONITOR_EXAM_BACK_TO_OVERVIEW)
                 .withEntityKey(parentEntityKey)
-                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER))
+                .publishIf(isExamSupporter)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_QUIT)
                 .withConfirm(() -> CONFIRM_QUIT)
@@ -365,7 +371,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                     return action;
                 })
                 .noEventPropagation()
-                .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER) &&
+                .publishIf(() -> isExamSupporter.getAsBoolean() &&
                         connectionData.clientConnection.status.clientActiveStatus);
 
         if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {

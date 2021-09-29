@@ -41,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -129,7 +130,8 @@ public class ExamMonitoringController {
         this.authorization.checkRole(
                 institutionId,
                 EntityType.EXAM,
-                UserRole.EXAM_SUPPORTER);
+                UserRole.EXAM_SUPPORTER,
+                UserRole.EXAM_ADMIN);
 
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
 
@@ -166,19 +168,7 @@ public class ExamMonitoringController {
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates) {
 
-        // check overall privilege
-        this.authorization.checkRole(
-                institutionId,
-                EntityType.EXAM,
-                UserRole.EXAM_SUPPORTER);
-
-        // check running exam privilege for specified exam
-        if (!hasRunningExamPrivilege(examId, institutionId)) {
-            throw new PermissionDeniedException(
-                    EntityType.EXAM,
-                    PrivilegeType.READ,
-                    this.authorization.getUserService().getCurrentUser().getUserInfo());
-        }
+        checkPrivileges(institutionId, examId);
 
         final EnumSet<ConnectionStatus> filterStates = EnumSet.noneOf(ConnectionStatus.class);
         if (StringUtils.isNoneBlank(hiddenStates)) {
@@ -211,20 +201,7 @@ public class ExamMonitoringController {
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
-        // check overall privilege
-        this.authorization.checkRole(
-                institutionId,
-                EntityType.EXAM,
-                UserRole.EXAM_SUPPORTER);
-
-        // check running exam privilege for specified exam
-        if (!hasRunningExamPrivilege(examId, institutionId)) {
-            throw new PermissionDeniedException(
-                    EntityType.EXAM,
-                    PrivilegeType.READ,
-                    this.authorization.getUserService().getCurrentUser().getUserInfo());
-        }
-
+        checkPrivileges(institutionId, examId);
         return this.examSessionService
                 .getConnectionData(connectionToken)
                 .getOrThrow();
@@ -243,6 +220,7 @@ public class ExamMonitoringController {
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @Valid @RequestBody final ClientInstruction clientInstruction) {
 
+        checkPrivileges(institutionId, examId);
         this.sebClientInstructionService.registerInstruction(clientInstruction);
     }
 
@@ -260,6 +238,8 @@ public class ExamMonitoringController {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
+
+        checkPrivileges(institutionId, examId);
 
         final ClientConnectionData connection = getConnectionDataForSingleConnection(
                 institutionId,
@@ -286,6 +266,7 @@ public class ExamMonitoringController {
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long notificationId,
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
+        checkPrivileges(institutionId, examId);
         this.sebClientNotificationService.confirmPendingNotification(
                 notificationId,
                 examId,
@@ -308,6 +289,8 @@ public class ExamMonitoringController {
                     name = Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
                     required = true) final String connectionToken) {
 
+        checkPrivileges(institutionId, examId);
+
         if (connectionToken.contains(Constants.LIST_SEPARATOR)) {
             final String[] tokens = StringUtils.split(connectionToken, Constants.LIST_SEPARATOR);
             for (int i = 0; i < tokens.length; i++) {
@@ -322,6 +305,23 @@ public class ExamMonitoringController {
         }
     }
 
+    private void checkPrivileges(final Long institutionId, final Long examId) {
+        // check overall privilege
+        this.authorization.checkRole(
+                institutionId,
+                EntityType.EXAM,
+                UserRole.EXAM_SUPPORTER,
+                UserRole.EXAM_ADMIN);
+
+        // check running exam privilege for specified exam
+        if (!hasRunningExamPrivilege(examId, institutionId)) {
+            throw new PermissionDeniedException(
+                    EntityType.EXAM,
+                    PrivilegeType.READ,
+                    this.authorization.getUserService().getCurrentUser().getUserInfo());
+        }
+    }
+
     private boolean hasRunningExamPrivilege(final Long examId, final Long institution) {
         return hasRunningExamPrivilege(
                 this.examSessionService.getRunningExam(examId).getOr(null),
@@ -333,8 +333,10 @@ public class ExamMonitoringController {
             return false;
         }
 
-        final String userId = this.authorization.getUserService().getCurrentUser().getUserInfo().uuid;
-        return exam.institutionId.equals(institution) && exam.isOwner(userId);
+        final UserInfo userInfo = this.authorization.getUserService().getCurrentUser().getUserInfo();
+        final String userId = userInfo.uuid;
+        return exam.institutionId.equals(institution)
+                && (exam.isOwner(userId) || userInfo.hasRole(UserRole.EXAM_ADMIN));
     }
 
 }

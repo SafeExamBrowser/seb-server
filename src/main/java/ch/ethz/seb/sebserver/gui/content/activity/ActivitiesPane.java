@@ -301,6 +301,9 @@ public class ActivitiesPane implements TemplateComposer {
                                 .newAction(ActionDefinition.EXAM_VIEW_LIST)
                                 .create());
 
+            }
+
+            if (this.currentUser.hasInstitutionalPrivilege(PrivilegeType.READ, EntityType.EXAM_TEMPLATE)) {
                 // Exam Template
                 final TreeItem examTemplate = this.widgetFactory.treeItemLocalized(
                         examAdmin,
@@ -310,7 +313,6 @@ public class ActivitiesPane implements TemplateComposer {
                         actionBuilder
                                 .newAction(ActionDefinition.EXAM_TEMPLATE_VIEW_LIST)
                                 .create());
-
             }
 
             examAdmin.setExpanded(this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN));
@@ -322,7 +324,8 @@ public class ActivitiesPane implements TemplateComposer {
         //--------------------------------------------------------------------------------------
         // ---- MONITORING ---------------------------------------------------------------------
 
-        final boolean isSupporter = this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER);
+        final boolean isSupporter = this.currentUser.get().hasAnyRole(UserRole.EXAM_SUPPORTER) ||
+                this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN);
         final boolean viewSEBClientLogs = this.currentUser.hasInstitutionalPrivilege(
                 PrivilegeType.READ,
                 EntityType.EXAM) ||

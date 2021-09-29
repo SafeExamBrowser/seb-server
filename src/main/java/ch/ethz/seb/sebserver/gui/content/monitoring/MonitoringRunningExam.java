@@ -37,6 +37,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -130,6 +131,10 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
                 .getOrThrow();
+        final UserInfo user = currentUser.get();
+        final boolean supporting = user.hasRole(UserRole.EXAM_SUPPORTER) &&
+                exam.supporter.contains(user.uuid);
+        final BooleanSupplier isExamSupporter = () -> supporting || user.hasRole(UserRole.EXAM_ADMIN);
 
         final Collection<Indicator> indicators = restService.getBuilder(GetIndicators.class)
                 .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, entityKey.modelId)
@@ -190,8 +195,6 @@ public class MonitoringRunningExam implements TemplateComposer {
                 this.pollInterval,
                 context -> clientTable.updateValues(),
                 updateTableGUI(clientTable));
-
-        final BooleanSupplier isExamSupporter = () -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER);
 
         actionBuilder
 
