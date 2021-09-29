@@ -32,10 +32,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.QUIZ_DISCOVERY_ENDPOINT)
+@SecurityRequirement(name = "oauth2")
 public class QuizController {
 
     private final int defaultPageSize;

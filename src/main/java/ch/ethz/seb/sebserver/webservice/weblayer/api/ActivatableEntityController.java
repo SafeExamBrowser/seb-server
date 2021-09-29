@@ -32,6 +32,10 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ActivatableEntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
 
 /** Abstract Entity-Controller that defines generic Entity rest API endpoints that are supported
  * by all entity types that has activation feature and can be activated or deactivated.
@@ -57,7 +61,30 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 beanValidationService);
     }
 
-    // TODO use also the getAll method
+    @Operation(
+            summary = "Get a page of all specific domain entity that are currently active.",
+            description = "Sorting: the sort parameter to sort the list of entities before paging\n"
+                    + "the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for\n"
+                    + "descending sort order. Note that not all entity-model attribute are suited for sorting while the most\n"
+                    + "are.\n",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = Page.ATTR_PAGE_NUMBER,
+                            description = "The number of the page to get from the whole list. If the page does not exists, the API retruns with the first page."),
+                    @Parameter(
+                            name = Page.ATTR_PAGE_SIZE,
+                            description = "The size of the page to get."),
+                    @Parameter(
+                            name = Page.ATTR_SORT,
+                            description = "the sort parameter to sort the list of entities before paging"),
+                    @Parameter(
+                            name = API.PARAM_INSTITUTION_ID,
+                            description = "The institution identifier of the request.\n"
+                                    + "Default is the institution identifier of the institution of the current user"),
+
+            })
     @RequestMapping(
             path = API.ACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -86,6 +113,30 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 () -> getAll(filterMap)).getOrThrow();
     }
 
+    @Operation(
+            summary = "Get a page of all specific domain entity that are currently inactive.",
+            description = "Sorting: the sort parameter to sort the list of entities before paging\n"
+                    + "the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for\n"
+                    + "descending sort order. Note that not all entity-model attribute are suited for sorting while the most\n"
+                    + "are.\n",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = Page.ATTR_PAGE_NUMBER,
+                            description = "The number of the page to get from the whole list. If the page does not exists, the API retruns with the first page."),
+                    @Parameter(
+                            name = Page.ATTR_PAGE_SIZE,
+                            description = "The size of the page to get."),
+                    @Parameter(
+                            name = Page.ATTR_SORT,
+                            description = "the sort parameter to sort the list of entities before paging"),
+                    @Parameter(
+                            name = API.PARAM_INSTITUTION_ID,
+                            description = "The institution identifier of the request.\n"
+                                    + "Default is the institution identifier of the institution of the current user"),
+
+            })
     @RequestMapping(
             path = API.INACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -114,6 +165,16 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 () -> getAll(filterMap)).getOrThrow();
     }
 
+    @Operation(
+            summary = "Activate a single entity by its modelId.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = API.PARAM_MODEL_ID,
+                            description = "The model identifier of the entity object to activate.",
+                            in = ParameterIn.PATH)
+            })
     @RequestMapping(
             path = API.PATH_VAR_ACTIVE,
             method = RequestMethod.POST,
@@ -124,6 +185,16 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 .getOrThrow();
     }
 
+    @Operation(
+            summary = "Dectivate a single entity by its modelId.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = API.PARAM_MODEL_ID,
+                            description = "The model identifier of the entity object to deactivate.",
+                            in = ParameterIn.PATH)
+            })
     @RequestMapping(
             value = API.PATH_VAR_INACTIVE,
             method = RequestMethod.POST,

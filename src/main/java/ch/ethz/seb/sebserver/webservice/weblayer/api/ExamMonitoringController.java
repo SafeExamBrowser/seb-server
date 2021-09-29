@@ -52,10 +52,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_MONITORING_ENDPOINT)
+@SecurityRequirement(name = "oauth2")
 public class ExamMonitoringController {
 
     private static final Logger log = LoggerFactory.getLogger(ExamMonitoringController.class);

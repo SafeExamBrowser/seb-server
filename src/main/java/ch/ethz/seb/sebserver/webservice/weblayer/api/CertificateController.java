@@ -53,10 +53,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.CERTIFICATE_ENDPOINT)
+@SecurityRequirement(name = "oauth2")
 public class CertificateController {
 
     private final AuthorizationService authorization;

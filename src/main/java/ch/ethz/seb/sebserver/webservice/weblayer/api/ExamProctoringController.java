@@ -37,10 +37,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_PROCTORING_ENDPOINT)
+@SecurityRequirement(name = "oauth2")
 public class ExamProctoringController {
 
     private static final Logger log = LoggerFactory.getLogger(ExamProctoringController.class);

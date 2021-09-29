@@ -56,6 +56,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
@@ -136,6 +137,15 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      * @return Page of domain-model-entities of specified type */
     @Operation(
             summary = "Get a page of the specific domain entity. Sorting and filtering is applied before paging",
+            description = "Sorting: the sort parameter to sort the list of entities before paging\n"
+                    + "the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for\n"
+                    + "descending sort order. Note that not all entity-model attribute are suited for sorting while the most\n"
+                    + "are.\n"
+                    + "</p>\n"
+                    + "Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)\n"
+                    + "and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually\n"
+                    + "filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing\n"
+                    + "a given text-snippet.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
@@ -147,10 +157,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             description = "The size of the page to get."),
                     @Parameter(
                             name = Page.ATTR_SORT,
-                            description = "the sort parameter to sort the list of entities before paging\n"
-                                    + "the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for\n"
-                                    + "descending sort order. Note that not all entity-model attribute are suited for sorting while the most are.",
-                            example = "-name"),
+                            description = "the sort parameter to sort the list of entities before paging"),
                     @Parameter(
                             name = API.PARAM_INSTITUTION_ID,
                             description = "The institution identifier of the request.\n"
@@ -158,11 +165,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                     @Parameter(
                             name = "filterCriteria",
                             description = "Additional filter criterias \n" +
-                                    "The filter criteria attributes accepted by this API depend on the actual entity model (domain entity)\n"
-                                    + "and are query of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM.\n"
-                                    + "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}\n"
-                                    + "Usually filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing\n"
-                                    + "a given text-snippet.",
+                                    "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}",
                             example = "{\"name\":\"ethz\"}",
                             required = false,
                             allowEmptyValue = true)
@@ -215,8 +218,13 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // ******************
 
     @Operation(
-            summary = "Get a filtered list of specific entity name keys.\n" +
-                    "An entity name key is a minimal entity data object with the entity-type, modelId and the name of the entity.",
+            summary = "Get a filtered list of specific entity name keys.",
+            description = "An entity name key is a minimal entity data object with the entity-type, modelId and the name of the entity."
+                    + "</p>\n"
+                    + "Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)\n"
+                    + "and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually\n"
+                    + "filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing\n"
+                    + "a given text-snippet.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
@@ -227,11 +235,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                     @Parameter(
                             name = "filterCriteria",
                             description = "Additional filter criterias \n" +
-                                    "The filter criteria attributes accepted by this API depend on the actual entity model (domain entity)\n"
-                                    + "and are query of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM.\n"
-                                    + "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}\n"
-                                    + "Usually filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing\n"
-                                    + "a given text-snippet.",
+                                    "For OpenAPI 3 input please use the form: {\"columnName\":\"filterValue\"}",
                             example = "{\"name\":\"ethz\"}",
                             required = false,
                             allowEmptyValue = true)
@@ -273,6 +277,34 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // * GET (dependency)
     // ******************
 
+    @Operation(
+            summary = "Get a list of dependency keys of all dependent entity objects for a "
+                    + "specified source entity and bulk action.",
+            description = "Get a list of dependency keys of all dependent entity objects for a "
+                    + "specified source entity and bulk action.\n " +
+                    "This can be used to verify depended objects for a certain bulk action to "
+                    + "give a report of affected objects beforehand.\n " +
+                    "For example for a delete action of a certain object, this gives all objects "
+                    + "that will also be deleted within the deletion of the source object",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+
+            parameters = {
+                    @Parameter(
+                            name = API.PARAM_MODEL_ID,
+                            description = "The model identifier of the source entity object to geht the dependencies for.",
+                            in = ParameterIn.PATH),
+                    @Parameter(
+                            name = API.PARAM_BULK_ACTION_TYPE,
+                            description = "The bulk action type defining the type of action to get the dependencies for.\n"
+                                    + "This is the name of the enumeration "),
+                    @Parameter(
+                            name = API.PARAM_BULK_ACTION_ADD_INCLUDES,
+                            description = "Indicates if the following 'includes' paramerer shall be processed or not.\n The default is false "),
+                    @Parameter(
+                            name = API.PARAM_BULK_ACTION_INCLUDES,
+                            description = "A comma separated list of names of the EntityType enummeration that defines all entity types that shall be included in the result.")
+            })
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.DEPENDENCY_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -302,6 +334,16 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // * GET (single)
     // ******************
 
+    @Operation(
+            summary = "Get a single entity by its modelId.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = API.PARAM_MODEL_ID,
+                            description = "The model identifier of the entity object to get.",
+                            in = ParameterIn.PATH)
+            })
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -319,6 +361,15 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // * GET (list)
     // ******************
 
+    @Operation(
+            summary = "Get a list of entity objects by a given list of model identifiers of entities.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = API.PARAM_MODEL_ID_LIST,
+                            description = "Comma separated list of model identifiers.")
+            })
     @RequestMapping(
             path = API.LIST_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -340,12 +391,33 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // * POST (create)
     // ******************
 
+    @Operation(
+            summary = "Create a new entity object of specifies type by using the given form parameter",
+            description = "This expects " + MediaType.APPLICATION_FORM_URLENCODED_VALUE +
+                    " format for the form parameter" +
+                    " and tries to create a new entity object from this form parameter, " +
+                    "resulting in an error if there are missing" +
+                    " or incorrect form paramter. The needed form paramter " +
+
+                    "can be verified within the specific entity object.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = "formParams",
+                            description = "The from paramter value map that is been used to create a new entity object.",
+                            in = ParameterIn.DEFAULT),
+                    @Parameter(
+                            name = API.PARAM_INSTITUTION_ID,
+                            description = "The institution identifier of the request.\n"
+                                    + "Default is the institution identifier of the institution of the current user"),
+            })
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public T create(
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @RequestParam final MultiValueMap<String, String> formParams,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -355,7 +427,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         // check write privilege for requested institution and concrete entityType
         this.checkWritePrivilege(institutionId);
 
-        final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
+        final POSTMapper postMap = new POSTMapper(formParams, request.getQueryString())
                 .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
 
         final M requestModel = this.createNew(postMap);
@@ -372,6 +444,14 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // * PUT (save)
     // ****************
 
+    @Operation(
+            summary = "Modifies an already existing entity object of the specific type.",
+            description = "This expects " + MediaType.APPLICATION_JSON_VALUE +
+                    " format for the response data and verifies consistencies " +
+                    "within the definition of the specific entity object type. " +
+                    "Missing (NULL) parameter that are not mandatory will be ignored and the original value will not be affected",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_JSON_VALUE) }))
     @RequestMapping(
             method = RequestMethod.PUT,
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -389,6 +469,25 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // * DELETE (hard-delete)
     // ************************
 
+    @Operation(
+            summary = "Deletes a single entity (and all its dependencies) by its modelId.",
+            description = "To check or report what dependent object also would be deleted for a certain entity object, "
+                    +
+                    "please use the dependency endpoint to get a report of all dependend entity objects.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = API.PARAM_MODEL_ID,
+                            description = "The model identifier of the entity object to get.",
+                            in = ParameterIn.PATH),
+                    @Parameter(
+                            name = API.PARAM_BULK_ACTION_ADD_INCLUDES,
+                            description = "Indicates if the following 'includes' paramerer shall be processed or not.\n The default is false "),
+                    @Parameter(
+                            name = API.PARAM_BULK_ACTION_INCLUDES,
+                            description = "A comma separated list of names of the EntityType enummeration that defines all entity types that shall be included in the result.")
+            })
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE,
@@ -411,6 +510,25 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     // * DELETE ALL (hard-delete)
     // **************************
 
+    @Operation(
+            summary = "Deletes all given entity (and all its dependencies) by a given list of model identifiers.",
+            description = "To check or report what dependent object also would be deleted for a certain entity object, "
+                    +
+                    "please use the dependency endpoint to get a report of all dependend entity objects.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = API.PARAM_MODEL_ID_LIST,
+                            description = "The list of model identifiers of specific entity type to delete.",
+                            in = ParameterIn.QUERY),
+                    @Parameter(
+                            name = API.PARAM_BULK_ACTION_ADD_INCLUDES,
+                            description = "Indicates if the following 'includes' paramerer shall be processed or not.\n The default is false "),
+                    @Parameter(
+                            name = API.PARAM_BULK_ACTION_INCLUDES,
+                            description = "A comma separated list of names of the EntityType enummeration that defines all entity types that shall be included in the result.")
+            })
     @RequestMapping(
             method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
