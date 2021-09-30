@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -94,6 +95,7 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
     private final MoodleRestTemplateFactory moodleRestTemplateFactory;
     private final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader;
     private final CircuitBreaker<List<QuizData>> allQuizzesRequest;
+    private final boolean prependShortCourseName;
 
     private MoodleAPIRestTemplate restTemplate;
 
@@ -122,6 +124,10 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
                         "sebserver.webservice.circuitbreaker.allQuizzesRequest.timeToRecover",
                         Long.class,
                         Constants.MINUTE_IN_MILLIS));
+
+        this.prependShortCourseName = BooleanUtils.toBoolean(environment.getProperty(
+                "sebserver.webservice.lms.moodle.prependShortCourseName",
+                Constants.TRUE_STRING));
     }
 
     APITemplateDataSupplier getApiTemplateDataSupplier() {
@@ -648,7 +654,9 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
                 lmsSetup.getInstitutionId(),
                 lmsSetup.id,
                 lmsSetup.getLmsType(),
-                courseQuizData.name,
+                (this.prependShortCourseName)
+                        ? courseData.short_name + " : " + courseQuizData.name
+                        : courseQuizData.name,
                 Constants.EMPTY_NOTE,
                 (courseQuizData.time_open != null && courseQuizData.time_open > 0)
                         ? Utils.toDateTimeUTCUnix(courseQuizData.time_open)
