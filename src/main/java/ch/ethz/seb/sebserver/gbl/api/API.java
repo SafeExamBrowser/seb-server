@@ -18,6 +18,11 @@ public final class API {
         ACTIVATE
     }
 
+    public enum BatchActionType {
+        EXAM_CONFIG_STATE_CHANGE,
+        EXAM_CONFIG_APPLY_TEMPLATE_VALUES
+    }
+
     public static final String SEB_FILE_EXTENSION = "seb";
 
     public static final String PARAM_LOGO_IMAGE = "logoImageBase64";
