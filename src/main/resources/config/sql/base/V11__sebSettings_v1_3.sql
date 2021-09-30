@@ -36,3 +36,15 @@ INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group
 UPDATE orientation SET width=2 WHERE config_attribute_id=53;
 INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
     (904, 0, 3, 'userAgentTouch', 9, 5, 3, 1, 'NONE');
+
+-- -----------------------------------------------------------------
+-- SEBSERV-201 Number 5 (raise hand)
+-- -----------------------------------------------------------------
+
+INSERT IGNORE INTO configuration_attribute VALUES
+    (974, 'raiseHandButtonShow', 'CHECKBOX', null, null, null, null, 'false'),
+    (975, 'raiseHandButtonAlwaysPromptMessage', 'CHECKBOX', null, null, null, null, 'false');
+
+INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
+    (974, 0, 2, 'taskbar', 0, 11, 3, 1, 'NONE'),
+    (975, 0, 2, 'taskbar', 0, 12, 3, 1, 'NONE');
