@@ -21,9 +21,9 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -32,6 +32,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
@@ -73,11 +74,11 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
 
     public AsyncBatchEventSaveStrategy(
             final SqlSessionFactory sqlSessionFactory,
-            final AsyncConfigurer asyncConfigurer,
-            final PlatformTransactionManager transactionManager) {
+            final PlatformTransactionManager transactionManager,
+            @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME) final Executor executor) {
 
         this.sqlSessionFactory = sqlSessionFactory;
-        this.executor = asyncConfigurer.getAsyncExecutor();
+        this.executor = executor;
 
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);

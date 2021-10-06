@@ -45,6 +45,7 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
         executor.setCorePoolSize(200);
         executor.setMaxPoolSize(2000);
         executor.setQueueCapacity(2000);
+        executor.setThreadPriority(Thread.MAX_PRIORITY);
         executor.setThreadNamePrefix("examService-");
         executor.initialize();
         executor.setWaitForTasksToCompleteOnShutdown(false);
