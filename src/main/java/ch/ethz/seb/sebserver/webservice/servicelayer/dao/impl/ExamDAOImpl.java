@@ -30,6 +30,7 @@ import org.joda.time.DateTime;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -78,17 +79,20 @@ public class ExamDAOImpl implements ExamDAO {
     private final ExamRecordMapper examRecordMapper;
     private final ClientConnectionRecordMapper clientConnectionRecordMapper;
     private final AdditionalAttributeRecordMapper additionalAttributeRecordMapper;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final LmsAPIService lmsAPIService;
 
     public ExamDAOImpl(
             final ExamRecordMapper examRecordMapper,
             final ClientConnectionRecordMapper clientConnectionRecordMapper,
             final AdditionalAttributeRecordMapper additionalAttributeRecordMapper,
+            final ApplicationEventPublisher applicationEventPublisher,
             final LmsAPIService lmsAPIService) {
 
         this.examRecordMapper = examRecordMapper;
         this.clientConnectionRecordMapper = clientConnectionRecordMapper;
         this.additionalAttributeRecordMapper = additionalAttributeRecordMapper;
+        this.applicationEventPublisher = applicationEventPublisher;
         this.lmsAPIService = lmsAPIService;
     }
 
@@ -649,6 +653,9 @@ public class ExamDAOImpl implements ExamDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+
+            // notify exam deletition listener about following deletion, to cleanup stuff before deletion
+            this.applicationEventPublisher.publishEvent(new ExamDeletionEvent(ids));
 
             this.examRecordMapper.deleteByExample()
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))

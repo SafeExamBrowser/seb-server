@@ -685,6 +685,7 @@ public class ZoomProctoringService implements ExamProctoringService {
 
     private final static class ZoomRestTemplate {
 
+        private static final int LIZENSED_USER = 2;
         private static final String API_TEST_ENDPOINT = "v2/users";
         private static final String API_CREATE_USER_ENDPOINT = "v2/users";
         private static final String API_DELETE_USER_ENDPOINT = "v2/users/{userid}?action=delete";
@@ -749,7 +750,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                         API_USER_CUST_CREATE,
                         new CreateUserRequest.UserInfo(
                                 roomName + "@" + host,
-                                1,
+                                LIZENSED_USER,
                                 roomName,
                                 API_ZOOM_ROOM_USER));
 

@@ -246,10 +246,16 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     @Transactional
     public Result<Collection<EntityKey>> deleteRooms(final Long examId) {
         final Result<Collection<EntityKey>> tryCatch = Result.tryCatch(() -> {
-            final List<Long> ids = this.remoteProctoringRoomRecordMapper.selectIdsByExample()
+            final List<Long> ids = this.remoteProctoringRoomRecordMapper
+                    .selectIdsByExample()
                     .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
                     .build()
                     .execute();
+
+            if (ids == null || ids.isEmpty()) {
+                log.info("No proctoring rooms found for exam to delete: {}", examId);
+                return Collections.emptyList();
+            }
 
             this.remoteProctoringRoomRecordMapper.deleteByExample()
                     .where(RemoteProctoringRoomRecordDynamicSqlSupport.id, isIn(ids))

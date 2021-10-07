@@ -107,6 +107,11 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
+    public Result<Exam> examForPK(final Long examId) {
+        return this.examDAO.byPK(examId);
+    }
+
+    @Override
     public Result<Exam> addDefaultIndicator(final Exam exam) {
         return Result.tryCatch(() -> {
 
