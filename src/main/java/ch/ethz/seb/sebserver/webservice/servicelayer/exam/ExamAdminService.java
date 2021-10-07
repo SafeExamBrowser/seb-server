@@ -16,6 +16,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringServi
 
 public interface ExamAdminService {
 
+    /** Get the exam domain object for the exam identifier (PK).
+     *
+     * @param examId the exam identifier
+     * @return Result refer to the domain object or to an error when happened */
+    Result<Exam> examForPK(Long examId);
+
     /** Saves additional attributes for the exam that are specific to a type of LMS
      *
      * @param exam The Exam to add the LMS specific attributes

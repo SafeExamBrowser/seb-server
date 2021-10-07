@@ -21,12 +21,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
@@ -137,15 +138,27 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         }
     }
 
+    @EventListener(ExamDeletionEvent.class)
+    public void notifyExamDeletionEvent(final ExamDeletionEvent event) {
+        event.ids.forEach(examId -> {
+            try {
+
+                this.examAdminService.examForPK(examId)
+                        .flatMap(this::disposeRoomsForExam)
+                        .getOrThrow();
+
+            } catch (final Exception e) {
+                log.error("Failed to delete depending proctoring data for exam: {}", examId, e);
+            }
+        });
+    }
+
     @Override
     public Result<Exam> disposeRoomsForExam(final Exam exam) {
-        if (exam.status != ExamStatus.FINISHED) {
-            log.warn("The exam has not been finished yet. No proctoring rooms will be deleted: {} / {}",
-                    exam.name,
-                    exam.externalId);
-        }
 
         return Result.tryCatch(() -> {
+
+            log.info("Dispose and deleting proctoring rooms for exam: {}", exam.externalId);
 
             final ProctoringServiceSettings proctoringSettings = this.examAdminService
                     .getProctoringServiceSettings(exam.id)

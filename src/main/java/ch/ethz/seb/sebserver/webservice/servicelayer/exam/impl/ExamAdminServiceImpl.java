@@ -76,7 +76,11 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         this.cryptor = cryptor;
         this.examProctoringServiceFactory = examProctoringServiceFactory;
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
+    }
 
+    @Override
+    public Result<Exam> examForPK(final Long examId) {
+        return this.examDAO.byPK(examId);
     }
 
     @Override
