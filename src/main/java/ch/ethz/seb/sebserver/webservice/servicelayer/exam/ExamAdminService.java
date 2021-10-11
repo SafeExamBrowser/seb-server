@@ -16,6 +16,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringServi
 
 public interface ExamAdminService {
 
+    /** Get the exam domain object for the exam identifier (PK).
+     *
+     * @param examId the exam identifier
+     * @return Result refer to the domain object or to an error when happened */
+    Result<Exam> examForPK(Long examId);
+
     /** Adds a default indicator that is defined by configuration to a given exam.
      *
      * @param exam The Exam to add the default indicator
