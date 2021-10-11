@@ -15,10 +15,30 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface BatchActionDAO extends EntityDAO<BatchAction, BatchAction> {
 
+    public static final String FLAG_FINISHED = "_FINISHED";
+
+    /** This checks if there is a pending batch action to process next.
+     * If so this reserves the pending batch action and mark it to be processed
+     * by the given pocessId.
+     * If there is no pending batch action this results with a ResourceNotFoundException.
+     *
+     * @param processId The process id to reserve a pending batch action before processing
+     * @return Result refer to the batch action to process or to an error when happened */
     Result<BatchAction> getAndReserveNext(String processId);
 
+    /** Use this to update the processing of a running batch action
+     *
+     * @param actionId The batch action identifier
+     * @param processId The process identifier (must match with the processId on persistent storage)
+     * @param modelIds Collection of model identifiers of entities that has successfully been processed.
+     * @return Result refer to the involved batch action or to an error when happened. */
     Result<BatchAction> updateProgress(Long actionId, String processId, Collection<String> modelIds);
 
+    /** Use this to mark processing of a single entity of a specified batch action as successful completed.
+     *
+     * @param actionId The batch action identifier
+     * @param processId The process identifier (must match with the processId on persistent storage)
+     * @param modelId The model identifier to mark as completed for the given batch action */
     void setSuccessfull(Long actionId, String processId, String modelId);
 
     /** This is used by a processing background task that is processing a batch action to finish up

@@ -22,10 +22,11 @@ public interface BatchActionService {
 
     /** Use this to register a new batch action for further processing.
      *
+     * @param institutionId The institution identifier
      * @param actionType The batch action type
      * @param ids comma separated String of model ids to process
      * @return Result refer to the stored batch action or to an error when happened */
-    Result<BatchAction> registerNewBatchAction(BatchActionType actionType, String ids);
+    Result<BatchAction> registerNewBatchAction(final Long institutionId, BatchActionType actionType, String ids);
 
     /** Use this to get all currently running batch actions for a given institution.
      *

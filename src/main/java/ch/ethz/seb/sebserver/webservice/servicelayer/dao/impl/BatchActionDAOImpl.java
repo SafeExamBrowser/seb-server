@@ -48,8 +48,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 @WebServiceProfile
 public class BatchActionDAOImpl implements BatchActionDAO {
 
-    private static final String FLAG_FINISHED = "_FINISHED";
-
     private final BatchActionRecordMapper batchActionRecordMapper;
 
     public BatchActionDAOImpl(final BatchActionRecordMapper batchActionRecordMapper) {
@@ -139,6 +137,22 @@ public class BatchActionDAOImpl implements BatchActionDAO {
     @Transactional
     public void setSuccessfull(final Long actionId, final String processId, final String modelId) {
         try {
+
+            final BatchActionRecord rec = this.batchActionRecordMapper.selectByPrimaryKey(actionId);
+
+            if (!processId.equals(rec.getProcessorId())) {
+                throw new RuntimeException("Batch action processor id mismatch: " + processId + " " + rec);
+            }
+
+            final BatchActionRecord newRecord = new BatchActionRecord(
+                    actionId,
+                    null,
+                    null,
+                    null,
+                    rec.getSuccessful() + Constants.LIST_SEPARATOR + modelId,
+                    Utils.getMillisecondsNow(),
+                    processId);
+            this.batchActionRecordMapper.updateByPrimaryKeySelective(newRecord);
 
         } catch (final Exception e) {
             log.error("Failed to mark entity sucessfuly processed: modelId: {}, processId");

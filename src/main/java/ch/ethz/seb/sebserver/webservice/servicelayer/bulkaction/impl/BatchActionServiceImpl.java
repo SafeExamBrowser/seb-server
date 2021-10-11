@@ -9,17 +9,22 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.BatchAction;
@@ -29,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BatchActionExec;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BatchActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.BatchActionDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 
 @Service
@@ -59,27 +65,59 @@ public class BatchActionServiceImpl implements BatchActionService {
     }
 
     @Override
-    public Result<BatchAction> registerNewBatchAction(final BatchActionType actionType, final String ids) {
-        // TODO Auto-generated method stub
-        return null;
+    public Result<BatchAction> registerNewBatchAction(
+            final Long institutionId,
+            final BatchActionType actionType,
+            final String ids) {
+
+        return Result.tryCatch(() -> {
+
+            final Collection<String> sourceIds = Arrays.asList(StringUtils.split(
+                    ids,
+                    Constants.LIST_SEPARATOR));
+
+            return this.batchActionDAO
+                    .createNew(new BatchAction(null, institutionId, actionType, sourceIds, null, null, null))
+                    .map(res -> {
+                        processNextBatchAction();
+                        return res;
+                    })
+                    .getOrThrow();
+        });
     }
 
     @Override
     public Result<Collection<BatchAction>> getRunningActions(final Long institutionId) {
-        // TODO Auto-generated method stub
-        return null;
+        return this.batchActionDAO.allMatching(new FilterMap().putIfAbsent(
+                API.PARAM_INSTITUTION_ID,
+                String.valueOf(institutionId)))
+                .map(results -> results.stream()
+                        .filter(action -> StringUtils.isNotBlank(action.processorId) &&
+                                !action.processorId.endsWith(BatchActionDAO.FLAG_FINISHED))
+                        .collect(Collectors.toList()));
     }
 
     @Override
     public Result<Collection<BatchAction>> getRunningActions(final Long institutionId, final EntityType entityType) {
-        // TODO Auto-generated method stub
-        return null;
+        return this.batchActionDAO.allMatching(new FilterMap().putIfAbsent(
+                API.PARAM_INSTITUTION_ID,
+                String.valueOf(institutionId)))
+                .map(results -> results.stream()
+                        .filter(action -> StringUtils.isNotBlank(action.processorId) &&
+                                !action.processorId.endsWith(BatchActionDAO.FLAG_FINISHED))
+                        .filter(action -> action.actionType.entityType == entityType)
+                        .collect(Collectors.toList()));
     }
 
     @Override
     public Result<Collection<BatchAction>> getFinishedActions(final Long institutionId) {
-        // TODO Auto-generated method stub
-        return null;
+        return this.batchActionDAO.allMatching(new FilterMap().putIfAbsent(
+                API.PARAM_INSTITUTION_ID,
+                String.valueOf(institutionId)))
+                .map(results -> results.stream()
+                        .filter(action -> StringUtils.isNotBlank(action.processorId) &&
+                                action.processorId.endsWith(BatchActionDAO.FLAG_FINISHED))
+                        .collect(Collectors.toList()));
     }
 
     private void processNextBatchAction() {
@@ -161,7 +199,6 @@ public class BatchActionServiceImpl implements BatchActionService {
                 log.info("Skip this batch action.");
             }
         }
-
     }
 
 }
