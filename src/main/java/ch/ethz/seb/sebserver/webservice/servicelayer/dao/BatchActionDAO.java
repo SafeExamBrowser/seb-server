@@ -19,8 +19,18 @@ public interface BatchActionDAO extends EntityDAO<BatchAction, BatchAction> {
 
     Result<BatchAction> updateProgress(Long actionId, String processId, Collection<String> modelIds);
 
-    Result<BatchAction> updateFail(Long actionId, String processId, String modelIds);
+    void setSuccessfull(Long actionId, String processId, String modelId);
 
-    Result<BatchAction> finishUp(Long actionId, String processId);
+    /** This is used by a processing background task that is processing a batch action to finish up
+     * its work and register the batch action as done within the persistent storage.
+     * </p>
+     * If force is set to true, no integrity check will be done before marking the specified batch
+     * action as done.
+     *
+     * @param actionId the batch action identifier
+     * @param processId the identifier of the batch action processor
+     * @param force skip integrity check if set to true and just mark the action as done
+     * @return Result refer to the involved batch action or to an error when happened */
+    Result<BatchAction> finishUp(Long actionId, String processId, boolean force);
 
 }

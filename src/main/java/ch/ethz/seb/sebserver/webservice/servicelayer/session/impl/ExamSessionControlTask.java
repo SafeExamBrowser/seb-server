@@ -60,7 +60,7 @@ class ExamSessionControlTask implements DisposableBean {
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,
             @Value("${sebserver.webservice.api.exam.update-interval:1 * * * * *}") final String examTaskCron,
-            @Value("${sebserver.webservice.api.seb.lostping.update:15000}") final Long pingUpdateRate) {
+            @Value("${sebserver.webservice.api.exam.update-ping:5000}") final Long pingUpdateRate) {
 
         this.examDAO = examDAO;
         this.sebClientConnectionService = sebClientConnectionService;
@@ -109,7 +109,7 @@ class ExamSessionControlTask implements DisposableBean {
         this.examDAO.releaseAgedLocks();
     }
 
-    @Scheduled(fixedRateString = "${sebserver.webservice.api.seb.lostping.update:5000}")
+    @Scheduled(fixedRateString = "${sebserver.webservice.api.exam.update-ping:5000}")
     public void examSessionUpdateTask() {
 
         if (!this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID())) {
@@ -117,8 +117,17 @@ class ExamSessionControlTask implements DisposableBean {
         }
 
         this.sebClientConnectionService.updatePingEvents();
-        this.sebClientConnectionService.cleanupInstructions();
         this.examProcotringRoomService.updateProctoringCollectingRooms();
+    }
+
+    @Scheduled(fixedRateString = "${sebserver.webservice.api.exam.session-cleanup:30000}")
+    public void examSessionCleanupTask() {
+
+        if (!this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID())) {
+            return;
+        }
+
+        this.sebClientConnectionService.cleanupInstructions();
     }
 
     private void controlExamStart(final String updateId) {

@@ -89,8 +89,6 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                     null,
                     null,
                     null,
-                    null,
-                    null,
                     Utils.getMillisecondsNow(),
                     processId);
 
@@ -126,41 +124,6 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                     null,
                     null,
                     null,
-                    null,
-                    StringUtils.join(ids, Constants.LIST_SEPARATOR),
-                    null,
-                    Utils.getMillisecondsNow(),
-                    processId);
-
-            this.batchActionRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return this.batchActionRecordMapper.selectByPrimaryKey(actionId);
-        })
-                .flatMap(this::toDomainModel)
-                .onError(TransactionHandler::rollback);
-    }
-
-    @Override
-    public Result<BatchAction> updateFail(final Long actionId, final String processId, final String modelId) {
-        return Result.tryCatch(() -> {
-
-            final BatchActionRecord rec = this.batchActionRecordMapper.selectByPrimaryKey(actionId);
-
-            if (!processId.equals(rec.getProcessorId())) {
-                throw new RuntimeException("Batch action processor id mismatch: " + processId + " " + rec);
-            }
-
-            final Set<String> ids = new HashSet<>(Arrays.asList(StringUtils.split(
-                    rec.getFailed(),
-                    Constants.LIST_SEPARATOR)));
-            ids.add(modelId);
-
-            final BatchActionRecord newRecord = new BatchActionRecord(
-                    actionId,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
                     StringUtils.join(ids, Constants.LIST_SEPARATOR),
                     Utils.getMillisecondsNow(),
                     processId);
@@ -174,7 +137,17 @@ public class BatchActionDAOImpl implements BatchActionDAO {
 
     @Override
     @Transactional
-    public Result<BatchAction> finishUp(final Long actionId, final String processId) {
+    public void setSuccessfull(final Long actionId, final String processId, final String modelId) {
+        try {
+
+        } catch (final Exception e) {
+            log.error("Failed to mark entity sucessfuly processed: modelId: {}, processId");
+        }
+    }
+
+    @Override
+    @Transactional
+    public Result<BatchAction> finishUp(final Long actionId, final String processId, final boolean force) {
         return Result.tryCatch(() -> {
 
             final BatchActionRecord rec = this.batchActionRecordMapper.selectByPrimaryKey(actionId);
@@ -183,27 +156,24 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                 throw new RuntimeException("Batch action processor id mismatch: " + processId + " " + rec);
             }
 
-            final Set<String> ids = new HashSet<>(Arrays.asList(StringUtils.split(
-                    rec.getSourceIds(),
-                    Constants.LIST_SEPARATOR)));
+            if (!force) {
+                // apply consistency check
+                final Set<String> ids = new HashSet<>(Arrays.asList(StringUtils.split(
+                        rec.getSourceIds(),
+                        Constants.LIST_SEPARATOR)));
 
-            final Set<String> success = new HashSet<>(Arrays.asList(StringUtils.split(
-                    rec.getSourceIds(),
-                    Constants.LIST_SEPARATOR)));
+                final Set<String> success = new HashSet<>(Arrays.asList(StringUtils.split(
+                        rec.getSourceIds(),
+                        Constants.LIST_SEPARATOR)));
 
-            final Set<String> failed = new HashSet<>(Arrays.asList(StringUtils.split(
-                    rec.getFailed(),
-                    Constants.LIST_SEPARATOR)));
-
-            if (ids.size() != success.size() + failed.size()) {
-                throw new IllegalStateException(
-                        "Processing ids mismatch source: " + ids + " success: " + success + " failed: " + failed);
+                if (ids.size() != success.size()) {
+                    throw new IllegalStateException(
+                            "Processing ids mismatch source: " + ids + " success: " + success);
+                }
             }
 
             final BatchActionRecord newRecord = new BatchActionRecord(
                     actionId,
-                    null,
-                    null,
                     null,
                     null,
                     null,
@@ -253,11 +223,6 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                         BatchActionRecordDynamicSqlSupport.actionType,
                         SqlBuilder.isEqualToWhenPresent(
                                 filterMap.getString(Domain.BATCH_ACTION.ATTR_ACTION_TYPE)))
-                .and(
-                        BatchActionRecordDynamicSqlSupport.entityType,
-                        SqlBuilder.isEqualToWhenPresent(
-                                filterMap.getString(Domain.BATCH_ACTION.ATTR_ENTITY_TYPE)))
-
                 .build()
                 .execute()
                 .stream()
@@ -276,9 +241,8 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                     null,
                     data.institutionId,
                     data.actionType.toString(),
-                    data.entityType.toString(),
                     StringUtils.join(data.sourceIds, Constants.LIST_SEPARATOR),
-                    null, null, null, null);
+                    null, null, null);
 
             this.batchActionRecordMapper.insert(newRecord);
             return newRecord;
@@ -297,9 +261,7 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                     null,
                     null,
                     null,
-                    null,
                     StringUtils.join(data.successful, Constants.LIST_SEPARATOR),
-                    StringUtils.join(data.failed, Constants.LIST_SEPARATOR),
                     data.getLastUpdate(),
                     data.processorId);
 
@@ -345,10 +307,8 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                 record.getId(),
                 record.getInstitutionId(),
                 BatchActionType.valueOf(record.getActionType()),
-                EntityType.valueOf(record.getEntityType()),
                 Arrays.asList(record.getSourceIds().split(Constants.LIST_SEPARATOR)),
                 Arrays.asList(record.getSuccessful().split(Constants.LIST_SEPARATOR)),
-                Arrays.asList(record.getFailed().split(Constants.LIST_SEPARATOR)),
                 record.getLastUpdate(),
                 record.getProcessorId()));
     }

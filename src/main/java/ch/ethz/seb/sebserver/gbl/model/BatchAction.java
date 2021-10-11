@@ -33,18 +33,11 @@ public class BatchAction implements Entity {
     public final BatchActionType actionType;
 
     @NotNull
-    @JsonProperty(BATCH_ACTION.ATTR_ENTITY_TYPE)
-    public final EntityType entityType;
-
-    @NotNull
     @JsonProperty(BATCH_ACTION.ATTR_SOURCE_IDS)
     public final Collection<String> sourceIds;
 
     @JsonProperty(BATCH_ACTION.ATTR_SUCCESSFUL)
     public final Collection<String> successful;
-
-    @JsonProperty(BATCH_ACTION.ATTR_FAILED)
-    public final Collection<String> failed;
 
     @JsonProperty(BATCH_ACTION.ATTR_LAST_UPDATE)
     private final Long lastUpdate;
@@ -56,10 +49,8 @@ public class BatchAction implements Entity {
             @JsonProperty(BATCH_ACTION.ATTR_ID) final Long id,
             @JsonProperty(BATCH_ACTION.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(BATCH_ACTION.ATTR_ACTION_TYPE) final BatchActionType actionType,
-            @JsonProperty(BATCH_ACTION.ATTR_ENTITY_TYPE) final EntityType entityType,
             @JsonProperty(BATCH_ACTION.ATTR_SOURCE_IDS) final Collection<String> sourceIds,
             @JsonProperty(BATCH_ACTION.ATTR_SUCCESSFUL) final Collection<String> successful,
-            @JsonProperty(BATCH_ACTION.ATTR_FAILED) final Collection<String> failed,
             @JsonProperty(BATCH_ACTION.ATTR_LAST_UPDATE) final Long lastUpdate,
             @JsonProperty(BATCH_ACTION.ATTR_PROCESSOR_ID) final String processorId) {
 
@@ -67,10 +58,8 @@ public class BatchAction implements Entity {
         this.id = id;
         this.institutionId = institutionId;
         this.actionType = actionType;
-        this.entityType = entityType;
         this.sourceIds = Utils.immutableCollectionOf(sourceIds);
         this.successful = Utils.immutableCollectionOf(successful);
-        this.failed = Utils.immutableCollectionOf(failed);
         this.lastUpdate = lastUpdate;
         this.processorId = processorId;
     }
@@ -89,7 +78,7 @@ public class BatchAction implements Entity {
 
     @Override
     public String getName() {
-        return this.actionType + ":" + this.entityType;
+        return this.actionType.name();
     }
 
     public Long getId() {
@@ -104,20 +93,12 @@ public class BatchAction implements Entity {
         return this.actionType;
     }
 
-    public EntityType getEntityType() {
-        return this.entityType;
-    }
-
     public Collection<String> getSourceIds() {
         return this.sourceIds;
     }
 
     public Collection<String> getSuccessful() {
         return this.successful;
-    }
-
-    public Collection<String> getFailed() {
-        return this.failed;
     }
 
     public Long getLastUpdate() {
@@ -162,14 +143,10 @@ public class BatchAction implements Entity {
         builder.append(this.institutionId);
         builder.append(", actionType=");
         builder.append(this.actionType);
-        builder.append(", entityType=");
-        builder.append(this.entityType);
         builder.append(", sourceIds=");
         builder.append(this.sourceIds);
         builder.append(", successful=");
         builder.append(this.successful);
-        builder.append(", failed=");
-        builder.append(this.failed);
         builder.append(", lastUpdate=");
         builder.append(this.lastUpdate);
         builder.append(", processorId=");

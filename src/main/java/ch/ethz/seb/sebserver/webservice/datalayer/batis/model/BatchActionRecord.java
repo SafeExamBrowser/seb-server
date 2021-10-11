@@ -3,87 +3,69 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class BatchActionRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.738+02:00", comments="Source field: batch_action.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.738+02:00", comments="Source field: batch_action.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.738+02:00", comments="Source field: batch_action.action_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.action_type")
     private String actionType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.738+02:00", comments="Source field: batch_action.entity_type")
-    private String entityType;
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.739+02:00", comments="Source field: batch_action.source_ids")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.source_ids")
     private String sourceIds;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.739+02:00", comments="Source field: batch_action.successful")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.successful")
     private String successful;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.739+02:00", comments="Source field: batch_action.failed")
-    private String failed;
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.739+02:00", comments="Source field: batch_action.last_update")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.last_update")
     private Long lastUpdate;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.739+02:00", comments="Source field: batch_action.processor_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.processor_id")
     private String processorId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.738+02:00", comments="Source Table: batch_action")
-    public BatchActionRecord(Long id, Long institutionId, String actionType, String entityType, String sourceIds, String successful, String failed, Long lastUpdate, String processorId) {
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source Table: batch_action")
+    public BatchActionRecord(Long id, Long institutionId, String actionType, String sourceIds, String successful, Long lastUpdate, String processorId) {
         this.id = id;
         this.institutionId = institutionId;
         this.actionType = actionType;
-        this.entityType = entityType;
         this.sourceIds = sourceIds;
         this.successful = successful;
-        this.failed = failed;
         this.lastUpdate = lastUpdate;
         this.processorId = processorId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.738+02:00", comments="Source field: batch_action.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.738+02:00", comments="Source field: batch_action.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.738+02:00", comments="Source field: batch_action.action_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.action_type")
     public String getActionType() {
         return actionType;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.738+02:00", comments="Source field: batch_action.entity_type")
-    public String getEntityType() {
-        return entityType;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.739+02:00", comments="Source field: batch_action.source_ids")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.source_ids")
     public String getSourceIds() {
         return sourceIds;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.739+02:00", comments="Source field: batch_action.successful")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.successful")
     public String getSuccessful() {
         return successful;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.739+02:00", comments="Source field: batch_action.failed")
-    public String getFailed() {
-        return failed;
-    }
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.739+02:00", comments="Source field: batch_action.last_update")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.last_update")
     public Long getLastUpdate() {
         return lastUpdate;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-06T15:12:28.739+02:00", comments="Source field: batch_action.processor_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-10-07T13:30:04.894+02:00", comments="Source field: batch_action.processor_id")
     public String getProcessorId() {
         return processorId;
     }
@@ -92,7 +74,7 @@ public class BatchActionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table batch_action
      *
-     * @mbg.generated Wed Oct 06 15:12:28 CEST 2021
+     * @mbg.generated Thu Oct 07 13:30:04 CEST 2021
      */
     @Override
     public String toString() {
@@ -103,10 +85,8 @@ public class BatchActionRecord {
         sb.append(", id=").append(id);
         sb.append(", institutionId=").append(institutionId);
         sb.append(", actionType=").append(actionType);
-        sb.append(", entityType=").append(entityType);
         sb.append(", sourceIds=").append(sourceIds);
         sb.append(", successful=").append(successful);
-        sb.append(", failed=").append(failed);
         sb.append(", lastUpdate=").append(lastUpdate);
         sb.append(", processorId=").append(processorId);
         sb.append("]");
@@ -117,7 +97,7 @@ public class BatchActionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table batch_action
      *
-     * @mbg.generated Wed Oct 06 15:12:28 CEST 2021
+     * @mbg.generated Thu Oct 07 13:30:04 CEST 2021
      */
     @Override
     public boolean equals(Object that) {
@@ -134,10 +114,8 @@ public class BatchActionRecord {
         return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
             && (this.getInstitutionId() == null ? other.getInstitutionId() == null : this.getInstitutionId().equals(other.getInstitutionId()))
             && (this.getActionType() == null ? other.getActionType() == null : this.getActionType().equals(other.getActionType()))
-            && (this.getEntityType() == null ? other.getEntityType() == null : this.getEntityType().equals(other.getEntityType()))
             && (this.getSourceIds() == null ? other.getSourceIds() == null : this.getSourceIds().equals(other.getSourceIds()))
             && (this.getSuccessful() == null ? other.getSuccessful() == null : this.getSuccessful().equals(other.getSuccessful()))
-            && (this.getFailed() == null ? other.getFailed() == null : this.getFailed().equals(other.getFailed()))
             && (this.getLastUpdate() == null ? other.getLastUpdate() == null : this.getLastUpdate().equals(other.getLastUpdate()))
             && (this.getProcessorId() == null ? other.getProcessorId() == null : this.getProcessorId().equals(other.getProcessorId()));
     }
@@ -146,7 +124,7 @@ public class BatchActionRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table batch_action
      *
-     * @mbg.generated Wed Oct 06 15:12:28 CEST 2021
+     * @mbg.generated Thu Oct 07 13:30:04 CEST 2021
      */
     @Override
     public int hashCode() {
@@ -155,10 +133,8 @@ public class BatchActionRecord {
         result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
         result = prime * result + ((getInstitutionId() == null) ? 0 : getInstitutionId().hashCode());
         result = prime * result + ((getActionType() == null) ? 0 : getActionType().hashCode());
-        result = prime * result + ((getEntityType() == null) ? 0 : getEntityType().hashCode());
         result = prime * result + ((getSourceIds() == null) ? 0 : getSourceIds().hashCode());
         result = prime * result + ((getSuccessful() == null) ? 0 : getSuccessful().hashCode());
-        result = prime * result + ((getFailed() == null) ? 0 : getFailed().hashCode());
         result = prime * result + ((getLastUpdate() == null) ? 0 : getLastUpdate().hashCode());
         result = prime * result + ((getProcessorId() == null) ? 0 : getProcessorId().hashCode());
         return result;

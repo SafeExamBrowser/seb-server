@@ -19,8 +19,14 @@ public final class API {
     }
 
     public enum BatchActionType {
-        EXAM_CONFIG_STATE_CHANGE,
-        EXAM_CONFIG_APPLY_TEMPLATE_VALUES
+        EXAM_CONFIG_STATE_CHANGE(EntityType.CONFIGURATION_NODE),
+        EXAM_CONFIG_APPLY_TEMPLATE_VALUES(EntityType.CONFIGURATION_NODE);
+
+        public final EntityType entityType;
+
+        private BatchActionType(final EntityType entityType) {
+            this.entityType = entityType;
+        }
     }
 
     public static final String SEB_FILE_EXTENSION = "seb";

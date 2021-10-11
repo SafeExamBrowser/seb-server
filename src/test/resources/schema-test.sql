@@ -642,10 +642,8 @@ CREATE TABLE IF NOT EXISTS `batch_action` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
   `action_type` VARCHAR(45) NOT NULL,
-  `entity_type` VARCHAR(45) NOT NULL,
-  `source_ids` VARCHAR(4000) NULL,
+  `source_ids` VARCHAR(8000) NULL,
   `successful` VARCHAR(4000) NULL,
-  `failed` VARCHAR(4000) NULL,
   `last_update` BIGINT NULL,
   `processor_id` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
@@ -656,4 +654,5 @@ CREATE TABLE IF NOT EXISTS `batch_action` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
+
 
