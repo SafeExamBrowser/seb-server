@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,13 +70,12 @@ public class OlatLmsRestTemplate extends RestTemplate {
         // Authenticate with OLAT and store the received X-OLAT-TOKEN
         this.token = "authenticating";
         final String authUrl = this.details.getAccessTokenUri();
-        final String credentials = String.format(
-                "{\"username\": \"%s\", \"password\": \"%s\"}",
-                this.details.getClientId(),
-                this.details.getClientSecret());
+        final Map<String, String> credentials = new HashMap<>();
+        credentials.put("username", this.details.getClientId());
+        credentials.put("password", this.details.getClientSecret());
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set("content-type", "application/json");
-        final HttpEntity<String> requestEntity = new HttpEntity<>(credentials, httpHeaders);
+        final HttpEntity<Map<String,String>> requestEntity = new HttpEntity<>(credentials, httpHeaders);
         try {
             final ResponseEntity<String> response = this.postForEntity(authUrl, requestEntity, String.class);
             final HttpHeaders responseHeaders = response.getHeaders();
