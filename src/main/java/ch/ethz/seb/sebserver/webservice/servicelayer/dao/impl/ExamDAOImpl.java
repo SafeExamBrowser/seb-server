@@ -637,6 +637,7 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Boolean> upToDate(final Long examId, final String updateId) {
+        // TODO make this with count on examId and updateId equals --> if count is 1 then it is up to date otherwise not
         return this.recordById(examId)
                 .map(rec -> {
                     if (updateId == null) {

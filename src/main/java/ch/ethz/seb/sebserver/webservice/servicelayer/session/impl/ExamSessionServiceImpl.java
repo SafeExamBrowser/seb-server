@@ -361,11 +361,13 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public Result<Exam> updateExamCache(final Long examId) {
+        // Get from cache (or load to cache if not already present)
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
         if (exam == null) {
             return Result.ofEmpty();
         }
 
+        // Check if the exam from cache is up to date by checking the last_update on persistent storage
         final Boolean isUpToDate = this.examDAO.upToDate(examId, exam.lastUpdate)
                 .onError(t -> log.error("Failed to verify if cached exam is up to date: {}", exam, t))
                 .getOr(false);
