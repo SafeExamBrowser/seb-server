@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -215,9 +216,14 @@ public class MoodleCourseDataAsyncLoader {
 
             // then get all quizzes of courses and filter
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+            final List<String> courseIds = new ArrayList<>(courseData.keySet());
+            if (courseIds.size() == 1) {
+                // NOTE: This is a workaround because the Moodle API do not support lists with only one element.
+                courseIds.add("0");
+            }
             attributes.put(
                     MoodleCourseAccess.MOODLE_COURSE_API_COURSE_IDS,
-                    new ArrayList<>(courseData.keySet()));
+                    courseIds);
 
             final String quizzesJSON = callMoodleRestAPI(
                     restTemplate,
