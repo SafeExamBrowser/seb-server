@@ -101,7 +101,7 @@ public class ProctoringGUIService {
     public boolean isCollectingRoomEnabled(final String roomName) {
         try {
             final Pair<RemoteProctoringRoom, TreeItem> pair = this.collectingRoomsActionState.get(roomName);
-            return pair.a.roomSize > 0 && !pair.a.isOpen;
+            return pair.a.roomSize > 0 /* && !pair.a.isOpen SEBSERV-236 */;
         } catch (final Exception e) {
             log.error("Failed to get actual collecting room size for room: {} cause: ", roomName, e.getMessage());
             return false;

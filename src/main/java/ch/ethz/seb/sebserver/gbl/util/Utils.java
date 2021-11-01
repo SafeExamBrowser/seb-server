@@ -530,6 +530,10 @@ public final class Utils {
         return getMillisecondsNow() / 1000;
     }
 
+    public static long toSeconds(final long millis) {
+        return millis / 1000;
+    }
+
     public static RGB toRGB(final String rgbString) {
         if (StringUtils.isNotBlank(rgbString)) {
             return new RGB(

@@ -509,7 +509,7 @@ public class MonitoringProctoringService {
 
         try {
 
-            final boolean active = room.roomSize > 0 && !room.isOpen;
+            final boolean active = room.roomSize > 0 /* && !room.isOpen SEBSERV-236 */;
             final Display display = pageContext.getRoot().getDisplay();
             final PageAction action = (PageAction) treeItem.getData(ActionPane.ACTION_EVENT_CALL_KEY);
             final Image image = active

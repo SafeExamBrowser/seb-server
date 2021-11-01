@@ -9,9 +9,12 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
@@ -66,12 +69,15 @@ public class OlatLmsRestTemplate extends RestTemplate {
     private void authenticate() {
         // Authenticate with OLAT and store the received X-OLAT-TOKEN
         this.token = "authenticating";
-        final String authUrl = String.format("%s%s?password=%s",
-                this.details.getAccessTokenUri(),
-                this.details.getClientId(),
-                this.details.getClientSecret());
+        final String authUrl = this.details.getAccessTokenUri();
+        final Map<String, String> credentials = new HashMap<>();
+        credentials.put("username", this.details.getClientId());
+        credentials.put("password", this.details.getClientSecret());
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("content-type", "application/json");
+        final HttpEntity<Map<String,String>> requestEntity = new HttpEntity<>(credentials, httpHeaders);
         try {
-            final ResponseEntity<String> response = this.getForEntity(authUrl, String.class);
+            final ResponseEntity<String> response = this.postForEntity(authUrl, requestEntity, String.class);
             final HttpHeaders responseHeaders = response.getHeaders();
             log.debug("OLAT [authenticate] {} Headers: {}", response.getStatusCode(), responseHeaders);
             this.token = responseHeaders.getFirst("X-OLAT-TOKEN");
