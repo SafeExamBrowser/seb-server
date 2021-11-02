@@ -72,11 +72,10 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
     @Override
     protected Indicator createNew(final POSTMapper postParams) {
         final Long examId = postParams.getLong(Domain.INDICATOR.ATTR_EXAM_ID);
-
-        return this.examDao
-                .byPK(examId)
-                .map(exam -> new Indicator(exam, postParams))
-                .getOrThrow();
+        if (examId == null) {
+            throw new RuntimeException("Missing exam model id from request parameter map!");
+        }
+        return new Indicator(examId, postParams);
     }
 
     @Override
@@ -120,7 +119,8 @@ public class IndicatorController extends EntityController<Indicator, Indicator> 
             return null;
         }
 
-        return this.examDao.byPK(entity.examId)
+        return this.examDao
+                .examGrantEntityByPK(entity.examId)
                 .getOrThrow();
     }
 
