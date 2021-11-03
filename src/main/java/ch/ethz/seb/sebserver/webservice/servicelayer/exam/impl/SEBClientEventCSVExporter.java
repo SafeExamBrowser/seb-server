@@ -8,15 +8,24 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.SEBClientEventExporter;
 
 public class SEBClientEventCSVExporter implements SEBClientEventExporter {
+
+    private static final Logger log = LoggerFactory.getLogger(SEBClientEventCSVExporter.class);
 
     @Override
     public ExportType exportType() {
@@ -29,7 +38,24 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
             final boolean includeConnectionDetails,
             final boolean includeExamDetails) {
 
-        // TODO
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Event Type,Message,Value,Client Time (UTC),Server Time (UTC)");
+
+        if (includeConnectionDetails) {
+            builder.append(",User Session-ID,Client Machine,Connection Status,Connection Token");
+        }
+
+        if (includeExamDetails) {
+            builder.append("Exam Name,Exam Description,Exam Type,Start Time (LMS),End Time (LMS)");
+        }
+
+        builder.append(Constants.CARRIAGE_RETURN);
+
+        try {
+            output.write(Utils.toByteArray(builder));
+        } catch (final IOException e) {
+            log.error("Failed to stream header: ", e);
+        }
     }
 
     @Override
@@ -39,11 +65,37 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
             final ClientConnectionRecord connectionData,
             final Exam examData) {
 
-        // TODO
-    }
+        final StringBuilder builder = new StringBuilder();
+        final EventType type = EventType.byId(eventData.getType());
 
-    private String toCSVString(final String text) {
+        builder.append(type.name());
+        builder.append(Utils.toCSVString(eventData.getText()));
+        builder.append(eventData.getNumericValue());
+        builder.append(Utils.toDateTimeUTC(eventData.getClientTime()));
+        builder.append(Utils.toDateTimeUTC(eventData.getServerTime()));
 
+        if (connectionData != null) {
+            builder.append(Utils.toCSVString(connectionData.getExamUserSessionId()));
+            builder.append(Utils.toCSVString(connectionData.getClientAddress()));
+            builder.append(connectionData.getStatus());
+            builder.append(connectionData.getConnectionToken());
+        }
+
+        if (examData != null) {
+            builder.append(Utils.toCSVString(examData.getName()));
+            builder.append(Utils.toCSVString(examData.getDescription()));
+            builder.append(examData.getType().name());
+            builder.append(examData.getStartTime());
+            builder.append(examData.getEndTime());
+        }
+
+        builder.append(Constants.CARRIAGE_RETURN);
+
+        try {
+            output.write(Utils.toByteArray(builder));
+        } catch (final IOException e) {
+            log.error("Failed to stream header: ", e);
+        }
     }
 
 }

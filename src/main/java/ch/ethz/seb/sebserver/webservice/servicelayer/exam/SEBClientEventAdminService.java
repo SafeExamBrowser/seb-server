@@ -10,13 +10,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
 import java.io.OutputStream;
 import java.util.Collection;
-import java.util.function.Predicate;
 
 import org.springframework.scheduling.annotation.Async;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -30,7 +28,6 @@ public interface SEBClientEventAdminService {
             OutputStream output,
             FilterMap filterMap,
             String sort,
-            final Predicate<ClientEvent> predicate,
             ExportType exportType,
             boolean includeConnectionDetails,
             boolean includeExamDetails);

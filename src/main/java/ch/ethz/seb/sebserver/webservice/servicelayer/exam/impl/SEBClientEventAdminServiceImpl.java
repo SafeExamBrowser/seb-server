@@ -13,11 +13,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -31,14 +31,17 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.SEBClientEventAdminService;
@@ -55,16 +58,19 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
     private final ClientEventDAO clientEventDAO;
     private final SEBClientEventExportTransactionHandler sebClientEventExportTransactionHandler;
     private final EnumMap<ExportType, SEBClientEventExporter> exporter;
+    private final AuthorizationService authorizationService;
 
     public SEBClientEventAdminServiceImpl(
             final PaginationService paginationService,
             final ClientEventDAO clientEventDAO,
             final SEBClientEventExportTransactionHandler sebClientEventExportTransactionHandler,
-            final Collection<SEBClientEventExporter> exporter) {
+            final Collection<SEBClientEventExporter> exporter,
+            final AuthorizationService authorizationService) {
 
         this.paginationService = paginationService;
         this.clientEventDAO = clientEventDAO;
         this.sebClientEventExportTransactionHandler = sebClientEventExportTransactionHandler;
+        this.authorizationService = authorizationService;
 
         this.exporter = new EnumMap<>(ExportType.class);
         exporter.forEach(exp -> this.exporter.putIfAbsent(exp.exportType(), exp));
@@ -102,7 +108,6 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
             final OutputStream output,
             final FilterMap filterMap,
             final String sort,
-            final Predicate<ClientEvent> predicate,
             final ExportType exportType,
             final boolean includeConnectionDetails,
             final boolean includeExamDetails) {
@@ -111,7 +116,7 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
                 this.exporter.get(exportType),
                 includeConnectionDetails,
                 includeExamDetails,
-                new Pager(filterMap, sort, predicate),
+                new Pager(filterMap, sort),
                 output)
                         .run();
 
@@ -147,17 +152,28 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
 
         public void run() {
 
+            final SEBServerUser currentUser = SEBClientEventAdminServiceImpl.this.authorizationService
+                    .getUserService()
+                    .getCurrentUser();
+            final EnumSet<UserRole> userRoles = currentUser.getUserRoles();
+            final boolean isSupporterOnly = userRoles.size() == 1 && userRoles.contains(UserRole.EXAM_SUPPORTER);
+
             // first stream header line
             this.exporter.streamHeader(this.output, this.includeConnectionDetails, this.includeExamDetails);
 
             // then batch with the pager and stream line per line
             while (this.pager.hasNext()) {
                 this.pager.next().forEach(rec -> {
-                    this.exporter.streamData(
-                            this.output,
-                            rec,
-                            this.includeConnectionDetails ? getConnection(rec.getClientConnectionId()) : null,
-                            this.includeExamDetails ? getExam(rec.getClientConnectionId()) : null);
+
+                    final Exam exam = getExam(rec.getClientConnectionId());
+
+                    if (!isSupporterOnly || exam.isOwner(currentUser.uuid())) {
+                        this.exporter.streamData(
+                                this.output,
+                                rec,
+                                this.includeConnectionDetails ? getConnection(rec.getClientConnectionId()) : null,
+                                this.includeExamDetails ? getExam(rec.getClientConnectionId()) : null);
+                    }
                 });
             }
         }
@@ -195,7 +211,6 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
 
         private final FilterMap filterMap;
         private final String sort;
-        private final Predicate<ClientEvent> predicate;
 
         private int pageNumber = 0;
         private final int pageSize = 100;
@@ -204,12 +219,10 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
 
         public Pager(
                 final FilterMap filterMap,
-                final String sort,
-                final Predicate<ClientEvent> predicate) {
+                final String sort) {
 
             this.filterMap = filterMap;
             this.sort = sort;
-            this.predicate = predicate;
 
             fetchNext();
         }
@@ -235,7 +248,7 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
                         this.sort,
                         ClientEventRecordDynamicSqlSupport.clientEventRecord.name(),
                         () -> SEBClientEventAdminServiceImpl.this.sebClientEventExportTransactionHandler
-                                .allMatching(this.filterMap, this.predicate))
+                                .allMatching(this.filterMap, Utils.truePredicate()))
                         .getOrThrow();
 
                 this.pageNumber++;

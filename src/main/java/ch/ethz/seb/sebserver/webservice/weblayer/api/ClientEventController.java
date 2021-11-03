@@ -8,13 +8,19 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.mybatis.dynamic.sql.SqlTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +37,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -53,6 +60,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_EVENT_ENDPOINT)
 public class ClientEventController extends ReadonlyEntityController<ClientEvent, ClientEvent> {
+
+    private static final Logger log = LoggerFactory.getLogger(ClientEventController.class);
 
     private final ExamDAO examDao;
     private final ClientEventDAO clientEventDAO;
@@ -138,6 +147,49 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                 .getOrThrow();
     }
 
+    @RequestMapping(
+            path = API.SEB_CLIENT_EVENT_EXPORT_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public void exportEvents(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = API.SEB_CLIENT_EVENT_EXPORT_TYPE, required = true) final ExportType type,
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request,
+            final HttpServletResponse response) throws IOException {
+
+        // at least current user must have base read access for specified entity type within its own institution
+        checkReadPrivilege(institutionId);
+
+        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
+        populateFilterMap(filterMap, institutionId, sort);
+
+        final ServletOutputStream outputStream = response.getOutputStream();
+
+        try {
+
+            this.sebClientEventAdminService.exportSEBClientLogs(
+                    outputStream,
+                    filterMap,
+                    sort,
+                    type,
+                    false,
+                    false);
+
+            response.setStatus(HttpStatus.OK.value());
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to export SEB client logs: ", e);
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        } finally {
+            outputStream.flush();
+            outputStream.close();
+        }
+    }
+
     @Override
     public Collection<EntityDependency> getDependencies(
             final String modelId,
@@ -154,12 +206,14 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
 
     @Override
     protected Result<ClientEvent> checkReadAccess(final ClientEvent entity) {
+        final EnumSet<UserRole> userRoles = this.authorization
+                .getUserService()
+                .getCurrentUser()
+                .getUserRoles();
+        final boolean isSupporterOnly = userRoles.size() == 1 && userRoles.contains(UserRole.EXAM_SUPPORTER);
+
         return Result.tryCatch(() -> {
-            final EnumSet<UserRole> userRoles = this.authorization
-                    .getUserService()
-                    .getCurrentUser()
-                    .getUserRoles();
-            final boolean isSupporterOnly = userRoles.size() == 1 && userRoles.contains(UserRole.EXAM_SUPPORTER);
+
             if (isSupporterOnly) {
                 // check owner grant be getting exam
                 return super.checkReadAccess(entity)

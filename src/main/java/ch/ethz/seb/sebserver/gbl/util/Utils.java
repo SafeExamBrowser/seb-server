@@ -666,4 +666,11 @@ public final class Utils {
         }
     }
 
+    public static String toCSVString(final String text) {
+        if (StringUtils.isBlank(text)) {
+            return StringUtils.EMPTY;
+        }
+        return Constants.DOUBLE_QUOTE + text.replace("\"", "\"\"") + Constants.DOUBLE_QUOTE;
+    }
+
 }
