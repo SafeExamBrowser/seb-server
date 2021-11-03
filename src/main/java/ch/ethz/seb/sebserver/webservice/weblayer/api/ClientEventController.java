@@ -8,13 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -28,13 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
-import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -53,6 +46,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.SEBClientEventAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -62,6 +56,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
 
     private final ExamDAO examDao;
     private final ClientEventDAO clientEventDAO;
+    private final SEBClientEventAdminService sebClientEventAdminService;
 
     protected ClientEventController(
             final AuthorizationService authorization,
@@ -70,7 +65,8 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final ExamDAO examDao) {
+            final ExamDAO examDao,
+            final SEBClientEventAdminService sebClientEventAdminService) {
 
         super(authorization,
                 bulkActionService,
@@ -81,6 +77,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
 
         this.examDao = examDao;
         this.clientEventDAO = entityDAO;
+        this.sebClientEventAdminService = sebClientEventAdminService;
     }
 
     @RequestMapping(
@@ -136,27 +133,9 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
 
         this.checkWritePrivilege(institutionId);
 
-        if (ids == null || ids.isEmpty()) {
-            return EntityProcessingReport.ofEmptyError();
-        }
-
-        final Set<EntityKey> sources = ids.stream()
-                .map(id -> new EntityKey(id, EntityType.CLIENT_EVENT))
-                .collect(Collectors.toSet());
-
-        final Result<Collection<EntityKey>> delete = this.clientEventDAO.delete(sources);
-
-        if (delete.hasError()) {
-            return new EntityProcessingReport(
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    Arrays.asList(new ErrorEntry(null, APIMessage.ErrorMessage.UNEXPECTED.of(delete.getError()))));
-        } else {
-            return new EntityProcessingReport(
-                    sources,
-                    delete.get(),
-                    Collections.emptyList());
-        }
+        return this.sebClientEventAdminService
+                .deleteAllClientEvents(ids)
+                .getOrThrow();
     }
 
     @Override
