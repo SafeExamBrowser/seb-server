@@ -202,7 +202,8 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                     .map(sebRestrictionData -> {
 
                         if (log.isDebugEnabled()) {
-                            log.debug("Applying SEB Client restriction on LMS with: {}", sebRestrictionData);
+                            log.debug(" *** SEB Restriction *** Applying SEB Client restriction on LMS with: {}",
+                                    sebRestrictionData);
                         }
 
                         return this.lmsAPIService
@@ -221,7 +222,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Release SEB Client restrictions for exam: {}", exam);
+            log.debug(" *** SEB Restriction *** Release SEB Client restrictions from LMS for exam: {}", exam);
         }
 
         return this.lmsAPIService
