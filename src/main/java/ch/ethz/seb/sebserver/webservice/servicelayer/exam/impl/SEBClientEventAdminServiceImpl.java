@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
+import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -40,7 +42,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecord
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -58,19 +59,16 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
     private final ClientEventDAO clientEventDAO;
     private final SEBClientEventExportTransactionHandler sebClientEventExportTransactionHandler;
     private final EnumMap<ExportType, SEBClientEventExporter> exporter;
-    private final AuthorizationService authorizationService;
 
     public SEBClientEventAdminServiceImpl(
             final PaginationService paginationService,
             final ClientEventDAO clientEventDAO,
             final SEBClientEventExportTransactionHandler sebClientEventExportTransactionHandler,
-            final Collection<SEBClientEventExporter> exporter,
-            final AuthorizationService authorizationService) {
+            final Collection<SEBClientEventExporter> exporter) {
 
         this.paginationService = paginationService;
         this.clientEventDAO = clientEventDAO;
         this.sebClientEventExportTransactionHandler = sebClientEventExportTransactionHandler;
-        this.authorizationService = authorizationService;
 
         this.exporter = new EnumMap<>(ExportType.class);
         exporter.forEach(exp -> this.exporter.putIfAbsent(exp.exportType(), exp));
@@ -110,15 +108,32 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
             final String sort,
             final ExportType exportType,
             final boolean includeConnectionDetails,
-            final boolean includeExamDetails) {
+            final boolean includeExamDetails,
+            final SEBServerUser currentUser) {
 
-        new exportRunner(
-                this.exporter.get(exportType),
-                includeConnectionDetails,
-                includeExamDetails,
-                new Pager(filterMap, sort),
-                output)
-                        .run();
+        try {
+
+            new exportRunner(
+                    this.exporter.get(exportType),
+                    includeConnectionDetails,
+                    includeExamDetails,
+                    new Pager(filterMap, sort),
+                    output)
+                            .run(currentUser);
+        } catch (final Exception e) {
+            log.error("Unexpected error during export SEB logs: ", e);
+        } finally {
+            try {
+                output.flush();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                output.close();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
@@ -146,15 +161,12 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
             this.pager = pager;
             this.output = output;
 
-            this.connectionCache = includeConnectionDetails ? new HashMap<>() : null;
-            this.examCache = includeExamDetails ? new HashMap<>() : null;
+            this.connectionCache = new HashMap<>();
+            this.examCache = new HashMap<>();
         }
 
-        public void run() {
+        public void run(final SEBServerUser currentUser) {
 
-            final SEBServerUser currentUser = SEBClientEventAdminServiceImpl.this.authorizationService
-                    .getUserService()
-                    .getCurrentUser();
             final EnumSet<UserRole> userRoles = currentUser.getUserRoles();
             final boolean isSupporterOnly = userRoles.size() == 1 && userRoles.contains(UserRole.EXAM_SUPPORTER);
 
@@ -182,7 +194,7 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
             if (!this.connectionCache.containsKey(connectionId)) {
                 SEBClientEventAdminServiceImpl.this.sebClientEventExportTransactionHandler
                         .clientConnectionById(connectionId)
-                        .map(e -> this.connectionCache.put(connectionId, e))
+                        .onSuccess(rec -> this.connectionCache.put(rec.getId(), rec))
                         .onError(error -> log.error("Failed to get ClientConnectionRecord for id: {}",
                                 connectionId,
                                 error));
@@ -197,7 +209,7 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
             if (!this.examCache.containsKey(examId)) {
                 SEBClientEventAdminServiceImpl.this.sebClientEventExportTransactionHandler
                         .examById(examId)
-                        .map(e -> this.examCache.put(examId, e))
+                        .onSuccess(e -> this.examCache.put(examId, e))
                         .onError(error -> log.error("Failed to get Exam for id: {}",
                                 examId,
                                 error));
@@ -212,7 +224,7 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
         private final FilterMap filterMap;
         private final String sort;
 
-        private int pageNumber = 0;
+        private int pageNumber = 1;
         private final int pageSize = 100;
 
         private Collection<ClientEventRecord> nextRecords;
@@ -242,16 +254,22 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
         private void fetchNext() {
             try {
 
-                this.nextRecords = SEBClientEventAdminServiceImpl.this.paginationService.fetch(
-                        this.pageNumber,
-                        this.pageSize,
-                        this.sort,
-                        ClientEventRecordDynamicSqlSupport.clientEventRecord.name(),
-                        () -> SEBClientEventAdminServiceImpl.this.sebClientEventExportTransactionHandler
-                                .allMatching(this.filterMap, Utils.truePredicate()))
+                final Page<ClientEventRecord> nextPage = SEBClientEventAdminServiceImpl.this.paginationService
+                        .getPageOf(
+                                this.pageNumber,
+                                this.pageSize,
+                                this.sort,
+                                ClientEventRecordDynamicSqlSupport.clientEventRecord.name(),
+                                () -> SEBClientEventAdminServiceImpl.this.sebClientEventExportTransactionHandler
+                                        .allMatching(this.filterMap, Utils.truePredicate()))
                         .getOrThrow();
 
-                this.pageNumber++;
+                if (nextPage.getPageNumber() == this.pageNumber) {
+                    this.nextRecords = nextPage.content;
+                    this.pageNumber++;
+                } else {
+                    this.nextRecords = null;
+                }
 
             } catch (final Exception e) {
                 log.error("Failed to fetch next batch: ", e);

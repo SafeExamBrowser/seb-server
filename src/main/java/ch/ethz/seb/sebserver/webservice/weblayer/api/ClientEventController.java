@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
@@ -17,6 +19,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,6 +160,14 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(name = API.SEB_CLIENT_EVENT_EXPORT_TYPE, required = true) final ExportType type,
+            @RequestParam(
+                    name = API.SEB_CLIENT_EVENT_EXPORT_INCLUDE_CONNECTIONS,
+                    required = false,
+                    defaultValue = "true") final boolean includeConnectionDetails,
+            @RequestParam(
+                    name = API.SEB_CLIENT_EVENT_EXPORT_INCLUDE_EXAMS,
+                    required = false,
+                    defaultValue = "false") final boolean includeExamDetails,
             @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
             @RequestParam final MultiValueMap<String, String> allRequestParams,
             final HttpServletRequest request,
@@ -169,21 +180,31 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
         populateFilterMap(filterMap, institutionId, sort);
 
         final ServletOutputStream outputStream = response.getOutputStream();
-
+        PipedOutputStream pout;
+        PipedInputStream pin;
         try {
+            pout = new PipedOutputStream();
+            pin = new PipedInputStream(pout);
+
+            final SEBServerUser currentUser = this.authorization
+                    .getUserService()
+                    .getCurrentUser();
 
             this.sebClientEventAdminService.exportSEBClientLogs(
-                    outputStream,
+                    pout,
                     filterMap,
                     sort,
                     type,
-                    false,
-                    false);
+                    includeConnectionDetails,
+                    includeExamDetails,
+                    currentUser);
+
+            IOUtils.copyLarge(pin, outputStream);
 
             response.setStatus(HttpStatus.OK.value());
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to export SEB client logs: ", e);
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+
+            outputStream.flush();
+
         } finally {
             outputStream.flush();
             outputStream.close();

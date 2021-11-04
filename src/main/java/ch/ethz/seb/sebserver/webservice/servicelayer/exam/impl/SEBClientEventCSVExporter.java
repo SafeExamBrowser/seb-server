@@ -13,16 +13,22 @@ import java.io.OutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.SEBClientEventExporter;
 
+@Lazy
+@Component
+@WebServiceProfile
 public class SEBClientEventCSVExporter implements SEBClientEventExporter {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientEventCSVExporter.class);
@@ -55,6 +61,12 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
             output.write(Utils.toByteArray(builder));
         } catch (final IOException e) {
             log.error("Failed to stream header: ", e);
+        } finally {
+            try {
+                output.flush();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -69,23 +81,36 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
         final EventType type = EventType.byId(eventData.getType());
 
         builder.append(type.name());
+        builder.append(Constants.COMMA);
         builder.append(Utils.toCSVString(eventData.getText()));
-        builder.append(eventData.getNumericValue());
+        builder.append(Constants.COMMA);
+        builder.append(eventData.getNumericValue() != null ? eventData.getNumericValue() : "");
+        builder.append(Constants.COMMA);
         builder.append(Utils.toDateTimeUTC(eventData.getClientTime()));
+        builder.append(Constants.COMMA);
         builder.append(Utils.toDateTimeUTC(eventData.getServerTime()));
 
         if (connectionData != null) {
+            builder.append(Constants.COMMA);
             builder.append(Utils.toCSVString(connectionData.getExamUserSessionId()));
+            builder.append(Constants.COMMA);
             builder.append(Utils.toCSVString(connectionData.getClientAddress()));
+            builder.append(Constants.COMMA);
             builder.append(connectionData.getStatus());
+            builder.append(Constants.COMMA);
             builder.append(connectionData.getConnectionToken());
         }
 
         if (examData != null) {
+            builder.append(Constants.COMMA);
             builder.append(Utils.toCSVString(examData.getName()));
+            builder.append(Constants.COMMA);
             builder.append(Utils.toCSVString(examData.getDescription()));
+            builder.append(Constants.COMMA);
             builder.append(examData.getType().name());
+            builder.append(Constants.COMMA);
             builder.append(examData.getStartTime());
+            builder.append(Constants.COMMA);
             builder.append(examData.getEndTime());
         }
 
@@ -95,6 +120,12 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
             output.write(Utils.toByteArray(builder));
         } catch (final IOException e) {
             log.error("Failed to stream header: ", e);
+        } finally {
+            try {
+                output.flush();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

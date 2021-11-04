@@ -199,6 +199,8 @@ public final class API {
     public static final String SEB_CLIENT_EVENT_SEARCH_PATH_SEGMENT = "/search";
     public static final String SEB_CLIENT_EVENT_EXPORT_PATH_SEGMENT = "/export";
     public static final String SEB_CLIENT_EVENT_EXPORT_TYPE = "exportType";
+    public static final String SEB_CLIENT_EVENT_EXPORT_INCLUDE_CONNECTIONS = "includeConnectionDetails";
+    public static final String SEB_CLIENT_EVENT_EXPORT_INCLUDE_EXAMS = "includeExamDetails";
     public static final String SEB_CLIENT_EVENT_EXTENDED_PAGE_ENDPOINT = SEB_CLIENT_EVENT_ENDPOINT
             + SEB_CLIENT_EVENT_SEARCH_PATH_SEGMENT;
 

@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +39,11 @@ public class SEBExamConfigDownload extends AbstractDownloadServiceHandler {
     }
 
     @Override
-    protected void webserviceCall(final String modelId, final String parentModelId, final OutputStream downloadOut) {
+    protected void webserviceCall(
+            final String modelId,
+            final String parentModelId,
+            final OutputStream downloadOut,
+            final HttpServletRequest request) {
 
         final InputStream input = this.restService.getBuilder(ExportExamConfig.class)
                 .withURIVariable(API.PARAM_MODEL_ID, modelId)

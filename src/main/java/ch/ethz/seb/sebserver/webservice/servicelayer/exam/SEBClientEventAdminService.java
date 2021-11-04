@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 
 public interface SEBClientEventAdminService {
@@ -30,6 +31,7 @@ public interface SEBClientEventAdminService {
             String sort,
             ExportType exportType,
             boolean includeConnectionDetails,
-            boolean includeExamDetails);
+            boolean includeExamDetails,
+            final SEBServerUser currentUser);
 
 }

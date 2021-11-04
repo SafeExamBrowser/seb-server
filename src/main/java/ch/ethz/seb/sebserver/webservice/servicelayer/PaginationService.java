@@ -94,9 +94,9 @@ public interface PaginationService {
      * @param tableName the name of the SQL table on which the pagination is applying to
      * @param delegate a collection supplier the does the underling SQL query with specified pagination attributes
      * @return Result refers to a Collection of specified type of objects or to an exception on error case */
-    <T> Result<Collection<T>> fetch(
-            final int pageNumber,
-            final int pageSize,
+    <T> Result<Page<T>> getPageOf(
+            final Integer pageNumber,
+            final Integer pageSize,
             final String sort,
             final String tableName,
             final Supplier<Result<Collection<T>>> delegate);
