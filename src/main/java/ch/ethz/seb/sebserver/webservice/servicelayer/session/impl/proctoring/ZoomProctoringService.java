@@ -623,6 +623,10 @@ public class ZoomProctoringService implements ExamProctoringService {
                     credentials.clientIdAsString(),
                     expTime);
 
+            if (log.isTraceEnabled()) {
+                log.trace("Zoom API Token payload: {}", jwtPayload);
+            }
+
             final String jwtPayloadPart = urlEncoder
                     .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
 
@@ -675,6 +679,10 @@ public class ZoomProctoringService implements ExamProctoringService {
                     expTime,
                     expTime);
 
+            if (log.isTraceEnabled()) {
+                log.trace("Zoom SDK Token payload: {}", jwtPayload);
+            }
+
             final String jwtPayloadPart = urlEncoder
                     .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
 
@@ -723,6 +731,10 @@ public class ZoomProctoringService implements ExamProctoringService {
             final String hashBase64Str = DatatypeConverter.printBase64Binary(hash);
             final String tmpString = String.format("%s.%s.%s.%d.%s", apiKey, meetingId, ts, status, hashBase64Str);
             final String encodedString = Base64.getEncoder().encodeToString(tmpString.getBytes());
+
+            if (log.isTraceEnabled()) {
+                log.trace("Zoom Meeting signature payload: {}", tmpString);
+            }
 
             return encodedString.replaceAll("\\=+$", "");
 
