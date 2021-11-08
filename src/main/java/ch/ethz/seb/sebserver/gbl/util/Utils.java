@@ -666,4 +666,12 @@ public final class Utils {
         }
     }
 
+    public static CharSequence trim(final CharSequence sequence) {
+        if (sequence == null) {
+            return null;
+        }
+
+        return StringUtils.trim(sequence.toString());
+    }
+
 }
