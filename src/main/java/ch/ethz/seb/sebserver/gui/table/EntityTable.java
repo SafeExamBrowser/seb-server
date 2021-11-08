@@ -243,6 +243,14 @@ public class EntityTable<ROW> {
         return this.name;
     }
 
+    public String getSortColumn() {
+        return this.sortColumn;
+    }
+
+    public PageSortOrder getSortOrder() {
+        return this.sortOrder;
+    }
+
     public EntityType getEntityType() {
         if (this.pageSupplier != null) {
             return this.pageSupplier.getEntityType();

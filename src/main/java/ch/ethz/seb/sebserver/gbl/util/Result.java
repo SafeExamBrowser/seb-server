@@ -262,6 +262,13 @@ public final class Result<T> {
         }
     }
 
+    public Result<T> onSuccess(final Consumer<T> handler) {
+        if (this.error == null) {
+            handler.accept(this.value);
+        }
+        return this;
+    }
+
     /** Uses a given error handler to apply an error if there is one and returning itself again
      * for further processing.
      *

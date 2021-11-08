@@ -770,6 +770,10 @@ public enum ActionDefinition {
             ImageIcon.DELETE,
             PageStateDefinitionImpl.SEB_CLIENT_LOGS,
             ActionCategory.LOGS_SEB_CLIENT_LIST),
+    LOGS_SEB_CLIENT_EXPORT_CSV(
+            new LocTextKey("sebserver.seblogs.action.export.csv"),
+            ImageIcon.EXPORT,
+            ActionCategory.LOGS_SEB_CLIENT_LIST),
 
     ;
 

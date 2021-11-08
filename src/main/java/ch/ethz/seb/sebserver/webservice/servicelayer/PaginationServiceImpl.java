@@ -147,6 +147,29 @@ public class PaginationServiceImpl implements PaginationService {
         });
     }
 
+    @Override
+    public <T> Result<Page<T>> getPageOf(
+            final Integer pageNumber,
+            final Integer pageSize,
+            final String sort,
+            final String tableName,
+            final Supplier<Result<Collection<T>>> delegate) {
+
+        return Result.tryCatch(() -> {
+            //final SqlTable table = SqlTable.of(tableName);
+            final com.github.pagehelper.Page<Object> page =
+                    setPagination(pageNumber, pageSize, sort, tableName);
+
+            final Collection<T> list = delegate.get().getOrThrow();
+
+            return new Page<>(
+                    page.getPages(),
+                    page.getPageNum(),
+                    sort,
+                    list);
+        });
+    }
+
     private String verifySortColumnName(final String sort, final String columnName) {
 
         if (StringUtils.isBlank(sort)) {
