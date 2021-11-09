@@ -24,6 +24,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
@@ -180,7 +181,7 @@ public class DistributedPingCache implements DisposableBean {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED)
     public void updateCache() {
 
         if (this.pingCache.isEmpty()) {
