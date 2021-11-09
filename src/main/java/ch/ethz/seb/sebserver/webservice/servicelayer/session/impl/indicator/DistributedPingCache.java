@@ -180,7 +180,7 @@ public class DistributedPingCache implements DisposableBean {
         }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public void updateCache() {
 
         if (this.pingCache.isEmpty()) {
