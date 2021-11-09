@@ -77,7 +77,9 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
             // Update last ping time on persistent storage
             final long millisecondsNow = DateTimeUtils.currentTimeMillis();
             if (millisecondsNow - this.lastUpdate > INTERVAL_FOR_PERSISTENT_UPDATE) {
-                this.distributedPingCache.updatePing(this.pingRecord, millisecondsNow);
+                synchronized (this) {
+                    this.distributedPingCache.updatePing(this.pingRecord, millisecondsNow);
+                }
             }
         }
     }
