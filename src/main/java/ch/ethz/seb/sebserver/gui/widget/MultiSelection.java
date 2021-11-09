@@ -36,7 +36,7 @@ public final class MultiSelection extends Composite implements Selection {
 
     private Listener listener = null;
 
-    MultiSelection(final Composite parent) {
+    MultiSelection(final Composite parent, final String testKey) {
         super(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(1, true);
         gridLayout.verticalSpacing = 1;
@@ -44,6 +44,9 @@ public final class MultiSelection extends Composite implements Selection {
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
         setLayout(gridLayout);
+        if (testKey != null) {
+            WidgetFactory.setTestId(this, testKey);
+        }
     }
 
     @Override

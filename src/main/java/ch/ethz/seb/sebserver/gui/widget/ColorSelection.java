@@ -95,6 +95,10 @@ public final class ColorSelection extends Composite implements Selection {
         actionCell.widthHint = ACTION_COLUMN_WIDTH;
         imageButton.setLayoutData(actionCell);
 
+        if (tooltipKeyPrefix != null) {
+            WidgetFactory.setTestId(this, tooltipKeyPrefix);
+        }
+
         this.addListener(SWT.Resize, this::adaptColumnWidth);
     }
 

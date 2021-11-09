@@ -8,11 +8,11 @@
 
 package ch.ethz.seb.sebserver.gui.widget;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.util.Tuple;
-import ch.ethz.seb.sebserver.gbl.util.Tuple3;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -21,10 +21,11 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
+import ch.ethz.seb.sebserver.gbl.util.Tuple3;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.page.PageService;
 
 public final class MultiSelectionCheckbox extends Composite implements Selection {
 
@@ -33,7 +34,7 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
     private Listener listener = null;
     private final Map<String, Button> checkboxes;
 
-    MultiSelectionCheckbox(final Composite parent) {
+    MultiSelectionCheckbox(final Composite parent, final String testKey) {
         super(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(1, true);
         gridLayout.verticalSpacing = 1;
@@ -41,6 +42,9 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
         setLayout(gridLayout);
+        if (testKey != null) {
+            WidgetFactory.setTestId(this, testKey);
+        }
 
         this.checkboxes = new LinkedHashMap<>();
     }

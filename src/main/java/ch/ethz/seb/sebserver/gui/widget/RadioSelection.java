@@ -31,7 +31,7 @@ public final class RadioSelection extends Composite implements Selection {
     private Listener listener = null;
     private final Map<String, Button> radioButtons;
 
-    RadioSelection(final Composite parent) {
+    RadioSelection(final Composite parent, final String testKey) {
         super(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(1, true);
         gridLayout.verticalSpacing = 1;
@@ -39,6 +39,9 @@ public final class RadioSelection extends Composite implements Selection {
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
         setLayout(gridLayout);
+        if (testKey != null) {
+            WidgetFactory.setTestId(this, testKey);
+        }
 
         this.radioButtons = new LinkedHashMap<>();
     }
@@ -65,6 +68,7 @@ public final class RadioSelection extends Composite implements Selection {
                     this.listener.handleEvent(event);
                 }
             });
+            WidgetFactory.setTestId(button, tuple._1);
             this.radioButtons.put(tuple._1, button);
         }
 

@@ -323,6 +323,7 @@ public class TableFilter<ROW> {
 
             this.textInput = TableFilter.this.entityTable.widgetFactory.textInput(
                     innerComposite,
+                    TableFilter.this.entityTable.getName() + "_" + this.attribute.columnName,
                     super.attribute.columnName);
             this.textInput.setLayoutData(gridData);
             return this;
@@ -375,7 +376,8 @@ public class TableFilter<ROW> {
                     .selectionLocalized(
                             ch.ethz.seb.sebserver.gui.widget.Selection.Type.SINGLE,
                             innerComposite,
-                            resourceSupplier);
+                            resourceSupplier,
+                            TableFilter.this.entityTable.getName() + "_" + this.attribute.columnName);
 
             this.selector
                     .adaptToControl()
@@ -429,7 +431,9 @@ public class TableFilter<ROW> {
         @Override
         FilterComponent build(final Composite parent) {
             final Composite innerComposite = createInnerComposite(parent);
-            this.selector = TableFilter.this.entityTable.widgetFactory.dateSelector(innerComposite);
+            this.selector = TableFilter.this.entityTable.widgetFactory.dateSelector(
+                    innerComposite,
+                    TableFilter.this.entityTable.getName() + "_" + this.attribute.columnName);
             return this;
         }
 
@@ -520,17 +524,18 @@ public class TableFilter<ROW> {
             this.innerComposite.setLayout(gridLayout);
             this.innerComposite.setLayoutData(this.rowData);
 
+            final String testKey = TableFilter.this.entityTable.getName() + "_" + this.attribute.columnName;
             final WidgetFactory wf = TableFilter.this.entityTable.widgetFactory;
             wf.labelLocalized(this.innerComposite, DATE_FROM_TEXT);
-            this.fromDateSelector = wf.dateSelector(this.innerComposite);
+            this.fromDateSelector = wf.dateSelector(this.innerComposite, testKey);
             if (this.withTime) {
-                this.fromTimeSelector = wf.timeSelector(this.innerComposite);
+                this.fromTimeSelector = wf.timeSelector(this.innerComposite, testKey);
             }
 
             wf.labelLocalized(this.innerComposite, DATE_TO_TEXT);
-            this.toDateSelector = wf.dateSelector(this.innerComposite);
+            this.toDateSelector = wf.dateSelector(this.innerComposite, testKey);
             if (this.withTime) {
-                this.toTimeSelector = wf.timeSelector(this.innerComposite);
+                this.toTimeSelector = wf.timeSelector(this.innerComposite, testKey);
             }
 
             return this;
