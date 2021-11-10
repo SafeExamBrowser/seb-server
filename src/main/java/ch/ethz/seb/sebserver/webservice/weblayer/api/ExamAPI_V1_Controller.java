@@ -131,7 +131,8 @@ public class ExamAPI_V1_Controller {
                                 .map(this::createRunningExamInfo)
                                 .collect(Collectors.toList());
                     } else {
-                        final Exam exam = this.examSessionService.getExamDAO().byPK(examId)
+                        final Exam exam = this.examSessionService.getExamDAO()
+                                .byPK(examId)
                                 .getOrThrow();
 
                         result = Arrays.asList(createRunningExamInfo(exam));

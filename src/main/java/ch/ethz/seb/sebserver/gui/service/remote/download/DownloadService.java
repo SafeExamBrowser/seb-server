@@ -8,9 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.download;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import java.util.Collection;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.service.ServiceHandler;
@@ -19,12 +24,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Collection;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 /** Implements a eclipse RAP ServiceHandler to handle downloads */
 @Lazy
@@ -71,6 +74,33 @@ public class DownloadService implements ServiceHandler {
         this.handler
                 .get(handlerName)
                 .processDownload(request, response);
+    }
+
+    public String createDownloadURL(
+            final Class<? extends DownloadServiceHandler> handlerClass,
+            final String downloadFileName,
+            final Map<String, String> queryAttrs) {
+
+        final StringBuilder url = new StringBuilder()
+                .append(RWT.getServiceManager()
+                        .getServiceHandlerUrl(DownloadService.DOWNLOAD_SERVICE_NAME))
+                .append(Constants.FORM_URL_ENCODED_SEPARATOR)
+                .append(DownloadService.HANDLER_NAME_PARAMETER)
+                .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
+                .append(handlerClass.getSimpleName())
+                .append(Constants.FORM_URL_ENCODED_SEPARATOR)
+                .append(DownloadService.DOWNLOAD_FILE_NAME)
+                .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
+                .append(downloadFileName);
+
+        queryAttrs.forEach((name, value) -> {
+            url.append(Constants.FORM_URL_ENCODED_SEPARATOR)
+                    .append(name)
+                    .append(Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR)
+                    .append(Utils.encodeFormURL_UTF_8(value));
+        });
+
+        return url.toString();
     }
 
     public String createDownloadURL(

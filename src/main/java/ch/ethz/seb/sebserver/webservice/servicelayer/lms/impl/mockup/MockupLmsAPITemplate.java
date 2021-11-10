@@ -236,10 +236,6 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
                         this.webserviceInfo.getHttpScheme() +
                                 "://" + externalAddressAlias + "/api/";
 
-                if (log.isTraceEnabled()) {
-                    log.trace("Use external address for course access: {}", _externalStartURI);
-                }
-
                 return new QuizData(
                         quizData.id, quizData.institutionId, quizData.lmsSetupId, quizData.lmsType,
                         quizData.name, quizData.description, quizData.startTime,

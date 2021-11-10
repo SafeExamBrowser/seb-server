@@ -623,6 +623,10 @@ public class ZoomProctoringService implements ExamProctoringService {
                     credentials.clientIdAsString(),
                     expTime);
 
+            if (log.isTraceEnabled()) {
+                log.trace("Zoom API Token payload: {}", jwtPayload);
+            }
+
             final String jwtPayloadPart = urlEncoder
                     .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
 
@@ -675,6 +679,10 @@ public class ZoomProctoringService implements ExamProctoringService {
                     expTime,
                     expTime);
 
+            if (log.isTraceEnabled()) {
+                log.trace("Zoom SDK Token payload: {}", jwtPayload);
+            }
+
             final String jwtPayloadPart = urlEncoder
                     .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
 
@@ -724,6 +732,10 @@ public class ZoomProctoringService implements ExamProctoringService {
             final String tmpString = String.format("%s.%s.%s.%d.%s", apiKey, meetingId, ts, status, hashBase64Str);
             final String encodedString = Base64.getEncoder().encodeToString(tmpString.getBytes());
 
+            if (log.isTraceEnabled()) {
+                log.trace("Zoom Meeting signature payload: {}", tmpString);
+            }
+
             return encodedString.replaceAll("\\=+$", "");
 
         } catch (final Exception e) {
@@ -732,12 +744,16 @@ public class ZoomProctoringService implements ExamProctoringService {
     }
 
     private long forExam(final ProctoringServiceSettings examProctoring) {
-        if (examProctoring.examId == null) {
-            throw new IllegalStateException("Missing exam identifier from ExamProctoring data");
-        }
 
-        long expTime = Utils.toSeconds(System.currentTimeMillis() + Constants.DAY_IN_MILLIS);
-        if (this.examSessionService.isExamRunning(examProctoring.examId)) {
+        // TODO
+        // NOTE: following is the original code that includes the exam end time but seems to make trouble for OLAT
+        final long nowInSeconds = Utils.getSecondsNow();
+        final long nowPlus30MinInSeconds = nowInSeconds + Utils.toSeconds(30 * Constants.MINUTE_IN_MILLIS);
+        final long nowPlusOneDayInSeconds = nowInSeconds + Utils.toSeconds(Constants.DAY_IN_MILLIS);
+        final long nowPlusTwoDayInSeconds = nowInSeconds + Utils.toSeconds(2 * Constants.DAY_IN_MILLIS);
+
+        long expTime = nowPlusOneDayInSeconds;
+        if (examProctoring.examId == null && this.examSessionService.isExamRunning(examProctoring.examId)) {
             final Exam exam = this.examSessionService.getRunningExam(examProctoring.examId)
                     .getOrThrow();
             if (exam.endTime != null) {
@@ -746,10 +762,16 @@ public class ZoomProctoringService implements ExamProctoringService {
         }
         // refer to https://marketplace.zoom.us/docs/sdk/native-sdks/auth
         // "exp": 0, //JWT expiration date (Min:1800 seconds greater than iat value, Max: 48 hours greater than iat value) in epoch format.
-        if (expTime - Utils.getSecondsNow() > Utils.toSeconds(2 * Constants.DAY_IN_MILLIS)) {
-            expTime = Utils.toSeconds(System.currentTimeMillis() + Constants.DAY_IN_MILLIS);
+        if (expTime > nowPlusTwoDayInSeconds) {
+            expTime = nowPlusTwoDayInSeconds - 10; // Do not set to max because it is not well defined if max is included or not
+        } else if (expTime < nowPlus30MinInSeconds) {
+            expTime = nowPlusOneDayInSeconds;
         }
-        return expTime;
+
+        log.debug("**** SDK Token exp time with exam-end-time inclusion would be: {}", expTime);
+
+        // NOTE: Set this to the maximum according to https://marketplace.zoom.us/docs/sdk/native-sdks/auth
+        return nowPlusTwoDayInSeconds - 10; // Do not set to max because it is not well defined if max is included or not;
     }
 
     private final static class ZoomRestTemplate {

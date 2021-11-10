@@ -21,9 +21,11 @@ import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
@@ -51,13 +53,14 @@ public class DistributedPingCache implements DisposableBean {
             final ClientEventLastPingMapper clientEventLastPingMapper,
             final ClientEventRecordMapper clientEventRecordMapper,
             final WebserviceInfo webserviceInfo,
-            final TaskScheduler taskScheduler) {
+            final TaskScheduler taskScheduler,
+            @Value("${sebserver.webservice.distributed.pingUpdate:3000}") final long pingUpdate) {
 
         this.clientEventLastPingMapper = clientEventLastPingMapper;
         this.clientEventRecordMapper = clientEventRecordMapper;
         if (webserviceInfo.isDistributed()) {
             try {
-                this.taskRef = taskScheduler.scheduleAtFixedRate(this::updateCache, 1000);
+                this.taskRef = taskScheduler.scheduleAtFixedRate(this::updateCache, pingUpdate);
             } catch (final Exception e) {
                 log.error("Failed to initialize distributed ping cache update task");
                 this.taskRef = null;
@@ -126,7 +129,6 @@ public class DistributedPingCache implements DisposableBean {
         }
     }
 
-    @Transactional
     public void updatePing(final Long pingRecordId, final Long pingTime) {
         try {
 
@@ -155,6 +157,8 @@ public class DistributedPingCache implements DisposableBean {
 
         } catch (final Exception e) {
             log.error("Failed to delete ping for connection -> {}", connectionId, e);
+        } finally {
+            this.pingCache.remove(connectionId);
         }
     }
 
@@ -180,7 +184,7 @@ public class DistributedPingCache implements DisposableBean {
         }
     }
 
-    @Transactional
+    @Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED)
     public void updateCache() {
 
         if (this.pingCache.isEmpty()) {

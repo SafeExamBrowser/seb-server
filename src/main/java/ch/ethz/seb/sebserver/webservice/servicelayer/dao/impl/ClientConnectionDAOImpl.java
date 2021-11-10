@@ -391,6 +391,19 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional
+    public Result<Void> markForProctoringUpdate(final Long id) {
+        return Result.tryCatch(() -> {
+            this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
+                    id,
+                    null, null, null, null, null,
+                    null, null, null, null, null, null,
+                    null,
+                    1));
+        });
+    }
+
+    @Override
+    @Transactional
     public Result<Void> removeFromProctoringRoom(final Long connectionId, final String connectionToken) {
         return Result.tryCatch(() -> {
             final ClientConnectionRecord record = this.clientConnectionRecordMapper.selectByPrimaryKey(connectionId);

@@ -267,7 +267,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // connection integrity check
             if (clientConnection.status == ConnectionStatus.ACTIVE) {
-                if (clientConnection.clientAddress != null && clientConnection.clientAddress.equals(clientAddress)) {
+                if (clientConnection.clientAddress != null &&
+                        (StringUtils.isBlank(clientAddress) || clientConnection.clientAddress.equals(clientAddress))) {
                     // It seems that this is the same SEB that tries to establish the connection once again.
                     // Just log this and return already established connection
                     if (log.isDebugEnabled()) {

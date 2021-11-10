@@ -40,17 +40,8 @@ public abstract class AbstractDownloadServiceHandler implements DownloadServiceH
             log.debug("download requested... trying to get needed parameter from request");
 
             final String modelId = request.getParameter(API.PARAM_MODEL_ID);
-            if (StringUtils.isBlank(modelId)) {
-                log.error(
-                        "Mandatory modelId parameter not found within HttpServletRequest. Download request is ignored");
-                return;
-            }
-
             if (log.isDebugEnabled()) {
-                log.debug(
-                        "Found modelId: {} for {} download. Trying to request webservice...",
-                        modelId,
-                        downloadFileName);
+                log.debug("Found modelId: {} for {} download.", modelId);
             }
 
             final String parentModelId = request.getParameter(API.PARAM_PARENT_MODEL_ID);
@@ -67,7 +58,7 @@ public abstract class AbstractDownloadServiceHandler implements DownloadServiceH
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION, header);
             response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
-            webserviceCall(modelId, parentModelId, response.getOutputStream());
+            webserviceCall(modelId, parentModelId, response.getOutputStream(), request);
 
         } catch (final Exception e) {
             log.error(
@@ -76,6 +67,10 @@ public abstract class AbstractDownloadServiceHandler implements DownloadServiceH
         }
     }
 
-    protected abstract void webserviceCall(String modelId, String parentModelId, OutputStream downloadOut);
+    protected abstract void webserviceCall(
+            String modelId,
+            String parentModelId,
+            OutputStream downloadOut,
+            HttpServletRequest request);
 
 }

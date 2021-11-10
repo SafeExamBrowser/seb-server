@@ -51,7 +51,8 @@ public class ExamProctoringRoomServiceTest extends AdministrationAPIIntegrationT
         assertFalse(runningExamsForInstitution.hasError());
         final Collection<Exam> collection = runningExamsForInstitution.get();
         assertFalse(collection.isEmpty());
-        final Exam exam = collection.iterator().next();
+        final Exam exam = collection.stream().filter(e -> e.id == 2L).findAny().orElse(null);
+        assertNotNull(exam);
         assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
         assertEquals("2", String.valueOf(exam.id));
     }
