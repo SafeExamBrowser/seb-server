@@ -75,23 +75,25 @@ public class ProctorRoomConnectionsPopup {
                 .call()
                 .getOrThrow());
 
-        this.pageService.staticListTableBuilder(connections, EntityType.CLIENT_CONNECTION)
+        final EntityTable<ClientConnection> compose =
+                this.pageService.staticListTableBuilder(connections, EntityType.CLIENT_CONNECTION)
 
-                .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
-                .withPaging(10)
+                        .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
+                        .withPaging(10)
 
-                .withColumn(new ColumnDefinition<>(
-                        Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
-                        TABLE_COLUMN_NAME,
-                        ClientConnection::getUserSessionId))
+                        .withColumn(new ColumnDefinition<>(
+                                Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
+                                TABLE_COLUMN_NAME,
+                                ClientConnection::getUserSessionId))
 
-                .withDefaultAction(t -> actionBuilder
-                        .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
-                        .withParentEntityKey(parentEntityKey)
-                        .withExec(action -> showClientConnection(action, dialog, t))
-                        .create())
+                        .withDefaultAction(t -> actionBuilder
+                                .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
+                                .withParentEntityKey(parentEntityKey)
+                                .withExec(action -> showClientConnection(action, dialog, t))
+                                .create())
 
-                .compose(pageContext);
+                        .compose(pageContext);
+        compose.reset();
     }
 
     private PageAction showClientConnection(
