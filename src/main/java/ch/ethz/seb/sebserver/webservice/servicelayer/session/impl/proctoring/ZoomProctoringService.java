@@ -745,6 +745,7 @@ public class ZoomProctoringService implements ExamProctoringService {
 
     private long forExam(final ProctoringServiceSettings examProctoring) {
 
+        // TODO
         // NOTE: following is the original code that includes the exam end time but seems to make trouble for OLAT
         final long nowInSeconds = Utils.getSecondsNow();
         final long nowPlus30MinInSeconds = nowInSeconds + Utils.toSeconds(30 * Constants.MINUTE_IN_MILLIS);
