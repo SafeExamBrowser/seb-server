@@ -106,8 +106,17 @@ public class StaticListPageSupplier<T> implements PageSupplier<T> {
                 if (numOfPages <= 0) {
                     return new Page<>(1, 1, this.column, this.list);
                 }
-                final List<T> subList = this.list.subList(this.pageNumber * this.pageSize,
-                        this.pageNumber * this.pageSize + this.pageSize);
+
+                int from = (this.pageNumber - 1) * this.pageSize;
+                if (from < 0) {
+                    from = 0;
+                }
+                int to = (this.pageNumber - 1) * this.pageSize + this.pageSize;
+                if (to >= this.list.size()) {
+                    to = this.list.size();
+                }
+
+                final List<T> subList = this.list.subList(from, to);
                 return new Page<>(numOfPages, this.pageNumber, this.column, subList);
             });
         }

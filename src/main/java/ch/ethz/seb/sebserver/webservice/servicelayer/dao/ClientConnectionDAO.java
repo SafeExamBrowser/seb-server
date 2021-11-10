@@ -132,6 +132,8 @@ public interface ClientConnectionDAO extends
             key = "#connectionToken")
     Result<Void> removeFromProctoringRoom(Long connectionId, String connectionToken);
 
+    Result<Void> markForProctoringUpdate(Long id);
+
     /** Deletes the given ClientConnection data.
      *
      * This evicts all entries from the CONNECTION_TOKENS_CACHE.

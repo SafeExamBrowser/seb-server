@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -35,14 +37,16 @@ public class SEBClientConfigDownload extends AbstractDownloadServiceHandler {
 
     private final RestService restService;
 
-    protected SEBClientConfigDownload(
-            final RestService restService) {
-
+    protected SEBClientConfigDownload(final RestService restService) {
         this.restService = restService;
     }
 
     @Override
-    protected void webserviceCall(final String modelId, final String parentModelId, final OutputStream downloadOut) {
+    protected void webserviceCall(
+            final String modelId,
+            final String parentModelId,
+            final OutputStream downloadOut,
+            final HttpServletRequest request) {
 
         final RestCall<InputStream>.RestCallBuilder restCallBuilder = this.restService
                 .getBuilder(ExportClientConfig.class)

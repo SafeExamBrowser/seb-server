@@ -282,21 +282,28 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     private void assignToCollectingRoom(final ClientConnectionRecord cc) {
         try {
 
-            final RemoteProctoringRoom proctoringRoom = getProctoringRoom(
-                    cc.getExamId(),
-                    cc.getConnectionToken());
+            if (cc.getRemoteProctoringRoomId() == null) {
 
-            this.clientConnectionDAO
-                    .assignToProctoringRoom(
-                            cc.getId(),
-                            cc.getConnectionToken(),
-                            proctoringRoom.id)
+                final RemoteProctoringRoom proctoringRoom = getProctoringRoom(
+                        cc.getExamId(),
+                        cc.getConnectionToken());
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Assigning new SEB client to proctoring room: {}, connection: {}",
+                            proctoringRoom.id,
+                            cc);
+                }
+
+                this.clientConnectionDAO
+                        .assignToProctoringRoom(
+                                cc.getId(),
+                                cc.getConnectionToken(),
+                                proctoringRoom.id)
+                        .getOrThrow();
+            }
+
+            applyProcotringInstruction(cc)
                     .getOrThrow();
-
-            applyProcotringInstruction(
-                    cc.getExamId(),
-                    cc.getConnectionToken())
-                            .getOrThrow();
 
         } catch (final Exception e) {
             log.error("Failed to assign connection to collecting room: {}", cc, e);
@@ -598,11 +605,11 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 });
     }
 
-    private Result<Void> applyProcotringInstruction(
-            final Long examId,
-            final String connectionToken) {
+    private Result<Void> applyProcotringInstruction(final ClientConnectionRecord cc) {
 
         return Result.tryCatch(() -> {
+            final Long examId = cc.getExamId();
+            final String connectionToken = cc.getConnectionToken();
             final ProctoringServiceSettings settings = this.examAdminService
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
@@ -624,17 +631,32 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                         townhallRoom.subject)
                         .getOrThrow();
 
-                sendJoinInstruction(
-                        examId,
-                        connectionToken,
-                        roomConnection,
-                        examProctoringService);
+                try {
+                    sendJoinInstruction(
+                            examId,
+                            connectionToken,
+                            roomConnection,
+                            examProctoringService);
+                } catch (final Exception e) {
+                    log.error("Failed to send join for town-hall room assignment to connection: {}", cc);
+                    this.clientConnectionDAO
+                            .markForProctoringUpdate(cc.getId())
+                            .onError(error -> log.error("Failed to mark connection for proctoring update: ", error));
+                }
             } else {
+                try {
 
-                sendJoinCollectingRoomInstructions(
-                        settings,
-                        Arrays.asList(connectionToken),
-                        examProctoringService);
+                    sendJoinCollectingRoomInstruction(
+                            settings,
+                            examProctoringService,
+                            connectionToken);
+
+                } catch (final Exception e) {
+                    log.error("Failed to send join for collecting room assignment to connection: {}", cc);
+                    this.clientConnectionDAO
+                            .markForProctoringUpdate(cc.getId())
+                            .onError(error -> log.error("Failed to mark connection for proctoring update: ", error));
+                }
 
             }
         });
@@ -653,23 +675,30 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         clientConnectionTokens
                 .stream()
                 .forEach(connectionToken -> {
-                    final ProctoringRoomConnection proctoringConnection = examProctoringService
-                            .getClientRoomConnection(
-                                    proctoringSettings,
+                    try {
+                        final ProctoringRoomConnection proctoringConnection = examProctoringService
+                                .getClientRoomConnection(
+                                        proctoringSettings,
+                                        connectionToken,
+                                        roomName,
+                                        (StringUtils.isNotBlank(subject)) ? subject : roomName)
+                                .onError(error -> log.error(
+                                        "Failed to get client room connection data for {} cause: {}",
+                                        connectionToken,
+                                        error.getMessage()))
+                                .get();
+                        if (proctoringConnection != null) {
+                            sendJoinInstruction(
+                                    proctoringSettings.examId,
                                     connectionToken,
-                                    roomName,
-                                    (StringUtils.isNotBlank(subject)) ? subject : roomName)
-                            .onError(error -> log.error(
-                                    "Failed to get client room connection data for {} cause: {}",
-                                    connectionToken,
-                                    error.getMessage()))
-                            .get();
-                    if (proctoringConnection != null) {
-                        sendJoinInstruction(
-                                proctoringSettings.examId,
-                                connectionToken,
-                                proctoringConnection,
-                                examProctoringService);
+                                    proctoringConnection,
+                                    examProctoringService);
+                        }
+                    } catch (final Exception e) {
+                        log.error("Failed to send join to break-out room: {} connection: {}",
+                                roomName,
+                                roomName,
+                                e);
                     }
                 });
 
@@ -688,10 +717,18 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
         clientConnectionTokens
                 .stream()
-                .forEach(connectionToken -> sendJoinCollectingRoomInstruction(
-                        proctoringSettings,
-                        examProctoringService,
-                        connectionToken));
+                .forEach(connectionToken -> {
+                    try {
+                        sendJoinCollectingRoomInstruction(
+                                proctoringSettings,
+                                examProctoringService,
+                                connectionToken);
+                    } catch (final Exception e) {
+                        log.error(
+                                "Failed to send proctoring room join instruction to single client. Skip and proceed with other clients. {}",
+                                e.getMessage());
+                    }
+                });
     }
 
     private void sendJoinCollectingRoomInstruction(
@@ -721,8 +758,10 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     clientConnection.clientConnection.connectionToken,
                     proctoringConnection,
                     examProctoringService);
+
         } catch (final Exception e) {
             log.error("Failed to send proctoring room join instruction to client: {}", connectionToken, e);
+            throw e;
         }
     }
 
@@ -731,6 +770,12 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final String connectionToken,
             final ProctoringRoomConnection proctoringConnection,
             final ExamProctoringService examProctoringService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Send proctoring join instruction to connection: {}, room: {}",
+                    connectionToken,
+                    proctoringConnection.roomName);
+        }
 
         final Map<String, String> attributes = examProctoringService
                 .createJoinInstructionAttributes(proctoringConnection);
@@ -742,7 +787,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                         attributes,
                         connectionToken,
                         true)
-                .onError(error -> log.error("Failed to send join instruction: {}", connectionToken, error));
+                .onError(error -> log.error("Failed to send join instruction: {}", connectionToken, error))
+                .getOrThrow();
     }
 
 }

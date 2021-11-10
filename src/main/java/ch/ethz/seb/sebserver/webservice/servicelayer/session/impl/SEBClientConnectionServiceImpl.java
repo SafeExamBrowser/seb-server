@@ -185,10 +185,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final String clientId) {
 
         return Result.tryCatch(() -> {
-            
 
             final ClientConnection clientConnection = getClientConnection(connectionToken);
-
             checkInstitutionalIntegrity(institutionId, clientConnection);
             checkExamIntegrity(examId, clientConnection);
 
@@ -203,7 +201,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             if (examId != null) {
                 checkExamIntegrity(examId);
             }
-            
+
             if (log.isDebugEnabled()) {
                 log.debug(
                         "SEB client connection, update ClientConnection for "
@@ -268,10 +266,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         return Result.tryCatch(() -> {
 
             ClientConnection clientConnection = getClientConnection(connectionToken);
-            
+
             // connection integrity check
             if (clientConnection.status == ConnectionStatus.ACTIVE) {
-                if (clientConnection.clientAddress != null && clientConnection.clientAddress.equals(clientAddress)) {
+                if (clientConnection.clientAddress != null &&
+                        (StringUtils.isBlank(clientAddress) || clientConnection.clientAddress.equals(clientAddress))) {
                     // It seems that this is the same SEB that tries to establish the connection once again.
                     // Just log this and return already established connection
                     if (log.isDebugEnabled()) {
@@ -294,7 +293,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 throw new IllegalArgumentException(
                         "ClientConnection integrity violation: client connection is not in expected state");
             }
-            
+
             if (log.isDebugEnabled()) {
                 log.debug(
                         "SEB client connection, establish ClientConnection for "
@@ -311,7 +310,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         userSessionId,
                         clientId);
             }
-            
+
             checkInstitutionalIntegrity(institutionId, clientConnection);
             checkExamIntegrity(examId, clientConnection);
             clientConnection = updateUserSessionId(userSessionId, clientConnection, examId);

@@ -24,6 +24,8 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
 
+    public static final String FILE_EXT_CSV = ".csv";
+
     public static final String DEFAULT_LANG_CODE = "en";
     public static final String DEFAULT_TIME_ZONE_CODE = "UTC";
     public static final String TOOLTIP_TEXT_KEY_SUFFIX = ".tooltip";

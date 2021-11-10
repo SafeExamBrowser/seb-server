@@ -215,7 +215,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
                 .toString();
 
         if (log.isDebugEnabled()) {
-            log.debug("Send SEB client instruction: {} to: {} ", connectionToken, instructionJSON);
+            log.debug("Send SEB client instruction: {} to: {} ", instructionJSON, connectionToken);
         }
 
         return instructionJSON;

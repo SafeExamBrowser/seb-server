@@ -37,6 +37,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -180,7 +181,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     EntityType.EXAM,
                     examId,
                     ProctoringServiceSettings.ATTR_SERVER_URL,
-                    proctoringServiceSettings.serverURL);
+                    StringUtils.trim(proctoringServiceSettings.serverURL));
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
@@ -192,13 +193,13 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     EntityType.EXAM,
                     examId,
                     ProctoringServiceSettings.ATTR_APP_KEY,
-                    proctoringServiceSettings.appKey);
+                    StringUtils.trim(proctoringServiceSettings.appKey));
 
             this.additionalAttributesDAO.saveAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
                     ProctoringServiceSettings.ATTR_APP_SECRET,
-                    this.cryptor.encrypt(proctoringServiceSettings.appSecret)
+                    this.cryptor.encrypt(Utils.trim(proctoringServiceSettings.appSecret))
                             .getOrThrow()
                             .toString());
 
@@ -207,13 +208,13 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                         EntityType.EXAM,
                         examId,
                         ProctoringServiceSettings.ATTR_SDK_KEY,
-                        proctoringServiceSettings.sdkKey);
+                        StringUtils.trim(proctoringServiceSettings.sdkKey));
 
                 this.additionalAttributesDAO.saveAdditionalAttribute(
                         EntityType.EXAM,
                         examId,
                         ProctoringServiceSettings.ATTR_SDK_SECRET,
-                        this.cryptor.encrypt(proctoringServiceSettings.sdkSecret)
+                        this.cryptor.encrypt(Utils.trim(proctoringServiceSettings.sdkSecret))
                                 .getOrThrow()
                                 .toString());
             }
@@ -240,7 +241,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                 EntityType.EXAM,
                 examId,
                 ProctoringServiceSettings.ATTR_ENABLE_PROCTORING)
-                .map(rec -> BooleanUtils.toBoolean(rec.getValue()));
+                .map(rec -> BooleanUtils.toBoolean(rec.getValue()))
+                .onError(error -> log.error("Failed to verify proctoring enabled for exam: {}", examId, error));
         if (result.hasError()) {
             return Result.of(false);
         }

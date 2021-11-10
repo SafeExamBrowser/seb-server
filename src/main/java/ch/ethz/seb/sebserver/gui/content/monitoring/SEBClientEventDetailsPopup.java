@@ -96,7 +96,7 @@ public class SEBClientEventDetailsPopup {
         this.i18nSupport = pageService.getI18nSupport();
     }
 
-    PageAction showDetails(final PageAction action, final ExtendedClientEvent clientEvent) {
+    public PageAction showDetails(final PageAction action, final ExtendedClientEvent clientEvent) {
         action.getSingleSelection();
 
         final ModalInputDialog<Void> dialog = new ModalInputDialog<>(

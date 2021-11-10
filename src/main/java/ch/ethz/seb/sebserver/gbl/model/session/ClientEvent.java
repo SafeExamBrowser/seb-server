@@ -68,6 +68,10 @@ public class ClientEvent implements Entity, IndicatorValueHolder {
         }
     }
 
+    public enum ExportType {
+        CSV
+    }
+
     @JsonProperty(Domain.CLIENT_EVENT.ATTR_ID)
     public final Long id;
 

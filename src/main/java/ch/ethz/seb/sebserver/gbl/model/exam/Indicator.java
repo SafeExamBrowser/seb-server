@@ -128,9 +128,9 @@ public final class Indicator implements Entity {
         this.thresholds = Utils.immutableListOf(thresholds);
     }
 
-    public Indicator(final Exam exam, final POSTMapper postParams) {
+    public Indicator(final Long examId, final POSTMapper postParams) {
         this.id = null;
-        this.examId = exam.id;
+        this.examId = examId;
         this.name = postParams.getString(Domain.INDICATOR.ATTR_NAME);
         this.type = postParams.getEnum(Domain.INDICATOR.ATTR_TYPE, IndicatorType.class);
         this.defaultColor = postParams.getString(Domain.INDICATOR.ATTR_COLOR);
