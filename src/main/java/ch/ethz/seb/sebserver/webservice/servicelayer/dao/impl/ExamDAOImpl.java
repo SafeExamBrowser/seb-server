@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,8 +27,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.mybatis.dynamic.sql.SqlBuilder;
-import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
-import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -52,18 +49,13 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttributeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttributeRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DuplicateResourceException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -77,22 +69,22 @@ public class ExamDAOImpl implements ExamDAO {
     public static final String FAILED_TO_LOAD_QUIZ_DATA_MARK = "[FAILED TO LOAD DATA FROM LMS]";
 
     private final ExamRecordMapper examRecordMapper;
-    private final ClientConnectionRecordMapper clientConnectionRecordMapper;
-    private final AdditionalAttributeRecordMapper additionalAttributeRecordMapper;
+    private final ExamRecordDAO examRecordDAO;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final AdditionalAttributeRecordMapper additionalAttributeRecordMapper;
     private final LmsAPIService lmsAPIService;
 
     public ExamDAOImpl(
             final ExamRecordMapper examRecordMapper,
-            final ClientConnectionRecordMapper clientConnectionRecordMapper,
-            final AdditionalAttributeRecordMapper additionalAttributeRecordMapper,
+            final ExamRecordDAO examRecordDAO,
             final ApplicationEventPublisher applicationEventPublisher,
+            final AdditionalAttributeRecordMapper additionalAttributeRecordMapper,
             final LmsAPIService lmsAPIService) {
 
         this.examRecordMapper = examRecordMapper;
-        this.clientConnectionRecordMapper = clientConnectionRecordMapper;
-        this.additionalAttributeRecordMapper = additionalAttributeRecordMapper;
+        this.examRecordDAO = examRecordDAO;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.additionalAttributeRecordMapper = additionalAttributeRecordMapper;
         this.lmsAPIService = lmsAPIService;
     }
 
@@ -102,63 +94,35 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Result<Exam> byPK(final Long id) {
-        return recordById(id)
+        return this.examRecordDAO
+                .recordById(id)
                 .flatMap(this::toDomainModel);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Result<GrantEntity> examGrantEntityByPK(final Long id) {
-        return recordById(id)
+        return this.examRecordDAO.recordById(id)
                 .map(record -> toDomainModel(record, null, null).getOrThrow());
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Result<GrantEntity> examGrantEntityByClientConnection(final Long connectionId) {
-        return Result.tryCatch(() -> this.clientConnectionRecordMapper
-                .selectByPrimaryKey(connectionId))
-                .flatMap(ccRecord -> recordById(ccRecord.getExamId()))
+        return this.examRecordDAO
+                .recordByClientConnection(connectionId)
                 .map(record -> toDomainModel(record, null, null).getOrThrow());
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Result<Collection<Exam>> all(final Long institutionId, final Boolean active) {
-        return Result.tryCatch(() -> (active != null)
-                ? this.examRecordMapper.selectByExample()
-                        .where(
-                                ExamRecordDynamicSqlSupport.institutionId,
-                                isEqualToWhenPresent(institutionId))
-                        .and(
-                                ExamRecordDynamicSqlSupport.active,
-                                isEqualToWhenPresent(BooleanUtils.toIntegerObject(active)))
-                        .build()
-                        .execute()
-                : this.examRecordMapper.selectByExample()
-                        .build()
-                        .execute())
+        return this.examRecordDAO
+                .all(institutionId, active)
                 .flatMap(this::toDomainModel);
     }
 
     @Override
     public Result<Collection<Long>> allInstitutionIdsByQuizId(final String quizId) {
-        return Result.tryCatch(() -> {
-            return this.examRecordMapper.selectByExample()
-                    .where(
-                            ExamRecordDynamicSqlSupport.externalId,
-                            isEqualToWhenPresent(quizId))
-                    .and(
-                            ExamRecordDynamicSqlSupport.active,
-                            isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(rec -> rec.getInstitutionId())
-                    .collect(Collectors.toList());
-        });
+        return this.examRecordDAO.allInstitutionIdsByQuizId(quizId);
     }
 
     @Override
@@ -189,51 +153,9 @@ public class ExamDAOImpl implements ExamDAO {
                 return true;
             };
 
-            // If we have a sort on institution name, join the institution table
-            // If we have a sort on lms setup name, join lms setup table
-            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamRecord>>>.QueryExpressionWhereBuilder whereClause =
-                    (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
-                            ? this.examRecordMapper
-                                    .selectByExample()
-                                    .join(InstitutionRecordDynamicSqlSupport.institutionRecord)
-                                    .on(
-                                            InstitutionRecordDynamicSqlSupport.id,
-                                            SqlBuilder.equalTo(ExamRecordDynamicSqlSupport.institutionId))
-                                    .where(
-                                            ExamRecordDynamicSqlSupport.active,
-                                            isEqualToWhenPresent(filterMap.getActiveAsInt()))
-                            : (filterMap.getBoolean(FilterMap.ATTR_ADD_LMS_SETUP_JOIN))
-                                    ? this.examRecordMapper
-                                            .selectByExample()
-                                            .join(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord)
-                                            .on(
-                                                    LmsSetupRecordDynamicSqlSupport.id,
-                                                    SqlBuilder.equalTo(ExamRecordDynamicSqlSupport.lmsSetupId))
-                                            .where(
-                                                    ExamRecordDynamicSqlSupport.active,
-                                                    isEqualToWhenPresent(filterMap.getActiveAsInt()))
-                                    : this.examRecordMapper.selectByExample()
-                                            .where(
-                                                    ExamRecordDynamicSqlSupport.active,
-                                                    isEqualToWhenPresent(filterMap.getActiveAsInt()));
-
-            final List<ExamRecord> records = whereClause
-                    .and(
-                            ExamRecordDynamicSqlSupport.institutionId,
-                            isEqualToWhenPresent(filterMap.getInstitutionId()))
-                    .and(
-                            ExamRecordDynamicSqlSupport.lmsSetupId,
-                            isEqualToWhenPresent(filterMap.getLmsSetupId()))
-                    .and(
-                            ExamRecordDynamicSqlSupport.type,
-                            isEqualToWhenPresent(filterMap.getExamType()))
-                    .and(
-                            ExamRecordDynamicSqlSupport.status,
-                            isEqualToWhenPresent(filterMap.getExamStatus()))
-                    .build()
-                    .execute();
-
-            return this.toDomainModel(records)
+            return this.examRecordDAO
+                    .allMatching(filterMap)
+                    .flatMap(this::toDomainModel)
                     .getOrThrow()
                     .stream()
                     .filter(quizDataFilter.and(predicate))
@@ -243,128 +165,32 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     public Result<Exam> updateState(final Long examId, final ExamStatus status, final String updateId) {
-        return recordById(examId)
-                .map(examRecord -> {
-                    if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(examRecord.getUpdating()))) {
-                        if (!updateId.equals(examRecord.getLastupdate())) {
-                            throw new IllegalStateException("Exam is currently locked: " + examRecord.getExternalId());
-                        }
-                    }
-
-                    final ExamRecord newExamRecord = new ExamRecord(
-                            examRecord.getId(),
-                            null, null, null, null, null, null, null, null,
-                            status.name(),
-                            null, null, null, null);
-
-                    this.examRecordMapper.updateByPrimaryKeySelective(newExamRecord);
-                    return this.examRecordMapper.selectByPrimaryKey(examId);
-                })
-                .flatMap(this::toDomainModel)
-                .onError(TransactionHandler::rollback);
+        return this.examRecordDAO
+                .updateState(examId, status, updateId)
+                .flatMap(this::toDomainModel);
     }
 
     @Override
-    @Transactional
     public Result<Exam> save(final Exam exam) {
-        return Result.tryCatch(() -> {
-
-            // check internal persistent write-lock
-            final ExamRecord oldRecord = this.examRecordMapper.selectByPrimaryKey(exam.id);
-            if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(oldRecord.getUpdating()))) {
-                throw new IllegalStateException("Exam is currently locked: " + exam.externalId);
-            }
-
-            final ExamRecord examRecord = new ExamRecord(
-                    exam.id,
-                    null, null, null, null,
-                    (exam.supporter != null)
-                            ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
-                            : null,
-                    (exam.type != null)
-                            ? exam.type.name()
-                            : null,
-                    null,
-                    exam.browserExamKeys,
-                    (exam.status != null)
-                            ? exam.status.name()
-                            : null,
-                    1, // seb restriction (deprecated)
-                    null, // updating
-                    null, // lastUpdate
-                    null // active
-            );
-
-            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
-            return this.examRecordMapper.selectByPrimaryKey(exam.id);
-        })
-                .flatMap(this::toDomainModel)
-                .onError(TransactionHandler::rollback);
+        return this.examRecordDAO
+                .save(exam)
+                .flatMap(this::toDomainModel);
     }
 
     @Override
     @Transactional
     public Result<Exam> setSEBRestriction(final Long examId, final boolean sebRestriction) {
-        return Result.tryCatch(() -> {
-
-            final ExamRecord examRecord = new ExamRecord(
-                    examId,
-                    null, null, null, null, null, null, null, null, null,
-                    BooleanUtils.toInteger(sebRestriction),
-                    null, null, null);
-
-            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
-            return this.examRecordMapper.selectByPrimaryKey(examId);
-        })
-                .flatMap(this::toDomainModel)
-                .onError(TransactionHandler::rollback);
+        return this.examRecordDAO
+                .setSEBRestriction(examId, sebRestriction)
+                .flatMap(this::toDomainModel);
     }
 
     @Override
     @Transactional
     public Result<Exam> createNew(final Exam exam) {
-        return Result.tryCatch(() -> {
-
-            // fist check if it is not already existing
-            final List<ExamRecord> records = this.examRecordMapper.selectByExample()
-                    .where(ExamRecordDynamicSqlSupport.lmsSetupId, isEqualTo(exam.lmsSetupId))
-                    .and(ExamRecordDynamicSqlSupport.externalId, isEqualTo(exam.externalId))
-                    .build()
-                    .execute();
-
-            // if there is already an existing imported exam for the quiz, this is
-            // used to save instead of create a new one
-            if (records != null && records.size() > 0) {
-                final ExamRecord examRecord = records.get(0);
-                // if the same institution tries to import an exam that already exists throw an error
-                if (exam.institutionId.equals(examRecord.getInstitutionId())) {
-                    throw new DuplicateResourceException(EntityType.EXAM, exam.externalId);
-                }
-            }
-
-            final ExamRecord examRecord = new ExamRecord(
-                    null,
-                    exam.institutionId,
-                    exam.lmsSetupId,
-                    exam.externalId,
-                    exam.owner,
-                    (exam.supporter != null)
-                            ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
-                            : null,
-                    (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
-                    null, // quitPassword
-                    null, // browser keys
-                    (exam.status != null) ? exam.status.name() : ExamStatus.UP_COMING.name(),
-                    1, // seb restriction (deprecated)
-                    BooleanUtils.toInteger(false),
-                    null, // lastUpdate
-                    BooleanUtils.toInteger(true));
-
-            this.examRecordMapper.insert(examRecord);
-            return examRecord;
-        })
-                .flatMap(this::toDomainModel)
-                .onError(TransactionHandler::rollback);
+        return this.examRecordDAO
+                .createNew(exam)
+                .flatMap(this::toDomainModel);
     }
 
     @Override
@@ -442,57 +268,27 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Result<Collection<Exam>> allForRunCheck() {
-        return Result.tryCatch(() -> {
-            final List<ExamRecord> records = this.examRecordMapper.selectByExample()
-                    .where(
-                            ExamRecordDynamicSqlSupport.active,
-                            isEqualTo(BooleanUtils.toInteger(true)))
-                    .and(
-                            ExamRecordDynamicSqlSupport.status,
-                            isNotEqualTo(ExamStatus.RUNNING.name()))
-                    .and(
-                            ExamRecordDynamicSqlSupport.updating,
-                            isEqualTo(BooleanUtils.toInteger(false)))
-
-                    .build()
-                    .execute();
-
-            return new ArrayList<>(this.toDomainModel(records)
-                    .getOrThrow());
-        });
+        return this.examRecordDAO
+                .allForRunCheck()
+                .flatMap(this::toDomainModel);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Exam>> allForEndCheck() {
-        return Result.tryCatch(() -> {
-            final List<ExamRecord> records = this.examRecordMapper.selectByExample()
-                    .where(
-                            ExamRecordDynamicSqlSupport.active,
-                            isEqualTo(BooleanUtils.toInteger(true)))
-                    .and(
-                            ExamRecordDynamicSqlSupport.status,
-                            isEqualTo(ExamStatus.RUNNING.name()))
-                    .and(
-                            ExamRecordDynamicSqlSupport.updating,
-                            isEqualTo(BooleanUtils.toInteger(false)))
-
-                    .build()
-                    .execute();
-
-            return new ArrayList<>(this.toDomainModel(records)
-                    .getOrThrow());
-        });
+        return this.examRecordDAO
+                .allForEndCheck()
+                .flatMap(this::toDomainModel);
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Result<Exam> placeLock(final Long examId, final String updateId) {
+    public Result<Long> placeLock(final Long examId, final String updateId) {
         return Result.tryCatch(() -> {
 
-            final ExamRecord examRec = this.recordById(examId)
+            final ExamRecord examRec = this.examRecordDAO
+                    .recordById(examId)
                     .getOrThrow();
 
             // consistency check
@@ -509,19 +305,18 @@ public class ExamDAOImpl implements ExamDAO {
                     null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return newRecord;
+            return examId;
         })
-                .flatMap(rec -> this.recordById(rec.getId()))
-                .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Result<Exam> releaseLock(final Long examId, final String updateId) {
+    public Result<Long> releaseLock(final Long examId, final String updateId) {
         return Result.tryCatch(() -> {
 
-            final ExamRecord examRec = this.recordById(examId)
+            final ExamRecord examRec = this.examRecordDAO
+                    .recordById(examId)
                     .getOrThrow();
 
             // consistency check
@@ -540,10 +335,8 @@ public class ExamDAOImpl implements ExamDAO {
                     null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return newRecord;
+            return examId;
         })
-                .flatMap(rec -> this.recordById(rec.getId()))
-                .flatMap(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
     }
 
@@ -566,7 +359,6 @@ public class ExamDAOImpl implements ExamDAO {
             return examRecord.getId();
         })
                 .onError(TransactionHandler::rollback);
-
     }
 
     @Override
@@ -597,7 +389,8 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Boolean> isLocked(final Long examId) {
-        return this.recordById(examId)
+        return this.examRecordDAO
+                .recordById(examId)
                 .map(rec -> BooleanUtils.toBooleanObject(rec.getUpdating()));
     }
 
@@ -637,7 +430,8 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Boolean> upToDate(final Long examId, final String updateId) {
-        return this.recordById(examId)
+        return this.examRecordDAO
+                .recordById(examId)
                 .map(rec -> {
                     if (updateId == null) {
                         return rec.getLastupdate() == null;
@@ -707,10 +501,9 @@ public class ExamDAOImpl implements ExamDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Exam>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.examRecordMapper.selectByExample()
-                .where(ExamRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()).flatMap(this::toDomainModel);
+        return this.examRecordDAO
+                .allOf(pks)
+                .flatMap(this::toDomainModel);
     }
 
     @Override
@@ -755,18 +548,6 @@ public class ExamDAOImpl implements ExamDAO {
                         .build()
                         .execute(),
                 userKey));
-    }
-
-    private Result<ExamRecord> recordById(final Long id) {
-        return Result.tryCatch(() -> {
-            final ExamRecord record = this.examRecordMapper.selectByPrimaryKey(id);
-            if (record == null) {
-                throw new ResourceNotFoundException(
-                        EntityType.EXAM,
-                        String.valueOf(id));
-            }
-            return record;
-        });
     }
 
     private Collection<EntityDependency> toDependencies(
