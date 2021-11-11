@@ -84,7 +84,7 @@ class ExamUpdateHandler {
                         ExamStatus.RUNNING,
                         updateId))
                 .flatMap(this.sebRestrictionService::applySEBClientRestriction)
-                .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
+                .flatMap(e -> this.examDAO.releaseLock(e, updateId))
                 .onError(error -> this.examDAO.forceUnlock(exam.id)
                         .onError(unlockError -> log.error("Failed to force unlock update look for exam: {}", exam.id)));
     }
@@ -101,7 +101,7 @@ class ExamUpdateHandler {
                         ExamStatus.FINISHED,
                         updateId))
                 .flatMap(this.sebRestrictionService::releaseSEBClientRestriction)
-                .flatMap(e -> this.examDAO.releaseLock(e.id, updateId))
+                .flatMap(e -> this.examDAO.releaseLock(e, updateId))
                 .onError(error -> this.examDAO.forceUnlock(exam.id));
     }
 

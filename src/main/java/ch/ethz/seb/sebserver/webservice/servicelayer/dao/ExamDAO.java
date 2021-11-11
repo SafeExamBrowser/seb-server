@@ -99,16 +99,26 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *
      * @param examId the exam identifier
      * @param updateId an update identifier
-     * @return Result refer to the specified exam or to an error if happened */
-    Result<Exam> placeLock(Long examId, String updateId);
+     * @return Result refer to the specified exam identifier or to an error if happened */
+    Result<Long> placeLock(Long examId, String updateId);
+
+    default Result<Exam> placeLock(final Exam exam, final String updateId) {
+        return placeLock(exam.id, updateId)
+                .map(id -> exam);
+    }
 
     /** This is used to release an internal (write)lock for the specified exam.
      * The exam will be marked as not locked on the persistence level.
      *
      * @param examId the exam identifier
      * @param updateId an update identifier
-     * @return Result refer to the specified exam or to an error if happened */
-    Result<Exam> releaseLock(Long examId, String updateId);
+     * @return Result refer to the specified exam identifier or to an error if happened */
+    Result<Long> releaseLock(Long examId, String updateId);
+
+    default Result<Exam> releaseLock(final Exam exam, final String updateId) {
+        return releaseLock(exam.id, updateId)
+                .map(id -> exam);
+    }
 
     /** This is used to force release an internal (write)lock for the specified exam.
      * The exam will be marked as not locked on the persistence level even if it is currently locked by another process

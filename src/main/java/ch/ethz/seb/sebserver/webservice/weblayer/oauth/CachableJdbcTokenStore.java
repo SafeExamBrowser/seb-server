@@ -39,7 +39,6 @@ public class CachableJdbcTokenStore implements TokenStore {
     }
 
     @Override
-    @Transactional
     public OAuth2AccessToken getAccessToken(final OAuth2Authentication authentication) {
         return this.jdbcTokenStore.getAccessToken(authentication);
     }

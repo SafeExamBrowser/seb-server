@@ -315,7 +315,9 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
     private Collection<Result<Exam>> lockForUpdate(final Collection<Long> examIds, final String update) {
         return examIds.stream()
-                .map(id -> this.examDAO.placeLock(id, update))
+                .map(id -> this.examDAO.byPK(id)
+                        .map(exam -> this.examDAO.placeLock(exam, update))
+                        .getOrThrow())
                 .collect(Collectors.toList());
     }
 
