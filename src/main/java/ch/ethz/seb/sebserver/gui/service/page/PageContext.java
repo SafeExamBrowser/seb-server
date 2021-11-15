@@ -281,6 +281,10 @@ public interface PageContext {
      *
      * @param error the original error */
     default void notifyUnexpectedError(final Exception error) {
+        if (error instanceof PageMessageException) {
+            publishInfo(((PageMessageException) error).getMessageKey());
+            return;
+        }
         notifyError(UNEXPECTED_ERROR_KEY, error);
     }
 

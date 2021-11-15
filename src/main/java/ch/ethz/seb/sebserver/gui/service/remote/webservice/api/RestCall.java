@@ -28,6 +28,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -46,10 +47,14 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
+import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 
 public abstract class RestCall<T> {
 
     private static final Logger log = LoggerFactory.getLogger(RestCall.class);
+
+    public static final LocTextKey REQUEST_TIMEOUT_MESSAGE = new LocTextKey("sebserver.overall.message.requesttimeout");
 
     public enum CallType {
         UNDEFINED,
@@ -161,6 +166,11 @@ public abstract class RestCall<T> {
             }
 
             return Result.ofError(restCallError);
+        } catch (final ResourceAccessException rae) {
+            if (rae.getMessage().contains("Read timed out")) {
+                return Result.ofError(new PageMessageException(REQUEST_TIMEOUT_MESSAGE));
+            }
+            return Result.ofError(rae);
         } catch (final Exception e) {
             final RestCallError restCallError = new RestCallError("Unexpected error while rest call", e);
             restCallError.errors.add(APIMessage.ErrorMessage.UNEXPECTED.of(
