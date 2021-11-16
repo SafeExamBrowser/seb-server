@@ -280,10 +280,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     return clientConnection;
                 } else {
                     // It seems that this is a request from an other device then the original
-                    log.error("ClientConnection integrity violation: client connection mismatch: {}",
-                            clientConnection);
-                    throw new IllegalArgumentException(
-                            "ClientConnection integrity violation: client connection mismatch");
+                    log.warn(
+                            "SEB retired to establish an already established client connection with another IP address. Client adress: {} : {}",
+                            clientConnection.clientAddress,
+                            clientAddress);
+                    return clientConnection;
                 }
             } else if (!clientConnection.status.clientActiveStatus) {
                 log.error("ClientConnection integrity violation: client connection is not in expected state: {}",

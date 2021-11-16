@@ -86,7 +86,7 @@
         <key-type>java.lang.String</key-type>
         <value-type>ch.ethz.seb.sebserver.gbl.model.exam.QuizData</value-type>
         <expiry>
-            <ttl unit="minutes">1</ttl>
+            <ttl unit="minutes">5</ttl>
         </expiry>
         <resources>
             <heap unit="entries">10000</heap>
