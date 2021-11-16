@@ -104,6 +104,8 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.form.quizurl");
     private static final LocTextKey FORM_LMSSETUP_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.lmssetup");
+    private final static LocTextKey ACTION_MESSAGE_SEB_RESTRICTION_RELEASE =
+            new LocTextKey("sebserver.exam.action.sebrestriction.release.confirm");
 
     private final static LocTextKey CONSISTENCY_MESSAGE_TITLE =
             new LocTextKey("sebserver.exam.consistency.title");
@@ -407,6 +409,7 @@ public class ExamForm implements TemplateComposer {
                         && BooleanUtils.isFalse(isRestricted))
 
                 .newAction(ActionDefinition.EXAM_DISABLE_SEB_RESTRICTION)
+                .withConfirm(() -> ACTION_MESSAGE_SEB_RESTRICTION_RELEASE)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
                 .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
