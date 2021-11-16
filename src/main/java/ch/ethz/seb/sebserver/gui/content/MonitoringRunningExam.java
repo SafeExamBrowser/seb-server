@@ -82,6 +82,10 @@ public class MonitoringRunningExam implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.selected.confirm");
     private static final LocTextKey CONFIRM_QUIT_ALL =
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.all.confirm");
+    private static final LocTextKey CONFIRM_OPEN_TOWNHALL =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.openTownhall.confirm");
+    private static final LocTextKey CONFIRM_CLOSE_TOWNHALL =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.closeTownhall.confirm");
     private static final LocTextKey CONFIRM_DISABLE_SELECTED =
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.disable.selected.confirm");
 
@@ -276,7 +280,15 @@ public class MonitoringRunningExam implements TemplateComposer {
 
                 actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)
                         .withEntityKey(entityKey)
-                        .withExec(action -> this.monitoringProctoringService.toggleTownhallRoom(proctoringGUIService,
+                        .withConfirm(action -> {
+                            if (!this.monitoringProctoringService.isTownhallRoomActive(action.getEntityKey().modelId)) {
+                                return CONFIRM_OPEN_TOWNHALL;
+                            } else {
+                                return CONFIRM_CLOSE_TOWNHALL;
+                            }
+                        })
+                        .withExec(action -> this.monitoringProctoringService.toggleTownhallRoom(
+                                proctoringGUIService,
                                 action))
                         .noEventPropagation()
                         .publish();
