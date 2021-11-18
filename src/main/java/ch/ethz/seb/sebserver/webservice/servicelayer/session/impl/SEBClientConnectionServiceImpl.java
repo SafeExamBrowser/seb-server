@@ -555,6 +555,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .getOrThrow()
                     .stream()
                     .flatMap(examId -> distributed
+                            // TODO fetch only the connection tokens form active connections here
                             ? this.clientConnectionDAO
                                     .getConnectionTokensNoCache(examId)
                                     .getOrThrow()

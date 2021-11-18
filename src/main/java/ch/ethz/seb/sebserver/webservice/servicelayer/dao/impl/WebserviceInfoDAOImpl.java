@@ -40,7 +40,7 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
     public WebserviceInfoDAOImpl(
             final WebserviceServerInfoRecordMapper webserviceServerInfoRecordMapper,
             @Value("${sebserver.webservice.forceMaster:false}") final boolean forceMaster,
-            @Value("${sebserver.webservice.master.delay.threshold:10000}") final long masterDelayTimeThreshold) {
+            @Value("${sebserver.webservice.master.delay.threshold:30000}") final long masterDelayTimeThreshold) {
 
         this.webserviceServerInfoRecordMapper = webserviceServerInfoRecordMapper;
         this.masterDelayTimeThreshold = masterDelayTimeThreshold;

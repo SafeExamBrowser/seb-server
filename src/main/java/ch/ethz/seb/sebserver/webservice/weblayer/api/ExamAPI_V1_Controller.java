@@ -270,20 +270,20 @@ public class ExamAPI_V1_Controller {
         final String pingNumString = request.getParameter(API.EXAM_API_PING_NUMBER);
         final String instructionConfirm = request.getParameter(API.EXAM_API_PING_INSTRUCTION_CONFIRM);
 
-        if (log.isTraceEnabled()) {
-            log.trace("****************** SEB client connection: {} ip: {}",
-                    connectionToken,
-                    getClientAddress(request));
+        if (connectionToken == null) {
+            log.warn("Missing connection token on ping. Ignore the request");
+            return;
         }
 
         if (instructionConfirm != null) {
             this.sebClientConnectionService.confirmInstructionDone(connectionToken, instructionConfirm);
         }
 
+        final Long clientTime = timeStampString != null ? Long.parseLong(timeStampString) : 0L;
         final String instruction = this.sebClientConnectionService
                 .notifyPing(
                         connectionToken,
-                        Long.parseLong(timeStampString),
+                        clientTime,
                         pingNumString != null ? Integer.parseInt(pingNumString) : -1);
 
         if (instruction == null) {

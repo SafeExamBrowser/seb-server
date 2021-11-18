@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventLastPingMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
@@ -45,9 +46,11 @@ public class DistributedPingCache implements DisposableBean {
 
     private final ClientEventLastPingMapper clientEventLastPingMapper;
     private final ClientEventRecordMapper clientEventRecordMapper;
-    private ScheduledFuture<?> taskRef;
+    private final long pingUpdateTolerance;
 
+    private ScheduledFuture<?> taskRef;
     private final Map<Long, Long> pingCache = new ConcurrentHashMap<>();
+    private long lastUpdate = 0L;
 
     public DistributedPingCache(
             final ClientEventLastPingMapper clientEventLastPingMapper,
@@ -58,6 +61,7 @@ public class DistributedPingCache implements DisposableBean {
 
         this.clientEventLastPingMapper = clientEventLastPingMapper;
         this.clientEventRecordMapper = clientEventRecordMapper;
+        this.pingUpdateTolerance = pingUpdate * 2 / 3;
         if (webserviceInfo.isDistributed()) {
             try {
                 this.taskRef = taskScheduler.scheduleAtFixedRate(this::updateCache, pingUpdate);
@@ -166,7 +170,6 @@ public class DistributedPingCache implements DisposableBean {
         try {
             Long ping = this.pingCache.get(pingRecordId);
             if (ping == null) {
-
                 if (log.isDebugEnabled()) {
                     log.debug("*** Get and cache ping time: {}", pingRecordId);
                 }
@@ -186,6 +189,12 @@ public class DistributedPingCache implements DisposableBean {
 
     @Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED)
     public void updateCache() {
+
+        final long millisecondsNow = Utils.getMillisecondsNow();
+        if (millisecondsNow - this.lastUpdate < this.pingUpdateTolerance) {
+            log.warn("Skip ping update schedule because the last one was less then 2 seconds ago");
+            return;
+        }
 
         if (this.pingCache.isEmpty()) {
             return;
@@ -210,6 +219,7 @@ public class DistributedPingCache implements DisposableBean {
             if (mapping != null) {
                 this.pingCache.clear();
                 this.pingCache.putAll(mapping);
+                this.lastUpdate = millisecondsNow;
             }
 
         } catch (final Exception e) {
