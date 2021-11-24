@@ -23,7 +23,6 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
@@ -35,7 +34,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -71,14 +69,13 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final SEBClientInstructionService sebInstructionService;
     private final SEBClientNotificationService sebClientNotificationService;
-    private final WebserviceInfo webserviceInfo;
     private final ExamAdminService examAdminService;
     private final DistributedPingCache distributedPingCache;
+    private final boolean isDistributedSetup;
 
     protected SEBClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
-
             final SEBClientConfigDAO sebClientConfigDAO,
             final SEBClientInstructionService sebInstructionService,
             final SEBClientNotificationService sebClientNotificationService,
@@ -93,9 +90,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.sebInstructionService = sebInstructionService;
         this.sebClientNotificationService = sebClientNotificationService;
-        this.webserviceInfo = sebInstructionService.getWebserviceInfo();
         this.examAdminService = examAdminService;
         this.distributedPingCache = distributedPingCache;
+        this.isDistributedSetup = sebInstructionService.getWebserviceInfo().isDistributed();
     }
 
     @Override
@@ -186,16 +183,27 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         return Result.tryCatch(() -> {
 
-            final ClientConnection clientConnection = getClientConnection(connectionToken);
+            ClientConnection clientConnection = getClientConnection(connectionToken);
             checkInstitutionalIntegrity(institutionId, clientConnection);
             checkExamIntegrity(examId, clientConnection);
 
             // connection integrity check
             if (!clientConnection.status.clientActiveStatus) {
-                log.error("ClientConnection integrity violation: client connection is not in active state: {}",
+                log.error(
+                        "ClientConnection integrity violation: client connection is not in expected state: {}",
                         clientConnection);
                 throw new IllegalArgumentException(
-                        "ClientConnection integrity violation: client connection is not in active state");
+                        "ClientConnection integrity violation: client connection is not in expected state");
+            }
+            if (StringUtils.isNoneBlank(clientAddress) &&
+                    StringUtils.isNotBlank(clientConnection.clientAddress) &&
+                    !clientAddress.equals(clientConnection.clientAddress)) {
+                log.error(
+                        "ClientConnection integrity violation: client address mismatch: {}, {}",
+                        clientAddress,
+                        clientConnection.clientAddress);
+                throw new IllegalArgumentException(
+                        "ClientConnection integrity violation: client address mismatch");
             }
 
             if (examId != null) {
@@ -219,18 +227,17 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         clientId);
             }
 
-            updateUserSessionId(userSessionId, clientConnection, examId);
+            // userSessionId integrity check
+            clientConnection = updateUserSessionId(userSessionId, clientConnection, examId);
             final ClientConnection updatedClientConnection = this.clientConnectionDAO
                     .save(new ClientConnection(
                             clientConnection.id,
                             null,
                             examId,
-                            (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED)
-                                    ? ConnectionStatus.AUTHENTICATED
-                                    : null,
+                            (userSessionId != null) ? ConnectionStatus.AUTHENTICATED : null,
                             null,
-                            null,
-                            null,
+                            clientConnection.userSessionId,
+                            StringUtils.isNoneBlank(clientAddress) ? clientAddress : null,
                             clientId,
                             null,
                             null,
@@ -269,7 +276,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // connection integrity check
             if (clientConnection.status == ConnectionStatus.ACTIVE) {
-                if (clientConnection.clientAddress != null &&
+                if (StringUtils.isNotBlank(clientConnection.clientAddress) &&
                         (StringUtils.isBlank(clientAddress) || clientConnection.clientAddress.equals(clientAddress))) {
                     // It seems that this is the same SEB that tries to establish the connection once again.
                     // Just log this and return already established connection
@@ -282,10 +289,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     return clientConnection;
                 } else {
                     // It seems that this is a request from an other device then the original
-                    log.error("ClientConnection integrity violation: client connection mismatch: {}",
-                            clientConnection);
-                    throw new IllegalArgumentException(
-                            "ClientConnection integrity violation: client connection mismatch");
+                    log.warn(
+                            "SEB retired to establish an already established client connection with another IP address. Client adress: {} : {}",
+                            clientConnection.clientAddress,
+                            clientAddress);
+                    return clientConnection;
                 }
             } else if (!clientConnection.status.clientActiveStatus) {
                 log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
@@ -319,14 +327,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
                 log.warn("ClientConnection integrity warning: client connection is not authenticated: {}",
                         clientConnection);
-            } else if (clientConnection.status == ConnectionStatus.ACTIVE) {
-                log.warn(
-                        "ClientConnection integrity warning: client connection is already active. Patching new user id: {}",
-                        clientConnection.userSessionId);
-
-                return reloadConnectionCache(connectionToken).clientConnection;
-
-            } else if (!clientConnection.status.clientActiveStatus) {
+            } else if (clientConnection.status != ConnectionStatus.AUTHENTICATED) {
                 log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
                         clientConnection);
                 throw new IllegalArgumentException(
@@ -485,7 +486,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             // delete stored ping if this is a distributed setup
-            if (this.webserviceInfo.isDistributed()) {
+            if (this.isDistributedSetup) {
                 this.distributedPingCache
                         .deletePingForConnection(updatedClientConnection.id);
             }
@@ -539,7 +540,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             // delete stored ping if this is a distributed setup
-            if (this.webserviceInfo.isDistributed()) {
+            if (this.isDistributedSetup) {
                 this.distributedPingCache
                         .deletePingForConnection(updatedClientConnection.id);
             }
@@ -553,7 +554,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     public void updatePingEvents() {
         try {
 
-            final boolean distributed = this.webserviceInfo.isDistributed();
             final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
             final long now = Utils.getMillisecondsNow();
             final Consumer<ClientConnectionDataInternal> missingPingUpdate = missingPingUpdate(now);
@@ -562,7 +562,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .allRunningExamIds()
                     .getOrThrow()
                     .stream()
-                    .flatMap(examId -> distributed
+                    .flatMap(examId -> this.isDistributedSetup
                             ? this.clientConnectionDAO
                                     .getConnectionTokensNoCache(examId)
                                     .getOrThrow()
@@ -591,16 +591,26 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     public String notifyPing(
             final String connectionToken,
             final long timestamp,
-            final int pingNumber) {
+            final int pingNumber,
+            final String instructionConfirm) {
+
+        processPing(connectionToken, timestamp, pingNumber);
+
+        if (instructionConfirm != null) {
+            this.sebInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
+        }
+
+        return this.sebInstructionService.getInstructionJSON(connectionToken);
+    }
+
+    private void processPing(final String connectionToken, final long timestamp, final int pingNumber) {
 
         final ClientConnectionDataInternal activeClientConnection =
-                this.examSessionService.getConnectionDataInternal(connectionToken);
+                this.examSessionCacheService.getClientConnection(connectionToken);
 
         if (activeClientConnection != null) {
             activeClientConnection.notifyPing(timestamp, pingNumber);
         }
-
-        return this.sebInstructionService.getInstructionJSON(connectionToken);
     }
 
     @Override
@@ -728,22 +738,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 log.warn("Unexpected error while trying to get user account display name: {}", e.getMessage());
             }
 
-            if (StringUtils.isNotBlank(clientConnection.userSessionId)) {
-                log.warn(
-                        "ClientConnection integrity; a new userSessionId was sent by SEB userSessionId: {} : {}",
-                        userSessionId, clientConnection);
-
-                accountId = accountId +
-                        Constants.SPACE + Constants.SLASH + Constants.SPACE +
-                        Constants.SQUARE_BRACE_OPEN +
-                        clientConnection.userSessionId +
-                        Constants.SQUARE_BRACE_CLOSE;
-            }
-
             // create new ClientConnection for update
             final ClientConnection authenticatedClientConnection = new ClientConnection(
                     clientConnection.id, null, null,
-                    null, null,
+                    ConnectionStatus.AUTHENTICATED, null,
                     accountId, null, null, null, null, null, null, null, null);
 
             clientConnection = this.clientConnectionDAO
@@ -754,7 +752,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     }
 
     private void checkExamIntegrity(final Long examId) {
-        if (this.webserviceInfo.isDistributed()) {
+        if (this.isDistributedSetup) {
             // if the cached Exam is not up to date anymore, we have to update the cache first
             final Result<Exam> updateExamCache = this.examSessionService.updateExamCache(examId);
             if (updateExamCache.hasError()) {
@@ -801,7 +799,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             if (clientEventRecord != null) {
                 // store event and and flush cache
                 this.eventHandlingStrategy.accept(clientEventRecord);
-                if (this.webserviceInfo.isDistributed()) {
+                if (this.isDistributedSetup) {
                     // mark for update and flush the cache
                     this.clientConnectionDAO.save(connection.clientConnection);
                     this.examSessionCacheService.evictClientConnection(

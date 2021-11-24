@@ -17,6 +17,7 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
 @EnableAsync
@@ -25,6 +26,7 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
 
     public static final String EXECUTOR_BEAN_NAME = "AsyncServiceExecutorBean";
 
+    /** This ThreadPool is used for internal long running background tasks */
     @Bean(name = EXECUTOR_BEAN_NAME)
     public Executor threadPoolTaskExecutor() {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -39,6 +41,9 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
 
     public static final String EXAM_API_EXECUTOR_BEAN_NAME = "ExamAPIAsyncServiceExecutorBean";
 
+    /** This ThreadPool is used for SEB client connection establishment and
+     * should be able to handle incoming bursts of SEB client connection requests (handshake)
+     * when up to 1000 - 2000 clients connect at nearly the same time (start of an exam) */
     @Bean(name = EXAM_API_EXECUTOR_BEAN_NAME)
     public Executor examAPIThreadPoolTaskExecutor() {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -50,6 +55,32 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
         executor.initialize();
         executor.setWaitForTasksToCompleteOnShutdown(false);
         return executor;
+    }
+
+    public static final String EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME = "examAPIPingThreadPoolTaskExecutor";
+
+    /** This ThreadPool is used for ping handling in a distributed setup and shall reject
+     * incoming ping requests as fast as possible if there is to much load on the DB.
+     * We prefer to loose a shared ping update and respond to the client in time over a client request timeout */
+    @Bean(name = EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME)
+    public Executor examAPIPingThreadPoolTaskExecutor() {
+        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(0);
+        executor.setThreadNamePrefix("SEBPingService-");
+        executor.initialize();
+        executor.setWaitForTasksToCompleteOnShutdown(false);
+        return executor;
+    }
+
+    @Bean
+    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
+        final ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+        threadPoolTaskScheduler.setPoolSize(5);
+        threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(false);
+        threadPoolTaskScheduler.setThreadNamePrefix("SEB-Server-BgTask-");
+        return threadPoolTaskScheduler;
     }
 
     @Override

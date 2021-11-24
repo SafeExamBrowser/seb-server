@@ -46,7 +46,6 @@ public class CacheConfig extends JCacheConfigurerSupport {
             final CachingProvider cachingProvider = Caching.getCachingProvider();
             final javax.cache.CacheManager cacheManager =
                     cachingProvider.getCacheManager(new URI(this.jCacheConfig), this.getClass().getClassLoader());
-            System.out.println("cacheManager:" + cacheManager);
 
             final CompositeCacheManager composite = new CompositeCacheManager();
             composite.setCacheManagers(Arrays.asList(

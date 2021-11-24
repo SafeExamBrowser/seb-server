@@ -137,8 +137,9 @@ public interface SEBClientConnectionService {
      * @param connectionToken the connection token
      * @param timestamp the ping time-stamp
      * @param pingNumber the ping number
+     * @param instructionConfirm instruction confirm sent by the SEB client or null
      * @return SEB instruction if available */
-    String notifyPing(String connectionToken, long timestamp, int pingNumber);
+    String notifyPing(String connectionToken, long timestamp, int pingNumber, String instructionConfirm);
 
     /** Notify a SEB client event for live indication and storing to database.
      *

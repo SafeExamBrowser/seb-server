@@ -62,7 +62,14 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
 
     @Override
     public double computeValueAt(final long timestamp) {
+
+        if (!loadFromPersistent(timestamp)) {
+            return super.currentValue;
+        }
+
         try {
+
+            System.out.println("************** loadFromPersistent");
 
             final List<ClientEventRecord> execute = this.clientEventRecordMapper.selectByExample()
                     .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
@@ -90,6 +97,8 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
         } catch (final Exception e) {
             log.error("Failed to get indicator number from persistent storage: {}", e.getMessage());
             return this.currentValue;
+        } finally {
+            super.lastDistributedUpdate = timestamp;
         }
     }
 

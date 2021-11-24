@@ -80,7 +80,7 @@ public interface ClientEventExtensionMapper {
 
                 .from(ClientEventRecordDynamicSqlSupport.clientEventRecord)
 
-                .leftJoin(ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                .join(ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
                 .on(
                         ClientEventRecordDynamicSqlSupport.clientEventRecord.clientConnectionId,
                         equalTo(ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord.id));

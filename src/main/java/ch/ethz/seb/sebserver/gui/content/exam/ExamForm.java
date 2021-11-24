@@ -110,6 +110,8 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.form.quizurl");
     private static final LocTextKey FORM_LMSSETUP_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.lmssetup");
+    private final static LocTextKey ACTION_MESSAGE_SEB_RESTRICTION_RELEASE =
+            new LocTextKey("sebserver.exam.action.sebrestriction.release.confirm");
     private static final LocTextKey FORM_EXAM_TEMPLATE_TEXT_KEY =
             new LocTextKey("sebserver.exam.form.examTemplate");
     private static final LocTextKey FORM_EXAM_TEMPLATE_ERROR =
@@ -193,6 +195,7 @@ public class ExamForm implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
+
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
         final EntityKey entityKey = pageContext.getEntityKey();
         final boolean readonly = pageContext.isReadonly();
@@ -432,6 +435,7 @@ public class ExamForm implements TemplateComposer {
                         && BooleanUtils.isFalse(isRestricted))
 
                 .newAction(ActionDefinition.EXAM_DISABLE_SEB_RESTRICTION)
+                .withConfirm(() -> ACTION_MESSAGE_SEB_RESTRICTION_RELEASE)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
                 .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData

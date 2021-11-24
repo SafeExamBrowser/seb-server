@@ -86,8 +86,15 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("---->");
         SEBServerInit.INIT_LOGGER.info("----> *** Info:");
 
+        SEBServerInit.INIT_LOGGER.info("----> JDBC connection pool max size: {}",
+                this.environment.getProperty("spring.datasource.hikari.maximumPoolSize"));
+
         if (this.webserviceInfo.isDistributed()) {
             SEBServerInit.INIT_LOGGER.info("----> Distributed Setup: {}", this.webserviceInfo.getWebserviceUUID());
+            SEBServerInit.INIT_LOGGER.info("------> Ping update time: {}",
+                    this.environment.getProperty("sebserver.webservice.distributed.pingUpdate"));
+            SEBServerInit.INIT_LOGGER.info("------> Connection update time: {}",
+                    this.environment.getProperty("sebserver.webservice.distributed.connectionUpdate"));
         }
 
         try {

@@ -67,7 +67,7 @@ public class WebserviceTest extends AdministrationAPIIntegrationTester {
         assertFalse(this.webserviceInfoDAO.isMaster(WEBSERVICE_2));
 
         try {
-            Thread.sleep(5000);
+            Thread.sleep(500);
         } catch (final InterruptedException e) {
         }
 
@@ -75,7 +75,7 @@ public class WebserviceTest extends AdministrationAPIIntegrationTester {
         assertFalse(this.webserviceInfoDAO.isMaster(WEBSERVICE_2));
 
         try {
-            Thread.sleep(6000);
+            Thread.sleep(600);
         } catch (final InterruptedException e) {
         }
 
