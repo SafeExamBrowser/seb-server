@@ -57,6 +57,10 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
     @Override
     public double computeValueAt(final long timestamp) {
 
+        if (!loadFromPersistent(timestamp)) {
+            return super.currentValue;
+        }
+
         try {
 
             final Long errors = this.clientEventRecordMapper
@@ -72,9 +76,12 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
                     .execute();
 
             return errors.doubleValue();
+
         } catch (final Exception e) {
             log.error("Failed to get indicator count from persistent storage: ", e);
             return super.currentValue;
+        } finally {
+            super.lastDistributedUpdate = timestamp;
         }
     }
 

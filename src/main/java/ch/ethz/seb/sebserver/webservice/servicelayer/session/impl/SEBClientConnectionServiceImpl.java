@@ -34,7 +34,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -70,14 +69,13 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final SEBClientInstructionService sebInstructionService;
     private final SEBClientNotificationService sebClientNotificationService;
-    private final WebserviceInfo webserviceInfo;
     private final ExamAdminService examAdminService;
     private final DistributedPingCache distributedPingCache;
+    private final boolean isDistributedSetup;
 
     protected SEBClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
-
             final SEBClientConfigDAO sebClientConfigDAO,
             final SEBClientInstructionService sebInstructionService,
             final SEBClientNotificationService sebClientNotificationService,
@@ -92,9 +90,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.sebInstructionService = sebInstructionService;
         this.sebClientNotificationService = sebClientNotificationService;
-        this.webserviceInfo = sebInstructionService.getWebserviceInfo();
         this.examAdminService = examAdminService;
         this.distributedPingCache = distributedPingCache;
+        this.isDistributedSetup = sebInstructionService.getWebserviceInfo().isDistributed();
     }
 
     @Override
@@ -477,7 +475,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             // delete stored ping if this is a distributed setup
-            if (this.webserviceInfo.isDistributed()) {
+            if (this.isDistributedSetup) {
                 this.distributedPingCache
                         .deletePingForConnection(updatedClientConnection.id);
             }
@@ -531,7 +529,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             // delete stored ping if this is a distributed setup
-            if (this.webserviceInfo.isDistributed()) {
+            if (this.isDistributedSetup) {
                 this.distributedPingCache
                         .deletePingForConnection(updatedClientConnection.id);
             }
@@ -545,7 +543,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     public void updatePingEvents() {
         try {
 
-            final boolean distributed = this.webserviceInfo.isDistributed();
             final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
             final long now = Utils.getMillisecondsNow();
             final Consumer<ClientConnectionDataInternal> missingPingUpdate = missingPingUpdate(now);
@@ -554,8 +551,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .allRunningExamIds()
                     .getOrThrow()
                     .stream()
-                    .flatMap(examId -> distributed
-                            // TODO fetch only the connection tokens form active connections here
+                    .flatMap(examId -> this.isDistributedSetup
                             ? this.clientConnectionDAO
                                     .getConnectionTokensNoCache(examId)
                                     .getOrThrow()
@@ -584,16 +580,26 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     public String notifyPing(
             final String connectionToken,
             final long timestamp,
-            final int pingNumber) {
+            final int pingNumber,
+            final String instructionConfirm) {
+
+        processPing(connectionToken, timestamp, pingNumber);
+
+        if (instructionConfirm != null) {
+            this.sebInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
+        }
+
+        return this.sebInstructionService.getInstructionJSON(connectionToken);
+    }
+
+    private void processPing(final String connectionToken, final long timestamp, final int pingNumber) {
 
         final ClientConnectionDataInternal activeClientConnection =
-                this.examSessionService.getConnectionDataInternal(connectionToken);
+                this.examSessionCacheService.getClientConnection(connectionToken);
 
         if (activeClientConnection != null) {
             activeClientConnection.notifyPing(timestamp, pingNumber);
         }
-
-        return this.sebInstructionService.getInstructionJSON(connectionToken);
     }
 
     @Override
@@ -735,7 +741,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     }
 
     private void checkExamIntegrity(final Long examId) {
-        if (this.webserviceInfo.isDistributed()) {
+        if (this.isDistributedSetup) {
             // if the cached Exam is not up to date anymore, we have to update the cache first
             final Result<Exam> updateExamCache = this.examSessionService.updateExamCache(examId);
             if (updateExamCache.hasError()) {
@@ -782,7 +788,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             if (clientEventRecord != null) {
                 // store event and and flush cache
                 this.eventHandlingStrategy.accept(clientEventRecord);
-                if (this.webserviceInfo.isDistributed()) {
+                if (this.isDistributedSetup) {
                     // mark for update and flush the cache
                     this.clientConnectionDAO.save(connection.clientConnection);
                     this.examSessionCacheService.evictClientConnection(

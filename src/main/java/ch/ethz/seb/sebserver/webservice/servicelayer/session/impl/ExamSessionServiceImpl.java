@@ -198,7 +198,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
-    public /* synchronized */ Result<Exam> getRunningExam(final Long examId) {
+    public synchronized Result<Exam> getRunningExam(final Long examId) {
+
         if (log.isTraceEnabled()) {
             log.trace("Running exam request for exam {}", examId);
         }
@@ -217,6 +218,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             return Result.of(exam);
         } else {
             if (exam != null) {
+                log.info("Exam {} is not running anymore. Flush caches", exam);
                 flushCache(exam);
             }
 
@@ -401,8 +403,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     // If we are in a distributed setup the active connection token cache get flushed
-    // at least every second. This allows caching over multiple monitoring requests but
-    // ensure an update every second for new incoming connections
+    // in specified time interval. This allows caching over multiple monitoring requests but
+    // ensure an update every now and then for new incoming connections
     private void updateClientConnections(final Long examId) {
         try {
             final long currentTimeMillis = System.currentTimeMillis();

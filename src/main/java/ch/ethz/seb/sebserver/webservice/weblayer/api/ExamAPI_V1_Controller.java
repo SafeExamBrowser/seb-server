@@ -270,32 +270,31 @@ public class ExamAPI_V1_Controller {
         final String pingNumString = request.getParameter(API.EXAM_API_PING_NUMBER);
         final String instructionConfirm = request.getParameter(API.EXAM_API_PING_INSTRUCTION_CONFIRM);
 
-        if (connectionToken == null) {
-            log.warn("Missing connection token on ping. Ignore the request");
+        long pingTime;
+        try {
+            pingTime = Long.parseLong(timeStampString);
+        } catch (final Exception e) {
+            log.error("Invalid ping request: {}", connectionToken);
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             return;
         }
 
-        if (instructionConfirm != null) {
-            this.sebClientConnectionService.confirmInstructionDone(connectionToken, instructionConfirm);
-        }
-
-        final Long clientTime = timeStampString != null ? Long.parseLong(timeStampString) : 0L;
         final String instruction = this.sebClientConnectionService
                 .notifyPing(
                         connectionToken,
-                        clientTime,
-                        pingNumString != null ? Integer.parseInt(pingNumString) : -1);
+                        pingTime,
+                        pingNumString != null ? Integer.parseInt(pingNumString) : -1,
+                        instructionConfirm);
 
         if (instruction == null) {
             response.setStatus(HttpStatus.NO_CONTENT.value());
-            return;
-        }
-
-        try {
-            response.setStatus(HttpStatus.OK.value());
-            response.getOutputStream().write(instruction.getBytes());
-        } catch (final IOException e) {
-            log.error("Failed to send instruction as response: {}", connectionToken, e);
+        } else {
+            try {
+                response.setStatus(HttpStatus.OK.value());
+                response.getOutputStream().write(instruction.getBytes());
+            } catch (final IOException e) {
+                log.error("Failed to send instruction as response: {}", connectionToken, e);
+            }
         }
     }
 
