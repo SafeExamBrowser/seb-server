@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.concurrent.Executor;
+
 import org.joda.time.DateTimeUtils;
 import org.junit.After;
 import org.junit.Test;
@@ -34,9 +36,10 @@ public class PingIntervalClientIndicatorTest {
 
         final ClientEventDAO clientEventDAO = Mockito.mock(ClientEventDAO.class);
         final DistributedPingCache distributedPingCache = Mockito.mock(DistributedPingCache.class);
+        final Executor executor = Mockito.mock(Executor.class);
 
         final PingIntervalClientIndicator pingIntervalClientIndicator =
-                new PingIntervalClientIndicator(distributedPingCache);
+                new PingIntervalClientIndicator(distributedPingCache, executor);
         assertEquals("0.0", String.valueOf(pingIntervalClientIndicator.getValue()));
     }
 
@@ -47,9 +50,10 @@ public class PingIntervalClientIndicatorTest {
 
         final ClientEventDAO clientEventDAO = Mockito.mock(ClientEventDAO.class);
         final DistributedPingCache distributedPingCache = Mockito.mock(DistributedPingCache.class);
+        final Executor executor = Mockito.mock(Executor.class);
 
         final PingIntervalClientIndicator pingIntervalClientIndicator =
-                new PingIntervalClientIndicator(distributedPingCache);
+                new PingIntervalClientIndicator(distributedPingCache, executor);
         assertEquals("0.0", String.valueOf(pingIntervalClientIndicator.getValue()));
 
         DateTimeUtils.setCurrentMillisProvider(() -> 10L);
@@ -63,9 +67,10 @@ public class PingIntervalClientIndicatorTest {
 
         final ClientEventDAO clientEventDAO = Mockito.mock(ClientEventDAO.class);
         final DistributedPingCache distributedPingCache = Mockito.mock(DistributedPingCache.class);
+        final Executor executor = Mockito.mock(Executor.class);
 
         final PingIntervalClientIndicator pingIntervalClientIndicator =
-                new PingIntervalClientIndicator(distributedPingCache);
+                new PingIntervalClientIndicator(distributedPingCache, executor);
         final JSONMapper jsonMapper = new JSONMapper();
         final String json = jsonMapper.writeValueAsString(pingIntervalClientIndicator);
         assertEquals("{\"indicatorValue\":0.0,\"indicatorType\":\"LAST_PING\"}", json);

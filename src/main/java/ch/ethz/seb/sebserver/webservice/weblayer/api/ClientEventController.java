@@ -105,19 +105,13 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
         populateFilterMap(filterMap, institutionId, sort);
 
-        try {
-
-            return this.paginationService.getPage(
-                    pageNumber,
-                    pageSize,
-                    sort,
-                    getSQLTableOfEntity().name(),
-                    () -> this.clientEventDAO.allMatchingExtended(filterMap, this::hasReadAccess))
-                    .getOrThrow();
-        } catch (final Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+        return this.paginationService.getPage(
+                pageNumber,
+                pageSize,
+                sort,
+                getSQLTableOfEntity().name(),
+                () -> this.clientEventDAO.allMatchingExtended(filterMap, this::hasReadAccess))
+                .getOrThrow();
     }
 
     @Override

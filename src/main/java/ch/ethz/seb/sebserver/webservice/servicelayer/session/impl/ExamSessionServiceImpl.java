@@ -193,7 +193,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
-    public Result<Exam> getRunningExam(final Long examId) {
+    public synchronized Result<Exam> getRunningExam(final Long examId) {
         if (log.isTraceEnabled()) {
             log.trace("Running exam request for exam {}", examId);
         }
@@ -212,6 +212,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             return Result.of(exam);
         } else {
             if (exam != null) {
+                log.info("Exam {} is not running anymore. Flush caches", exam);
                 flushCache(exam);
             }
 

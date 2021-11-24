@@ -76,7 +76,7 @@ public class ClientHttpRequestFactoryService {
             final ClientCredentialService clientCredentialService,
             @Value("${sebserver.http.client.connect-timeout:15000}") final int connectTimeout,
             @Value("${sebserver.http.client.connection-request-timeout:20000}") final int connectionRequestTimeout,
-            @Value("${sebserver.http.client.read-timeout:10000}") final int readTimeout) {
+            @Value("${sebserver.http.client.read-timeout:20000}") final int readTimeout) {
 
         this.environment = environment;
         this.clientCredentialService = clientCredentialService;

@@ -69,7 +69,7 @@ public class ExamSessionCacheService {
             cacheNames = CACHE_NAME_RUNNING_EXAM,
             key = "#examId",
             unless = "#result == null")
-    public Exam getRunningExam(final Long examId) {
+    public synchronized Exam getRunningExam(final Long examId) {
 
         if (log.isDebugEnabled()) {
             log.debug("Verify running exam for id: {}", examId);
