@@ -399,7 +399,11 @@ public class WidgetFactory {
 
         final Button button = new Button(parent, type);
         setARIARole(button, AriaRole.button);
-        setTestId(button, locTextKey.name);
+        if (locTextKey != null) {
+            setTestId(button, locTextKey.name);
+        } else if (toolTipKey != null) {
+            setTestId(button, toolTipKey.name);
+        }
         this.polyglotPageService.injectI18n(button, locTextKey, toolTipKey);
         return button;
     }
@@ -781,7 +785,13 @@ public class WidgetFactory {
             final Supplier<List<Tuple<String>>> itemsSupplier,
             final LocTextKey toolTipTextKey) {
 
-        return this.selectionLocalized(type, parent, itemsSupplier, toolTipTextKey, null, toolTipTextKey.name);
+        return this.selectionLocalized(
+                type,
+                parent,
+                itemsSupplier,
+                toolTipTextKey,
+                null,
+                (toolTipTextKey != null) ? toolTipTextKey.name : null);
     }
 
     public Selection selectionLocalized(
@@ -791,8 +801,13 @@ public class WidgetFactory {
             final LocTextKey toolTipTextKey,
             final Supplier<List<Tuple<String>>> itemsToolTipSupplier) {
 
-        return selectionLocalized(type, parent, itemsSupplier, toolTipTextKey, itemsToolTipSupplier,
-                toolTipTextKey.name);
+        return selectionLocalized(
+                type,
+                parent,
+                itemsSupplier,
+                toolTipTextKey,
+                itemsToolTipSupplier,
+                (toolTipTextKey != null) ? toolTipTextKey.name : null);
     }
 
     public Selection selectionLocalized(
