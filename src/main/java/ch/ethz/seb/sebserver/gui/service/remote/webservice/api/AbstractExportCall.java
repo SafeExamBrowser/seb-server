@@ -17,6 +17,7 @@ import org.springframework.http.client.ClientHttpRequest;
 
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
+@Deprecated(since = "1.2. : This is not streaming correctly. Use AbstractDownloadCall instead")
 public abstract class AbstractExportCall extends RestCall<InputStream> {
 
     protected AbstractExportCall(

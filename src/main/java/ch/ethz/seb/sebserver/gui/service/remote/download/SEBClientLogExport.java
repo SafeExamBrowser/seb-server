@@ -55,26 +55,32 @@ public class SEBClientLogExport extends AbstractDownloadServiceHandler {
             queryParams.add(param, String.valueOf(request.getParameter(param)));
         }
 
-        final InputStream input = this.restService
+        this.restService
                 .getBuilder(ExportSEBClientLogs.class)
+                .withResponseExtractor(response -> {
+
+                    try {
+                        final InputStream input = response.getBody();
+                        IOUtils.copyLarge(input, downloadOut);
+                    } catch (final IOException e) {
+                        log.error(
+                                "Unexpected error while streaming incoming config data from web-service to output-stream of download response: ",
+                                e);
+                    } finally {
+                        try {
+                            downloadOut.flush();
+                            downloadOut.close();
+                        } catch (final IOException e) {
+                            log.error("Unexpected error while trying to close download output-stream");
+                        }
+                    }
+
+                    return true;
+                })
                 .withQueryParams(queryParams)
                 .call()
-                .getOrThrow();
+                .onError(error -> log.error("Download failed: ", error));
 
-        try {
-            IOUtils.copyLarge(input, downloadOut);
-        } catch (final IOException e) {
-            log.error(
-                    "Unexpected error while streaming incoming config data from web-service to output-stream of download response: ",
-                    e);
-        } finally {
-            try {
-                downloadOut.flush();
-                downloadOut.close();
-            } catch (final IOException e) {
-                log.error("Unexpected error while trying to close download output-stream");
-            }
-        }
     }
 
 }
