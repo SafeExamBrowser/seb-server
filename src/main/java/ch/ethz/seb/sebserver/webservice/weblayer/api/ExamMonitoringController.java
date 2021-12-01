@@ -172,8 +172,14 @@ public class ExamMonitoringController {
                 EntityType.EXAM,
                 UserRole.EXAM_SUPPORTER);
 
+        // check exam running
+        final Exam runningExam = this.examSessionService.getRunningExam(examId).getOr(null);
+        if (runningExam == null) {
+            throw new ExamNotRunningException("Exam not currently running: " + examId);
+        }
+
         // check running exam privilege for specified exam
-        if (!hasRunningExamPrivilege(examId, institutionId)) {
+        if (!hasRunningExamPrivilege(runningExam, institutionId)) {
             throw new PermissionDeniedException(
                     EntityType.EXAM,
                     PrivilegeType.READ,
@@ -217,8 +223,14 @@ public class ExamMonitoringController {
                 EntityType.EXAM,
                 UserRole.EXAM_SUPPORTER);
 
+        // check exam running
+        final Exam runningExam = this.examSessionService.getRunningExam(examId).getOr(null);
+        if (runningExam == null) {
+            throw new ExamNotRunningException("Exam not currently running: " + examId);
+        }
+
         // check running exam privilege for specified exam
-        if (!hasRunningExamPrivilege(examId, institutionId)) {
+        if (!hasRunningExamPrivilege(runningExam, institutionId)) {
             throw new PermissionDeniedException(
                     EntityType.EXAM,
                     PrivilegeType.READ,
@@ -243,6 +255,11 @@ public class ExamMonitoringController {
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @Valid @RequestBody final ClientInstruction clientInstruction) {
 
+        // check exam running
+        if (!this.examSessionService.isExamRunning(examId)) {
+            throw new ExamNotRunningException("Exam not currently running: " + examId);
+        }
+
         this.sebClientInstructionService.registerInstruction(clientInstruction);
     }
 
@@ -260,6 +277,11 @@ public class ExamMonitoringController {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
+
+        // check exam running
+        if (!this.examSessionService.isExamRunning(examId)) {
+            throw new ExamNotRunningException("Exam not currently running: " + examId);
+        }
 
         final ClientConnectionData connection = getConnectionDataForSingleConnection(
                 institutionId,
@@ -285,6 +307,11 @@ public class ExamMonitoringController {
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long notificationId,
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
+
+        // check exam running
+        if (!this.examSessionService.isExamRunning(examId)) {
+            throw new ExamNotRunningException("Exam not currently running: " + examId);
+        }
 
         this.sebClientNotificationService.confirmPendingNotification(
                 notificationId,
@@ -320,12 +347,6 @@ public class ExamMonitoringController {
                     .disableConnection(connectionToken, institutionId)
                     .getOrThrow();
         }
-    }
-
-    private boolean hasRunningExamPrivilege(final Long examId, final Long institution) {
-        return hasRunningExamPrivilege(
-                this.examSessionService.getRunningExam(examId).getOr(null),
-                institution);
     }
 
     private boolean hasRunningExamPrivilege(final Exam exam, final Long institution) {

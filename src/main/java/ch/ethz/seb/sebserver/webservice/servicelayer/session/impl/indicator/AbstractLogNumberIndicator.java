@@ -67,9 +67,9 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
             return super.currentValue;
         }
 
-        try {
+        // TODO do this within a better reactive way like ping updates
 
-            System.out.println("************** loadFromPersistent");
+        try {
 
             final List<ClientEventRecord> execute = this.clientEventRecordMapper.selectByExample()
                     .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))

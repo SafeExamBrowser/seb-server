@@ -176,6 +176,7 @@ public class DistributedPingCache implements DisposableBean {
 
     public Long getLastPing(final Long pingRecordId, final boolean missing) {
         try {
+
             Long ping = this.pingCache.get(pingRecordId);
             if (ping == null && !missing) {
 
@@ -199,7 +200,7 @@ public class DistributedPingCache implements DisposableBean {
     }
 
     private void updatePings() {
-        
+
         if (this.pingCache.isEmpty()) {
             return;
         }

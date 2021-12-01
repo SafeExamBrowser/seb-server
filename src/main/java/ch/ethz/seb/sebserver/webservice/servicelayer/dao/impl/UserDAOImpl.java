@@ -129,6 +129,21 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<SEBServerUser> sebServerAdminByUsername(final String username) {
+        return getSingleResource(
+                username,
+                this.userRecordMapper
+                        .selectByExample()
+                        .where(UserRecordDynamicSqlSupport.username, isEqualTo(username))
+                        .and(UserRecordDynamicSqlSupport.active,
+                                isEqualTo(BooleanUtils.toInteger(true)))
+                        .build()
+                        .execute())
+                                .flatMap(this::sebServerUserFromRecord);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<UserInfo>> all(final Long institutionId, final Boolean active) {
         return Result.tryCatch(() -> {
 

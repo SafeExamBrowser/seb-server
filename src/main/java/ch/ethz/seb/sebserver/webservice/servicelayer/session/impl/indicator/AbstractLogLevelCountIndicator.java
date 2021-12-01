@@ -61,6 +61,8 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
             return super.currentValue;
         }
 
+        // TODO do this within a better reactive way like ping updates
+
         try {
 
             final Long errors = this.clientEventRecordMapper

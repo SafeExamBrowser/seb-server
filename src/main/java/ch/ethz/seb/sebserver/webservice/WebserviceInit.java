@@ -94,7 +94,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
             SEBServerInit.INIT_LOGGER.info("------> Ping update time: {}",
                     this.environment.getProperty("sebserver.webservice.distributed.pingUpdate"));
             SEBServerInit.INIT_LOGGER.info("------> Connection update time: {}",
-                    this.environment.getProperty("sebserver.webservice.distributed.connectionUpdate"));
+                    this.environment.getProperty("sebserver.webservice.distributed.connectionUpdate", "2000"));
         }
 
         try {

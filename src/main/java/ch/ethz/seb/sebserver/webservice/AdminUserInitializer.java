@@ -8,6 +8,17 @@
 
 package ch.ethz.seb.sebserver.webservice;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialServiceImpl;
@@ -20,16 +31,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServe
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 
 @Component
 @WebServiceProfile
@@ -69,7 +70,7 @@ class AdminUserInitializer {
         try {
 
             log.debug("Create initial admin account is switched on. Check database if exists...");
-            final Result<SEBServerUser> byUsername = this.userDAO.sebServerUserByUsername(this.adminName);
+            final Result<SEBServerUser> byUsername = this.userDAO.sebServerAdminByUsername(this.adminName);
             if (byUsername.hasValue()) {
 
                 log.debug("Initial admin account already exists. Check if the password must be reset...");
@@ -130,7 +131,7 @@ class AdminUserInitializer {
                             return account;
                         })
                         .getOrThrow();
-                }
+            }
         } catch (final Exception e) {
             SEBServerInit.INIT_LOGGER.error("---->");
             SEBServerInit.INIT_LOGGER.error("----> SEB Server initial admin-account creation failed: ", e);
