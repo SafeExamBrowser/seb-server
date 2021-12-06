@@ -112,11 +112,13 @@ class ExamSessionControlTask implements DisposableBean {
     @Scheduled(fixedRateString = "${sebserver.webservice.api.exam.update-ping:5000}")
     public void examSessionUpdateTask() {
 
+        this.sebClientConnectionService.updatePingEvents();
+
         if (!this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID())) {
             return;
         }
 
-        this.sebClientConnectionService.updatePingEvents();
+        this.sebClientConnectionService.cleanupInstructions();
         this.examProcotringRoomService.updateProctoringCollectingRooms();
     }
 

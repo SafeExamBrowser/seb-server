@@ -242,7 +242,9 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                 examId,
                 ProctoringServiceSettings.ATTR_ENABLE_PROCTORING)
                 .map(rec -> BooleanUtils.toBoolean(rec.getValue()))
-                .onError(error -> log.error("Failed to verify proctoring enabled for exam: {}", examId, error));
+                .onError(error -> log.warn("Failed to verify proctoring enabled for exam: {}, {}",
+                        examId,
+                        error.getMessage()));
         if (result.hasError()) {
             return Result.of(false);
         }

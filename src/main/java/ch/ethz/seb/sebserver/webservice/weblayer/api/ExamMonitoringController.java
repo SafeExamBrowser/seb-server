@@ -202,6 +202,7 @@ public class ExamMonitoringController {
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
         checkPrivileges(institutionId, examId);
+
         return this.examSessionService
                 .getConnectionData(connectionToken)
                 .getOrThrow();
@@ -267,6 +268,7 @@ public class ExamMonitoringController {
             @PathVariable(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken) {
 
         checkPrivileges(institutionId, examId);
+
         this.sebClientNotificationService.confirmPendingNotification(
                 notificationId,
                 examId,
@@ -313,19 +315,19 @@ public class ExamMonitoringController {
                 UserRole.EXAM_SUPPORTER,
                 UserRole.EXAM_ADMIN);
 
+        // check exam running
+        final Exam runningExam = this.examSessionService.getRunningExam(examId).getOr(null);
+        if (runningExam == null) {
+            throw new ExamNotRunningException("Exam not currently running: " + examId);
+        }
+
         // check running exam privilege for specified exam
-        if (!hasRunningExamPrivilege(examId, institutionId)) {
+        if (!hasRunningExamPrivilege(runningExam, institutionId)) {
             throw new PermissionDeniedException(
                     EntityType.EXAM,
                     PrivilegeType.READ,
                     this.authorization.getUserService().getCurrentUser().getUserInfo());
         }
-    }
-
-    private boolean hasRunningExamPrivilege(final Long examId, final Long institution) {
-        return hasRunningExamPrivilege(
-                this.examSessionService.getRunningExam(examId).getOr(null),
-                institution);
     }
 
     private boolean hasRunningExamPrivilege(final Exam exam, final Long institution) {

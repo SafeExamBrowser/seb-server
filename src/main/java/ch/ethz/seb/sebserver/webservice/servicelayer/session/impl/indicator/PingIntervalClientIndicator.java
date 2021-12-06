@@ -83,7 +83,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
                 this.missingPing = this.pingErrorThreshold < value;
             } catch (final Exception e) {
                 log.error("Failed to initialize missingPing: {}", e.getMessage());
-                this.missingPing = false;
+                this.missingPing = true;
             }
         }
 
@@ -111,8 +111,8 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     @Override
     public double getValue() {
-        final long now = DateTimeUtils.currentTimeMillis();
-        return now - super.getValue();
+        final double value = super.getValue();
+        return DateTimeUtils.currentTimeMillis() - value;
     }
 
     @Override

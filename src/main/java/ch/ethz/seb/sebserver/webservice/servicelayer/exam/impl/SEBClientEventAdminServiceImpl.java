@@ -228,7 +228,7 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
         private final String sort;
 
         private int pageNumber = 1;
-        private final int pageSize = 1000;
+        private final int pageSize = 10000;
 
         private Collection<ClientEventRecord> nextRecords;
 

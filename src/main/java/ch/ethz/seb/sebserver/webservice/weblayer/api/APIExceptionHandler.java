@@ -177,6 +177,16 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 .createErrorResponse(ex.getMessage());
     }
 
+    @ExceptionHandler(ExamNotRunningException.class)
+    public ResponseEntity<Object> handleExamNotRunning(
+            final ExamNotRunningException ex,
+            final WebRequest request) {
+
+        log.warn("{}", ex.getMessage());
+        return APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                .createErrorResponse(ex.getMessage());
+    }
+
     @ExceptionHandler(APIConstraintViolationException.class)
     public ResponseEntity<Object> handleIllegalAPIArgumentException(
             final APIConstraintViolationException ex,

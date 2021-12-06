@@ -19,8 +19,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventLastPingMapper;
@@ -35,12 +33,12 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
     private final Executor executor;
     protected final DistributedPingCache distributedPingCache;
 
-    //protected Long pingRecord = null;
     protected PingUpdate pingUpdate = null;
 
     protected AbstractPingIndicator(
             final DistributedPingCache distributedPingCache,
             @Qualifier(AsyncServiceSpringConfig.EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME) final Executor executor) {
+
         super();
         this.executor = executor;
         this.distributedPingCache = distributedPingCache;
@@ -81,7 +79,9 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
             try {
                 this.executor.execute(this.pingUpdate);
             } catch (final Exception e) {
-                //log.warn("Failed to schedule ping task: {}" + e.getMessage());
+                if (log.isDebugEnabled()) {
+                    log.warn("Failed to schedule ping task: {}" + e.getMessage());
+                }
             }
         }
     }
@@ -115,30 +115,6 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
     public abstract ClientEventRecord updateLogEvent(final long now);
 
-    @Override
-    public double computeValueAt(final long timestamp) {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public void notifyValueChange(final ClientEvent event) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void notifyValueChange(final ClientEventRecord clientEventRecord) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public IndicatorType getType() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     static final class PingUpdate implements Runnable {
 
         private final ClientEventLastPingMapper clientEventLastPingMapper;
@@ -151,8 +127,12 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
         @Override
         public void run() {
-            this.clientEventLastPingMapper
-                    .updatePingTime(this.pingRecord, Utils.getMillisecondsNow());
+            try {
+                this.clientEventLastPingMapper
+                        .updatePingTime(this.pingRecord, Utils.getMillisecondsNow());
+            } catch (final Exception e) {
+                log.error("Failed to update ping: {}", e.getMessage());
+            }
         }
 
     }

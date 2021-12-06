@@ -686,7 +686,11 @@ public final class Utils {
         if (StringUtils.isBlank(text)) {
             return StringUtils.EMPTY;
         }
-        return Constants.DOUBLE_QUOTE + text.replace("\"", "\"\"") + Constants.DOUBLE_QUOTE;
+        return Constants.DOUBLE_QUOTE +
+                text
+                        .replace("\r\n", "\n")
+                        .replace("\"", "\"\"")
+                + Constants.DOUBLE_QUOTE;
     }
 
 }

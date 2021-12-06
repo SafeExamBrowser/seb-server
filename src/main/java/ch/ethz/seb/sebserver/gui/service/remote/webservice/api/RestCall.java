@@ -29,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -224,6 +225,7 @@ public abstract class RestCall<T> {
         private final HttpHeaders httpHeaders;
         private String body = null;
         private InputStream streamingBody = null;
+        private ResponseExtractor<Boolean> responseExtractor = null;
 
         private final MultiValueMap<String, String> queryParams;
         private final Map<String, String> uriVariables;
@@ -251,6 +253,15 @@ public abstract class RestCall<T> {
 
         public RestTemplate getRestTemplate() {
             return this.restTemplate;
+        }
+
+        public RestCallBuilder withResponseExtractor(final ResponseExtractor<Boolean> responseExtractor) {
+            this.responseExtractor = responseExtractor;
+            return this;
+        }
+
+        public ResponseExtractor<Boolean> getResponseExtractor() {
+            return this.responseExtractor;
         }
 
         public RestCallBuilder withRestTemplate(final RestTemplate restTemplate) {

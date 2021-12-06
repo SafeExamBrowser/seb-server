@@ -49,6 +49,12 @@ public interface UserDAO extends ActivatableEntityDAO<UserInfo, UserMod>, BulkAc
      * @return a Result of SEBServerUser for specified username. Or an exception result on error case */
     Result<SEBServerUser> sebServerUserByUsername(String username);
 
+    /** Use this to get the SEBServerUser admin principal for a given username.
+     *
+     * @param username The username of the user to get SEBServerUser from
+     * @return a Result of SEBServerUser for specified username. Or an exception result on error case */
+    Result<SEBServerUser> sebServerAdminByUsername(String username);
+
     /** Use this to get a Collection containing EntityKey's of all entities that belongs to a given User.
      *
      * @param uuid The UUID of the user
