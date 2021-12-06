@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.datalayer.batis;
 
-import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport.*;
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 
 import java.util.Collection;
@@ -28,18 +28,18 @@ import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
 import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.ClientIndicatorType;
 
 @Mapper
-public interface ClientEventLastPingMapper {
+public interface ClientPingMapper {
 
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
-    @ConstructorArgs({ @Arg(column = "server_time", javaType = Long.class, jdbcType = JdbcType.BIGINT) })
+    @ConstructorArgs({ @Arg(column = "value", javaType = Long.class, jdbcType = JdbcType.BIGINT) })
     Collection<Long> selectPingTimes(SelectStatementProvider selectStatement);
 
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
-    @ConstructorArgs({ @Arg(column = "server_time", javaType = Long.class, jdbcType = JdbcType.BIGINT) })
+    @ConstructorArgs({ @Arg(column = "value", javaType = Long.class, jdbcType = JdbcType.BIGINT) })
     Long selectPingTime(SelectStatementProvider selectStatement);
 
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
@@ -53,16 +53,16 @@ public interface ClientEventLastPingMapper {
     @ResultType(ClientEventLastPingRecord.class)
     @ConstructorArgs({
             @Arg(column = "id", javaType = Long.class, jdbcType = JdbcType.BIGINT),
-            @Arg(column = "server_time", javaType = Long.class, jdbcType = JdbcType.BIGINT)
+            @Arg(column = "value", javaType = Long.class, jdbcType = JdbcType.BIGINT)
     })
     Collection<ClientEventLastPingRecord> selectMany(SelectStatementProvider select);
 
     default Long selectPingTimeByPrimaryKey(final Long id_) {
         return SelectDSL.selectWithMapper(
                 this::selectPingTime,
-                ClientEventRecordDynamicSqlSupport.serverTime.as("server_time"))
-                .from(ClientEventRecordDynamicSqlSupport.clientEventRecord)
-                .where(ClientEventRecordDynamicSqlSupport.id, isEqualTo(id_))
+                value.as("value"))
+                .from(clientIndicatorRecord)
+                .where(id, isEqualTo(id_))
                 .build()
                 .execute();
     }
@@ -70,10 +70,10 @@ public interface ClientEventLastPingMapper {
     default Long pingRecordIdByConnectionId(final Long connectionId) {
         return SelectDSL.selectDistinctWithMapper(
                 this::selectPK,
-                ClientEventRecordDynamicSqlSupport.id.as("id"))
-                .from(ClientEventRecordDynamicSqlSupport.clientEventRecord)
-                .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(connectionId))
-                .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
+                id.as("id"))
+                .from(clientIndicatorRecord)
+                .where(clientConnectionId, isEqualTo(connectionId))
+                .and(type, isEqualTo(ClientIndicatorType.LAST_PING.id))
                 .build()
                 .execute();
     }
@@ -82,16 +82,14 @@ public interface ClientEventLastPingMapper {
 
         return SelectDSL.selectWithMapper(
                 this::selectMany,
-
-                ClientEventRecordDynamicSqlSupport.id.as("id"),
-                ClientEventRecordDynamicSqlSupport.serverTime.as("server_time"))
-
-                .from(ClientEventRecordDynamicSqlSupport.clientEventRecord);
+                id.as("id"),
+                value.as("value"))
+                .from(ClientIndicatorRecordDynamicSqlSupport.clientIndicatorRecord);
     }
 
     default int updatePingTime(final Long _id, final Long pingTime) {
-        return UpdateDSL.updateWithMapper(this::update, clientEventRecord)
-                .set(serverTime).equalTo(pingTime)
+        return UpdateDSL.updateWithMapper(this::update, clientIndicatorRecord)
+                .set(value).equalTo(pingTime)
                 .where(id, isEqualTo(_id))
                 .build()
                 .execute();
@@ -104,10 +102,10 @@ public interface ClientEventLastPingMapper {
 
         public ClientEventLastPingRecord(
                 final Long id,
-                final Long server_time) {
+                final Long value) {
 
             this.id = id;
-            this.lastPingTime = server_time;
+            this.lastPingTime = value;
         }
     }
 

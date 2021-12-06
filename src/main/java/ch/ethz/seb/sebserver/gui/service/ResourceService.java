@@ -113,7 +113,7 @@ public class ResourceService {
             EntityType.WEBSERVICE_SERVER_INFO);
 
     public static final EnumSet<EventType> CLIENT_EVENT_TYPE_EXCLUDE_MAP = EnumSet.of(
-            EventType.LAST_PING);
+            EventType.UNKNOWN);
 
     public static final String EXAMCONFIG_STATUS_PREFIX = "sebserver.examconfig.status.";
     public static final String EXAM_TYPE_PREFIX = "sebserver.exam.type.";

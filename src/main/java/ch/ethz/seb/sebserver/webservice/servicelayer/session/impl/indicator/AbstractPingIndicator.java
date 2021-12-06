@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventLastPingMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientPingMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
@@ -104,7 +104,7 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
     private void createPingUpdate() {
         this.pingUpdate = new PingUpdate(
-                this.distributedPingCache.getClientEventLastPingMapper(),
+                this.distributedPingCache.getClientPingMapper(),
                 this.distributedPingCache.initPingForConnection(this.connectionId));
     }
 
@@ -117,18 +117,18 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
     static final class PingUpdate implements Runnable {
 
-        private final ClientEventLastPingMapper clientEventLastPingMapper;
+        private final ClientPingMapper clientPingMapper;
         final Long pingRecord;
 
-        public PingUpdate(final ClientEventLastPingMapper clientEventLastPingMapper, final Long pingRecord) {
-            this.clientEventLastPingMapper = clientEventLastPingMapper;
+        public PingUpdate(final ClientPingMapper clientPingMapper, final Long pingRecord) {
+            this.clientPingMapper = clientPingMapper;
             this.pingRecord = pingRecord;
         }
 
         @Override
         public void run() {
             try {
-                this.clientEventLastPingMapper
+                this.clientPingMapper
                         .updatePingTime(this.pingRecord, Utils.getMillisecondsNow());
             } catch (final Exception e) {
                 log.error("Failed to update ping: {}", e.getMessage());

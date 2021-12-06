@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
@@ -81,7 +80,7 @@ public class SEBClientEventExportTransactionHandler {
                         isEqualToWhenPresent(filterMap.getClientEventTypeId()))
                 .and(
                         ClientEventRecordDynamicSqlSupport.type,
-                        SqlBuilder.isNotEqualTo(EventType.LAST_PING.id))
+                        SqlBuilder.isNotEqualTo(5)) //  formerly defined as EventType.LAST_PING
                 .and(
                         ClientEventRecordDynamicSqlSupport.clientTime,
                         SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeFrom()))

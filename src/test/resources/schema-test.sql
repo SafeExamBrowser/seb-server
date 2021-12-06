@@ -655,4 +655,25 @@ CREATE TABLE IF NOT EXISTS `batch_action` (
     ON UPDATE NO ACTION)
 ;
 
+-- -----------------------------------------------------
+-- Table `client_indicator`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `client_indicator` ;
+
+CREATE TABLE IF NOT EXISTS `client_indicator` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `client_connection_id` BIGINT UNSIGNED NOT NULL,
+  `type` INT(2) NOT NULL,
+  `value` BIGINT NULL,
+  `dec_value` DECIMAL(18,4) NULL,
+  PRIMARY KEY (`id`),
+  INDEX `clientIndicatorConnectionRef_idx` (`client_connection_id` ASC),
+  INDEX `clientIndicatorType` (`type` ASC),
+  CONSTRAINT `clientIndicatorConnectionRef`
+    FOREIGN KEY (`client_connection_id`)
+    REFERENCES `client_connection` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+;
+
 

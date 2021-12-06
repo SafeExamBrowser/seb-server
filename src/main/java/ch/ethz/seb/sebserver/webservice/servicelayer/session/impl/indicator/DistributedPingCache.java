@@ -9,9 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
-import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,15 +26,14 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventLastPingMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientEventLastPingMapper.ClientEventLastPingRecord;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientPingMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientPingMapper.ClientEventLastPingRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientIndicatorRecord;
 
 @Lazy
 @Component
@@ -45,8 +42,8 @@ public class DistributedPingCache implements DisposableBean {
 
     private static final Logger log = LoggerFactory.getLogger(DistributedPingCache.class);
 
-    private final ClientEventLastPingMapper clientEventLastPingMapper;
-    private final ClientEventRecordMapper clientEventRecordMapper;
+    private final ClientIndicatorRecordMapper clientIndicatorRecordMapper;
+    private final ClientPingMapper clientPingMapper;
     private final long pingUpdateTolerance;
 
     private ScheduledFuture<?> taskRef;
@@ -54,14 +51,14 @@ public class DistributedPingCache implements DisposableBean {
     private long lastUpdate = 0L;
 
     public DistributedPingCache(
-            final ClientEventLastPingMapper clientEventLastPingMapper,
-            final ClientEventRecordMapper clientEventRecordMapper,
+            final ClientIndicatorRecordMapper clientIndicatorRecordMapper,
+            final ClientPingMapper clientPingMapper,
             final WebserviceInfo webserviceInfo,
             final TaskScheduler taskScheduler,
             @Value("${sebserver.webservice.distributed.pingUpdate:3000}") final long pingUpdate) {
 
-        this.clientEventLastPingMapper = clientEventLastPingMapper;
-        this.clientEventRecordMapper = clientEventRecordMapper;
+        this.clientIndicatorRecordMapper = clientIndicatorRecordMapper;
+        this.clientPingMapper = clientPingMapper;
         this.pingUpdateTolerance = pingUpdate * 2 / 3;
         if (webserviceInfo.isDistributed()) {
             try {
@@ -75,8 +72,8 @@ public class DistributedPingCache implements DisposableBean {
         }
     }
 
-    public ClientEventLastPingMapper getClientEventLastPingMapper() {
-        return this.clientEventLastPingMapper;
+    public ClientPingMapper getClientPingMapper() {
+        return this.clientPingMapper;
     }
 
     @Transactional
@@ -87,22 +84,20 @@ public class DistributedPingCache implements DisposableBean {
                 log.trace("*** Initialize ping record for SEB connection: {}", connectionId);
             }
 
-            final Long recordId = this.clientEventLastPingMapper
+            final Long recordId = this.clientPingMapper
                     .pingRecordIdByConnectionId(connectionId);
 
             if (recordId == null) {
                 final long millisecondsNow = DateTimeUtils.currentTimeMillis();
-                final ClientEventRecord clientEventRecord = new ClientEventRecord();
-                clientEventRecord.setClientConnectionId(connectionId);
-                clientEventRecord.setType(EventType.LAST_PING.id);
-                clientEventRecord.setClientTime(millisecondsNow);
-                clientEventRecord.setServerTime(millisecondsNow);
-                this.clientEventRecordMapper.insert(clientEventRecord);
+                final ClientIndicatorRecord clientEventRecord = new ClientIndicatorRecord(
+                        null, connectionId, ClientIndicatorType.LAST_PING.id, millisecondsNow, null);
+
+                this.clientIndicatorRecordMapper.insert(clientEventRecord);
 
                 try {
                     // This also double-check by trying again. If we have more then one entry here
                     // this will throw an exception that causes a rollback
-                    return this.clientEventLastPingMapper
+                    return this.clientPingMapper
                             .pingRecordIdByConnectionId(connectionId);
 
                 } catch (final Exception e) {
@@ -129,7 +124,7 @@ public class DistributedPingCache implements DisposableBean {
     public Long getPingRecordIdForConnectionId(final Long connectionId) {
         try {
 
-            return this.clientEventLastPingMapper
+            return this.clientPingMapper
                     .pingRecordIdByConnectionId(connectionId);
 
         } catch (final Exception e) {
@@ -146,10 +141,10 @@ public class DistributedPingCache implements DisposableBean {
                 log.debug("*** Delete ping record for SEB connection: {}", connectionId);
             }
 
-            final Collection<ClientEventLastPingRecord> records = this.clientEventLastPingMapper
+            final Collection<ClientEventLastPingRecord> records = this.clientPingMapper
                     .selectByExample()
                     .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(connectionId))
-                    .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
+                    .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(ClientIndicatorType.LAST_PING.id))
                     .build()
                     .execute();
 
@@ -159,7 +154,7 @@ public class DistributedPingCache implements DisposableBean {
 
             final Long id = records.iterator().next().id;
             this.pingCache.remove(id);
-            this.clientEventRecordMapper.deleteByPrimaryKey(id);
+            this.clientIndicatorRecordMapper.deleteByPrimaryKey(id);
 
         } catch (final Exception e) {
             log.error("Failed to delete ping for connection -> {}", connectionId, e);
@@ -184,7 +179,7 @@ public class DistributedPingCache implements DisposableBean {
                     log.debug("*** Get and cache ping time: {}", pingRecordId);
                 }
 
-                ping = this.clientEventLastPingMapper.selectPingTimeByPrimaryKey(pingRecordId);
+                ping = this.clientPingMapper.selectPingTimeByPrimaryKey(pingRecordId);
             }
 
             // if we have a missing ping we need to check new ping from next update even if the cache was empty
@@ -217,12 +212,11 @@ public class DistributedPingCache implements DisposableBean {
 
         try {
 
-            final ArrayList<Long> pks = new ArrayList<>(this.pingCache.keySet());
-            final Map<Long, Long> mapping = this.clientEventLastPingMapper
+            final Map<Long, Long> mapping = this.clientPingMapper
                     .selectByExample()
                     .where(
-                            ClientEventRecordDynamicSqlSupport.id,
-                            isIn(pks))
+                            ClientEventRecordDynamicSqlSupport.type,
+                            isEqualTo(ClientIndicatorType.LAST_PING.id))
                     .build()
                     .execute()
                     .stream()

@@ -542,7 +542,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 .selectByExample()
                 .where(
                         ClientEventRecordDynamicSqlSupport.type,
-                        SqlBuilder.isNotEqualTo(EventType.LAST_PING.id))
+                        SqlBuilder.isNotEqualTo(EventType.REMOVED_EVENT_TYPE_LAST_PING))
                 .build()
                 .execute();
 

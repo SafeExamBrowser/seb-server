@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ClientEvent implements Entity, IndicatorValueHolder {
+public class ClientEvent implements Entity {
 
     /** Adapt SEB API to SEB_SEB_Server API -> timestamp == clientTime */
     public static final String ATTR_TIMESTAMP = "timestamp";
@@ -45,11 +45,19 @@ public class ClientEvent implements Entity, IndicatorValueHolder {
         INFO_LOG(2),
         WARN_LOG(3),
         ERROR_LOG(4),
-        LAST_PING(5),
+        @Deprecated
         NOTIFICATION(6),
+        @Deprecated
         NOTIFICATION_CONFIRMED(7)
 
         ;
+
+        /** Points to formerly defined Event Type with LAST_PING */
+        public static final int REMOVED_EVENT_TYPE_LAST_PING = 5;
+        /** Points to formerly defined Event Type with NOTIFICATION */
+        public static final int REMOVED_EVENT_TYPE_NOTIFICATION = 6;
+        /** Points to formerly defined Event Type with NOTIFICATION_CONFIRMED */
+        public static final int REMOVED_EVENT_TYPE_NOTIFICATION_CONFIRMED = 7;
 
         public final int id;
 
@@ -153,7 +161,6 @@ public class ClientEvent implements Entity, IndicatorValueHolder {
         return this.numValue;
     }
 
-    @Override
     public double getValue() {
         return this.numValue != null
                 ? this.numValue

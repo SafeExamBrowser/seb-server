@@ -17,7 +17,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
 
@@ -61,11 +60,5 @@ public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
      * @param notificationId the notification identifier
      * @return Result refer to the confirmed notification or to en error when happened */
     Result<ClientNotification> confirmPendingNotification(Long notificationId);
-
-    Result<ClientEventRecord> initPingEvent(Long connectionId);
-
-    void updatePingEvent(ClientEventRecord pingRecord);
-
-    Result<Long> getLastPing(Long pk);
 
 }

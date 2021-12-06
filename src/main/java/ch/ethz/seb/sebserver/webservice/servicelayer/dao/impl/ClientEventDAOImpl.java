@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.joda.time.DateTimeUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -104,7 +103,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                         isEqualToWhenPresent(filterMap.getClientEventTypeId()))
                 .and(
                         ClientEventRecordDynamicSqlSupport.type,
-                        SqlBuilder.isNotEqualTo(EventType.LAST_PING.id))
+                        SqlBuilder.isNotEqualTo(EventType.REMOVED_EVENT_TYPE_LAST_PING))
                 .and(
                         ClientEventRecordDynamicSqlSupport.clientTime,
                         SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeFrom()))
@@ -152,7 +151,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                         isEqualToWhenPresent(filterMap.getClientEventTypeId()))
                 .and(
                         ClientEventRecordDynamicSqlSupport.type,
-                        SqlBuilder.isNotEqualTo(EventType.LAST_PING.id))
+                        SqlBuilder.isNotEqualTo(EventType.REMOVED_EVENT_TYPE_LAST_PING))
                 .and(
                         ClientEventRecordDynamicSqlSupport.clientTime,
                         SqlBuilder.isGreaterThanOrEqualToWhenPresent(filterMap.getClientEventClientTimeFrom()))
@@ -351,64 +350,6 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                     .map(pk -> new EntityKey(String.valueOf(pk), EntityType.CLIENT_EVENT))
                     .collect(Collectors.toList());
         });
-    }
-
-    @Override
-    @Transactional
-    public Result<ClientEventRecord> initPingEvent(final Long connectionId) {
-        return Result.tryCatch(() -> {
-            final List<ClientEventRecord> lastPingRec = this.clientEventRecordMapper
-                    .selectByExample()
-                    .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(connectionId))
-                    .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
-                    .build()
-                    .execute();
-
-            if (lastPingRec != null && !lastPingRec.isEmpty()) {
-                return lastPingRec.get(0);
-            }
-
-            final long millisecondsNow = DateTimeUtils.currentTimeMillis();
-            final ClientEventRecord clientEventRecord = new ClientEventRecord();
-            clientEventRecord.setClientConnectionId(connectionId);
-            clientEventRecord.setType(EventType.LAST_PING.id);
-            clientEventRecord.setClientTime(millisecondsNow);
-            clientEventRecord.setServerTime(millisecondsNow);
-            this.clientEventRecordMapper.insert(clientEventRecord);
-
-            try {
-
-                return this.clientEventRecordMapper
-                        .selectByExample()
-                        .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(connectionId))
-                        .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(EventType.LAST_PING.id))
-                        .build()
-                        .execute()
-                        .get(0);
-
-            } catch (final Exception e) {
-                return clientEventRecord;
-            }
-
-        });
-    }
-
-    @Override
-    @Transactional
-    public void updatePingEvent(final ClientEventRecord pingRecord) {
-        try {
-            this.clientEventRecordMapper.updateByPrimaryKeySelective(pingRecord);
-        } catch (final Exception e) {
-            log.error("Failed to update ping event: {}", e.getMessage());
-        }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Result<Long> getLastPing(final Long pk) {
-        return Result.tryCatch(() -> this.clientEventRecordMapper
-                .selectByPrimaryKey(pk)
-                .getServerTime());
     }
 
     private Result<ClientEventRecord> recordById(final Long id) {
