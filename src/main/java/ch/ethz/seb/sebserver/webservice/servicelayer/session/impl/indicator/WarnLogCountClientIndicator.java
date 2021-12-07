@@ -30,4 +30,9 @@ public class WarnLogCountClientIndicator extends AbstractLogLevelCountIndicator 
     public IndicatorType getType() {
         return IndicatorType.WARN_COUNT;
     }
+
+    @Override
+    public ClientIndicatorType indicatorType() {
+        return ClientIndicatorType.WARN_LOG_COUNT;
+    }
 }

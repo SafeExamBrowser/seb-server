@@ -45,4 +45,9 @@ public class BatteryStatusIndicator extends AbstractLogNumberIndicator {
         return IndicatorType.BATTERY_STATUS;
     }
 
+    @Override
+    public ClientIndicatorType indicatorType() {
+        return ClientIndicatorType.BATTERY_STATUS;
+    }
+
 }

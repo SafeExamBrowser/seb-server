@@ -10,12 +10,10 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
-import java.util.concurrent.Executor;
 
 import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
@@ -24,7 +22,6 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -47,10 +44,8 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     private boolean missingPing = false;
     private boolean hidden = false;
 
-    public PingIntervalClientIndicator(
-            final DistributedPingCache distributedPingCache,
-            @Qualifier(AsyncServiceSpringConfig.EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME) final Executor executor) {
-        super(distributedPingCache, executor);
+    public PingIntervalClientIndicator(final DistributedPingService distributedPingCache) {
+        super(distributedPingCache);
         this.cachingEnabled = true;
     }
 
@@ -87,6 +82,11 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
             }
         }
 
+    }
+
+    @Override
+    public ClientIndicatorType indicatorType() {
+        return ClientIndicatorType.LAST_PING;
     }
 
     @JsonIgnore

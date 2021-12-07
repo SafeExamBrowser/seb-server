@@ -45,4 +45,9 @@ public class WLANStatusIndicator extends AbstractLogNumberIndicator {
         return IndicatorType.WLAN_STATUS;
     }
 
+    @Override
+    public ClientIndicatorType indicatorType() {
+        return ClientIndicatorType.WLAN_STATUS;
+    }
+
 }

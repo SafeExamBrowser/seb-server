@@ -10,11 +10,16 @@ package ch.ethz.seb.sebserver;
 
 import org.springframework.context.ApplicationEvent;
 
+import ch.ethz.seb.sebserver.webservice.WebserviceInit;
+
 public class SEBServerInitEvent extends ApplicationEvent {
 
     private static final long serialVersionUID = -3608628289559324471L;
 
-    public SEBServerInitEvent(final Object source) {
-        super(source);
+    public final WebserviceInit webserviceInit;
+
+    public SEBServerInitEvent(final WebserviceInit webserviceInit) {
+        super(webserviceInit);
+        this.webserviceInit = webserviceInit;
     }
 }

@@ -237,18 +237,19 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     public Result<Boolean> isProctoringEnabled(final Long examId) {
-        final Result<Boolean> result = this.additionalAttributesDAO.getAdditionalAttribute(
+        return this.additionalAttributesDAO.getAdditionalAttribute(
                 EntityType.EXAM,
                 examId,
                 ProctoringServiceSettings.ATTR_ENABLE_PROCTORING)
                 .map(rec -> BooleanUtils.toBoolean(rec.getValue()))
-                .onError(error -> log.warn("Failed to verify proctoring enabled for exam: {}, {}",
-                        examId,
-                        error.getMessage()));
-        if (result.hasError()) {
-            return Result.of(false);
-        }
-        return result;
+                .onErrorDo(error -> {
+                    if (log.isDebugEnabled()) {
+                        log.warn("Failed to verify proctoring enabled for exam: {}, {}",
+                                examId,
+                                error.getMessage());
+                    }
+                    return false;
+                });
     }
 
     @Override

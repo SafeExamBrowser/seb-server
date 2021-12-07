@@ -41,6 +41,8 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionR
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
@@ -63,15 +65,18 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     private final ClientConnectionRecordMapper clientConnectionRecordMapper;
     private final ClientEventRecordMapper clientEventRecordMapper;
     private final ClientInstructionRecordMapper clientInstructionRecordMapper;
+    private final ClientIndicatorRecordMapper clientIndicatorRecordMapper;
 
     protected ClientConnectionDAOImpl(
             final ClientConnectionRecordMapper clientConnectionRecordMapper,
             final ClientEventRecordMapper clientEventRecordMapper,
-            final ClientInstructionRecordMapper clientInstructionRecordMapper) {
+            final ClientInstructionRecordMapper clientInstructionRecordMapper,
+            final ClientIndicatorRecordMapper clientIndicatorRecordMapper) {
 
         this.clientConnectionRecordMapper = clientConnectionRecordMapper;
         this.clientEventRecordMapper = clientEventRecordMapper;
         this.clientInstructionRecordMapper = clientInstructionRecordMapper;
+        this.clientIndicatorRecordMapper = clientIndicatorRecordMapper;
     }
 
     @Override
@@ -474,7 +479,15 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 return Collections.emptyList();
             }
 
-            // first delete all related client events
+            // delete all related client indicators
+            this.clientIndicatorRecordMapper.deleteByExample()
+                    .where(
+                            ClientIndicatorRecordDynamicSqlSupport.clientConnectionId,
+                            SqlBuilder.isIn(ids))
+                    .build()
+                    .execute();
+
+            // delete all related client events
             this.clientEventRecordMapper.deleteByExample()
                     .where(
                             ClientEventRecordDynamicSqlSupport.clientConnectionId,

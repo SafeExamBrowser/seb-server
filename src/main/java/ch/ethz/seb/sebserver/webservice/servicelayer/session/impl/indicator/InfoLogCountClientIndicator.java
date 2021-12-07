@@ -31,4 +31,9 @@ public class InfoLogCountClientIndicator extends AbstractLogLevelCountIndicator 
         return IndicatorType.INFO_COUNT;
     }
 
+    @Override
+    public ClientIndicatorType indicatorType() {
+        return ClientIndicatorType.INFO_LOG_COUNT;
+    }
+
 }

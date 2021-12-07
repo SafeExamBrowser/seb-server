@@ -50,12 +50,12 @@ public interface ClientPingMapper {
     int update(UpdateStatementProvider updateStatement);
 
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
-    @ResultType(ClientEventLastPingRecord.class)
+    @ResultType(ClientLastPingRecord.class)
     @ConstructorArgs({
             @Arg(column = "id", javaType = Long.class, jdbcType = JdbcType.BIGINT),
             @Arg(column = "value", javaType = Long.class, jdbcType = JdbcType.BIGINT)
     })
-    Collection<ClientEventLastPingRecord> selectMany(SelectStatementProvider select);
+    Collection<ClientLastPingRecord> selectMany(SelectStatementProvider select);
 
     default Long selectPingTimeByPrimaryKey(final Long id_) {
         return SelectDSL.selectWithMapper(
@@ -78,7 +78,7 @@ public interface ClientPingMapper {
                 .execute();
     }
 
-    default QueryExpressionDSL<MyBatis3SelectModelAdapter<Collection<ClientEventLastPingRecord>>> selectByExample() {
+    default QueryExpressionDSL<MyBatis3SelectModelAdapter<Collection<ClientLastPingRecord>>> selectByExample() {
 
         return SelectDSL.selectWithMapper(
                 this::selectMany,
@@ -95,12 +95,12 @@ public interface ClientPingMapper {
                 .execute();
     }
 
-    final class ClientEventLastPingRecord {
+    final class ClientLastPingRecord {
 
         public final Long id;
         public final Long lastPingTime;
 
-        public ClientEventLastPingRecord(
+        public ClientLastPingRecord(
                 final Long id,
                 final Long value) {
 

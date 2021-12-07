@@ -43,16 +43,10 @@ public class GuiInit implements ApplicationListener<ApplicationReadyEvent> {
 
         this.sebServerInit.init();
 
-        SEBServerInit.INIT_LOGGER.info("---->");
-        SEBServerInit.INIT_LOGGER.info("---->  **** GUI Service starting up... ****");
-
-        SEBServerInit.INIT_LOGGER.info("---->");
-        SEBServerInit.INIT_LOGGER.info("---->  GUI Service successfully successfully started up!");
-        SEBServerInit.INIT_LOGGER.info("---->");
-
-//        final String webServiceProtocol = this.environment.getProperty("sebserver.gui.webservice.protocol", "http");
-//        final String webServiceAddress = this.environment.getRequiredProperty("sebserver.gui.webservice.address");
-//        final String webServicePort = this.environment.getProperty("sebserver.gui.webservice.port", "80");
+        SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
+        SEBServerInit.INIT_LOGGER.info("----> *** GUI Service starting up...                        ***");
+        SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
+        SEBServerInit.INIT_LOGGER.info("----> ");
 
         SEBServerInit.INIT_LOGGER.info(
                 "----> Webservice connection: {}",
@@ -81,6 +75,11 @@ public class GuiInit implements ApplicationListener<ApplicationReadyEvent> {
 
         SEBServerInit.INIT_LOGGER.info("---->");
         SEBServerInit.INIT_LOGGER.info("----> Webservice admin API basic access: --" + webServiceAPIBasicAccess + "--");
+
+        SEBServerInit.INIT_LOGGER.info("---->");
+        SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
+        SEBServerInit.INIT_LOGGER.info("----> *** GUI Service successfully successfully started up! ***");
+        SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
 
     }
 

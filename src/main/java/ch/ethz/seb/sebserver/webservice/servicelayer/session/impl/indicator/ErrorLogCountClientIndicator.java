@@ -31,4 +31,9 @@ public final class ErrorLogCountClientIndicator extends AbstractLogLevelCountInd
         return IndicatorType.ERROR_COUNT;
     }
 
+    @Override
+    public ClientIndicatorType indicatorType() {
+        return ClientIndicatorType.ERROR_LOG_COUNT;
+    }
+
 }

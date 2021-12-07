@@ -60,6 +60,8 @@ public class WebserviceInfo {
     private final boolean isDistributed;
     private final String webserviceUUID;
 
+    private final long distributedPingUpdateInterval;
+
     private Map<String, String> lmsExternalAddressAlias;
 
     public WebserviceInfo(final Environment environment) {
@@ -73,6 +75,11 @@ public class WebserviceInfo {
         this.webserverPort = environment.getProperty(WEB_SERVICE_HTTP_PORT);
         this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
         this.contextPath = environment.getProperty(WEB_SERVICE_CONTEXT_PATH, "");
+
+        this.distributedPingUpdateInterval = environment.getProperty(
+                "sebserver.webservice.distributed.pingUpdate",
+                Long.class,
+                3000L);
 
         if (StringUtils.isEmpty(this.webserverName)) {
             log.warn("NOTE: External server name, property : 'sebserver.webservice.http.external.servername' "
@@ -158,6 +165,10 @@ public class WebserviceInfo {
 
     public String getDiscoveryEndpointAddress() {
         return this.serverURLPrefix + this.discoveryEndpoint;
+    }
+
+    public long getDistributedPingUpdateInterval() {
+        return this.distributedPingUpdateInterval;
     }
 
     public String getLocalHostName() {

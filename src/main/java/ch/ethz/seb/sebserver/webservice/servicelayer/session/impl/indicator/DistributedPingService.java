@@ -13,6 +13,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
@@ -20,50 +21,78 @@ import org.joda.time.DateTimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.SEBServerInit;
+import ch.ethz.seb.sebserver.SEBServerInitEvent;
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientPingMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientPingMapper.ClientEventLastPingRecord;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientPingMapper.ClientLastPingRecord;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientIndicatorRecord;
 
 @Lazy
 @Component
 @WebServiceProfile
-public class DistributedPingCache implements DisposableBean {
+public class DistributedPingService implements DisposableBean {
 
-    private static final Logger log = LoggerFactory.getLogger(DistributedPingCache.class);
+    private static final Logger log = LoggerFactory.getLogger(DistributedPingService.class);
 
+    private final Executor pingUpdateExecutor;
     private final ClientIndicatorRecordMapper clientIndicatorRecordMapper;
     private final ClientPingMapper clientPingMapper;
-    private final long pingUpdateTolerance;
+    private long pingUpdateTolerance;
 
     private ScheduledFuture<?> taskRef;
     private final Map<Long, Long> pingCache = new ConcurrentHashMap<>();
     private long lastUpdate = 0L;
 
-    public DistributedPingCache(
+    public DistributedPingService(
+            @Qualifier(AsyncServiceSpringConfig.EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME) final Executor pingUpdateExecutor,
             final ClientIndicatorRecordMapper clientIndicatorRecordMapper,
-            final ClientPingMapper clientPingMapper,
-            final WebserviceInfo webserviceInfo,
-            final TaskScheduler taskScheduler,
-            @Value("${sebserver.webservice.distributed.pingUpdate:3000}") final long pingUpdate) {
+            final ClientPingMapper clientPingMapper) {
 
+        this.pingUpdateExecutor = pingUpdateExecutor;
         this.clientIndicatorRecordMapper = clientIndicatorRecordMapper;
         this.clientPingMapper = clientPingMapper;
-        this.pingUpdateTolerance = pingUpdate * 2 / 3;
+    }
+
+    @EventListener(SEBServerInitEvent.class)
+    public void init(final SEBServerInitEvent initEvent) {
+        final ApplicationContext applicationContext = initEvent.webserviceInit.getApplicationContext();
+        final WebserviceInfo webserviceInfo = applicationContext.getBean(WebserviceInfo.class);
         if (webserviceInfo.isDistributed()) {
+
+            SEBServerInit.INIT_LOGGER.info("------>");
+            SEBServerInit.INIT_LOGGER.info("------> Activate distributed ping service:");
+
+            final TaskScheduler taskScheduler = applicationContext.getBean(TaskScheduler.class);
+            final long distributedPingUpdateInterval = webserviceInfo.getDistributedPingUpdateInterval();
+            this.pingUpdateTolerance = distributedPingUpdateInterval * 2 / 3;
+
+            SEBServerInit.INIT_LOGGER.info("------> with distributedPingUpdateInterval: {}",
+                    distributedPingUpdateInterval);
+            SEBServerInit.INIT_LOGGER.info("------> with taskScheduler: {}", taskScheduler);
+
             try {
-                this.taskRef = taskScheduler.scheduleAtFixedRate(this::updatePings, pingUpdate);
+                this.taskRef = taskScheduler.scheduleAtFixedRate(
+                        this::persistentPingUpdate,
+                        distributedPingUpdateInterval);
+
+                SEBServerInit.INIT_LOGGER.info("------> distributed ping service successfully initialized!");
+
             } catch (final Exception e) {
+                SEBServerInit.INIT_LOGGER.error("------> Failed to initialize distributed ping service:", e);
                 log.error("Failed to initialize distributed ping cache update task");
                 this.taskRef = null;
             }
@@ -141,10 +170,10 @@ public class DistributedPingCache implements DisposableBean {
                 log.debug("*** Delete ping record for SEB connection: {}", connectionId);
             }
 
-            final Collection<ClientEventLastPingRecord> records = this.clientPingMapper
+            final Collection<ClientLastPingRecord> records = this.clientPingMapper
                     .selectByExample()
-                    .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(connectionId))
-                    .and(ClientEventRecordDynamicSqlSupport.type, isEqualTo(ClientIndicatorType.LAST_PING.id))
+                    .where(ClientIndicatorRecordDynamicSqlSupport.clientConnectionId, isEqualTo(connectionId))
+                    .and(ClientIndicatorRecordDynamicSqlSupport.type, isEqualTo(ClientIndicatorType.LAST_PING.id))
                     .build()
                     .execute();
 
@@ -194,8 +223,7 @@ public class DistributedPingCache implements DisposableBean {
         }
     }
 
-    private void updatePings() {
-
+    public void persistentPingUpdate() {
         if (this.pingCache.isEmpty()) {
             return;
         }
@@ -215,7 +243,7 @@ public class DistributedPingCache implements DisposableBean {
             final Map<Long, Long> mapping = this.clientPingMapper
                     .selectByExample()
                     .where(
-                            ClientEventRecordDynamicSqlSupport.type,
+                            ClientIndicatorRecordDynamicSqlSupport.type,
                             isEqualTo(ClientIndicatorType.LAST_PING.id))
                     .build()
                     .execute()
@@ -233,6 +261,45 @@ public class DistributedPingCache implements DisposableBean {
         }
 
         this.lastUpdate = millisecondsNow;
+    }
+
+    // Update last ping time on persistent storage asynchronously within a defines thread pool with no
+    // waiting queue to skip further ping updates if all update threads are busy
+    void updatePingAsync(final PingUpdate pingUpdate) {
+        try {
+            this.pingUpdateExecutor.execute(pingUpdate);
+        } catch (final Exception e) {
+            if (log.isDebugEnabled()) {
+                log.warn("Failed to schedule ping task: {}" + e.getMessage());
+            }
+        }
+    }
+
+    PingUpdate createPingUpdate(final Long connectionId) {
+        return new PingUpdate(
+                this.getClientPingMapper(),
+                this.initPingForConnection(connectionId));
+    }
+
+    static final class PingUpdate implements Runnable {
+
+        private final ClientPingMapper clientPingMapper;
+        final Long pingRecord;
+
+        public PingUpdate(final ClientPingMapper clientPingMapper, final Long pingRecord) {
+            this.clientPingMapper = clientPingMapper;
+            this.pingRecord = pingRecord;
+        }
+
+        @Override
+        public void run() {
+            try {
+                this.clientPingMapper
+                        .updatePingTime(this.pingRecord, Utils.getMillisecondsNow());
+            } catch (final Exception e) {
+                log.error("Failed to update ping: {}", e.getMessage());
+            }
+        }
     }
 
     @Override

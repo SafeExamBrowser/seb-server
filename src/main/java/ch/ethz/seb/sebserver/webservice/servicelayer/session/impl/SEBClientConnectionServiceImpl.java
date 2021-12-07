@@ -44,7 +44,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedPingCache;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedPingService;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
 
 @Lazy
@@ -70,7 +70,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final SEBClientInstructionService sebInstructionService;
     private final SEBClientNotificationService sebClientNotificationService;
     private final ExamAdminService examAdminService;
-    private final DistributedPingCache distributedPingCache;
+    private final DistributedPingService distributedPingCache;
     private final boolean isDistributedSetup;
 
     protected SEBClientConnectionServiceImpl(
@@ -80,7 +80,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final SEBClientInstructionService sebInstructionService,
             final SEBClientNotificationService sebClientNotificationService,
             final ExamAdminService examAdminService,
-            final DistributedPingCache distributedPingCache) {
+            final DistributedPingService distributedPingCache) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();

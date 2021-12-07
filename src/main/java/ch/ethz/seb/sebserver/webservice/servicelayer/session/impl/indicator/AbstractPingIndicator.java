@@ -11,18 +11,14 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 
-import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientPingMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedPingService.PingUpdate;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
@@ -30,17 +26,11 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
     private final Set<EventType> EMPTY_SET = Collections.unmodifiableSet(EnumSet.noneOf(EventType.class));
 
-    private final Executor executor;
-    protected final DistributedPingCache distributedPingCache;
-
+    protected final DistributedPingService distributedPingCache;
     protected PingUpdate pingUpdate = null;
 
-    protected AbstractPingIndicator(
-            final DistributedPingCache distributedPingCache,
-            @Qualifier(AsyncServiceSpringConfig.EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME) final Executor executor) {
-
+    protected AbstractPingIndicator(final DistributedPingService distributedPingCache) {
         super();
-        this.executor = executor;
         this.distributedPingCache = distributedPingCache;
     }
 
@@ -55,9 +45,9 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
         if (!this.cachingEnabled && this.active) {
             try {
-                createPingUpdate();
+                this.pingUpdate = this.distributedPingCache.createPingUpdate(connectionId);
             } catch (final Exception e) {
-                createPingUpdate();
+                this.pingUpdate = this.distributedPingCache.createPingUpdate(connectionId);
             }
         }
     }
@@ -74,15 +64,7 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
                 }
             }
 
-            // Update last ping time on persistent storage asynchronously within a defines thread pool with no
-            // waiting queue to skip further ping updates if all update threads are busy
-            try {
-                this.executor.execute(this.pingUpdate);
-            } catch (final Exception e) {
-                if (log.isDebugEnabled()) {
-                    log.warn("Failed to schedule ping task: {}" + e.getMessage());
-                }
-            }
+            this.distributedPingCache.updatePingAsync(this.pingUpdate);
         }
     }
 
@@ -93,19 +75,13 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
         }
 
         try {
-            createPingUpdate();
+            this.pingUpdate = this.distributedPingCache.createPingUpdate(this.connectionId);
             if (this.pingUpdate == null) {
-                createPingUpdate();
+                this.pingUpdate = this.distributedPingCache.createPingUpdate(this.connectionId);
             }
         } catch (final Exception e) {
             log.error("Failed to recover ping record for connection: {}", this.connectionId, e);
         }
-    }
-
-    private void createPingUpdate() {
-        this.pingUpdate = new PingUpdate(
-                this.distributedPingCache.getClientPingMapper(),
-                this.distributedPingCache.initPingForConnection(this.connectionId));
     }
 
     @Override
@@ -114,27 +90,5 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
     }
 
     public abstract ClientEventRecord updateLogEvent(final long now);
-
-    static final class PingUpdate implements Runnable {
-
-        private final ClientPingMapper clientPingMapper;
-        final Long pingRecord;
-
-        public PingUpdate(final ClientPingMapper clientPingMapper, final Long pingRecord) {
-            this.clientPingMapper = clientPingMapper;
-            this.pingRecord = pingRecord;
-        }
-
-        @Override
-        public void run() {
-            try {
-                this.clientPingMapper
-                        .updatePingTime(this.pingRecord, Utils.getMillisecondsNow());
-            } catch (final Exception e) {
-                log.error("Failed to update ping: {}", e.getMessage());
-            }
-        }
-
-    }
 
 }
