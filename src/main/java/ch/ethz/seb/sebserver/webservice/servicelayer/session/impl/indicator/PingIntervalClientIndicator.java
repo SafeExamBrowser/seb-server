@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
-import java.math.BigDecimal;
 import java.util.Comparator;
 
 import org.joda.time.DateTimeUtils;
@@ -25,7 +24,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 @Lazy
@@ -129,7 +127,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     public final double computeValueAt(final long timestamp) {
         if (!this.cachingEnabled && super.pingUpdate != null) {
 
-            final Long lastPing = this.distributedPingCache.getLastPing(super.pingUpdate.pingRecord, this.missingPing);
+            final Long lastPing = this.distributedPingCache.getLastPing(super.pingUpdate.pingRecord);
             if (lastPing != null) {
                 final double doubleValue = lastPing.doubleValue();
                 return Math.max(Double.isNaN(this.currentValue) ? doubleValue : this.currentValue, doubleValue);
@@ -142,35 +140,21 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     }
 
     @Override
-    public ClientEventRecord updateLogEvent(final long now) {
+    public boolean missingPingUpdate(final long now) {
         final long value = now - (long) super.currentValue;
         if (this.missingPing) {
             if (this.pingErrorThreshold > value) {
                 this.missingPing = false;
-                return new ClientEventRecord(
-                        null,
-                        this.connectionId,
-                        EventType.INFO_LOG.id,
-                        now,
-                        now,
-                        new BigDecimal(value),
-                        "Client Ping Back To Normal");
+                return true;
             }
         } else {
             if (this.pingErrorThreshold < value) {
                 this.missingPing = true;
-                return new ClientEventRecord(
-                        null,
-                        this.connectionId,
-                        EventType.ERROR_LOG.id,
-                        now,
-                        now,
-                        new BigDecimal(value),
-                        "Missing Client Ping");
+                return true;
             }
         }
 
-        return null;
+        return false;
     }
 
 }

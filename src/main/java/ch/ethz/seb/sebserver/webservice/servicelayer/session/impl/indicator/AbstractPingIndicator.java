@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedPingService.PingUpdate;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
@@ -89,6 +88,6 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
         return this.EMPTY_SET;
     }
 
-    public abstract ClientEventRecord updateLogEvent(final long now);
+    public abstract boolean missingPingUpdate(final long now);
 
 }

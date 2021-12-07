@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Objects;
 import java.util.UUID;
@@ -488,7 +489,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             // delete stored ping if this is a distributed setup
             if (this.isDistributedSetup) {
                 this.distributedPingCache
-                        .deletePingForConnection(updatedClientConnection.id);
+                        .deletePingIndicator(updatedClientConnection.id);
             }
 
             reloadConnectionCache(connectionToken);
@@ -542,7 +543,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             // delete stored ping if this is a distributed setup
             if (this.isDistributedSetup) {
                 this.distributedPingCache
-                        .deletePingForConnection(updatedClientConnection.id);
+                        .deletePingIndicator(updatedClientConnection.id);
             }
 
             reloadConnectionCache(connectionToken);
@@ -794,9 +795,20 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     }
 
     private Consumer<ClientConnectionDataInternal> missingPingUpdate(final long now) {
+
         return connection -> {
-            final ClientEventRecord clientEventRecord = connection.pingIndicator.updateLogEvent(now);
-            if (clientEventRecord != null) {
+
+            if (connection.pingIndicator.missingPingUpdate(now)) {
+                final boolean missingPing = connection.pingIndicator.isMissingPing();
+                final ClientEventRecord clientEventRecord = new ClientEventRecord(
+                        null,
+                        connection.getConnectionId(),
+                        (missingPing) ? EventType.ERROR_LOG.id : EventType.INFO_LOG.id,
+                        now,
+                        now,
+                        new BigDecimal(connection.pingIndicator.getValue()),
+                        (missingPing) ? "Missing Client Ping" : "Client Ping Back To Normal");
+
                 // store event and and flush cache
                 this.eventHandlingStrategy.accept(clientEventRecord);
                 if (this.isDistributedSetup) {

@@ -44,6 +44,20 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientIndicatorRec
 @Lazy
 @Component
 @WebServiceProfile
+/** This service is only needed within a distributed setup where more then one webservice works
+ * simultaneously within one SEB Server and one persistent storage.
+ * </p>
+ * This service handles the SEB client ping updates within such a setup and implements functionality to
+ * efficiently store and load ping time indicators form and to shared store.
+ * </p>
+ * The update from the persistent store is done periodically within a batch while the ping time writes
+ * are done individually per SEB client when they arrive but within a dedicated task executor with minimal task
+ * queue to do not overflow other executor services when it comes to a leak on storing lot of ping times.
+ * In this case some ping time updates will be just dropped and not go to the persistent store until the leak
+ * is resolved.
+ * </p>
+ * Note that the ping time update and read operations are also not within a transaction for performance reasons
+ * and because it is not a big deal to loose one ore two ping updates for a SEB client. */
 public class DistributedPingService implements DisposableBean {
 
     private static final Logger log = LoggerFactory.getLogger(DistributedPingService.class);
@@ -67,6 +81,10 @@ public class DistributedPingService implements DisposableBean {
         this.clientPingMapper = clientPingMapper;
     }
 
+    /** Initializes the service by attaching it to the scheduler for periodical update.
+     * If the webservice is not initialized within a distributed setup, this will do nothing
+     *
+     * @param initEvent the SEB Server webservice init event */
     @EventListener(SEBServerInitEvent.class)
     public void init(final SEBServerInitEvent initEvent) {
         final ApplicationContext applicationContext = initEvent.webserviceInit.getApplicationContext();
@@ -86,7 +104,7 @@ public class DistributedPingService implements DisposableBean {
 
             try {
                 this.taskRef = taskScheduler.scheduleAtFixedRate(
-                        this::persistentPingUpdate,
+                        this::updatePingCache,
                         distributedPingUpdateInterval);
 
                 SEBServerInit.INIT_LOGGER.info("------> distributed ping service successfully initialized!");
@@ -101,10 +119,13 @@ public class DistributedPingService implements DisposableBean {
         }
     }
 
-    public ClientPingMapper getClientPingMapper() {
-        return this.clientPingMapper;
-    }
-
+    /** This initializes a SEB client ping indicator on the persistent storage for a given SEB client
+     * connection identifier.
+     * If there is already such a ping indicator for the specified SEB client connection identifier, returns
+     * the id of the existing one.
+     *
+     * @param connectionId SEB client connection identifier
+     * @return SEB client ping indicator identifier (PK) */
     @Transactional
     public Long initPingForConnection(final Long connectionId) {
         try {
@@ -149,21 +170,12 @@ public class DistributedPingService implements DisposableBean {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Long getPingRecordIdForConnectionId(final Long connectionId) {
-        try {
-
-            return this.clientPingMapper
-                    .pingRecordIdByConnectionId(connectionId);
-
-        } catch (final Exception e) {
-            log.error("Failed to get ping record for connection id: {} cause: {}", connectionId, e.getMessage());
-            return null;
-        }
-    }
-
+    /** Deletes a existing SEB client ping indicator for a given SEB client connection identifier
+     * on the persistent storage.
+     *
+     * @param connectionId SEB client connection identifier */
     @Transactional
-    public void deletePingForConnection(final Long connectionId) {
+    public void deletePingIndicator(final Long connectionId) {
         try {
 
             if (log.isDebugEnabled()) {
@@ -198,22 +210,24 @@ public class DistributedPingService implements DisposableBean {
         }
     }
 
-    public Long getLastPing(final Long pingRecordId, final boolean missing) {
+    /** Use this to get the last ping time indicator value with a given indicator identifier (PK)
+     * This fist tries to get the ping time from internal cache. If not present, tries to get
+     * the ping indicator value from persistent storage and put it to the cache.
+     *
+     * @param pingRecordId The ping indicator record id (PK). Get one for a given SEB client connection identifier by
+     *            calling: initPingForConnection
+     * @return The actual (last) ping time. */
+    public Long getLastPing(final Long pingRecordId) {
         try {
 
             Long ping = this.pingCache.get(pingRecordId);
-            if (ping == null && !missing) {
+            if (ping == null) {
 
                 if (log.isDebugEnabled()) {
                     log.debug("*** Get and cache ping time: {}", pingRecordId);
                 }
 
                 ping = this.clientPingMapper.selectPingTimeByPrimaryKey(pingRecordId);
-            }
-
-            // if we have a missing ping we need to check new ping from next update even if the cache was empty
-            if (ping != null || missing) {
-                this.pingCache.put(pingRecordId, ping);
             }
 
             return ping;
@@ -223,7 +237,12 @@ public class DistributedPingService implements DisposableBean {
         }
     }
 
-    public void persistentPingUpdate() {
+    /** Updates the internal ping cache by loading all actual SEB client ping indicators from persistent storage
+     * and put it in the cache.
+     * This is internally periodically scheduled by the task scheduler but also implements an execution drop if
+     * the last update was less then 2/3 of the schedule interval ago. This is to prevent task queue overflows
+     * and wait with update when there is a persistent storage leak or a lot of network latency. */
+    private void updatePingCache() {
         if (this.pingCache.isEmpty()) {
             return;
         }
@@ -263,8 +282,8 @@ public class DistributedPingService implements DisposableBean {
         this.lastUpdate = millisecondsNow;
     }
 
-    // Update last ping time on persistent storage asynchronously within a defines thread pool with no
-    // waiting queue to skip further ping updates if all update threads are busy
+    /** Update last ping time on persistent storage asynchronously within a defines thread pool with no
+     * waiting queue to skip further ping updates if all update threads are busy **/
     void updatePingAsync(final PingUpdate pingUpdate) {
         try {
             this.pingUpdateExecutor.execute(pingUpdate);
@@ -275,12 +294,17 @@ public class DistributedPingService implements DisposableBean {
         }
     }
 
+    /** Create a PingUpdate for a specified SEB client connectionId.
+     *
+     * @param connectionId SEB client connection identifier
+     * @return PingUpdate for a specified SEB client connectionId */
     PingUpdate createPingUpdate(final Long connectionId) {
         return new PingUpdate(
-                this.getClientPingMapper(),
+                this.clientPingMapper,
                 this.initPingForConnection(connectionId));
     }
 
+    /** Encapsulates a SEB client ping update on persistent storage */
     static final class PingUpdate implements Runnable {
 
         private final ClientPingMapper clientPingMapper;
@@ -292,6 +316,7 @@ public class DistributedPingService implements DisposableBean {
         }
 
         @Override
+        /** Processes the ping update on persistent storage by using the current time stamp. */
         public void run() {
             try {
                 this.clientPingMapper
