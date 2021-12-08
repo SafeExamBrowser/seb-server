@@ -107,6 +107,8 @@ public class MonitoringClientConnection implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.text");
     private static final LocTextKey CONFIRM_QUIT =
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.confirm");
+    private static final LocTextKey CONFIRM_OPEN_SINGLE_ROOM =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.singleroom.confirm");
 
     private final ServerPushService serverPushService;
     private final PageService pageService;
@@ -385,6 +387,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                     actionBuilder
                             .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING)
                             .withEntityKey(parentEntityKey)
+                            .withConfirm(() -> CONFIRM_OPEN_SINGLE_ROOM)
                             .withExec(action -> this.monitoringProctoringService.openOneToOneRoom(
                                     action,
                                     connectionData,
