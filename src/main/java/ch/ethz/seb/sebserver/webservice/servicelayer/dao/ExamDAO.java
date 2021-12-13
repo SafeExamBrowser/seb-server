@@ -44,6 +44,14 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *         happened */
     Result<Collection<Long>> allIdsOfInstitution(Long institutionId);
 
+    /** Get all active and running Exams for a given institution.
+     *
+     * @param institutionId the identifier of the institution
+     * @return Result refer to a collection of all active and running exams of the given institution or refer to an
+     *         error if
+     *         happened */
+    Result<Collection<Long>> allIdsOfRunning(final Long institutionId);
+
     /** Get all institution ids for that a specified exam for given quiz id already exists
      *
      * @param quizId The quiz or external identifier of the exam (LMS)

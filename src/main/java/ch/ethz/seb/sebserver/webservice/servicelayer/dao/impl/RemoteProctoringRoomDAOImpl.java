@@ -29,9 +29,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RemoteProctoringRoomRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RemoteProctoringRoomRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RemoteProctoringRoomRecord;
@@ -47,16 +50,17 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
 
     private static final Logger log = LoggerFactory.getLogger(RemoteProctoringRoomDAOImpl.class);
 
-    private static final Object RESERVE_ROOM_LOCK = new Object();
-
     private final RemoteProctoringRoomRecordMapper remoteProctoringRoomRecordMapper;
+    private final ClientConnectionRecordMapper clientConnectionRecordMapper;
     private final AdditionalAttributesDAO additionalAttributesDAO;
 
     protected RemoteProctoringRoomDAOImpl(
             final RemoteProctoringRoomRecordMapper remoteProctoringRoomRecordMapper,
+            final ClientConnectionRecordMapper clientConnectionRecordMapper,
             final AdditionalAttributesDAO additionalAttributesDAO) {
 
         this.remoteProctoringRoomRecordMapper = remoteProctoringRoomRecordMapper;
+        this.clientConnectionRecordMapper = clientConnectionRecordMapper;
         this.additionalAttributesDAO = additionalAttributesDAO;
     }
 
@@ -196,7 +200,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 .map(room -> {
                     this.remoteProctoringRoomRecordMapper.deleteByPrimaryKey(room.id);
                     return new EntityKey(room.id, EntityType.REMOTE_PROCTORING_ROOM);
-                });
+                })
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -239,7 +244,8 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                     .deleteByPrimaryKey(roomId);
 
             return new EntityKey(roomId, EntityType.REMOTE_PROCTORING_ROOM);
-        });
+        })
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -286,23 +292,21 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
             final Function<Long, Result<NewRoom>> newRoomFunction) {
 
         return Result.tryCatch(() -> {
-            synchronized (RESERVE_ROOM_LOCK) {
-                final Optional<RemoteProctoringRoomRecord> room =
-                        this.remoteProctoringRoomRecordMapper.selectByExample()
-                                .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
-                                .and(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isEqualTo(0))
-                                .and(RemoteProctoringRoomRecordDynamicSqlSupport.breakOutConnections, isNull())
-                                .build()
-                                .execute()
-                                .stream()
-                                .filter(r -> r.getSize() < roomMaxSize)
-                                .findFirst();
+            final Optional<RemoteProctoringRoomRecord> room =
+                    this.remoteProctoringRoomRecordMapper.selectByExample()
+                            .where(RemoteProctoringRoomRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                            .and(RemoteProctoringRoomRecordDynamicSqlSupport.townhallRoom, isEqualTo(0))
+                            .and(RemoteProctoringRoomRecordDynamicSqlSupport.breakOutConnections, isNull())
+                            .build()
+                            .execute()
+                            .stream()
+                            .filter(r -> r.getSize() < roomMaxSize)
+                            .findFirst();
 
-                if (room.isPresent()) {
-                    return updateCollectingRoom(room.get());
-                } else {
-                    return createNewCollectingRoom(examId, newRoomFunction);
-                }
+            if (room.isPresent()) {
+                return updateCollectingRoom(room.get());
+            } else {
+                return createNewCollectingRoom(examId, newRoomFunction);
             }
         })
                 .map(this::toDomainModel)
@@ -313,18 +317,21 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     @Transactional
     public Result<RemoteProctoringRoom> releasePlaceInCollectingRoom(final Long examId, final Long roomId) {
         return Result.tryCatch(() -> {
-            synchronized (RESERVE_ROOM_LOCK) {
-                final RemoteProctoringRoomRecord record = this.remoteProctoringRoomRecordMapper
-                        .selectByPrimaryKey(roomId);
+            final RemoteProctoringRoomRecord record = this.remoteProctoringRoomRecordMapper
+                    .selectByPrimaryKey(roomId);
 
-                final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord(
-                        record.getId(), null, null,
-                        record.getSize() - 1, null, null, null, null, null);
-
-                this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
-                return this.remoteProctoringRoomRecordMapper
-                        .selectByPrimaryKey(remoteProctoringRoomRecord.getId());
+            final int size = record.getSize() - 1;
+            if (size < 0) {
+                throw new IllegalStateException("Room size mismatch, cannot be negative");
             }
+
+            final RemoteProctoringRoomRecord remoteProctoringRoomRecord = new RemoteProctoringRoomRecord(
+                    record.getId(), null, null,
+                    size, null, null, null, null, null);
+
+            this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(remoteProctoringRoomRecord);
+            return this.remoteProctoringRoomRecordMapper
+                    .selectByPrimaryKey(remoteProctoringRoomRecord.getId());
         })
                 .map(this::toDomainModel)
                 .onError(TransactionHandler::rollback);
@@ -372,7 +379,34 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                 BooleanUtils.toStringTrueFalse(isOpen))
                 .onError(error -> log.error("Failed to set open flag for proctoring room: {} : {}",
                         roomId,
-                        error.getMessage()));
+                        error.getMessage()))
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Long> updateRoomSize(final Long remoteProctoringRoomId) {
+        return Result.tryCatch(() -> {
+            final Long size = this.clientConnectionRecordMapper
+                    .countByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomId,
+                            isEqualTo(remoteProctoringRoomId))
+                    .and(
+                            ClientConnectionRecordDynamicSqlSupport.status,
+                            isEqualTo(ConnectionStatus.ACTIVE.name()))
+                    .build()
+                    .execute();
+
+            this.remoteProctoringRoomRecordMapper.updateByPrimaryKeySelective(
+                    new RemoteProctoringRoomRecord(
+                            remoteProctoringRoomId, null, null,
+                            size.intValue(), null, null,
+                            null, null, null));
+
+            return size;
+        })
+                .onError(TransactionHandler::rollback);
     }
 
     private RemoteProctoringRoom toDomainModel(final RemoteProctoringRoomRecord record) {

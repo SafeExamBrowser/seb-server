@@ -63,7 +63,11 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
         super.init(indicatorDefinition, connectionId, active, cachingEnabled);
 
-        this.currentValue = computeValueAt(DateTimeUtils.currentTimeMillis());
+        final long now = DateTimeUtils.currentTimeMillis();
+        this.currentValue = computeValueAt(now);
+        if (Double.isNaN(this.currentValue)) {
+            this.currentValue = now;
+        }
 
         try {
             indicatorDefinition

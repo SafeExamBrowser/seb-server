@@ -128,6 +128,9 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         // Create an initial admin account if requested and not already in the data-base
         this.adminUserInitializer.initAdminAccount();
 
+        SEBServerInit.INIT_LOGGER.info("----> log4j2.formatMsgNoLookups = {}",
+                this.environment.getProperty("log4j2.formatMsgNoLookups", "none"));
+
     }
 
     @PreDestroy

@@ -186,7 +186,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Override
     @Transactional
     public Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateActive() {
-        return Result.tryCatch(() -> {
+        return Result.<Collection<ClientConnectionRecord>> tryCatch(() -> {
+
             final Collection<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                     .selectByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate, isNotEqualTo(0))
@@ -210,7 +211,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .execute();
 
             return records;
-        });
+        })
+                .onError(TransactionHandler::rollback);
     }
 
     private ClientConnectionRecord createProctoringRoomUpdateRecord(final int remoteProctoringRoomUpdate) {
@@ -250,7 +252,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Override
     @Transactional
     public Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateInactive() {
-        return Result.tryCatch(() -> {
+        return Result.<Collection<ClientConnectionRecord>> tryCatch(() -> {
             final Collection<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                     .selectByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate, isNotEqualTo(0))
@@ -274,13 +276,17 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .execute();
 
             return records;
-        });
+        })
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
     @Transactional
     public void setNeedsRoomUpdate(final Long connectionId) {
-        final ClientConnectionRecord updateRecord = createProctoringRoomUpdateRecord(1);
+        final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
+                connectionId, null, null, null, null, null,
+                null, null, null, null, null, null, null,
+                1);
         this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
     }
 
@@ -362,8 +368,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.vdiPairToken,
                     null,
                     millisecondsNow,
-                    data.remoteProctoringRoomId,
-                    BooleanUtils.toIntegerObject(data.remoteProctoringRoomUpdate));
+                    null,
+                    null);
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
@@ -386,7 +392,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     null, null, null, null, null, null,
                     roomId,
                     0));
-        });
+        })
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -399,7 +406,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     null, null, null, null, null, null,
                     null,
                     1));
-        });
+        })
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -426,7 +434,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             } else {
                 throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, String.valueOf(connectionId));
             }
-        });
+        })
+                .onError(TransactionHandler::rollback);
     }
 
     @Override
@@ -467,7 +476,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
-        return Result.tryCatch(() -> {
+        return Result.<Collection<EntityKey>> tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
             if (ids == null || ids.isEmpty()) {
@@ -514,7 +523,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.CLIENT_CONNECTION))
                     .collect(Collectors.toList());
-        });
+        })
+                .onError(TransactionHandler::rollback);
     }
 
     @Override

@@ -52,6 +52,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
     private static final Logger log = LoggerFactory.getLogger(ExamProctoringRoomServiceImpl.class);
 
+    private static final Object RESERVE_ROOM_LOCK = new Object();
+
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ExamAdminService examAdminService;
@@ -280,53 +282,61 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     }
 
     private void assignToCollectingRoom(final ClientConnectionRecord cc) {
-        try {
+        synchronized (RESERVE_ROOM_LOCK) {
+            try {
 
-            if (cc.getRemoteProctoringRoomId() == null) {
+                if (cc.getRemoteProctoringRoomId() == null) {
 
-                final RemoteProctoringRoom proctoringRoom = getProctoringRoom(
-                        cc.getExamId(),
-                        cc.getConnectionToken());
+                    final RemoteProctoringRoom proctoringRoom = getProctoringRoom(
+                            cc.getExamId(),
+                            cc.getConnectionToken());
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Assigning new SEB client to proctoring room: {}, connection: {}",
-                            proctoringRoom.id,
-                            cc);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Assigning new SEB client to proctoring room: {}, connection: {}",
+                                proctoringRoom.id,
+                                cc);
+                    }
+
+                    this.clientConnectionDAO
+                            .assignToProctoringRoom(
+                                    cc.getId(),
+                                    cc.getConnectionToken(),
+                                    proctoringRoom.id)
+                            .getOrThrow();
+
+                    applyProcotringInstruction(cc)
+                            .getOrThrow();
                 }
 
-                this.clientConnectionDAO
-                        .assignToProctoringRoom(
-                                cc.getId(),
-                                cc.getConnectionToken(),
-                                proctoringRoom.id)
-                        .getOrThrow();
+            } catch (final Exception e) {
+                log.error("Failed to assign connection to collecting room: {}", cc, e);
             }
-
-            applyProcotringInstruction(cc)
-                    .getOrThrow();
-
-        } catch (final Exception e) {
-            log.error("Failed to assign connection to collecting room: {}", cc, e);
         }
     }
 
     private void removeFromRoom(final ClientConnectionRecord cc) {
-        try {
+        synchronized (RESERVE_ROOM_LOCK) {
+            try {
 
-            this.remoteProctoringRoomDAO.releasePlaceInCollectingRoom(
-                    cc.getExamId(),
-                    cc.getRemoteProctoringRoomId());
+                this.remoteProctoringRoomDAO.releasePlaceInCollectingRoom(
+                        cc.getExamId(),
+                        cc.getRemoteProctoringRoomId());
 
-            this.cleanupBreakOutRooms(cc);
+                this.cleanupBreakOutRooms(cc);
 
-            this.clientConnectionDAO
-                    .removeFromProctoringRoom(cc.getId(), cc.getConnectionToken())
-                    .onError(error -> log.error("Failed to remove client connection form room: ", error))
-                    .getOrThrow();
+                this.clientConnectionDAO
+                        .removeFromProctoringRoom(cc.getId(), cc.getConnectionToken())
+                        .onError(error -> log.error("Failed to remove client connection from room: ", error))
+                        .getOrThrow();
 
-        } catch (final Exception e) {
-            log.error("Failed to update client connection for proctoring room: ", e);
-            this.clientConnectionDAO.setNeedsRoomUpdate(cc.getId());
+            } catch (final Exception e) {
+                log.error("Failed to update client connection for proctoring room: ", e);
+                try {
+                    this.remoteProctoringRoomDAO.updateRoomSize(cc.getRemoteProctoringRoomId());
+                } catch (final Exception ee) {
+                    log.error("Failed to update room size: ", ee);
+                }
+            }
         }
     }
 
@@ -632,7 +642,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                         .getOrThrow();
 
                 try {
-                    sendJoinInstruction(
+                    registerJoinInstruction(
                             examId,
                             connectionToken,
                             roomConnection,
@@ -688,7 +698,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                                         error.getMessage()))
                                 .get();
                         if (proctoringConnection != null) {
-                            sendJoinInstruction(
+                            registerJoinInstruction(
                                     proctoringSettings.examId,
                                     connectionToken,
                                     proctoringConnection,
@@ -753,7 +763,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                             remoteProctoringRoom.subject)
                     .getOrThrow();
 
-            sendJoinInstruction(
+            registerJoinInstruction(
                     proctoringSettings.examId,
                     clientConnection.clientConnection.connectionToken,
                     proctoringConnection,
@@ -765,14 +775,14 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         }
     }
 
-    private void sendJoinInstruction(
+    private void registerJoinInstruction(
             final Long examId,
             final String connectionToken,
             final ProctoringRoomConnection proctoringConnection,
             final ExamProctoringService examProctoringService) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Send proctoring join instruction to connection: {}, room: {}",
+            log.debug("Register proctoring join instruction for connection: {}, room: {}",
                     connectionToken,
                     proctoringConnection.roomName);
         }

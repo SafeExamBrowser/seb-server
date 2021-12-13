@@ -144,6 +144,7 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<Collection<Long>> allInstitutionIdsByQuizId(final String quizId) {
         return Result.tryCatch(() -> {
             return this.examRecordMapper.selectByExample()
@@ -242,6 +243,7 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    @Transactional
     public Result<Exam> updateState(final Long examId, final ExamStatus status, final String updateId) {
         return recordById(examId)
                 .map(examRecord -> {
@@ -723,6 +725,23 @@ public class ExamDAOImpl implements ExamDAO {
                 .and(
                         ExamRecordDynamicSqlSupport.active,
                         isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))
+                .build()
+                .execute());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Long>> allIdsOfRunning(final Long institutionId) {
+        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
+                .where(
+                        ExamRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(institutionId))
+                .and(
+                        ExamRecordDynamicSqlSupport.active,
+                        isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))
+                .and(
+                        ExamRecordDynamicSqlSupport.status,
+                        isEqualTo(ExamStatus.RUNNING.name()))
                 .build()
                 .execute());
     }
