@@ -132,6 +132,18 @@ public interface RemoteProctoringRoomDAO {
      * @return Result refer to active break-out rooms or to an error when happened */
     Result<Collection<String>> getConnectionsInBreakoutRooms(Long examId);
 
+    /** Mark a specified collecting room as opened or closed by a proctor.
+     *
+     * @param roomId The collecting room identifier
+     * @param isOpen mark open or not */
     void setCollectingRoomOpenFlag(Long roomId, boolean isOpen);
+
+    /** Use this to update the current room size of for a proctoring collecting room
+     * by its real number of attached SEB connections. This can be used on error case to
+     * recover and set the re calc the number of participants in a room
+     *
+     * @param remoteProctoringRoomId The proctoring room identifier
+     * @return The newly calculated number of participants in the room. */
+    Result<Long> updateRoomSize(Long remoteProctoringRoomId);
 
 }

@@ -147,6 +147,9 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> *** Webservice successfully started up!               ***");
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
 
+        SEBServerInit.INIT_LOGGER.info("----> log4j2.formatMsgNoLookups = {}",
+                this.environment.getProperty("log4j2.formatMsgNoLookups", "none"));
+
     }
 
     @PreDestroy

@@ -109,7 +109,7 @@ class ExamSessionControlTask implements DisposableBean {
         this.examDAO.releaseAgedLocks();
     }
 
-    @Scheduled(fixedRateString = "${sebserver.webservice.api.exam.update-ping:5000}")
+    @Scheduled(fixedDelayString = "${sebserver.webservice.api.seb.lostping.update:5000}")
     public void examSessionUpdateTask() {
 
         this.sebClientConnectionService.updatePingEvents();

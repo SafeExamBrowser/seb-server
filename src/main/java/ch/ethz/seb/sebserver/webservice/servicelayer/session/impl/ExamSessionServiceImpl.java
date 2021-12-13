@@ -231,7 +231,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public Result<Collection<Exam>> getRunningExamsForInstitution(final Long institutionId) {
-        return this.examDAO.allIdsOfInstitution(institutionId)
+        return this.examDAO.allIdsOfRunning(institutionId)
                 .map(col -> col.stream()
                         .map(this::getRunningExam)
                         .filter(Result::hasValue)

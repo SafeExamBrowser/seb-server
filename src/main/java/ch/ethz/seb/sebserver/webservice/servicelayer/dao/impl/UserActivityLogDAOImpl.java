@@ -45,6 +45,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserActivityLogRecordMapper;
@@ -585,6 +586,10 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     .writeValueAsString(entity.printSecureCopy());
         } catch (final JsonProcessingException e) {
             entityAsString = entity.toString();
+        }
+
+        if (entityAsString != null && entityAsString.length() > 4000) {
+            return Utils.truncateText(entityAsString, 4000);
         }
         return entityAsString;
     }
