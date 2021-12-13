@@ -23,6 +23,9 @@
     <revision>${sebserver-version}</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    
+    <!-- Fix CVE-2021-44228 : https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot -->
+    <log4j2.version>2.15.0</log4j2.version> 
   </properties>
 
 
