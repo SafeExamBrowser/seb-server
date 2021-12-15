@@ -11,36 +11,25 @@ package ch.ethz.seb.sebserver.gbl.model.session;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-
 public final class SimpleIndicatorValue implements IndicatorValue {
 
     @JsonProperty(ATTR_INDICATOR_ID)
     public final Long indicatorId;
-    @JsonProperty(ATTR_INDICATOR_TYPE)
-    public final IndicatorType type;
     @JsonProperty(ATTR_INDICATOR_VALUE)
     public final double value;
 
     @JsonCreator
     public SimpleIndicatorValue(
             @JsonProperty(ATTR_INDICATOR_ID) final Long indicatorId,
-            @JsonProperty(ATTR_INDICATOR_TYPE) final IndicatorType type,
             @JsonProperty(ATTR_INDICATOR_VALUE) final double value) {
 
         this.indicatorId = indicatorId;
-        this.type = type;
         this.value = value;
     }
 
     @Override
     public Long getIndicatorId() {
         return this.indicatorId;
-    }
-
-    @Override
-    public IndicatorType getType() {
-        return this.type;
     }
 
     @Override
@@ -53,8 +42,6 @@ public final class SimpleIndicatorValue implements IndicatorValue {
         final StringBuilder builder = new StringBuilder();
         builder.append("SimpleIndicatorValue [indicatorId=");
         builder.append(this.indicatorId);
-        builder.append(", type=");
-        builder.append(this.type);
         builder.append(", value=");
         builder.append(this.value);
         builder.append("]");

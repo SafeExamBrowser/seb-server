@@ -196,7 +196,7 @@ public class ClientConnectionDetails {
                 .forEach(indValue -> {
                     final IndicatorData indData = this.indicatorMapping.get(indValue.getIndicatorId());
                     final double value = indValue.getValue();
-                    final String displayValue = IndicatorValue.getDisplayValue(indValue);
+                    final String displayValue = IndicatorValue.getDisplayValue(indValue, indData.indicator.type);
 
                     if (!this.connectionData.clientConnection.status.clientActiveStatus) {
 

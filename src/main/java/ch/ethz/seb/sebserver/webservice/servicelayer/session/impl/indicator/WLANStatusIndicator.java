@@ -24,8 +24,11 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecord
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class WLANStatusIndicator extends AbstractLogNumberIndicator {
 
-    protected WLANStatusIndicator(final ClientEventRecordMapper clientEventRecordMapper) {
-        super(clientEventRecordMapper, EventType.INFO_LOG);
+    protected WLANStatusIndicator(
+            final DistributedIndicatorValueService distributedPingCache,
+            final ClientEventRecordMapper clientEventRecordMapper) {
+
+        super(distributedPingCache, clientEventRecordMapper, EventType.INFO_LOG);
         super.tags = new String[] { API.LOG_EVENT_TAG_WLAN_STATUS };
     }
 
@@ -43,11 +46,6 @@ public class WLANStatusIndicator extends AbstractLogNumberIndicator {
     @Override
     public IndicatorType getType() {
         return IndicatorType.WLAN_STATUS;
-    }
-
-    @Override
-    public ClientIndicatorType indicatorType() {
-        return ClientIndicatorType.WLAN_STATUS;
     }
 
 }

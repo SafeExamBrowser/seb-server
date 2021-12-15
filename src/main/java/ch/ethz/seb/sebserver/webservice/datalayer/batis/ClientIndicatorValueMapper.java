@@ -18,6 +18,7 @@ import org.apache.ibatis.annotations.ConstructorArgs;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.ResultType;
 import org.apache.ibatis.annotations.SelectProvider;
+import org.apache.ibatis.annotations.Update;
 import org.apache.ibatis.annotations.UpdateProvider;
 import org.apache.ibatis.type.JdbcType;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
@@ -28,11 +29,11 @@ import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.mybatis.dynamic.sql.update.render.UpdateStatementProvider;
 import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.ClientIndicatorType;
 
 @Mapper
-public interface ClientPingMapper {
+public interface ClientIndicatorValueMapper {
 
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
     @ConstructorArgs({ @Arg(column = "value", javaType = Long.class, jdbcType = JdbcType.BIGINT) })
@@ -50,19 +51,30 @@ public interface ClientPingMapper {
     int update(UpdateStatementProvider updateStatement);
 
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
-    @ResultType(ClientLastPingRecord.class)
+    @ResultType(ClientIndicatorValueRecord.class)
     @ConstructorArgs({
             @Arg(column = "id", javaType = Long.class, jdbcType = JdbcType.BIGINT),
             @Arg(column = "value", javaType = Long.class, jdbcType = JdbcType.BIGINT)
     })
-    Collection<ClientLastPingRecord> selectMany(SelectStatementProvider select);
+    Collection<ClientIndicatorValueRecord> selectMany(SelectStatementProvider select);
 
-    default Long selectPingTimeByPrimaryKey(final Long id_) {
+    default Long selectValueByPrimaryKey(final Long id_) {
         return SelectDSL.selectWithMapper(
                 this::selectPingTime,
                 value.as("value"))
                 .from(clientIndicatorRecord)
                 .where(id, isEqualTo(id_))
+                .build()
+                .execute();
+    }
+
+    default Long indicatorRecordIdByConnectionId(final Long connectionId, final IndicatorType indicatorType) {
+        return SelectDSL.selectDistinctWithMapper(
+                this::selectPK,
+                id.as("id"))
+                .from(clientIndicatorRecord)
+                .where(clientConnectionId, isEqualTo(connectionId))
+                .and(type, isEqualTo(indicatorType.id))
                 .build()
                 .execute();
     }
@@ -73,12 +85,12 @@ public interface ClientPingMapper {
                 id.as("id"))
                 .from(clientIndicatorRecord)
                 .where(clientConnectionId, isEqualTo(connectionId))
-                .and(type, isEqualTo(ClientIndicatorType.LAST_PING.id))
+                .and(type, isEqualTo(IndicatorType.LAST_PING.id))
                 .build()
                 .execute();
     }
 
-    default QueryExpressionDSL<MyBatis3SelectModelAdapter<Collection<ClientLastPingRecord>>> selectByExample() {
+    default QueryExpressionDSL<MyBatis3SelectModelAdapter<Collection<ClientIndicatorValueRecord>>> selectByExample() {
 
         return SelectDSL.selectWithMapper(
                 this::selectMany,
@@ -87,25 +99,31 @@ public interface ClientPingMapper {
                 .from(ClientIndicatorRecordDynamicSqlSupport.clientIndicatorRecord);
     }
 
-    default int updatePingTime(final Long _id, final Long pingTime) {
+    @Update("UPDATE client_indicator SET value = value + 1 WHERE id =#{pk}")
+    int incrementIndicatorValue(final Long pk);
+
+    @Update("UPDATE client_indicator SET value = value - 1 WHERE id =#{pk}")
+    int decrementIndicatorValue(final Long pk);
+
+    default int updateIndicatorValue(final Long pk, final Long v) {
         return UpdateDSL.updateWithMapper(this::update, clientIndicatorRecord)
-                .set(value).equalTo(pingTime)
-                .where(id, isEqualTo(_id))
+                .set(value).equalTo(v)
+                .where(id, isEqualTo(pk))
                 .build()
                 .execute();
     }
 
-    final class ClientLastPingRecord {
+    final class ClientIndicatorValueRecord {
 
         public final Long id;
-        public final Long lastPingTime;
+        public final Long indicatorValue;
 
-        public ClientLastPingRecord(
+        public ClientIndicatorValueRecord(
                 final Long id,
                 final Long value) {
 
             this.id = id;
-            this.lastPingTime = value;
+            this.indicatorValue = value;
         }
     }
 

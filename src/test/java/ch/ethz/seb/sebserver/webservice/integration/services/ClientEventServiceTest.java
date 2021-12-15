@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.webservice.integration.api.admin.AdministrationAPII
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.AbstractLogIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.AbstractLogLevelCountIndicator;
@@ -94,27 +95,27 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
         assertNotNull(connectionData);
         final Optional<? extends IndicatorValue> findFirst = connectionData.indicatorValues
                 .stream()
-                .filter(indicator -> indicator.getType() == IndicatorType.ERROR_COUNT)
+                .filter(indicator -> ((ClientIndicator) indicator).getType() == IndicatorType.ERROR_COUNT)
                 .findFirst();
         assertTrue(findFirst.isPresent());
         final IndicatorValue clientIndicator = findFirst.get();
-        assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.ERROR_COUNT));
 
         this.sebClientConnectionService.notifyClientEvent(
                 "token1",
                 new ClientEvent(null, connection.id, EventType.ERROR_LOG, 1L, 1L, 1.0, "some error"));
         waitForExecutor();
-        assertEquals("1", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("1", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.ERROR_COUNT));
 
         this.sebClientConnectionService.notifyClientEvent(
                 "token1",
                 new ClientEvent(null, connection.id, EventType.ERROR_LOG, 1L, 1L, 1.0, "some error"));
         waitForExecutor();
-        assertEquals("2", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("2", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.ERROR_COUNT));
 
         // test reset indicator value and load it from persistent storage
         ((AbstractLogLevelCountIndicator) clientIndicator).reset();
-        assertEquals("2", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("2", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.ERROR_COUNT));
 
     }
 
@@ -138,37 +139,37 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
         assertNotNull(connectionData);
         final Optional<? extends IndicatorValue> findFirst = connectionData.indicatorValues
                 .stream()
-                .filter(indicator -> indicator.getType() == IndicatorType.INFO_COUNT)
+                .filter(indicator -> ((ClientIndicator) indicator).getType() == IndicatorType.INFO_COUNT)
                 .findFirst();
         assertTrue(findFirst.isPresent());
         final IndicatorValue clientIndicator = findFirst.get();
-        assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
 
         this.sebClientConnectionService.notifyClientEvent(
                 "token2",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "some error"));
         waitForExecutor();
-        assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
         this.sebClientConnectionService.notifyClientEvent(
                 "token2",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "<top> some error"));
         waitForExecutor();
-        assertEquals("1", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("1", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
         this.sebClientConnectionService.notifyClientEvent(
                 "token2",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "some error"));
         waitForExecutor();
-        assertEquals("1", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("1", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
         this.sebClientConnectionService.notifyClientEvent(
                 "token2",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "<vip> some error"));
         waitForExecutor();
-        assertEquals("2", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("2", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
         this.sebClientConnectionService.notifyClientEvent(
                 "token2",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "some error"));
         waitForExecutor();
-        assertEquals("2", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("2", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
 
         this.sebClientConnectionService.notifyClientEvent(
                 "token2",
@@ -176,7 +177,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
         waitForExecutor();
         // test reset indicator value and load it from persistent storage
         ((AbstractLogLevelCountIndicator) clientIndicator).reset();
-        assertEquals("3", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("3", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
 
     }
 
@@ -210,12 +211,12 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
         assertNotNull(connectionData);
         final Optional<? extends IndicatorValue> findFirst = connectionData.indicatorValues
                 .stream()
-                .filter(indicator -> indicator.getType() == IndicatorType.BATTERY_STATUS)
+                .filter(indicator -> ((ClientIndicator) indicator).getType() == IndicatorType.BATTERY_STATUS)
                 .findFirst();
         assertTrue(findFirst.isPresent());
         final IndicatorValue clientIndicator = findFirst.get();
 
-        assertEquals("--", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("--", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.BATTERY_STATUS));
 
         this.sebClientConnectionService.notifyClientEvent(
                 "token3",
@@ -225,23 +226,23 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                 "token3",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "<vip> some info other"));
         waitForExecutor();
-        assertEquals("--", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("--", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.BATTERY_STATUS));
 
         this.sebClientConnectionService.notifyClientEvent(
                 "token3",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 90.0, "<battery> some info other"));
         waitForExecutor();
-        assertEquals("90", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("90", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.BATTERY_STATUS));
 
         this.sebClientConnectionService.notifyClientEvent(
                 "token3",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 40.0, "<battery> some info other"));
         waitForExecutor();
-        assertEquals("40", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("40", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.BATTERY_STATUS));
 
         // test reset indicator value and load it from persistent storage
         ((AbstractLogIndicator) clientIndicator).reset();
-        assertEquals("40", IndicatorValue.getDisplayValue(clientIndicator));
+        assertEquals("40", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.BATTERY_STATUS));
     }
 
 }

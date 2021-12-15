@@ -32,10 +32,11 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
     protected final ClientEventRecordMapper clientEventRecordMapper;
 
     protected AbstractLogNumberIndicator(
+            final DistributedIndicatorValueService distributedPingCache,
             final ClientEventRecordMapper clientEventRecordMapper,
             final EventType... eventTypes) {
 
-        super(eventTypes);
+        super(distributedPingCache, eventTypes);
         this.clientEventRecordMapper = clientEventRecordMapper;
     }
 
@@ -53,21 +54,21 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
     }
 
     private void valueChanged(final String text, final double value) {
-        if (this.tags == null || this.tags.length == 0) {
-            this.currentValue = value;
-        } else if (hasTag(text)) {
+
+        this.currentValue = getValue() + 1d;
+
+        if (this.tags == null || this.tags.length == 0 || hasTag(text)) {
+            if (super.ditributedIndicatorValueRecordId != null) {
+                this.distributedPingCache.updateIndicatorValueAsync(
+                        this.ditributedIndicatorValueRecordId,
+                        Double.valueOf(value).longValue());
+            }
             this.currentValue = value;
         }
     }
 
     @Override
     public double computeValueAt(final long timestamp) {
-
-        if (!loadFromPersistent(timestamp)) {
-            return super.currentValue;
-        }
-
-        // TODO do this within a better reactive way like ping updates
 
         try {
 
@@ -89,6 +90,12 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
 
             final BigDecimal numericValue = execute.get(execute.size() - 1).getNumericValue();
             if (numericValue != null) {
+
+                // update active indicator value record on persistent when caching is not enabled
+                if (!this.cachingEnabled && this.active && this.ditributedIndicatorValueRecordId != null) {
+                    this.distributedPingCache.updateIndicatorValue(this.connectionId, numericValue.longValue());
+                }
+
                 return numericValue.doubleValue();
             } else {
                 return super.currentValue;
@@ -97,8 +104,6 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
         } catch (final Exception e) {
             log.error("Failed to get indicator number from persistent storage: {}", e.getMessage());
             return this.currentValue;
-        } finally {
-            super.lastDistributedUpdate = timestamp;
         }
     }
 

@@ -22,8 +22,11 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecord
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class WarnLogCountClientIndicator extends AbstractLogLevelCountIndicator {
 
-    protected WarnLogCountClientIndicator(final ClientEventRecordMapper clientEventRecordMapper) {
-        super(clientEventRecordMapper, EventType.WARN_LOG);
+    protected WarnLogCountClientIndicator(
+            final DistributedIndicatorValueService distributedPingCache,
+            final ClientEventRecordMapper clientEventRecordMapper) {
+
+        super(distributedPingCache, clientEventRecordMapper, EventType.WARN_LOG);
     }
 
     @Override
@@ -31,8 +34,4 @@ public class WarnLogCountClientIndicator extends AbstractLogLevelCountIndicator 
         return IndicatorType.WARN_COUNT;
     }
 
-    @Override
-    public ClientIndicatorType indicatorType() {
-        return ClientIndicatorType.WARN_LOG_COUNT;
-    }
 }

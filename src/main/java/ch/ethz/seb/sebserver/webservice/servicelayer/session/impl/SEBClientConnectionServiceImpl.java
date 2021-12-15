@@ -48,7 +48,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedPingService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedIndicatorValueService;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
 
 @Lazy
@@ -74,7 +74,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final SEBClientInstructionService sebInstructionService;
     private final SEBClientNotificationService sebClientNotificationService;
     private final ExamAdminService examAdminService;
-    private final DistributedPingService distributedPingCache;
+    // TODO get rid of this dependency and use application events for signaling client connection state changes
+    private final DistributedIndicatorValueService distributedPingCache;
     private final Executor indicatorUpdateExecutor;
     private final boolean isDistributedSetup;
 
@@ -85,7 +86,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final SEBClientInstructionService sebInstructionService,
             final SEBClientNotificationService sebClientNotificationService,
             final ExamAdminService examAdminService,
-            final DistributedPingService distributedPingCache,
+            final DistributedIndicatorValueService distributedPingCache,
             @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME) final Executor indicatorUpdateExecutor) {
 
         this.examSessionService = examSessionService;
@@ -495,7 +496,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             // delete stored ping if this is a distributed setup
             if (this.isDistributedSetup) {
                 this.distributedPingCache
-                        .deletePingIndicator(updatedClientConnection.id);
+                        .deleteIndicatorValues(updatedClientConnection.id);
             }
 
             reloadConnectionCache(connectionToken);
@@ -549,7 +550,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             // delete stored ping if this is a distributed setup
             if (this.isDistributedSetup) {
                 this.distributedPingCache
-                        .deletePingIndicator(updatedClientConnection.id);
+                        .deleteIndicatorValues(updatedClientConnection.id);
             }
 
             reloadConnectionCache(connectionToken);
@@ -637,7 +638,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         activeClientConnection.getConnectionId()));
 
                 this.indicatorUpdateExecutor
-                        .execute(() -> updateIndicator(connectionToken, event, activeClientConnection));
+                        .execute(() -> handleEvent(connectionToken, event, activeClientConnection));
 
             } else {
                 log.warn("No active ClientConnection found for connectionToken: {}", connectionToken);
@@ -647,7 +648,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         }
     }
 
-    private void updateIndicator(
+    private void handleEvent(
             final String connectionToken,
             final ClientEvent event,
             final ClientConnectionDataInternal activeClientConnection) {
@@ -827,17 +828,18 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
                 // store event and and flush cache
                 this.eventHandlingStrategy.accept(clientEventRecord);
+
+                // update indicators
+                if (clientEventRecord.getType() != null && EventType.ERROR_LOG.id == clientEventRecord.getType()) {
+                    connection.getIndicatorMapping(EventType.ERROR_LOG)
+                            .forEach(indicator -> indicator.notifyValueChange(clientEventRecord));
+                }
+
                 if (this.isDistributedSetup) {
                     // mark for update and flush the cache
                     this.clientConnectionDAO.save(connection.clientConnection);
                     this.examSessionCacheService.evictClientConnection(
                             connection.clientConnection.connectionToken);
-                } else {
-                    // update indicators
-                    if (clientEventRecord.getType() != null && EventType.ERROR_LOG.id == clientEventRecord.getType()) {
-                        connection.getIndicatorMapping(EventType.ERROR_LOG)
-                                .forEach(indicator -> indicator.notifyValueChange(clientEventRecord));
-                    }
                 }
             }
         };

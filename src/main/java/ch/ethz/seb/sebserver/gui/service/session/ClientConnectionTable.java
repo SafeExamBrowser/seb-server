@@ -602,12 +602,14 @@ public final class ClientConnectionTable {
                 if (!this.connectionData.clientConnection.status.clientActiveStatus) {
                     final String value = (indicatorData.indicator.type.showOnlyInActiveState)
                             ? Constants.EMPTY_NOTE
-                            : IndicatorValue.getDisplayValue(indicatorValue);
+                            : IndicatorValue.getDisplayValue(indicatorValue, indicatorData.indicator.type);
                     tableItem.setText(indicatorData.tableIndex, value);
                     tableItem.setBackground(indicatorData.tableIndex, indicatorData.defaultColor);
                     tableItem.setForeground(indicatorData.tableIndex, indicatorData.defaultTextColor);
                 } else {
-                    tableItem.setText(indicatorData.tableIndex, IndicatorValue.getDisplayValue(indicatorValue));
+                    tableItem.setText(indicatorData.tableIndex, IndicatorValue.getDisplayValue(
+                            indicatorValue,
+                            indicatorData.indicator.type));
                     final int weight = this.indicatorWeights[indicatorData.index];
                     if (weight >= 0 && weight < indicatorData.thresholdColor.length) {
                         final ThresholdColor thresholdColor = indicatorData.thresholdColor[weight];

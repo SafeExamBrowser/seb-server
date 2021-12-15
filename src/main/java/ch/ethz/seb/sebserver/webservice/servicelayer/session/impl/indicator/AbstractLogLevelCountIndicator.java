@@ -29,10 +29,11 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
     protected final ClientEventRecordMapper clientEventRecordMapper;
 
     protected AbstractLogLevelCountIndicator(
+            final DistributedIndicatorValueService distributedPingCache,
             final ClientEventRecordMapper clientEventRecordMapper,
             final EventType... eventTypes) {
 
-        super(eventTypes);
+        super(distributedPingCache, eventTypes);
         this.clientEventRecordMapper = clientEventRecordMapper;
     }
 
@@ -47,9 +48,10 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
     }
 
     private void valueChanged(final String eventText) {
-        if (this.tags == null || this.tags.length == 0) {
-            this.currentValue = getValue() + 1d;
-        } else if (hasTag(eventText)) {
+        if (this.tags == null || this.tags.length == 0 || hasTag(eventText)) {
+            if (super.ditributedIndicatorValueRecordId != null) {
+                this.distributedPingCache.incrementIndicatorValue(super.ditributedIndicatorValueRecordId);
+            }
             this.currentValue = getValue() + 1d;
         }
     }
@@ -57,15 +59,9 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
     @Override
     public double computeValueAt(final long timestamp) {
 
-        if (!loadFromPersistent(timestamp)) {
-            return super.currentValue;
-        }
-
-        // TODO do this within a better reactive way like ping updates
-
         try {
 
-            final Long errors = this.clientEventRecordMapper
+            final Long numberOfLogs = this.clientEventRecordMapper
                     .countByExample()
                     .where(ClientEventRecordDynamicSqlSupport.clientConnectionId, isEqualTo(this.connectionId))
                     .and(ClientEventRecordDynamicSqlSupport.type, isIn(this.eventTypeIds))
@@ -77,13 +73,16 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
                     .build()
                     .execute();
 
-            return errors.doubleValue();
+            // update active indicator value record on persistent when caching is not enabled
+            if (!this.cachingEnabled && this.active && this.ditributedIndicatorValueRecordId != null) {
+                this.distributedPingCache.updateIndicatorValue(this.connectionId, numberOfLogs.longValue());
+            }
+
+            return numberOfLogs.doubleValue();
 
         } catch (final Exception e) {
             log.error("Failed to get indicator count from persistent storage: ", e);
             return super.currentValue;
-        } finally {
-            super.lastDistributedUpdate = timestamp;
         }
     }
 

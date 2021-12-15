@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 @Lazy
@@ -42,9 +43,14 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     private boolean missingPing = false;
     private boolean hidden = false;
 
-    public PingIntervalClientIndicator(final DistributedPingService distributedPingCache) {
+    public PingIntervalClientIndicator(final DistributedIndicatorValueService distributedPingCache) {
         super(distributedPingCache);
         this.cachingEnabled = true;
+    }
+
+    @Override
+    protected long initValue() {
+        return Utils.getMillisecondsNow();
     }
 
     @Override
@@ -56,13 +62,9 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
         super.init(indicatorDefinition, connectionId, active, cachingEnabled);
 
-        final long now = DateTimeUtils.currentTimeMillis();
-        this.currentValue = computeValueAt(now);
-        if (Double.isNaN(this.currentValue)) {
-            this.currentValue = now;
-        }
-
+        // init ping error threshold
         try {
+
             indicatorDefinition
                     .getThresholds()
                     .stream()
@@ -74,21 +76,16 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
             this.pingErrorThreshold = DEFAULT_PING_ERROR_THRESHOLD;
         }
 
+        // init missing ping indicator
         if (!cachingEnabled) {
             try {
-                final double value = getValue();
-                this.missingPing = this.pingErrorThreshold < value;
+                this.missingPing = this.pingErrorThreshold < getValue();
             } catch (final Exception e) {
                 log.error("Failed to initialize missingPing: {}", e.getMessage());
                 this.missingPing = true;
             }
         }
 
-    }
-
-    @Override
-    public ClientIndicatorType indicatorType() {
-        return ClientIndicatorType.LAST_PING;
     }
 
     @JsonIgnore
@@ -113,8 +110,10 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     @Override
     public double getValue() {
-        final double value = super.getValue();
-        return DateTimeUtils.currentTimeMillis() - value;
+        if (!this.initialized) {
+            return Double.NaN;
+        }
+        return DateTimeUtils.currentTimeMillis() - this.currentValue;
     }
 
     @Override
@@ -129,9 +128,12 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     @Override
     public final double computeValueAt(final long timestamp) {
-        if (!this.cachingEnabled && super.pingUpdate != null) {
 
-            final Long lastPing = this.distributedPingCache.getLastPing(super.pingUpdate.pingRecord);
+        if (!this.cachingEnabled && super.ditributedIndicatorValueRecordId != null) {
+
+            final Long lastPing = this.distributedPingCache
+                    .getIndicatorValue(super.ditributedIndicatorValueRecordId);
+
             if (lastPing != null) {
                 final double doubleValue = lastPing.doubleValue();
                 return Math.max(Double.isNaN(this.currentValue) ? doubleValue : this.currentValue, doubleValue);
@@ -140,11 +142,15 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
             return this.currentValue;
         }
 
-        return !this.valueInitializes ? timestamp : this.currentValue;
+        return !this.initialized ? timestamp : this.currentValue;
     }
 
     @Override
     public boolean missingPingUpdate(final long now) {
+        if (this.currentValue <= 0) {
+            return false;
+        }
+
         final long value = now - (long) super.currentValue;
         if (this.missingPing) {
             if (this.pingErrorThreshold > value) {

@@ -28,7 +28,6 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
@@ -466,7 +465,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertNotNull(ccdi.clientConnection.examId);
         assertFalse(ccdi.indicatorValues.isEmpty());
         final IndicatorValue pingIndicator = ccdi.indicatorValues.iterator().next();
-        assertTrue(pingIndicator.getType() == IndicatorType.LAST_PING);
+        assertTrue(pingIndicator.getIndicatorId() == 1L);
 
         super.sendPing(accessToken, connectionToken, 1);
         Thread.sleep(200);
@@ -524,7 +523,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertNotNull(ccdi.clientConnection.examId);
         assertFalse(ccdi.indicatorValues.isEmpty());
         final IndicatorValue pingIndicator = ccdi.indicatorValues.iterator().next();
-        assertTrue(pingIndicator.getType() == IndicatorType.LAST_PING);
+        assertTrue(pingIndicator.getIndicatorId() == 1L);
 
         MockHttpServletResponse sendEvent = super.sendEvent(
                 accessToken,

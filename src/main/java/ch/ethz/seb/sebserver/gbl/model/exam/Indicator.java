@@ -34,13 +34,15 @@ public final class Indicator implements Entity {
     public static final String FILTER_ATTR_EXAM_ID = "examId";
 
     public enum IndicatorType {
-        LAST_PING(Names.LAST_PING, false, true, true, false, false),
-        ERROR_COUNT(Names.ERROR_COUNT, false, true, false, true, false),
-        WARN_COUNT(Names.WARN_COUNT, false, true, false, true, false),
-        INFO_COUNT(Names.INFO_COUNT, false, true, false, true, false),
-        BATTERY_STATUS(Names.BATTERY_STATUS, true, true, true, true, true),
-        WLAN_STATUS(Names.WLAN_STATUS, true, true, true, true, true);
+        NONE(0, "UNKNOWN", false, false, false, false, false),
+        LAST_PING(1, Names.LAST_PING, false, true, true, false, false),
+        ERROR_COUNT(2, Names.ERROR_COUNT, false, true, false, true, false),
+        WARN_COUNT(3, Names.WARN_COUNT, false, true, false, true, false),
+        INFO_COUNT(4, Names.INFO_COUNT, false, true, false, true, false),
+        BATTERY_STATUS(5, Names.BATTERY_STATUS, true, true, true, true, true),
+        WLAN_STATUS(6, Names.WLAN_STATUS, true, true, true, true, true);
 
+        public final int id;
         public final String name;
         public final boolean inverse;
         public final boolean integerValue;
@@ -49,6 +51,7 @@ public final class Indicator implements Entity {
         public final boolean tagsReadonly;
 
         IndicatorType(
+                final int id,
                 final String name,
                 final boolean inverse,
                 final boolean integerValue,
@@ -56,6 +59,7 @@ public final class Indicator implements Entity {
                 final boolean tags,
                 final boolean tagsReadonly) {
 
+            this.id = id;
             this.name = name;
             this.inverse = inverse;
             this.integerValue = integerValue;

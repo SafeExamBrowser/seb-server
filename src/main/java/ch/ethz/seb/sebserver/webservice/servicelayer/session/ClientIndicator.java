@@ -10,12 +10,14 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.ClientIndicatorType;
 
 /** A client indicator is a indicator value holder for a specific Indicator
  * on a running client connection.
@@ -32,10 +34,9 @@ public interface ClientIndicator extends IndicatorValue {
      * @param cachingEnabled defines whether indicator value caching is enabled or not. */
     void init(Indicator indicatorDefinition, Long connectionId, boolean active, boolean cachingEnabled);
 
-    /** Get the client indicator type
-     *
-     * @return the client indicator type */
-    ClientIndicatorType indicatorType();
+    /** get the indicator type */
+    @JsonIgnore
+    IndicatorType getType();
 
     /** Get the exam identifier of the client connection of this ClientIndicator
      *

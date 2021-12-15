@@ -2149,7 +2149,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals(exam.id, conData.clientConnection.examId);
         assertFalse(conData.indicatorValues.isEmpty());
         final IndicatorValue indicatorValue = conData.indicatorValues.get(0);
-        assertEquals("LAST_PING", indicatorValue.getType().name);
+        assertEquals("1", String.valueOf(indicatorValue.getIndicatorId())); // LAST_PING indicator
 
         // disable connection
         final Result<String> disableCall = restService.getBuilder(DisableClientConnection.class)

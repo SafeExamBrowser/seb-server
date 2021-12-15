@@ -60,7 +60,7 @@ public class WebserviceInfo {
     private final boolean isDistributed;
     private final String webserviceUUID;
 
-    private final long distributedPingUpdateInterval;
+    private final long distributedUpdateInterval;
 
     private Map<String, String> lmsExternalAddressAlias;
 
@@ -76,8 +76,8 @@ public class WebserviceInfo {
         this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
         this.contextPath = environment.getProperty(WEB_SERVICE_CONTEXT_PATH, "");
 
-        this.distributedPingUpdateInterval = environment.getProperty(
-                "sebserver.webservice.distributed.pingUpdate",
+        this.distributedUpdateInterval = environment.getProperty(
+                "sebserver.webservice.distributed.updateInterval",
                 Long.class,
                 3000L);
 
@@ -167,8 +167,8 @@ public class WebserviceInfo {
         return this.serverURLPrefix + this.discoveryEndpoint;
     }
 
-    public long getDistributedPingUpdateInterval() {
-        return this.distributedPingUpdateInterval;
+    public long getDistributedUpdateInterval() {
+        return this.distributedUpdateInterval;
     }
 
     public String getLocalHostName() {

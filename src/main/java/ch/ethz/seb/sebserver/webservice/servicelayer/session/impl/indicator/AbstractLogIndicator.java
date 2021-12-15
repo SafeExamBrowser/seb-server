@@ -30,10 +30,11 @@ public abstract class AbstractLogIndicator extends AbstractClientIndicator {
     protected final List<Integer> eventTypeIds;
     protected String[] tags;
 
-    protected long lastDistributedUpdate = 0L;
+    protected AbstractLogIndicator(
+            final DistributedIndicatorValueService distributedPingCache,
+            final EventType... eventTypes) {
 
-    protected AbstractLogIndicator(final EventType... eventTypes) {
-
+        super(distributedPingCache);
         this.observed = Collections.unmodifiableSet(EnumSet.of(eventTypes[0], eventTypes));
         this.eventTypeIds = Utils.immutableListOf(Arrays.stream(eventTypes)
                 .map(et -> et.id)
@@ -50,6 +51,7 @@ public abstract class AbstractLogIndicator extends AbstractClientIndicator {
 
         super.init(indicatorDefinition, connectionId, active, cachingEnabled);
 
+        // init tags
         if (indicatorDefinition == null || StringUtils.isBlank(indicatorDefinition.tags)) {
             this.tags = null;
         } else {
@@ -77,14 +79,6 @@ public abstract class AbstractLogIndicator extends AbstractClientIndicator {
     @Override
     public Set<EventType> observedEvents() {
         return this.observed;
-    }
-
-    protected boolean loadFromPersistent(final long timestamp) {
-        if (!super.valueInitializes) {
-            return true;
-        }
-
-        return timestamp - this.lastDistributedUpdate > DISTRIBUTED_LOG_UPDATE_INTERVAL;
     }
 
 }
