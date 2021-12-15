@@ -23,7 +23,7 @@ Development:
 
 **Note regarding to** `CVE-2021-44228 <https://nvd.nist.gov/vuln/detail/CVE-2021-44228>`_: SEB Server is **not affected** by the vulnerability. For more information please read `Log4J2 Vulnerability and Spring Boot <https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot>`_
 
-However, to prevent security scanner to alert false-positives we decided to make a patch for the latest version of SEB Server (v1.2.6). If you want to update please make sure your installation refer to version v1.2-stable, v1.2-latest or v1.2.6. Then simply make a update/rebuild of your seb-server docker image.
+However, to prevent security scanner to alert false-positives we decided to make a patch for the latest version of SEB Server (v1.2.6) including the Log4j 2.16.0 library. If you want to update please make sure your installation refer to version v1.2-stable, v1.2-latest or v1.2.6. Then simply make a update/rebuild of your seb-server docker image.
 
 ---------
 
