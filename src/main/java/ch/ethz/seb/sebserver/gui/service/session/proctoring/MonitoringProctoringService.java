@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -80,32 +82,14 @@ public class MonitoringProctoringService {
     private static final LocTextKey EXAM_ROOM_NAME =
             new LocTextKey("sebserver.monitoring.exam.proctoring.room.all.name");
 
- // @formatter:off
-    static final String OPEN_ROOM_SCRIPT =
-            "try {\n" +
-            "var existingWin = window.open('', '%s', 'height=%s,width=%s,location=no,scrollbars=yes,status=no,menubar=0,toolbar=no,titlebar=no,dialog=no');\n" +
-            "try {\n" +
-            "if(existingWin.location.href === 'about:blank'){\n" +
-            "    existingWin.document.title = '%s';\n" +
-            "    existingWin.location.href = '%s%s';\n" +
-            "    existingWin.focus();\n" +
-            "} else {\n" +
-            "    existingWin.focus();\n" +
-            "}" +
-            "} catch(secErr) {\n" +
-            "    alert(\"Unexpected Javascript Error happened: \" + secErr);\n"+
-            "    existingWin.focus();\n" +
-            "}" +
-            "}" +
-            "catch(err) {\n" +
-            "    alert(\"Unexpected Javascript Error happened: \" + err);\n"+
-            "}";
-    // @formatter:on
+    private static final String OPEN_ROOM_SCRIPT_RES =
+            "classpath:ch/ethz/seb/sebserver/gui/service/session/proctoring/openRoomScript.js";
 
     private final PageService pageService;
     private final GuiServiceInfo guiServiceInfo;
     private final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup;
     private final JSONMapper jsonMapper;
+    private final Resource openRoomScriptRes;
     private final String remoteProctoringEndpoint;
 
     public MonitoringProctoringService(
@@ -113,12 +97,14 @@ public class MonitoringProctoringService {
             final GuiServiceInfo guiServiceInfo,
             final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup,
             final JSONMapper jsonMapper,
+            @Value(OPEN_ROOM_SCRIPT_RES) final Resource openRoomScript,
             @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint) {
 
         this.pageService = pageService;
         this.guiServiceInfo = guiServiceInfo;
         this.proctorRoomConnectionsPopup = proctorRoomConnectionsPopup;
         this.jsonMapper = jsonMapper;
+        this.openRoomScriptRes = openRoomScript;
         this.remoteProctoringEndpoint = remoteProctoringEndpoint;
     }
 
@@ -299,7 +285,7 @@ public class MonitoringProctoringService {
 
             final String startLink = extractZoomStartLink(room);
             final String script = String.format(
-                    OPEN_ROOM_SCRIPT,
+                    getOpenRoomScriptTemplate(),
                     room.name,
                     800,
                     1200,
@@ -314,7 +300,7 @@ public class MonitoringProctoringService {
         } else {
 
             final String script = String.format(
-                    OPEN_ROOM_SCRIPT,
+                    getOpenRoomScriptTemplate(),
                     room.name,
                     800,
                     1200,
@@ -387,7 +373,7 @@ public class MonitoringProctoringService {
 
             final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
             final String script = String.format(
-                    MonitoringProctoringService.OPEN_ROOM_SCRIPT,
+                    getOpenRoomScriptTemplate(),
                     connectionData.clientConnection.userSessionId,
                     800,
                     1200,
@@ -429,7 +415,7 @@ public class MonitoringProctoringService {
             final String windowName = proctoringGUIService.getTownhallWindowName(examId.modelId);
             final JavaScriptExecutor javaScriptExecutor = RWT.getClient().getService(JavaScriptExecutor.class);
             final String script = String.format(
-                    OPEN_ROOM_SCRIPT,
+                    getOpenRoomScriptTemplate(),
                     windowName,
                     800,
                     1200,
@@ -520,6 +506,15 @@ public class MonitoringProctoringService {
 
         } catch (final Exception e) {
             log.warn("Failed to set Proctor-Room-Activation: ", e.getMessage());
+        }
+    }
+
+    private String getOpenRoomScriptTemplate() {
+        try {
+            return IOUtils.toString(this.openRoomScriptRes.getInputStream());
+        } catch (final Exception e) {
+            log.error("Failed to load open proctoring room script template", e);
+            return "ERROR: " + e.getLocalizedMessage();
         }
     }
 
