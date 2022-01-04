@@ -90,9 +90,6 @@ public interface ClientConnectionDAO extends
      * @return Result refer to a collection of all ClientConnection records for update or to an error when happened */
     Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateInactive();
 
-    /** Used to re-mark a client connection record for room update in error case. */
-    void setNeedsRoomUpdate(Long connectionId);
-
     /** Get all ClientConnection that are assigned to a defined proctoring collecting room.
      *
      * @param roomId The proctoring room identifier
@@ -132,6 +129,7 @@ public interface ClientConnectionDAO extends
             key = "#connectionToken")
     Result<Void> removeFromProctoringRoom(Long connectionId, String connectionToken);
 
+    /** Used to re-mark a client connection record for room update in error case. */
     Result<Void> markForProctoringUpdate(Long id);
 
     /** Deletes the given ClientConnection data.

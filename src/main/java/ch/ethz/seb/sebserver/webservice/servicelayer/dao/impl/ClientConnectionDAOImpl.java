@@ -286,16 +286,6 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
-    @Transactional
-    public void setNeedsRoomUpdate(final Long connectionId) {
-        final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
-                connectionId, null, null, null, null, null,
-                null, null, null, null, null, null, null,
-                1);
-        this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public Result<Collection<ClientConnection>> getRoomConnections(final Long roomId) {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()

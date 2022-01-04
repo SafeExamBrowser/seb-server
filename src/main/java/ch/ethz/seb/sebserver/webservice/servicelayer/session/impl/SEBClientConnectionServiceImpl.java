@@ -392,8 +392,15 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .save(connectionToSave)
                     .getOrThrow();
 
+            // check exam integrity for established connection
             checkExamIntegrity(establishedClientConnection.examId);
 
+            // if proctoring is enabled for exam, mark for room update
+            if (proctoringEnabled) {
+                this.clientConnectionDAO.markForProctoringUpdate(updatedClientConnection.id);
+            }
+
+            // flush and reload caches to work with actual connection data
             final ClientConnectionDataInternal activeClientConnection =
                     reloadConnectionCache(connectionToken);
 
@@ -493,6 +500,14 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 updatedClientConnection = clientConnection;
             }
 
+            // if proctoring is enabled for exam, mark for room update
+            final Boolean proctoringEnabled = this.examAdminService
+                    .isProctoringEnabled(clientConnection.examId)
+                    .getOr(false);
+            if (proctoringEnabled) {
+                this.clientConnectionDAO.markForProctoringUpdate(updatedClientConnection.id);
+            }
+
             // delete stored ping if this is a distributed setup
             if (this.isDistributedSetup) {
                 this.distributedPingCache
@@ -545,6 +560,14 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             } else {
                 log.warn("SEB client connection in invalid state for disabling: {}", clientConnection);
                 updatedClientConnection = clientConnection;
+            }
+
+            // if proctoring is enabled for exam, mark for room update
+            final Boolean proctoringEnabled = this.examAdminService
+                    .isProctoringEnabled(clientConnection.examId)
+                    .getOr(false);
+            if (proctoringEnabled) {
+                this.clientConnectionDAO.markForProctoringUpdate(updatedClientConnection.id);
             }
 
             // delete stored ping if this is a distributed setup
