@@ -1,31 +1,27 @@
 package ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper;
 
-import java.math.BigDecimal;
 import java.sql.JDBCType;
 import javax.annotation.Generated;
 import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ClientIndicatorRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-12-06T16:00:09.497+01:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source Table: client_indicator")
     public static final ClientIndicatorRecord clientIndicatorRecord = new ClientIndicatorRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-12-06T16:00:09.497+01:00", comments="Source field: client_indicator.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.id")
     public static final SqlColumn<Long> id = clientIndicatorRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-12-06T16:00:09.497+01:00", comments="Source field: client_indicator.client_connection_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.client_connection_id")
     public static final SqlColumn<Long> clientConnectionId = clientIndicatorRecord.clientConnectionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-12-06T16:00:09.497+01:00", comments="Source field: client_indicator.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.type")
     public static final SqlColumn<Integer> type = clientIndicatorRecord.type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-12-06T16:00:09.497+01:00", comments="Source field: client_indicator.value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.value")
     public static final SqlColumn<Long> value = clientIndicatorRecord.value;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-12-06T16:00:09.497+01:00", comments="Source field: client_indicator.dec_value")
-    public static final SqlColumn<BigDecimal> decValue = clientIndicatorRecord.decValue;
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2021-12-06T16:00:09.497+01:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source Table: client_indicator")
     public static final class ClientIndicatorRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 
@@ -34,8 +30,6 @@ public final class ClientIndicatorRecordDynamicSqlSupport {
         public final SqlColumn<Integer> type = column("type", JDBCType.INTEGER);
 
         public final SqlColumn<Long> value = column("value", JDBCType.BIGINT);
-
-        public final SqlColumn<BigDecimal> decValue = column("dec_value", JDBCType.DECIMAL);
 
         public ClientIndicatorRecord() {
             super("client_indicator");

@@ -146,7 +146,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
 
             if (recordId == null) {
                 final ClientIndicatorRecord clientEventRecord = new ClientIndicatorRecord(
-                        null, connectionId, type.id, value, null);
+                        null, connectionId, type.id, value);
 
                 this.clientIndicatorRecordMapper.insert(clientEventRecord);
 
@@ -309,14 +309,16 @@ public class DistributedIndicatorValueService implements DisposableBean {
 
     /** Update indicator value on persistent storage asynchronously within a defined thread pool with no
      * waiting queue to skip further indicator value updates if all update threads are busy **/
-    void updateIndicatorValueAsync(final Long pk, final Long value) {
+    boolean updateIndicatorValueAsync(final Long pk, final Long value) {
         try {
             this.indicatorValueUpdateExecutor
                     .execute(() -> this.clientIndicatorValueMapper.updateIndicatorValue(pk, value));
+            return true;
         } catch (final Exception e) {
             if (log.isDebugEnabled()) {
                 log.warn("Failed to schedule indicator update task: {}" + e.getMessage());
             }
+            return false;
         }
     }
 

@@ -59,6 +59,10 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
     @Override
     public double computeValueAt(final long timestamp) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("computeValueAt: {}", timestamp);
+        }
+
         try {
 
             final Long numberOfLogs = this.clientEventRecordMapper

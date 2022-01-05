@@ -60,11 +60,29 @@ CREATE TABLE IF NOT EXISTS `client_indicator` (
   `client_connection_id` BIGINT UNSIGNED NOT NULL,
   `type` INT(2) NOT NULL,
   `value` BIGINT NULL,
-  `dec_value` DECIMAL(18,4) NULL,
   PRIMARY KEY (`id`),
   INDEX `clientIndicatorConnectionRef_idx` (`client_connection_id` ASC),
   INDEX `clientIndicatorType` (`type` ASC),
   CONSTRAINT `clientIndicatorConnectionRef`
+    FOREIGN KEY (`client_connection_id`)
+    REFERENCES `client_connection` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+;
+
+-- -----------------------------------------------------
+-- Table `client_notification`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `client_notification` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `client_connection_id` BIGINT UNSIGNED NOT NULL,
+  `event_type` INT(2) NOT NULL,
+  `notification_type` INT(2) NOT NULL,
+  `value` BIGINT NULL,
+  `text` VARCHAR(512) NULL,
+  PRIMARY KEY (`id`),
+  INDEX `clientNotificationConnectionRef_idx` (`client_connection_id` ASC),
+  CONSTRAINT `clientNotificationConnectionRef`
     FOREIGN KEY (`client_connection_id`)
     REFERENCES `client_connection` (`id`)
     ON DELETE NO ACTION

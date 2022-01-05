@@ -29,6 +29,12 @@ public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
             FilterMap filterMap,
             Predicate<ExtendedClientEvent> predicate);
 
+    /** Used to create/insert a new client notification.
+     *
+     * @param notification The client notification model data
+     * @return Result refer to the resulting client notification or to an error when appened. */
+    Result<ClientNotification> createNewNotification(ClientNotification notification);
+
     /** Get a specified notification by id (PK)
      *
      * @param notificationId The PK of the notification

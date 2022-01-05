@@ -59,16 +59,26 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
 
         if (this.tags == null || this.tags.length == 0 || hasTag(text)) {
             if (super.ditributedIndicatorValueRecordId != null) {
-                this.distributedPingCache.updateIndicatorValueAsync(
+                if (!this.distributedPingCache.updateIndicatorValueAsync(
                         this.ditributedIndicatorValueRecordId,
-                        Double.valueOf(value).longValue());
+                        Double.valueOf(value).longValue())) {
+
+                    this.currentValue = computeValueAt(Utils.getMillisecondsNow());
+                } else {
+                    this.currentValue = value;
+                }
+            } else {
+                this.currentValue = value;
             }
-            this.currentValue = value;
         }
     }
 
     @Override
     public double computeValueAt(final long timestamp) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("computeValueAt: {}", timestamp);
+        }
 
         try {
 

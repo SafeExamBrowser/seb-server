@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -20,13 +19,11 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
@@ -47,7 +44,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrate
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedIndicatorValueService;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
 
@@ -72,11 +68,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final ClientConnectionDAO clientConnectionDAO;
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final SEBClientInstructionService sebInstructionService;
-    private final SEBClientNotificationService sebClientNotificationService;
     private final ExamAdminService examAdminService;
     // TODO get rid of this dependency and use application events for signaling client connection state changes
     private final DistributedIndicatorValueService distributedPingCache;
-    private final Executor indicatorUpdateExecutor;
     private final boolean isDistributedSetup;
 
     protected SEBClientConnectionServiceImpl(
@@ -84,10 +78,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
             final SEBClientConfigDAO sebClientConfigDAO,
             final SEBClientInstructionService sebInstructionService,
-            final SEBClientNotificationService sebClientNotificationService,
             final ExamAdminService examAdminService,
-            final DistributedIndicatorValueService distributedPingCache,
-            @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME) final Executor indicatorUpdateExecutor) {
+            final DistributedIndicatorValueService distributedPingCache) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();
@@ -96,10 +88,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.eventHandlingStrategy = eventHandlingStrategyFactory.get();
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.sebInstructionService = sebInstructionService;
-        this.sebClientNotificationService = sebClientNotificationService;
         this.examAdminService = examAdminService;
         this.distributedPingCache = distributedPingCache;
-        this.indicatorUpdateExecutor = indicatorUpdateExecutor;
         this.isDistributedSetup = sebInstructionService.getWebserviceInfo().isDistributed();
     }
 
@@ -660,38 +650,16 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         event,
                         activeClientConnection.getConnectionId()));
 
-                this.indicatorUpdateExecutor
-                        .execute(() -> handleEvent(connectionToken, event, activeClientConnection));
+                // handle indicator update
+                activeClientConnection
+                        .getIndicatorMapping(event.eventType)
+                        .forEach(indicator -> indicator.notifyValueChange(event));
 
             } else {
                 log.warn("No active ClientConnection found for connectionToken: {}", connectionToken);
             }
         } catch (final Exception e) {
             log.error("Failed to process SEB client event: ", e);
-        }
-    }
-
-    private void handleEvent(
-            final String connectionToken,
-            final ClientEvent event,
-            final ClientConnectionDataInternal activeClientConnection) {
-
-        switch (event.eventType) {
-            case NOTIFICATION: {
-                this.sebClientNotificationService
-                        .notifyNewNotification(activeClientConnection.getConnectionId());
-                break;
-            }
-            case NOTIFICATION_CONFIRMED: {
-                this.sebClientNotificationService.confirmPendingNotification(event, connectionToken);
-                break;
-            }
-            default: {
-                // update indicators
-                activeClientConnection
-                        .getIndicatorMapping(event.eventType)
-                        .forEach(indicator -> indicator.notifyValueChange(event));
-            }
         }
     }
 

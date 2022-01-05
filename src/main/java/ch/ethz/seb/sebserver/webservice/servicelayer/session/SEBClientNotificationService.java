@@ -35,12 +35,13 @@ public interface SEBClientNotificationService {
      * @return Result refer to pending client notifications or to an error when happened */
     Result<List<ClientNotification>> getPendingNotifications(Long clientConnectionId);
 
+    void newNotification(ClientNotification notification);
+
     /** This is used to confirm a pending notification from SEB client side where
      * a client event of type notification-confirm is involved
      *
-     * @param event The notification confirmation event sent by a SEB client
-     * @param connectionToken the client connection token of the SEB client connection */
-    void confirmPendingNotification(ClientEvent event, String connectionToken);
+     * @param event The notification confirmation event sent by a SEB client */
+    void confirmPendingNotification(ClientEvent event);
 
     /** This is used to confirm a pending client notification from the SEB Server side
      *
@@ -53,6 +54,6 @@ public interface SEBClientNotificationService {
             Long examId,
             String connectionToken);
 
-    void notifyNewNotification(final Long clientConnectionId);
+    //void notifyNewNotification(final Long clientConnectionId);
 
 }

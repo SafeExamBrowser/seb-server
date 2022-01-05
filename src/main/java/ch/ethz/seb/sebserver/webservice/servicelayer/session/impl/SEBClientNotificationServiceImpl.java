@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
@@ -82,11 +83,11 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     }
 
     @Override
-    public void confirmPendingNotification(final ClientEvent event, final String connectionToken) {
+    public void confirmPendingNotification(final ClientEvent event) {
         try {
 
             final ClientConnection clientConnection = this.clientConnectionDAO
-                    .byConnectionToken(connectionToken)
+                    .byPK(event.connectionId)
                     .getOrThrow();
             final Long notificationId = (long) event.getValue();
 
@@ -97,8 +98,7 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
 
         } catch (final Exception e) {
             log.error(
-                    "Failed to confirm pending notification from SEB Client side. Connection token: {} confirm event: {}",
-                    connectionToken, event, e);
+                    "Failed to confirm pending notification from SEB Client side. event: {}", event, e);
         }
     }
 
@@ -116,8 +116,17 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
     }
 
     @Override
-    public void notifyNewNotification(final Long clientConnectionId) {
-        this.pendingNotifications.add(clientConnectionId);
+    public void newNotification(final ClientNotification notification) {
+        this.clientEventDAO.createNewNotification(notification)
+                .map(this::notifyNewNotifiaction)
+                .onError(error -> log.error("Failed to store new client notification: {}", notification, error));
+    }
+
+    private ClientNotification notifyNewNotifiaction(final ClientNotification notification) {
+        if (notification.eventType == EventType.NOTIFICATION) {
+            this.pendingNotifications.add(notification.id);
+        }
+        return notification;
     }
 
     private ClientNotification confirmClientSide(
