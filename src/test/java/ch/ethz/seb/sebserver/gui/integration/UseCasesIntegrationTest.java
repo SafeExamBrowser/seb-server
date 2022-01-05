@@ -2148,6 +2148,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(conData);
         assertEquals(exam.id, conData.clientConnection.examId);
         assertFalse(conData.indicatorValues.isEmpty());
+        assertTrue(conData.indicatorValues.size() == 2);
         final IndicatorValue indicatorValue = conData.indicatorValues.get(0);
         assertEquals("1", String.valueOf(indicatorValue.getIndicatorId())); // LAST_PING indicator
 
