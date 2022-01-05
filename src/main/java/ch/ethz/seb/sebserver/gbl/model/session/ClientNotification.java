@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 
@@ -93,6 +94,11 @@ public class ClientNotification extends ClientEvent {
 
     public NotificationType getNotificationType() {
         return this.notificationType;
+    }
+
+    @Override
+    public EntityType entityType() {
+        return EntityType.CLIENT_NOTIFICATION;
     }
 
     @Override

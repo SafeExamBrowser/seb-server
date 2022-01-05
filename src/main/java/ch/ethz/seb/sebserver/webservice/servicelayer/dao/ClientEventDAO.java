@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
@@ -66,5 +67,13 @@ public interface ClientEventDAO extends EntityDAO<ClientEvent, ClientEvent> {
      * @param notificationId the notification identifier
      * @return Result refer to the confirmed notification or to en error when happened */
     Result<ClientNotification> confirmPendingNotification(Long notificationId);
+
+    /** Used to get all client notification identifiers/PKs that are mapped to a specified exam.
+     *
+     * @param examId The identifier/PK of the exam
+     * @return Result refer to a set of client notification identifiers or to an error when happened */
+    Result<Set<EntityKey>> getNotificationIdsForExam(Long examId);
+
+    Result<Collection<EntityKey>> deleteClientNotification(Set<EntityKey> keys);
 
 }

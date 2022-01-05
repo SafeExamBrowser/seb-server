@@ -18,6 +18,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -32,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
 
@@ -120,6 +122,18 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
         this.clientEventDAO.createNewNotification(notification)
                 .map(this::notifyNewNotifiaction)
                 .onError(error -> log.error("Failed to store new client notification: {}", notification, error));
+    }
+
+    @EventListener(ExamDeletionEvent.class)
+    public void notifyExamDeletionEvent(final ExamDeletionEvent event) {
+        // delete all notifications for given exams
+        event.ids.forEach(id -> this.clientEventDAO.getNotificationIdsForExam(id)
+                .flatMap(this.clientEventDAO::deleteClientNotification)
+                .map(deleted -> {
+                    log.debug("Deleted client notifications during exam deletion: {}", deleted);
+                    return deleted;
+                })
+                .onError(error -> log.error("Failed to delete client notifications for exam: {}", id, error)));
     }
 
     private ClientNotification notifyNewNotifiaction(final ClientNotification notification) {

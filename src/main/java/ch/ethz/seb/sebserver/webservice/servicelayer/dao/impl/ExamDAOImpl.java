@@ -451,7 +451,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             final List<Long> ids = extractListOfPKs(all);
 
-            // notify exam deletition listener about following deletion, to cleanup stuff before deletion
+            // notify exam deletion listener about following deletion, to cleanup stuff before deletion
             this.applicationEventPublisher.publishEvent(new ExamDeletionEvent(ids));
 
             this.examRecordMapper.deleteByExample()

@@ -206,6 +206,26 @@ public class ClientEventDAOImpl implements ClientEventDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Set<EntityKey>> getNotificationIdsForExam(final Long examId) {
+        return Result.tryCatch(() -> this.clientNotificationRecordMapper
+                .selectByExample()
+                .leftJoin(ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                .on(
+                        ClientConnectionRecordDynamicSqlSupport.id,
+                        equalTo(ClientNotificationRecordDynamicSqlSupport.clientConnectionId))
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        isEqualToWhenPresent(examId))
+                .build()
+                .execute()
+                .stream()
+                .map(ClientNotificationRecord::getClientConnectionId)
+                .map(id -> new EntityKey(id, EntityType.CLIENT_NOTIFICATION))
+                .collect(Collectors.toSet()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<ClientNotification> getPendingNotificationByValue(
             final Long clientConnectionId,
             final Long notificationValueId) {
@@ -373,6 +393,30 @@ public class ClientEventDAOImpl implements ClientEventDAO {
             return pks
                     .stream()
                     .map(pk -> new EntityKey(String.valueOf(pk), EntityType.CLIENT_EVENT))
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
+    @Transactional
+    public Result<Collection<EntityKey>> deleteClientNotification(final Set<EntityKey> keys) {
+        return Result.tryCatch(() -> {
+
+            final List<Long> pks = keys
+                    .stream()
+                    .map(EntityKey::getModelId)
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+
+            this.clientNotificationRecordMapper
+                    .deleteByExample()
+                    .where(ClientNotificationRecordDynamicSqlSupport.id, isIn(pks))
+                    .build()
+                    .execute();
+
+            return pks
+                    .stream()
+                    .map(pk -> new EntityKey(String.valueOf(pk), EntityType.CLIENT_NOTIFICATION))
                     .collect(Collectors.toList());
         });
     }
