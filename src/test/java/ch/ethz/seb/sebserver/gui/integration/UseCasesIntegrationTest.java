@@ -120,6 +120,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplatePage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
@@ -2051,7 +2052,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "987654321",
                 new NewClientConfig(),
                 new ActivateClientConfig(),
-                new GetClientConfigPage());
+                new GetClientConfigPage(),
+                new GetIndicatorPage(),
+                new GetIndicators());
 
         // get running exams
         final Result<Page<Exam>> runningExamsCall = restService.getBuilder(GetRunningExamPage.class)
@@ -2135,6 +2138,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             fail(e.getMessage());
         }
 
+        final Result<List<Indicator>> call = adminRestService.getBuilder(GetIndicators.class)
+                .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, exam.getModelId())
+                .call()
+                .onError(error -> error.printStackTrace());
+        final List<Indicator> indicatorDefs = call.get();
+        final Indicator indicator = indicatorDefs.get(0);
+        assertEquals("Ping", indicator.getName());
+
         connectionsCall =
                 restService.getBuilder(GetClientConnectionDataList.class)
                         .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
@@ -2150,7 +2161,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(conData.indicatorValues.isEmpty());
         assertTrue(conData.indicatorValues.size() == 2);
         final IndicatorValue indicatorValue = conData.indicatorValues.get(0);
-        assertEquals("1", String.valueOf(indicatorValue.getIndicatorId())); // LAST_PING indicator
+        assertEquals(indicator.id, indicatorValue.getIndicatorId()); // LAST_PING indicator
 
         // disable connection
         final Result<String> disableCall = restService.getBuilder(DisableClientConnection.class)
