@@ -243,6 +243,10 @@ public final class Utils {
                 .getMillis());
     }
 
+    public static String formatDate(final DateTime dateTime) {
+        return dateTime.toString(Constants.DEFAULT_DATE_TIME_MILLIS_FORMAT);
+    }
+
     public static Long dateTimeStringToTimestamp(final String startTime, final Long defaultValue) {
         return dateTimeStringToTimestamp(startTime)
                 .getOr(defaultValue);

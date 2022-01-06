@@ -293,6 +293,7 @@ public class ExamMonitoringController {
 
         checkPrivileges(institutionId, examId);
 
+        // TODO do this async like registerInstruction
         if (connectionToken.contains(Constants.LIST_SEPARATOR)) {
             final String[] tokens = StringUtils.split(connectionToken, Constants.LIST_SEPARATOR);
             for (int i = 0; i < tokens.length; i++) {

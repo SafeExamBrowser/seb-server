@@ -47,40 +47,40 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
         final StringBuilder builder = new StringBuilder();
 
         builder
-            .append("Event Type")
-            .append(Constants.COMMA)
-            .append("Message")
-            .append(Constants.COMMA)
-            .append("Value")
-            .append(Constants.COMMA)
-            .append("Client Time (UTC)")
-            .append(Constants.COMMA)
-            .append("Server Time (UTC)");
+                .append("Event Type")
+                .append(Constants.COMMA)
+                .append("Message")
+                .append(Constants.COMMA)
+                .append("Value")
+                .append(Constants.COMMA)
+                .append("Client Time (UTC)")
+                .append(Constants.COMMA)
+                .append("Server Time (UTC)");
 
         if (includeConnectionDetails) {
             builder
-                .append(Constants.COMMA)
-                .append("User Session-ID")
-                .append(Constants.COMMA)
-                .append("Client Machine")
-                .append(Constants.COMMA)
-                .append("Connection Status")
-                .append(Constants.COMMA)
-                .append("Connection Token");
+                    .append(Constants.COMMA)
+                    .append("User Session-ID")
+                    .append(Constants.COMMA)
+                    .append("Client Machine")
+                    .append(Constants.COMMA)
+                    .append("Connection Status")
+                    .append(Constants.COMMA)
+                    .append("Connection Token");
         }
 
         if (includeExamDetails) {
             builder
-                .append(Constants.COMMA)
-                .append("Exam Name")
-                .append(Constants.COMMA)
-                .append("Exam Description")
-                .append(Constants.COMMA)
-                .append("Exam Type")
-                .append(Constants.COMMA)
-                .append("Start Time (LMS)")
-                .append(Constants.COMMA)
-                .append("End Time (LMS)");
+                    .append(Constants.COMMA)
+                    .append("Exam Name")
+                    .append(Constants.COMMA)
+                    .append("Exam Description")
+                    .append(Constants.COMMA)
+                    .append("Exam Type")
+                    .append(Constants.COMMA)
+                    .append("Start Time (LMS)")
+                    .append(Constants.COMMA)
+                    .append("End Time (LMS)");
         }
 
         builder.append(Constants.CARRIAGE_RETURN);
@@ -114,9 +114,9 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
         builder.append(Constants.COMMA);
         builder.append(eventData.getNumericValue() != null ? eventData.getNumericValue() : "");
         builder.append(Constants.COMMA);
-        builder.append(Utils.toDateTimeUTC(eventData.getClientTime()));
+        builder.append(Utils.formatDate(Utils.toDateTimeUTC(eventData.getClientTime())));
         builder.append(Constants.COMMA);
-        builder.append(Utils.toDateTimeUTC(eventData.getServerTime()));
+        builder.append(Utils.formatDate(Utils.toDateTimeUTC(eventData.getServerTime())));
 
         if (connectionData != null) {
             builder.append(Constants.COMMA);
@@ -137,9 +137,9 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
             builder.append(Constants.COMMA);
             builder.append(examData.getType().name());
             builder.append(Constants.COMMA);
-            builder.append(examData.getStartTime());
+            builder.append(Utils.formatDate(examData.getStartTime()));
             builder.append(Constants.COMMA);
-            builder.append(examData.getEndTime());
+            builder.append(Utils.formatDate(examData.getEndTime()));
         }
 
         builder.append(Constants.CARRIAGE_RETURN);
