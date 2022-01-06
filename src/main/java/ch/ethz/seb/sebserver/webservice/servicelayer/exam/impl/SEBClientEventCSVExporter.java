@@ -45,14 +45,42 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
             final boolean includeExamDetails) {
 
         final StringBuilder builder = new StringBuilder();
-        builder.append("Event Type,Message,Value,Client Time (UTC),Server Time (UTC)");
+
+        builder
+            .append("Event Type")
+            .append(Constants.COMMA)
+            .append("Message")
+            .append(Constants.COMMA)
+            .append("Value")
+            .append(Constants.COMMA)
+            .append("Client Time (UTC)")
+            .append(Constants.COMMA)
+            .append("Server Time (UTC)");
 
         if (includeConnectionDetails) {
-            builder.append(",User Session-ID,Client Machine,Connection Status,Connection Token");
+            builder
+                .append(Constants.COMMA)
+                .append("User Session-ID")
+                .append(Constants.COMMA)
+                .append("Client Machine")
+                .append(Constants.COMMA)
+                .append("Connection Status")
+                .append(Constants.COMMA)
+                .append("Connection Token");
         }
 
         if (includeExamDetails) {
-            builder.append("Exam Name,Exam Description,Exam Type,Start Time (LMS),End Time (LMS)");
+            builder
+                .append(Constants.COMMA)
+                .append("Exam Name")
+                .append(Constants.COMMA)
+                .append("Exam Description")
+                .append(Constants.COMMA)
+                .append("Exam Type")
+                .append(Constants.COMMA)
+                .append("Start Time (LMS)")
+                .append(Constants.COMMA)
+                .append("End Time (LMS)");
         }
 
         builder.append(Constants.CARRIAGE_RETURN);
