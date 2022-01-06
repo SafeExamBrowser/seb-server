@@ -244,7 +244,7 @@ public final class Utils {
     }
 
     public static String formatDate(final DateTime dateTime) {
-        return dateTime.toString(Constants.DEFAULT_DATE_TIME_MILLIS_FORMAT);
+        return dateTime.toString(Constants.STANDARD_DATE_TIME_MILLIS_FORMATTER);
     }
 
     public static Long dateTimeStringToTimestamp(final String startTime, final Long defaultValue) {

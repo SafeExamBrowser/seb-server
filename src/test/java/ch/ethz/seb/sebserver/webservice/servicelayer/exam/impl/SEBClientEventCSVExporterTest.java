@@ -120,7 +120,7 @@ public class SEBClientEventCSVExporterTest {
         final String string = Utils.toString(array);
 
         Assert.assertEquals(
-                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"name\",\"description\",BYOD,1970-01-01T01:00:00.001,1970-01-01T01:00:00.001\n",
+                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"name\",\"description\",BYOD,1970-01-01T00:00:00.001,1970-01-01T00:00:00.001\n",
                 string);
     }
 
@@ -142,7 +142,7 @@ public class SEBClientEventCSVExporterTest {
         final String string = Utils.toString(array);
 
         Assert.assertEquals(
-                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"sessionid\",\"clientaddress\",status,token,\"name\",\"description\",BYOD,1970-01-01T01:00:00.001,1970-01-01T01:00:00.001\n",
+                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"sessionid\",\"clientaddress\",status,token,\"name\",\"description\",BYOD,1970-01-01T00:00:00.001,1970-01-01T00:00:00.001\n",
                 string);
     }
 }
