@@ -22,11 +22,9 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.SEBServerInit;
-import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -80,7 +78,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
         return this.webserviceInfo;
     }
 
-    @EventListener(SEBServerInitEvent.class)
+    @Override
     public void init() {
         SEBServerInit.INIT_LOGGER.info("------>");
         SEBServerInit.INIT_LOGGER.info("------> Run SEBInstructionService...");

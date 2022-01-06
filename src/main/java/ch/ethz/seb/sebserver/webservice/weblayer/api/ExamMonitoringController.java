@@ -222,7 +222,7 @@ public class ExamMonitoringController {
             @Valid @RequestBody final ClientInstruction clientInstruction) {
 
         checkPrivileges(institutionId, examId);
-        this.sebClientInstructionService.registerInstruction(clientInstruction);
+        this.sebClientInstructionService.registerInstructionAsync(clientInstruction);
     }
 
     @RequestMapping(

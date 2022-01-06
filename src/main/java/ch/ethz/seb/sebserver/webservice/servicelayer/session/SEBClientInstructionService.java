@@ -14,8 +14,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 
+import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -27,10 +33,30 @@ import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
  * If there is an instruction in the queue for a specified SEB Client. */
 public interface SEBClientInstructionService {
 
+    static final Logger log = LoggerFactory.getLogger(SEBClientInstructionService.class);
+
     /** Get the underling WebserviceInfo
      *
      * @return the underling WebserviceInfo */
     WebserviceInfo getWebserviceInfo();
+
+    /** This is called from the SEB Server initializer to initialize this service.
+     * Do not use this directly. */
+    @EventListener(SEBServerInitEvent.class)
+    void init();
+
+    /** Used to register a SEB client instruction for one or more active client connections
+     * within an other background thread. This is none-blocking.
+     *
+     * @param clientInstruction the ClientInstruction instance to register
+     * @return A Result refer to a void marker or to an error if happened */
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
+    default void registerInstructionAsync(final ClientInstruction clientInstruction) {
+        registerInstruction(clientInstruction, false)
+                .onError(error -> log.error("Failed to register client instruction asynchronously: {}",
+                        clientInstruction,
+                        error));
+    }
 
     /** Used to register a SEB client instruction for one or more active client connections
      *
