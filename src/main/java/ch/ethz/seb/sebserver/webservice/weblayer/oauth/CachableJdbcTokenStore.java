@@ -50,10 +50,6 @@ public class CachableJdbcTokenStore implements TokenStore {
     }
 
     @Override
-    @Cacheable(
-            cacheNames = CACHE_NAME,
-            key = "#token",
-            unless = "#result == null")
     public OAuth2Authentication readAuthentication(final OAuth2AccessToken token) {
         if (log.isDebugEnabled()) {
             log.debug("Read authentication from persistent and cache if available");
@@ -68,6 +64,10 @@ public class CachableJdbcTokenStore implements TokenStore {
     }
 
     @Override
+    @Cacheable(
+            cacheNames = CACHE_NAME,
+            key = "#tokenValue",
+            unless = "#result == null")
     public OAuth2AccessToken readAccessToken(final String tokenValue) {
         return this.jdbcTokenStore.readAccessToken(tokenValue);
     }
@@ -75,7 +75,7 @@ public class CachableJdbcTokenStore implements TokenStore {
     @Override
     @CacheEvict(
             cacheNames = CACHE_NAME,
-            key = "#token")
+            key = "#token.getValue()")
     public void removeAccessToken(final OAuth2AccessToken token) {
         if (log.isDebugEnabled()) {
             log.debug("Evict token from cache and remove it also from persistent store");
