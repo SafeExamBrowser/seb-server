@@ -10,10 +10,13 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +27,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
@@ -568,6 +572,20 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             reloadConnectionCache(connectionToken);
             return updatedClientConnection;
+        });
+    }
+
+    @Override
+    public Result<Collection<EntityKey>> disableConnections(final String[] connectionTokens, final Long institutionId) {
+        return Result.tryCatch(() -> {
+
+            return Stream.of(connectionTokens)
+                    .map(token -> disableConnection(token, institutionId)
+                            .onError(error -> log.error("Failed to disable SEB client connection: {}", token))
+                            .getOr(null))
+                    .filter(clientConnection -> clientConnection != null)
+                    .map(clientConnection -> clientConnection.getEntityKey())
+                    .collect(Collectors.toList());
         });
     }
 

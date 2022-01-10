@@ -9,7 +9,9 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import java.security.Principal;
+import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -123,6 +125,17 @@ public interface SEBClientConnectionService {
      * @param institutionId institution identifier
      * @return A Result refer to the closed ClientConnection instance, or refer to an error if happened */
     Result<ClientConnection> disableConnection(String connectionToken, Long institutionId);
+
+    /** This is used to disable multiple undefined or requested ClientConnection attempt from the SEB Server side
+     * <p>
+     * This will save the existing ClientConnections that are in UNDEFINED or REQUESTED state, in new DISABLED state and
+     * flush caches.
+     *
+     * @param connectionTokens String array of connection tokens of connections to disable
+     * @param institutionId institution identifier
+     * @return A Result refer to a list of EntityKey of the closed ClientConnection instances, or refer to an error if
+     *         happened */
+    Result<Collection<EntityKey>> disableConnections(final String[] connectionTokens, final Long institutionId);
 
     /** Used to check current cached ping times of all running connections and
      * if a ping time is overflowing, creating a ping overflow event or if an

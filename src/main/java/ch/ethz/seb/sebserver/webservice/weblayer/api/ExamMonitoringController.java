@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -18,6 +19,7 @@ import javax.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.WebDataBinder;
@@ -34,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -67,13 +70,15 @@ public class ExamMonitoringController {
     private final AuthorizationService authorization;
     private final PaginationService paginationService;
     private final SEBClientNotificationService sebClientNotificationService;
+    private final Executor executor;
 
     public ExamMonitoringController(
             final SEBClientConnectionService sebClientConnectionService,
             final SEBClientInstructionService sebClientInstructionService,
             final AuthorizationService authorization,
             final PaginationService paginationService,
-            final SEBClientNotificationService sebClientNotificationService) {
+            final SEBClientNotificationService sebClientNotificationService,
+            @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {
 
         this.sebClientConnectionService = sebClientConnectionService;
         this.examSessionService = sebClientConnectionService.getExamSessionService();
@@ -81,6 +86,7 @@ public class ExamMonitoringController {
         this.authorization = authorization;
         this.paginationService = paginationService;
         this.sebClientNotificationService = sebClientNotificationService;
+        this.executor = executor;
     }
 
     /** This is called by Spring to initialize the WebDataBinder and is used here to
@@ -293,14 +299,16 @@ public class ExamMonitoringController {
 
         checkPrivileges(institutionId, examId);
 
-        // TODO do this async like registerInstruction
         if (connectionToken.contains(Constants.LIST_SEPARATOR)) {
-            final String[] tokens = StringUtils.split(connectionToken, Constants.LIST_SEPARATOR);
-            for (int i = 0; i < tokens.length; i++) {
-                final String token = tokens[i];
-                this.sebClientConnectionService.disableConnection(token, institutionId)
-                        .onError(error -> log.error("Failed to disable SEB client connection: {}", token));
-            }
+            // If we have a bunch of client connections to disable, make it asynchronously and respond to the caller immediately
+            this.executor.execute(() -> {
+                final String[] tokens = StringUtils.split(connectionToken, Constants.LIST_SEPARATOR);
+                this.sebClientConnectionService
+                        .disableConnections(tokens, institutionId)
+                        .onError(error -> log.error(
+                                "Unexpected error while disable connection. See previous logs for more information.",
+                                error));
+            });
         } else {
             this.sebClientConnectionService
                     .disableConnection(connectionToken, institutionId)
