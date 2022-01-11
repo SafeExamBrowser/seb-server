@@ -431,11 +431,16 @@ public class JitsiProctoringService implements ExamProctoringService {
                     clientKey,
                     appKey,
                     host,
-                    new Context(new User(clientName, clientName, String.valueOf(moderator))),
+                    new Context(new User(clientName, clientName)),
                     roomName,
-                    expTime);
+                    expTime,
+                    moderator);
 
             final String content = this.jsonMapper.writeValueAsString(jwtContext);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Jitsi Meet JWT payload: {}", content);
+            }
 
             return content;
         } catch (final Exception e) {
@@ -464,16 +469,25 @@ public class JitsiProctoringService implements ExamProctoringService {
     @JsonIgnoreProperties(ignoreUnknown = true)
     @JsonInclude(Include.NON_NULL)
     private class JWTContext {
+
+        @JsonProperty final Context context;
+        @JsonProperty final Boolean moderator;
         @JsonProperty final String aud;
         @JsonProperty final String iss;
         @JsonProperty final String sub;
-        @JsonProperty final Context context;
+        @JsonProperty final String room;
         @JsonProperty final Long exp;
         @JsonProperty final Long nbf;
-        @JsonProperty final String room;
-        @JsonProperty final Boolean moderator;
 
-        public JWTContext(final String aud, final String iss, final String sub, final Context context, final String room, final Long exp) {
+        public JWTContext(
+                final String aud,
+                final String iss,
+                final String sub,
+                final Context context,
+                final String room,
+                final Long exp,
+                final Boolean moderator) {
+
             this.aud = aud;
             this.iss = iss;
             this.sub = sub;
@@ -481,7 +495,7 @@ public class JitsiProctoringService implements ExamProctoringService {
             this.room = room;
             this.exp = exp;
             this.nbf = null;
-            this.moderator = BooleanUtils.toBooleanObject(context.user.moderator);
+            this.moderator = moderator;
         }
     }
 
@@ -505,31 +519,24 @@ public class JitsiProctoringService implements ExamProctoringService {
     @JsonIgnoreProperties(ignoreUnknown = true)
     @JsonInclude(Include.NON_NULL)
     private class User {
-        @JsonProperty final String id;
         @JsonProperty final String name;
         @JsonProperty final String avatar;
         @JsonProperty final String email;
-        @JsonProperty final String moderator;
 
         @SuppressWarnings("unused")
-        public User(final String id, final String name, final String avatar, final String email, final String moderator) {
-            this.id = id;
+        public User(final String name, final String avatar, final String email) {
             this.name = name;
             this.avatar = avatar;
             this.email = email;
-            this.moderator = moderator;
         }
 
         public User(
                 final String id,
-                final String name,
-                final String moderator) {
+                final String name) {
 
-            this.id = id;
             this.name = name;
             this.avatar = null;
             this.email = null;
-            this.moderator = moderator;
         }
     }
 
