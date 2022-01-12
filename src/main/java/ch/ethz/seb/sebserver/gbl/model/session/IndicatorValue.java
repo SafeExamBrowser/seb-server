@@ -15,9 +15,9 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 
 public interface IndicatorValue extends IndicatorValueHolder {
 
-    public static final String ATTR_INDICATOR_ID = "indicatorId";
-    public static final String ATTR_INDICATOR_VALUE = "indicatorValue";
-    public static final String ATTR_INDICATOR_TYPE = "indicatorType";
+    public static final String ATTR_INDICATOR_ID = "id";
+    public static final String ATTR_INDICATOR_VALUE = "val";
+    public static final String ATTR_INDICATOR_TYPE = "type";
 
     @JsonProperty(SimpleIndicatorValue.ATTR_INDICATOR_ID)
     Long getIndicatorId();

@@ -27,7 +27,7 @@ public class IndicatorValueJSONTest {
         final ErrorLogCountClientIndicator indicator = new ErrorLogCountClientIndicator(mock, null);
         indicator.init(new Indicator(1L, null, null, null, null, null, null, null), 2L, true, true);
         final String json = jsonMapper.writeValueAsString(indicator);
-        assertEquals("{\"indicatorId\":1,\"indicatorValue\":\"NaN\"}", json);
+        assertEquals("{\"id\":1,\"val\":\"NaN\"}", json);
     }
 
 }

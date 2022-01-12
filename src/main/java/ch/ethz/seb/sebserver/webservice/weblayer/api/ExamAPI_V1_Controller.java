@@ -115,7 +115,15 @@ public class ExamAPI_V1_Controller {
 
                     // Create and get new ClientConnection if all integrity checks passes
                     final ClientConnection clientConnection = this.sebClientConnectionService
-                            .createClientConnection(principal, institutionId, remoteAddr, examId, clientId)
+                            .createClientConnection(
+                                    principal,
+                                    institutionId,
+                                    remoteAddr,
+                                    mapper.getString(API.EXAM_API_PARAM_SEB_VERSION),
+                                    mapper.getString(API.EXAM_API_PARAM_SEB_OS_NAME),
+                                    mapper.getString(API.EXAM_API_PARAM_SEB_MACHINE_NAME),
+                                    examId,
+                                    clientId)
                             .getOrThrow();
 
                     response.setHeader(
@@ -158,6 +166,9 @@ public class ExamAPI_V1_Controller {
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examId,
             @RequestParam(name = API.EXAM_API_USER_SESSION_ID, required = false) final String userSessionId,
+            @RequestParam(name = API.EXAM_API_PARAM_SEB_VERSION, required = false) final String sebVersion,
+            @RequestParam(name = API.EXAM_API_PARAM_SEB_OS_NAME, required = false) final String sebOSName,
+            @RequestParam(name = API.EXAM_API_PARAM_SEB_MACHINE_NAME, required = false) final String sebMachinName,
             @RequestParam(name = API.EXAM_API_PARAM_CLIENT_ID, required = false) final String clientId,
             final Principal principal,
             final HttpServletRequest request) {
@@ -173,6 +184,9 @@ public class ExamAPI_V1_Controller {
                             institutionId,
                             examId,
                             remoteAddr,
+                            sebVersion,
+                            sebOSName,
+                            sebMachinName,
                             userSessionId,
                             clientId)
                             .getOrThrow();
@@ -188,6 +202,9 @@ public class ExamAPI_V1_Controller {
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examId,
             @RequestParam(name = API.EXAM_API_USER_SESSION_ID, required = false) final String userSessionId,
+            @RequestParam(name = API.EXAM_API_PARAM_SEB_VERSION, required = false) final String sebVersion,
+            @RequestParam(name = API.EXAM_API_PARAM_SEB_OS_NAME, required = false) final String sebOSName,
+            @RequestParam(name = API.EXAM_API_PARAM_SEB_MACHINE_NAME, required = false) final String sebMachinName,
             @RequestParam(name = API.EXAM_API_PARAM_CLIENT_ID, required = false) final String clientId,
             final Principal principal,
             final HttpServletRequest request) {
@@ -203,6 +220,9 @@ public class ExamAPI_V1_Controller {
                             institutionId,
                             examId,
                             remoteAddr,
+                            sebVersion,
+                            sebOSName,
+                            sebMachinName,
                             userSessionId,
                             clientId)
                             .getOrThrow();
@@ -342,6 +362,9 @@ public class ExamAPI_V1_Controller {
                         connectionToken,
                         institutionId,
                         Long.valueOf(examId),
+                        null,
+                        null,
+                        null,
                         null,
                         null,
                         null)

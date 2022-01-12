@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
@@ -51,8 +52,8 @@ public class ClientConnectionDetails {
             new LocTextKey("sebserver.monitoring.connection.form.exam");
     private final static LocTextKey CONNECTION_ID_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.form.id");
-    private final static LocTextKey CONNECTION_ADDRESS_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.connection.form.address");
+    private final static LocTextKey CONNECTION_INFO_TEXT_KEY =
+            new LocTextKey("sebserver.monitoring.connection.form.info");
     private final static LocTextKey CONNECTION_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.form.status");
 
@@ -101,8 +102,8 @@ public class ClientConnectionDetails {
                         CONNECTION_ID_TEXT_KEY,
                         Constants.EMPTY_NOTE))
                 .addField(FormBuilder.text(
-                        Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS,
-                        CONNECTION_ADDRESS_TEXT_KEY,
+                        ClientConnection.ATTR_INFO,
+                        CONNECTION_INFO_TEXT_KEY,
                         Constants.EMPTY_NOTE))
                 .withDefaultSpanInput(3)
                 .addField(FormBuilder.text(
@@ -173,8 +174,8 @@ public class ClientConnectionDetails {
                 this.connectionData.clientConnection.userSessionId);
 
         form.setFieldValue(
-                Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS,
-                this.connectionData.clientConnection.clientAddress);
+                ClientConnection.ATTR_INFO,
+                this.connectionData.clientConnection.info);
 
         if (this.statusChanged) {
             // update status

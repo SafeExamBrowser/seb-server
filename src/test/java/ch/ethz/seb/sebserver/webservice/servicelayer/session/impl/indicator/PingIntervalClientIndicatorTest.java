@@ -71,7 +71,7 @@ public class PingIntervalClientIndicatorTest {
         pingIntervalClientIndicator.init(new Indicator(2L, null, null, null, null, null, null, null), 1L, true, true);
         final JSONMapper jsonMapper = new JSONMapper();
         final String json = jsonMapper.writeValueAsString(pingIntervalClientIndicator);
-        assertEquals("{\"indicatorId\":2,\"indicatorValue\":0.0}", json);
+        assertEquals("{\"id\":2,\"val\":0.0}", json);
     }
 
 }

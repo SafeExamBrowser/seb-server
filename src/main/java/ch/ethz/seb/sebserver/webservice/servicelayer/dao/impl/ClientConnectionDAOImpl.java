@@ -224,7 +224,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
                 null, null, null, null, null, null,
                 null, null, null, null, null, null, null,
-                remoteProctoringRoomUpdate);
+                remoteProctoringRoomUpdate,
+                null, null, null);
         return updateRecord;
     }
 
@@ -335,7 +336,10 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     millisecondsNow,
                     millisecondsNow,
                     data.remoteProctoringRoomId,
-                    null);
+                    null,
+                    data.sebMachineName,
+                    data.sebOSName,
+                    data.sebVersion);
 
             this.clientConnectionRecordMapper.insert(newRecord);
             return newRecord;
@@ -364,7 +368,10 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     null,
                     millisecondsNow,
                     null,
-                    null);
+                    null,
+                    data.sebMachineName,
+                    data.sebOSName,
+                    data.sebVersion);
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
@@ -386,7 +393,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     null, null, null, null, null,
                     null, null, null, null, null, null,
                     roomId,
-                    0));
+                    0, null, null, null));
         })
                 .onError(TransactionHandler::rollback);
     }
@@ -400,7 +407,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     null, null, null, null, null,
                     null, null, null, null, null, null,
                     null,
-                    1));
+                    1, null, null, null));
         })
                 .onError(TransactionHandler::rollback);
     }
@@ -425,7 +432,10 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         record.getCreationTime(),
                         record.getUpdateTime(),
                         null,
-                        0));
+                        0,
+                        record.getClientMachineName(),
+                        record.getClientOsName(),
+                        record.getClientVersion()));
             } else {
                 throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, String.valueOf(connectionId));
             }
@@ -699,6 +709,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getConnectionToken(),
                     record.getExamUserSessionId(),
                     record.getClientAddress(),
+                    record.getClientOsName(),
+                    record.getClientMachineName(),
+                    record.getClientVersion(),
                     record.getVirtualClientAddress(),
                     BooleanUtils.toBooleanObject(record.getVdi()),
                     record.getVdiPairToken(),

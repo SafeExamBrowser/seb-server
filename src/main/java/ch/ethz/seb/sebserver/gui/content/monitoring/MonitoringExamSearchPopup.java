@@ -42,8 +42,8 @@ public class MonitoringExamSearchPopup {
             new LocTextKey("sebserver.monitoring.search.list.empty");
     private static final LocTextKey TABLE_COLUMN_NAME =
             new LocTextKey("sebserver.monitoring.search.list.name");
-    private static final LocTextKey TABLE_COLUMN_IP_ADDRESS =
-            new LocTextKey("sebserver.monitoring.search.list.ip");
+    private static final LocTextKey TABLE_COLUMN_INFO =
+            new LocTextKey("sebserver.monitoring.search.list.info");
     private static final LocTextKey TABLE_COLUMN_STATUS =
             new LocTextKey("sebserver.monitoring.search.list.status");
 
@@ -51,8 +51,8 @@ public class MonitoringExamSearchPopup {
 
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, ClientConnection.FILTER_ATTR_SESSION_ID);
-    private final TableFilterAttribute ipFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, ClientConnection.FILTER_ATTR_IP_STRING);
+    private final TableFilterAttribute infoFilter =
+            new TableFilterAttribute(CriteriaType.TEXT, ClientConnection.ATTR_INFO);
     private final TableFilterAttribute statusFilter;
 
     protected MonitoringExamSearchPopup(final PageService pageService) {
@@ -96,10 +96,10 @@ public class MonitoringExamSearchPopup {
                                 .withFilter(this.nameFilter))
 
                 .withColumn(new ColumnDefinition<>(
-                        Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS,
-                        TABLE_COLUMN_IP_ADDRESS,
-                        ClientConnection::getClientAddress)
-                                .withFilter(this.ipFilter))
+                        ClientConnection.ATTR_INFO,
+                        TABLE_COLUMN_INFO,
+                        ClientConnection::getInfo)
+                                .withFilter(this.infoFilter))
 
                 .withColumn(new ColumnDefinition<>(
                         Domain.CLIENT_CONNECTION.ATTR_STATUS,

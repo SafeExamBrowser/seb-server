@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface ClientConnectionRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.127+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.845+01:00", comments="Source Table: client_connection")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.127+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.845+01:00", comments="Source Table: client_connection")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.127+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.845+01:00", comments="Source Table: client_connection")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<ClientConnectionRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.127+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.845+01:00", comments="Source Table: client_connection")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -61,11 +61,14 @@ public interface ClientConnectionRecordMapper {
         @Arg(column="creation_time", javaType=Long.class, jdbcType=JdbcType.BIGINT),
         @Arg(column="update_time", javaType=Long.class, jdbcType=JdbcType.BIGINT),
         @Arg(column="remote_proctoring_room_id", javaType=Long.class, jdbcType=JdbcType.BIGINT),
-        @Arg(column="remote_proctoring_room_update", javaType=Integer.class, jdbcType=JdbcType.INTEGER)
+        @Arg(column="remote_proctoring_room_update", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
+        @Arg(column="client_machine_name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="client_os_name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="client_version", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
     ClientConnectionRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.127+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.845+01:00", comments="Source Table: client_connection")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -81,26 +84,29 @@ public interface ClientConnectionRecordMapper {
         @Arg(column="creation_time", javaType=Long.class, jdbcType=JdbcType.BIGINT),
         @Arg(column="update_time", javaType=Long.class, jdbcType=JdbcType.BIGINT),
         @Arg(column="remote_proctoring_room_id", javaType=Long.class, jdbcType=JdbcType.BIGINT),
-        @Arg(column="remote_proctoring_room_update", javaType=Integer.class, jdbcType=JdbcType.INTEGER)
+        @Arg(column="remote_proctoring_room_update", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
+        @Arg(column="client_machine_name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="client_os_name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="client_version", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
     List<ClientConnectionRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.127+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.845+01:00", comments="Source Table: client_connection")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.127+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.845+01:00", comments="Source Table: client_connection")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(clientConnectionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.127+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.845+01:00", comments="Source Table: client_connection")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientConnectionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.127+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.845+01:00", comments="Source Table: client_connection")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientConnectionRecord)
                 .where(id, isEqualTo(id_))
@@ -108,7 +114,7 @@ public interface ClientConnectionRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.127+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.846+01:00", comments="Source Table: client_connection")
     default int insert(ClientConnectionRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientConnectionRecord)
@@ -125,11 +131,14 @@ public interface ClientConnectionRecordMapper {
                 .map(updateTime).toProperty("updateTime")
                 .map(remoteProctoringRoomId).toProperty("remoteProctoringRoomId")
                 .map(remoteProctoringRoomUpdate).toProperty("remoteProctoringRoomUpdate")
+                .map(clientMachineName).toProperty("clientMachineName")
+                .map(clientOsName).toProperty("clientOsName")
+                .map(clientVersion).toProperty("clientVersion")
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.128+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.846+01:00", comments="Source Table: client_connection")
     default int insertSelective(ClientConnectionRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientConnectionRecord)
@@ -146,32 +155,35 @@ public interface ClientConnectionRecordMapper {
                 .map(updateTime).toPropertyWhenPresent("updateTime", record::getUpdateTime)
                 .map(remoteProctoringRoomId).toPropertyWhenPresent("remoteProctoringRoomId", record::getRemoteProctoringRoomId)
                 .map(remoteProctoringRoomUpdate).toPropertyWhenPresent("remoteProctoringRoomUpdate", record::getRemoteProctoringRoomUpdate)
+                .map(clientMachineName).toPropertyWhenPresent("clientMachineName", record::getClientMachineName)
+                .map(clientOsName).toPropertyWhenPresent("clientOsName", record::getClientOsName)
+                .map(clientVersion).toPropertyWhenPresent("clientVersion", record::getClientVersion)
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.128+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.846+01:00", comments="Source Table: client_connection")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientConnectionRecord>>> selectByExample() {
-        return SelectDSL.selectWithMapper(this::selectMany, id, institutionId, examId, status, connectionToken, examUserSessionId, clientAddress, virtualClientAddress, vdi, vdiPairToken, creationTime, updateTime, remoteProctoringRoomId, remoteProctoringRoomUpdate)
+        return SelectDSL.selectWithMapper(this::selectMany, id, institutionId, examId, status, connectionToken, examUserSessionId, clientAddress, virtualClientAddress, vdi, vdiPairToken, creationTime, updateTime, remoteProctoringRoomId, remoteProctoringRoomUpdate, clientMachineName, clientOsName, clientVersion)
                 .from(clientConnectionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.128+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.846+01:00", comments="Source Table: client_connection")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientConnectionRecord>>> selectDistinctByExample() {
-        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, institutionId, examId, status, connectionToken, examUserSessionId, clientAddress, virtualClientAddress, vdi, vdiPairToken, creationTime, updateTime, remoteProctoringRoomId, remoteProctoringRoomUpdate)
+        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, institutionId, examId, status, connectionToken, examUserSessionId, clientAddress, virtualClientAddress, vdi, vdiPairToken, creationTime, updateTime, remoteProctoringRoomId, remoteProctoringRoomUpdate, clientMachineName, clientOsName, clientVersion)
                 .from(clientConnectionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.128+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.846+01:00", comments="Source Table: client_connection")
     default ClientConnectionRecord selectByPrimaryKey(Long id_) {
-        return SelectDSL.selectWithMapper(this::selectOne, id, institutionId, examId, status, connectionToken, examUserSessionId, clientAddress, virtualClientAddress, vdi, vdiPairToken, creationTime, updateTime, remoteProctoringRoomId, remoteProctoringRoomUpdate)
+        return SelectDSL.selectWithMapper(this::selectOne, id, institutionId, examId, status, connectionToken, examUserSessionId, clientAddress, virtualClientAddress, vdi, vdiPairToken, creationTime, updateTime, remoteProctoringRoomId, remoteProctoringRoomUpdate, clientMachineName, clientOsName, clientVersion)
                 .from(clientConnectionRecord)
                 .where(id, isEqualTo(id_))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.128+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.846+01:00", comments="Source Table: client_connection")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(ClientConnectionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientConnectionRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
@@ -186,10 +198,13 @@ public interface ClientConnectionRecordMapper {
                 .set(creationTime).equalTo(record::getCreationTime)
                 .set(updateTime).equalTo(record::getUpdateTime)
                 .set(remoteProctoringRoomId).equalTo(record::getRemoteProctoringRoomId)
-                .set(remoteProctoringRoomUpdate).equalTo(record::getRemoteProctoringRoomUpdate);
+                .set(remoteProctoringRoomUpdate).equalTo(record::getRemoteProctoringRoomUpdate)
+                .set(clientMachineName).equalTo(record::getClientMachineName)
+                .set(clientOsName).equalTo(record::getClientOsName)
+                .set(clientVersion).equalTo(record::getClientVersion);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.128+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.846+01:00", comments="Source Table: client_connection")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(ClientConnectionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientConnectionRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)
@@ -204,10 +219,13 @@ public interface ClientConnectionRecordMapper {
                 .set(creationTime).equalToWhenPresent(record::getCreationTime)
                 .set(updateTime).equalToWhenPresent(record::getUpdateTime)
                 .set(remoteProctoringRoomId).equalToWhenPresent(record::getRemoteProctoringRoomId)
-                .set(remoteProctoringRoomUpdate).equalToWhenPresent(record::getRemoteProctoringRoomUpdate);
+                .set(remoteProctoringRoomUpdate).equalToWhenPresent(record::getRemoteProctoringRoomUpdate)
+                .set(clientMachineName).equalToWhenPresent(record::getClientMachineName)
+                .set(clientOsName).equalToWhenPresent(record::getClientOsName)
+                .set(clientVersion).equalToWhenPresent(record::getClientVersion);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.129+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.846+01:00", comments="Source Table: client_connection")
     default int updateByPrimaryKey(ClientConnectionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientConnectionRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
@@ -223,12 +241,15 @@ public interface ClientConnectionRecordMapper {
                 .set(updateTime).equalTo(record::getUpdateTime)
                 .set(remoteProctoringRoomId).equalTo(record::getRemoteProctoringRoomId)
                 .set(remoteProctoringRoomUpdate).equalTo(record::getRemoteProctoringRoomUpdate)
+                .set(clientMachineName).equalTo(record::getClientMachineName)
+                .set(clientOsName).equalTo(record::getClientOsName)
+                .set(clientVersion).equalTo(record::getClientVersion)
                 .where(id, isEqualTo(record::getId))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.129+01:00", comments="Source Table: client_connection")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.846+01:00", comments="Source Table: client_connection")
     default int updateByPrimaryKeySelective(ClientConnectionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientConnectionRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)
@@ -244,6 +265,9 @@ public interface ClientConnectionRecordMapper {
                 .set(updateTime).equalToWhenPresent(record::getUpdateTime)
                 .set(remoteProctoringRoomId).equalToWhenPresent(record::getRemoteProctoringRoomId)
                 .set(remoteProctoringRoomUpdate).equalToWhenPresent(record::getRemoteProctoringRoomUpdate)
+                .set(clientMachineName).equalToWhenPresent(record::getClientMachineName)
+                .set(clientOsName).equalToWhenPresent(record::getClientOsName)
+                .set(clientVersion).equalToWhenPresent(record::getClientVersion)
                 .where(id, isEqualTo(record::getId))
                 .build()
                 .execute();

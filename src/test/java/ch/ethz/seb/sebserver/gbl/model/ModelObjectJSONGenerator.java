@@ -252,9 +252,11 @@ public class ModelObjectJSONGenerator {
         domainObject =
                 new ClientConnection(
                         1L, 1L, 1L, ConnectionStatus.ACTIVE, UUID.randomUUID().toString(),
-                        "user-account-1", "86.119.30.213", "vdiID", true, "", currentTimeMillis, currentTimeMillis,
-                        null,
-                        null);
+                        "user-account-1", "86.119.30.213",
+                        "seb_os_name", "seb_machine_name", "seb_version",
+                        "vdiID", true, "", currentTimeMillis, currentTimeMillis,
+                        123L,
+                        true);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
@@ -263,9 +265,11 @@ public class ModelObjectJSONGenerator {
                 false,
                 new ClientConnection(
                         1L, 1L, 1L, ConnectionStatus.ACTIVE, UUID.randomUUID().toString(),
-                        "user-account-1", "86.119.30.213", "vdiID", true, "", currentTimeMillis, currentTimeMillis,
-                        null,
-                        null),
+                        "user-account-1", "86.119.30.213",
+                        "seb_os_name", "seb_machine_name", "seb_version",
+                        "vdiID", true, "", currentTimeMillis, currentTimeMillis,
+                        123L,
+                        true),
                 Arrays.asList(
                         new SimpleIndicatorValue(1L, 1.0),
                         new SimpleIndicatorValue(2L, 2.0),

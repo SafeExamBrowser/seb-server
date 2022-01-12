@@ -22,10 +22,10 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientConnectionData {
 
-    public static final String ATTR_CLIENT_CONNECTION = "clientConnection";
-    public static final String ATTR_INDICATOR_VALUE = "indicatorValues";
-    public static final String ATTR_MISSING_PING = "missingPing";
-    public static final String ATTR_PENDING_NOTIFICATION = "pendingNotification";
+    public static final String ATTR_CLIENT_CONNECTION = "cData";
+    public static final String ATTR_INDICATOR_VALUE = "iValues";
+    public static final String ATTR_MISSING_PING = "missing";
+    public static final String ATTR_PENDING_NOTIFICATION = "notification";
 
     @JsonProperty(ATTR_CLIENT_CONNECTION)
     public final ClientConnection clientConnection;

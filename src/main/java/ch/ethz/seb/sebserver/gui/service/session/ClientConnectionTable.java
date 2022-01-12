@@ -71,7 +71,7 @@ public final class ClientConnectionTable {
 
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionTable.class);
 
-    private static final int[] TABLE_PROPORTIONS = new int[] { 3, 1, 2, 1 };
+    private static final int[] TABLE_PROPORTIONS = new int[] { 3, 3, 2, 1 };
 
     private static final int BOTTOM_PADDING = 20;
     private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
@@ -83,10 +83,10 @@ public final class ClientConnectionTable {
             new LocTextKey("sebserver.monitoring.connection.list.column.id");
     private final static LocTextKey CONNECTION_ID_TOOLTIP_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.id" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
-    private final static LocTextKey CONNECTION_ADDRESS_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.connection.list.column.address");
-    private final static LocTextKey CONNECTION_ADDRESS_TOOLTIP_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.connection.list.column.address" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
+    private final static LocTextKey CONNECTION_INFO_TEXT_KEY =
+            new LocTextKey("sebserver.monitoring.connection.list.column.info");
+    private final static LocTextKey CONNECTION_INFO_TOOLTIP_TEXT_KEY =
+            new LocTextKey("sebserver.monitoring.connection.list.column.info" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
     private final static LocTextKey CONNECTION_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.status");
     private final static LocTextKey CONNECTION_STATUS_TOOLTIP_TEXT_KEY =
@@ -177,8 +177,8 @@ public final class ClientConnectionTable {
                 CONNECTION_ID_TOOLTIP_TEXT_KEY);
         widgetFactory.tableColumnLocalized(
                 this.table,
-                CONNECTION_ADDRESS_TEXT_KEY,
-                CONNECTION_ADDRESS_TOOLTIP_TEXT_KEY);
+                CONNECTION_INFO_TEXT_KEY,
+                CONNECTION_INFO_TOOLTIP_TEXT_KEY);
         widgetFactory.tableColumnLocalized(
                 this.table,
                 CONNECTION_STATUS_TEXT_KEY,
@@ -550,7 +550,7 @@ public final class ClientConnectionTable {
 
         private void updateData(final TableItem tableItem) {
             tableItem.setText(0, getConnectionIdentifier());
-            tableItem.setText(1, getConnectionAddress());
+            tableItem.setText(1, getConnectionInfo());
             tableItem.setText(
                     2,
                     ClientConnectionTable.this.localizedClientConnectionStatusNameFunction.apply(this.connectionData));
@@ -667,9 +667,9 @@ public final class ClientConnectionTable {
             return -this.thresholdsWeight;
         }
 
-        String getConnectionAddress() {
-            if (this.connectionData != null && this.connectionData.clientConnection.clientAddress != null) {
-                return this.connectionData.clientConnection.clientAddress;
+        String getConnectionInfo() {
+            if (this.connectionData != null && this.connectionData.clientConnection.info != null) {
+                return this.connectionData.clientConnection.info;
             }
             return Constants.EMPTY_NOTE;
         }

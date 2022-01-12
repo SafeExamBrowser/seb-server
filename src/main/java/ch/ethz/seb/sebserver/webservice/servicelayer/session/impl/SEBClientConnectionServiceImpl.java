@@ -27,6 +27,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
@@ -107,6 +108,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final Principal principal,
             final Long institutionId,
             final String clientAddress,
+            final String sebVersion,
+            final String sebOsName,
+            final String sebMachineName,
             final Long examId,
             final String clientId) {
 
@@ -148,7 +152,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     ConnectionStatus.CONNECTION_REQUESTED, // Initial state
                     connectionToken, // The generated connection token that identifies this connection
                     null,
-                    clientAddress, // The IP address of the connecting client, verified on SEB Server side
+                    (clientAddress != null) ? clientAddress : Constants.EMPTY_NOTE, // The IP address of the connecting client, verified on SEB Server side
+                    sebOsName,
+                    sebMachineName,
+                    sebVersion,
                     clientId, // The client identifier sent by the SEB client if available
                     clientConfig.vdiType != VDIType.NO, // The VDI flag to indicate if this is a VDI prime connection
                     null,
@@ -180,6 +187,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final Long institutionId,
             final Long examId,
             final String clientAddress,
+            final String sebVersion,
+            final String sebOsName,
+            final String sebMachineName,
             final String userSessionId,
             final String clientId) {
 
@@ -240,7 +250,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             null,
                             clientConnection.userSessionId,
                             StringUtils.isNoneBlank(clientAddress) ? clientAddress : null,
-                            clientId,
+                            StringUtils.isNoneBlank(sebOsName) ? sebOsName : null,
+                            StringUtils.isNoneBlank(sebMachineName) ? sebMachineName : null,
+                            StringUtils.isNoneBlank(sebVersion) ? sebVersion : null,
+                            StringUtils.isNoneBlank(clientId) ? clientId : null,
                             null,
                             null,
                             null,
@@ -269,6 +282,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final Long institutionId,
             final Long examId,
             final String clientAddress,
+            final String sebVersion,
+            final String sebOsName,
+            final String sebMachineName,
             final String userSessionId,
             final String clientId) {
 
@@ -352,8 +368,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     ConnectionStatus.ACTIVE,
                     null,
                     clientConnection.userSessionId,
-                    null,
-                    clientId,
+                    StringUtils.isNoneBlank(clientAddress) ? clientAddress : null,
+                    StringUtils.isNoneBlank(sebOsName) ? sebOsName : null,
+                    StringUtils.isNoneBlank(sebMachineName) ? sebMachineName : null,
+                    StringUtils.isNoneBlank(sebVersion) ? sebVersion : null,
+                    StringUtils.isNoneBlank(clientId) ? clientId : null,
                     null,
                     null,
                     null,
@@ -438,6 +457,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 null,
                 establishedClientConnection.userSessionId,
                 null,
+                null,
+                null,
+                null,
                 establishedClientConnection.virtualClientId,
                 null,
                 vdiPairCompanion.getConnectionToken(),
@@ -451,7 +473,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 .save(new ClientConnection(
                         vdiPairCompanion.getId(), null,
                         vdiExamId, null, null, null, null, null, null,
-                        establishedClientConnection.connectionToken, null, null, null, null))
+                        establishedClientConnection.connectionToken, null, null, null, null, null, null, null))
                 .getOrThrow();
         reloadConnectionCache(vdiPairCompanion.getConnectionToken());
         return updatedConnection;
@@ -769,7 +791,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final ClientConnection authenticatedClientConnection = new ClientConnection(
                     clientConnection.id, null, null,
                     ConnectionStatus.AUTHENTICATED, null,
-                    accountId, null, null, null, null, null, null, null, null);
+                    accountId, null, null, null, null, null, null, null, null, null, null, null);
 
             clientConnection = this.clientConnectionDAO
                     .save(authenticatedClientConnection)
@@ -808,7 +830,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         return this.clientConnectionDAO.save(new ClientConnection(
                 clientConnection.id, null, null, status,
-                null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null, null,
                 proctoringEnabled))
                 .getOrThrow();
     }

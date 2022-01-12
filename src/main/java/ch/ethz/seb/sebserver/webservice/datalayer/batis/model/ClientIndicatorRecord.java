@@ -3,19 +3,19 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ClientIndicatorRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.229+01:00", comments="Source field: client_indicator.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.903+01:00", comments="Source field: client_indicator.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.client_connection_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.904+01:00", comments="Source field: client_indicator.client_connection_id")
     private Long clientConnectionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.904+01:00", comments="Source field: client_indicator.type")
     private Integer type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.904+01:00", comments="Source field: client_indicator.value")
     private Long value;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.229+01:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.903+01:00", comments="Source Table: client_indicator")
     public ClientIndicatorRecord(Long id, Long clientConnectionId, Integer type, Long value) {
         this.id = id;
         this.clientConnectionId = clientConnectionId;
@@ -23,47 +23,47 @@ public class ClientIndicatorRecord {
         this.value = value;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.229+01:00", comments="Source Table: client_indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.903+01:00", comments="Source Table: client_indicator")
     public ClientIndicatorRecord() {
         super();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.229+01:00", comments="Source field: client_indicator.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.903+01:00", comments="Source field: client_indicator.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.229+01:00", comments="Source field: client_indicator.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.904+01:00", comments="Source field: client_indicator.id")
     public void setId(Long id) {
         this.id = id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.client_connection_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.904+01:00", comments="Source field: client_indicator.client_connection_id")
     public Long getClientConnectionId() {
         return clientConnectionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.client_connection_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.904+01:00", comments="Source field: client_indicator.client_connection_id")
     public void setClientConnectionId(Long clientConnectionId) {
         this.clientConnectionId = clientConnectionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.904+01:00", comments="Source field: client_indicator.type")
     public Integer getType() {
         return type;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.904+01:00", comments="Source field: client_indicator.type")
     public void setType(Integer type) {
         this.type = type;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.904+01:00", comments="Source field: client_indicator.value")
     public Long getValue() {
         return value;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-04T15:41:01.230+01:00", comments="Source field: client_indicator.value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.904+01:00", comments="Source field: client_indicator.value")
     public void setValue(Long value) {
         this.value = value;
     }
@@ -72,7 +72,7 @@ public class ClientIndicatorRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_indicator
      *
-     * @mbg.generated Tue Jan 04 15:41:01 CET 2022
+     * @mbg.generated Wed Jan 12 11:29:24 CET 2022
      */
     @Override
     public String toString() {
@@ -92,7 +92,7 @@ public class ClientIndicatorRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_indicator
      *
-     * @mbg.generated Tue Jan 04 15:41:01 CET 2022
+     * @mbg.generated Wed Jan 12 11:29:24 CET 2022
      */
     @Override
     public boolean equals(Object that) {
@@ -116,7 +116,7 @@ public class ClientIndicatorRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_indicator
      *
-     * @mbg.generated Tue Jan 04 15:41:01 CET 2022
+     * @mbg.generated Wed Jan 12 11:29:24 CET 2022
      */
     @Override
     public int hashCode() {

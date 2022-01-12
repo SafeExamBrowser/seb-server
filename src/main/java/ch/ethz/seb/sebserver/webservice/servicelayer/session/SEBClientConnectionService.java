@@ -36,8 +36,11 @@ public interface SEBClientConnectionService {
      *
      * @param principal the client connection Principal from REST controller interface
      * @param institutionId The institution identifier
-     * @param clientAddress The clients remote IP address
-     * @param examId the exam identifier (can be null)
+     * @param clientAddress The clients remote IP address (optional)
+     * @param sebVersion the name tag of the SEB version (optional)
+     * @param sebOsName the operating system tag name where SEB runs on (optional)
+     * @param sebMachineName the machine/device name where the SEB runs on (optional)
+     * @param examId the exam identifier (optional)
      * @param clientId The client identifier sent by the SEB client (used to identify VDI client pair)
      * @return A Result refer to the newly created ClientConnection in state: CONNECTION_REQUESTED, or refer to an error
      *         if happened */
@@ -45,6 +48,9 @@ public interface SEBClientConnectionService {
             Principal principal,
             Long institutionId,
             String clientAddress,
+            String sebVersion,
+            String sebOsName,
+            String sebMachineName,
             Long examId,
             String clientId);
 
@@ -62,6 +68,9 @@ public interface SEBClientConnectionService {
      *            connection
      * @param institutionId The institution identifier
      * @param clientAddress The clients remote IP address
+     * @param sebVersion the name tag of the SEB version (optional)
+     * @param sebOsName the operating system tag name where SEB runs on (optional)
+     * @param sebMachineName the machine/device name where the SEB runs on (optional)
      * @param examId The exam identifier
      * @param userSessionId The user session identifier of the users http-session with the LMS
      * @param clientId The client identifier sent by the SEB client (used to identify VDI client pair)
@@ -71,6 +80,9 @@ public interface SEBClientConnectionService {
             Long institutionId,
             Long examId,
             String clientAddress,
+            String sebVersion,
+            String sebOsName,
+            String sebMachineName,
             String userSessionId,
             String clientId);
 
@@ -91,6 +103,9 @@ public interface SEBClientConnectionService {
      * @param institutionId The institution identifier
      * @param examId The exam identifier (may be null of already known)
      * @param clientAddress The clients remote IP address
+     * @param sebVersion the name tag of the SEB version (optional)
+     * @param sebOsName the operating system tag name where SEB runs on (optional)
+     * @param sebMachineName the machine/device name where the SEB runs on (optional)
      * @param userSessionId The user session identifier of the users http-session with the LMS
      * @param clientId The client identifier sent by the SEB client (used to identify VDI client pair)
      * @return A Result refer to the established ClientConnection instance, or refer to an error if happened */
@@ -99,6 +114,9 @@ public interface SEBClientConnectionService {
             Long institutionId,
             Long examId,
             String clientAddress,
+            String sebVersion,
+            String sebOsName,
+            String sebMachineName,
             String userSessionId,
             String clientId);
 

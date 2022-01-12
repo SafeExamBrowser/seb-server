@@ -55,7 +55,8 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
 
         final ClientConnection connection = this.clientConnectionDAO
                 .createNew(
-                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token", "userId", "", "", false,
+                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token", "userId",
+                                "1.1.1.1", "seb_os_name", "seb_machine_name", "seb_version", "", false,
                                 "", 1L,
                                 1L,
                                 null, false))
@@ -80,7 +81,8 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
 
         final ClientConnection connection = this.clientConnectionDAO
                 .createNew(
-                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token1", "userId", "", "", false,
+                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token1", "userId",
+                                "1.1.1.1", "seb_os_name", "seb_machine_name", "seb_version", "", false,
                                 "", 1L,
                                 1L,
                                 null, false))
@@ -124,7 +126,8 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
 
         final ClientConnection connection = this.clientConnectionDAO
                 .createNew(
-                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token2", "userId", "", "", false,
+                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token2", "userId",
+                                "1.1.1.1", "seb_os_name", "seb_machine_name", "seb_version", "", false,
                                 "", 1L,
                                 1L,
                                 null, false))
@@ -196,7 +199,8 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
 
         final ClientConnection connection = this.clientConnectionDAO
                 .createNew(
-                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token3", "userId", "", "", false,
+                        new ClientConnection(null, 1L, 2L, ConnectionStatus.ACTIVE, "token3", "userId",
+                                "1.1.1.1", "seb_os_name", "seb_machine_name", "seb_version", "", false,
                                 "", 1L,
                                 1L,
                                 null, false))

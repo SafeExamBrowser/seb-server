@@ -96,6 +96,12 @@ public final class API {
 
     public static final String EXAM_API_PARAM_CLIENT_ID = "client_id";
 
+    public static final String EXAM_API_PARAM_SEB_OS_NAME = "seb_os_name";
+
+    public static final String EXAM_API_PARAM_SEB_MACHINE_NAME = "seb_machine_name";
+
+    public static final String EXAM_API_PARAM_SEB_VERSION = "seb_version";
+
     public static final String EXAM_API_SEB_CONNECTION_TOKEN = "SEBConnectionToken";
 
     public static final String EXAM_API_USER_SESSION_ID = "seb_user_session_id";

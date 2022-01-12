@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
@@ -47,15 +48,17 @@ public final class ClientConnection implements GrantEntity {
     public static final ClientConnection EMPTY_CLIENT_CONNECTION = new ClientConnection(
             -1L, -1L, -1L,
             ConnectionStatus.UNDEFINED,
-            null, null, null, null,
+            null, null, null, null, null, null, null,
             false,
             null, null, null, null,
             false);
 
+    public static final String ATTR_INFO = "seb_info";
     public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
     public static final String FILTER_ATTR_STATUS = Domain.CLIENT_CONNECTION.ATTR_STATUS;
     public static final String FILTER_ATTR_SESSION_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID;
     public static final String FILTER_ATTR_IP_STRING = Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS;
+    public static final String FILTER_ATTR_INFO = ATTR_INFO;
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID)
     public final Long id;
@@ -75,8 +78,8 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID)
     public final String userSessionId;
 
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS)
-    public final String clientAddress;
+    @JsonProperty(ATTR_INFO)
+    public final String info;
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI)
     public final Boolean vdi;
@@ -84,13 +87,24 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN)
     public final String vdiPairToken;
 
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID)
+    @JsonIgnore
+    public final String clientAddress;
+    @JsonIgnore
     public final Long remoteProctoringRoomId;
-
+    @JsonIgnore
     public final String virtualClientId;
+    @JsonIgnore
     public final Long creationTime;
+    @JsonIgnore
     public final Long updateTime;
+    @JsonIgnore
     public final Boolean remoteProctoringRoomUpdate;
+    @JsonIgnore
+    public final String sebOSName;
+    @JsonIgnore
+    public final String sebMachineName;
+    @JsonIgnore
+    public final String sebVersion;
 
     @JsonCreator
     public ClientConnection(
@@ -100,7 +114,7 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_STATUS) final ConnectionStatus status,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN) final String connectionToken,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID) final String userSessionId,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
+            @JsonProperty(ATTR_INFO) final String info,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI) final Boolean vdi,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN) final String vdiPairToken,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId) {
@@ -111,7 +125,7 @@ public final class ClientConnection implements GrantEntity {
         this.status = status;
         this.connectionToken = connectionToken;
         this.userSessionId = userSessionId;
-        this.clientAddress = clientAddress;
+        this.info = info;
         this.vdi = vdi;
         this.virtualClientId = null;
         this.vdiPairToken = vdiPairToken;
@@ -119,6 +133,11 @@ public final class ClientConnection implements GrantEntity {
         this.updateTime = 0L;
         this.remoteProctoringRoomId = remoteProctoringRoomId;
         this.remoteProctoringRoomUpdate = false;
+
+        this.clientAddress = Constants.EMPTY_NOTE;
+        this.sebOSName = Constants.EMPTY_NOTE;
+        this.sebMachineName = Constants.EMPTY_NOTE;
+        this.sebVersion = Constants.EMPTY_NOTE;
     }
 
     public ClientConnection(
@@ -129,6 +148,9 @@ public final class ClientConnection implements GrantEntity {
             final String connectionToken,
             final String userSessionId,
             final String clientAddress,
+            final String seb_os_name,
+            final String seb_machine_name,
+            final String seb_version,
             final String virtualClientId,
             final Boolean vdi,
             final String vdiPairToken,
@@ -144,14 +166,26 @@ public final class ClientConnection implements GrantEntity {
         this.connectionToken = connectionToken;
         this.userSessionId = userSessionId;
         this.clientAddress = clientAddress;
+        this.sebOSName = seb_os_name;
+        this.sebMachineName = seb_machine_name;
+        this.sebVersion = seb_version;
         this.virtualClientId = virtualClientId;
         this.vdi = vdi;
         this.vdiPairToken = vdiPairToken;
         this.creationTime = creationTime;
         this.updateTime = updateTime;
         this.remoteProctoringRoomId = remoteProctoringRoomId;
-        this.remoteProctoringRoomUpdate =
-                (remoteProctoringRoomUpdate != null) ? remoteProctoringRoomUpdate : false;
+        this.remoteProctoringRoomUpdate = (remoteProctoringRoomUpdate != null)
+                ? remoteProctoringRoomUpdate
+                : false;
+
+        this.info = new StringBuilder()
+                .append((clientAddress != null) ? clientAddress : Constants.EMPTY_NOTE)
+                .append(Constants.LIST_SEPARATOR)
+                .append((seb_os_name != null) ? seb_os_name : Constants.EMPTY_NOTE)
+                .append(Constants.LIST_SEPARATOR)
+                .append((seb_version != null) ? seb_version : Constants.EMPTY_NOTE)
+                .toString();
     }
 
     @Override
@@ -223,6 +257,7 @@ public final class ClientConnection implements GrantEntity {
         return this.updateTime;
     }
 
+    @JsonIgnore
     public Long getRemoteProctoringRoomId() {
         return this.remoteProctoringRoomId;
     }
@@ -230,6 +265,25 @@ public final class ClientConnection implements GrantEntity {
     @JsonIgnore
     public Boolean getRemoteProctoringRoomUpdate() {
         return this.remoteProctoringRoomUpdate;
+    }
+
+    public String getInfo() {
+        return this.info;
+    }
+
+    @JsonIgnore
+    public String getSebOSName() {
+        return this.sebOSName;
+    }
+
+    @JsonIgnore
+    public String getSebMachineName() {
+        return this.sebMachineName;
+    }
+
+    @JsonIgnore
+    public String getSebVersion() {
+        return this.sebVersion;
     }
 
     @Override
@@ -261,10 +315,10 @@ public final class ClientConnection implements GrantEntity {
         if (other == null) {
             return true;
         }
-        if (this.clientAddress == null) {
-            if (other.clientAddress != null)
+        if (this.connectionToken == null) {
+            if (other.connectionToken != null)
                 return false;
-        } else if (!this.clientAddress.equals(other.clientAddress))
+        } else if (!this.connectionToken.equals(other.connectionToken))
             return false;
         if (this.status != other.status)
             return false;
@@ -293,12 +347,14 @@ public final class ClientConnection implements GrantEntity {
         builder.append(this.connectionToken);
         builder.append(", userSessionId=");
         builder.append(this.userSessionId);
-        builder.append(", clientAddress=");
-        builder.append(this.clientAddress);
+        builder.append(", info=");
+        builder.append(this.info);
         builder.append(", vdi=");
         builder.append(this.vdi);
         builder.append(", vdiPairToken=");
         builder.append(this.vdiPairToken);
+        builder.append(", clientAddress=");
+        builder.append(this.clientAddress);
         builder.append(", remoteProctoringRoomId=");
         builder.append(this.remoteProctoringRoomId);
         builder.append(", virtualClientId=");
@@ -309,6 +365,12 @@ public final class ClientConnection implements GrantEntity {
         builder.append(this.updateTime);
         builder.append(", remoteProctoringRoomUpdate=");
         builder.append(this.remoteProctoringRoomUpdate);
+        builder.append(", sebOSName=");
+        builder.append(this.sebOSName);
+        builder.append(", sebMachineName=");
+        builder.append(this.sebMachineName);
+        builder.append(", sebVersion=");
+        builder.append(this.sebVersion);
         builder.append("]");
         return builder.toString();
     }
