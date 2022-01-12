@@ -48,3 +48,9 @@ INSERT IGNORE INTO configuration_attribute VALUES
 INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
     (974, 0, 2, 'taskbar', 0, 11, 3, 1, 'NONE'),
     (975, 0, 2, 'taskbar', 0, 12, 3, 1, 'NONE');
+
+-- -----------------------------------------------------------------
+-- SEBSERV-232 change default value jitsi to not enabled
+-- -----------------------------------------------------------------
+
+UPDATE configuration_attribute SET default_value='false' WHERE id=1102;
