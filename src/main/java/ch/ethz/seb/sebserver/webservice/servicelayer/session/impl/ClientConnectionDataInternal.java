@@ -17,6 +17,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -74,14 +75,29 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
 
     @Override
     @JsonProperty(ATTR_MISSING_PING)
-    public Boolean getMissingPing() {
-        return this.pingIndicator != null && this.pingIndicator.isMissingPing();
+    public final Boolean getMissingPing() {
+        return this.pingIndicator != null && this.pingIndicator.hasIncident();
     }
 
     @Override
     @JsonProperty(ATTR_PENDING_NOTIFICATION)
-    public Boolean pendingNotification() {
+    public final Boolean pendingNotification() {
         return this.pendingNotificationIndication.notifictionPending();
+    }
+
+    @Override
+    @JsonIgnore
+    public final boolean hasAnyIncident() {
+        return pendingNotification() || hasIncident();
+    }
+
+    private boolean hasIncident() {
+        return this.indicatorMapping.values()
+                .stream()
+                .flatMap(Collection::stream)
+                .filter(ClientIndicator::hasIncident)
+                .findFirst()
+                .isPresent();
     }
 
 }

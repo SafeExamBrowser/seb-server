@@ -73,6 +73,11 @@ public class ClientConnectionData {
         return this.clientConnection.id;
     }
 
+    @JsonIgnore
+    public boolean hasAnyIncident() {
+        return this.missingPing || this.pendingNotification;
+    }
+
     public ClientConnection getClientConnection() {
         return this.clientConnection;
     }

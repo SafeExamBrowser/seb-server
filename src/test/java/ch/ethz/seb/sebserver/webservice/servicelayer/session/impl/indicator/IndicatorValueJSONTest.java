@@ -17,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 
 public class IndicatorValueJSONTest {
 
@@ -25,7 +26,7 @@ public class IndicatorValueJSONTest {
         final JSONMapper jsonMapper = new JSONMapper();
         final DistributedIndicatorValueService mock = Mockito.mock(DistributedIndicatorValueService.class);
         final ErrorLogCountClientIndicator indicator = new ErrorLogCountClientIndicator(mock, null);
-        indicator.init(new Indicator(1L, null, null, null, null, null, null, null), 2L, true, true);
+        indicator.init(new Indicator(1L, 2L, "test", IndicatorType.NONE, null, null, null, null), 2L, true, true);
         final String json = jsonMapper.writeValueAsString(indicator);
         assertEquals("{\"id\":1,\"val\":\"NaN\"}", json);
     }

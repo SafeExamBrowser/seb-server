@@ -47,13 +47,9 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
         valueChanged(clientEventRecord.getText());
     }
 
-    private void valueChanged(final String eventText) {
-        if (this.tags == null || this.tags.length == 0 || hasTag(eventText)) {
-            if (super.ditributedIndicatorValueRecordId != null) {
-                this.distributedPingCache.incrementIndicatorValue(super.ditributedIndicatorValueRecordId);
-            }
-            this.currentValue = getValue() + 1d;
-        }
+    @Override
+    public final boolean hasIncident() {
+        return this.currentValue > this.incidentThreshold;
     }
 
     @Override
@@ -112,6 +108,15 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
         }
 
         return result;
+    }
+
+    private void valueChanged(final String eventText) {
+        if (this.tags == null || this.tags.length == 0 || hasTag(eventText)) {
+            if (super.ditributedIndicatorValueRecordId != null) {
+                this.distributedPingCache.incrementIndicatorValue(super.ditributedIndicatorValueRecordId);
+            }
+            this.currentValue = getValue() + 1d;
+        }
     }
 
 }

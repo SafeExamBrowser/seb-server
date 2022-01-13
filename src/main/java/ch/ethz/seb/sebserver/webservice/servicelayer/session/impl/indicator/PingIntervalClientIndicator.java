@@ -8,11 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
-import java.util.Comparator;
-
 import org.joda.time.DateTimeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
@@ -32,15 +28,11 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
-    private static final Logger log = LoggerFactory.getLogger(PingIntervalClientIndicator.class);
-
     // This is the default ping error threshold that is set if the threshold cannot be get
     // from the ping threshold settings. If the last ping is older then this interval back in time
     // then the ping is considered and marked as missing
     private static final long DEFAULT_PING_ERROR_THRESHOLD = Constants.SECOND_IN_MILLIS * 5;
 
-    private long pingErrorThreshold;
-    private boolean missingPing = false;
     private boolean hidden = false;
 
     public PingIntervalClientIndicator(final DistributedIndicatorValueService distributedPingCache) {
@@ -62,35 +54,11 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
         super.init(indicatorDefinition, connectionId, active, cachingEnabled);
 
-        // init ping error threshold
-        try {
+        this.lastCheckVal = getValue();
 
-            indicatorDefinition
-                    .getThresholds()
-                    .stream()
-                    .max(Comparator.naturalOrder())
-                    .ifPresent(t -> this.pingErrorThreshold = t.value.longValue());
-
-        } catch (final Exception e) {
-            log.error("Failed to initialize pingErrorThreshold: {}", e.getMessage());
-            this.pingErrorThreshold = DEFAULT_PING_ERROR_THRESHOLD;
+        if (this.incidentThreshold <= 0.0) {
+            this.incidentThreshold = DEFAULT_PING_ERROR_THRESHOLD;
         }
-
-        // init missing ping indicator
-        if (!cachingEnabled) {
-            try {
-                this.missingPing = this.pingErrorThreshold < getValue();
-            } catch (final Exception e) {
-                log.error("Failed to initialize missingPing: {}", e.getMessage());
-                this.missingPing = true;
-            }
-        }
-
-    }
-
-    @JsonIgnore
-    public final boolean isMissingPing() {
-        return this.missingPing;
     }
 
     @JsonIgnore
@@ -146,25 +114,23 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     }
 
     @Override
-    public boolean missingPingUpdate(final long now) {
+    public final boolean hasIncident() {
+        return getValue() > super.incidentThreshold;
+    }
+
+    private double lastCheckVal = 0;
+
+    public final boolean missingPingUpdate(final long now) {
         if (this.currentValue <= 0) {
             return false;
         }
 
-        final long value = now - (long) super.currentValue;
-        if (this.missingPing) {
-            if (this.pingErrorThreshold > value) {
-                this.missingPing = false;
-                return true;
-            }
-        } else {
-            if (this.pingErrorThreshold < value) {
-                this.missingPing = true;
-                return true;
-            }
-        }
-
-        return false;
+        final double val = now - this.currentValue;
+        // check if incidentThreshold was passed (up or down) since last update
+        final boolean result = (this.lastCheckVal < this.incidentThreshold && val >= this.incidentThreshold) ||
+                (this.lastCheckVal >= this.incidentThreshold && val < this.incidentThreshold);
+        this.lastCheckVal = val;
+        return result;
     }
 
 }

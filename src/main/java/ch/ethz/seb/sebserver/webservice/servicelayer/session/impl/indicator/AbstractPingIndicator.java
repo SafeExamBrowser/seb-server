@@ -33,6 +33,11 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
         super.init(indicatorDefinition, connectionId, active, cachingEnabled);
     }
 
+    @Override
+    public Set<EventType> observedEvents() {
+        return this.EMPTY_SET;
+    }
+
     public final void notifyPing(final long timestamp, final int pingNumber) {
         super.currentValue = timestamp;
 
@@ -48,12 +53,5 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
             this.distributedPingCache.updatePingAsync(this.ditributedIndicatorValueRecordId);
         }
     }
-
-    @Override
-    public Set<EventType> observedEvents() {
-        return this.EMPTY_SET;
-    }
-
-    public abstract boolean missingPingUpdate(final long now);
 
 }

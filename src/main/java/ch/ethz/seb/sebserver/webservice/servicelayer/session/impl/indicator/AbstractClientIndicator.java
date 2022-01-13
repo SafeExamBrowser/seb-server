@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator;
 
+import java.util.Comparator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +23,8 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
     protected final DistributedIndicatorValueService distributedPingCache;
 
-    protected Long indicatorId;
-    protected Long examId;
+    protected Long indicatorId = -1L;
+    protected Long examId = -1L;
     protected Long connectionId;
     protected boolean cachingEnabled;
     protected boolean active = true;
@@ -31,6 +33,8 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
     protected boolean initialized = false;
     protected double currentValue = Double.NaN;
+
+    protected double incidentThreshold = 0.0;
 
     public AbstractClientIndicator(final DistributedIndicatorValueService distributedPingCache) {
         super();
@@ -44,12 +48,20 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
             final boolean active,
             final boolean cachingEnabled) {
 
-        this.indicatorId = (indicatorDefinition != null && indicatorDefinition.id != null)
-                ? indicatorDefinition.id
-                : -1;
-        this.examId = (indicatorDefinition != null && indicatorDefinition.examId != null)
-                ? indicatorDefinition.examId
-                : -1;
+        if (indicatorDefinition != null) {
+            this.incidentThreshold = (!indicatorDefinition.type.inverse)
+                    ? indicatorDefinition.thresholds.stream()
+                            .map(t -> t.value)
+                            .max(Comparator.naturalOrder())
+                            .orElse(0.0)
+                    : indicatorDefinition.thresholds.stream()
+                            .map(t -> t.value)
+                            .min(Comparator.naturalOrder())
+                            .orElse(0.0);
+            this.indicatorId = indicatorDefinition.id;
+            this.examId = indicatorDefinition.examId;
+        }
+
         this.connectionId = connectionId;
         this.active = active;
         this.cachingEnabled = cachingEnabled;

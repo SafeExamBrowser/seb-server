@@ -847,7 +847,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         return connection -> {
 
             if (connection.pingIndicator.missingPingUpdate(now)) {
-                final boolean missingPing = connection.pingIndicator.isMissingPing();
+                final boolean missingPing = connection.getMissingPing();
                 final ClientEventRecord clientEventRecord = new ClientEventRecord(
                         null,
                         connection.getConnectionId(),

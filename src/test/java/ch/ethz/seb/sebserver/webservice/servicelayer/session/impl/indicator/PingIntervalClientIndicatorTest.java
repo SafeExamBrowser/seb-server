@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 
 public class PingIntervalClientIndicatorTest {
 
@@ -68,7 +69,8 @@ public class PingIntervalClientIndicatorTest {
 
         final PingIntervalClientIndicator pingIntervalClientIndicator =
                 new PingIntervalClientIndicator(distributedPingCache);
-        pingIntervalClientIndicator.init(new Indicator(2L, null, null, null, null, null, null, null), 1L, true, true);
+        pingIntervalClientIndicator.init(new Indicator(2L, 3L, "test", IndicatorType.NONE, null, null, null, null), 1L,
+                true, true);
         final JSONMapper jsonMapper = new JSONMapper();
         final String json = jsonMapper.writeValueAsString(pingIntervalClientIndicator);
         assertEquals("{\"id\":2,\"val\":0.0}", json);

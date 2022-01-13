@@ -48,4 +48,9 @@ public class WLANStatusIndicator extends AbstractLogNumberIndicator {
         return IndicatorType.WLAN_STATUS;
     }
 
+    @Override
+    public final boolean hasIncident() {
+        return this.currentValue < this.incidentThreshold;
+    }
+
 }

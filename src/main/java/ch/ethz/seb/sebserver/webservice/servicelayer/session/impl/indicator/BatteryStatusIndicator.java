@@ -48,4 +48,9 @@ public class BatteryStatusIndicator extends AbstractLogNumberIndicator {
         return IndicatorType.BATTERY_STATUS;
     }
 
+    @Override
+    public final boolean hasIncident() {
+        return this.currentValue < this.incidentThreshold;
+    }
+
 }
