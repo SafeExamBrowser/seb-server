@@ -88,7 +88,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     @Override
     @JsonIgnore
     public final boolean hasAnyIncident() {
-        return pendingNotification() || hasIncident();
+        return getMissingPing() || pendingNotification() || hasIncident();
     }
 
     private boolean hasIncident() {

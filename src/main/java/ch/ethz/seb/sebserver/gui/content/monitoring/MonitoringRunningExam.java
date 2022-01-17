@@ -338,93 +338,180 @@ public class MonitoringRunningExam implements TemplateComposer {
             final ClientConnectionTable clientTable,
             final BooleanSupplier isExamSupporter) {
 
-        addClosedFilterAction(actionBuilder, clientTable);
-        addRequestedFilterAction(actionBuilder, clientTable);
-        addDisabledFilterAction(actionBuilder, clientTable);
+        addFilterAction(
+                actionBuilder,
+                clientTable,
+                ConnectionStatus.CONNECTION_REQUESTED,
+                ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION,
+                ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION);
+        addFilterAction(
+                actionBuilder,
+                clientTable,
+                ConnectionStatus.ACTIVE,
+                ActionDefinition.MONITOR_EXAM_SHOW_ACTIVE_CONNECTION,
+                ActionDefinition.MONITOR_EXAM_HIDE_ACTIVE_CONNECTION);
+        addFilterAction(
+                actionBuilder,
+                clientTable,
+                ConnectionStatus.CLOSED,
+                ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION,
+                ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION);
+        addFilterAction(
+                actionBuilder,
+                clientTable,
+                ConnectionStatus.DISABLED,
+                ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION,
+                ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION);
+
+//        addRequestedFilterAction(actionBuilder, clientTable);
+//        addActiveFilterAction(actionBuilder, clientTable);
+//        addClosedFilterAction(actionBuilder, clientTable);
+//        addDisabledFilterAction(actionBuilder, clientTable);
     }
 
-    private void addDisabledFilterAction(
+//    private void addRequestedFilterAction(
+//            final PageActionBuilder actionBuilder,
+//            final ClientConnectionTable clientTable) {
+//
+//        if (clientTable.isStatusHidden(ConnectionStatus.CONNECTION_REQUESTED)) {
+//            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
+//                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+//                    .noEventPropagation()
+//                    .withSwitchAction(
+//                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
+//                                    .withExec(
+//                                            hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+//                                    .noEventPropagation()
+//                                    .create())
+//                    .publish();
+//        } else {
+//            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
+//                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+//                    .noEventPropagation()
+//                    .withSwitchAction(
+//                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
+//                                    .withExec(
+//                                            showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+//                                    .noEventPropagation()
+//                                    .create())
+//                    .publish();
+//        }
+//    }
+
+    private void addFilterAction(
             final PageActionBuilder actionBuilder,
-            final ClientConnectionTable clientTable) {
+            final ClientConnectionTable clientTable,
+            final ConnectionStatus status,
+            final ActionDefinition showAction,
+            final ActionDefinition hideAction) {
 
-        if (clientTable.isStatusHidden(ConnectionStatus.DISABLED)) {
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
-                    .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
+        if (clientTable.isStatusHidden(status)) {
+            actionBuilder.newAction(showAction)
+                    .withExec(showStateViewAction(clientTable, status))
                     .noEventPropagation()
                     .withSwitchAction(
-                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
-                                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
-                                    .noEventPropagation()
-                                    .create())
-                    .publish();
-        } else {
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
-                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
-                    .noEventPropagation()
-                    .withSwitchAction(
-                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
-                                    .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
-                                    .noEventPropagation()
-                                    .create())
-                    .publish();
-        }
-    }
-
-    private void addRequestedFilterAction(
-            final PageActionBuilder actionBuilder,
-            final ClientConnectionTable clientTable) {
-
-        if (clientTable.isStatusHidden(ConnectionStatus.CONNECTION_REQUESTED)) {
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
-                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
-                    .noEventPropagation()
-                    .withSwitchAction(
-                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
+                            actionBuilder.newAction(hideAction)
                                     .withExec(
-                                            hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                                            hideStateViewAction(clientTable, status))
                                     .noEventPropagation()
                                     .create())
                     .publish();
         } else {
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_REQUESTED_CONNECTION)
-                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+            actionBuilder.newAction(hideAction)
+                    .withExec(hideStateViewAction(clientTable, status))
                     .noEventPropagation()
                     .withSwitchAction(
-                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_REQUESTED_CONNECTION)
+                            actionBuilder.newAction(showAction)
                                     .withExec(
-                                            showStateViewAction(clientTable, ConnectionStatus.CONNECTION_REQUESTED))
+                                            showStateViewAction(clientTable, status))
                                     .noEventPropagation()
                                     .create())
                     .publish();
         }
     }
 
-    private void addClosedFilterAction(
-            final PageActionBuilder actionBuilder,
-            final ClientConnectionTable clientTable) {
-
-        if (clientTable.isStatusHidden(ConnectionStatus.CLOSED)) {
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
-                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
-                    .noEventPropagation()
-                    .withSwitchAction(
-                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
-                                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
-                                    .noEventPropagation()
-                                    .create())
-                    .publish();
-        } else {
-            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
-                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
-                    .noEventPropagation()
-                    .withSwitchAction(
-                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
-                                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
-                                    .noEventPropagation()
-                                    .create())
-                    .publish();
-        }
-    }
+//    private void addActiveFilterAction(
+//            final PageActionBuilder actionBuilder,
+//            final ClientConnectionTable clientTable) {
+//
+//        if (clientTable.isStatusHidden(ConnectionStatus.ACTIVE)) {
+//            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_ACTIVE_CONNECTION)
+//                    .withExec(showStateViewAction(clientTable, ConnectionStatus.ACTIVE))
+//                    .noEventPropagation()
+//                    .withSwitchAction(
+//                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_ACTIVE_CONNECTION)
+//                                    .withExec(
+//                                            hideStateViewAction(clientTable, ConnectionStatus.ACTIVE))
+//                                    .noEventPropagation()
+//                                    .create())
+//                    .publish();
+//        } else {
+//            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_ACTIVE_CONNECTION)
+//                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.ACTIVE))
+//                    .noEventPropagation()
+//                    .withSwitchAction(
+//                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_ACTIVE_CONNECTION)
+//                                    .withExec(
+//                                            showStateViewAction(clientTable, ConnectionStatus.ACTIVE))
+//                                    .noEventPropagation()
+//                                    .create())
+//                    .publish();
+//        }
+//    }
+//
+//    private void addDisabledFilterAction(
+//            final PageActionBuilder actionBuilder,
+//            final ClientConnectionTable clientTable) {
+//
+//        if (clientTable.isStatusHidden(ConnectionStatus.DISABLED)) {
+//            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
+//                    .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
+//                    .noEventPropagation()
+//                    .withSwitchAction(
+//                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
+//                                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
+//                                    .noEventPropagation()
+//                                    .create())
+//                    .publish();
+//        } else {
+//            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION)
+//                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.DISABLED))
+//                    .noEventPropagation()
+//                    .withSwitchAction(
+//                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION)
+//                                    .withExec(showStateViewAction(clientTable, ConnectionStatus.DISABLED))
+//                                    .noEventPropagation()
+//                                    .create())
+//                    .publish();
+//        }
+//    }
+//
+//    private void addClosedFilterAction(
+//            final PageActionBuilder actionBuilder,
+//            final ClientConnectionTable clientTable) {
+//
+//        if (clientTable.isStatusHidden(ConnectionStatus.CLOSED)) {
+//            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
+//                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
+//                    .noEventPropagation()
+//                    .withSwitchAction(
+//                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
+//                                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
+//                                    .noEventPropagation()
+//                                    .create())
+//                    .publish();
+//        } else {
+//            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_HIDE_CLOSED_CONNECTION)
+//                    .withExec(hideStateViewAction(clientTable, ConnectionStatus.CLOSED))
+//                    .noEventPropagation()
+//                    .withSwitchAction(
+//                            actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_SHOW_CLOSED_CONNECTION)
+//                                    .withExec(showStateViewAction(clientTable, ConnectionStatus.CLOSED))
+//                                    .noEventPropagation()
+//                                    .create())
+//                    .publish();
+//        }
+//    }
 
     private PageAction openSearchPopup(final PageAction action) {
         this.monitoringExamSearchPopup.show(action.pageContext());

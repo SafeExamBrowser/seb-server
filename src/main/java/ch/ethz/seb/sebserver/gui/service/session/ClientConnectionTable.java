@@ -524,10 +524,6 @@ public final class ClientConnectionTable {
         }
 
         private void update(final TableItem tableItem) {
-            if (ClientConnectionTable.this.statusFilter.contains(this.connectionData.clientConnection.status)) {
-                tableItem.dispose();
-                return;
-            }
             updateData(tableItem);
             if (this.connectionData != null) {
                 updateConnectionStatusColor(tableItem);

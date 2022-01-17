@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.concurrent.Executor;
+import java.util.function.Predicate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -180,8 +181,13 @@ public class ExamMonitoringController {
         if (StringUtils.isNoneBlank(hiddenStates)) {
             final String[] split = StringUtils.split(hiddenStates, Constants.LIST_SEPARATOR);
             for (int i = 0; i < split.length; i++) {
-                filterStates.add(ConnectionStatus.valueOf(split[0]));
+                filterStates.add(ConnectionStatus.valueOf(split[i]));
             }
+        }
+
+        final boolean active = filterStates.contains(ConnectionStatus.ACTIVE);
+        if (active) {
+            filterStates.remove(ConnectionStatus.ACTIVE);
         }
 
         return this.examSessionService
@@ -189,8 +195,32 @@ public class ExamMonitoringController {
                         examId,
                         filterStates.isEmpty()
                                 ? Objects::nonNull
-                                : conn -> conn != null && !filterStates.contains(conn.clientConnection.status))
+                                : active
+                                        ? withActiveFilter(filterStates)
+                                        : noneActiveFilter(filterStates))
                 .getOrThrow();
+    }
+
+    private Predicate<ClientConnectionData> noneActiveFilter(final EnumSet<ConnectionStatus> filterStates) {
+        return conn -> conn != null && !filterStates.contains(conn.clientConnection.status);
+    }
+
+    /** If we have a filter criteria for ACTIVE connection, we shall filter only the active connections
+     * that has no incident. */
+    private Predicate<ClientConnectionData> withActiveFilter(final EnumSet<ConnectionStatus> filterStates) {
+        return conn -> {
+            if (conn == null) {
+                return false;
+            } else if (conn.clientConnection.status == ConnectionStatus.ACTIVE) {
+                return conn.hasAnyIncident();
+            } else {
+                return !filterStates.contains(conn.clientConnection.status);
+            }
+        };
+//        return conn -> conn != null
+//                && ((conn.clientConnection.status == ConnectionStatus.ACTIVE && !conn.hasAnyIncident()) ||
+//                        (conn.clientConnection.status != ConnectionStatus.ACTIVE
+//                                && !filterStates.contains(conn.clientConnection.status)));
     }
 
     @RequestMapping(
