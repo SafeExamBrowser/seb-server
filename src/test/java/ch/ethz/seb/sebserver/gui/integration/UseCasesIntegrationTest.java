@@ -28,6 +28,7 @@ import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.util.Arrays;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
@@ -90,6 +91,8 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.model.session.MonitoringFullPageData;
+import ch.ethz.seb.sebserver.gbl.model.session.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -188,6 +191,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Sa
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisableClientConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetMonitoringFullPageData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunningExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.PropagateInstruction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
@@ -2043,6 +2047,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "examSupport2",
                 new GetRunningExamPage(),
                 new GetClientConnectionDataList(),
+                new GetMonitoringFullPageData(),
                 new GetExtendedClientEventPage(),
                 new DisableClientConnection(),
                 new PropagateInstruction());
@@ -2078,6 +2083,18 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         Collection<ClientConnectionData> connections = connectionsCall.get();
         // no SEB connections available yet
         assertTrue(connections.isEmpty());
+
+        // get MonitoringFullPageData
+        final Result<MonitoringFullPageData> fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                .call();
+        assertNotNull(fullPageData);
+        assertFalse(fullPageData.hasError());
+        final MonitoringSEBConnectionData monitoringConnectionData = fullPageData.get().monitoringConnectionData;
+        assertTrue(monitoringConnectionData.connections.isEmpty());
+        assertEquals(
+                "[0, 0, 0, 0, 0, 0]",
+                String.valueOf(Arrays.asList(monitoringConnectionData.connectionsPerStatus)));
 
         // get active client config's credentials
         final Result<Page<SEBClientConfig>> cconfigs = adminRestService.getBuilder(GetClientConfigPage.class)

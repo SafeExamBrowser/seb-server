@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.concurrent.Executor;
@@ -45,6 +46,9 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
+import ch.ethz.seb.sebserver.gbl.model.session.MonitoringSEBConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.MonitoringFullPageData;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -53,6 +57,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
@@ -71,6 +77,8 @@ public class ExamMonitoringController {
     private final AuthorizationService authorization;
     private final PaginationService paginationService;
     private final SEBClientNotificationService sebClientNotificationService;
+    private final ExamProctoringRoomService examProcotringRoomService;
+    private final ExamAdminService examAdminService;
     private final Executor executor;
 
     public ExamMonitoringController(
@@ -79,6 +87,8 @@ public class ExamMonitoringController {
             final AuthorizationService authorization,
             final PaginationService paginationService,
             final SEBClientNotificationService sebClientNotificationService,
+            final ExamProctoringRoomService examProcotringRoomService,
+            final ExamAdminService examAdminService,
             @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {
 
         this.sebClientConnectionService = sebClientConnectionService;
@@ -87,6 +97,8 @@ public class ExamMonitoringController {
         this.authorization = authorization;
         this.paginationService = paginationService;
         this.sebClientNotificationService = sebClientNotificationService;
+        this.examProcotringRoomService = examProcotringRoomService;
+        this.examAdminService = examAdminService;
         this.executor = executor;
     }
 
@@ -191,7 +203,47 @@ public class ExamMonitoringController {
         }
 
         return this.examSessionService
-                .getConnectionData(
+                .getMonitoringSEBConnectionsData(
+                        examId,
+                        filterStates.isEmpty()
+                                ? Objects::nonNull
+                                : active
+                                        ? withActiveFilter(filterStates)
+                                        : noneActiveFilter(filterStates))
+                .getOrThrow().connections;
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_FULLPAGE,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public MonitoringFullPageData getFullpageData(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates) {
+
+        checkPrivileges(institutionId, examId);
+
+        final EnumSet<ConnectionStatus> filterStates = EnumSet.noneOf(ConnectionStatus.class);
+        if (StringUtils.isNoneBlank(hiddenStates)) {
+            final String[] split = StringUtils.split(hiddenStates, Constants.LIST_SEPARATOR);
+            for (int i = 0; i < split.length; i++) {
+                filterStates.add(ConnectionStatus.valueOf(split[i]));
+            }
+        }
+
+        final boolean active = filterStates.contains(ConnectionStatus.ACTIVE);
+        if (active) {
+            filterStates.remove(ConnectionStatus.ACTIVE);
+        }
+
+        final MonitoringSEBConnectionData monitoringSEBConnectionData = this.examSessionService
+                .getMonitoringSEBConnectionsData(
                         examId,
                         filterStates.isEmpty()
                                 ? Objects::nonNull
@@ -199,28 +251,22 @@ public class ExamMonitoringController {
                                         ? withActiveFilter(filterStates)
                                         : noneActiveFilter(filterStates))
                 .getOrThrow();
-    }
 
-    private Predicate<ClientConnectionData> noneActiveFilter(final EnumSet<ConnectionStatus> filterStates) {
-        return conn -> conn != null && !filterStates.contains(conn.clientConnection.status);
-    }
+        if (this.examAdminService.isProctoringEnabled(examId).getOr(false)) {
+            final Collection<RemoteProctoringRoom> proctoringData = this.examProcotringRoomService
+                    .getProctoringCollectingRooms(examId)
+                    .getOrThrow();
 
-    /** If we have a filter criteria for ACTIVE connection, we shall filter only the active connections
-     * that has no incident. */
-    private Predicate<ClientConnectionData> withActiveFilter(final EnumSet<ConnectionStatus> filterStates) {
-        return conn -> {
-            if (conn == null) {
-                return false;
-            } else if (conn.clientConnection.status == ConnectionStatus.ACTIVE) {
-                return conn.hasAnyIncident();
-            } else {
-                return !filterStates.contains(conn.clientConnection.status);
-            }
-        };
-//        return conn -> conn != null
-//                && ((conn.clientConnection.status == ConnectionStatus.ACTIVE && !conn.hasAnyIncident()) ||
-//                        (conn.clientConnection.status != ConnectionStatus.ACTIVE
-//                                && !filterStates.contains(conn.clientConnection.status)));
+            return new MonitoringFullPageData(
+                    examId,
+                    monitoringSEBConnectionData,
+                    proctoringData);
+        } else {
+            return new MonitoringFullPageData(
+                    examId,
+                    monitoringSEBConnectionData,
+                    Collections.emptyList());
+        }
     }
 
     @RequestMapping(
@@ -378,6 +424,24 @@ public class ExamMonitoringController {
         final String userId = userInfo.uuid;
         return exam.institutionId.equals(institution)
                 && (exam.isOwner(userId) || userInfo.hasRole(UserRole.EXAM_ADMIN));
+    }
+
+    private Predicate<ClientConnectionData> noneActiveFilter(final EnumSet<ConnectionStatus> filterStates) {
+        return conn -> conn != null && !filterStates.contains(conn.clientConnection.status);
+    }
+
+    /** If we have a filter criteria for ACTIVE connection, we shall filter only the active connections
+     * that has no incident. */
+    private Predicate<ClientConnectionData> withActiveFilter(final EnumSet<ConnectionStatus> filterStates) {
+        return conn -> {
+            if (conn == null) {
+                return false;
+            } else if (conn.clientConnection.status == ConnectionStatus.ACTIVE) {
+                return conn.hasAnyIncident();
+            } else {
+                return !filterStates.contains(conn.clientConnection.status);
+            }
+        };
     }
 
 }

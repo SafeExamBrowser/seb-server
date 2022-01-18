@@ -70,10 +70,10 @@ public final class PageAction {
         this.fireActionEvent = fireActionEvent;
         this.ignoreMoveAwayFromEdit = ignoreMoveAwayFromEdit;
         this.switchAction = switchAction;
-        this.titleArgs = titleArgs;
         if (this.switchAction != null) {
             this.switchAction.switchAction = this;
         }
+        this.titleArgs = titleArgs;
 
         if (this.pageContext != null) {
             this.pageContext = pageContext.withAttribute(AttributeKeys.READ_ONLY, Constants.TRUE_STRING);
@@ -100,6 +100,14 @@ public final class PageAction {
         } else {
             return this.definition.title;
         }
+    }
+
+    public void setTitleArgument(final int argIndex, final Object value) {
+        if (this.titleArgs == null || this.titleArgs.length <= argIndex) {
+            return;
+        }
+
+        this.titleArgs[argIndex] = value;
     }
 
     public PageAction getSwitchAction() {

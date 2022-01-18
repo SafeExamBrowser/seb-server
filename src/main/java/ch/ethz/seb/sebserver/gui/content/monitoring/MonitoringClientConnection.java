@@ -38,7 +38,6 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-import ch.ethz.seb.sebserver.gui.content.monitoring.MonitoringRunningExam.ProctoringUpdateErrorHandler;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -49,6 +48,7 @@ import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
+import ch.ethz.seb.sebserver.gui.service.push.UpdateErrorHandler;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
@@ -275,14 +275,14 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         final Supplier<EntityTable<ClientNotification>> notificationTableSupplier = _notificationTableSupplier;
         // server push update
-        final ProctoringUpdateErrorHandler proctoringUpdateErrorHandler =
-                new ProctoringUpdateErrorHandler(this.pageService, pageContext);
+        final UpdateErrorHandler updateErrorHandler =
+                new UpdateErrorHandler(this.pageService, pageContext);
 
         this.serverPushService.runServerPush(
                 new ServerPushContext(
                         content,
                         Utils.truePredicate(),
-                        proctoringUpdateErrorHandler),
+                        updateErrorHandler),
                 this.pollInterval,
                 context -> clientConnectionDetails.updateData(),
                 context -> clientConnectionDetails.updateGUI(notificationTableSupplier, pageContext));

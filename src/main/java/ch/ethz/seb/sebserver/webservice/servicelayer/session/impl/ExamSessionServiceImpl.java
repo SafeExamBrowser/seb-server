@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
@@ -34,7 +35,9 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -161,17 +164,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
             return result;
         });
-    }
-
-    @Override
-    public boolean hasActiveSEBClientConnections(final Long examId) {
-        if (examId == null || !this.isExamRunning(examId)) {
-            return false;
-        }
-
-        return !this.getConnectionData(examId, ExamSessionService::isActiveConnection)
-                .getOrThrow()
-                .isEmpty();
     }
 
     @Override
@@ -357,6 +349,38 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                     .filter(filter)
                     .collect(Collectors.toList());
 
+        });
+    }
+
+    @Override
+    public Result<MonitoringSEBConnectionData> getMonitoringSEBConnectionsData(
+            final Long examId,
+            final Predicate<ClientConnectionData> filter) {
+
+        return Result.tryCatch(() -> {
+
+            // needed to store connection numbers per status
+            final int[] statusMapping = new int[ConnectionStatus.values().length];
+            for (int i = 0; i < statusMapping.length; i++) {
+                statusMapping[i] = 0;
+            }
+
+            updateClientConnections(examId);
+
+            final List<ClientConnectionData> filteredConnections = this.clientConnectionDAO
+                    .getConnectionTokens(examId)
+                    .getOrThrow()
+                    .stream()
+                    .map(token -> getConnectionData(token).getOr(null))
+                    .filter(Objects::nonNull)
+                    .map(c -> {
+                        statusMapping[c.clientConnection.status.code]++;
+                        return c;
+                    })
+                    .filter(filter)
+                    .collect(Collectors.toList());
+
+            return new MonitoringSEBConnectionData(examId, filteredConnections, statusMapping);
         });
     }
 

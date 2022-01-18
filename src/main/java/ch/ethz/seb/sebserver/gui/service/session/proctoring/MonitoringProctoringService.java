@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.session.proctoring;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
@@ -53,7 +54,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.IsTownhallRoomAvailable;
@@ -151,15 +151,23 @@ public class MonitoringProctoringService {
     }
 
     public void initCollectingRoomActions(
-            final ServerPushContext pushContext,
             final PageContext pageContext,
             final PageActionBuilder actionBuilder,
             final ProctoringServiceSettings proctoringSettings,
             final ProctoringGUIService proctoringGUIService) {
 
         proctoringGUIService.clearCollectingRoomActionState();
+        final EntityKey entityKey = pageContext.getEntityKey();
+        final Collection<RemoteProctoringRoom> collectingRooms = this.pageService
+                .getRestService()
+                .getBuilder(GetCollectingRooms.class)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                .call()
+                .onError(error -> log.error("Failed to get collecting room data:", error))
+                .getOr(Collections.emptyList());
+
         updateCollectingRoomActions(
-                pushContext,
+                collectingRooms,
                 pageContext,
                 actionBuilder,
                 proctoringSettings,
@@ -167,7 +175,7 @@ public class MonitoringProctoringService {
     }
 
     public void updateCollectingRoomActions(
-            final ServerPushContext pushContext,
+            final Collection<RemoteProctoringRoom> collectingRooms,
             final PageContext pageContext,
             final PageActionBuilder actionBuilder,
             final ProctoringServiceSettings proctoringSettings,
@@ -176,13 +184,7 @@ public class MonitoringProctoringService {
         final EntityKey entityKey = pageContext.getEntityKey();
         final I18nSupport i18nSupport = this.pageService.getI18nSupport();
 
-        this.pageService
-                .getRestService()
-                .getBuilder(GetCollectingRooms.class)
-                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                .call()
-                .onError(error -> pushContext.reportError(error))
-                .getOr(Collections.emptyList())
+        collectingRooms
                 .stream()
                 .forEach(room -> {
                     if (proctoringGUIService.collectingRoomActionActive(room.name)) {

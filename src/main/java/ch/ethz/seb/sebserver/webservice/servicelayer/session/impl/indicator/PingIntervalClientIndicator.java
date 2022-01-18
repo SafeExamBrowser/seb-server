@@ -115,7 +115,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     @Override
     public final boolean hasIncident() {
-        return getValue() > super.incidentThreshold;
+        return getValue() >= super.incidentThreshold;
     }
 
     private double lastCheckVal = 0;

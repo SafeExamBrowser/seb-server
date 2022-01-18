@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -80,7 +81,15 @@ public interface ExamSessionService {
      *
      * @param examId The Exam identifier
      * @return true if the given Exam has currently no active client connection, false otherwise. */
-    boolean hasActiveSEBClientConnections(final Long examId);
+    default boolean hasActiveSEBClientConnections(final Long examId) {
+        if (examId == null || !this.isExamRunning(examId)) {
+            return false;
+        }
+
+        return !this.getActiveConnectionTokens(examId)
+                .getOrThrow()
+                .isEmpty();
+    }
 
     /** Checks if a specified Exam has at least a default SEB Exam configuration attached.
      *
@@ -144,12 +153,8 @@ public interface ExamSessionService {
      * @return Result refer to the ClientConnectionData instance or to an error if happened */
     Result<ClientConnectionData> getConnectionData(String connectionToken);
 
-    /** Get the collection of ClientConnectionData of all active SEB client connections
-     * of a running exam.
-     *
-     * active SEB client connections are connections that were initialized by a SEB client
-     * on the particular server instance. This may not be the all connections of an exam but
-     * a subset of them.
+    /** Get the collection of ClientConnectionData of all SEB client connections
+     * of a running exam that match the given filter criteria.
      *
      * @param examId The exam identifier
      * @param filter a filter predicate to apply
@@ -159,12 +164,23 @@ public interface ExamSessionService {
             Long examId,
             Predicate<ClientConnectionData> filter);
 
+    /** Get the MonitoringSEBConnectionsData containing a collection of ClientConnectionData of all
+     * SEB client connections matching the given filter criteria.
+     * And also containing a connection number per connection status mapping.
+     *
+     * @param examId The exam identifier
+     * @param filter a filter predicate to apply
+     * @return Result refer to MonitoringSEBConnectionsData of a running exam or to an error when happened */
+    Result<MonitoringSEBConnectionData> getMonitoringSEBConnectionsData(
+            final Long examId,
+            final Predicate<ClientConnectionData> filter);
+
     /** Gets all connection tokens of active client connection that are related to a specified exam
      * from persistence storage without caching involved.
      *
      * @param examId the exam identifier
      * @return Result refer to the collection of connection tokens or to an error when happened. */
-    Result<Collection<String>> getActiveConnectionTokens(final Long examId);
+    Result<Collection<String>> getActiveConnectionTokens(Long examId);
 
     /** Use this to check if the current cached running exam is up to date
      * and if not to flush the cache.

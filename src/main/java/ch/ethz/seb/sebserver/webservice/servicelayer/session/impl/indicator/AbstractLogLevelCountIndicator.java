@@ -49,7 +49,7 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
 
     @Override
     public final boolean hasIncident() {
-        return this.currentValue > this.incidentThreshold;
+        return this.currentValue >= this.incidentThreshold;
     }
 
     @Override

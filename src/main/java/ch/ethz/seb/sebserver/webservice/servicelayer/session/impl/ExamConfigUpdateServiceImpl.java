@@ -285,14 +285,11 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
         // check if the configuration is attached to a running exams with active client connections
         final long activeConnections = involvedExams
                 .stream()
-                .flatMap(examId -> this.examSessionService
-                        .getConnectionData(examId, ExamSessionService::isActiveConnection)
-                        .getOrThrow()
-                        .stream())
+                .filter(examId -> this.examSessionService.hasActiveSEBClientConnections(examId))
                 .count();
 
-        // if we have active SEB client connection on any running exam that
-        // is involved within the specified configuration change, the change is denied
+        // if we have active SEB client connection on one or more running exam that
+        // are involved within the specified configuration change, the change is denied
         if (activeConnections > 0) {
             return Result.ofError(new APIMessage.APIMessageException(
                     ErrorMessage.INTEGRITY_VALIDATION,
