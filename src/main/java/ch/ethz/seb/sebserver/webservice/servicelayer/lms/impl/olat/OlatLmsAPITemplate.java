@@ -222,7 +222,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     private List<QuizData> collectAllQuizzes(final OlatLmsRestTemplate restTemplate, final FilterMap filterMap) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
-        final String quizName = filterMap.getString(QuizData.FILTER_ATTR_QUIZ_NAME);
+        final String quizName = (filterMap != null) ? filterMap.getString(QuizData.FILTER_ATTR_QUIZ_NAME) : null;
         final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
         final long fromCutTime = (quizFromTime != null) ? Utils.toUnixTimeInSeconds(quizFromTime) : -1;
 

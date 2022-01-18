@@ -11,8 +11,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.Certificate;
+import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.Objects;
 
 import javax.crypto.Cipher;
 
@@ -49,7 +49,7 @@ public abstract class AbstractCertificateCryptor {
             while (engineAliases.hasMoreElements()) {
                 final Certificate certificate = certs.keyStore.engineGetCertificate(engineAliases.nextElement());
                 final byte[] otherPublicKeyHash = generatePublicKeyHash(certificate);
-                if (Objects.equals(otherPublicKeyHash, publicKeyHash)) {
+                if (Arrays.equals(otherPublicKeyHash, publicKeyHash)) {
                     return certificate;
                 }
             }

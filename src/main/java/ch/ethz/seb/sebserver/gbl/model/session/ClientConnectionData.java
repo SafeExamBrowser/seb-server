@@ -100,7 +100,8 @@ public class ClientConnectionData {
         while (i1.hasNext()) {
             final IndicatorValue iv1 = i1.next();
             final IndicatorValue iv2 = i2.next();
-            if (iv1.getIndicatorId() != iv2.getIndicatorId() || Math.abs(iv1.getValue() - iv2.getValue()) > 0.1) {
+            if (iv1.getIndicatorId().longValue() != iv2.getIndicatorId().longValue() ||
+                    Math.abs(iv1.getValue() - iv2.getValue()) > 0.1) {
                 return false;
             }
         }

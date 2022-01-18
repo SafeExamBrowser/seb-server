@@ -35,5 +35,19 @@
       <Package name="ch.ethz.seb.sebserver.gui.service.page" />
       <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
     </Match>
+    <Match>
+      <Package name="ch.ethz.seb.sebserver.gui.service.page" />
+      <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+    </Match>
+    <Match>
+      <Package name="ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring" />
+      <Bug pattern="URF_UNREAD_FIELD" />
+    </Match>
+    <Match>
+      <Package name="ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring" />
+      <Bug pattern="SS_SHOULD_BE_STATIC" />
+    </Match>
+    
+    
 
 </FindBugsFilter>

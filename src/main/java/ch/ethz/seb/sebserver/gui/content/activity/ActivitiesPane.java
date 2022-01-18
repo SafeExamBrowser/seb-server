@@ -472,7 +472,7 @@ public class ActivitiesPane implements TemplateComposer {
                     ? tree.getSelection()[0]
                     : (TreeItem) event.item;
 
-            if (treeItem.getItemCount() > 0 && !treeItem.getExpanded()) {
+            if (treeItem == null || (treeItem.getItemCount() > 0 && !treeItem.getExpanded())) {
                 return;
             }
 
