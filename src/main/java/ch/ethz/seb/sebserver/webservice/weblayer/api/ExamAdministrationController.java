@@ -152,7 +152,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         //       of the SEB Server. Therefore in the case we have no or the default sorting we can use the
         //       native PaginationService within MyBatis and SQL. For the other cases we need an in-line sorting and paging
         if (StringUtils.isBlank(sort) ||
-                this.paginationService.isNativeSortingSupported(ExamRecordDynamicSqlSupport.examRecord, sort)) {
+                (this.paginationService.isNativeSortingSupported(ExamRecordDynamicSqlSupport.examRecord, sort))) {
 
             return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
 
@@ -592,7 +592,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             if (sortBy.equals(Exam.FILTER_ATTR_TYPE)) {
                 list.sort(Comparator.comparing(exam -> exam.type));
             }
-            if (sortBy.equals(QuizData.FILTER_ATTR_START_TIME)) {
+            if (sortBy.equals(QuizData.FILTER_ATTR_START_TIME) || sortBy.equals(QuizData.QUIZ_ATTR_START_TIME)) {
                 list.sort(Comparator.comparing(exam -> exam.startTime));
             }
 

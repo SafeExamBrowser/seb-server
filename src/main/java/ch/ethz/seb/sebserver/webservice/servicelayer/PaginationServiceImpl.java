@@ -269,7 +269,11 @@ public class PaginationServiceImpl implements PaginationService {
         final Map<String, String> examTableMap = new HashMap<>();
         examTableMap.put(Entity.FILTER_ATTR_INSTITUTION, institutionNameRef);
         examTableMap.put(Domain.EXAM.ATTR_LMS_SETUP_ID, lmsSetupNameRef);
-        examTableMap.put(Domain.EXAM.ATTR_TYPE, ExamRecordDynamicSqlSupport.type.name());
+
+        // NOTE: This seems not to work and I was not able to figure out why.
+        // Now the type sorting is done within secondary sort for exams.
+        //examTableMap.put(Domain.EXAM.ATTR_TYPE, "'" + ExamRecordDynamicSqlSupport.type.name() + "'");
+
         this.sortColumnMapping.put(ExamRecordDynamicSqlSupport.examRecord.name(), examTableMap);
         this.defaultSortColumn.put(ExamRecordDynamicSqlSupport.examRecord.name(), Domain.EXAM.ATTR_ID);
 

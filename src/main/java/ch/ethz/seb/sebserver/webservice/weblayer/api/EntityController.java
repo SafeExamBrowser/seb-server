@@ -154,13 +154,15 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
         populateFilterMap(filterMap, institutionId, sort);
 
-        return this.paginationService.getPage(
+        final Page<T> page = this.paginationService.getPage(
                 pageNumber,
                 pageSize,
                 sort,
                 getSQLTableOfEntity().name(),
                 () -> getAll(filterMap))
                 .getOrThrow();
+
+        return page;
     }
 
     protected void populateFilterMap(final FilterMap filterMap, final Long institutionId, final String sort) {
