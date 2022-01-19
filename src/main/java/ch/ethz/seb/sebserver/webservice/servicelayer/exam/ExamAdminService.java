@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
@@ -64,6 +66,14 @@ public interface ExamAdminService {
         if (exam == null || exam.id == null) {
             return Result.ofRuntimeError("Invalid Exam model");
         }
+
+        if (exam.additionalAttributesIncluded()) {
+            return Result.tryCatch(() -> {
+                return BooleanUtils.toBooleanObject(
+                        exam.getAdditionalAttribute(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING));
+            });
+        }
+
         return isProctoringEnabled(exam.id);
     }
 

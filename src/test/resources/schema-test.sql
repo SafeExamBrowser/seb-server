@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS `exam` (
   `lastUpdate` VARCHAR(255) NULL,
   `active` INT(1) NOT NULL,
   `exam_template_id` BIGINT UNSIGNED NULL,
+  `last_modified` BIGINT NULL,
   PRIMARY KEY (`id`),
   INDEX `lms_setup_key_idx` (`lms_setup_id` ASC),
   INDEX `institution_key_idx` (`institution_id` ASC),

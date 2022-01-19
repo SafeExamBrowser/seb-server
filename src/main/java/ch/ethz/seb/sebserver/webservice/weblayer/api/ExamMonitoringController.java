@@ -46,8 +46,8 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
-import ch.ethz.seb.sebserver.gbl.model.session.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.MonitoringFullPageData;
+import ch.ethz.seb.sebserver.gbl.model.session.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -227,7 +227,7 @@ public class ExamMonitoringController {
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates) {
 
-        checkPrivileges(institutionId, examId);
+        final Exam runningExam = checkPrivileges(institutionId, examId);
 
         final EnumSet<ConnectionStatus> filterStates = EnumSet.noneOf(ConnectionStatus.class);
         if (StringUtils.isNoneBlank(hiddenStates)) {
@@ -252,7 +252,7 @@ public class ExamMonitoringController {
                                         : noneActiveFilter(filterStates))
                 .getOrThrow();
 
-        if (this.examAdminService.isProctoringEnabled(examId).getOr(false)) {
+        if (this.examAdminService.isProctoringEnabled(runningExam).getOr(false)) {
             final Collection<RemoteProctoringRoom> proctoringData = this.examProcotringRoomService
                     .getProctoringCollectingRooms(examId)
                     .getOrThrow();
@@ -392,7 +392,7 @@ public class ExamMonitoringController {
         }
     }
 
-    private void checkPrivileges(final Long institutionId, final Long examId) {
+    private Exam checkPrivileges(final Long institutionId, final Long examId) {
         // check overall privilege
         this.authorization.checkRole(
                 institutionId,
@@ -413,6 +413,8 @@ public class ExamMonitoringController {
                     PrivilegeType.READ,
                     this.authorization.getUserService().getCurrentUser().getUserInfo());
         }
+
+        return runningExam;
     }
 
     private boolean hasRunningExamPrivilege(final Exam exam, final Long institution) {

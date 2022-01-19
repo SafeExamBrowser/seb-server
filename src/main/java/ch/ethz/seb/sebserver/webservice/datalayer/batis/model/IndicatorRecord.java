@@ -3,28 +3,28 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class IndicatorRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.exam_id")
     private Long examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.type")
     private String type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.name")
     private String name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.color")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.color")
     private String color;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.icon")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.icon")
     private String icon;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.tags")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.tags")
     private String tags;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source Table: indicator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source Table: indicator")
     public IndicatorRecord(Long id, Long examId, String type, String name, String color, String icon, String tags) {
         this.id = id;
         this.examId = examId;
@@ -35,37 +35,37 @@ public class IndicatorRecord {
         this.tags = tags;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.exam_id")
     public Long getExamId() {
         return examId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.type")
     public String getType() {
         return type;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.name")
     public String getName() {
         return name;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.color")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.color")
     public String getColor() {
         return color;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.icon")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.icon")
     public String getIcon() {
         return icon;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-12T11:29:24.865+01:00", comments="Source field: indicator.tags")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.167+01:00", comments="Source field: indicator.tags")
     public String getTags() {
         return tags;
     }
@@ -74,7 +74,7 @@ public class IndicatorRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table indicator
      *
-     * @mbg.generated Wed Jan 12 11:29:24 CET 2022
+     * @mbg.generated Tue Jan 18 17:36:21 CET 2022
      */
     @Override
     public String toString() {
@@ -97,7 +97,7 @@ public class IndicatorRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table indicator
      *
-     * @mbg.generated Wed Jan 12 11:29:24 CET 2022
+     * @mbg.generated Tue Jan 18 17:36:21 CET 2022
      */
     @Override
     public boolean equals(Object that) {
@@ -124,7 +124,7 @@ public class IndicatorRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table indicator
      *
-     * @mbg.generated Wed Jan 12 11:29:24 CET 2022
+     * @mbg.generated Tue Jan 18 17:36:21 CET 2022
      */
     @Override
     public int hashCode() {

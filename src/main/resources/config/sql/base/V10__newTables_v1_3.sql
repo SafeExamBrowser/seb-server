@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS `exam_template` (
 -- Alter Table `exam`
 -- -----------------------------------------------------
 ALTER TABLE `exam`
-ADD COLUMN IF NOT EXISTS `exam_template_id` BIGINT UNSIGNED NULL AFTER `active`;
+ADD COLUMN IF NOT EXISTS `exam_template_id` BIGINT UNSIGNED NULL AFTER `active`,
+ADD COLUMN IF NOT EXISTS `last_modified` BIGINT NULL AFTER `exam_template_id`;
 
 -- -----------------------------------------------------
 -- Table `batch_action`

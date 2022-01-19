@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -99,6 +101,19 @@ public class ExamDAOImpl implements ExamDAO {
         return this.examRecordDAO
                 .recordById(id)
                 .flatMap(this::toDomainModel);
+    }
+
+    @Override
+    public Result<Exam> loadWithAdditionalAttributes(final Long examId) {
+        return this.examRecordDAO
+                .recordById(examId)
+                .flatMap(record -> {
+                    final QuizData quizData = this.lmsAPIService
+                            .getLmsAPITemplate(record.getLmsSetupId())
+                            .flatMap(template -> template.getQuiz(record.getExternalId()))
+                            .getOrThrow();
+                    return toDomainModel(record, quizData, null, true);
+                });
     }
 
     @Override
@@ -203,7 +218,8 @@ public class ExamDAOImpl implements ExamDAO {
 
             final List<Long> ids = extractListOfPKs(all);
             final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
-                    null, null, null, null, null, null, null, null, BooleanUtils.toInteger(active), null);
+                    null, null, null, null, null, null, null, null, BooleanUtils.toInteger(active), null,
+                    Utils.getMillisecondsNow());
 
             this.examRecordMapper.updateByExampleSelective(examRecord)
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
@@ -305,7 +321,7 @@ public class ExamDAOImpl implements ExamDAO {
                     null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(true),
                     updateId,
-                    null, null);
+                    null, null, null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
             return examId;
@@ -335,7 +351,7 @@ public class ExamDAOImpl implements ExamDAO {
                     null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(false),
                     updateId,
-                    null, null);
+                    null, null, null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(newRecord);
             return examId;
@@ -356,7 +372,7 @@ public class ExamDAOImpl implements ExamDAO {
                     examId,
                     null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(false),
-                    null, null, null);
+                    null, null, null, null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return examRecord.getId();
@@ -386,7 +402,6 @@ public class ExamDAOImpl implements ExamDAO {
             return result;
         })
                 .onError(TransactionHandler::rollback);
-
     }
 
     @Override
@@ -432,16 +447,35 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Boolean> upToDate(final Long examId, final String updateId) {
-        return this.examRecordDAO
-                .recordById(examId)
-                .map(rec -> {
-                    if (updateId == null) {
-                        return rec.getLastupdate() == null;
-                    } else {
-                        return updateId.equals(rec.getLastupdate());
-                    }
-                });
+    public Result<Boolean> upToDate(final Exam exam) {
+        return Result.tryCatch(() -> {
+            if (exam.lastModified == null) {
+                return this.examRecordMapper.countByExample()
+                        .where(ExamRecordDynamicSqlSupport.id, isEqualTo(exam.id))
+                        .and(ExamRecordDynamicSqlSupport.lastModified, isNull())
+                        .build()
+                        .execute() > 0;
+            } else {
+                return this.examRecordMapper.countByExample()
+                        .where(ExamRecordDynamicSqlSupport.id, isEqualTo(exam.id))
+                        .and(ExamRecordDynamicSqlSupport.lastModified, isEqualTo(exam.lastModified))
+                        .build()
+                        .execute() > 0;
+            }
+        });
+    }
+
+    @Override
+    public void setModified(final Long examId) {
+        try {
+            UpdateDSL.updateWithMapper(this.examRecordMapper::update, examRecord)
+                    .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                    .where(id, isEqualTo(examId))
+                    .build()
+                    .execute();
+        } catch (final Exception e) {
+            log.error("Failed to set modified now: ", e);
+        }
     }
 
     @Override
@@ -558,7 +592,8 @@ public class ExamDAOImpl implements ExamDAO {
                             rec.getUpdating(),
                             rec.getLastupdate(),
                             rec.getActive(),
-                            null));
+                            null,
+                            Utils.getMillisecondsNow()));
 
                     result.add(new EntityKey(rec.getId(), EntityType.EXAM));
                 } catch (final Exception e) {
@@ -805,7 +840,8 @@ public class ExamDAOImpl implements ExamDAO {
                                         record.getId(),
                                         null, null,
                                         recoveredQuizData.id,
-                                        null, null, null, null, null, null, null, null, null, null, null));
+                                        null, null, null, null, null, null, null, null, null, null, null,
+                                        Utils.getMillisecondsNow()));
 
                                 log.debug("Successfully recovered exam quiz data to new externalId {}",
                                         recoveredQuizData.id);
@@ -826,6 +862,15 @@ public class ExamDAOImpl implements ExamDAO {
             final QuizData quizData,
             final ExamStatus statusOverride) {
 
+        return this.toDomainModel(record, quizData, statusOverride, false);
+    }
+
+    private Result<Exam> toDomainModel(
+            final ExamRecord record,
+            final QuizData quizData,
+            final ExamStatus statusOverride,
+            final boolean withAdditionalAttributed) {
+
         return Result.tryCatch(() -> {
 
             final Collection<String> supporter = (StringUtils.isNotBlank(record.getSupporter()))
@@ -838,6 +883,21 @@ public class ExamDAOImpl implements ExamDAO {
             } catch (final Exception e) {
                 log.error("Missing exam status from data base. Set ExamStatus.UP_COMING as fallback ", e);
                 status = ExamStatus.UP_COMING;
+            }
+
+            Map<String, String> additionalAttributes = null;
+            if (withAdditionalAttributed) {
+                additionalAttributes = this.additionalAttributeRecordMapper.selectByExample()
+                        .where(
+                                AdditionalAttributeRecordDynamicSqlSupport.entityType,
+                                SqlBuilder.isEqualTo(EntityType.EXAM.name()))
+                        .and(
+                                AdditionalAttributeRecordDynamicSqlSupport.entityId,
+                                SqlBuilder.isEqualTo(record.getId()))
+                        .build()
+                        .execute()
+                        .stream()
+                        .collect(Collectors.toMap(r -> r.getName(), r -> r.getValue()));
             }
 
             return new Exam(
@@ -858,7 +918,9 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getBrowserKeys(),
                     BooleanUtils.toBooleanObject((quizData != null) ? record.getActive() : null),
                     record.getLastupdate(),
-                    record.getExamTemplateId());
+                    record.getExamTemplateId(),
+                    record.getLastModified(),
+                    additionalAttributes);
         });
     }
 

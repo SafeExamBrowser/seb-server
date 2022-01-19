@@ -27,7 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 public class CachableJdbcTokenStore implements TokenStore {
 
-    public static final String CACHE_NAME = "ACCESS_TOKEN_STORE_CACHE";
+    public static final String ACCESS_TOKEN_CACHE_NAME = "ACCESS_TOKEN_CACHE";
+    public static final String AUTHENTICATION_TOKEN_CACHE = "AUTHENTICATION_TOKEN_CACHE";
 
     private static final Logger log = LoggerFactory.getLogger(CachableJdbcTokenStore.class);
 
@@ -50,6 +51,10 @@ public class CachableJdbcTokenStore implements TokenStore {
     }
 
     @Override
+    @Cacheable(
+            cacheNames = AUTHENTICATION_TOKEN_CACHE,
+            key = "#token",
+            unless = "#result == null")
     public OAuth2Authentication readAuthentication(final OAuth2AccessToken token) {
         if (log.isDebugEnabled()) {
             log.debug("Read authentication from persistent and cache if available");
@@ -65,7 +70,7 @@ public class CachableJdbcTokenStore implements TokenStore {
 
     @Override
     @Cacheable(
-            cacheNames = CACHE_NAME,
+            cacheNames = ACCESS_TOKEN_CACHE_NAME,
             key = "#tokenValue",
             unless = "#result == null")
     public OAuth2AccessToken readAccessToken(final String tokenValue) {
@@ -74,8 +79,8 @@ public class CachableJdbcTokenStore implements TokenStore {
 
     @Override
     @CacheEvict(
-            cacheNames = CACHE_NAME,
-            key = "#token.getValue()")
+            cacheNames = AUTHENTICATION_TOKEN_CACHE,
+            key = "#token")
     public void removeAccessToken(final OAuth2AccessToken token) {
         if (log.isDebugEnabled()) {
             log.debug("Evict token from cache and remove it also from persistent store");

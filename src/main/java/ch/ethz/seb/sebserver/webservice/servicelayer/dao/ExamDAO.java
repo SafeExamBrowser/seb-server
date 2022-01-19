@@ -23,6 +23,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCac
 /** Concrete EntityDAO interface of Exam entities */
 public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSupportDAO<Exam> {
 
+    /** Loads the specified exam with all data and additional attributes.
+     *
+     * @param examId the exam identifier to load
+     * @return Result refer to the loaded exam or to an error when happened */
+    Result<Exam> loadWithAdditionalAttributes(Long examId);
+
     /** Get a GrantEntity for the exam of specified id (PK)
      * This is actually a Exam instance but with no course data loaded.
      *
@@ -150,12 +156,20 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     /** This checks if there are write locks that are out of date and release such. */
     void releaseAgedLocks();
 
-    /** Use this to check if the exam with the specified identifier is up to date
+    /** Use this to check if the exam is up to date
      *
      * @param examId the exam identifier
-     * @param updateId the update identifier of the exam
+     * @param exam the exam to check if it is in sync with the persistent or if there is a newer version
      * @return Result refer to the up-to-date result or to an error if happened */
-    Result<Boolean> upToDate(Long examId, String updateId);
+    Result<Boolean> upToDate(Exam exam);
+
+    /** Marks the specified exam as updated (sets the last modified date to now)
+     * to notify exam content has changed.
+     * This is automatically done also with normal save but not always an entire
+     * save is needed. In this cases this can be used to notify a exam content change.
+     *
+     * @param examId The exam identifier */
+    void setModified(Long examId);
 
     /** This is used to set the seb-restriction flag for a specified exam.
      *
@@ -166,7 +180,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     /** This deletes the exam template reference of all exams that has a given
      * template reference.
-     * 
+     *
      * @param examTemplateId The exam template reference identifier
      * @return Result refer to the collection of entity keys of all involved exams or to an error when happened */
     Result<Collection<EntityKey>> deleteTemplateReferences(Long examTemplateId);

@@ -160,7 +160,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                     (browserExamKeys != null && !browserExamKeys.isEmpty())
                             ? StringUtils.join(browserExamKeys, Constants.LIST_SEPARATOR_CHAR)
                             : StringUtils.EMPTY,
-                    null, null, null);
+                    null, null, null, null, null);
 
             this.examDAO.save(newExam)
                     .getOrThrow();

@@ -398,7 +398,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             return Result.ofEmpty();
         }
 
-        final Boolean isUpToDate = this.examDAO.upToDate(examId, exam.lastUpdate)
+        final Boolean isUpToDate = this.examDAO.upToDate(exam)
                 .onError(t -> log.error("Failed to verify if cached exam is up to date: {}", exam, t))
                 .getOr(false);
 
@@ -411,6 +411,11 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public Result<Exam> flushCache(final Exam exam) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Flush monitoring session caches for exam: {}", exam);
+        }
+
         return Result.tryCatch(() -> {
             this.examSessionCacheService.evict(exam);
             this.examSessionCacheService.evictDefaultSEBConfig(exam.id);

@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
@@ -181,7 +182,8 @@ public class ExamRecordDAO {
                             examRecord.getId(),
                             null, null, null, null, null, null, null, null,
                             status.name(),
-                            null, null, null, null, null);
+                            null, null, null, null, null,
+                            Utils.getMillisecondsNow());
 
                     this.examRecordMapper.updateByPrimaryKeySelective(newExamRecord);
                     return this.examRecordMapper.selectByPrimaryKey(examId);
@@ -217,7 +219,8 @@ public class ExamRecordDAO {
                     null, // updating
                     null, // lastUpdate
                     null, // active
-                    exam.examTemplateId);
+                    exam.examTemplateId,
+                    Utils.getMillisecondsNow());
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(exam.id);
@@ -233,7 +236,8 @@ public class ExamRecordDAO {
                     examId,
                     null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(sebRestriction),
-                    null, null, null, null);
+                    null, null, null, null,
+                    Utils.getMillisecondsNow());
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(examId);
@@ -279,7 +283,8 @@ public class ExamRecordDAO {
                     BooleanUtils.toInteger(false),
                     null, // lastUpdate
                     BooleanUtils.toInteger(true),
-                    exam.examTemplateId);
+                    exam.examTemplateId,
+                    Utils.getMillisecondsNow());
 
             this.examRecordMapper.insert(examRecord);
             return examRecord;

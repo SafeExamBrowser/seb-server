@@ -60,9 +60,20 @@
         </resources>
     </cache>
     
-    <cache alias="ACCESS_TOKEN_STORE_CACHE">
+    <cache alias="ACCESS_TOKEN_CACHE">
         <key-type>java.lang.String</key-type>
         <value-type>org.springframework.security.oauth2.common.OAuth2AccessToken</value-type>
+        <expiry>
+            <ttl unit="hours">1</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">100</heap>
+        </resources>
+    </cache>
+    
+    <cache alias="AUTHENTICATION_TOKEN_CACHE">
+        <key-type>org.springframework.security.oauth2.common.OAuth2AccessToken</key-type>
+        <value-type>org.springframework.security.oauth2.provider.OAuth2Authentication</value-type>
         <expiry>
             <ttl unit="hours">1</ttl>
         </expiry>

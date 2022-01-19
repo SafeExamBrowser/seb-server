@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -51,11 +52,15 @@ public final class Exam implements GrantEntity {
             null,
             Boolean.FALSE,
             null,
+            null,
+            null,
             null);
 
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_STATUS = "status";
     public static final String FILTER_CACHED_QUIZZES = "cached-quizzes";
+
+    public static final String ATTR_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
 
     public enum ExamStatus {
         UP_COMING,
@@ -131,6 +136,12 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_EXAM_TEMPLATE_ID)
     public final Long examTemplateId;
 
+    @JsonProperty(EXAM.ATTR_LAST_MODIFIED)
+    public final Long lastModified;
+
+    @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES)
+    private final Map<String, String> additionalAttributes;
+
     @JsonCreator
     public Exam(
             @JsonProperty(EXAM.ATTR_ID) final Long id,
@@ -150,7 +161,9 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_BROWSER_KEYS) final String browserExamKeys,
             @JsonProperty(EXAM.ATTR_ACTIVE) final Boolean active,
             @JsonProperty(EXAM.ATTR_LASTUPDATE) final String lastUpdate,
-            @JsonProperty(EXAM.ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId) {
+            @JsonProperty(EXAM.ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId,
+            @JsonProperty(EXAM.ATTR_LAST_MODIFIED) final Long lastModified,
+            @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -169,10 +182,13 @@ public final class Exam implements GrantEntity {
         this.active = (active != null) ? active : Boolean.TRUE;
         this.lastUpdate = lastUpdate;
         this.examTemplateId = examTemplateId;
+        this.lastModified = lastModified;
 
         this.supporter = (supporter != null)
                 ? Collections.unmodifiableCollection(supporter)
                 : Collections.emptyList();
+
+        this.additionalAttributes = additionalAttributes;
     }
 
     public Exam(final String modelId, final QuizData quizData, final POSTMapper mapper) {
@@ -198,6 +214,8 @@ public final class Exam implements GrantEntity {
         this.supporter = mapper.getStringSet(EXAM.ATTR_SUPPORTER);
         this.lastUpdate = null;
         this.examTemplateId = mapper.getLong(EXAM.ATTR_EXAM_TEMPLATE_ID);
+        this.lastModified = null;
+        this.additionalAttributes = null;
     }
 
     public Exam(final QuizData quizData) {
@@ -223,6 +241,8 @@ public final class Exam implements GrantEntity {
         this.supporter = null;
         this.lastUpdate = null;
         this.examTemplateId = null;
+        this.lastModified = null;
+        this.additionalAttributes = null;
     }
 
     @Override
@@ -322,6 +342,22 @@ public final class Exam implements GrantEntity {
 
     public Long getExamTemplateId() {
         return this.examTemplateId;
+    }
+
+    public Long getLastModified() {
+        return this.lastModified;
+    }
+
+    public boolean additionalAttributesIncluded() {
+        return this.additionalAttributes != null;
+    }
+
+    public String getAdditionalAttribute(final String attrName) {
+        if (this.additionalAttributes == null || !this.additionalAttributes.containsKey(attrName)) {
+            return null;
+        }
+
+        return this.additionalAttributes.get(attrName);
     }
 
     @Override

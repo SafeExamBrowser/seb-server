@@ -231,6 +231,9 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     ProctoringServiceSettings.ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM,
                     String.valueOf(proctoringServiceSettings.useZoomAppClientForCollectingRoom));
 
+            // Mark the involved exam as updated to notify changes
+            this.examDAO.setModified(examId);
+
             return proctoringServiceSettings;
         });
     }

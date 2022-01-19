@@ -111,7 +111,7 @@ public class SEBClientEventCSVExporterTest {
         final ClientEventRecord event = new ClientEventRecord(0L, 1L, 2, 3L, 4L, new BigDecimal(5), "text");
         final Exam exam = new Exam(0L, 1L, 3L, "externalid", "name", "description", new DateTime(1L), new DateTime(1L),
                 "startURL", Exam.ExamType.BYOD, "owner", new ArrayList<>(), Exam.ExamStatus.RUNNING, false, "bek", true,
-                "lastUpdate", 4L);
+                "lastUpdate", 4L, null, null);
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         final BufferedOutputStream output = new BufferedOutputStream(stream);
 
@@ -134,7 +134,7 @@ public class SEBClientEventCSVExporterTest {
         final ClientEventRecord event = new ClientEventRecord(0L, 1L, 2, 3L, 4L, new BigDecimal(5), "text");
         final Exam exam = new Exam(0L, 1L, 3L, "externalid", "name", "description", new DateTime(1L), new DateTime(1L),
                 "startURL", Exam.ExamType.BYOD, "owner", new ArrayList<>(), Exam.ExamStatus.RUNNING, false, "bek", true,
-                "lastUpdate", 4L);
+                "lastUpdate", 4L, null, null);
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         final BufferedOutputStream output = new BufferedOutputStream(stream);
 

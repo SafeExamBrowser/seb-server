@@ -284,14 +284,16 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
         // Since the queue is empty check periodically if there are active instructions on the persistent storage
         final long currentTimeMillis = System.currentTimeMillis();
         if (currentTimeMillis - this.lastRefresh > PERSISTENT_UPDATE_INTERVAL) {
-            this.lastRefresh = currentTimeMillis;
-            loadInstructions()
-                    .onError(error -> log.error(
-                            "Failed load instructions from persistent storage and to refresh cache: ",
-                            error));
+            synchronized (this) {
+                this.lastRefresh = currentTimeMillis;
+                loadInstructions()
+                        .onError(error -> log.error(
+                                "Failed load instructions from persistent storage and to refresh cache: ",
+                                error));
 
-            if (!queue.isEmpty()) {
-                return getNextInstruction(connectionToken);
+                if (!queue.isEmpty()) {
+                    return getNextInstruction(connectionToken);
+                }
             }
         }
 
