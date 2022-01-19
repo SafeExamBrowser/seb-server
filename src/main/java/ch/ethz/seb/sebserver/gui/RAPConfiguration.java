@@ -30,6 +30,7 @@ import org.eclipse.rap.rwt.service.ServiceManager;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -42,6 +43,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthori
 
 public class RAPConfiguration implements ApplicationConfiguration {
 
+    public static final String ATTR_USER_SESSION_TIMEOUT = "sebserver.gui.session.timeout";
     private static final String DEFAULT_THEME_NAME = "sebserver";
     private static final Logger log = LoggerFactory.getLogger(RAPConfiguration.class);
 
@@ -141,6 +143,7 @@ public class RAPConfiguration implements ApplicationConfiguration {
 
                 @Override
                 protected void createContents(final Composite parent) {
+
                     final HttpSession httpSession = RWT
                             .getUISession(parent.getDisplay())
                             .getHttpSession();
@@ -163,6 +166,19 @@ public class RAPConfiguration implements ApplicationConfiguration {
 
                     final WebApplicationContext webApplicationContext = getWebApplicationContext(httpSession);
                     initSpringBasedRAPServices(webApplicationContext);
+
+                    final Environment environment = webApplicationContext.getBean(Environment.class);
+                    if (environment != null) {
+
+                        final Integer sessionTimeout = environment.getProperty(
+                                ATTR_USER_SESSION_TIMEOUT,
+                                Integer.class,
+                                -1);
+
+                        httpSession.setMaxInactiveInterval(sessionTimeout);
+                    } else {
+                        httpSession.setMaxInactiveInterval(-1);
+                    }
 
                     final EntryPointService entryPointService = webApplicationContext
                             .getBean(EntryPointService.class);
