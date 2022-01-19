@@ -88,6 +88,26 @@ public interface ZoomRoomRequestResponse {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    static class ApplyUserSettingsRequest {
+        @JsonProperty final InMeetingSettings in_meeting;
+        public ApplyUserSettingsRequest() {
+            this.in_meeting = new InMeetingSettings(true, 1);
+        }
+        public ApplyUserSettingsRequest(final InMeetingSettings in_meeting) {
+            this.in_meeting = in_meeting;
+        }
+
+        static class InMeetingSettings {
+            @JsonProperty final boolean auto_saving_chat;
+            @JsonProperty final int allow_users_save_chats;
+            public InMeetingSettings(boolean auto_saving_chat, int allow_users_save_chats) {
+                this.auto_saving_chat = auto_saving_chat;
+                this.allow_users_save_chats = allow_users_save_chats;
+            }
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
     static class UserResponse {
         final String id;
         final String email;
