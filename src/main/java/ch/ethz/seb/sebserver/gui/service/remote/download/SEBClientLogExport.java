@@ -25,7 +25,7 @@ import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportSEBClientLogs;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.ExportSEBClientLogs;
 
 @Lazy
 @Component
@@ -63,9 +63,8 @@ public class SEBClientLogExport extends AbstractDownloadServiceHandler {
                         final InputStream input = response.getBody();
                         IOUtils.copyLarge(input, downloadOut);
                     } catch (final IOException e) {
-                        log.error(
-                                "Unexpected error while streaming incoming config data from web-service to output-stream of download response: ",
-                                e);
+                        log.error("Unexpected error while streaming to output-stream of download response: ", e);
+                        throw new RuntimeException(e);
                     } finally {
                         try {
                             downloadOut.flush();
@@ -79,8 +78,7 @@ public class SEBClientLogExport extends AbstractDownloadServiceHandler {
                 })
                 .withQueryParams(queryParams)
                 .call()
-                .onError(error -> log.error("Download failed: ", error));
-
+                .onError(error -> log.error("SEB Client logs download failed: ", error));
     }
 
 }

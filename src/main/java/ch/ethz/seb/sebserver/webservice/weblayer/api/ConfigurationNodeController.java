@@ -221,7 +221,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_PLAIN_XML_DOWNLOAD_PATH_SEGMENT,
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_SEB_SETTINGS_DOWNLOAD_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public void downloadPlainXMLConfig(

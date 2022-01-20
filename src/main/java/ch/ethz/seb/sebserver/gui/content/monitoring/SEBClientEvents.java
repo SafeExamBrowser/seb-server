@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content.monitoring;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -15,6 +16,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.tomcat.util.buf.StringUtils;
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,12 +27,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
+import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -42,6 +48,8 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
+import ch.ethz.seb.sebserver.gui.service.remote.download.SEBClientLogExport;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetClientEventNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
@@ -84,23 +92,29 @@ public class SEBClientEvents implements TemplateComposer {
     private final ResourceService resourceService;
     private final RestService restService;
     private final I18nSupport i18nSupport;
+    private final DownloadService downloadService;
     private final SEBClientEventDetailsPopup sebClientEventDetailsPopup;
     private final SEBClientEventDeletePopup sebClientEventDeletePopup;
     private final int pageSize;
+    private final String exportFileName;
 
     public SEBClientEvents(
             final PageService pageService,
+            final DownloadService downloadService,
             final SEBClientEventDetailsPopup sebClientEventDetailsPopup,
             final SEBClientEventDeletePopup sebClientEventDeletePopup,
+            @Value("${sebserver.gui.seb.client.logs.export.filename:SEBClientLogs}") final String exportFileName,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
+        this.downloadService = downloadService;
         this.resourceService = pageService.getResourceService();
         this.restService = this.resourceService.getRestService();
         this.i18nSupport = this.resourceService.getI18nSupport();
         this.sebClientEventDetailsPopup = sebClientEventDetailsPopup;
         this.sebClientEventDeletePopup = sebClientEventDeletePopup;
         this.pageSize = pageSize;
+        this.exportFileName = exportFileName;
 
         this.examFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -219,10 +233,50 @@ public class SEBClientEvents implements TemplateComposer {
                 .noEventPropagation()
                 .publish(false)
 
+                .newAction(ActionDefinition.LOGS_SEB_CLIENT_EXPORT_CSV)
+                .withExec(action -> this.exportLogs(action, ExportType.CSV, table))
+                .noEventPropagation()
+                .publishIf(() -> writeGrant, table.hasAnyContent())
+
                 .newAction(ActionDefinition.LOGS_SEB_CLIENT_DELETE_ALL)
                 .withExec(action -> this.getOpenDelete(action, table.getFilterCriteria()))
                 .noEventPropagation()
                 .publishIf(() -> writeGrant, table.hasAnyContent());
+    }
+
+    private PageAction exportLogs(
+            final PageAction action,
+            final ExportType type,
+            final EntityTable<ExtendedClientEvent> table) {
+
+        try {
+
+            final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
+            final String fileName = this.exportFileName
+                    + Constants.UNDERLINE
+                    + this.i18nSupport.formatDisplayDate(Utils.getMillisecondsNow())
+                            .replace(" ", "_")
+                            .replace(".", "_")
+                    + Constants.FILE_EXT_CSV;
+            final Map<String, String> queryAttrs = new HashMap<>();
+
+            queryAttrs.put(API.SEB_CLIENT_EVENT_EXPORT_TYPE, type.name());
+            final String sortAttr = table.getSortOrder().encode(table.getSortColumn());
+            queryAttrs.put(Page.ATTR_SORT, sortAttr);
+            table.getFilterCriteria().forEach((name, value) -> queryAttrs.put(name, value.get(0)));
+
+            final String downloadURL = this.downloadService
+                    .createDownloadURL(
+                            SEBClientLogExport.class,
+                            fileName,
+                            queryAttrs);
+
+            urlLauncher.openURL(downloadURL);
+        } catch (final Exception e) {
+            log.error("Failed open export log download: ", e);
+        }
+
+        return action;
     }
 
     private PageAction getOpenDelete(

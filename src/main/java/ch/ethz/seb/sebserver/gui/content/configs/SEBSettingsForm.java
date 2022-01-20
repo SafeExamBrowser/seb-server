@@ -50,7 +50,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
-import ch.ethz.seb.sebserver.gui.service.remote.download.SEBExamConfigPlaintextDownload;
+import ch.ethz.seb.sebserver.gui.service.remote.download.SEBExamSettingsDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
@@ -237,7 +237,7 @@ public class SEBSettingsForm implements TemplateComposer {
                     .withExec(action -> {
                         final String downloadURL = this.downloadService.createDownloadURL(
                                 entityKey.modelId,
-                                SEBExamConfigPlaintextDownload.class,
+                                SEBExamSettingsDownload.class,
                                 this.downloadFileName);
                         urlLauncher.openURL(downloadURL);
                         return action;

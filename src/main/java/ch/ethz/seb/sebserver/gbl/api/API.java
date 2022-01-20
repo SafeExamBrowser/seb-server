@@ -144,7 +144,7 @@ public final class API {
     public static final String QUIZ_DISCOVERY_ENDPOINT = "/quiz";
 
     public static final String EXAM_ADMINISTRATION_ENDPOINT = "/exam";
-    public static final String EXAM_ADMINISTRATION_DOWNLOAD_CONFIG_PATH_SEGMENT = "/download-config";
+    //public static final String EXAM_ADMINISTRATION_DOWNLOAD_CONFIG_PATH_SEGMENT = "/download-config";
     public static final String EXAM_ADMINISTRATION_CONSISTENCY_CHECK_PATH_SEGMENT = "/check-consistency";
     public static final String EXAM_ADMINISTRATION_CONSISTENCY_CHECK_INCLUDE_RESTRICTION = "include-restriction";
     public static final String EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT = "/seb-restriction";
@@ -170,7 +170,7 @@ public final class API {
     public static final String CONFIGURATION_VALUE_ENDPOINT = "/configuration_value";
     public static final String CONFIGURATION_TABLE_VALUE_PATH_SEGMENT = "/table";
     public static final String CONFIGURATION_ATTRIBUTE_ENDPOINT = "/configuration_attribute";
-    public static final String CONFIGURATION_PLAIN_XML_DOWNLOAD_PATH_SEGMENT = "/downloadxml";
+    public static final String CONFIGURATION_SEB_SETTINGS_DOWNLOAD_PATH_SEGMENT = "/downloadSettings";
     public static final String CONFIGURATION_IMPORT_PATH_SEGMENT = "/import";
     public static final String IMPORT_PASSWORD_ATTR_NAME = "importFilePassword";
     public static final String IMPORT_FILE_ATTR_NAME = "importFile";

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2021 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
@@ -19,13 +19,12 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.AbstractDownloadC
 @Lazy
 @Component
 @GuiProfile
-public class ExportClientConfig extends AbstractDownloadCall {
+public class ExportSEBClientLogs extends AbstractDownloadCall {
 
-    public ExportClientConfig() {
+    public ExportSEBClientLogs() {
         super(MediaType.APPLICATION_FORM_URLENCODED,
-                API.SEB_CLIENT_CONFIG_ENDPOINT
-                        + API.SEB_CLIENT_CONFIG_DOWNLOAD_PATH_SEGMENT
-                        + API.MODEL_ID_VAR_PATH_SEGMENT);
+                API.SEB_CLIENT_EVENT_ENDPOINT
+                        + API.SEB_CLIENT_EVENT_EXPORT_PATH_SEGMENT);
     }
 
 }

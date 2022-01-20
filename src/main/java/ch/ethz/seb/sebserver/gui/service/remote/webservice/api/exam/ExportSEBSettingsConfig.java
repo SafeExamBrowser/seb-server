@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,12 +19,13 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.AbstractDownloadC
 @Lazy
 @Component
 @GuiProfile
-public class ExportSEBClientLogs extends AbstractDownloadCall {
+public class ExportSEBSettingsConfig extends AbstractDownloadCall {
 
-    public ExportSEBClientLogs() {
+    public ExportSEBSettingsConfig() {
         super(MediaType.APPLICATION_FORM_URLENCODED,
-                API.SEB_CLIENT_EVENT_ENDPOINT
-                        + API.SEB_CLIENT_EVENT_EXPORT_PATH_SEGMENT);
+                API.CONFIGURATION_NODE_ENDPOINT
+                        + API.MODEL_ID_VAR_PATH_SEGMENT
+                        + API.CONFIGURATION_SEB_SETTINGS_DOWNLOAD_PATH_SEGMENT);
     }
 
 }

@@ -15,29 +15,26 @@ import java.io.OutputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ExportClientConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportSEBSettingsConfig;
 
 @Lazy
 @Component
 @GuiProfile
-public class SEBClientConfigDownload extends AbstractDownloadServiceHandler {
+public class SEBExamSettingsDownload extends AbstractDownloadServiceHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(SEBClientConfigDownload.class);
+    private static final Logger log = LoggerFactory.getLogger(SEBExamSettingsDownload.class);
 
     private final RestService restService;
 
-    protected SEBClientConfigDownload(final RestService restService) {
+    protected SEBExamSettingsDownload(final RestService restService) {
         this.restService = restService;
     }
 
@@ -48,8 +45,8 @@ public class SEBClientConfigDownload extends AbstractDownloadServiceHandler {
             final OutputStream downloadOut,
             final HttpServletRequest request) {
 
-        final RestCall<Boolean>.RestCallBuilder restCallBuilder = this.restService
-                .getBuilder(ExportClientConfig.class)
+        this.restService
+                .getBuilder(ExportSEBSettingsConfig.class)
                 .withURIVariable(API.PARAM_MODEL_ID, modelId)
                 .withResponseExtractor(response -> {
                     try {
@@ -68,13 +65,7 @@ public class SEBClientConfigDownload extends AbstractDownloadServiceHandler {
                     }
 
                     return true;
-                });
-
-        if (StringUtils.isNotBlank(parentModelId)) {
-            restCallBuilder.withQueryParam(EXAM.ATTR_ID, parentModelId);
-        }
-
-        restCallBuilder
+                })
                 .call()
                 .onError(error -> log.error("SEB exam settings download failed: ", error));
     }
