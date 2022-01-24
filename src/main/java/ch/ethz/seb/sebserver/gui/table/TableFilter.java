@@ -331,6 +331,11 @@ public class TableFilter<ROW> {
                     getAriaLabel());
 
             this.textInput.setLayoutData(gridData);
+            this.textInput.addListener(SWT.KeyUp, event -> {
+                if (event.keyCode == Constants.ENTER.hashCode()) {
+                    TableFilter.this.entityTable.applyFilter();
+                }
+            });
             return this;
         }
 
@@ -387,6 +392,9 @@ public class TableFilter<ROW> {
             this.selector
                     .adaptToControl()
                     .setLayoutData(gridData);
+            this.selector.setSelectionListener(event -> {
+                TableFilter.this.entityTable.applyFilter();
+            });
             return this;
         }
 
@@ -439,6 +447,9 @@ public class TableFilter<ROW> {
             this.selector = TableFilter.this.entityTable.widgetFactory.dateSelector(
                     innerComposite,
                     getAriaLabel());
+            this.selector.addListener(SWT.Selection, event -> {
+                TableFilter.this.entityTable.applyFilter();
+            });
             return this;
         }
 
@@ -532,14 +543,26 @@ public class TableFilter<ROW> {
             final WidgetFactory wf = TableFilter.this.entityTable.widgetFactory;
             wf.labelLocalized(this.innerComposite, DATE_FROM_TEXT);
             this.fromDateSelector = wf.dateSelector(this.innerComposite, getAriaLabel());
+            this.fromDateSelector.addListener(SWT.Selection, event -> {
+                TableFilter.this.entityTable.applyFilter();
+            });
             if (this.withTime) {
                 this.fromTimeSelector = wf.timeSelector(this.innerComposite, getAriaLabel());
+                this.fromTimeSelector.addListener(SWT.Selection, event -> {
+                    TableFilter.this.entityTable.applyFilter();
+                });
             }
 
             wf.labelLocalized(this.innerComposite, DATE_TO_TEXT);
             this.toDateSelector = wf.dateSelector(this.innerComposite, getAriaLabel());
+            this.toDateSelector.addListener(SWT.Selection, event -> {
+                TableFilter.this.entityTable.applyFilter();
+            });
             if (this.withTime) {
                 this.toTimeSelector = wf.timeSelector(this.innerComposite, getAriaLabel());
+                this.toTimeSelector.addListener(SWT.Selection, event -> {
+                    TableFilter.this.entityTable.applyFilter();
+                });
             }
 
             return this;
