@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -521,15 +522,20 @@ public class ExamForm implements TemplateComposer {
             return processFormSave;
 
         } catch (final Exception e) {
-            // try to geht the created exam id
-            Throwable error = e;
-            if (e instanceof FormPostException) {
-                error = ((FormPostException) e).getCause();
-            }
-            if (error instanceof RestCallError) {
-                final List<APIMessage> apiMessages = ((RestCallError) error).getAPIMessages();
-                if (apiMessages != null && !apiMessages.isEmpty()) {
-                    final APIMessage apiMessage = apiMessages.get(0);
+            return handleExamImportSetupFailure(action, e);
+        }
+    }
+
+    private PageAction handleExamImportSetupFailure(final PageAction action, final Exception e) {
+        Throwable error = e;
+        if (e instanceof FormPostException) {
+            error = ((FormPostException) e).getCause();
+        }
+        if (error instanceof RestCallError) {
+            final List<APIMessage> apiMessages = ((RestCallError) error).getAPIMessages();
+            if (apiMessages != null && !apiMessages.isEmpty()) {
+                final APIMessage apiMessage = apiMessages.remove(0);
+                if (ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.isOf(apiMessage)) {
                     final String examIdAttr = apiMessage.attributes
                             .stream()
                             .filter(attr -> attr.startsWith(API.PARAM_MODEL_ID))
@@ -539,16 +545,21 @@ public class ExamForm implements TemplateComposer {
                                 examIdAttr,
                                 Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR);
                         if (API.PARAM_MODEL_ID.equals(split[0])) {
+                            final String additionlMessages = apiMessages.stream()
+                                    .reduce(
+                                            "",
+                                            (acc, msg) -> acc + "<br/>&nbsp;&nbsp;&nbsp;" + msg.systemMessage,
+                                            (acc1, acc2) -> acc1 + acc2);
                             action.pageContext().publishPageMessage(
                                     AUTO_GEN_CONFIG_ERROR_TITLE,
-                                    AUTO_GEN_CONFIG_ERROR_TEXT);
+                                    new LocTextKey(AUTO_GEN_CONFIG_ERROR_TEXT.name, additionlMessages));
                             return action.withEntityKey(new EntityKey(split[1], EntityType.EXAM));
                         }
                     }
                 }
             }
-            throw e;
         }
+        throw new RuntimeException("Error while handle exam import setup failure:", e);
     }
 
     private boolean testSEBRestrictionAPI(final Exam exam) {

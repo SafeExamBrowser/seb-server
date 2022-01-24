@@ -136,6 +136,8 @@ public abstract class RestCall<T> {
                         responseEntity.getBody(),
                         RestCall.this.typeKey.typeRef));
 
+            } else if (responseEntity.getStatusCode() == HttpStatus.PARTIAL_CONTENT) {
+                return handleRestCallPartialResponse(responseEntity);
             } else {
                 return handleRestCallError(responseEntity);
             }
@@ -180,6 +182,11 @@ public abstract class RestCall<T> {
                     String.valueOf(builder)));
             return Result.ofError(e);
         }
+    }
+
+    private Result<T> handleRestCallPartialResponse(final ResponseEntity<String> responseEntity) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     public RestCallBuilder newBuilder() {

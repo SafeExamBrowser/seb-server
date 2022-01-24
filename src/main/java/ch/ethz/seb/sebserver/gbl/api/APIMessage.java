@@ -49,8 +49,6 @@ public class APIMessage implements Serializable {
         PASSWORD_MISMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match confirmed password"),
         MISSING_PASSWORD("1301", HttpStatus.BAD_REQUEST, "Missing Password"),
 
-        BINDING_ERROR("1500", HttpStatus.BAD_REQUEST, "External binding error"),
-
         EXAM_CONSISTENCY_VALIDATION_SUPPORTER("1400", HttpStatus.OK, "No Exam Supporter defined for the Exam"),
         EXAM_CONSISTENCY_VALIDATION_CONFIG("1401", HttpStatus.OK, "No SEB Exam Configuration defined for the Exam"),
         EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION("1402", HttpStatus.OK,
@@ -60,10 +58,20 @@ public class APIMessage implements Serializable {
         EXAM_CONSISTENCY_VALIDATION_INVALID_ID_REFERENCE("1405", HttpStatus.OK,
                 "There seems to be an invalid exam - course identifier reference. The course cannot be found"),
 
-        EXAM_IMPORT_ERROR_AUTO_CONFIG("1500", HttpStatus.BAD_REQUEST,
-                "Failed to automatically create and link exam configuration from exam template"),
-        EXAM_IMPORT_ERROR_AUTO_CONFIG_LINKING("1500", HttpStatus.BAD_REQUEST,
-                "Failed to automatically link auto-generated exam configuration");
+        EXTERNAL_SERVICE_BINDING_ERROR("1500", HttpStatus.BAD_REQUEST, "External binding error"),
+
+        EXAM_IMPORT_ERROR_AUTO_SETUP("1600", HttpStatus.PARTIAL_CONTENT,
+                "Exam successfully imported but some additional initialization failed"),
+        EXAM_IMPORT_ERROR_AUTO_INDICATOR("1601", HttpStatus.PARTIAL_CONTENT,
+                "Failed to automatically create pre-defined indicators for the exam"),
+        EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES("1602", HttpStatus.PARTIAL_CONTENT,
+                "Failed to automatically create pre-defined attributes for the exam"),
+        EXAM_IMPORT_ERROR_AUTO_RESTRICTION("1603", HttpStatus.PARTIAL_CONTENT,
+                "Failed to automatically apply SEB restriction for the exam to the involved LMS"),
+        EXAM_IMPORT_ERROR_AUTO_CONFIG("1610", HttpStatus.PARTIAL_CONTENT,
+                "Failed to automatically create and link exam configuration from the exam template to the exam"),
+        EXAM_IMPORT_ERROR_AUTO_CONFIG_LINKING("1611", HttpStatus.PARTIAL_CONTENT,
+                "Failed to automatically link auto-generated exam configuration to the exam");
 
         public final String messageCode;
         public final HttpStatus httpStatus;

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
@@ -411,11 +413,42 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     @Override
     protected Result<Exam> notifyCreated(final Exam entity) {
-        return this.examTemplateService
+        final List<APIMessage> errors = new ArrayList<>();
+
+        this.examTemplateService
                 .addDefinedIndicators(entity)
+                .onErrorDo(error -> {
+                    errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_INDICATOR.of(error));
+                    return entity;
+                })
                 .flatMap(this.examTemplateService::initAdditionalAttributes)
+                .onErrorDo(error -> {
+                    errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error));
+                    return entity;
+                })
                 .flatMap(this.examTemplateService::initExamConfiguration)
-                .flatMap(this.examAdminService::applyAdditionalSEBRestrictions);
+                .onErrorDo(error -> {
+                    if (error instanceof APIMessageException) {
+                        errors.addAll(((APIMessageException) error).getAPIMessages());
+                    } else {
+                        errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG.of(error));
+                    }
+                    return entity;
+                })
+                .flatMap(this.examAdminService::applyAdditionalSEBRestrictions)
+                .onErrorDo(error -> {
+                    errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_RESTRICTION.of(error));
+                    return entity;
+                });
+
+        if (!errors.isEmpty()) {
+            errors.add(0, ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(
+                    entity.getModelId(),
+                    API.PARAM_MODEL_ID + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + entity.getModelId()));
+            throw new APIMessageException(errors);
+        } else {
+            return Result.of(entity);
+        }
     }
 
     @Override

@@ -186,13 +186,13 @@ public class ZoomProctoringService implements ExamProctoringService {
 
                 if (result.getStatusCode() != HttpStatus.OK) {
                     throw new APIMessageException(
-                            APIMessage.ErrorMessage.BINDING_ERROR,
+                            APIMessage.ErrorMessage.EXTERNAL_SERVICE_BINDING_ERROR,
                             String.valueOf(result.getStatusCode()));
                 }
 
             } catch (final Exception e) {
                 log.error("Failed to access Zoom service at: {}", proctoringSettings.serverURL, e);
-                throw new APIMessageException(APIMessage.ErrorMessage.BINDING_ERROR, e.getMessage());
+                throw new APIMessageException(APIMessage.ErrorMessage.EXTERNAL_SERVICE_BINDING_ERROR, e.getMessage());
             }
 
             return true;

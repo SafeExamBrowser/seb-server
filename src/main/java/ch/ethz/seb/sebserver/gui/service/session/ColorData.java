@@ -27,7 +27,7 @@ public class ColorData {
 
     public ColorData(final Display display) {
         this.defaultColor = new Color(display, new RGB(220, 220, 220), 255);
-        this.color1 = new Color(display, new RGB(34, 177, 76), 255);
+        this.color1 = new Color(display, new RGB(255, 255, 255), 255);
         this.color2 = new Color(display, new RGB(255, 194, 14), 255);
         this.color3 = new Color(display, new RGB(237, 28, 36), 255);
         this.darkColor = new Color(display, Constants.BLACK_RGB);
@@ -42,8 +42,6 @@ public class ColorData {
         switch (connectionData.clientConnection.status) {
             case ACTIVE:
                 return (connectionData.missingPing) ? this.color2 : this.color1;
-            case DISABLED:
-                return this.color2;
             default:
                 return this.defaultColor;
         }

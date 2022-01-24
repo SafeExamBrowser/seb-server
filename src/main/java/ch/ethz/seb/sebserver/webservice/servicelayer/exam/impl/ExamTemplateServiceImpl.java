@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -149,7 +148,8 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                         }
                     }
                     return _exam;
-                });
+                }).onError(error -> log.error("Failed to create additional attributes defined by template for exam: ",
+                        error));
     }
 
     @Override
@@ -196,8 +196,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                                     error))
                             .getOrThrow(error -> new APIMessageException(
                                     ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG,
-                                    error,
-                                    API.PARAM_MODEL_ID + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + exam.id));
+                                    error));
 
                     // map the exam configuration to the exam
                     this.examConfigurationMapDAO.createNew(new ExamConfigurationMap(
@@ -212,8 +211,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                                     error))
                             .getOrThrow(error -> new APIMessageException(
                                     ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG_LINKING,
-                                    error,
-                                    API.PARAM_MODEL_ID + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + exam.id));
+                                    error));
 
                 }
             } else {
@@ -223,7 +221,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             }
 
             return exam;
-        });
+        }).onError(error -> log.error("Failed to create exam configuration defined by template for exam: ", error));
     }
 
     private Result<Exam> addIndicatorsFromTemplate(final Exam exam) {
@@ -248,11 +246,10 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 examTemplate.indicatorTemplates
                         .forEach(it -> createIndicatorFromTemplate(it, exam));
-
             }
 
             return exam;
-        });
+        }).onError(error -> log.error("Failed to create indicators defined by template for exam: ", error));
     }
 
     private void createIndicatorFromTemplate(final IndicatorTemplate template, final Exam exam) {
@@ -310,7 +307,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     .getOrThrow();
 
             return exam;
-        });
+        }).onError(error -> log.error("Failed to apply default indicators for exam: ", error));
     }
 
     private String replaceVars(final String template, final Exam exam, final ExamTemplate examTemplate) {

@@ -150,11 +150,11 @@ public class JitsiProctoringService implements ExamProctoringService {
                 final ResponseEntity<String> result =
                         restTemplate.getForEntity(proctoringSettings.serverURL, String.class);
                 if (result.getStatusCode() != HttpStatus.OK) {
-                    throw new APIMessageException(APIMessage.ErrorMessage.BINDING_ERROR);
+                    throw new APIMessageException(APIMessage.ErrorMessage.EXTERNAL_SERVICE_BINDING_ERROR);
                 }
             } catch (final Exception e) {
                 log.error("Failed to access proctoring service: {}", e.getMessage());
-                throw new APIMessageException(APIMessage.ErrorMessage.BINDING_ERROR, e.getMessage());
+                throw new APIMessageException(APIMessage.ErrorMessage.EXTERNAL_SERVICE_BINDING_ERROR, e.getMessage());
             }
 
             return true;
