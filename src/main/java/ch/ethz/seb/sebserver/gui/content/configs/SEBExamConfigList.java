@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -68,6 +69,7 @@ public class SEBExamConfigList implements TemplateComposer {
 
     private final PageService pageService;
     private final SEBExamConfigImportPopup sebExamConfigImportPopup;
+    private final SEBExamConfigCreationPopup sebExamConfigCreationPopup;
     private final CurrentUser currentUser;
     private final ResourceService resourceService;
     private final int pageSize;
@@ -75,10 +77,12 @@ public class SEBExamConfigList implements TemplateComposer {
     protected SEBExamConfigList(
             final PageService pageService,
             final SEBExamConfigImportPopup sebExamConfigImportPopup,
+            final SEBExamConfigCreationPopup sebExamConfigCreationPopup,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.sebExamConfigImportPopup = sebExamConfigImportPopup;
+        this.sebExamConfigCreationPopup = sebExamConfigCreationPopup;
         this.currentUser = pageService.getCurrentUser();
         this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
@@ -149,7 +153,8 @@ public class SEBExamConfigList implements TemplateComposer {
                         .withSelectionListener(this.pageService.getSelectionPublisher(
                                 pageContext,
                                 ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST,
-                                ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST))
+                                ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST,
+                                ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_FROM_LIST))
 
                         .compose(pageContext.copyOf(content));
 
@@ -160,14 +165,38 @@ public class SEBExamConfigList implements TemplateComposer {
                 .publishIf(examConfigGrant::iw)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
-                .withSelect(configTable::getSelection, PageAction::applySingleSelectionAsEntityKey,
+                .withSelect(
+                        configTable::getSelection,
+                        PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
                 .publish(false)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST)
                 .withSelect(
                         configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
-                        PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
+                        PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
+                .publishIf(() -> examConfigGrant.im(), false)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_FROM_LIST)
+                //.withEntityKey(entityKey)
+                .withSelect(
+                        configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
+                        pageAction -> {
+                            this.sebExamConfigCreationPopup.configCreationFunction(
+                                    pageAction.pageContext()
+                                            .withEntityKey(pageAction.getSingleSelection())
+                                            .withAttribute(
+                                                    PageContext.AttributeKeys.COPY_AS_TEMPLATE,
+                                                    Constants.FALSE_STRING)
+                                            .withAttribute(
+                                                    PageContext.AttributeKeys.CREATE_FROM_TEMPLATE,
+                                                    Constants.FALSE_STRING))
+                                    .apply(pageAction);
+                            return pageAction;
+                        },
+                        EMPTY_SELECTION_TEXT_KEY)
+                .noEventPropagation()
                 .publishIf(() -> examConfigGrant.im(), false)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
