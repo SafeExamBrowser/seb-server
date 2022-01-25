@@ -12,6 +12,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,14 +66,21 @@ public class ViewDAOImpl implements ViewDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<View>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.viewRecordMapper.selectByExample()
-                .where(ViewRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(ViewDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.viewRecordMapper.selectByExample()
+                    .where(ViewRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(ViewDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
@@ -212,6 +220,9 @@ public class ViewDAOImpl implements ViewDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             this.viewRecordMapper.deleteByExample()
                     .where(ViewRecordDynamicSqlSupport.id, isIn(ids))

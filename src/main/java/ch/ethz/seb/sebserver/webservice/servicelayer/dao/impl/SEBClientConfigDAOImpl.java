@@ -196,6 +196,10 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
+
             final SebClientConfigRecord record = new SebClientConfigRecord(
                     null, null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active));
@@ -278,6 +282,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             this.sebClientConfigRecordMapper.deleteByExample()
                     .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(ids))
@@ -293,14 +300,21 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<SEBClientConfig>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.sebClientConfigRecordMapper.selectByExample()
-                .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.sebClientConfigRecordMapper.selectByExample()
+                    .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

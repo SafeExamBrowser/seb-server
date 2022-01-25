@@ -91,14 +91,21 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<ConfigurationNode>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.configurationNodeRecordMapper.selectByExample()
-                .where(ConfigurationNodeRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(ConfigurationNodeDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.configurationNodeRecordMapper.selectByExample()
+                    .where(ConfigurationNodeRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(ConfigurationNodeDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
@@ -224,6 +231,10 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             // find all configurations for this configuration node
             final List<Long> configurationIds = this.configurationRecordMapper.selectIdsByExample()

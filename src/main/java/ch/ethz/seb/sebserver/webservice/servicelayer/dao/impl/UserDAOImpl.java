@@ -324,6 +324,10 @@ public class UserDAOImpl implements UserDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
+
             final UserRecord userRecord = new UserRecord(
                     null, null, null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active));
@@ -363,6 +367,9 @@ public class UserDAOImpl implements UserDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             // get all user records for later processing
             final List<UserRecord> users = this.userRecordMapper.selectByExample()
@@ -413,14 +420,21 @@ public class UserDAOImpl implements UserDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserInfo>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.userRecordMapper.selectByExample()
-                .where(InstitutionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.userRecordMapper.selectByExample()
+                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
@@ -429,6 +443,11 @@ public class UserDAOImpl implements UserDAO {
             return UserDAO.super.extractPKsFromKeys(keys);
         } else {
             try {
+
+                if (keys == null || keys.isEmpty()) {
+                    return Collections.emptySet();
+                }
+
                 final List<String> uuids = keys.stream()
                         .map(key -> key.modelId)
                         .collect(Collectors.toList());

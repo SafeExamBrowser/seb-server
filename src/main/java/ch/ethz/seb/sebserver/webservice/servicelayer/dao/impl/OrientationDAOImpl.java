@@ -13,6 +13,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,14 +69,21 @@ public class OrientationDAOImpl implements OrientationDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Orientation>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.orientationRecordMapper.selectByExample()
-                .where(OrientationRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(OrientationDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.orientationRecordMapper.selectByExample()
+                    .where(OrientationRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(OrientationDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
@@ -227,6 +235,9 @@ public class OrientationDAOImpl implements OrientationDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             this.orientationRecordMapper.deleteByExample()
                     .where(OrientationRecordDynamicSqlSupport.id, isIn(ids))

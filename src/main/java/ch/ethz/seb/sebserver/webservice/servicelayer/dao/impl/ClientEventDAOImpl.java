@@ -13,6 +13,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -186,14 +187,21 @@ public class ClientEventDAOImpl implements ClientEventDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<ClientEvent>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.clientEventRecordMapper.selectByExample()
-                .where(ClientEventRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(ClientEventDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.clientEventRecordMapper.selectByExample()
+                    .where(ClientEventRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(ClientEventDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
@@ -378,6 +386,10 @@ public class ClientEventDAOImpl implements ClientEventDAO {
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
+            if (all == null || all.isEmpty()) {
+                return Collections.emptyList();
+            }
+
             final List<Long> pks = all
                     .stream()
                     .map(EntityKey::getModelId)
@@ -402,11 +414,19 @@ public class ClientEventDAOImpl implements ClientEventDAO {
     public Result<Collection<EntityKey>> deleteClientNotification(final Set<EntityKey> keys) {
         return Result.tryCatch(() -> {
 
+            if (keys == null || keys.isEmpty()) {
+                return Collections.emptyList();
+            }
+
             final List<Long> pks = keys
                     .stream()
                     .map(EntityKey::getModelId)
                     .map(Long::parseLong)
                     .collect(Collectors.toList());
+
+            if (log.isDebugEnabled()) {
+                log.debug("Going to delete all client notifications: {}", pks);
+            }
 
             this.clientNotificationRecordMapper
                     .deleteByExample()

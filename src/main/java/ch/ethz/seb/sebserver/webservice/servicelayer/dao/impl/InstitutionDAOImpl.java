@@ -170,6 +170,10 @@ public class InstitutionDAOImpl implements InstitutionDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
+
             final InstitutionRecord institutionRecord = new InstitutionRecord(
                     null, null, null, null, BooleanUtils.toInteger(active), null);
 
@@ -204,6 +208,9 @@ public class InstitutionDAOImpl implements InstitutionDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             this.institutionRecordMapper.deleteByExample()
                     .where(InstitutionRecordDynamicSqlSupport.id, isIn(ids))
@@ -226,14 +233,21 @@ public class InstitutionDAOImpl implements InstitutionDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Institution>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.institutionRecordMapper.selectByExample()
-                .where(InstitutionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(InstitutionDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.institutionRecordMapper.selectByExample()
+                    .where(InstitutionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(InstitutionDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     private Result<InstitutionRecord> recordById(final Long id) {

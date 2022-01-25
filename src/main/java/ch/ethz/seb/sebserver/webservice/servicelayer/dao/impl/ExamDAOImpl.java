@@ -217,6 +217,10 @@ public class ExamDAOImpl implements ExamDAO {
         final Result<Collection<EntityKey>> tryCatch = Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
+
             final ExamRecord examRecord = new ExamRecord(null, null, null, null, null,
                     null, null, null, null, null, null, null, null, BooleanUtils.toInteger(active), null,
                     Utils.getMillisecondsNow());
@@ -484,6 +488,9 @@ public class ExamDAOImpl implements ExamDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             // notify exam deletion listener about following deletion, to cleanup stuff before deletion
             this.applicationEventPublisher.publishEvent(new ExamDeletionEvent(ids));

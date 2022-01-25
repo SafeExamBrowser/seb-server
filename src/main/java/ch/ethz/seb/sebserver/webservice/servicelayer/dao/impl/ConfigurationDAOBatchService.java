@@ -552,15 +552,17 @@ class ConfigurationDAOBatchService {
                 .collect(Collectors.toList());
 
         // first delete all old values of this table
-        this.batchConfigurationValueRecordMapper.deleteByExample()
-                .where(
-                        ConfigurationValueRecordDynamicSqlSupport.configurationId,
-                        isEqualTo(value.configurationId))
-                .and(
-                        ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                        SqlBuilder.isIn(columnAttributeIds))
-                .build()
-                .execute();
+        if (!columnAttributeIds.isEmpty()) {
+            this.batchConfigurationValueRecordMapper.deleteByExample()
+                    .where(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                            isEqualTo(value.configurationId))
+                    .and(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                            SqlBuilder.isIn(columnAttributeIds))
+                    .build()
+                    .execute();
+        }
 
         // then add the new values
         for (final TableValue tableValue : value.values) {

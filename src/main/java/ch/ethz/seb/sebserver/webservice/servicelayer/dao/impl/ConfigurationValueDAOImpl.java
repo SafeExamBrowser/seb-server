@@ -11,7 +11,17 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -115,14 +125,21 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<ConfigurationValue>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.configurationValueRecordMapper.selectByExample()
-                .where(ConfigurationValueRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(ConfigurationValueDAOImpl::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.configurationValueRecordMapper.selectByExample()
+                    .where(ConfigurationValueRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(ConfigurationValueDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
@@ -248,6 +265,9 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 .flatMap(this::getAttributeMapping)
                 .map(attributeMapping -> {
                     // get all values of the table
+                    final ArrayList<Long> attrs = (attributeMapping != null && !attributeMapping.isEmpty())
+                            ? new ArrayList<>(attributeMapping.keySet())
+                            : null;
                     final List<TableValue> values = this.configurationValueRecordMapper.selectByExample()
                             .where(
                                     ConfigurationValueRecordDynamicSqlSupport.institutionId,
@@ -257,7 +277,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                                     isEqualTo(configurationId))
                             .and(
                                     ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                                    SqlBuilder.isIn(new ArrayList<>(attributeMapping.keySet())))
+                                    SqlBuilder.isInWhenPresent(attrs))
                             .build()
                             .execute()
                             .stream()
@@ -329,13 +349,13 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
             rows.sort(Comparator.naturalOrder());
             rows.forEach(i -> {
 
-                        final Map<Long, ConfigurationValue> rowValuesMapping = indexMapping.get(i);
-                        final List<ConfigurationValue> rowValues = attributes
-                                .stream()
-                                .map(attr -> rowValuesMapping.get(attr.getId()))
-                                .collect(Collectors.toList());
-                        result.add(rowValues);
-                    });
+                final Map<Long, ConfigurationValue> rowValuesMapping = indexMapping.get(i);
+                final List<ConfigurationValue> rowValues = attributes
+                        .stream()
+                        .map(attr -> rowValuesMapping.get(attr.getId()))
+                        .collect(Collectors.toList());
+                result.add(rowValues);
+            });
 
             return result;
         });
@@ -362,7 +382,9 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
                     final Set<EntityKey> tableValues = new HashSet<>();
                     if (attributeMapping != null && !attributeMapping.isEmpty()) {
-
+                        final ArrayList<Long> attrs = (attributeMapping != null && !attributeMapping.isEmpty())
+                                ? new ArrayList<>(attributeMapping.keySet())
+                                : null;
                         tableValues.addAll(this.configurationValueRecordMapper.selectByExample()
                                 .where(
                                         ConfigurationValueRecordDynamicSqlSupport.institutionId,
@@ -372,7 +394,7 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                                         isEqualTo(configurationId))
                                 .and(
                                         ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
-                                        SqlBuilder.isIn(new ArrayList<>(attributeMapping.keySet())))
+                                        SqlBuilder.isInWhenPresent(attrs))
                                 .build()
                                 .execute()
                                 .stream()

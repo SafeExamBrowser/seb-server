@@ -12,6 +12,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -330,10 +331,17 @@ public class ExamRecordDAO {
 
     @Transactional(readOnly = true)
     public Result<Collection<ExamRecord>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.examRecordMapper.selectByExample()
-                .where(ExamRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute());
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.examRecordMapper.selectByExample()
+                    .where(ExamRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute();
+        });
     }
 
 }

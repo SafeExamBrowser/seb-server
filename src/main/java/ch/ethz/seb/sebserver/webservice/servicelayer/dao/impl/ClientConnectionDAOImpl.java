@@ -141,7 +141,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Transactional(readOnly = true)
     public Result<Collection<ClientConnection>> allOf(final Set<Long> pks) {
         if (pks == null || pks.isEmpty()) {
-            return Result.ofRuntimeError("Null or empty set reference");
+            return Result.of(Collections.emptyList());
         }
         return Result.tryCatch(() -> this.clientConnectionRecordMapper.selectByExample()
                 .where(ClientConnectionRecordDynamicSqlSupport.id, SqlBuilder.isIn(new ArrayList<>(pks)))

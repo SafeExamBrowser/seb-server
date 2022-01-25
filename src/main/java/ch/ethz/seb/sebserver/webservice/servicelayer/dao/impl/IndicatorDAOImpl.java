@@ -105,14 +105,21 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Indicator>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.indicatorRecordMapper.selectByExample()
-                .where(IndicatorRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.indicatorRecordMapper.selectByExample()
+                    .where(IndicatorRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
@@ -193,6 +200,9 @@ public class IndicatorDAOImpl implements IndicatorDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             // first delete all thresholds of indicators
             this.thresholdRecordMapper.deleteByExample()

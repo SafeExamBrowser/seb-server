@@ -13,6 +13,7 @@ import static org.mybatis.dynamic.sql.SqlBuilder.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -212,14 +213,20 @@ public class BatchActionDAOImpl implements BatchActionDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<BatchAction>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.batchActionRecordMapper.selectByExample()
-                .where(BatchActionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.batchActionRecordMapper.selectByExample()
+                    .where(BatchActionRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
@@ -292,6 +299,10 @@ public class BatchActionDAOImpl implements BatchActionDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+
+            if (ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             this.batchActionRecordMapper.deleteByExample()
                     .where(BatchActionRecordDynamicSqlSupport.id, isIn(ids))

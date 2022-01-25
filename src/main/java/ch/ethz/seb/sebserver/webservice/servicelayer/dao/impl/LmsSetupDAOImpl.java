@@ -241,6 +241,10 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
+
             final LmsSetupRecord lmsSetupRecord = new LmsSetupRecord(
                     null, null, null, null, null, null, null, null, null, null, null, null,
                     System.currentTimeMillis(),
@@ -277,6 +281,9 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             this.lmsSetupRecordMapper.deleteByExample()
                     .where(LmsSetupRecordDynamicSqlSupport.id, isIn(ids))
@@ -303,14 +310,21 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<LmsSetup>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.lmsSetupRecordMapper.selectByExample()
-                .where(LmsSetupRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.lmsSetupRecordMapper.selectByExample()
+                    .where(LmsSetupRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override

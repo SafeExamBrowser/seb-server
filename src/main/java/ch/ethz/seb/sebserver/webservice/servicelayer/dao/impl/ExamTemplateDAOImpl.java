@@ -117,14 +117,21 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<ExamTemplate>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.examTemplateRecordMapper.selectByExample()
-                .where(IndicatorRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.examTemplateRecordMapper.selectByExample()
+                    .where(IndicatorRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
@@ -247,6 +254,9 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             log.info("Delete exam templates: {}", all);
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             ids.stream()
                     .forEach(id -> {

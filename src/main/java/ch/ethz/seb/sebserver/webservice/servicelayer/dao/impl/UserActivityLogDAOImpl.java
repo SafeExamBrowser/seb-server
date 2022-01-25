@@ -324,6 +324,9 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
         return Result.tryCatch(() -> {
 
             final List<Long> ids = extractListOfPKs(all);
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
 
             this.userLogRecordMapper.deleteByExample()
                     .where(UserActivityLogRecordDynamicSqlSupport.id, isIn(ids))
@@ -438,12 +441,19 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<UserActivityLog>> allOf(final Set<Long> pks) {
-        return Result.tryCatch(() -> this.toDomainModel(
-                this.userService.getCurrentUser().institutionId(),
-                this.userLogRecordMapper.selectByExample()
-                        .where(UserActivityLogRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
-                        .build()
-                        .execute()));
+        return Result.tryCatch(() -> {
+
+            if (pks == null || pks.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.toDomainModel(
+                    this.userService.getCurrentUser().institutionId(),
+                    this.userLogRecordMapper.selectByExample()
+                            .where(UserActivityLogRecordDynamicSqlSupport.id, isIn(new ArrayList<>(pks)))
+                            .build()
+                            .execute());
+        });
     }
 
     @Override
