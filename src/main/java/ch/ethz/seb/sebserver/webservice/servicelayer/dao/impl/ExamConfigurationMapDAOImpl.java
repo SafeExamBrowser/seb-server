@@ -376,7 +376,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Boolean> checkForDeletion(final Long configurationNodeId) {
-        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectByExample()
+        return Result.tryCatch(() -> !this.examConfigurationMapRecordMapper.selectByExample()
                 .where(
                         ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
                         isEqualTo(configurationNodeId))
@@ -385,7 +385,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .stream()
                 .filter(rec -> !isExamFinished(rec.getExamId()))
                 .findFirst()
-                .isEmpty());
+                .isPresent());
     }
 
     private boolean isExamFinished(final Long examId) {
