@@ -21,9 +21,12 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
@@ -32,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.Configuration
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.content.exam.ExamList;
@@ -46,9 +50,11 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingsPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.DeleteExamConfiguration;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
@@ -106,6 +112,16 @@ public class SEBExamConfigForm implements TemplateComposer {
             new LocTextKey("sebserver.error.unexpected");
     static final LocTextKey FORM_IMPORT_ERROR_FILE_SELECTION =
             new LocTextKey("sebserver.examconfig.message.error.file");
+    static final LocTextKey CONFIRM_DELETE =
+            new LocTextKey("sebserver.examconfig.message.confirm.delete");
+    static final LocTextKey DELETE_CONFIRM_TITLE =
+            new LocTextKey("sebserver.dialog.confirm.title");
+    private final static LocTextKey DELETE_ERROR_CONSISTENCY =
+            new LocTextKey("sebserver.examconfig.message.consistency.error");
+    private final static LocTextKey DELETE_ERROR_DEPENDENCY =
+            new LocTextKey("sebserver.examconfig.message.delete.partialerror");
+    private final static LocTextKey DELETE_CONFIRM =
+            new LocTextKey("sebserver.examconfig.message.delete.confirm");
 
     private final PageService pageService;
     private final RestService restService;
@@ -217,8 +233,13 @@ public class SEBExamConfigForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_PROP_MODIFY)
                 .withEntityKey(entityKey)
-
                 .publishIf(() -> modifyGrant && isReadonly)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_DELETE)
+                .withEntityKey(entityKey)
+                .withConfirm(() -> CONFIRM_DELETE)
+                .withExec(this::deleteConfiguration)
+                .publishIf(() -> writeGrant && examConfig.status != ConfigurationStatus.IN_USE && isReadonly)
 
                 .newAction((!modifyGrant || examConfig.status == ConfigurationStatus.IN_USE)
                         ? ActionDefinition.SEB_EXAM_CONFIG_VIEW
@@ -318,6 +339,51 @@ public class SEBExamConfigForm implements TemplateComposer {
                     })
                     .publish(false);
         }
+    }
+
+    private PageAction deleteConfiguration(final PageAction action) {
+        final ConfigurationNode configNode = this.restService
+                .getBuilder(GetExamConfigNode.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .call()
+                .getOrThrow();
+
+        final Result<EntityProcessingReport> call = this.restService
+                .getBuilder(DeleteExamConfiguration.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .call();
+
+        final PageContext pageContext = action.pageContext();
+
+        if (call.hasError()) {
+            final Exception error = call.getError();
+            if (error instanceof RestCallError) {
+                final APIMessage message = ((RestCallError) error)
+                        .getAPIMessages()
+                        .stream()
+                        .findFirst()
+                        .orElse(null);
+                if (message != null && ErrorMessage.INTEGRITY_VALIDATION.isOf(message)) {
+                    pageContext.publishPageMessage(new PageMessageException(DELETE_ERROR_CONSISTENCY));
+                    return action;
+                }
+            }
+        }
+
+        final EntityProcessingReport report = call.getOrThrow();
+        final String configName = configNode.toName().name;
+        if (report.getErrors().isEmpty()) {
+            pageContext.publishPageMessage(DELETE_CONFIRM_TITLE, new LocTextKey(DELETE_CONFIRM.name, configName));
+        } else {
+            pageContext.publishPageMessage(
+                    DELETE_CONFIRM_TITLE,
+                    new LocTextKey(DELETE_ERROR_DEPENDENCY.name, configName,
+                            report.getErrors().iterator().next().getErrorMessage().systemMessage));
+        }
+
+        return this.pageService.pageActionBuilder(pageContext)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_LIST)
+                .create();
     }
 
     private PageAction showExamAction(final EntityTable<ExamConfigurationMap> table) {

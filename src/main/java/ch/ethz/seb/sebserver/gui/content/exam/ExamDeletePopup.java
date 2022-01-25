@@ -123,7 +123,9 @@ public class ExamDeletePopup {
 
         try {
             final EntityKey entityKey = pageContext.getEntityKey();
-            final Exam examToDelete = this.pageService.getRestService().getBuilder(GetExam.class)
+            final Exam examToDelete = this.pageService
+                    .getRestService()
+                    .getBuilder(GetExam.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .call()
                     .getOrThrow();
