@@ -39,7 +39,8 @@ public final class ConfigurationNode implements GrantEntity {
     public enum ConfigurationStatus {
         CONSTRUCTION,
         READY_TO_USE,
-        IN_USE
+        IN_USE,
+        ARCHIVED
     }
 
     @JsonProperty(CONFIGURATION_NODE.ATTR_ID)

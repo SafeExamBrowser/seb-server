@@ -67,6 +67,13 @@ public interface ExamConfigurationMapDAO extends
      * @return Result referencing the List of exam identifiers (PK) for a given configuration identifier */
     Result<Collection<Long>> getExamIdsForConfigId(Long configurationId);
 
-    Result<Boolean> checkForDeletion(Long configurationNodeId);
+    /** Use this to check if a specified exam configuration don't have any relations
+     * to an currently active exam, meaning in upcoming or running state.
+     * Exams in finished state are not active and will not go into account here.
+     *
+     * @param configurationNodeId the identifier of exam configuration to check
+     * @return Result refer to true if config has no relations to active exams, or false of it has or refer to an error
+     *         if happened */
+    Result<Boolean> checkNoActiveExamReferences(Long configurationNodeId);
 
 }

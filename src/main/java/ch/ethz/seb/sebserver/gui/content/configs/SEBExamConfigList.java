@@ -95,7 +95,7 @@ public class SEBExamConfigList implements TemplateComposer {
         this.statusFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 ConfigurationNode.FILTER_ATTR_STATUS,
-                this.resourceService::examConfigStatusResources);
+                this.resourceService::examConfigStatusFilterResources);
     }
 
     @Override

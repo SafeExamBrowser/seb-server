@@ -181,7 +181,7 @@ public final class PageAction {
             if (confirmMessage != null) {
                 this.pageContext.applyConfirmDialog(confirmMessage,
                         confirm -> callback.accept((confirm)
-                                ? exec()
+                                ? exec().onError(error -> this.pageContext.notifyUnexpectedError(error))
                                 : Result.ofRuntimeError("Confirm denied")));
             } else {
                 callback.accept(exec());

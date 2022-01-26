@@ -511,13 +511,34 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                                 "The Type of ConfigurationNode cannot change after creation");
                     }
                     return e;
-                });
+                })
+                .map(this::checkChangeToArchived);
+    }
+
+    private ConfigurationNode checkChangeToArchived(final ConfigurationNode entity) {
+        if (entity.status == ConfigurationStatus.ARCHIVED) {
+            // check if we have a change to archived
+            final ConfigurationNode persistentNode = this.configurationNodeDAO
+                    .byPK(entity.id)
+                    .getOrThrow();
+            // yes we have
+            if (persistentNode.status != ConfigurationStatus.ARCHIVED) {
+                // check if this is possible (no upcoming or running exams involved)
+                if (!this.examConfigurationMapDAO.checkNoActiveExamReferences(entity.id).getOr(false)) {
+                    throw new APIMessageException(
+                            APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                                    .of("Exam configuration has references to at least one upcoming or running exam."));
+                }
+            }
+        }
+
+        return entity;
     }
 
     @Override
     protected Result<ConfigurationNode> validForDelete(final ConfigurationNode entity) {
         return Result.tryCatch(() -> {
-            if (!this.examConfigurationMapDAO.checkForDeletion(entity.id).getOr(false)) {
+            if (!this.examConfigurationMapDAO.checkNoActiveExamReferences(entity.id).getOr(false)) {
                 throw new APIMessageException(
                         APIMessage.ErrorMessage.INTEGRITY_VALIDATION
                                 .of("Exam configuration has references to at least one upcoming or running exam."));

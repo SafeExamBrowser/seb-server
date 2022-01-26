@@ -19,6 +19,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
@@ -123,17 +124,15 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                                     .on(InstitutionRecordDynamicSqlSupport.id,
                                             SqlBuilder.equalTo(ConfigurationNodeRecordDynamicSqlSupport.institutionId))
                                     .where(
-                                            ConfigurationNodeRecordDynamicSqlSupport.status,
-                                            SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeStatus()))
+                                            ConfigurationNodeRecordDynamicSqlSupport.institutionId,
+                                            SqlBuilder.isEqualToWhenPresent(filterMap.getInstitutionId()))
                             : this.configurationNodeRecordMapper
                                     .selectByExample()
                                     .where(
-                                            ConfigurationNodeRecordDynamicSqlSupport.status,
-                                            SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeStatus()));
+                                            ConfigurationNodeRecordDynamicSqlSupport.institutionId,
+                                            SqlBuilder.isEqualToWhenPresent(filterMap.getInstitutionId()));
 
-            return whereClause.and(
-                    ConfigurationNodeRecordDynamicSqlSupport.institutionId,
-                    SqlBuilder.isEqualToWhenPresent(filterMap.getInstitutionId()))
+            whereClause
                     .and(
                             ConfigurationNodeRecordDynamicSqlSupport.name,
                             SqlBuilder.isLikeWhenPresent(filterMap.getName()))
@@ -145,7 +144,20 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                             SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeType()))
                     .and(
                             ConfigurationNodeRecordDynamicSqlSupport.templateId,
-                            SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeTemplateId()))
+                            SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeTemplateId()));
+
+            final String status = filterMap.getConfigNodeStatus();
+            if (StringUtils.isBlank(status)) {
+                whereClause.and(
+                        ConfigurationNodeRecordDynamicSqlSupport.status,
+                        SqlBuilder.isNotEqualToWhenPresent(ConfigurationStatus.ARCHIVED.name()));
+            } else {
+                whereClause.and(
+                        ConfigurationNodeRecordDynamicSqlSupport.status,
+                        SqlBuilder.isEqualToWhenPresent(filterMap.getConfigNodeStatus()));
+            }
+
+            return whereClause
                     .build()
                     .execute()
                     .stream()
