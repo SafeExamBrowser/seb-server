@@ -328,6 +328,7 @@ public class TableFilter<ROW> {
 
             this.textInput = TableFilter.this.entityTable.widgetFactory.textInput(
                     innerComposite,
+                    TableFilter.this.entityTable.getName() + "_" + this.attribute.columnName,
                     getAriaLabel());
 
             this.textInput.setLayoutData(gridData);
@@ -354,7 +355,6 @@ public class TableFilter<ROW> {
                 this.textInput.setText(value);
             }
         }
-
     }
 
     private class SelectionFilter extends FilterComponent {
@@ -387,7 +387,9 @@ public class TableFilter<ROW> {
                             ch.ethz.seb.sebserver.gui.widget.Selection.Type.SINGLE,
                             innerComposite,
                             resourceSupplier,
-                            getAriaLabel());
+                            null, null,
+                            TableFilter.this.entityTable.getName() + "_" + this.attribute.columnName,
+                            TableFilter.this.entityTable.widgetFactory.getI18nSupport().getText(getAriaLabel()));
 
             this.selector
                     .adaptToControl()
@@ -446,7 +448,8 @@ public class TableFilter<ROW> {
             final Composite innerComposite = createInnerComposite(parent);
             this.selector = TableFilter.this.entityTable.widgetFactory.dateSelector(
                     innerComposite,
-                    getAriaLabel());
+                    getAriaLabel(),
+                    TableFilter.this.entityTable.getName() + "_" + this.attribute.columnName);
             this.selector.addListener(SWT.Selection, event -> {
                 TableFilter.this.entityTable.applyFilter();
             });
@@ -540,26 +543,27 @@ public class TableFilter<ROW> {
             this.innerComposite.setLayout(gridLayout);
             this.innerComposite.setLayoutData(this.rowData);
 
+            final String testKey = TableFilter.this.entityTable.getName() + "_" + this.attribute.columnName;
             final WidgetFactory wf = TableFilter.this.entityTable.widgetFactory;
             wf.labelLocalized(this.innerComposite, DATE_FROM_TEXT);
-            this.fromDateSelector = wf.dateSelector(this.innerComposite, getAriaLabel());
+            this.fromDateSelector = wf.dateSelector(this.innerComposite, getAriaLabel(), testKey);
             this.fromDateSelector.addListener(SWT.Selection, event -> {
                 TableFilter.this.entityTable.applyFilter();
             });
             if (this.withTime) {
-                this.fromTimeSelector = wf.timeSelector(this.innerComposite, getAriaLabel());
+                this.fromTimeSelector = wf.timeSelector(this.innerComposite, getAriaLabel(), testKey);
                 this.fromTimeSelector.addListener(SWT.Selection, event -> {
                     TableFilter.this.entityTable.applyFilter();
                 });
             }
 
             wf.labelLocalized(this.innerComposite, DATE_TO_TEXT);
-            this.toDateSelector = wf.dateSelector(this.innerComposite, getAriaLabel());
+            this.toDateSelector = wf.dateSelector(this.innerComposite, getAriaLabel(), testKey);
             this.toDateSelector.addListener(SWT.Selection, event -> {
                 TableFilter.this.entityTable.applyFilter();
             });
             if (this.withTime) {
-                this.toTimeSelector = wf.timeSelector(this.innerComposite, getAriaLabel());
+                this.toTimeSelector = wf.timeSelector(this.innerComposite, getAriaLabel(), testKey);
                 this.toTimeSelector.addListener(SWT.Selection, event -> {
                     TableFilter.this.entityTable.applyFilter();
                 });

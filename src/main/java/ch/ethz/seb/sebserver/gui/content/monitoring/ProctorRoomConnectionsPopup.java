@@ -48,6 +48,9 @@ public class ProctorRoomConnectionsPopup {
 
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.proctoring.room.connections.title");
+    private static final LocTextKey JOIN_TEXT_KEY =
+            new LocTextKey("sebserver.monitoring.exam.proctoring.room.connections.joinurl");
+
     private static final LocTextKey EMPTY_LIST_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.search.list.empty");
     private static final LocTextKey TABLE_COLUMN_NAME =
@@ -81,16 +84,19 @@ public class ProctorRoomConnectionsPopup {
         if (StringUtils.isNotBlank(joinLink)) {
             final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
 
+            final String ariaLabel = widgetFactory.getI18nSupport().getText(JOIN_TEXT_KEY) + joinLink;
+            final String testKey = JOIN_TEXT_KEY.name;
+
             final Composite titleComp = widgetFactory.voidComposite(pageContext.getParent());
             final GridLayout layout = (GridLayout) titleComp.getLayout();
             layout.numColumns = 2;
             layout.makeColumnsEqualWidth = false;
 
-            final Label label = widgetFactory.label(titleComp, "Join URL: ");
+            final Label label = widgetFactory.labelLocalized(titleComp, JOIN_TEXT_KEY);
             label.setLayoutData(new GridData());
             label.setData(RWT.CUSTOM_VARIANT, CustomVariant.TITLE_LABEL.key);
 
-            final Text textInput = widgetFactory.textInput(titleComp, joinLink);
+            final Text textInput = widgetFactory.textInput(titleComp, testKey, ariaLabel);
             final GridData gridData = new GridData(SWT.LEFT, SWT.TOP, false, false);
             textInput.setLayoutData(gridData);
             textInput.setText(joinLink);

@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.widget.RadioSelection;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -52,18 +53,21 @@ public class RadioSelectionFieldBuilder extends SelectionFieldBuilder implements
             final ConfigurationAttribute attribute,
             final ViewContext viewContext) {
 
+        final I18nSupport i18nSupport = this.widgetFactory.getI18nSupport();
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
                 .createInnerGrid(parent, attribute, orientation);
 
+        final String attributeNameKey = ExamConfigurationService.attributeNameKey(attribute);
         final RadioSelection selection = this.widgetFactory.selectionLocalized(
                 Selection.Type.RADIO,
                 innerGrid,
                 () -> this.getLocalizedResources(attribute, viewContext),
                 null,
                 () -> this.getLocalizedResourcesAsToolTip(attribute, viewContext),
-                ExamConfigurationService.ATTRIBUTE_LABEL_LOC_TEXT_PREFIX + attribute.name)
+                attributeNameKey,
+                i18nSupport.getText(attributeNameKey))
                 .getTypeInstance();
 
         selection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));

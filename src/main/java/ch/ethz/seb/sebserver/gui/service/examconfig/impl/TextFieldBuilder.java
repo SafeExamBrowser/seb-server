@@ -87,6 +87,9 @@ public class TextFieldBuilder implements InputFieldBuilder {
             }
         }
         text.setLayoutData(gridData);
+        final String attributeNameKey = ExamConfigurationService.attributeNameKey(attribute);
+        WidgetFactory.setTestId(text, attributeNameKey);
+        WidgetFactory.setARIALabel(text, i18nSupport.getText(attributeNameKey));
 
         final LocTextKey toolTipKey = ExamConfigurationService.getToolTipKey(
                 attribute,

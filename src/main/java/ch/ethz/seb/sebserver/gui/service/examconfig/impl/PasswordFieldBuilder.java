@@ -37,6 +37,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 @GuiProfile
 public class PasswordFieldBuilder implements InputFieldBuilder {
 
+    private static final String SEBSERVER_FORM_CONFIRM_LABEL = "sebserver.form.confirm.label";
+
     private static final LocTextKey VAL_CONFIRM_PWD_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.props.validation.password.confirm");
 
@@ -84,7 +86,7 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
 
         final LocTextKey confirmNameLocKey =
                 new LocTextKey(
-                        "sebserver.form.confirm.label",
+                        SEBSERVER_FORM_CONFIRM_LABEL,
                         viewContext.i18nSupport.getText(attributeNameLocKey));
         final PasswordInput confirmInput = new PasswordInput(
                 innerGrid,

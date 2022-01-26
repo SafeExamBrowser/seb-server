@@ -75,6 +75,7 @@ public class CheckBoxBuilder implements InputFieldBuilder {
                         ? ExamConfigurationService.attributeNameLocKey(attribute)
                         : null,
                 ExamConfigurationService.getToolTipKey(attribute, i18nSupport),
+                ExamConfigurationService.attributeNameLocKey(attribute).name,
                 ExamConfigurationService.attributeNameLocKey(attribute));
 
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);

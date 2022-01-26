@@ -36,6 +36,7 @@ public class PasswordInput extends Composite {
     private boolean isPlainText = true;
     private boolean isEditable = true;
     private String label = null;
+    private String testKey = null;
 
     public PasswordInput(
             final Composite parent,
@@ -45,6 +46,7 @@ public class PasswordInput extends Composite {
         super(parent, SWT.NONE);
 
         this.label = widgetFactory.getI18nSupport().getText(label);
+        this.testKey = (label != null) ? label.name : null;
         GridLayout gridLayout = new GridLayout(2, false);
         gridLayout.horizontalSpacing = 0;
         gridLayout.verticalSpacing = 0;
@@ -115,6 +117,7 @@ public class PasswordInput extends Composite {
 
         if (this.label != null) {
             WidgetFactory.setARIALabel(passwordInput, this.label);
+            WidgetFactory.setTestId(passwordInput, this.testKey);
         }
 
         this.passwordInputField = passwordInput;

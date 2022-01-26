@@ -33,10 +33,11 @@ public final class MultiSelection extends Composite implements Selection {
 
     private final List<Label> labels = new ArrayList<>();
     private final List<Label> selected = new ArrayList<>();
+    private final String testKey;
 
     private Listener listener = null;
 
-    MultiSelection(final Composite parent) {
+    MultiSelection(final Composite parent, final String testKey) {
         super(parent, SWT.NONE);
         final GridLayout gridLayout = new GridLayout(1, true);
         gridLayout.verticalSpacing = 1;
@@ -44,6 +45,10 @@ public final class MultiSelection extends Composite implements Selection {
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
         setLayout(gridLayout);
+        this.testKey = testKey;
+        if (testKey != null) {
+            WidgetFactory.setTestId(this, testKey);
+        }
     }
 
     @Override
@@ -88,6 +93,8 @@ public final class MultiSelection extends Composite implements Selection {
                     this.listener.handleEvent(event);
                 }
             });
+            WidgetFactory.setARIALabel(label, tuple._2);
+            WidgetFactory.setTestId(label, (this.testKey != null) ? this.testKey + tuple._1 : tuple._1);
             this.labels.add(label);
         }
         if (StringUtils.isNotBlank(selectionValue)) {

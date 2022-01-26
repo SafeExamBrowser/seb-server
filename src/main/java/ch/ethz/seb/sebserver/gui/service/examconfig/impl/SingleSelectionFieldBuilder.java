@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.SingleSelection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -60,13 +61,18 @@ public class SingleSelectionFieldBuilder extends SelectionFieldBuilder implement
         final Composite innerGrid = InputFieldBuilder
                 .createInnerGrid(parent, attribute, orientation);
 
+        final LocTextKey toolTipKey = ExamConfigurationService.getToolTipKey(attribute, i18nSupport);
+        final String attributeNameKey = ExamConfigurationService.attributeNameKey(attribute);
         final SingleSelection selection = this.widgetFactory.selectionLocalized(
                 (attribute.type == AttributeType.COMBO_SELECTION)
                         ? Selection.Type.SINGLE_COMBO
                         : Selection.Type.SINGLE,
                 innerGrid,
                 () -> this.getLocalizedResources(attribute, viewContext),
-                ExamConfigurationService.getToolTipKey(attribute, i18nSupport))
+                toolTipKey,
+                null,
+                attributeNameKey,
+                i18nSupport.getText(attributeNameKey))
                 .getTypeInstance();
 
         selection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
