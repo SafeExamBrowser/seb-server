@@ -294,7 +294,8 @@ public class ZoomProctoringService implements ExamProctoringService {
                     credentials.accessToken,
                     credentials.clientId,
                     String.valueOf(additionalZoomRoomData.meeting_id),
-                    this.authorizationService.getUserService().getCurrentUser().getUsername());
+                    this.authorizationService.getUserService().getCurrentUser().getUsername(),
+                    remoteProctoringRoom.additionalRoomData);
         });
     }
 
@@ -354,7 +355,8 @@ public class ZoomProctoringService implements ExamProctoringService {
                     credentials.accessToken,
                     credentials.clientId,
                     String.valueOf(additionalZoomRoomData.meeting_id),
-                    clientConnection.clientConnection.userSessionId);
+                    clientConnection.clientConnection.userSessionId,
+                    remoteProctoringRoom.additionalRoomData);
         });
     }
 
@@ -751,7 +753,6 @@ public class ZoomProctoringService implements ExamProctoringService {
 
     private long forExam(final ProctoringServiceSettings examProctoring) {
 
-        // TODO
         // NOTE: following is the original code that includes the exam end time but seems to make trouble for OLAT
         final long nowInSeconds = Utils.getSecondsNow();
         final long nowPlus30MinInSeconds = nowInSeconds + Utils.toSeconds(30 * Constants.MINUTE_IN_MILLIS);
@@ -874,15 +875,14 @@ public class ZoomProctoringService implements ExamProctoringService {
                         .buildAndExpand(userId)
                         .normalize()
                         .toUriString();
-                final String host = new URL(zoomServerUrl).getHost();
+
                 final ApplyUserSettingsRequest applySettingsRequest = new ApplyUserSettingsRequest();
                 final String body = this.zoomProctoringService.jsonMapper.writeValueAsString(applySettingsRequest);
                 final HttpHeaders headers = getHeaders(credentials);
 
                 headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-
-                return exchange(url, HttpMethod.PATCH, body, headers);
-
+                final ResponseEntity<String> exchange = exchange(url, HttpMethod.PATCH, body, headers);
+                return exchange;
             } catch (final Exception e) {
                 log.error("Failed to apply user settings for Zoom user: {}", userId, e);
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

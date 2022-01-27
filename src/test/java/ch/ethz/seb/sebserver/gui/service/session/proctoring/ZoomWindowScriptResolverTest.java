@@ -41,7 +41,8 @@ public class ZoomWindowScriptResolverTest {
                         "API_KEY",
                         "ROOM_KEY",
                         "MEETING_ID",
-                        "USER_NAME"));
+                        "USER_NAME",
+                        null));
 
         final ProctoringWindowData proctoringWindowDataOther = new ProctoringWindowData(
                 "0",
@@ -58,7 +59,8 @@ public class ZoomWindowScriptResolverTest {
                         "API_KEY",
                         "ROOM_KEY",
                         "MEETING_ID",
-                        "USER_NAME"));
+                        "USER_NAME",
+                        null));
 
         assertFalse(zoomWindowScriptResolver.applies(proctoringWindowDataOther));
         assertTrue(zoomWindowScriptResolver.applies(proctoringWindowDataZoom));

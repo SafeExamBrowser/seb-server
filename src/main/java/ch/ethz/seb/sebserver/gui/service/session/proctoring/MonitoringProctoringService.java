@@ -119,6 +119,7 @@ public class MonitoringProctoringService {
 
     public PageAction toggleTownhallRoom(
             final ProctoringGUIService proctoringGUIService,
+            final ProctoringServiceSettings proctoringSettings,
             final PageAction action) {
 
         if (isTownhallRoomActive(action.getEntityKey().modelId)) {
@@ -135,7 +136,7 @@ public class MonitoringProctoringService {
             }
 
         } else {
-            if (openTownhallRoom(proctoringGUIService, action)) {
+            if (openTownhallRoom(proctoringGUIService, proctoringSettings, action)) {
                 this.pageService.firePageEvent(
                         new ActionActivationEvent(
                                 true,
@@ -245,7 +246,7 @@ public class MonitoringProctoringService {
                     });
             joinURL = roomData.get("start_url");
         } catch (final Exception e) {
-
+            log.error("Failed to get proctoring start URL: ", e);
         }
         final PageContext pc = pageContext.copy()
                 .clearAttributes()
@@ -282,17 +283,17 @@ public class MonitoringProctoringService {
                 String.valueOf(proctoringSettings.examId),
                 proctoringConnectionData);
 
+        final String zoomStartLink = extractZoomStartLink(room.additionalRoomData);
         if (proctoringSettings.useZoomAppClientForCollectingRoom &&
-                StringUtils.isNotBlank(extractZoomStartLink(room))) {
+                StringUtils.isNotBlank(zoomStartLink)) {
 
-            final String startLink = extractZoomStartLink(room);
             final String script = String.format(
                     getOpenRoomScriptTemplate(),
                     room.name,
                     800,
                     1200,
                     room.name,
-                    startLink,
+                    zoomStartLink,
                     "");
 
             RWT.getClient()
@@ -326,22 +327,9 @@ public class MonitoringProctoringService {
                         .call()
                         .onError(error -> log.error("Failed to notify proctoring room opened: ", error));
             }
-
         }
 
         return action;
-    }
-
-    private String extractZoomStartLink(final RemoteProctoringRoom room) {
-        try {
-            final Map<String, String> data =
-                    this.jsonMapper.readValue(room.additionalRoomData, new TypeReference<Map<String, String>>() {
-                    });
-            return data.get("start_url");
-        } catch (final Exception e) {
-            log.error("Failed to extract Zoom start link: ", e);
-            return null;
-        }
     }
 
     public PageAction openOneToOneRoom(
@@ -394,11 +382,14 @@ public class MonitoringProctoringService {
 
     private boolean openTownhallRoom(
             final ProctoringGUIService proctoringGUIService,
+            final ProctoringServiceSettings proctoringSettings,
             final PageAction action) {
 
         try {
             final EntityKey examId = action.getEntityKey();
 
+            final String endpoint = this.remoteProctoringEndpoint;
+            final String joinURL = this.guiServiceInfo.getExternalServerURIBuilder().toUriString();
             if (proctoringGUIService.getTownhallWindowName(examId.modelId) == null) {
                 final ProctoringRoomConnection proctoringConnectionData = proctoringGUIService
                         .openTownhallRoom(
@@ -422,8 +413,8 @@ public class MonitoringProctoringService {
                     800,
                     1200,
                     "Town-Hall",
-                    this.guiServiceInfo.getExternalServerURIBuilder().toUriString(),
-                    this.remoteProctoringEndpoint);
+                    joinURL,
+                    endpoint);
             javaScriptExecutor.execute(script);
 
         } catch (final Exception e) {
@@ -517,6 +508,20 @@ public class MonitoringProctoringService {
         } catch (final Exception e) {
             log.error("Failed to load open proctoring room script template", e);
             return "ERROR: " + e.getLocalizedMessage();
+        }
+    }
+
+    private String extractZoomStartLink(final String additioalRoomAttributesJson) {
+        try {
+            final Map<String, String> data =
+                    this.jsonMapper.readValue(
+                            additioalRoomAttributesJson,
+                            new TypeReference<Map<String, String>>() {
+                            });
+            return data.get("start_url");
+        } catch (final Exception e) {
+            log.error("Failed to extract Zoom start link: ", e);
+            return null;
         }
     }
 
