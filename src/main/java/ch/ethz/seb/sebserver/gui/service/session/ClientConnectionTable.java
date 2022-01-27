@@ -284,8 +284,11 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
     @Override
     public void update(final MonitoringStatus monitoringStatus) {
+        final Collection<ClientConnectionData> connectionData = monitoringStatus.getConnectionData();
+
         final boolean needsSync = monitoringStatus.statusFilterChanged() ||
                 this.forceUpdateAll ||
+                connectionData.size() != this.table.getItemCount() ||
                 (this.tableMapping != null &&
                         this.table != null &&
                         this.tableMapping.size() != this.table.getItemCount())
