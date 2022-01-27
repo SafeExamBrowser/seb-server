@@ -282,7 +282,9 @@ public class MonitoringRunningExam implements TemplateComposer {
                             return CONFIRM_CLOSE_TOWNHALL;
                         }
                     })
-                    .withExec(action -> this.monitoringProctoringService.toggleTownhallRoom(proctoringGUIService,
+                    .withExec(action -> this.monitoringProctoringService.toggleTownhallRoom(
+                            proctoringGUIService,
+                            proctoringSettings,
                             action))
                     .noEventPropagation()
                     .publish();

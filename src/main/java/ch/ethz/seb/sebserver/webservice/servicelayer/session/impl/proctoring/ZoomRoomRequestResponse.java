@@ -88,6 +88,50 @@ public interface ZoomRoomRequestResponse {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    static class ApplyUserSettingsRequest {
+        @JsonProperty final InMeetingSettings in_meeting;
+
+        // NOTE: This seems to need a special Zoom Account Plan to work
+        //@JsonProperty final FeaturesSettings feature;
+
+        public ApplyUserSettingsRequest() {
+            this.in_meeting = new InMeetingSettings(true, 3, 3);
+            //this.feature = new FeaturesSettings("Basic");
+        }
+
+        public ApplyUserSettingsRequest(
+                final InMeetingSettings in_meeting,
+                final FeaturesSettings feature) {
+            this.in_meeting = in_meeting;
+            //this.feature = feature;
+        }
+
+        static class InMeetingSettings {
+
+            @JsonProperty final boolean auto_saving_chat;
+            @JsonProperty final int allow_users_save_chats;
+            @JsonProperty final int allow_participants_chat_with;
+
+            public InMeetingSettings(
+                    final boolean auto_saving_chat,
+                    final int allow_users_save_chats,
+                    final int allow_participants_chat_with) {
+
+                this.auto_saving_chat = auto_saving_chat;
+                this.allow_users_save_chats = allow_users_save_chats;
+                this.allow_participants_chat_with = allow_participants_chat_with;
+            }
+        }
+
+        static class FeaturesSettings {
+            @JsonProperty final String concurrent_meeting;
+            public FeaturesSettings(final String concurrent_meeting) {
+                this.concurrent_meeting = concurrent_meeting;
+            }
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
     static class UserResponse {
         final String id;
         final String email;

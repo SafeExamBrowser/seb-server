@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -66,6 +67,9 @@ public class ProctoringRoomConnection {
     @JsonProperty(ATTR_USER_NAME)
     public final String userName;
 
+    @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ROOM_DATA)
+    public final String additionalRoomData;
+
     @JsonCreator
     public ProctoringRoomConnection(
             @JsonProperty(ProctoringServiceSettings.ATTR_SERVER_TYPE) final ProctoringServerType proctoringServerType,
@@ -79,7 +83,8 @@ public class ProctoringRoomConnection {
             @JsonProperty(ATTR_ROOM_KEY) final CharSequence roomKey,
             @JsonProperty(ATTR_API_KEY) final CharSequence apiKey,
             @JsonProperty(ATTR_MEETING_ID) final String meetingId,
-            @JsonProperty(ATTR_USER_NAME) final String userName) {
+            @JsonProperty(ATTR_USER_NAME) final String userName,
+            @JsonProperty(Domain.REMOTE_PROCTORING_ROOM.ATTR_ROOM_DATA) final String additionalRoomData) {
 
         this.proctoringServerType = proctoringServerType;
         this.connectionToken = connectionToken;
@@ -93,6 +98,7 @@ public class ProctoringRoomConnection {
         this.apiKey = apiKey;
         this.meetingId = meetingId;
         this.userName = userName;
+        this.additionalRoomData = additionalRoomData;
     }
 
     public ProctoringServerType getProctoringServerType() {
@@ -141,6 +147,10 @@ public class ProctoringRoomConnection {
 
     public String getMeetingId() {
         return this.meetingId;
+    }
+
+    public String getAdditionalRoomData() {
+        return this.additionalRoomData;
     }
 
     @Override

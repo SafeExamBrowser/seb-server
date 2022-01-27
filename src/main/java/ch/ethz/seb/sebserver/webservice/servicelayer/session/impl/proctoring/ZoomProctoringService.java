@@ -75,6 +75,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ZoomRoomRequestResponse.ApplyUserSettingsRequest;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ZoomRoomRequestResponse.CreateMeetingRequest;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ZoomRoomRequestResponse.CreateUserRequest;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ZoomRoomRequestResponse.MeetingResponse;
@@ -293,7 +294,8 @@ public class ZoomProctoringService implements ExamProctoringService {
                     credentials.accessToken,
                     credentials.clientId,
                     String.valueOf(additionalZoomRoomData.meeting_id),
-                    this.authorizationService.getUserService().getCurrentUser().getUsername());
+                    this.authorizationService.getUserService().getCurrentUser().getUsername(),
+                    remoteProctoringRoom.additionalRoomData);
         });
     }
 
@@ -353,7 +355,8 @@ public class ZoomProctoringService implements ExamProctoringService {
                     credentials.accessToken,
                     credentials.clientId,
                     String.valueOf(additionalZoomRoomData.meeting_id),
-                    clientConnection.clientConnection.userSessionId);
+                    clientConnection.clientConnection.userSessionId,
+                    remoteProctoringRoom.additionalRoomData);
         });
     }
 
@@ -553,6 +556,11 @@ public class ZoomProctoringService implements ExamProctoringService {
                     createUser.getBody(),
                     UserResponse.class);
 
+            this.zoomRestTemplate.applyUserSettings(
+                    proctoringSettings.serverURL,
+                    credentials,
+                    userResponse.id);
+
             // Then create new meeting with the ad-hoc user/host
             final CharSequence meetingPwd = UUID.randomUUID().toString().subSequence(0, 9);
             final ResponseEntity<String> createMeeting = this.zoomRestTemplate.createMeeting(
@@ -745,7 +753,6 @@ public class ZoomProctoringService implements ExamProctoringService {
 
     private long forExam(final ProctoringServiceSettings examProctoring) {
 
-        // TODO
         // NOTE: following is the original code that includes the exam end time but seems to make trouble for OLAT
         final long nowInSeconds = Utils.getSecondsNow();
         final long nowPlus30MinInSeconds = nowInSeconds + Utils.toSeconds(30 * Constants.MINUTE_IN_MILLIS);
@@ -779,6 +786,7 @@ public class ZoomProctoringService implements ExamProctoringService {
         private static final int LIZENSED_USER = 2;
         private static final String API_TEST_ENDPOINT = "v2/users";
         private static final String API_CREATE_USER_ENDPOINT = "v2/users";
+        private static final String API_APPLY_USER_SETTINGS_ENDPOINT = "v2/users/{userId}/settings";
         private static final String API_DELETE_USER_ENDPOINT = "v2/users/{userid}?action=delete";
         private static final String API_USER_CUST_CREATE = "custCreate";
         private static final String API_ZOOM_ROOM_USER = "SEBProctoringRoomUser";
@@ -852,6 +860,31 @@ public class ZoomProctoringService implements ExamProctoringService {
 
             } catch (final Exception e) {
                 log.error("Failed to create Zoom ad-hoc user for room: {}", roomName, e);
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        public ResponseEntity<String> applyUserSettings(
+                final String zoomServerUrl,
+                final ClientCredentials credentials,
+                final String userId) {
+            try {
+                final String url = UriComponentsBuilder
+                        .fromUriString(zoomServerUrl)
+                        .path(API_APPLY_USER_SETTINGS_ENDPOINT)
+                        .buildAndExpand(userId)
+                        .normalize()
+                        .toUriString();
+
+                final ApplyUserSettingsRequest applySettingsRequest = new ApplyUserSettingsRequest();
+                final String body = this.zoomProctoringService.jsonMapper.writeValueAsString(applySettingsRequest);
+                final HttpHeaders headers = getHeaders(credentials);
+
+                headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+                final ResponseEntity<String> exchange = exchange(url, HttpMethod.PATCH, body, headers);
+                return exchange;
+            } catch (final Exception e) {
+                log.error("Failed to apply user settings for Zoom user: {}", userId, e);
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
