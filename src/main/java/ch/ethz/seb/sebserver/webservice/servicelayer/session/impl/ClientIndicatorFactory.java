@@ -98,7 +98,7 @@ public class ClientIndicatorFactory {
                         .getBean(PingIntervalClientIndicator.class);
                 pingIndicator.setHidden();
                 final Indicator indicator = new Indicator(
-                        null,
+                        -1L,
                         clientConnection.examId,
                         "hidden_ping_indicator",
                         IndicatorType.LAST_PING,

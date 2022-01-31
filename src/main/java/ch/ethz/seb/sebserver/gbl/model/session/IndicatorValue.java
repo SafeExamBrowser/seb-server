@@ -38,4 +38,15 @@ public interface IndicatorValue extends IndicatorValueHolder {
         }
     }
 
+    default boolean dataEquals(final IndicatorValue other) {
+        final Long i1 = getIndicatorId();
+        final Long i2 = other.getIndicatorId();
+        if (i1 != null && i2 != null) {
+            if (i1.longValue() != i2.longValue() || Math.abs(this.getValue() - other.getValue()) > 0.1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

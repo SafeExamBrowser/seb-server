@@ -54,9 +54,6 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
     }
 
     private void valueChanged(final String text, final double value) {
-
-        this.currentValue = getValue() + 1d;
-
         if (this.tags == null || this.tags.length == 0 || hasTag(text)) {
             if (super.ditributedIndicatorValueRecordId != null) {
                 if (!this.distributedPingCache.updateIndicatorValueAsync(
