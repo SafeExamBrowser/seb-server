@@ -509,7 +509,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
                 if (log.isDebugEnabled()) {
                     log.debug("SEB client connection: successfully closed ClientConnection: {}",
-                            clientConnection);
+                            updatedClientConnection);
                 }
             } else {
                 log.warn("SEB client connection is already closed: {}", clientConnection);
