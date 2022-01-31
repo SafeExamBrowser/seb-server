@@ -337,9 +337,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     millisecondsNow,
                     data.remoteProctoringRoomId,
                     null,
-                    data.sebMachineName,
-                    data.sebOSName,
-                    data.sebVersion);
+                    Utils.truncateText(data.sebMachineName, 255),
+                    Utils.truncateText(data.sebOSName, 255),
+                    Utils.truncateText(data.sebVersion, 255));
 
             this.clientConnectionRecordMapper.insert(newRecord);
             return newRecord;
@@ -369,9 +369,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     millisecondsNow,
                     null,
                     null,
-                    data.sebMachineName,
-                    data.sebOSName,
-                    data.sebVersion);
+                    Utils.truncateText(data.sebMachineName, 255),
+                    Utils.truncateText(data.sebOSName, 255),
+                    Utils.truncateText(data.sebVersion, 255));
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
