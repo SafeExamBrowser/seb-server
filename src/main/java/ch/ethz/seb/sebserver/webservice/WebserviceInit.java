@@ -40,6 +40,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     private final ApplicationEventPublisher applicationEventPublisher;
     private final WebserviceInfoDAO webserviceInfoDAO;
     private final DBIntegrityChecker dbIntegrityChecker;
+    private final SEBServerMigrationStrategy sebServerMigrationStrategy;
 
     protected WebserviceInit(
             final SEBServerInit sebServerInit,
@@ -48,7 +49,8 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
             final ApplicationEventPublisher applicationEventPublisher,
             final WebserviceInfoDAO webserviceInfoDAO,
             final DBIntegrityChecker dbIntegrityChecker,
-            final ApplicationContext applicationContext) {
+            final ApplicationContext applicationContext,
+            final SEBServerMigrationStrategy sebServerMigrationStrategy) {
 
         this.applicationContext = applicationContext;
         this.sebServerInit = sebServerInit;
@@ -58,7 +60,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         this.applicationEventPublisher = applicationEventPublisher;
         this.webserviceInfoDAO = webserviceInfoDAO;
         this.dbIntegrityChecker = dbIntegrityChecker;
-
+        this.sebServerMigrationStrategy = sebServerMigrationStrategy;
     }
 
     public ApplicationContext getApplicationContext() {
@@ -86,6 +88,11 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         } catch (final Exception e) {
             SEBServerInit.INIT_LOGGER.error("----> Failed to register webservice: ", e);
         }
+
+        // Apply migration if needed and possible
+        SEBServerInit.INIT_LOGGER.info("----> ");
+        this.sebServerMigrationStrategy.applyMigration();
+        SEBServerInit.INIT_LOGGER.info("----> ");
 
         SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Initialize Services...");

@@ -119,8 +119,7 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
                     final long now = Utils.getMillisecondsNow();
                     final long lastUpdateSince = now - masterRec.getUpdateTime();
                     if (lastUpdateSince > this.masterDelayTimeThreshold || this.forceMaster) {
-                        forceMaster(uuid, masterRec.getUuid(), masterRec.getId());
-                        return true;
+                        return forceMaster(uuid, masterRec.getUuid(), masterRec.getId());
                     }
                 }
             } else {
@@ -136,13 +135,14 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
         }
     }
 
-    private void forceMaster(final String uuid, final String otherUUID, final Long otherId) {
+    private boolean forceMaster(final String uuid, final String otherUUID, final Long otherId) {
 
-        log.info("Change webservice master form uuid: {} to uuid: {}", otherUUID, uuid);
+        log.info("Change webservice master from uuid: {} to uuid: {}", otherUUID, uuid);
 
         this.webserviceServerInfoRecordMapper.updateByPrimaryKeySelective(
                 new WebserviceServerInfoRecord(otherId, null, null, 0, 0L));
-        setMasterTo(uuid);
+
+        return setMasterTo(uuid);
     }
 
     private boolean setMasterTo(final String uuid) {
@@ -156,9 +156,7 @@ public class WebserviceInfoDAOImpl implements WebserviceInfoDAO {
                 .execute();
 
         if (entries == null || entries.isEmpty()) {
-            if (log.isDebugEnabled()) {
-                log.debug("The webservice with uuid: {} is not registered and cannot become a master", uuid);
-            }
+            log.warn("The webservice with uuid: {} is not registered and cannot become a master", uuid);
             return false;
         }
 

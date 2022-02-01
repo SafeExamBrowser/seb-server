@@ -9,12 +9,15 @@
 package ch.ethz.seb.sebserver.webservice;
 
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.MigrationInfo;
+import org.flywaydb.core.api.MigrationInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
@@ -27,6 +30,8 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
     private final boolean cleanDBOnStartup;
     private final WebserviceInfo webserviceInfo;
     private final WebserviceInfoDAO webserviceInfoDAO;
+    private Flyway flyway;
+    private final boolean migrationApplied = false;
 
     public SEBServerMigrationStrategy(
             final WebserviceInfo webserviceInfo,
@@ -40,31 +45,83 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
 
     @Override
     public void migrate(final Flyway flyway) {
+        this.flyway = flyway;
+
+    }
+
+    public void applyMigration() {
+        final String webserviceUUID = this.webserviceInfo.getWebserviceUUID();
+        if (this.migrationApplied) {
+            log.warn("Migration already applied for this webservice: {}", webserviceUUID);
+            return;
+        }
+
         try {
 
-            // If we are in a distributed setup only apply migration task if this is the master service
-            // or if there was no data base initialization yet at all.
-            if (this.webserviceInfo.isDistributed()) {
-                if (this.webserviceInfoDAO.isInitialized()) {
-                    final boolean isMaster = this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID());
-                    if (!isMaster) {
-                        log.info(
-                                "Skip migration task since this is not a master instance: {}",
-                                this.webserviceInfo.getWebserviceUUID());
+            SEBServerInit.INIT_LOGGER.info("----> ** Migration check START **");
+            SEBServerInit.INIT_LOGGER.info("----> Check database status");
 
-                        return;
+            final MigrationInfoService info = this.flyway.info();
+            if (SEBServerInit.INIT_LOGGER.isDebugEnabled()) {
+                SEBServerInit.INIT_LOGGER.debug("----> ** Migration Info **");
+                SEBServerInit.INIT_LOGGER.debug("----> {}", info);
+            }
+
+            final MigrationInfo[] pendingMigrations = info.pending();
+            if (pendingMigrations != null && pendingMigrations.length > 0) {
+
+                SEBServerInit.INIT_LOGGER.info("----> Found pending migrations: {}", pendingMigrations.length);
+                // If we are in a distributed setup only apply migration task if this is the master service
+                // or if there was no data base initialization yet at all.
+                if (this.webserviceInfo.isDistributed()) {
+
+                    SEBServerInit.INIT_LOGGER.info("----> This is distributed setup, check master...");
+
+                    if (this.webserviceInfoDAO.isInitialized()) {
+                        final boolean isMaster = this.webserviceInfoDAO.isMaster(webserviceUUID);
+                        if (!isMaster) {
+                            SEBServerInit.INIT_LOGGER.info(
+                                    "----> Skip migration task since this is not a master instance: {}",
+                                    this.webserviceInfo.getWebserviceUUID());
+                        } else {
+                            doMigration();
+                        }
                     }
+                } else {
+                    doMigration();
                 }
+
+            } else {
+                SEBServerInit.INIT_LOGGER.info("----> ");
+                SEBServerInit.INIT_LOGGER.info("----> No pending migrations found. Last migration --> {} --> {}",
+                        info.current().getVersion(),
+                        info.current().getDescription());
             }
 
-            if (this.cleanDBOnStartup) {
-                flyway.clean();
-            }
-            flyway.migrate();
-
+            SEBServerInit.INIT_LOGGER.info("----> ** Migration check END **");
         } catch (final Exception e) {
             log.error("Failed to apply migration task: ", e);
         }
+    }
+
+    private void doMigration() {
+
+        SEBServerInit.INIT_LOGGER.info("----> *** Start migration ***");
+
+        if (this.cleanDBOnStartup) {
+
+            SEBServerInit.INIT_LOGGER
+                    .info("----> !!! Cleanup database as it was set on sebserver.webservice.clean-db-on-startup !!!");
+
+            this.flyway.clean();
+        }
+        this.flyway.migrate();
+
+        final MigrationInfoService info = this.flyway.info();
+        SEBServerInit.INIT_LOGGER.info("----> Migration finished, new current version is: {} --> {}",
+                info.current().getVersion(),
+                info.current().getDescription());
+        SEBServerInit.INIT_LOGGER.info("----> *** End migration ***");
     }
 
 }
