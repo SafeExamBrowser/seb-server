@@ -106,7 +106,8 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
 
     private void doMigration() {
 
-        SEBServerInit.INIT_LOGGER.info("----> *** Start migration ***");
+        SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
+        SEBServerInit.INIT_LOGGER.info("----> **** Start Migration ************************************");
 
         if (this.cleanDBOnStartup) {
 
@@ -121,7 +122,9 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
         SEBServerInit.INIT_LOGGER.info("----> Migration finished, new current version is: {} --> {}",
                 info.current().getVersion(),
                 info.current().getDescription());
-        SEBServerInit.INIT_LOGGER.info("----> *** End migration ***");
+
+        SEBServerInit.INIT_LOGGER.info("----> **** End Migration **************************************");
+        SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
     }
 
 }
