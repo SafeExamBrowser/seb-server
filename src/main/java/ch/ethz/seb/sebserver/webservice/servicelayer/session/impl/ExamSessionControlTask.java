@@ -84,6 +84,8 @@ class ExamSessionControlTask implements DisposableBean {
                 this.examTimePrefix,
                 this.examTimeSuffix);
 
+        this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID());
+
         SEBServerInit.INIT_LOGGER.info("------>");
         SEBServerInit.INIT_LOGGER.info(
                 "------> Activate SEB lost-ping-event update background task on a fix rate of: {} milliseconds",
@@ -92,7 +94,7 @@ class ExamSessionControlTask implements DisposableBean {
 
     @Scheduled(
             fixedDelayString = "${sebserver.webservice.api.exam.update-interval:60000}",
-            initialDelay = 30000)
+            initialDelay = 10000)
     public void examRunUpdateTask() {
 
         if (!this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID())) {
@@ -112,13 +114,17 @@ class ExamSessionControlTask implements DisposableBean {
 
     @Scheduled(
             fixedDelayString = "${sebserver.webservice.api.seb.lostping.update:5000}",
-            initialDelay = 30000)
+            initialDelay = 5000)
     public void examSessionUpdateTask() {
 
         this.sebClientConnectionService.updatePingEvents();
 
         if (!this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID())) {
             return;
+        }
+
+        if (log.isTraceEnabled()) {
+            log.trace("Run exam session update task");
         }
 
         this.sebClientConnectionService.cleanupInstructions();
@@ -132,6 +138,10 @@ class ExamSessionControlTask implements DisposableBean {
 
         if (!this.webserviceInfoDAO.isMaster(this.webserviceInfo.getWebserviceUUID())) {
             return;
+        }
+
+        if (log.isTraceEnabled()) {
+            log.trace("Run exam session cleanup task");
         }
 
         this.sebClientConnectionService.cleanupInstructions();
