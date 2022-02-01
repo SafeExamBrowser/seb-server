@@ -101,11 +101,12 @@ public class MonitoringExamSearchPopup {
                         ClientConnection::getInfo)
                                 .withFilter(this.infoFilter))
 
-                .withColumn(new ColumnDefinition<>(
+                .withColumn(new ColumnDefinition<ClientConnection>(
                         Domain.CLIENT_CONNECTION.ATTR_STATUS,
                         TABLE_COLUMN_STATUS,
-                        ClientConnection::getStatus)
-                                .withFilter(this.statusFilter))
+                        row -> this.pageService.getResourceService()
+                                .localizedClientConnectionStatusName(row.getStatus()))
+                                        .withFilter(this.statusFilter))
 
                 .withDefaultAction(t -> actionBuilder
                         .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
