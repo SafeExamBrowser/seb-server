@@ -91,7 +91,7 @@ public class LoginPage implements TemplateComposer {
         gridData.verticalIndent = 10;
         final Label pwd = this.widgetFactory.labelLocalized(loginGroup, TEXT_PWD);
         pwd.setLayoutData(gridData);
-        final Text loginPassword = this.widgetFactory.passwordInput(loginGroup, TEXT_PWD);
+        final Text loginPassword = this.widgetFactory.passwordInput(loginGroup, TEXT_PWD.name, TEXT_PWD);
         loginPassword.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false));
 
         final Composite buttons = new Composite(loginGroup, SWT.NONE);

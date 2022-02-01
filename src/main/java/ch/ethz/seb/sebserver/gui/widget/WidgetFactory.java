@@ -502,44 +502,37 @@ public class WidgetFactory {
         return labelLocalized;
     }
 
-    public Text textInput(final Composite content, final LocTextKey label) {
-        return textInput(content, false, false, label.name, this.i18nSupport.getText(label));
+    public Text textInput(final Composite content, final LocTextKey ariaLabel) {
+        return textInput(content, false, false, ariaLabel.name, ariaLabel);
     }
 
-    public Text textInput(final Composite content, final String testKey, final LocTextKey label) {
-        return textInput(content, false, false, testKey, this.i18nSupport.getText(label));
+    public Text textInput(final Composite content, final String testKey, final LocTextKey ariaLabel) {
+        return textInput(content, false, false, testKey, ariaLabel);
     }
 
-    public Text textInput(final Composite content, final String testKey, final String label) {
-        return textInput(content, false, false, testKey, label);
+    public Text textInput(final Composite content, final String testKey, final String ariaLabel) {
+        final Text textInput = textInput(content, false, false, testKey, null);
+        if (ariaLabel != null) {
+            WidgetFactory.setARIALabel(textInput, this.i18nSupport.getText(ariaLabel));
+        }
+        return textInput;
     }
 
-    public Text passwordInput(final Composite content, final LocTextKey label) {
-        return textInput(content, true, false, label.name, this.i18nSupport.getText(label));
-    }
-
-    public Text passwordInput(final Composite content, final String testKey, final String label) {
-        return textInput(content, true, false, testKey, label);
-    }
-
-    public Text textAreaInput(
-            final Composite content,
-            final boolean readonly,
-            final LocTextKey label) {
-
-        return textAreaInput(content, readonly, this.i18nSupport.getText(label));
+//
+    public Text passwordInput(final Composite content, final String testKey, final LocTextKey ariaLabel) {
+        return textInput(content, true, false, testKey, ariaLabel);
     }
 
     public Text textAreaInput(
             final Composite content,
             final boolean readonly,
-            final String label) {
+            final LocTextKey ariaLabel) {
 
         final Text input = readonly
                 ? new Text(content, SWT.LEFT | SWT.MULTI)
                 : new Text(content, SWT.LEFT | SWT.BORDER | SWT.MULTI);
-        if (label != null) {
-            WidgetFactory.setARIALabel(input, label);
+        if (ariaLabel != null) {
+            WidgetFactory.setARIALabel(input, this.i18nSupport.getText(ariaLabel));
         }
         return input;
     }
@@ -548,17 +541,8 @@ public class WidgetFactory {
             final Composite content,
             final boolean password,
             final boolean readonly,
-            final LocTextKey label) {
-
-        return textInput(content, password, readonly, label.name, this.i18nSupport.getText(label));
-    }
-
-    public Text textInput(
-            final Composite content,
-            final boolean password,
-            final boolean readonly,
             final String testKey,
-            final String label) {
+            final LocTextKey ariaLabel) {
 
         final Text input = readonly
                 ? new Text(content, SWT.LEFT)
@@ -566,8 +550,8 @@ public class WidgetFactory {
                         ? SWT.LEFT | SWT.BORDER | SWT.PASSWORD
                         : SWT.LEFT | SWT.BORDER);
 
-        if (label != null) {
-            WidgetFactory.setARIALabel(input, label);
+        if (ariaLabel != null) {
+            WidgetFactory.setARIALabel(input, this.i18nSupport.getText(ariaLabel));
         }
         if (testKey != null) {
             setTestId(input, testKey);
