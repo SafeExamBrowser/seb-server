@@ -193,7 +193,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                     final LmsAPITemplate template = getLmsAPITemplate(lmsSetupId)
                             .getOrThrow();
 
-                    if (institutionId != null && institutionId.equals(template.lmsSetup().institutionId)) {
+                    if (institutionId != null && !institutionId.equals(template.lmsSetup().institutionId)) {
                         return Collections.emptyList();
                     }
                     return template
