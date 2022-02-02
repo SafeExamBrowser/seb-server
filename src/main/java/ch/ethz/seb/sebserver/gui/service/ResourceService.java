@@ -110,7 +110,11 @@ public class ResourceService {
             EntityType.ORIENTATION,
             EntityType.USER_ACTIVITY_LOG,
             EntityType.USER_ROLE,
-            EntityType.WEBSERVICE_SERVER_INFO);
+            EntityType.WEBSERVICE_SERVER_INFO,
+            EntityType.BATCH_ACTION,
+            EntityType.CLIENT_INDICATOR,
+            EntityType.CLIENT_NOTIFICATION,
+            EntityType.REMOTE_PROCTORING_ROOM);
 
     public static final EnumSet<EventType> CLIENT_EVENT_TYPE_EXCLUDE_MAP = EnumSet.of(
             EventType.UNKNOWN);
