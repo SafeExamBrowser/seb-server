@@ -22,8 +22,11 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.service.examconfig.ExamConfigurationService;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputField;
 import ch.ethz.seb.sebserver.gui.service.examconfig.InputFieldBuilder;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
 @Component
@@ -48,6 +51,7 @@ public class SliderFieldBuilder implements InputFieldBuilder {
             final ConfigurationAttribute attribute,
             final ViewContext viewContext) {
 
+        final I18nSupport i18nSupport = viewContext.getI18nSupport();
         final Orientation orientation = viewContext
                 .getOrientation(attribute.id);
         final Composite innerGrid = InputFieldBuilder
@@ -55,6 +59,9 @@ public class SliderFieldBuilder implements InputFieldBuilder {
 
         final Slider slider = new Slider(innerGrid, SWT.NONE);
         slider.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        final String attributeNameKey = ExamConfigurationService.attributeNameKey(attribute);
+        WidgetFactory.setTestId(slider, attributeNameKey);
+        WidgetFactory.setARIALabel(slider, i18nSupport.getText(attributeNameKey));
 
         try {
             final String[] split = StringUtils.split(

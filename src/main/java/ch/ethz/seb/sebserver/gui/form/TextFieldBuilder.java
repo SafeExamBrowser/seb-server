@@ -121,9 +121,9 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         final String testKey = (this.label != null) ? this.label.name : this.name;
         final LocTextKey label = getARIALabel(builder);
         final Text textInput = (this.isNumber)
-                ? builder.widgetFactory.numberInput(fieldGrid, this.numberCheck, readonly, label)
+                ? builder.widgetFactory.numberInput(fieldGrid, this.numberCheck, readonly, testKey, label)
                 : (this.isArea)
-                        ? builder.widgetFactory.textAreaInput(fieldGrid, readonly, label)
+                        ? builder.widgetFactory.textAreaInput(fieldGrid, readonly, testKey, label)
                         : builder.widgetFactory.textInput(fieldGrid, this.isPassword, readonly, testKey, label);
 
         if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {

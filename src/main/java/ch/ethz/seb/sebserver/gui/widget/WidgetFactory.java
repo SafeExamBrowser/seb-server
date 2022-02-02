@@ -404,27 +404,6 @@ public class WidgetFactory {
             final int type,
             final LocTextKey locTextKey,
             final LocTextKey toolTipKey,
-            final LocTextKey ariaLabel) {
-
-        final Button button = new Button(parent, type);
-        setARIARole(button, AriaRole.button);
-        if (ariaLabel != null) {
-            setARIALabel(button, this.i18nSupport.getText(ariaLabel));
-        }
-        if (locTextKey != null) {
-            setTestId(button, locTextKey.name);
-        } else if (toolTipKey != null) {
-            setTestId(button, toolTipKey.name);
-        }
-        this.polyglotPageService.injectI18n(button, locTextKey, toolTipKey);
-        return button;
-    }
-
-    public Button buttonLocalized(
-            final Composite parent,
-            final int type,
-            final LocTextKey locTextKey,
-            final LocTextKey toolTipKey,
             final String testKey,
             final LocTextKey ariaLabel) {
 
@@ -518,7 +497,6 @@ public class WidgetFactory {
         return textInput;
     }
 
-//
     public Text passwordInput(final Composite content, final String testKey, final LocTextKey ariaLabel) {
         return textInput(content, true, false, testKey, ariaLabel);
     }
@@ -526,6 +504,7 @@ public class WidgetFactory {
     public Text textAreaInput(
             final Composite content,
             final boolean readonly,
+            final String testKey,
             final LocTextKey ariaLabel) {
 
         final Text input = readonly
@@ -533,6 +512,9 @@ public class WidgetFactory {
                 : new Text(content, SWT.LEFT | SWT.BORDER | SWT.MULTI);
         if (ariaLabel != null) {
             WidgetFactory.setARIALabel(input, this.i18nSupport.getText(ariaLabel));
+        }
+        if (testKey != null) {
+            setTestId(input, testKey);
         }
         return input;
     }
@@ -559,20 +541,23 @@ public class WidgetFactory {
         return input;
     }
 
-    public Text numberInput(final Composite content, final Consumer<String> numberCheck, final LocTextKey label) {
-        return numberInput(content, numberCheck, false, label);
-    }
+//    public Text numberInput(final Composite content, final Consumer<String> numberCheck, final LocTextKey label) {
+//        return numberInput(content, numberCheck, false, label);
+//    }
 
     public Text numberInput(
             final Composite content,
             final Consumer<String> numberCheck,
             final boolean readonly,
-            final LocTextKey label) {
+            final String testKey,
+            final LocTextKey ariaLabel) {
 
         final Text numberInput = new Text(content, (readonly) ? SWT.LEFT | SWT.READ_ONLY : SWT.RIGHT | SWT.BORDER);
-        if (label != null) {
-            setARIALabel(numberInput, this.i18nSupport.getText(label));
-            setTestId(numberInput, label.name);
+        if (ariaLabel != null) {
+            setARIALabel(numberInput, this.i18nSupport.getText(ariaLabel));
+        }
+        if (testKey != null) {
+            setTestId(numberInput, testKey);
         }
         if (numberCheck != null) {
             numberInput.addListener(SWT.Verify, event -> {

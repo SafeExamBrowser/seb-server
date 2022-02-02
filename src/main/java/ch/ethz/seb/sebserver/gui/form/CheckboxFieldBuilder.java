@@ -46,6 +46,7 @@ public class CheckboxFieldBuilder extends FieldBuilder<String> {
                     SWT.CHECK,
                     this.label,
                     this.tooltip,
+                    this.label.name,
                     getARIALabel(builder));
         } else {
             titleLabel = createTitleLabel(builder.formParent, builder, this);
@@ -55,6 +56,7 @@ public class CheckboxFieldBuilder extends FieldBuilder<String> {
                     SWT.CHECK,
                     null,
                     null,
+                    this.label.name,
                     getARIALabel(builder));
         }
 
