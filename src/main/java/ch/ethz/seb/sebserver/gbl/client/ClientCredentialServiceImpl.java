@@ -109,6 +109,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
 
         if (sequence instanceof CharBuffer) {
             ((CharBuffer) sequence).clear();
+            ((CharBuffer) sequence).put(new char[((CharBuffer) sequence).capacity()]);
             return;
         }
 

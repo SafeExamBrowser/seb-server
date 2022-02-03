@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
@@ -110,6 +111,9 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
                 label.setLayoutData(gridData);
                 label.setText((this.value != null) ? this.value : Constants.EMPTY_NOTE);
+                if (this.label != null) {
+                    WidgetFactory.setTestId(label, this.label.name);
+                }
             } else {
                 final Collection<String> keys = Arrays.asList(StringUtils.split(this.value, Constants.LIST_SEPARATOR));
                 this.itemsSupplier.get()
@@ -154,6 +158,10 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         if (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) {
             builder.pageService.getPolyglotPageService().injectI18nTooltip(
                     label, this.tooltip);
+        }
+
+        if (this.label != null) {
+            WidgetFactory.setTestId(label, this.label.name + "_" + valueKey);
         }
 
         return label;

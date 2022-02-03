@@ -65,6 +65,7 @@ public class FileUploadSelection extends Composite {
             final I18nSupport i18nSupport,
             final Collection<String> supportedFiles,
             final boolean readonly,
+            final String testKey,
             final LocTextKey ariaLabel) {
 
         super(parent, SWT.NONE);
@@ -85,6 +86,9 @@ public class FileUploadSelection extends Composite {
             if (ariaLabel != null) {
                 WidgetFactory.setARIALabel(this.fileName, i18nSupport.getText(ariaLabel));
             }
+            if (testKey != null) {
+                WidgetFactory.setTestId(this.fileName, testKey);
+            }
             this.fileUpload = null;
             this.uploadHandler = null;
             this.inputReceiver = null;
@@ -95,6 +99,9 @@ public class FileUploadSelection extends Composite {
 
             if (ariaLabel != null) {
                 WidgetFactory.setARIALabel(this.fileUpload, i18nSupport.getText(ariaLabel));
+            }
+            if (testKey != null) {
+                WidgetFactory.setTestId(this.fileUpload, testKey);
             }
             WidgetFactory.setARIARole(this.fileUpload, AriaRole.button);
 

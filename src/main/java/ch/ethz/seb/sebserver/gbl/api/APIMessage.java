@@ -291,6 +291,7 @@ public class APIMessage implements Serializable {
         public final APIMessage apiMessage;
 
         public FieldValidationException(final String fieldName, final String defaultMessage) {
+            super(defaultMessage);
             this.apiMessage = APIMessage.fieldValidationError(fieldName, defaultMessage);
         }
     }

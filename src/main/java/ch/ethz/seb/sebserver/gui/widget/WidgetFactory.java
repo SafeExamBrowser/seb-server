@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
 import org.eclipse.rap.rwt.widgets.WidgetUtil;
@@ -966,6 +967,7 @@ public class WidgetFactory {
                 this.i18nSupport,
                 supportedFiles,
                 readonly,
+                (label != null) ? label.name : null,
                 label);
 
         if (supportedFiles != null) {
@@ -990,6 +992,10 @@ public class WidgetFactory {
     }
 
     public static void setAttribute(final Widget widget, final String name, final String value) {
+        if (StringUtils.isBlank(name) || StringUtils.isBlank(value)) {
+            log.warn("Missing name or value for HTML attribute: name {} value {}", name, value);
+            return;
+        }
         if (!widget.isDisposed()) {
             final String $el = widget instanceof Text ? "$input" : "$el";
             final String id = WidgetUtil.getId(widget);

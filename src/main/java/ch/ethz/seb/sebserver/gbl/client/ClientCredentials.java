@@ -58,4 +58,14 @@ public final class ClientCredentials {
     public String accessTokenAsString() {
         return hasAccessToken() ? this.accessToken.toString() : null;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ClientCredentials [clientId=");
+        builder.append(this.clientId);
+        builder.append("]");
+        return builder.toString();
+    }
+
 }
