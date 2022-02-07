@@ -110,7 +110,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
                 final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
 
                 label.setLayoutData(gridData);
-                label.setText((this.value != null) ? this.value : Constants.EMPTY_NOTE);
+                label.setText(Constants.EMPTY_NOTE);
                 if (this.label != null) {
                     WidgetFactory.setTestId(label, this.label.name);
                 }

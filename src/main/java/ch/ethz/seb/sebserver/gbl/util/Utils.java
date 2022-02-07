@@ -697,4 +697,11 @@ public final class Utils {
                 + Constants.DOUBLE_QUOTE;
     }
 
+    public static String getOrEmptyDisplayValue(final String value) {
+        if (StringUtils.isBlank(value)) {
+            return Constants.EMPTY_NOTE;
+        }
+        return value;
+    }
+
 }
