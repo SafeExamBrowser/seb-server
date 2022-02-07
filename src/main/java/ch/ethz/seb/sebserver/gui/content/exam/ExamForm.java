@@ -357,7 +357,7 @@ public class ExamForm implements TemplateComposer {
                         .withLabelSpan(2)
                         .withInputSpan(4)
                         .withEmptyCellSpan(2)
-                        .mandatory(!readonly))
+                        .readonly(!importFromQuizData))
 
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_TYPE,
@@ -376,8 +376,7 @@ public class ExamForm implements TemplateComposer {
                         this.resourceService::examSupporterResources)
                         .withLabelSpan(2)
                         .withInputSpan(4)
-                        .withEmptyCellSpan(2)
-                        .mandatory(!readonly))
+                        .withEmptyCellSpan(2))
 
                 .buildFor(importFromQuizData
                         ? this.restService.getRestCall(ImportAsExam.class)

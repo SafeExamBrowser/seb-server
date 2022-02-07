@@ -63,6 +63,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final CacheManager cacheManager;
     private final SEBRestrictionService sebRestrictionService;
+    private final boolean checkExamSupporter;
     private final boolean distributedSetup;
     private final long distributedConnectionUpdate;
 
@@ -76,6 +77,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final IndicatorDAO indicatorDAO,
             final CacheManager cacheManager,
             final SEBRestrictionService sebRestrictionService,
+            @Value("${sebserver.webservice.exam.check.supporter:false}") final boolean checkExamSupporter,
             @Value("${sebserver.webservice.distributed:false}") final boolean distributedSetup,
             @Value("${sebserver.webservice.distributed.connectionUpdate:2000}") final long distributedConnectionUpdate) {
 
@@ -86,6 +88,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         this.cacheManager = cacheManager;
         this.indicatorDAO = indicatorDAO;
         this.sebRestrictionService = sebRestrictionService;
+        this.checkExamSupporter = checkExamSupporter;
         this.distributedSetup = distributedSetup;
         this.distributedConnectionUpdate = distributedConnectionUpdate;
     }
@@ -136,7 +139,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
             if (exam.status == ExamStatus.RUNNING) {
                 // check exam supporter
-                if (exam.getSupporter().isEmpty()) {
+                if (this.checkExamSupporter && exam.getSupporter().isEmpty()) {
                     result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SUPPORTER.of(exam.getModelId()));
                 }
 
