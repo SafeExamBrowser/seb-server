@@ -73,7 +73,7 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
                 SEBServerInit.INIT_LOGGER.info("----> Found pending migrations: {}", pendingMigrations.length);
                 // If we are in a distributed setup only apply migration task if this is the master service
                 // or if there was no data base initialization yet at all.
-                if (this.webserviceInfo.isDistributed()) {
+                if (this.webserviceInfo.isDistributed() && this.webserviceInfoDAO.isInitialized()) {
 
                     SEBServerInit.INIT_LOGGER.info("----> This is distributed setup, check master...");
 

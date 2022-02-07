@@ -115,11 +115,11 @@ public class ExamSessionControlTask implements DisposableBean {
 
         updateMaster();
 
-        this.sebClientConnectionService.updatePingEvents();
-
         if (!this.webserviceInfo.isMaster()) {
             return;
         }
+
+        this.sebClientConnectionService.updatePingEvents();
 
         if (log.isTraceEnabled()) {
             log.trace("Run exam session update task");

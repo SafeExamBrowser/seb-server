@@ -78,21 +78,24 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Register Webservice: {}", this.webserviceInfo.getWebserviceUUID());
 
-        try {
-            final boolean register = this.webserviceInfoDAO.register(
-                    this.webserviceInfo.getWebserviceUUID(),
-                    InetAddress.getLocalHost().getHostAddress());
-            if (register) {
-                SEBServerInit.INIT_LOGGER.info("----> Successfully register Webservice instance");
-            }
-        } catch (final Exception e) {
-            SEBServerInit.INIT_LOGGER.error("----> Failed to register webservice: ", e);
-        }
+        if (this.webserviceInfoDAO.isInitialized()) {
+            this.registerWebservice();
 
-        // Apply migration if needed and possible
-        SEBServerInit.INIT_LOGGER.info("----> ");
-        this.sebServerMigrationStrategy.applyMigration();
-        SEBServerInit.INIT_LOGGER.info("----> ");
+            // Apply migration if needed and possible
+            SEBServerInit.INIT_LOGGER.info("----> ");
+            this.sebServerMigrationStrategy.applyMigration();
+            SEBServerInit.INIT_LOGGER.info("----> ");
+
+        } else {
+
+            // Apply migration if needed and possible
+            SEBServerInit.INIT_LOGGER.info("----> ");
+            this.sebServerMigrationStrategy.applyMigration();
+            SEBServerInit.INIT_LOGGER.info("----> ");
+
+            this.registerWebservice();
+
+        }
 
         SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Initialize Services...");
@@ -153,6 +156,22 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
         SEBServerInit.INIT_LOGGER.info("----> *** Webservice successfully started up!               ***");
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
+    }
+
+    private boolean registerWebservice() {
+        boolean registered = false;
+        try {
+            final String webserviceUUID = this.webserviceInfo.getWebserviceUUID();
+            final String hostAddress = InetAddress.getLocalHost().getHostAddress();
+            registered = this.webserviceInfoDAO.register(webserviceUUID, hostAddress);
+            if (registered) {
+                SEBServerInit.INIT_LOGGER.info("----> Successfully register Webservice instance. uuid: {}, address: {}",
+                        webserviceUUID, hostAddress);
+            }
+        } catch (final Exception e) {
+            SEBServerInit.INIT_LOGGER.error("----> Failed to register webservice: ", e);
+        }
+        return registered;
     }
 
     @PreDestroy

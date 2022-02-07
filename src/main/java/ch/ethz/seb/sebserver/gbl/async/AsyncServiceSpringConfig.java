@@ -66,7 +66,7 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
     public Executor examAPIPingThreadPoolTaskExecutor() {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(20);
+        executor.setMaxPoolSize(100);
         executor.setQueueCapacity(0);
         executor.setThreadNamePrefix("SEBPingService-");
         executor.initialize();
