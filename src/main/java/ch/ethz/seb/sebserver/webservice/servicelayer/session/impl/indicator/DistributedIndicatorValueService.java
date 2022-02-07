@@ -29,6 +29,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
@@ -65,6 +66,8 @@ public class DistributedIndicatorValueService implements DisposableBean {
     private final Executor indicatorValueUpdateExecutor;
     private final ClientIndicatorRecordMapper clientIndicatorRecordMapper;
     private final ClientIndicatorValueMapper clientIndicatorValueMapper;
+    private final WebserviceInfo webserviceInfo;
+    long distributedUpdateInterval = 2000;
     private long updateTolerance;
 
     private ScheduledFuture<?> taskRef;
@@ -74,11 +77,17 @@ public class DistributedIndicatorValueService implements DisposableBean {
     public DistributedIndicatorValueService(
             @Qualifier(AsyncServiceSpringConfig.EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME) final Executor pingUpdateExecutor,
             final ClientIndicatorRecordMapper clientIndicatorRecordMapper,
-            final ClientIndicatorValueMapper clientIndicatorValueMapper) {
+            final ClientIndicatorValueMapper clientIndicatorValueMapper,
+            final WebserviceInfo webserviceInfo) {
 
         this.indicatorValueUpdateExecutor = pingUpdateExecutor;
         this.clientIndicatorRecordMapper = clientIndicatorRecordMapper;
         this.clientIndicatorValueMapper = clientIndicatorValueMapper;
+        this.webserviceInfo = webserviceInfo;
+    }
+
+    long lastUpdate() {
+        return this.lastUpdate;
     }
 
     /** Initializes the service by attaching it to the scheduler for periodical update.
@@ -95,18 +104,18 @@ public class DistributedIndicatorValueService implements DisposableBean {
             SEBServerInit.INIT_LOGGER.info("------> Activate distributed indicator value service:");
 
             final TaskScheduler taskScheduler = applicationContext.getBean(TaskScheduler.class);
-            final long distributedUpdateInterval = webserviceInfo.getDistributedUpdateInterval();
-            this.updateTolerance = distributedUpdateInterval * 2 / 3;
+            this.distributedUpdateInterval = webserviceInfo.getDistributedUpdateInterval();
+            this.updateTolerance = this.distributedUpdateInterval * 2 / 3;
 
             SEBServerInit.INIT_LOGGER.info("------> with distributedUpdateInterval: {}",
-                    distributedUpdateInterval);
+                    this.distributedUpdateInterval);
             SEBServerInit.INIT_LOGGER.info("------> with taskScheduler: {}", taskScheduler);
 
             try {
 
                 this.taskRef = taskScheduler.scheduleAtFixedRate(
                         this::updateIndicatorValueCache,
-                        distributedUpdateInterval);
+                        this.distributedUpdateInterval);
 
                 SEBServerInit.INIT_LOGGER.info("------> distributed indicator value service successfully initialized!");
 
@@ -141,38 +150,78 @@ public class DistributedIndicatorValueService implements DisposableBean {
                 log.trace("*** Initialize indicator value record for SEB connection: {}", connectionId);
             }
 
-            final Long recordId = this.clientIndicatorValueMapper
-                    .indicatorRecordIdByConnectionId(connectionId, type);
+            synchronized (this) {
 
-            if (recordId == null) {
-                final ClientIndicatorRecord clientEventRecord = new ClientIndicatorRecord(
-                        null, connectionId, type.id, value);
-
-                this.clientIndicatorRecordMapper.insert(clientEventRecord);
+                Long recordId = null;
 
                 try {
-                    // This also double-check by trying again. If we have more then one entry here
-                    // this will throw an exception that causes a rollback
-                    return this.clientIndicatorValueMapper
+                    recordId = this.clientIndicatorValueMapper
                             .indicatorRecordIdByConnectionId(connectionId, type);
-
                 } catch (final Exception e) {
+                    // There is already more then one indicator record entry!!!
+                    // delete the second one and work on with the first one
 
-                    log.warn(
-                            "Detected multiple client indicator entries for connection: {} and type: {}. Force rollback to prevent",
+                    log.warn("Duplicate indicator entry detected for connectionId: {}, type: {}  --> try to recover",
                             connectionId, type);
 
-                    // force rollback
-                    throw new RuntimeException("Detected multiple client indicator value entries");
-                }
-            }
+                    try {
+                        final List<ClientIndicatorRecord> records = this.clientIndicatorRecordMapper.selectByExample()
+                                .where(ClientIndicatorRecordDynamicSqlSupport.clientConnectionId,
+                                        isEqualTo(connectionId))
+                                .and(ClientIndicatorRecordDynamicSqlSupport.type, isEqualTo(type.id))
+                                .build()
+                                .execute();
+                        if (records.size() > 1) {
+                            this.clientIndicatorRecordMapper.deleteByPrimaryKey(records.get(1).getId());
+                        }
 
-            return recordId;
+                        return records.get(0).getId();
+                    } catch (final Exception ee) {
+                        log.error("Failed to recover from duplicate indicator entry: ", ee);
+                        return null;
+                    }
+                }
+
+                if (recordId == null) {
+                    if (!this.webserviceInfo.isMaster()) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Skip indicator record init because this is no master instance");
+                        }
+                        return null;
+                    }
+
+                    final ClientIndicatorRecord clientEventRecord = new ClientIndicatorRecord(
+                            null, connectionId, type.id, value);
+
+                    this.clientIndicatorRecordMapper.insert(clientEventRecord);
+
+                    try {
+                        // This also double-check by trying again. If we have more then one entry here
+                        // this will throw an exception that causes a rollback
+                        return this.clientIndicatorValueMapper
+                                .indicatorRecordIdByConnectionId(connectionId, type);
+
+                    } catch (final Exception e) {
+
+                        log.warn(
+                                "Detected multiple client indicator entries for connection: {} and type: {}. Force rollback to prevent",
+                                connectionId, type);
+
+                        // force rollback
+                        TransactionInterceptor.currentTransactionStatus().setRollbackOnly();
+                        throw new RuntimeException("Detected multiple client indicator value entries");
+                    }
+                }
+
+                return recordId;
+
+            }
         } catch (final Exception e) {
 
             log.error("Failed to initialize indicator value for connection -> {}", connectionId, e);
 
             // force rollback
+            TransactionInterceptor.currentTransactionStatus().setRollbackOnly();
             throw new RuntimeException("Failed to initialize indicator value for connection -> " + connectionId, e);
         }
     }
@@ -230,23 +279,29 @@ public class DistributedIndicatorValueService implements DisposableBean {
      * @param indicatorPK The indicator record id (PK).
      * @return The actual (last) indicator value. */
     public Long getIndicatorValue(final Long indicatorPK) {
-        try {
+        if (indicatorPK == null) {
+            return null;
+        }
 
-            Long value = this.indicatorValueCache.get(indicatorPK);
-            if (value == null) {
+        Long value = this.indicatorValueCache.get(indicatorPK);
+        if (value == null) {
+            try {
 
                 if (log.isDebugEnabled()) {
                     log.debug("*** Get and cache ping time: {}", indicatorPK);
                 }
 
                 value = this.clientIndicatorValueMapper.selectValueByPrimaryKey(indicatorPK);
-            }
+                if (value != null) {
+                    this.indicatorValueCache.put(indicatorPK, value);
+                }
 
-            return value;
-        } catch (final Exception e) {
-            log.error("Error while trying to get last indicator value from storage: {}", e.getMessage());
-            return 0L;
+            } catch (final Exception e) {
+                log.error("Error while trying to get last indicator value from storage: {}", e.getMessage());
+                return -1L;
+            }
         }
+        return value;
     }
 
     /** Updates the internal indicator value cache by loading all actual SEB client indicators from persistent storage
@@ -284,6 +339,8 @@ public class DistributedIndicatorValueService implements DisposableBean {
                 this.lastUpdate = millisecondsNow;
             }
 
+            // System.out.println("*** Update distributed indicator value cache: " + this.indicatorValueCache);
+
         } catch (final Exception e) {
             log.error("Error while trying to update distributed indicator value cache: {}", this.indicatorValueCache,
                     e);
@@ -293,7 +350,10 @@ public class DistributedIndicatorValueService implements DisposableBean {
     }
 
     /** Update last ping time on persistent storage asynchronously within a defines thread pool with no
-     * waiting queue to skip further ping updates if all update threads are busy **/
+     * waiting queue to skip further ping updates if all update threads are busy
+     *
+     * TODO: we need a better handling strategy here.
+     * Try to apply a batch update and store the pings in a concurrent hash map **/
     void updatePingAsync(final Long pingRecord) {
         try {
             this.indicatorValueUpdateExecutor

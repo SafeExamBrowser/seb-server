@@ -36,6 +36,8 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
     protected double incidentThreshold = 0.0;
 
+    protected long lastUpdate = 0;
+
     public AbstractClientIndicator(final DistributedIndicatorValueService distributedPingCache) {
         super();
         this.distributedPingCache = distributedPingCache;
@@ -122,6 +124,22 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
     @Override
     public double getValue() {
+
+        if (this.initialized && !this.cachingEnabled && this.active
+                && this.lastUpdate != this.distributedPingCache.lastUpdate()) {
+
+            if (this.ditributedIndicatorValueRecordId == null) {
+                this.tryRecoverIndicatorRecord();
+            }
+
+            final Long indicatorValue = this.distributedPingCache
+                    .getIndicatorValue(this.ditributedIndicatorValueRecordId);
+            if (indicatorValue != null) {
+                this.currentValue = indicatorValue.doubleValue();
+            }
+            this.lastUpdate = this.distributedPingCache.lastUpdate();
+        }
+
         return this.currentValue;
     }
 

@@ -79,17 +79,6 @@ public interface ClientIndicatorValueMapper {
                 .execute();
     }
 
-    default Long pingRecordIdByConnectionId(final Long connectionId) {
-        return SelectDSL.selectDistinctWithMapper(
-                this::selectPK,
-                id.as("id"))
-                .from(clientIndicatorRecord)
-                .where(clientConnectionId, isEqualTo(connectionId))
-                .and(type, isEqualTo(IndicatorType.LAST_PING.id))
-                .build()
-                .execute();
-    }
-
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Collection<ClientIndicatorValueRecord>>> selectByExample() {
 
         return SelectDSL.selectWithMapper(

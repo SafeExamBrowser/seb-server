@@ -137,6 +137,7 @@ public class ClientEventDAOImpl implements ClientEventDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<Collection<ExtendedClientEvent>> allMatchingExtended(
             final FilterMap filterMap,
             final Predicate<ExtendedClientEvent> predicate) {
