@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -55,6 +56,10 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     @Qualifier(WebServiceSecurityConfig.AUTHENTICATION_MANAGER)
     private AuthenticationManager authenticationManager;
+    @Value("${sebserver.webservice.api.admin.accessTokenValiditySeconds:3600}")
+    private Integer adminAccessTokenValSec;
+    @Value("${sebserver.webservice.api.admin.refreshTokenValiditySeconds:-1}")
+    private Integer adminRefreshTokenValSec;
 
     @Override
     public void configure(final AuthorizationServerSecurityConfigurer oauthServer) {
@@ -78,7 +83,10 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         defaultTokenServices.setTokenStore(this.tokenStore);
         defaultTokenServices.setAuthenticationManager(this.authenticationManager);
         defaultTokenServices.setSupportRefreshToken(true);
+        defaultTokenServices.setReuseRefreshToken(true);
         defaultTokenServices.setTokenEnhancer(jwtAccessTokenConverter);
+        defaultTokenServices.setAccessTokenValiditySeconds(this.adminAccessTokenValSec);
+        defaultTokenServices.setRefreshTokenValiditySeconds(this.adminRefreshTokenValSec);
 
         endpoints
                 .tokenStore(this.tokenStore)

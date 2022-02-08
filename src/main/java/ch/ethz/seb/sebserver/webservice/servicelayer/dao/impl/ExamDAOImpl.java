@@ -137,13 +137,11 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Result<Collection<Long>> allInstitutionIdsByQuizId(final String quizId) {
         return this.examRecordDAO.allInstitutionIdsByQuizId(quizId);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Result<Collection<Exam>> allMatching(final FilterMap filterMap, final Predicate<Exam> predicate) {
 
         return Result.tryCatch(() -> {
@@ -181,7 +179,6 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional
     public Result<Exam> updateState(final Long examId, final ExamStatus status, final String updateId) {
         return this.examRecordDAO
                 .updateState(examId, status, updateId)
@@ -196,7 +193,6 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional
     public Result<Exam> setSEBRestriction(final Long examId, final boolean sebRestriction) {
         return this.examRecordDAO
                 .setSEBRestriction(examId, sebRestriction)
@@ -204,7 +200,6 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional
     public Result<Exam> createNew(final Exam exam) {
         return this.examRecordDAO
                 .createNew(exam)
@@ -298,7 +293,6 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Result<Collection<Exam>> allForEndCheck() {
         return this.examRecordDAO
                 .allForEndCheck()
@@ -409,7 +403,6 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Result<Boolean> isLocked(final Long examId) {
         return this.examRecordDAO
                 .recordById(examId)
@@ -543,7 +536,6 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Result<Collection<Exam>> allOf(final Set<Long> pks) {
         return this.examRecordDAO
                 .allOf(pks)

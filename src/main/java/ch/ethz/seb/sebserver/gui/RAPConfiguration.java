@@ -173,11 +173,11 @@ public class RAPConfiguration implements ApplicationConfiguration {
                         final Integer sessionTimeout = environment.getProperty(
                                 ATTR_USER_SESSION_TIMEOUT,
                                 Integer.class,
-                                -1);
+                                18000);
 
                         httpSession.setMaxInactiveInterval(sessionTimeout);
                     } else {
-                        httpSession.setMaxInactiveInterval(-1);
+                        httpSession.setMaxInactiveInterval(18000);
                     }
 
                     final EntryPointService entryPointService = webApplicationContext
