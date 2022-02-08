@@ -184,7 +184,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                             replaceVars(this.defaultExamConfigDescTemplate, exam, examTemplate),
                             ConfigurationType.EXAM_CONFIG,
                             exam.owner,
-                            ConfigurationStatus.CONSTRUCTION);
+                            ConfigurationStatus.IN_USE);
 
                     final ConfigurationNode examConfig = this.configurationNodeDAO
                             .createNew(configurationNode)
