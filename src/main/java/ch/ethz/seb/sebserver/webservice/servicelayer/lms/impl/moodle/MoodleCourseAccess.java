@@ -603,7 +603,9 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
                             lmsSetup.getInstitutionId(),
                             lmsSetup.id,
                             lmsSetup.getLmsType(),
-                            courseQuizData.name,
+                            (this.prependShortCourseName)
+                                    ? courseData.short_name + " : " + courseQuizData.name
+                                    : courseQuizData.name,
                             courseQuizData.intro,
                             (courseQuizData.time_open != null && courseQuizData.time_open > 0)
                                     ? Utils.toDateTimeUTCUnix(courseQuizData.time_open)
