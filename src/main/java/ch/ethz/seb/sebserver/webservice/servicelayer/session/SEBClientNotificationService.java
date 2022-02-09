@@ -35,6 +35,9 @@ public interface SEBClientNotificationService {
      * @return Result refer to pending client notifications or to an error when happened */
     Result<List<ClientNotification>> getPendingNotifications(Long clientConnectionId);
 
+    /** This creates/register a new pending notification.
+     *
+     * @param notification The ClientNotification data */
     void newNotification(ClientNotification notification);
 
     /** This is used to confirm a pending notification from SEB client side where

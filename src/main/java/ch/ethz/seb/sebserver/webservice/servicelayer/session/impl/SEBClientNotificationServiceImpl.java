@@ -66,15 +66,12 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
         this.clientConnectionDAO = clientConnectionDAO;
         this.sebClientInstructionService = sebClientInstructionService;
         if (webserviceInfo.isDistributed()) {
-            this.updateInterval = Constants.SECOND_IN_MILLIS;
+            this.updateInterval = 2 * Constants.SECOND_IN_MILLIS;
         }
     }
 
     @Override
     public Boolean hasAnyPendingNotification(final ClientConnection clientConnection) {
-        if (!clientConnection.status.clientActiveStatus) {
-            return false;
-        }
         updateCache(clientConnection.examId);
         return this.pendingNotifications.contains(clientConnection.id);
     }
@@ -138,7 +135,7 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
 
     private ClientNotification notifyNewNotifiaction(final ClientNotification notification) {
         if (notification.eventType == EventType.NOTIFICATION) {
-            this.pendingNotifications.add(notification.id);
+            this.pendingNotifications.add(notification.getConnectionId());
         }
         return notification;
     }
