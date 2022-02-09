@@ -69,6 +69,7 @@ public class ClientConnectionDetails {
 
     private ClientConnectionData connectionData = null;
     private boolean statusChanged = true;
+    private boolean missingChanged = true;
     private long startTime = -1;
     private Consumer<ClientConnectionData> statusChangeListener = null;
 
@@ -143,9 +144,9 @@ public class ClientConnectionDetails {
 
         if (this.connectionData != null && connectionData != null) {
             this.statusChanged =
-                    this.connectionData.clientConnection.status != connectionData.clientConnection.status ||
-                            BooleanUtils.toBoolean(this.connectionData.missingPing) != BooleanUtils
-                                    .toBoolean(connectionData.missingPing);
+                    this.connectionData.clientConnection.status != connectionData.clientConnection.status;
+            this.missingChanged = BooleanUtils.toBoolean(this.connectionData.missingPing) != BooleanUtils
+                    .toBoolean(connectionData.missingPing);
         }
         this.connectionData = connectionData;
         if (this.startTime < 0) {
@@ -157,14 +158,14 @@ public class ClientConnectionDetails {
             final Supplier<EntityTable<ClientNotification>> notificationTableSupplier,
             final PageContext pageContext) {
 
+        if (this.connectionData == null) {
+            return;
+        }
+
         // Note: This is to update the whole page (by reload) only when the status has changed
         //       while this page was open. This prevent constant page reloads.
         if (this.statusChanged && System.currentTimeMillis() - this.startTime > Constants.SECOND_IN_MILLIS) {
             reloadPage(pageContext);
-            return;
-        }
-
-        if (this.connectionData == null) {
             return;
         }
 
@@ -177,7 +178,7 @@ public class ClientConnectionDetails {
                 ClientConnection.ATTR_INFO,
                 this.connectionData.clientConnection.info);
 
-        if (this.statusChanged) {
+        if (this.missingChanged) {
             // update status
             form.setFieldValue(
                     Domain.CLIENT_CONNECTION.ATTR_STATUS,
