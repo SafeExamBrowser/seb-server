@@ -294,24 +294,16 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // connection integrity check
             if (clientConnection.status == ConnectionStatus.ACTIVE) {
-                if (StringUtils.isNotBlank(clientConnection.clientAddress) &&
-                        (StringUtils.isBlank(clientAddress) || clientConnection.clientAddress.equals(clientAddress))) {
-                    // It seems that this is the same SEB that tries to establish the connection once again.
-                    // Just log this and return already established connection
-                    if (log.isDebugEnabled()) {
-                        log.debug(
-                                "SEB retired to establish an already established client connection. Client adress: {} : {}",
-                                clientConnection.clientAddress,
-                                clientAddress);
-                    }
-                    return clientConnection;
-                } else {
-                    // It seems that this is a request from an other device then the original
-                    log.warn(
-                            "SEB retired to establish an already established client connection with another IP address. Client adress: {} : {}",
-                            clientConnection.clientAddress,
-                            clientAddress);
-                    return clientConnection;
+                // connection already established. Check if IP is the same
+                if (StringUtils.isNoneBlank(clientAddress) &&
+                        StringUtils.isNotBlank(clientConnection.clientAddress) &&
+                        !clientAddress.equals(clientConnection.clientAddress)) {
+                    log.error(
+                            "ClientConnection integrity violation: client address mismatch: {}, {}",
+                            clientAddress,
+                            clientConnection.clientAddress);
+                    throw new IllegalArgumentException(
+                            "ClientConnection integrity violation: client address mismatch");
                 }
             } else if (!clientConnection.status.clientActiveStatus) {
                 log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
@@ -342,14 +334,16 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             clientConnection = updateUserSessionId(userSessionId, clientConnection, examId);
 
             // connection integrity check
-            if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
-                log.warn("ClientConnection integrity warning: client connection is not authenticated: {}",
-                        clientConnection);
-            } else if (clientConnection.status != ConnectionStatus.AUTHENTICATED) {
-                log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
-                        clientConnection);
-                throw new IllegalArgumentException(
-                        "ClientConnection integrity violation: client connection is not in expected state");
+            if (clientConnection.status != ConnectionStatus.ACTIVE) {
+                if (clientConnection.status == ConnectionStatus.CONNECTION_REQUESTED) {
+                    log.warn("ClientConnection integrity warning: client connection is not authenticated: {}",
+                            clientConnection);
+                } else if (clientConnection.status != ConnectionStatus.AUTHENTICATED) {
+                    log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
+                            clientConnection);
+                    throw new IllegalArgumentException(
+                            "ClientConnection integrity violation: client connection is not in expected state");
+                }
             }
 
             final Boolean proctoringEnabled = this.examAdminService
@@ -765,24 +759,34 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     if (log.isDebugEnabled()) {
                         log.debug("SEB sent LMS userSessionId but clientConnection has already a userSessionId");
                     }
+                    return clientConnection;
                 } else {
                     log.warn(
                             "Possible client integrity violation: clientConnection has already a userSessionId: {} : {}",
                             userSessionId, clientConnection.userSessionId);
                 }
-                return clientConnection;
             }
 
             // try to get user account display name
             String accountId = userSessionId;
             try {
-                accountId = this.examSessionService
+                final String newAccountId = this.examSessionService
                         .getRunningExam((clientConnection.examId != null)
                                 ? clientConnection.examId
                                 : examId)
                         .flatMap(exam -> this.examSessionService.getLmsAPIService().getLmsAPITemplate(exam.lmsSetupId))
                         .map(template -> template.getExamineeName(userSessionId))
                         .getOr(userSessionId);
+
+                if (StringUtils.isNotBlank(clientConnection.userSessionId)) {
+                    accountId = newAccountId +
+                            Constants.SPACE +
+                            Constants.EMBEDDED_LIST_SEPARATOR +
+                            Constants.SPACE +
+                            clientConnection.userSessionId;
+                } else {
+                    accountId = newAccountId;
+                }
             } catch (final Exception e) {
                 log.warn("Unexpected error while trying to get user account display name: {}", e.getMessage());
             }
