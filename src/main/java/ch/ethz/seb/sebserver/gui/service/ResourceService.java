@@ -248,6 +248,7 @@ public class ResourceService {
 
     public List<Tuple<String>> indicatorTypeResources() {
         return Arrays.stream(IndicatorType.values())
+                .filter(type -> type != IndicatorType.NONE)
                 .map(type -> new Tuple3<>(
                         type.name(),
                         this.i18nSupport.getText(EXAM_INDICATOR_TYPE_PREFIX + type.name(), type.name()),
