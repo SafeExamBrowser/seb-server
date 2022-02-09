@@ -542,10 +542,6 @@ public class WidgetFactory {
         return input;
     }
 
-//    public Text numberInput(final Composite content, final Consumer<String> numberCheck, final LocTextKey label) {
-//        return numberInput(content, numberCheck, false, label);
-//    }
-
     public Text numberInput(
             final Composite content,
             final Consumer<String> numberCheck,
@@ -563,6 +559,9 @@ public class WidgetFactory {
         if (numberCheck != null) {
             numberInput.addListener(SWT.Verify, event -> {
                 final String value = event.text;
+                if (StringUtils.isBlank(value)) {
+                    return;
+                }
                 try {
                     numberCheck.accept(value);
                 } catch (final Exception e) {
