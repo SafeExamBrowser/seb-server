@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Text;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 
@@ -138,7 +139,9 @@ public class PasswordInput extends Composite {
 
     public void setValue(final CharSequence value) {
         if (this.passwordInputField != null) {
-            this.passwordInputField.setText(value != null ? value.toString() : StringUtils.EMPTY);
+            this.passwordInputField.setText(value != null
+                    ? Utils.escapeHTML_XML_EcmaScript(value.toString())
+                    : StringUtils.EMPTY);
             if (StringUtils.endsWith(value, Constants.IMPORTED_PASSWORD_MARKER)) {
                 this.visibilityButton.setEnabled(false);
             }
