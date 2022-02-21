@@ -49,6 +49,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
@@ -75,6 +76,23 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 userActivityLogDAO,
                 paginationService,
                 beanValidationService);
+    }
+
+    @RequestMapping(
+            path = API.EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ExamTemplate getDefault() {
+        final Long institutionId = super.authorization
+                .getUserService()
+                .getCurrentUser()
+                .institutionId();
+
+        return ((ExamTemplateDAO) this.entityDAO)
+                .getInstitutionalDefault(institutionId)
+                .flatMap(this::checkReadAccess)
+                .getOrThrow();
     }
 
     @RequestMapping(

@@ -147,6 +147,7 @@ public class ResourceService {
     public static final String SEB_CONNECTION_STATUS_KEY_PREFIX = "sebserver.monitoring.exam.connection.status.";
     public static final LocTextKey ACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.active");
     public static final LocTextKey INACTIVE_TEXT_KEY = new LocTextKey("sebserver.overall.status.inactive");
+    public static final LocTextKey NO_SELECTION = new LocTextKey("sebserver.overall.action.select.none");
 
     private final I18nSupport i18nSupport;
     private final RestService restService;
@@ -310,7 +311,8 @@ public class ResourceService {
 
     public List<Tuple<String>> lmsSetupResource() {
         final boolean isSEBAdmin = this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
-        final String institutionId = (isSEBAdmin) ? "" : String.valueOf(this.currentUser.get().institutionId);
+        final String institutionId =
+                (isSEBAdmin) ? StringUtils.EMPTY : String.valueOf(this.currentUser.get().institutionId);
         return this.restService.getBuilder(GetLmsSetupNames.class)
                 .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, institutionId)
                 .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
@@ -324,7 +326,8 @@ public class ResourceService {
 
     public Function<String, String> getLmsSetupNameFunction() {
         final boolean isSEBAdmin = this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
-        final String institutionId = (isSEBAdmin) ? "" : String.valueOf(this.currentUser.get().institutionId);
+        final String institutionId =
+                (isSEBAdmin) ? StringUtils.EMPTY : String.valueOf(this.currentUser.get().institutionId);
         final Map<String, String> idNameMap = this.restService.getBuilder(GetLmsSetupNames.class)
                 .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, institutionId)
                 .withQueryParam(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
@@ -732,7 +735,7 @@ public class ResourceService {
                 .map(node -> new Tuple<>(node.getModelId(), node.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
-        collect.add(0, new Tuple<>(null, ""));
+        collect.add(0, new Tuple<>(null, StringUtils.EMPTY));
         return collect;
     }
 
@@ -788,7 +791,7 @@ public class ResourceService {
 
     public List<Tuple<String>> identityCertificatesResources() {
         return Stream.concat(
-                Stream.of(new EntityName("", EntityType.CERTIFICATE, "")),
+                Stream.of(new EntityName(StringUtils.EMPTY, EntityType.CERTIFICATE, StringUtils.EMPTY)),
                 this.restService.getBuilder(GetCertificateNames.class)
                         .withQueryParam(
                                 CertificateInfo.FILTER_ATTR_TYPE,
@@ -802,8 +805,10 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> examTemplateResources() {
+
         return Stream.concat(
-                Stream.of(new EntityName("", EntityType.EXAM_TEMPLATE, "")),
+                Stream.of(new EntityName(StringUtils.EMPTY, EntityType.EXAM_TEMPLATE,
+                        this.i18nSupport.getText(NO_SELECTION))),
                 this.restService.getBuilder(GetExamTemplateNames.class)
                         .call()
                         .onError(error -> log.warn("Failed to get exam template names: {}", error.getMessage()))

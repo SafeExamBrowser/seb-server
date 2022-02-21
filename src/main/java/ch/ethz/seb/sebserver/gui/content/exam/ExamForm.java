@@ -63,6 +63,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetDefaultExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
@@ -351,7 +352,9 @@ public class ExamForm implements TemplateComposer {
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_EXAM_TEMPLATE_ID,
                         FORM_EXAM_TEMPLATE_TEXT_KEY,
-                        (exam.examTemplateId == null) ? null : String.valueOf(exam.examTemplateId),
+                        (exam.examTemplateId == null)
+                                ? getDefaultExamTemplateId()
+                                : String.valueOf(exam.examTemplateId),
                         this.resourceService::examTemplateResources)
                         .withSelectionListener(form -> this.processTemplateSelection(form, formContext))
                         .withLabelSpan(2)
@@ -381,6 +384,10 @@ public class ExamForm implements TemplateComposer {
                 .buildFor(importFromQuizData
                         ? this.restService.getRestCall(ImportAsExam.class)
                         : this.restService.getRestCall(SaveExam.class));
+
+        if (importFromQuizData) {
+            this.processTemplateSelection(formHandle.getForm(), formContext);
+        }
 
         final boolean proctoringEnabled = importFromQuizData ? false : this.restService
                 .getBuilder(GetProctoringSettings.class)
@@ -476,6 +483,14 @@ public class ExamForm implements TemplateComposer {
                             .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
                             .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
         }
+    }
+
+    private String getDefaultExamTemplateId() {
+        return this.restService.getBuilder(GetDefaultExamTemplate.class)
+                .call()
+                .map(ExamTemplate::getId)
+                .map(Object::toString)
+                .getOr(StringUtils.EMPTY);
     }
 
     private void processTemplateSelection(final Form form, final PageContext context) {
