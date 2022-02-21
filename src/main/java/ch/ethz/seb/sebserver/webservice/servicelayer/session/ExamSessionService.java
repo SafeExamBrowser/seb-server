@@ -191,6 +191,12 @@ public interface ExamSessionService {
 
     /** Flush all the caches for an specified Exam.
      *
+     * <pre>
+     *  - Exam
+     *  - Exam Configuration
+     *  - All ClientConnection of the running exam
+     * </pre>
+     *
      * @param exam The Exam instance
      * @return Result with reference to the given Exam or to an error if happened */
     Result<Exam> flushCache(final Exam exam);

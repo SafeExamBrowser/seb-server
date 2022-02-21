@@ -161,7 +161,7 @@ public final class ColorSelection extends Composite implements Selection {
         if (this.selection != null) {
             this.colorField.setBackground(new Color(this.getDisplay(), this.selection));
             this.colorLabel.setText(Utils.parseColorString(this.selection));
-            this.colorLabel.setData(RWT.CUSTOM_VARIANT, (Utils.darkColor(this.selection))
+            this.colorLabel.setData(RWT.CUSTOM_VARIANT, (Utils.darkColorContrast(this.selection))
                     ? CustomVariant.DARK_COLOR_LABEL.key
                     : CustomVariant.LIGHT_COLOR_LABEL.key);
         } else {

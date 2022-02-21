@@ -34,6 +34,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -540,10 +542,15 @@ public final class Utils {
 
     public static RGB toRGB(final String rgbString) {
         if (StringUtils.isNotBlank(rgbString)) {
+
+            final String rgbVal = (rgbString.startsWith(Constants.HASH_TAG_STRING))
+                    ? rgbString.substring(1)
+                    : rgbString;
+
             return new RGB(
-                    Integer.parseInt(rgbString.substring(0, 2), 16),
-                    Integer.parseInt(rgbString.substring(2, 4), 16),
-                    Integer.parseInt(rgbString.substring(4, 6), 16));
+                    Integer.parseInt(rgbVal.substring(0, 2), 16),
+                    Integer.parseInt(rgbVal.substring(2, 4), 16),
+                    Integer.parseInt(rgbVal.substring(4, 6), 16));
         } else {
             return new RGB(255, 255, 255);
         }
@@ -564,7 +571,11 @@ public final class Utils {
         return e.getCause().getClass().getName() + " : " + e.getCause().getMessage();
     }
 
-    public static boolean darkColor(final RGB rgb) {
+    /** Indicates if a dark background or contrast color must be used for the given text or foreground color.
+     *
+     * @param rgb foreground or text color
+     * @return true of the background color for given foreground color shall be dark or false if it shall be light */
+    public static boolean darkColorContrast(final RGB rgb) {
         return rgb.red + rgb.green + rgb.blue > DARK_COLOR_THRESHOLD;
     }
 
@@ -596,6 +607,10 @@ public final class Utils {
     }
 
     public static String toAppFormUrlEncodedBody(final MultiValueMap<String, String> attributes) {
+        if (attributes == null) {
+            return StringUtils.EMPTY;
+        }
+
         return attributes
                 .entrySet()
                 .stream()
@@ -619,7 +634,11 @@ public final class Utils {
                 .toString();
     }
 
-    public static String toAppFormUrlEncodedBody(final String name, final Collection<String> array) {
+    public static String toAppFormUrlEncodedBody(@NotNull final String name, final Collection<String> array) {
+        if (array == null) {
+            return StringUtils.EMPTY;
+        }
+
         final String _name = name.contains(String.valueOf(Constants.SQUARE_BRACE_OPEN)) || array.size() <= 1
                 ? name
                 : name + Constants.SQUARE_BRACE_OPEN + Constants.SQUARE_BRACE_CLOSE;
@@ -702,6 +721,18 @@ public final class Utils {
             return Constants.EMPTY_NOTE;
         }
         return value;
+    }
+
+    public static StringBuilder formatStackTracePrint(final int length, final StackTraceElement[] stackTrace) {
+        final int size = Math.min(stackTrace.length, length);
+        final StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < size; i++) {
+            builder.append("  --> ").append(stackTrace[i].toString());
+            if (i + 1 < size) {
+                builder.append(Constants.CARRIAGE_RETURN);
+            }
+        }
+        return builder;
     }
 
 }

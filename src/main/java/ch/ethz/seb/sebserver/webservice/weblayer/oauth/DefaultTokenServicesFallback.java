@@ -17,7 +17,6 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 
-// TODO check if we can apply some caching here to get better performance for SEB client connection attempts
 public class DefaultTokenServicesFallback extends DefaultTokenServices {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultTokenServicesFallback.class);

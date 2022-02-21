@@ -186,7 +186,7 @@ public class ExamFormIndicators implements TemplateComposer {
                                 .append("<span style='padding: 2px 5px 2px 5px; background-color: #")
                                 .append(threshold.color)
                                 .append("; ")
-                                .append((Utils.darkColor(Utils.parseRGB(threshold.color)))
+                                .append((Utils.darkColorContrast(Utils.parseRGB(threshold.color)))
                                         ? "color: #4a4a4a; "
                                         : "color: #FFFFFF;")
                                 .append("'>")

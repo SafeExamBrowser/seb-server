@@ -68,6 +68,7 @@ public final class Constants {
     public static final Character EQUALITY_SIGN = '=';
     public static final Character LIST_SEPARATOR_CHAR = COMMA;
     public static final Character COMPLEX_VALUE_SEPARATOR = COLON;
+    public static final Character HASH_TAG = '#';
 
     public static final String NULL = "null";
     public static final String PERCENTAGE_STRING = Constants.PERCENTAGE.toString();
@@ -80,6 +81,7 @@ public final class Constants {
     public static final String URL_PORT_SEPARATOR = COLON.toString();
     public static final String URL_ADDRESS_SEPARATOR = COLON.toString() + SLASH.toString() + SLASH.toString();
     public static final String URL_PATH_SEPARATOR = SLASH.toString();
+    public static final String HASH_TAG_STRING = HASH_TAG.toString();
 
     public static final String DYN_HTML_ATTR_OPEN = "%%_";
     public static final String DYN_HTML_ATTR_CLOSE = "_%%";

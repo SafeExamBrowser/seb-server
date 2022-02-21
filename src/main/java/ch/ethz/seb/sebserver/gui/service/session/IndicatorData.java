@@ -41,7 +41,7 @@ final class IndicatorData {
         this.index = index;
         this.tableIndex = tableIndex;
         this.defaultColor = new Color(display, Utils.toRGB(indicator.defaultColor), 255);
-        this.defaultTextColor = Utils.darkColor(this.defaultColor.getRGB())
+        this.defaultTextColor = Utils.darkColorContrast(this.defaultColor.getRGB())
                 ? colorData.darkColor
                 : colorData.lightColor;
 
@@ -91,7 +91,7 @@ final class IndicatorData {
         protected ThresholdColor(final Threshold threshold, final Display display, final ColorData colorData) {
             this.value = threshold.value;
             this.color = new Color(display, Utils.toRGB(threshold.color), 255);
-            this.textColor = Utils.darkColor(this.color.getRGB())
+            this.textColor = Utils.darkColorContrast(this.color.getRGB())
                     ? colorData.darkColor
                     : colorData.lightColor;
         }

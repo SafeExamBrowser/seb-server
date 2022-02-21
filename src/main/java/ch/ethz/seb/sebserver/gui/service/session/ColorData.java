@@ -48,7 +48,7 @@ public class ColorData {
     }
 
     Color getStatusTextColor(final Color statusColor) {
-        return Utils.darkColor(statusColor.getRGB()) ? this.darkColor : this.lightColor;
+        return Utils.darkColorContrast(statusColor.getRGB()) ? this.darkColor : this.lightColor;
     }
 
     int statusWeight(final ClientConnectionData connectionData) {
