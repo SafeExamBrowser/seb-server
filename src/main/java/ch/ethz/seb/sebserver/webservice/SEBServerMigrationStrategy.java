@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import org.flywaydb.core.api.MigrationInfoService;
+import org.flywaydb.core.api.output.ValidateResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -116,6 +117,20 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
 
             this.flyway.clean();
         }
+
+        // repair checksum mismatch if needed
+        final ValidateResult validateWithResult = this.flyway.validateWithResult();
+        if (!validateWithResult.validationSuccessful
+                && validateWithResult.getAllErrorMessages().contains("checksum mismatch")) {
+
+            SEBServerInit.INIT_LOGGER.info("----> Migration validation checksum mismatch error detected: ");
+            SEBServerInit.INIT_LOGGER.info("----> {}", validateWithResult.getAllErrorMessages());
+            SEBServerInit.INIT_LOGGER.info("----> Try to run repair task...");
+
+            this.flyway.repair();
+
+        }
+
         this.flyway.migrate();
 
         final MigrationInfoService info = this.flyway.info();
