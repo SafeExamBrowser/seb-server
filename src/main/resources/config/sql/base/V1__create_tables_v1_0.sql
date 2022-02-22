@@ -1,10 +1,4 @@
 -- -----------------------------------------------------
--- Schema SEBServer
--- -----------------------------------------------------
-ALTER SCHEMA `SEBServer` DEFAULT CHARSET utf8mb4;
-USE `SEBServer` ;
-
--- -----------------------------------------------------
 -- Table `institution`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `institution` (
