@@ -21,9 +21,9 @@ exam administrator of your institution to get help and check if you are correctl
 To monitor an exam either double-click on the list entry of the exam or select the list entry and use the "Monitoring" action form the
 right action pane to navigate into the main page of exam monitoring.
 
-On the the main page of exam monitoring you find a list of all SEB client connections that has been connected to the exam since the
-exam is running. There are some filter switches on the right action pane that may hide some canceled and/or closed SEB connections but
-you should see at least all active connections instantly.
+On the the main page of exam monitoring you find a heat-map list of all SEB client connections that are connected to the exam since the
+exam is running. There are state filter switches on the right action pane that allows to show/hide SEB client connection of specified states.
+As default you should see at least all active connections instantly.
 
 .. image:: images/monitoring/examMonitoring.png
     :align: center
@@ -33,12 +33,32 @@ The list is automatically sorted in the way that SEB connections with incidents 
 "User Name or Session" identifier criteria. The general SEB client connection attributes are:
 
 - **User Name or Session** The user account or user session identifier sent by the LMS to the SEB client and from SEB client to the SEB Server. This identifier may vary depending on the LMS that is involved. For Open edX it is the user account identifier (username). 
-- **IP Address** The IP address of the device the connected SEB client is running.
-- **Status** The status of the SEB client connection. 
+- **Connection Info** The IP address of the device the connected SEB client is running plus some additional information about the operating system and the SEB version.
+- **Status** The status of the SEB client connection.
 
-This general attributes are followed by the indicator attributes of all indicator defined by the exam. The column name of an indicator is
-the name of the indicator defines in the exam and the cell shows the measured value of the indicator for each SEB client connection and
-the cell is tinted in the color of the reached threshold also defined for each indicator on the exam.
+The following SEB connection states are defined:
+
+- **Connection Requested** This state appears from when a SEB client contacted to SEB Server the first time until the SEB client has finished up the hand-shake protocol with the SEB Server and the student has logged into the LMS.
+- **Active** This state appears after successful hand-shake and login into LMS and stays as long as the SEB connection is available and not closed or terminated
+- **Missing** This state appears when a SEB connection is currently in active state but has missing ping (last ping last longer then the highest ping threshold of the ping indicator).
+- **Closed** This state marks a closed SEB connection that was once active.
+- **Canceled** This state marks a SEB connection that has been canceled.
+
+This general connection attributes are followed by the indicator attributes of all indicator defined by the exam. The column name of an indicator is
+the name of the indicator defined in the exam. The cell shows the measured value of the indicator for each SEB client connection and
+the cell is tinted in the color of the reached threshold also defined for each indicator on the exam administration.
+
+**Search**
+
+Since the monitoring heat-map list is automatically sorted and cannot be filtered except on connection status, there is a search feature to find a
+particular connection or a set of connections. To search connection on a running exam, please use the "Search" action from the right action pane.
+A search pop-pup will appear with all connection is a usual list with the possibility to filter and sort the entires.
+Double-click on an entry to go to the detail view of the specified SEB client connection.
+
+.. image:: images/monitoring/search.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/search.png
+    
 
 **Instructions**
 
@@ -51,16 +71,20 @@ with usual list (multi)selection by holding Ctrl or Shift key plus right mouse c
 
 **Filter**
 
-There are some filter to hide/show SEB client connection of in particular states. These are located in the right action pane has the name of the
-filter action that will be performed on click and the name of the effected connection status. With this actions you are able to toggle between
+There are connection state filter to hide/show SEB client connection in particular states. These are located in the right action pane hand has the name of the
+filter action that will be performed on click (hide/show) and the name of the affected connection status. With this actions you are able to toggle between
 hide and show SEB client connection of a particular state.
 
-- **Show/Hide Closed** Use this to show or hide all SEB client connections that are currently in the "Closed" state.
 - **Show/Hide Requested** Use this to show or hide all SEB client connections that are currently in the "Requested" state and are not responding anymore.
+- **Show/Hide Active** Use this to hide SEB client connections in active state that has no incident and are not missing. If this filter is enabled and an active SEB connection gets an incident or is marked as missing it suddenly appears in the list. So no incidences are accidentally hidden. This feature is best used for exams with a lot of participants to keep a good overview.
+- **Show/Hide Closed** Use this to show or hide all SEB client connections that are currently in the "Closed" state.
 - **Show/Hide Canceled** Use this to show or hide all SEB client connections that are currently in the "Canceled" state.
 
+Since SEB Server version 1.3 each filter also shows the current number of connection in the particular state. Now one has an overview of how many connections 
+are there for an exam and in witch state.
+
 .. note::
-    When a certain state filter is set to hide and a particular SEB client connection switches into that state, it will automatically be hiding from the list.
+    When a certain state filter is set to hide and a particular SEB client connection switches into that state, it will automatically disappear from the list.
 
 Detailed View
 -------------
@@ -84,11 +108,11 @@ Live Proctoring
 ---------------
 
 .. note::
-    This feature is still in a prototype state and not all functionality meight work as expected. Basically the meeting features
+    This feature is still in a prototype state and not all functionality might work as expected. Basically the meeting features
     are given or restricted by the meeting service that is used and the API and GUI that is given by that meeting service client
 
     
-**Collecting Rooms**
+**Proctoring (Collecting) Rooms**
 
 When the exam live proctoring feature is enabled for the running exam (see :ref:`sebProctoringSettings-label`), SEB Server will automatically create and collect 
 connected SEB clients into so called collecting rooms. The size of this collecting rooms can be defined within the proctoring settings in the exam.
@@ -107,14 +131,17 @@ load the detailed monitoring view of that participant.
     A collecting room, once created will live as long as the exam is running and not has been deleted. When the exam ends or is been deleted,
     the collecting room will automatically get deleted on the SEB Server's persistent storage as well as on the meeting service side if needed.
     
-**Town-hall Feature**
+**Town-Hall Feature**
     
 Beside the usual collecting room, there is a town-hall room feature. By using the "Open Townhall" action from the right action pane, SEB Server enforce all SEB clients that
 are in collecting rooms as well as new connecting SEB clients to leave their current meeting and join the town-hall meeting for as long as the town-hall is active.
 Within the town-hall a proctor has the same features as in the collecting room but can connect to all participants at the same time.
 When the town-hall is closed all connected SEB clients are enforced to leave the town-room and go back to its collecting room meetings again.
+
+.. note:: 
+    This feature is only available if it is enabled within the exam proctoring settings in the exam administration.
     
-**Single Room Feature**
+**Single Room or One-to-One Room Feature**
 
 Another live proctoring feature can be found in the detailed monitoring view of one particular SEB client connection. The single room features allows a proctor to connect to a single
 participant and being able to view or communication with just this one participant. You can initiate this single room connection by using the "Single Room Proctoring" action on 
@@ -125,6 +152,9 @@ When the single room is closed the connected SEB clients is enforced to leave th
 .. image:: images/monitoring/proctoringClient.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringClient.png
+
+.. note:: 
+    This feature is only available if it is enabled within the exam proctoring settings in the exam administration.
 
 **Boradcast Features**
 
@@ -141,6 +171,17 @@ A Student as well as a proctor is then able to use all the features of the meeti
 .. image:: images/monitoring/proctoringWindow.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringWindow.png
+
+.. note:: 
+    Each of this features is only available if it is enabled within the exam proctoring settings in the exam administration.
+
+**Known Issues with Live Proctoring**
+
+- Within the Zoom service it often happens that a participant appear twice in a room or meeting. This is probably caused by SEB clients rejoining the meetings while rooms or feature settings are changed.
+- In Zoom it is not possible to fully control a participant microphone. Therefore it may happen that participant can hear each other even if no proctor is in the meeting.
+- Within Jitsi Meet service when a proctor leaves the room it currently happens that a random participant became host/moderator since it is not possible in Jitsi Meet to have a meeting without host. We try to mitigate the problem with the `moderator plugin <https://github.com/nvonahsen/jitsi-token-moderation-plugin>`_ or `Jitsi Meet SaS <https://jaas.8x8.vc/#/>`_
+- In both services while broadcasting, it is not guaranteed that a student always see the proctor. Usually the meeting service shows or pins the participant that is currently speaking automatically.
+ 
 
 
 All SEB Client Logs
@@ -166,19 +207,20 @@ action form the right action pane to open up a pop-up containing all related inf
 Currently there is no export functionality to export all interessting SEB client logs to a CSV table for example. But such a feature will probably come
 with a next version of SEB Server.
 
+**Export filtered client logs**
+
+To export all currently filtered client logs in CSV format, please use the "Export CSV" action form the right action pane. SEB Server will then convert and download
+all client logs for you. This might take some time if there are a lot of logs to export.
+
+.. note:: 
+    Please avoid exporting of huge log files while one or more performance intensive exam are running to not stress the service unnecessarily.
+
 **Delete filtered client logs**
 
 To delete all currently filtered client logs, please use the "Delete Logs" action form the right action pane. 
 
 .. note:: 
-    On deletion, all available logs will permanantly be deleted from the persistent storage. So please make sure you want to delete all
+    On deletion, all available logs will permanently be deleted from the persistent storage. So please make sure you want to delete all
     logs that are currently displayed in the list before deleting.
     
     
-**Known Issues**
-
-- Within the Zoom service it often happens that a participant appear twice in a room or meeting. This is probably caused by SEB clients rejoining the meetings while rooms or feature settings are changed.
-- In Zoom it is not possible to fully control a participant microphone. Therefore it may happen that participant can hear each other even if no proctor is in the meeting.
-- Within Jitsi Meet service when a proctor leaves the room it currently happens that a random participant became host/moderator since it is not possible in Jitsi Meet to have a meeting without host. We try to mitigate the problem with the `moderator plugin <https://github.com/nvonahsen/jitsi-token-moderation-plugin>`_ or `Jitsi Meet SaS <https://jaas.8x8.vc/#/>`_
-- In both services while broadcasting, it is not guaranteed that a student always see the proctor. Usually the meeting service shows or pins the participant that is currently speaking automatically.
- 

@@ -326,6 +326,24 @@ public class ExamProctoringSettings {
 
             return () -> formHandle;
         }
+
+//        TODO
+//        private void procServiceSelection(final Form form) {
+//            final ProctoringServerType proctoringServerType = ProctoringServerType
+//                    .valueOf(form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE));
+//            switch (proctoringServerType) {
+//                case ZOOM: {
+//                    form.setFieldVisible(true, ProctoringServiceSettings.ATTR_SDK_KEY);
+//                    form.setFieldVisible(true, ProctoringServiceSettings.ATTR_SDK_SECRET);
+//                    break;
+//                }
+//                default: {
+//                    form.setFieldVisible(false, ProctoringServiceSettings.ATTR_SDK_KEY);
+//                    form.setFieldVisible(false, ProctoringServiceSettings.ATTR_SDK_SECRET);
+//                }
+//            }
+//        }
+
     }
 
 }
