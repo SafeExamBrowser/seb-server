@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 import java.util.EnumSet;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.URL;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -110,9 +111,9 @@ public class ProctoringServiceSettings implements Entity {
         this.collectingRoomSize = (collectingRoomSize != null) ? collectingRoomSize : 20;
         this.enabledFeatures = enabledFeatures != null ? enabledFeatures : EnumSet.allOf(ProctoringFeature.class);
         this.serviceInUse = serviceInUse;
-        this.appKey = appKey;
+        this.appKey = StringUtils.trim(appKey);
         this.appSecret = appSecret;
-        this.sdkKey = sdkKey;
+        this.sdkKey = StringUtils.trim(sdkKey);
         this.sdkSecret = sdkSecret;
         this.useZoomAppClientForCollectingRoom = BooleanUtils.toBoolean(useZoomAppClientForCollectingRoom);
     }

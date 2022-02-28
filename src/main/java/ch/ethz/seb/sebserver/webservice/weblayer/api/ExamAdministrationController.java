@@ -379,7 +379,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return this.entityDAO.byPK(examId)
                 .flatMap(this.authorization::checkModify)
                 .map(exam -> {
-                    if (proctoringServiceSettings.enableProctoring) {
+                    if (StringUtils.isNotBlank(proctoringServiceSettings.serverURL)) {
                         this.examAdminService.getExamProctoringService(proctoringServiceSettings.serverType)
                                 .flatMap(service -> service.testExamProctoring(proctoringServiceSettings))
                                 .getOrThrow();

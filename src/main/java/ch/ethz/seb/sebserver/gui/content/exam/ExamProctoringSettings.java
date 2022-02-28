@@ -265,12 +265,14 @@ public class ExamProctoringSettings {
                     .addField(FormBuilder.text(
                             ProctoringServiceSettings.ATTR_SERVER_URL,
                             SEB_PROCTORING_FORM_URL,
-                            proctoringSettings.serverURL))
+                            proctoringSettings.serverURL)
+                            .mandatory())
 
                     .addField(FormBuilder.text(
                             ProctoringServiceSettings.ATTR_APP_KEY,
                             SEB_PROCTORING_FORM_APPKEY,
-                            proctoringSettings.appKey))
+                            proctoringSettings.appKey)
+                            .mandatory())
                     .withEmptyCellSeparation(false)
 
                     .addField(FormBuilder.password(
@@ -278,7 +280,8 @@ public class ExamProctoringSettings {
                             SEB_PROCTORING_FORM_SECRET,
                             (proctoringSettings.appSecret != null)
                                     ? String.valueOf(proctoringSettings.appSecret)
-                                    : null))
+                                    : null)
+                            .mandatory())
 
                     .addField(FormBuilder.text(
                             ProctoringServiceSettings.ATTR_SDK_KEY,

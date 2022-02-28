@@ -172,6 +172,20 @@ public class ZoomProctoringService implements ExamProctoringService {
                         "proctoringSettings:serverURL:invalidURL");
             }
 
+            if (StringUtils.isBlank(proctoringSettings.appKey)) {
+                throw new APIMessageException(Arrays.asList(
+                        APIMessage.fieldValidationError(ProctoringServiceSettings.ATTR_APP_KEY,
+                                "proctoringSettings:appKey:notNull"),
+                        APIMessage.ErrorMessage.EXTERNAL_SERVICE_BINDING_ERROR.of()));
+            }
+
+            if (StringUtils.isBlank(proctoringSettings.appSecret)) {
+                throw new APIMessageException(Arrays.asList(
+                        APIMessage.fieldValidationError(ProctoringServiceSettings.ATTR_APP_SECRET,
+                                "proctoringSettings:appSecret:notNull"),
+                        APIMessage.ErrorMessage.EXTERNAL_SERVICE_BINDING_ERROR.of()));
+            }
+
             try {
 
                 final ClientCredentials credentials = new ClientCredentials(
@@ -192,10 +206,10 @@ public class ZoomProctoringService implements ExamProctoringService {
                             APIMessage.ErrorMessage.EXTERNAL_SERVICE_BINDING_ERROR.of()));
                 }
             } catch (final Exception e) {
-                log.error("Failed to access Zoom service at: {}", proctoringSettings.serverURL, e);
+                log.error("Failed to access Zoom service at: {}", proctoringSettings.serverURL, e.getMessage());
                 throw new APIMessageException(Arrays.asList(
                         APIMessage.fieldValidationError(ProctoringServiceSettings.ATTR_SERVER_URL,
-                                "proctoringSettings:serverURL:url.invalid"),
+                                "proctoringSettings:serverURL:url.noservice"),
                         APIMessage.ErrorMessage.EXTERNAL_SERVICE_BINDING_ERROR.of()));
             }
 

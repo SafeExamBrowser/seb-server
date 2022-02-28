@@ -16,7 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 
-public class ProctoringSettingsValidator implements ConstraintValidator<ValidProctoringSettings, ProctoringServiceSettings> {
+public class ProctoringSettingsValidator
+        implements ConstraintValidator<ValidProctoringSettings, ProctoringServiceSettings> {
 
     @Override
     public boolean isValid(final ProctoringServiceSettings value, final ConstraintValidatorContext context) {
@@ -25,33 +26,8 @@ public class ProctoringSettingsValidator implements ConstraintValidator<ValidPro
         }
 
         if (value.enableProctoring) {
-            if (value.serverType == ProctoringServerType.JITSI_MEET) {
+            if (value.serverType == ProctoringServerType.JITSI_MEET || value.serverType == ProctoringServerType.ZOOM) {
                 boolean passed = true;
-                if (StringUtils.isBlank(value.serverURL)) {
-                    context.disableDefaultConstraintViolation();
-                    context
-                            .buildConstraintViolationWithTemplate("proctoringSettings:serverURL:notNull")
-                            .addPropertyNode("serverURL").addConstraintViolation();
-                    passed = false;
-                }
-
-//                try {
-//
-//                    if (!InetAddress.getByName(new URI(value.serverURL).getHost()).isReachable(5000)) {
-//                        context.disableDefaultConstraintViolation();
-//                        context
-//                                .buildConstraintViolationWithTemplate("proctoringSettings:serverURL:serverNotAvailable")
-//                                .addPropertyNode("serverURL").addConstraintViolation();
-//                        passed = false;
-//                    }
-//                } catch (final Exception e) {
-//                    context.disableDefaultConstraintViolation();
-//                    context
-//                            .buildConstraintViolationWithTemplate("proctoringSettings:serverURL:serverNotAvailable")
-//                            .addPropertyNode("serverURL").addConstraintViolation();
-//                    passed = false;
-//                }
-
                 if (StringUtils.isBlank(value.appKey)) {
                     context.disableDefaultConstraintViolation();
                     context
