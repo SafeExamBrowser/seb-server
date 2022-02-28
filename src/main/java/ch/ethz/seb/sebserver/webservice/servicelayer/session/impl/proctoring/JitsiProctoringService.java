@@ -141,20 +141,6 @@ public class JitsiProctoringService implements ExamProctoringService {
                         "proctoringSettings:serverURL:invalidURL");
             }
 
-            if (StringUtils.isBlank(proctoringSettings.appKey)) {
-                throw new APIMessageException(Arrays.asList(
-                        APIMessage.fieldValidationError(ProctoringServiceSettings.ATTR_APP_KEY,
-                                "proctoringSettings:appKey:notNull"),
-                        APIMessage.ErrorMessage.EXTERNAL_SERVICE_BINDING_ERROR.of()));
-            }
-
-            if (StringUtils.isBlank(proctoringSettings.appSecret)) {
-                throw new APIMessageException(Arrays.asList(
-                        APIMessage.fieldValidationError(ProctoringServiceSettings.ATTR_APP_SECRET,
-                                "proctoringSettings:appSecret:notNull"),
-                        APIMessage.ErrorMessage.EXTERNAL_SERVICE_BINDING_ERROR.of()));
-            }
-
             final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService
                     .getClientHttpRequestFactory()
                     .getOrThrow();

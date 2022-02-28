@@ -25,28 +25,37 @@ public class ProctoringSettingsValidator
             return false;
         }
 
-        if (value.enableProctoring) {
-            if (value.serverType == ProctoringServerType.JITSI_MEET || value.serverType == ProctoringServerType.ZOOM) {
-                boolean passed = true;
-                if (StringUtils.isBlank(value.appKey)) {
-                    context.disableDefaultConstraintViolation();
-                    context
-                            .buildConstraintViolationWithTemplate("proctoringSettings:appKey:notNull")
-                            .addPropertyNode("appKey").addConstraintViolation();
-                    passed = false;
-                }
+        //if (value.enableProctoring) {
+        if (value.serverType == ProctoringServerType.JITSI_MEET || value.serverType == ProctoringServerType.ZOOM) {
+            boolean passed = true;
 
-                if (StringUtils.isBlank(value.appSecret)) {
-                    context.disableDefaultConstraintViolation();
-                    context
-                            .buildConstraintViolationWithTemplate("proctoringSettings:appSecret:notNull")
-                            .addPropertyNode("appSecret").addConstraintViolation();
-                    passed = false;
-                }
-
-                return passed;
+            if (StringUtils.isBlank(value.serverURL)) {
+                context.disableDefaultConstraintViolation();
+                context
+                        .buildConstraintViolationWithTemplate("proctoringSettings:serverURL:notNull")
+                        .addPropertyNode("serverURL").addConstraintViolation();
+                passed = false;
             }
+
+            if (StringUtils.isBlank(value.appKey)) {
+                context.disableDefaultConstraintViolation();
+                context
+                        .buildConstraintViolationWithTemplate("proctoringSettings:appKey:notNull")
+                        .addPropertyNode("appKey").addConstraintViolation();
+                passed = false;
+            }
+
+            if (StringUtils.isBlank(value.appSecret)) {
+                context.disableDefaultConstraintViolation();
+                context
+                        .buildConstraintViolationWithTemplate("proctoringSettings:appSecret:notNull")
+                        .addPropertyNode("appSecret").addConstraintViolation();
+                passed = false;
+            }
+
+            return passed;
         }
+        //}
 
         return true;
     }
