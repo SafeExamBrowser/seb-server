@@ -6,10 +6,11 @@ Exam Template
 Overview
 --------
 
-Exam templates are a new, usful feature since SEB Server version 1.3. Within exam templates it is now possible to create specific named templates that can be 
-used on exam import from LMS and define default settings and indicators that are automatically be applied on the exam import.
+Exam templates are a new, useful feature available since SEB Server version 1.3. Within exam templates it is possible to create specific named templates that can be 
+used by an exam import from LMS course/quiz and defines default settings and indicators that are automatically be applied on the exam import.
 Furthermore exam templates gives you the possibility to map exam configuration template to automatically create and map an exam configuration for an exam on import.
-This is very convenient if you have a lot of exams to setup that all has the same or similar settings.
+This is very convenient if you have a lot of exams to setup that all has the same or similar settings. In such a case you can create an exam template that
+with all the common settings for that exams and use it on exam import.
 
 Exam templates can be created and managed just like other SEB Server documents within its list/library. The list can be filtered by name and type of the exam template
 and also shows which one is the default for the institution.
@@ -84,6 +85,7 @@ overview as a reference.
 
 .. note:: 
     A Change in a template is not reflected within already existing exams that used that template on import.
+    But will effect all future exams that this template on import.
 
 
 Use Cases
