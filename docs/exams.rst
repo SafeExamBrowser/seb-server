@@ -17,4 +17,4 @@ We will go through all the steps to setting up an exam for Safe Exam Browser wit
    exam_indicator
    exam_restriction
    exam_proctoring
-   exam-template
+   exam_template
