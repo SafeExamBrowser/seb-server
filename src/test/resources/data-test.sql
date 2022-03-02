@@ -1,6 +1,6 @@
 INSERT INTO institution VALUES
     (1, 'Institution1', 'inst1', null, null, 1),
-    (2, 'Institution2', 'inst2', null, null, 1),
+    (2, 'Institution2', 'inst2', 'AAA', null, 1),
     (3, 'Institution3', 'inst3', null, null, 0)
     ;
 

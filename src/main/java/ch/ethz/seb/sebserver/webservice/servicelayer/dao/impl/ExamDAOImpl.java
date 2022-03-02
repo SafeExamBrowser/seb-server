@@ -818,7 +818,8 @@ public class ExamDAOImpl implements ExamDAO {
 
                             log.debug("Using short-name: {} for recovering", shortname);
 
-                            final QuizData recoveredQuizData = this.lmsAPIService.getLmsAPITemplate(lmsSetup.id)
+                            final QuizData recoveredQuizData = this.lmsAPIService
+                                    .getLmsAPITemplate(lmsSetup.id)
                                     .map(template -> template.getQuizzes(new FilterMap())
                                             .getOrThrow()
                                             .stream()

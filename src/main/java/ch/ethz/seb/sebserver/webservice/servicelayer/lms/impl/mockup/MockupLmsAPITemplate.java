@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,9 +20,11 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
@@ -38,6 +41,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 
 public class MockupLmsAPITemplate implements LmsAPITemplate {
@@ -48,13 +52,48 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
     private final WebserviceInfo webserviceInfo;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
 
+    private final AbstractCourseAccess abstractCourseAccess;
+
     MockupLmsAPITemplate(
+            final AsyncService asyncService,
+            final Environment environment,
             final APITemplateDataSupplier apiTemplateDataSupplier,
             final WebserviceInfo webserviceInfo) {
 
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
         this.webserviceInfo = webserviceInfo;
         this.mockups = new ArrayList<>();
+
+        this.abstractCourseAccess = new AbstractCourseAccess(asyncService, environment) {
+
+            @Override
+            protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId) {
+                return () -> MockupLmsAPITemplate.this
+                        .getExamineeAccountDetails_protected(examineeSessionId)
+                        .getOrThrow();
+            }
+
+            @Override
+            protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
+                return () -> MockupLmsAPITemplate.this.getQuizzes_protected(filterMap).getOrThrow();
+            }
+
+            @Override
+            protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
+                return () -> MockupLmsAPITemplate.this.getQuizzes_protected(ids).getOrThrow();
+            }
+
+            @Override
+            protected Supplier<QuizData> quizSupplier(final String id) {
+                return () -> MockupLmsAPITemplate.this.getQuiz_protected(id).getOrThrow();
+            }
+
+            @Override
+            protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
+                return () -> MockupLmsAPITemplate.this.getCourseChapters_protected(courseId).getOrThrow();
+            }
+
+        };
 
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final Long lmsSetupId = lmsSetup.id;
@@ -149,6 +188,10 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
+        return this.abstractCourseAccess.protectedQuizzesRequest(filterMap);
+    }
+
+    private Result<List<QuizData>> getQuizzes_protected(final FilterMap filterMap) {
         return Result.tryCatch(() -> {
             if (!authenticate()) {
                 throw new IllegalArgumentException("Wrong clientId or secret");
@@ -164,6 +207,10 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<QuizData> getQuiz(final String id) {
+        return this.abstractCourseAccess.protectedQuizRequest(id);
+    }
+
+    private Result<QuizData> getQuiz_protected(final String id) {
         return Result.of(this.mockups
                 .stream()
                 .filter(q -> id.equals(q.id))
@@ -173,6 +220,11 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<Collection<QuizData>> getQuizzes(final Set<String> ids) {
+        return this.abstractCourseAccess.protectedQuizzesRequest(ids);
+    }
+
+    private Result<Collection<QuizData>> getQuizzes_protected(final Set<String> ids) {
+
         return Result.tryCatch(() -> {
             if (!authenticate()) {
                 throw new IllegalArgumentException("Wrong clientId or secret");
@@ -193,11 +245,19 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
 
     @Override
     public Result<Chapters> getCourseChapters(final String courseId) {
+        return this.abstractCourseAccess.getCourseChapters(courseId);
+    }
+
+    private Result<Chapters> getCourseChapters_protected(final String courseId) {
         return Result.ofError(new UnsupportedOperationException());
     }
 
     @Override
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
+        return this.abstractCourseAccess.getExamineeAccountDetails(examineeSessionId);
+    }
+
+    private Result<ExamineeAccountDetails> getExamineeAccountDetails_protected(final String examineeSessionId) {
         return Result.ofError(new UnsupportedOperationException());
     }
 

@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 /** A circuit breaker with three states (CLOSED, HALF_OPEN, OPEN)
  * <p>
@@ -70,6 +71,7 @@ public final class CircuitBreaker<T> {
     private State state = State.CLOSED;
     private final AtomicInteger failingCount = new AtomicInteger(0);
     private long lastSuccessTime;
+    private long lastOpenTime;
 
     /** Create new CircuitBreakerSupplier.
      *
@@ -99,6 +101,8 @@ public final class CircuitBreaker<T> {
         this.maxFailingAttempts = maxFailingAttempts;
         this.maxBlockingTime = maxBlockingTime;
         this.timeToRecover = timeToRecover;
+        // Initialize with creation time to get expected cool-down phase time if never was successful since
+        this.lastOpenTime = Utils.getMillisecondsNow();
     }
 
     public int getMaxFailingAttempts() {
@@ -122,7 +126,7 @@ public final class CircuitBreaker<T> {
     }
 
     public synchronized Result<T> protectedRun(final Supplier<T> supplier) {
-        final long currentTime = System.currentTimeMillis();
+        final long currentTime = Utils.getMillisecondsNow();
 
         if (log.isDebugEnabled()) {
             log.debug("Called on: {} current state is: {} failing count: {}",
@@ -163,7 +167,7 @@ public final class CircuitBreaker<T> {
                 log.debug("Attempt failed. failing count: {}", this.failingCount);
             }
 
-            final long currentBlockingTime = System.currentTimeMillis() - startTime;
+            final long currentBlockingTime = Utils.getMillisecondsNow() - startTime;
             final int failing = this.failingCount.incrementAndGet();
             if (failing > this.maxFailingAttempts || currentBlockingTime > this.maxBlockingTime) {
                 // brake thought to HALF_OPEN state and return error
@@ -174,14 +178,14 @@ public final class CircuitBreaker<T> {
                 this.state = State.HALF_OPEN;
                 this.failingCount.set(0);
                 return Result.ofError(new RuntimeException(
-                        "Set CircuitBeaker to half-open state. Cause: " + result.getError().getMessage(),
+                        "Set CircuitBeaker to half-open state. Cause: " + result.getError(),
                         result.getError()));
             } else {
                 // try again
                 return protectedRun(supplier);
             }
         } else {
-            this.lastSuccessTime = System.currentTimeMillis();
+            this.lastSuccessTime = Utils.getMillisecondsNow();
             return result;
         }
     }
@@ -202,9 +206,10 @@ public final class CircuitBreaker<T> {
                 log.debug("Changing state from Half Open to Open and return cached value");
             }
 
+            this.lastOpenTime = Utils.getMillisecondsNow();
             this.state = State.OPEN;
             return Result.ofError(new RuntimeException(
-                    "Set CircuitBeaker to open state. Cause: " + result.getError().getMessage(),
+                    "Set CircuitBeaker to open state. Cause: " + result.getError(),
                     result.getError()));
         } else {
             // on success go to CLOSED state
@@ -228,7 +233,7 @@ public final class CircuitBreaker<T> {
             log.debug("Handle Open on: {}", startTime);
         }
 
-        if (startTime - this.lastSuccessTime >= this.timeToRecover) {
+        if (startTime - this.lastOpenTime >= this.timeToRecover) {
             // if cool-down period is over, go back to HALF_OPEN state and try again
             if (log.isDebugEnabled()) {
                 log.debug("Time to recover reached. Changing state from Open to Half Open");
@@ -247,6 +252,7 @@ public final class CircuitBreaker<T> {
             return Result.of(future.get(this.maxBlockingTime, TimeUnit.MILLISECONDS));
         } catch (final Exception e) {
             future.cancel(false);
+            log.warn("Max blocking timeout exceeded: {}, {}", this.maxBlockingTime, this.state);
             return Result.ofError(e);
         }
     }

@@ -77,7 +77,7 @@ public class MemoizingCircuitBreakerTest {
         assertEquals(State.OPEN, circuitBreaker.getState());
 
         // wait time to recover
-        Thread.sleep(500);
+        Thread.sleep(1000);
         result = circuitBreaker.get(); // 11. call...
         assertEquals(State.CLOSED, circuitBreaker.getState());
         assertEquals("Hello back again", result.get());
