@@ -51,7 +51,7 @@ public class WebserviceInfoTest extends AdministrationAPIIntegrationTester {
     @Test
     public void test_getInstitutionInfo() throws Exception {
 
-        final Collection<EntityName> result = new RestAPITestHelper()
+        Collection<EntityName> result = new RestAPITestHelper()
                 .withAccessToken(getAdminInstitution1Access())
                 .withPath(API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT)
                 .withMethod(HttpMethod.GET)
@@ -61,6 +61,20 @@ public class WebserviceInfoTest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(result);
         assertTrue(result.stream().filter(en -> "Institution1".equals(en.name)).findFirst().isPresent());
+        assertTrue(result.stream().filter(en -> "Institution2".equals(en.name)).findFirst().isPresent());
+        assertFalse(result.stream().filter(en -> "Institution3".equals(en.name)).findFirst().isPresent());
+
+        result = new RestAPITestHelper()
+                .withAccessToken(getAdminInstitution1Access())
+                .withPath(API.INFO_ENDPOINT + API.INFO_INST_PATH_SEGMENT)
+                .withPath("/inst2")
+                .withMethod(HttpMethod.GET)
+                .withExpectedStatus(HttpStatus.OK)
+                .getAsObject(new TypeReference<Collection<EntityName>>() {
+                });
+
+        assertNotNull(result);
+        assertFalse(result.stream().filter(en -> "Institution1".equals(en.name)).findFirst().isPresent());
         assertTrue(result.stream().filter(en -> "Institution2".equals(en.name)).findFirst().isPresent());
         assertFalse(result.stream().filter(en -> "Institution3".equals(en.name)).findFirst().isPresent());
 
