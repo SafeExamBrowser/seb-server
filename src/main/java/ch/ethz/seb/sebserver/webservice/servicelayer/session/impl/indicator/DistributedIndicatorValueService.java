@@ -361,7 +361,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
                             pingRecord,
                             Utils.getMillisecondsNow()));
         } catch (final Exception e) {
-            if (log.isDebugEnabled()) {
+            if (log.isTraceEnabled()) {
                 log.warn("Failed to schedule ping task: {}" + e.getMessage());
             }
         }

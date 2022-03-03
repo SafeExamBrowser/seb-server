@@ -99,8 +99,10 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
             if (numericValue != null) {
 
                 // update active indicator value record on persistent when caching is not enabled
-                if (!this.cachingEnabled && this.active && this.ditributedIndicatorValueRecordId != null) {
-                    this.distributedPingCache.updateIndicatorValue(this.connectionId, numericValue.longValue());
+                if (this.active && this.ditributedIndicatorValueRecordId != null) {
+                    this.distributedPingCache.updateIndicatorValue(
+                            this.ditributedIndicatorValueRecordId,
+                            numericValue.longValue());
                 }
 
                 return numericValue.doubleValue();

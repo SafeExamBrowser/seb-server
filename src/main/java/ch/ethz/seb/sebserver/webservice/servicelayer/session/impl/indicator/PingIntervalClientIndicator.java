@@ -81,12 +81,19 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
         if (!this.initialized) {
             return Double.NaN;
         }
-        final long currentTimeMillis = DateTimeUtils.currentTimeMillis();
+
         if (this.initialized && !this.cachingEnabled && this.active
                 && this.lastUpdate != this.distributedPingCache.lastUpdate()) {
+
+            final long currentTimeMillis = DateTimeUtils.currentTimeMillis();
             this.currentValue = computeValueAt(currentTimeMillis);
+            return (currentTimeMillis < this.currentValue)
+                    ? DateTimeUtils.currentTimeMillis() - this.currentValue
+                    : currentTimeMillis - this.currentValue;
+
+        } else {
+            return DateTimeUtils.currentTimeMillis() - this.currentValue;
         }
-        return currentTimeMillis - this.currentValue;
     }
 
     @Override
@@ -101,17 +108,14 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     @Override
     public final double computeValueAt(final long timestamp) {
-        if (!this.cachingEnabled && super.ditributedIndicatorValueRecordId != null) {
+        if (super.ditributedIndicatorValueRecordId != null) {
 
             final Long lastPing = this.distributedPingCache
                     .getIndicatorValue(super.ditributedIndicatorValueRecordId);
 
-            if (lastPing != null) {
-                final double doubleValue = lastPing.doubleValue();
-                return Math.max(Double.isNaN(this.currentValue) ? doubleValue : this.currentValue, doubleValue);
-            }
-
-            return this.currentValue;
+            return (lastPing != null)
+                    ? lastPing.doubleValue()
+                    : this.currentValue;
         }
 
         return !this.initialized ? timestamp : this.currentValue;

@@ -74,8 +74,10 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
                     .execute();
 
             // update active indicator value record on persistent when caching is not enabled
-            if (!this.cachingEnabled && this.active && this.ditributedIndicatorValueRecordId != null) {
-                this.distributedPingCache.updateIndicatorValue(this.connectionId, numberOfLogs.longValue());
+            if (this.active && this.ditributedIndicatorValueRecordId != null) {
+                this.distributedPingCache.updateIndicatorValue(
+                        this.ditributedIndicatorValueRecordId,
+                        numberOfLogs.longValue());
             }
 
             return numberOfLogs.doubleValue();
