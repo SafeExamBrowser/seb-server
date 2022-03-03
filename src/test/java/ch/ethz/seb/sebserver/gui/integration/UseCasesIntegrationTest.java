@@ -86,6 +86,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Orientation;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
@@ -190,6 +191,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Sa
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisableClientConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetMonitoringFullPageData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunningExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.PropagateInstruction;
@@ -2059,7 +2061,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetMonitoringFullPageData(),
                 new GetExtendedClientEventPage(),
                 new DisableClientConnection(),
-                new PropagateInstruction());
+                new PropagateInstruction(),
+                new GetClientConnectionPage());
 
         final RestServiceImpl adminRestService = createRestServiceForUser(
                 "TestInstAdmin",
@@ -2220,6 +2223,26 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(clientLogs.isEmpty());
         final ExtendedClientEvent extendedClientEvent = clientLogs.content.get(0);
         assertNotNull(extendedClientEvent);
+
+        // get client connection page
+        Result<Page<ClientConnection>> connectionPageRes = restService
+                .getBuilder(GetClientConnectionPage.class)
+                .call();
+
+        assertNotNull(connectionPageRes);
+        Page<ClientConnection> connectionPage = connectionPageRes.get();
+        assertNotNull(connectionPage);
+        assertFalse(connectionPage.isEmpty());
+
+        connectionPageRes = restService
+                .getBuilder(GetClientConnectionPage.class)
+                .withQueryParam(ClientConnection.FILTER_ATTR_INFO, "ghfhrthjrt")
+                .call();
+
+        assertNotNull(connectionPageRes);
+        connectionPage = connectionPageRes.get();
+        assertNotNull(connectionPage);
+        assertTrue(connectionPage.isEmpty());
     }
 
     @Test
