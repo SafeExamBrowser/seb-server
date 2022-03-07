@@ -9,7 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.integration.api.admin;
 
 import static org.junit.Assert.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.joda.time.DateTime;
@@ -17,6 +17,8 @@ import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -305,6 +307,41 @@ public class UserActivityLogAPITest extends AdministrationAPIIntegrationTester {
 
         assertNotNull(logs);
         assertTrue(logs.content.isEmpty());
+    }
+
+    @Test
+    public void testReadonly() throws Exception {
+        final String token = getSebAdminAccess();
+        this.mockMvc
+                .perform(put(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT)
+                        .header("Authorization", "Bearer " + token)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .content("{"
+                                + "  \"id\" : 3,"
+                                + "  \"userUuid\" : \"userUUID\","
+                                + "  \"username\" : \"username\","
+                                + "  \"timestamp\" : 123,"
+                                + "  \"activityType\" : \"EXPORT\","
+                                + "  \"entityType\" : \"USER\","
+                                + "  \"entityId\" : \"5\","
+                                + "  \"message\" : \"message\""
+                                + "}"))
+                .andExpect(status().isForbidden());
+
+        final MultiValueMap<String, String> multiValueMap = new LinkedMultiValueMap<>();
+        multiValueMap.add("institutionId", "1");
+        this.mockMvc
+                .perform(post(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .params(multiValueMap))
+                .andExpect(status().isForbidden());
+
+        this.mockMvc
+                .perform(delete(this.endpoint + API.USER_ACTIVITY_LOG_ENDPOINT + "/12")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+
     }
 
 }
