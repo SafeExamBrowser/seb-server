@@ -31,7 +31,7 @@ public class Tuple<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public <TT extends Tuple<T>> TT adaptTo(Class<TT> type) {
+    public <TT extends Tuple<T>> TT adaptTo(final Class<TT> type) {
         if (type.equals(this.getClass())) {
             return (TT) this;
         }
@@ -73,7 +73,7 @@ public class Tuple<T> {
 
     @Override
     public String toString() {
-        return "( " + this._1 + ", " + this._2 + ")";
+        return "(" + this._1 + ", " + this._2 + ")";
     }
 
 }

@@ -164,11 +164,7 @@ public final class Result<T> {
         return this.value != null ? this.value : supplier.get();
     }
 
-    public Result<T> orElse(final Supplier<Result<T>> supplier) {
-        return this.value != null ? this : supplier.get();
-    }
-
-    public Result<T> orElseTry(final Supplier<T> supplier) {
+    public Result<T> orElse(final Supplier<T> supplier) {
         return this.value != null ? this : Result.tryCatch(supplier::get);
     }
 
@@ -189,23 +185,6 @@ public final class Result<T> {
      * @return true if this Result refers to a value (not null) and has no error */
     public boolean hasValue() {
         return this.value != null && this.error == null;
-    }
-
-    /** If a value is present, performs the given action with the value,
-     * otherwise performs the given empty-based action.
-     *
-     * @param action the action to be performed, if a value is present
-     * @param emptyAction the empty-based action to be performed, if no value is
-     *            present
-     * @throws NullPointerException if a value is present and the given action
-     *             is {@code null}, or no value is present and the given empty-based
-     *             action is {@code null}. */
-    public void ifOrElse(final Consumer<? super T> action, final Runnable emptyAction) {
-        if (this.value != null) {
-            action.accept(this.value);
-        } else {
-            emptyAction.run();
-        }
     }
 
     public void ifPresent(final Consumer<T> consumer) {

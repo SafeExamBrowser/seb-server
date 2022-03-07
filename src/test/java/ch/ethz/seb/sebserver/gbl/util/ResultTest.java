@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.gbl.util;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.ExecutionException;
+
 import org.junit.Test;
 
 public class ResultTest {
@@ -80,6 +82,21 @@ public class ResultTest {
 
         assertEquals("ONE", resultOf.getOrElse(() -> "TWO"));
         assertEquals("TWO", resultOfError.getOrElse(() -> "TWO"));
+
+        Result<String> orElse = resultOfError.orElse(() -> {
+            return "Else";
+        });
+        assertNotNull(orElse);
+        assertFalse(orElse.hasError());
+        assertEquals("Else", orElse.get());
+
+        orElse = resultOf.orElse(() -> {
+            return "Else";
+        });
+
+        assertNotNull(orElse);
+        assertFalse(orElse.hasError());
+        assertEquals("ONE", orElse.get());
     }
 
     @Test
@@ -98,6 +115,93 @@ public class ResultTest {
             assertEquals("Should be thrown", t.getMessage());
             assertEquals("Some Error", t.getCause().getMessage());
         }
+    }
+
+    @Test
+    public void testGetWithError() {
+        final Result<String> resultOf = Result.of("ONE");
+        String string = resultOf.get(error -> fail("should net be called"), () -> "ERROR");
+        assertEquals("ONE", string);
+        string = resultOf.getOrThrow();
+        assertEquals("ONE", string);
+
+        final Result<String> errorOf = Result.ofError(new RuntimeException("error"));
+        string = errorOf.get(error -> assertEquals("error", error.getMessage()), () -> "ERROR");
+        assertEquals("ERROR", string);
+
+        errorOf.handleError(error -> assertEquals("error", error.getMessage()));
+        try {
+            errorOf.getOrThrow();
+        } catch (final Exception e) {
+            assertEquals("error", e.getMessage());
+        }
+        try {
+            errorOf.getOrThrow(error -> new RuntimeException("error2"));
+        } catch (final Exception e) {
+            assertEquals("error2", e.getMessage());
+        }
+
+        final String orThrow = resultOf.getOrThrow();
+        assertEquals("ONE", orThrow);
+
+        assertTrue(resultOf.hasValue());
+        assertFalse(errorOf.hasValue());
+
+        resultOf.ifPresent(t -> {
+            assertEquals("ONE", t);
+        });
+
+        errorOf.ifPresent(t -> {
+            fail("Should not be called here");
+        });
+
+        final Result<String> onSuccess = resultOf.onSuccess(t -> {
+            assertEquals("ONE", t);
+        });
+        assertNotNull(onSuccess);
+
+        errorOf.onSuccess(t -> {
+            fail("Should not be called here");
+        });
+
+        final Result<String> onError = errorOf.onError(error -> {
+            assertNotNull(error);
+            assertEquals("error", error.getMessage());
+        });
+        assertNotNull(onError);
+
+        final Result<String> onErrorDo = errorOf.onErrorDo(error -> {
+            assertNotNull(error);
+            assertEquals("error", error.getMessage());
+            return error.getMessage();
+        });
+        assertNotNull(onErrorDo);
+        assertEquals("error", onErrorDo.get());
+
+        errorOf.onErrorDo(error -> {
+            assertNotNull(error);
+            assertEquals("error", error.getMessage());
+            return error.getMessage();
+        }, RuntimeException.class);
+
+        errorOf.onErrorDo(error -> {
+            fail("Should not be called here");
+            return "";
+        }, ExecutionException.class);
+
+    }
+
+    @Test
+    public void testEquals() {
+        final Result<String> one = Result.of("ONE");
+        final Result<String> two = Result.of("TWO");
+        final Result<String> one_ = Result.of("ONE");
+
+        assertEquals(one, one);
+        assertEquals(one, one_);
+        assertNotEquals(one, two);
+        assertNotEquals(null, two);
+        assertNotEquals(one, null);
     }
 
 }
