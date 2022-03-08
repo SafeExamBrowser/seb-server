@@ -51,9 +51,14 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
     }
 
     public void applyMigration() {
+        if (this.webserviceInfo.hasProfile("test")) {
+            SEBServerInit.INIT_LOGGER.info("No migration applies for test profile");
+            return;
+        }
+
         final String webserviceUUID = this.webserviceInfo.getWebserviceUUID();
         if (this.migrationApplied) {
-            log.warn("Migration already applied for this webservice: {}", webserviceUUID);
+            SEBServerInit.INIT_LOGGER.warn("Migration already applied for this webservice: {}", webserviceUUID);
             return;
         }
 

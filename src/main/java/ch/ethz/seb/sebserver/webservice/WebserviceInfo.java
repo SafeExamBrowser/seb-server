@@ -10,9 +10,12 @@ package ch.ethz.seb.sebserver.webservice;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -64,6 +67,7 @@ public class WebserviceInfo {
     private final long distributedUpdateInterval;
 
     private Map<String, String> lmsExternalAddressAlias;
+    private final Set<String> activeProfiles;
 
     private final WebserviceInfoDAO webserviceInfoDAO;
     private boolean isMaster = false;
@@ -88,6 +92,8 @@ public class WebserviceInfo {
                 "sebserver.webservice.distributed.updateInterval",
                 Long.class,
                 3000L);
+
+        this.activeProfiles = new HashSet<>(Arrays.asList(environment.getActiveProfiles()));
 
         if (StringUtils.isEmpty(this.webserverName)) {
             log.warn("NOTE: External server name, property : 'sebserver.webservice.http.external.servername' "
@@ -149,6 +155,10 @@ public class WebserviceInfo {
 
     public String getTestProperty() {
         return this.testProperty;
+    }
+
+    public boolean hasProfile(final String profile) {
+        return this.activeProfiles.contains(profile);
     }
 
     public String getHttpScheme() {

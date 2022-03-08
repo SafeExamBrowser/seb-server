@@ -209,6 +209,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUs
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserDependencies;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.RegisterNewUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 
@@ -3096,6 +3097,34 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "EntityKey [modelId=test.anhefti.sebserver, entityType=CERTIFICATE]",
                 next.toString());
 
+    }
+
+    @Test
+    @Order(24)
+    // *************************************
+    // Use Case 24: Register a new User
+    public void testUsecase24_RegisterUser() throws Exception {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new RegisterNewUser());
+
+        final UserInfo newUser = restService.getBuilder(RegisterNewUser.class)
+                .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, "1")
+                .withFormParam(Domain.USER.ATTR_NAME, "testSupport1")
+                .withFormParam(Domain.USER.ATTR_USERNAME, "testSupport1")
+                .withFormParam(Domain.USER.ATTR_SURNAME, "testSupport1")
+                .withFormParam(Domain.USER.ATTR_EMAIL, "test@test16.ch")
+                .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "testSupport1")
+                .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "testSupport1")
+                .withFormParam(Domain.USER.ATTR_LANGUAGE, Locale.ENGLISH.getLanguage())
+                .withFormParam(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(newUser);
+        assertEquals("testSupport1", newUser.name);
+        assertEquals("[EXAM_SUPPORTER]", newUser.getRoles().toString());
     }
 
 }
