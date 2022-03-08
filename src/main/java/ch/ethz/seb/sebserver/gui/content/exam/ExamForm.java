@@ -349,18 +349,19 @@ public class ExamForm implements TemplateComposer {
                         .withInputSpan(4)
                         .withEmptyCellSeparation(false))
 
-                .addField(FormBuilder.singleSelection(
-                        Domain.EXAM.ATTR_EXAM_TEMPLATE_ID,
-                        FORM_EXAM_TEMPLATE_TEXT_KEY,
-                        (exam.examTemplateId == null)
-                                ? getDefaultExamTemplateId()
-                                : String.valueOf(exam.examTemplateId),
-                        this.resourceService::examTemplateResources)
-                        .withSelectionListener(form -> this.processTemplateSelection(form, formContext))
-                        .withLabelSpan(2)
-                        .withInputSpan(4)
-                        .withEmptyCellSpan(2)
-                        .readonly(!importFromQuizData))
+                .addFieldIf(
+                        () -> importFromQuizData,
+                        () -> FormBuilder.singleSelection(
+                                Domain.EXAM.ATTR_EXAM_TEMPLATE_ID,
+                                FORM_EXAM_TEMPLATE_TEXT_KEY,
+                                (exam.examTemplateId == null)
+                                        ? getDefaultExamTemplateId()
+                                        : String.valueOf(exam.examTemplateId),
+                                this.resourceService::examTemplateResources)
+                                .withSelectionListener(form -> this.processTemplateSelection(form, formContext))
+                                .withLabelSpan(2)
+                                .withInputSpan(4)
+                                .withEmptyCellSpan(2))
 
                 .addField(FormBuilder.singleSelection(
                         Domain.EXAM.ATTR_TYPE,
