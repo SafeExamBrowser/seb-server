@@ -72,6 +72,8 @@ import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigCreationInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
@@ -152,6 +154,11 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogPa
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.ImportAsExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.AddCertificate;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificate;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificateNames;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificatePage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.RemoveCertificate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ActivateClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.DeactivateClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ExportClientConfig;
@@ -2947,6 +2954,147 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final EntityProcessingReport entityProcessingReport = deleteExamCall.get();
         assertTrue(entityProcessingReport.getErrors().isEmpty());
         assertTrue(entityProcessingReport.results.size() == 3);
+
+    }
+
+    @Test
+    @Order(23)
+    // *************************************
+    // Use Case 23: Certificates
+    // - check certificates (list) is empty
+    // - upload test certificate
+    // - check certificates
+    // - upload identity certificate
+    // - check certificates
+    // - create new connection config with identity certigficate encryption
+    // - donwload connection config with identity certigficate encryption
+    // - remove certificate
+    public void testUsecase23_Certificates() throws Exception {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "TestInstAdmin",
+                "987654321",
+                new GetCertificate(),
+                new GetCertificateNames(),
+                new GetCertificatePage(),
+                new RemoveCertificate(),
+                new AddCertificate(),
+                new NewClientConfig(),
+                new SaveClientConfig(),
+                new ActivateClientConfig(),
+                new DeactivateClientConfig(),
+                new ExportClientConfig());
+
+        // - check certificates (list) is empty
+        Page<CertificateInfo> certificates = restService
+                .getBuilder(GetCertificatePage.class)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(certificates);
+        assertTrue(certificates.content.isEmpty());
+
+        // - upload test certificate
+        InputStream inputStream = new ClassPathResource("sebserver-test.cer").getInputStream();
+        final CertificateInfo newCert = restService
+                .getBuilder(AddCertificate.class)
+                .withBody(inputStream)
+                .withHeader(API.IMPORT_FILE_ATTR_NAME, "sebserver-test.cer")
+                .call()
+                .getOrThrow();
+
+        assertNotNull(newCert);
+        assertEquals("test.anhefti.sebserver", newCert.alias);
+        assertTrue(newCert.types.contains(CertificateType.DIGITAL_SIGNATURE));
+        assertTrue(newCert.types.contains(CertificateType.DATA_ENCIPHERMENT));
+
+        // - check certificates
+        certificates = restService
+                .getBuilder(GetCertificatePage.class)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(certificates);
+        assertFalse(certificates.content.isEmpty());
+
+        final CertificateInfo certificateInfo = certificates.content.get(0);
+        assertEquals("test.anhefti.sebserver", certificateInfo.alias);
+
+        // - upload identity certificate
+        inputStream = new ClassPathResource("testIdentity123.pfx").getInputStream();
+        final CertificateInfo newCert1 = restService
+                .getBuilder(AddCertificate.class)
+                .withBody(inputStream)
+                .withHeader(API.IMPORT_FILE_ATTR_NAME, "testIdentity123.pfx")
+                .withHeader(API.IMPORT_PASSWORD_ATTR_NAME, "123")
+                .call()
+                .getOrThrow();
+
+        assertNotNull(newCert1);
+        assertEquals("*.2mdn.net", newCert1.alias);
+        assertTrue(newCert1.types.contains(CertificateType.DATA_ENCIPHERMENT_PRIVATE_KEY));
+
+        // - check certificates
+        certificates = restService
+                .getBuilder(GetCertificatePage.class)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(certificates);
+        assertFalse(certificates.content.isEmpty());
+        assertTrue(certificates.content.size() == 2);
+
+        // - create new connection config with identity certigficate encryption
+        final SEBClientConfig newConfig = restService
+                .getBuilder(NewClientConfig.class)
+                .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "Connection Config with Cert")
+                .withFormParam(SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS, "*.2mdn.net")
+                .withFormParam(SEBClientConfig.ATTR_CONFIG_PURPOSE, SEBClientConfig.ConfigPurpose.START_EXAM.name())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(newConfig);
+        assertEquals("*.2mdn.net", newConfig.encryptCertificateAlias);
+
+        // - donwload connection config with identity certigficate encryption
+        final Result<Boolean> exportResponse = restService
+                .getBuilder(ExportClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, newConfig.getModelId())
+                .withResponseExtractor(response -> {
+                    final InputStream input = response.getBody();
+                    final List<String> readLines = IOUtils.readLines(input, "UTF-8");
+                    assertNotNull(readLines);
+                    assertFalse(readLines.isEmpty());
+                    return true;
+                })
+                .call();
+
+        assertNotNull(exportResponse);
+        assertTrue(exportResponse.get());
+
+        // - remmove certificate
+        final CertificateInfo cert = restService
+                .getBuilder(GetCertificate.class)
+                .withURIVariable(API.CERTIFICATE_ALIAS, "test.anhefti.sebserver")
+                //.withURIVariable(API.PARAM_MODEL_ID, newCert.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(cert);
+        assertEquals("test.anhefti.sebserver", cert.alias);
+
+        final Result<Collection<EntityKey>> removeCert = restService
+                .getBuilder(RemoveCertificate.class)
+                .withFormParam(API.CERTIFICATE_ALIAS, "test.anhefti.sebserver")
+                .call();
+
+        assertNotNull(removeCert);
+        assertFalse(removeCert.hasError());
+        final Collection<EntityKey> collection = removeCert.get();
+        assertFalse(collection.isEmpty());
+        final EntityKey next = collection.iterator().next();
+        assertEquals(
+                "EntityKey [modelId=test.anhefti.sebserver, entityType=CERTIFICATE]",
+                next.toString());
 
     }
 

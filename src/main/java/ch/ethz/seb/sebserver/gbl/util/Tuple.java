@@ -36,7 +36,7 @@ public class Tuple<T> {
             return (TT) this;
         }
 
-        return null;
+        throw new IllegalArgumentException("Type mismatch: " + this.getClass() + " to " + type);
     }
 
     @Override
