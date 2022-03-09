@@ -90,7 +90,7 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
 
             @Override
             protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
-                return () -> MockupLmsAPITemplate.this.getCourseChapters_protected(courseId).getOrThrow();
+                throw new UnsupportedOperationException("Course Chapter feature not supported");
             }
 
         };
@@ -246,10 +246,6 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
     @Override
     public Result<Chapters> getCourseChapters(final String courseId) {
         return this.abstractCourseAccess.getCourseChapters(courseId);
-    }
-
-    private Result<Chapters> getCourseChapters_protected(final String courseId) {
-        return Result.ofError(new UnsupportedOperationException());
     }
 
     @Override

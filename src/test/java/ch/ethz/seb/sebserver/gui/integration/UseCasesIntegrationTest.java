@@ -13,8 +13,10 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -28,7 +30,6 @@ import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.util.Arrays;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
@@ -58,6 +59,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
@@ -67,7 +69,11 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
@@ -106,12 +112,17 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ExamConfigurationServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ActivateSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamImported;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeactivateSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportSEBSettingsConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetCourseChapters;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
@@ -127,6 +138,8 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetSEBRestrictionSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
@@ -136,6 +149,8 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamConf
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicatorTemplate;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
@@ -769,6 +784,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new NewLmsSetup(),
                 new GetQuizPage(),
                 new GetQuizData(),
+                new CheckExamImported(),
                 new ImportAsExam(),
                 new SaveExam(),
                 new GetExam(),
@@ -804,6 +820,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         //       Find out why!!
         //assertEquals(Long.valueOf(1), quizData.lmsSetupId);
         assertEquals(Long.valueOf(4), quizData.institutionId);
+
+        // check imported
+        final Result<Collection<EntityKey>> checkCall = restService.getBuilder(CheckExamImported.class)
+                .withURIVariable(API.PARAM_MODEL_ID, quizData.getModelId())
+                .call();
+        assertFalse(checkCall.hasError());
+        final Collection<EntityKey> importCheck = checkCall.getOrThrow();
+        assertTrue(importCheck.isEmpty()); // not imported at all
 
         // import quiz as exam
         final Result<Exam> newExamResult = restService
@@ -2114,7 +2138,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertTrue(monitoringConnectionData.connections.isEmpty());
         assertEquals(
                 "[0, 0, 0, 0, 0, 0]",
-                String.valueOf(Arrays.asList(monitoringConnectionData.connectionsPerStatus)));
+                Arrays.stream(monitoringConnectionData.connectionsPerStatus).boxed().map(String::valueOf)
+                        .collect(Collectors.toList()).toString());
 
         // get active client config's credentials
         final Result<Page<SEBClientConfig>> cconfigs = adminRestService.getBuilder(GetClientConfigPage.class)
@@ -3125,6 +3150,202 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(newUser);
         assertEquals("testSupport1", newUser.name);
         assertEquals("[EXAM_SUPPORTER]", newUser.getRoles().toString());
+
+        // password mismatch
+        final Result<UserInfo> call = restService.getBuilder(RegisterNewUser.class)
+                .withFormParam(Domain.USER.ATTR_INSTITUTION_ID, "1")
+                .withFormParam(Domain.USER.ATTR_NAME, "testSupport1")
+                .withFormParam(Domain.USER.ATTR_USERNAME, "testSupport1")
+                .withFormParam(Domain.USER.ATTR_SURNAME, "testSupport1")
+                .withFormParam(Domain.USER.ATTR_EMAIL, "test@test16.ch")
+                .withFormParam(PasswordChange.ATTR_NAME_NEW_PASSWORD, "testSupport123")
+                .withFormParam(PasswordChange.ATTR_NAME_CONFIRM_NEW_PASSWORD, "testSupport1")
+                .withFormParam(Domain.USER.ATTR_LANGUAGE, Locale.ENGLISH.getLanguage())
+                .withFormParam(Domain.USER.ATTR_TIMEZONE, DateTimeZone.UTC.getID())
+                .call();
+        assertNotNull(call);
+        assertTrue(call.hasError());
+        final Exception error = call.getError();
+        assertTrue(error.getMessage().contains("confirmNewPassword:password.mismatch"));
+    }
+
+    @Test
+    @Order(25)
+    // *************************************
+    // Use Case 25: Exam administration SEB restrcition
+    public void testUsecase25_ExamAdminSEBRestriction() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new CheckSEBRestriction(),
+                new GetSEBRestrictionSettings(),
+                new ActivateSEBRestriction(),
+                new SaveSEBRestriction(),
+                new GetExamPage(),
+                new DeactivateSEBRestriction(),
+                new GetCourseChapters());
+
+        // get exam list
+        final Result<Page<Exam>> examsCall = restService
+                .getBuilder(GetExamPage.class)
+                .withQueryParam(Page.ATTR_SORT, QuizData.QUIZ_ATTR_NAME)
+                .call();
+
+        assertFalse(examsCall.hasError());
+        final Page<Exam> exams = examsCall.getOrThrow();
+        assertNotNull(exams);
+        assertFalse(exams.content.isEmpty());
+        assertEquals("quiz_name", exams.sort);
+
+        Exam exam = exams.content.get(0);
+        assertNotNull(exam);
+        assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
+        assertEquals("2", exam.getModelId());
+
+        // check SEB restriction
+        final Boolean check = restService
+                .getBuilder(CheckSEBRestriction.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertFalse(check);
+
+        // get restriction settings
+        SEBRestriction restriction = restService
+                .getBuilder(GetSEBRestrictionSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(restriction);
+        assertEquals("2", restriction.examId.toString());
+        assertEquals(
+                "[b014f12e5465d1f6595fa45c84cc3d9449df1c21aee922fae730e7c177dac4e0]",
+                restriction.configKeys.toString());
+        assertEquals(
+                "[]",
+                restriction.browserExamKeys.toString());
+
+        final List<String> examKeys = Arrays.asList("exam-key");
+
+        exam = restService
+                .getBuilder(SaveSEBRestriction.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .withBody(new SEBRestriction(
+                        restriction.examId,
+                        restriction.configKeys,
+                        examKeys,
+                        Collections.emptyMap()))
+                .call()
+                .getOrThrow();
+        assertNotNull(exam);
+        assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
+        assertEquals("2", exam.getModelId());
+        restriction = restService
+                .getBuilder(GetSEBRestrictionSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(restriction);
+        assertEquals("2", restriction.examId.toString());
+        assertEquals(
+                "[b014f12e5465d1f6595fa45c84cc3d9449df1c21aee922fae730e7c177dac4e0]",
+                restriction.configKeys.toString());
+        assertEquals(
+                "[exam-key]",
+                restriction.browserExamKeys.toString());
+
+        final Result<Exam> applyCall = restService
+                .getBuilder(ActivateSEBRestriction.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call();
+
+        assertTrue(applyCall.hasError());
+        assertTrue(applyCall.getError() instanceof RestCallError);
+        assertTrue(applyCall.getError().getCause().getMessage().contains("SEB Restriction feature not available"));
+
+        final Result<Exam> deleteCall = restService
+                .getBuilder(DeactivateSEBRestriction.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call();
+
+        assertTrue(deleteCall.hasError());
+        assertTrue(deleteCall.getError() instanceof RestCallError);
+        assertTrue(deleteCall.getError().getCause().getMessage().contains("SEB Restriction feature not available"));
+
+        final Result<Chapters> chaptersCall = restService
+                .getBuilder(GetCourseChapters.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call();
+
+        assertTrue(chaptersCall.hasError());
+        assertTrue(chaptersCall.getError() instanceof RestCallError);
+        assertTrue(chaptersCall.getError().getCause().getMessage().contains("Course Chapter feature not supported"));
+
+    }
+
+    @Test
+    @Order(26)
+    // *************************************
+    // Use Case 26: Exam administration SEB restrcition
+    public void testUsecase26_ExamAdminProctoring() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetProctoringSettings(),
+                new SaveProctoringSettings(),
+                new GetExamPage());
+
+        // get exam list
+        final Result<Page<Exam>> examsCall = restService
+                .getBuilder(GetExamPage.class)
+                .withQueryParam(Page.ATTR_SORT, QuizData.QUIZ_ATTR_NAME)
+                .call();
+
+        assertFalse(examsCall.hasError());
+        final Page<Exam> exams = examsCall.getOrThrow();
+        assertNotNull(exams);
+        assertFalse(exams.content.isEmpty());
+        assertEquals("quiz_name", exams.sort);
+
+        final Exam exam = exams.content.get(0);
+        assertNotNull(exam);
+        assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
+        assertEquals("2", exam.getModelId());
+
+        final ProctoringServiceSettings settings = restService
+                .getBuilder(GetProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(settings);
+        assertEquals("2", settings.examId.toString());
+        assertFalse(settings.enableProctoring);
+
+        final ProctoringServiceSettings newSettings = new ProctoringServiceSettings(
+                settings.examId,
+                true,
+                ProctoringServerType.JITSI_MEET,
+                "https://seb-jitsi.ethz.ch",
+                20,
+                EnumSet.of(ProctoringFeature.TOWN_HALL, ProctoringFeature.ONE_TO_ONE),
+                false,
+                "apiKey",
+                "apiSecret",
+                "sdkKey",
+                "sdkSecret",
+                false);
+
+        final Result<Exam> saveCall = restService
+                .getBuilder(SaveProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .withBody(newSettings)
+                .call();
+
+        assertFalse(saveCall.hasError());
     }
 
 }
