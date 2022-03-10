@@ -58,6 +58,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     private final ClientCredentialService clientCredentialService;
     private final EnumMap<LmsType, LmsAPITemplateFactory> templateFactories;
 
+    // TODO use also EHCache here
     private final Map<CacheKey, LmsAPITemplate> cache = new ConcurrentHashMap<>();
 
     public LmsAPIServiceImpl(

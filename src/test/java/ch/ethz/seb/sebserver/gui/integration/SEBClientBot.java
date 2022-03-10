@@ -95,7 +95,8 @@ public class SEBClientBot {
     long pingPauseDelay = 0;
     long errorInterval = ONE_SECOND;
     long warnInterval = ONE_SECOND / 2;
-    long runtime = ONE_SECOND * 2;
+    long notificationInterval = 800;
+    long runtime = ONE_SECOND * 3;
     int connectionAttempts = 1;
 
     public SEBClientBot(final String clientId, final String clientSecret, final String examId, final String instId)
@@ -203,6 +204,7 @@ public class SEBClientBot {
                     final PingEntity pingHeader = new PingEntity(headers);
                     final EventEntity errorHeader = new EventEntity(eventHeaders, "ERROR_LOG");
                     final EventEntity warnHeader = new EventEntity(eventHeaders, "WARN_LOG");
+                    final NotificationEntity notificationHeader = new NotificationEntity(eventHeaders);
 
                     try {
                         final long startTime = System.currentTimeMillis();
@@ -213,6 +215,7 @@ public class SEBClientBot {
                         long lastPingTime = startTime;
                         long lastErrorTime = startTime;
                         long lastWarnTime = startTime;
+                        long lastNotificationTime = startTime;
 
                         while (currentTime < endTime) {
                             if (currentTime - lastPingTime >= SEBClientBot.this.pingInterval &&
@@ -234,6 +237,12 @@ public class SEBClientBot {
                                 warnHeader.next();
                                 sendEvent(warnHeader);
                                 lastWarnTime = currentTime;
+                            }
+                            if (SEBClientBot.this.notificationInterval > 0
+                                    && currentTime - lastNotificationTime >= SEBClientBot.this.notificationInterval) {
+                                notificationHeader.next();
+                                sendEvent(notificationHeader);
+                                lastNotificationTime = currentTime;
                             }
                             try {
                                 Thread.sleep(50);
@@ -578,6 +587,36 @@ public class SEBClientBot {
         }
 
         return toString(ByteBuffer.wrap(byteArray));
+    }
+
+    private static class NotificationEntity extends HttpEntity<String> {
+        private final String eventBodyTemplate =
+                "{ \"type\": \"%s\", \"timestamp\": %s, \"numericValue\": %s, \"text\": \"<raisehand> notificationNr "
+                        + UUID.randomUUID() + " \" }";
+
+        private long numericValue = 0;
+        private long timestamp = 0;
+        private final String eventType;
+
+        protected NotificationEntity(final MultiValueMap<String, String> headers) {
+            super(headers);
+            this.eventType = "NOTIFICATION";
+        }
+
+        void next() {
+            this.timestamp = System.currentTimeMillis();
+            this.numericValue++;
+        }
+
+        @Override
+        public String getBody() {
+            return String.format(this.eventBodyTemplate, this.eventType, this.timestamp, this.numericValue);
+        }
+
+        @Override
+        public boolean hasBody() {
+            return true;
+        }
     }
 
 }

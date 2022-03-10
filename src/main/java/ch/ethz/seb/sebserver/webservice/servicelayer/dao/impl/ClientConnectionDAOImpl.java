@@ -45,6 +45,8 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRe
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientIndicatorRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientInstructionRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientNotificationRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientNotificationRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RemoteProctoringRoomRecordDynamicSqlSupport;
@@ -66,17 +68,20 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     private final ClientEventRecordMapper clientEventRecordMapper;
     private final ClientInstructionRecordMapper clientInstructionRecordMapper;
     private final ClientIndicatorRecordMapper clientIndicatorRecordMapper;
+    private final ClientNotificationRecordMapper clientNotificationRecordMapper;
 
     protected ClientConnectionDAOImpl(
             final ClientConnectionRecordMapper clientConnectionRecordMapper,
             final ClientEventRecordMapper clientEventRecordMapper,
             final ClientInstructionRecordMapper clientInstructionRecordMapper,
-            final ClientIndicatorRecordMapper clientIndicatorRecordMapper) {
+            final ClientIndicatorRecordMapper clientIndicatorRecordMapper,
+            final ClientNotificationRecordMapper clientNotificationRecordMapper) {
 
         this.clientConnectionRecordMapper = clientConnectionRecordMapper;
         this.clientEventRecordMapper = clientEventRecordMapper;
         this.clientInstructionRecordMapper = clientInstructionRecordMapper;
         this.clientIndicatorRecordMapper = clientIndicatorRecordMapper;
+        this.clientNotificationRecordMapper = clientNotificationRecordMapper;
     }
 
     @Override
@@ -500,6 +505,14 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             this.clientEventRecordMapper.deleteByExample()
                     .where(
                             ClientEventRecordDynamicSqlSupport.clientConnectionId,
+                            SqlBuilder.isIn(ids))
+                    .build()
+                    .execute();
+
+            // delete all related client notifications
+            this.clientNotificationRecordMapper.deleteByExample()
+                    .where(
+                            ClientNotificationRecordDynamicSqlSupport.clientConnectionId,
                             SqlBuilder.isIn(ids))
                     .build()
                     .execute();

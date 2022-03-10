@@ -13,7 +13,10 @@ import static org.junit.Assert.*;
 import java.util.Collection;
 import java.util.List;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.jdbc.Sql;
@@ -29,9 +32,23 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
 public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
+
+    @Autowired
+    private LmsAPIService lmsAPIService;
+
+    @Before
+    public void init() {
+        this.lmsAPIService.cleanup();
+    }
+
+    @After
+    public void cleanup() {
+        this.lmsAPIService.cleanup();
+    }
 
     @Test
     public void testCreateModifyActivateDelete() throws Exception {

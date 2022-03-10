@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -98,6 +99,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.model.session.MonitoringFullPageData;
@@ -123,6 +125,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamTe
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportSEBSettingsConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetCourseChapters;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetDefaultExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfigMappingNames;
@@ -211,10 +214,13 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Sa
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisableClientConnection;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetMonitoringFullPageData;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetPendingClientNotifications;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunningExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.PropagateInstruction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
@@ -227,23 +233,27 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUs
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.RegisterNewUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
     @Autowired
     private Cryptor cryptor;
+    @Autowired
+    private LmsAPIService lmsAPIService;
 
     @Before
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void init() {
-
+        this.lmsAPIService.cleanup();
     }
 
     @After
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void cleanup() {
-
+        this.lmsAPIService.cleanup();
     }
 
     @Test
@@ -648,7 +658,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         list = lmsNames.get();
         assertFalse(list.isEmpty());
 
-        // check still no quizzes available form the LMS (not active now)
+        // check still no quizzes available from the LMS (not active now)
         quizPageCall = restService
                 .getBuilder(GetQuizPage.class)
                 .call();
@@ -766,6 +776,10 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getBuilder(GetLmsSetup.class)
                 .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
                 .call();
+        assertFalse(newLMSCall.hasError());
+        final LmsSetup lmsSetup2 = newLMSCall.get();
+        assertTrue(lmsSetup2.active);
+        assertEquals("Test LMS Name Changed", lmsSetup2.name);
     }
 
     @Test
@@ -890,6 +904,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .stream()
                 .filter(exam -> exam.name.equals(newExam.name))
                 .findFirst().isPresent());
+
     }
 
     @Test
@@ -2090,11 +2105,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "examSupport2",
                 new GetRunningExamPage(),
                 new GetClientConnectionDataList(),
+                new GetClientConnection(),
                 new GetMonitoringFullPageData(),
                 new GetExtendedClientEventPage(),
                 new DisableClientConnection(),
                 new PropagateInstruction(),
-                new GetClientConnectionPage());
+                new GetClientConnectionPage(),
+                new GetPendingClientNotifications(),
+                new ConfirmPendingClientNotification());
 
         final RestServiceImpl adminRestService = createRestServiceForUser(
                 "TestInstAdmin",
@@ -2166,7 +2184,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     exam.getModelId(),
                     String.valueOf(exam.institutionId));
             Thread.sleep(1000);
-            // send quit instruction
+
+            // send get connections
             connectionsCall =
                     restService.getBuilder(GetClientConnectionDataList.class)
                             .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
@@ -2180,6 +2199,38 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             iterator.next();
             final ClientConnectionData con = iterator.next();
 
+            // get single client connection
+            final Result<ClientConnection> ccCall = restService.getBuilder(GetClientConnection.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, con.clientConnection.getModelId())
+                    .call();
+
+            assertFalse(ccCall.hasError());
+            final ClientConnection clientConnection = ccCall.get();
+            assertEquals("1", clientConnection.examId.toString());
+            //assertEquals("", clientConnection.status.name());
+
+            // get notification
+            final Result<Collection<ClientNotification>> notificationsCall =
+                    restService.getBuilder(GetPendingClientNotifications.class)
+                            .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                            .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, con.clientConnection.connectionToken)
+                            .call();
+            assertNotNull(notificationsCall);
+            assertFalse(notificationsCall.hasError());
+            final Collection<ClientNotification> collection = notificationsCall.get();
+            assertFalse(collection.isEmpty());
+            final ClientNotification notification = collection.iterator().next();
+            assertEquals("NOTIFICATION", notification.eventType.name());
+
+            // confirm notification
+            final Result<Void> confirm = restService.getBuilder(ConfirmPendingClientNotification.class)
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                    .withURIVariable(API.PARAM_MODEL_ID, notification.getModelId())
+                    .withURIVariable(API.EXAM_API_SEB_CONNECTION_TOKEN, con.clientConnection.connectionToken)
+                    .call();
+            assertFalse(confirm.hasError());
+
+            // send quit instruction
             final ClientInstruction clientInstruction = new ClientInstruction(
                     null,
                     exam.id,
@@ -2691,13 +2742,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     //  - create exam from template
     //  - delete exam template
     //  - delete exam
-    public void testUsecase22_CreateExamTemplate() {
+    public void testUsecase22_ExamTemplate() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "TestInstAdmin",
                 "987654321",
                 new GetExamTemplatePage(),
                 new GetExamTemplate(),
                 new GetExamTemplates(),
+                new GetDefaultExamTemplate(),
                 new NewExamTemplate(),
                 new NewExamConfig(),
                 new SaveExamTemplate(),
@@ -2749,6 +2801,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals(configTemplate.institutionId, examTemplate.institutionId);
         assertEquals(configTemplate.id, examTemplate.configTemplateId);
 
+        // get default exam template
+        final ExamTemplate defaultExamTemplate = restService
+                .getBuilder(GetDefaultExamTemplate.class)
+                .call()
+                .getOrThrow();
+
+        assertNotNull(defaultExamTemplate);
+
         // get list again and check entry
         examTemplatePage = restService
                 .getBuilder(GetExamTemplatePage.class)
@@ -2793,6 +2853,17 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(indicatorList);
         assertFalse(indicatorList.isEmpty());
         assertTrue(indicatorList.content.size() == 1);
+        final IndicatorTemplate indicator = indicatorList.content.get(0);
+
+        final IndicatorTemplate ind = restService
+                .getBuilder(GetIndicatorTemplate.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, examTemplate.getModelId())
+                .withURIVariable(API.PARAM_MODEL_ID, indicator.getModelId())
+                .call()
+                .getOrThrow();
+
+        assertNotNull(ind);
+        assertEquals(ind, indicator);
 
         // get exam config template for use
         final List<EntityName> configTemplateNames = restService.getBuilder(GetExamConfigNodeNames.class)
@@ -2815,7 +2886,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         null,
                         null,
                         Long.parseLong(configTemplateName.modelId), // assosiate with given config template
-                        null,
+                        true,
                         null,
                         null))
                 .call()
@@ -2824,6 +2895,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(savedTemplate);
         assertEquals("New Description", savedTemplate.description);
         assertNotNull(savedTemplate.configTemplateId);
+        assertTrue(savedTemplate.institutionalDefault);
 
         // edit/save indicator template
         IndicatorTemplate savedIndicatorTemplate = restService
@@ -2906,7 +2978,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals("New Errors", savedTemplate.indicatorTemplates.iterator().next().name);
 
         // create exam from template
-        // check quizzes are defines
+        // check quizzes are defined
         final String userId = restService
                 .getBuilder(GetUserAccountNames.class)
                 .call()
@@ -2980,7 +3052,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final EntityProcessingReport entityProcessingReport = deleteExamCall.get();
         assertTrue(entityProcessingReport.getErrors().isEmpty());
         assertTrue(entityProcessingReport.results.size() == 3);
-
     }
 
     @Test
@@ -3185,22 +3256,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new DeactivateSEBRestriction(),
                 new GetCourseChapters());
 
-        // get exam list
-        final Result<Page<Exam>> examsCall = restService
-                .getBuilder(GetExamPage.class)
-                .withQueryParam(Page.ATTR_SORT, QuizData.QUIZ_ATTR_NAME)
-                .call();
-
-        assertFalse(examsCall.hasError());
-        final Page<Exam> exams = examsCall.getOrThrow();
-        assertNotNull(exams);
-        assertFalse(exams.content.isEmpty());
-        assertEquals("quiz_name", exams.sort);
-
-        Exam exam = exams.content.get(0);
+        Exam exam = createTestExam("admin", "admin");
         assertNotNull(exam);
         assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
-        assertEquals("2", exam.getModelId());
 
         // check SEB restriction
         final Boolean check = restService
@@ -3219,9 +3277,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow();
 
         assertNotNull(restriction);
-        assertEquals("2", restriction.examId.toString());
+        assertEquals(exam.id.toString(), restriction.examId.toString());
         assertEquals(
-                "[b014f12e5465d1f6595fa45c84cc3d9449df1c21aee922fae730e7c177dac4e0]",
+                "[]",
                 restriction.configKeys.toString());
         assertEquals(
                 "[]",
@@ -3241,7 +3299,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow();
         assertNotNull(exam);
         assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
-        assertEquals("2", exam.getModelId());
         restriction = restService
                 .getBuilder(GetSEBRestrictionSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
@@ -3249,9 +3306,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow();
 
         assertNotNull(restriction);
-        assertEquals("2", restriction.examId.toString());
+        assertEquals(exam.id.toString(), restriction.examId.toString());
         assertEquals(
-                "[b014f12e5465d1f6595fa45c84cc3d9449df1c21aee922fae730e7c177dac4e0]",
+                "[]",
                 restriction.configKeys.toString());
         assertEquals(
                 "[exam-key]",
@@ -3295,25 +3352,11 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "admin",
                 "admin",
                 new GetProctoringSettings(),
-                new SaveProctoringSettings(),
-                new GetExamPage());
+                new SaveProctoringSettings());
 
-        // get exam list
-        final Result<Page<Exam>> examsCall = restService
-                .getBuilder(GetExamPage.class)
-                .withQueryParam(Page.ATTR_SORT, QuizData.QUIZ_ATTR_NAME)
-                .call();
-
-        assertFalse(examsCall.hasError());
-        final Page<Exam> exams = examsCall.getOrThrow();
-        assertNotNull(exams);
-        assertFalse(exams.content.isEmpty());
-        assertEquals("quiz_name", exams.sort);
-
-        final Exam exam = exams.content.get(0);
+        final Exam exam = createTestExam("admin", "admin");
         assertNotNull(exam);
         assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
-        assertEquals("2", exam.getModelId());
 
         final ProctoringServiceSettings settings = restService
                 .getBuilder(GetProctoringSettings.class)
@@ -3322,14 +3365,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow();
 
         assertNotNull(settings);
-        assertEquals("2", settings.examId.toString());
         assertFalse(settings.enableProctoring);
 
         final ProctoringServiceSettings newSettings = new ProctoringServiceSettings(
                 settings.examId,
-                true,
+                false,
                 ProctoringServerType.JITSI_MEET,
-                "https://seb-jitsi.ethz.ch",
+                "https://seb-jitsi.ethz.ch/",
                 20,
                 EnumSet.of(ProctoringFeature.TOWN_HALL, ProctoringFeature.ONE_TO_ONE),
                 false,
@@ -3345,7 +3387,61 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withBody(newSettings)
                 .call();
 
-        assertFalse(saveCall.hasError());
+        if (!saveCall.hasError()) {
+            assertFalse(saveCall.hasError());
+            final Exam exam2 = saveCall.get();
+            assertEquals(exam2.id, exam.id);
+        }
+    }
+
+    private Exam createTestExam(final String userName, final String secret) {
+        final RestServiceImpl restService = createRestServiceForUser(
+                userName,
+                secret,
+                new NewLmsSetup(),
+                new ActivateLmsSetup(),
+                new GetQuizPage(),
+                new ImportAsExam());
+
+        // create LMS Setup (MOCKUP)
+        final String uuid = UUID.randomUUID().toString();
+        final LmsSetup lmsSetup = restService
+                .getBuilder(NewLmsSetup.class)
+                .withFormParam(Domain.LMS_SETUP.ATTR_NAME, "Test LMS Mockup " + uuid)
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsType.MOCKUP.name())
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_URL, "http://")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTNAME, "test")
+                .withFormParam(Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET, "test")
+                .call()
+                .getOrThrow();
+        restService
+                .getBuilder(ActivateLmsSetup.class)
+                .withURIVariable(API.PARAM_MODEL_ID, lmsSetup.getModelId())
+                .call()
+                .getOrThrow();
+
+        // import quiz6 as exam return id
+        final QuizData quizData = restService
+                .getBuilder(GetQuizPage.class)
+                .withQueryParam(LmsSetup.FILTER_ATTR_LMS_SETUP, lmsSetup.id.toString())
+                .call()
+                .map(q -> {
+                    System.out.println("************************** q: " + q);
+                    return q;
+                })
+                .get().content
+                        .stream()
+                        .filter(q -> q.lmsSetupId.longValue() == lmsSetup.id.longValue()
+                                && q.name.contains("Demo Quiz 6"))
+                        .findFirst()
+                        .get();
+
+        return restService
+                .getBuilder(ImportAsExam.class)
+                .withFormParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, String.valueOf(quizData.lmsSetupId))
+                .withFormParam(QuizData.QUIZ_ATTR_ID, quizData.id)
+                .call()
+                .getOrThrow();
     }
 
 }
