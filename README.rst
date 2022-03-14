@@ -65,34 +65,8 @@ a more automated and secure setup for high-stake exams.
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/seb-sebserver-lms.png
     
-SEB Server Version 1.1.0 is out
--------------------------------
 
-New features:
-
-- Moodle integration part 1 (Course Access)
-- Live proctoring with Jitsi Meet integration (Prototype)
-- Deletion of user accounts
-- Deletion of exams
-- User registration rate limit
-- Inform user about unpublished chances in exam configuration settings
-- Added "Ignore SEB Service" attributes in exam configuration settings
-- Additional monitoring indicator (WIFI and battery status)
-- Notification events (experimental)
-- Download/Export Connection Configuration from Exam page to start an exam directly "Export Exam Connection Configuration"
-
-Bugfixes:
-
-- Monitoring table update, incorrect table rendering after status changed
-- Remove caching for distributed setup
-- Add lookup and automated master service allocation for distributed setup
-
-Changes:
-
-- "Client Configuration" is now named "Connection Configuration"
-- "Export Exam Configuration" is now named "Export SEB Settings" and can be found in the "SEB Settings" view of an "Exam Configuration"
-
-SEB Server Version 1.2.0 is out
+SEB Server Version 1.2.0
 -------------------------------
 
 New features:
@@ -121,6 +95,42 @@ Changes:
 - Updated Spring Boot version from 2.1.0.RELEASE to 2.3.7.RELEASE
 - Build pipeline automatically build the SEB Server docker image and put it to docker hub now
 - New SEB Server docker setup (dockerhost) that pulls the needed images from docker-hub
+
+SEB Server Version 1.3.0 is out
+-------------------------------
+
+New features:
+
+- Table Filter: Enter input on filter input field triggers filter action
+- New: "Exam Templates" to predefine exam configurations that can be applied on exam import
+- Exam Configuration: Copy exam configuration on exam configuration table view
+- Exam Templates: Add an exam configuration template via exam template to automatically create an exam configuration on import
+- Exam Templates: Add indicators for exam template that are automatically applied on exam import
+- Monitoring: Add new filter to filter active connections (without any incidences)
+- Monitoring: Add connection summary for each connection state filter to show how many connections are present per state
+- Monitoring: Improved and extended connection information about user/login change and display client info like SEB version, OS Version...
+- Monitoring: Improved distributed setup with Docker/Kubernetes
+- Monitoring Notifications: Added Raise-Hand Notification and SEB Lock-Screen Notification
+
+
+Bugfixes:
+
+- Various distributed setup cache issues
+- Fixed Sorting of exam in exam list
+- Fixed LMS Lockup quizzes filter
+- Fixed Exam proctoring settings verification
+- Various proctoring issues for proctoring with Zoom
+
+
+Changes:
+
+- Overall: Extended GUI server session timeout
+- User Roles: Enhanced "Exam Administrator" role to see all running exams and be able to support them as well
+- LMS Lockup/Exam: Show Moodle course name together with the quiz name on LMS lockup as well as on exams
+- Exam Configuration: Streamline "Exam Configuration" settings with the newest SEB versions
+- Monitoring: Improved indicator and monitoring data performance for distributed setups
+- Monitoring: Changed default colors for active connections and indicators (No color if no incidence)
+
 
 
 SEB - SEB Server Compatibility
