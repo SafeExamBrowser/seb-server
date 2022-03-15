@@ -103,8 +103,8 @@ Changes:
 
 Docker-Image:
 
-    Exact version: docker pull anhefti/seb-server:v1.3.0 (sha256:35692e304ab8f7d198524ff948df472e1eb362f1eb7f0b0fa358d01556011e59)
-    Latest stable minor version with patches: docker pull anhefti/seb-server:v1.3-latest
+- Exact version: docker pull anhefti/seb-server:v1.3.0 (sha256:35692e304ab8f7d198524ff948df472e1eb362f1eb7f0b0fa358d01556011e59)
+- Latest stable minor version with patches: docker pull anhefti/seb-server:v1.3-latest
 
 
 
