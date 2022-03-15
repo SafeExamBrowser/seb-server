@@ -66,36 +66,6 @@ a more automated and secure setup for high-stake exams.
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/seb-sebserver-lms.png
     
 
-SEB Server Version 1.2.0
--------------------------------
-
-New features:
-
-- Integrated X.509 certificate store to upload and use X.509 certificate for new and upcoming features
-- Connection configuration encryption with X.509 certificate
-- Additional exam configuration attributes of later added features of the SEB config-tool
-- Default sorting and filtering for all lists
-- Deleting of SEB client logs on the SEB Client Logs view
-- Zoom meeting service integration for live proctoring (this is still an experimental feature)
-- Ability to switch live proctoring features like town-hall, one-to-one room or broadcasting, on and off
-
-Bugfixes:
-
-- Exam configuration import gives more and clear information about the purpose of different imports
-- Color picker is now initialized with selected color
-- Fixed user-account deactivation on user-account list
-- Fixed indicator list on exam shows only up to five entries
-- Fixed none scrolling action pane
-- Fixed exam import of Moodle LMS integration with different quizzes on same course
-- Various bug-fixes and improvements for distributed setup of SEB Server (separated and scaled webservice and guiservice)
-
-Changes:
-
-- Updated MariaDB version for integrated setups from version 10.3 to 10.5
-- Updated Spring Boot version from 2.1.0.RELEASE to 2.3.7.RELEASE
-- Build pipeline automatically build the SEB Server docker image and put it to docker hub now
-- New SEB Server docker setup (dockerhost) that pulls the needed images from docker-hub
-
 SEB Server Version 1.3.0 is out
 -------------------------------
 
@@ -130,6 +100,11 @@ Changes:
 - Exam Configuration: Streamline "Exam Configuration" settings with the newest SEB versions
 - Monitoring: Improved indicator and monitoring data performance for distributed setups
 - Monitoring: Changed default colors for active connections and indicators (No color if no incidence)
+
+Docker-Image:
+
+    Exact version: docker pull anhefti/seb-server:v1.3.0 (sha256:35692e304ab8f7d198524ff948df472e1eb362f1eb7f0b0fa358d01556011e59)
+    Latest stable minor version with patches: docker pull anhefti/seb-server:v1.3-latest
 
 
 
