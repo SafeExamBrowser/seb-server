@@ -147,9 +147,6 @@ jobs:
     -
       name: Sign image with a key
       run: |
-        echo ${COSIGN_PRIVATE_KEY} > /tmp/my_cosign.key && cosign sign --key /tmp/my_cosign.key anhefti/seb-server:${{ env.TAG_NAME }}
+        echo ${COSIGN_PRIVATE_KEY} > /tmp/cosign.key && cosign sign --key /tmp/cosign.key anhefti/seb-server:${{ env.TAG_NAME }}
         env:
-          TAGS: |
-            anhefti/seb-server:${{ env.TAG_NAME }}
-          COSIGN_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
           COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
