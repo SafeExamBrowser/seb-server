@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsAPITemplateAdapter;
 
 @Lazy
 @Service
@@ -88,14 +89,16 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     this.jsonMapper,
                     moodleRestTemplateFactory,
                     asyncLoaderPrototype,
-                    this.asyncService,
                     this.environment);
 
             final MoodleCourseRestriction moodleCourseRestriction = new MoodleCourseRestriction(
                     this.jsonMapper,
                     moodleRestTemplateFactory);
 
-            return new MoodleLmsAPITemplate(
+            return new LmsAPITemplateAdapter(
+                    this.asyncService,
+                    this.environment,
+                    apiTemplateDataSupplier,
                     moodleCourseAccess,
                     moodleCourseRestriction);
         });

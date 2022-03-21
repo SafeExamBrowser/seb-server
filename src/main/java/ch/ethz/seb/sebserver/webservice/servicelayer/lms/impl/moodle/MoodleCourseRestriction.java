@@ -22,10 +22,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.MoodleSEBRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionAPI;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
 
@@ -57,7 +60,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
  * Delete all key (and remove restrictions):
  * POST:
  * http://yourmoodle.org/webservice/rest/server.php?wstoken={token}&moodlewsrestformat=json&wsfunction=seb_restriction_delete&courseId=123 */
-public class MoodleCourseRestriction {
+public class MoodleCourseRestriction implements SEBRestrictionAPI {
 
     private static final Logger log = LoggerFactory.getLogger(MoodleCourseRestriction.class);
 
@@ -84,7 +87,8 @@ public class MoodleCourseRestriction {
         this.moodleRestTemplateFactory = moodleRestTemplateFactory;
     }
 
-    LmsSetupTestResult initAPIAccess() {
+    @Override
+    public LmsSetupTestResult testCourseRestrictionAPI() {
         // try to call the SEB Restrictions API
         try {
 
@@ -108,16 +112,33 @@ public class MoodleCourseRestriction {
         return LmsSetupTestResult.ofOkay(LmsType.MOODLE);
     }
 
-    Result<MoodleSEBRestriction> getSEBRestriction(
-            final String internalId) {
-
+    @Override
+    public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
         return Result.tryCatch(() -> {
             return getSEBRestriction(
-                    MoodleCourseAccess.getQuizId(internalId),
-                    MoodleCourseAccess.getShortname(internalId),
-                    MoodleCourseAccess.getIdnumber(internalId))
+                    MoodleCourseAccess.getQuizId(exam.externalId),
+                    MoodleCourseAccess.getShortname(exam.externalId),
+                    MoodleCourseAccess.getIdnumber(exam.externalId))
+                            .map(restriction -> SEBRestriction.from(exam.id, restriction))
                             .getOrThrow();
         });
+    }
+
+    @Override
+    public Result<SEBRestriction> applySEBClientRestriction(
+            final String externalExamId,
+            final SEBRestriction sebRestrictionData) {
+
+        return this.updateSEBRestriction(
+                externalExamId,
+                MoodleSEBRestriction.from(sebRestrictionData))
+                .map(result -> sebRestrictionData);
+    }
+
+    @Override
+    public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
+        return this.deleteSEBRestriction(exam.externalId)
+                .map(result -> exam);
     }
 
     Result<MoodleSEBRestriction> getSEBRestriction(

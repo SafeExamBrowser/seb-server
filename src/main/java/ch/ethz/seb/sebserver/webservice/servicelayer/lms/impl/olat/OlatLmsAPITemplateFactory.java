@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsAPITemplateAdapter;
 
 @Lazy
 @Service
@@ -63,13 +64,17 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
     @Override
     public Result<LmsAPITemplate> create(final APITemplateDataSupplier apiTemplateDataSupplier) {
         return Result.tryCatch(() -> {
-            return new OlatLmsAPITemplate(
+            final OlatLmsAPITemplate olatLmsAPITemplate = new OlatLmsAPITemplate(
                     this.clientHttpRequestFactoryService,
                     this.clientCredentialService,
                     apiTemplateDataSupplier,
+                    this.cacheManager);
+            return new LmsAPITemplateAdapter(
                     this.asyncService,
                     this.environment,
-                    this.cacheManager);
+                    apiTemplateDataSupplier,
+                    olatLmsAPITemplate,
+                    olatLmsAPITemplate);
         });
     }
 

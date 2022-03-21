@@ -22,17 +22,20 @@ import org.springframework.web.client.HttpClientErrorException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionAPI;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 
 /** The open edX SEB course restriction API implementation.
  *
  * See also : https://seb-openedx.readthedocs.io/en/latest/ */
-public class OpenEdxCourseRestriction {
+public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
 
     private static final Logger log = LoggerFactory.getLogger(OpenEdxCourseRestriction.class);
 
@@ -54,7 +57,8 @@ public class OpenEdxCourseRestriction {
         this.openEdxRestTemplateFactory = openEdxRestTemplateFactory;
     }
 
-    LmsSetupTestResult initAPIAccess() {
+    @Override
+    public LmsSetupTestResult testCourseRestrictionAPI() {
 
         final LmsSetupTestResult attributesCheck = this.openEdxRestTemplateFactory.test();
         if (!attributesCheck.isOk()) {
@@ -95,21 +99,22 @@ public class OpenEdxCourseRestriction {
             }
 
             if (log.isDebugEnabled()) {
-                log.debug("Sucessfully checked SEB Open edX integration Plugin");
+                log.debug("Successfully checked SEB Open edX integration Plugin");
             }
         }
 
         return LmsSetupTestResult.ofOkay(LmsType.OPEN_EDX);
     }
 
-    Result<OpenEdxSEBRestriction> getSEBRestriction(final String courseId) {
+    @Override
+    public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
 
         if (log.isDebugEnabled()) {
-            log.debug("GET SEB Client restriction on course: {}", courseId);
+            log.debug("GET SEB Client restriction on exam: {}", exam);
         }
 
+        final String courseId = exam.externalId;
         final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
-
         return Result.tryCatch(() -> {
             final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
             final HttpHeaders httpHeaders = new HttpHeaders();
@@ -127,7 +132,7 @@ public class OpenEdxCourseRestriction {
                 if (log.isDebugEnabled()) {
                     log.debug("Successfully GET SEB Client restriction on course: {}", courseId);
                 }
-                return data;
+                return SEBRestriction.from(exam.id, data);
             } catch (final HttpClientErrorException ce) {
                 if (ce.getStatusCode() == HttpStatus.NOT_FOUND || ce.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                     throw new NoSEBRestrictionException(ce);
@@ -137,17 +142,18 @@ public class OpenEdxCourseRestriction {
         });
     }
 
-    Result<Boolean> putSEBRestriction(
-            final String courseId,
-            final OpenEdxSEBRestriction restriction) {
+    @Override
+    public Result<SEBRestriction> applySEBClientRestriction(
+            final String externalExamId,
+            final SEBRestriction sebRestrictionData) {
 
         if (log.isDebugEnabled()) {
-            log.debug("PUT SEB Client restriction on course: {} : {}", courseId, restriction);
+            log.debug("PUT SEB Client restriction on course: {} : {}", externalExamId, sebRestrictionData);
         }
 
         return Result.tryCatch(() -> {
             final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
-            final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
+            final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(externalExamId);
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
             httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
@@ -157,24 +163,26 @@ public class OpenEdxCourseRestriction {
                     .exchange(
                             url,
                             HttpMethod.PUT,
-                            new HttpEntity<>(toJson(restriction), httpHeaders),
+                            new HttpEntity<>(toJson(OpenEdxSEBRestriction.from(sebRestrictionData)), httpHeaders),
                             OpenEdxSEBRestriction.class)
                     .getBody();
 
             if (log.isDebugEnabled()) {
-                log.debug("Successfully PUT SEB Client restriction on course: {} : {}", courseId, body);
+                log.debug("Successfully PUT SEB Client restriction on course: {} : {}", externalExamId, body);
             }
 
-            return true;
+            return sebRestrictionData;
         });
     }
 
-    Result<Boolean> deleteSEBRestriction(final String courseId) {
+    @Override
+    public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
 
         if (log.isDebugEnabled()) {
-            log.debug("DELETE SEB Client restriction on course: {}", courseId);
+            log.debug("DELETE SEB Client restriction on exam: {}", exam);
         }
 
+        final String courseId = exam.externalId;
         return Result.tryCatch(() -> {
             final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
             final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
@@ -193,81 +201,13 @@ public class OpenEdxCourseRestriction {
                 if (log.isDebugEnabled()) {
                     log.debug("Successfully PUT SEB Client restriction on course: {}", courseId);
                 }
-                return true;
+                return exam;
             } else {
                 throw new RuntimeException("Unexpected response for deletion: " + exchange);
             }
         });
 
     }
-
-//    private BooleanSupplier pushSEBRestrictionFunction(
-//            final OpenEdxSEBRestriction restriction,
-//            final String courseId) {
-//
-//        final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
-//        final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
-//        final HttpHeaders httpHeaders = new HttpHeaders();
-//        httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-//        httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
-//        return () -> {
-//            final OpenEdxSEBRestriction body = this.restTemplate.exchange(
-//                    url,
-//                    HttpMethod.PUT,
-//                    new HttpEntity<>(toJson(restriction), httpHeaders),
-//                    OpenEdxSEBRestriction.class)
-//                    .getBody();
-//
-//            if (log.isDebugEnabled()) {
-//                log.debug("Successfully PUT SEB Client restriction on course: {} : {}", courseId, body);
-//            }
-//
-//            return true;
-//        };
-//    }
-
-//    private BooleanSupplier deleteSEBRestrictionFunction(final String courseId) {
-//
-//        final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
-//        final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(courseId);
-//        return () -> {
-//            final HttpHeaders httpHeaders = new HttpHeaders();
-//            httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
-//            final ResponseEntity<Object> exchange = this.restTemplate.exchange(
-//                    url,
-//                    HttpMethod.DELETE,
-//                    new HttpEntity<>(httpHeaders),
-//                    Object.class);
-//
-//            if (exchange.getStatusCode() == HttpStatus.NO_CONTENT) {
-//                if (log.isDebugEnabled()) {
-//                    log.debug("Successfully PUT SEB Client restriction on course: {}", courseId);
-//                }
-//            } else {
-//                log.error("Unexpected response for deletion: {}", exchange);
-//                return false;
-//            }
-//
-//            return true;
-//        };
-//    }
-
-//    private Result<Boolean> handleSEBRestriction(final BooleanSupplier task) {
-//        return getRestTemplate()
-//                .map(restTemplate -> {
-//                    try {
-//                        return task.getAsBoolean();
-//                    } catch (final HttpClientErrorException ce) {
-//                        if (ce.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-//                            throw new APIMessageException(APIMessage.ErrorMessage.UNAUTHORIZED.of(ce.getMessage()
-//                                    + " Unable to get access for API. Please check the corresponding LMS Setup "));
-//                        }
-//                        throw ce;
-//                    } catch (final Exception e) {
-//                        throw new RuntimeException("Unexpected: ", e);
-//                    }
-//                });
-//    }
 
     private String getSEBRestrictionUrl(final String courseId) {
         return String.format(OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_PATH, courseId);

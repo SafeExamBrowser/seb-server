@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsAPITemplateAdapter;
 
 @Lazy
 @Service
@@ -87,8 +88,6 @@ public class OpenEdxLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     this.jsonMapper,
                     openEdxRestTemplateFactory,
                     this.webserviceInfo,
-                    this.asyncService,
-                    this.environment,
                     this.cacheManager);
 
             final OpenEdxCourseRestriction openEdxCourseRestriction = new OpenEdxCourseRestriction(
@@ -96,7 +95,10 @@ public class OpenEdxLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     openEdxRestTemplateFactory,
                     this.restrictionAPIPushCount);
 
-            return new OpenEdxLmsAPITemplate(
+            return new LmsAPITemplateAdapter(
+                    this.asyncService,
+                    this.environment,
+                    apiTemplateDataSupplier,
                     openEdxCourseAccess,
                     openEdxCourseRestriction);
         });

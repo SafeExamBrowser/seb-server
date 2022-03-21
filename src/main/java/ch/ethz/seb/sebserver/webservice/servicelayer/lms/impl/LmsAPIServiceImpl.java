@@ -96,12 +96,13 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         final LmsAPITemplate removedTemplate = this.cache
                 .remove(new CacheKey(lmsSetup.getModelId(), 0));
         if (removedTemplate != null) {
-            removedTemplate.clearCache();
+            removedTemplate.clearCourseCache();
         }
     }
 
     @Override
     public void cleanup() {
+        this.cache.values().forEach(LmsAPITemplate::dispose);
         this.cache.clear();
     }
 

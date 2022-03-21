@@ -20,7 +20,6 @@ import org.springframework.core.env.Environment;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
-import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker.State;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
@@ -34,14 +33,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 public abstract class AbstractCourseAccess {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractCourseAccess.class);
-
-    /** Fetch status that indicates an asynchronous quiz data fetch status if the
-     * concrete implementation has such. */
-    public enum FetchStatus {
-        ALL_FETCHED,
-        ASYNC_FETCH_RUNNING,
-        FETCH_ERROR
-    }
 
     /** CircuitBreaker for protected quiz and course data requests */
     protected final CircuitBreaker<List<QuizData>> allQuizzesRequest;
@@ -194,10 +185,4 @@ public abstract class AbstractCourseAccess {
     /** Provides a supplier for the course chapter data request to use within the circuit breaker */
     protected abstract Supplier<Chapters> getCourseChaptersSupplier(final String courseId);
 
-    protected FetchStatus getFetchStatus() {
-        if (this.quizzesRequest.getState() != State.CLOSED) {
-            return FetchStatus.FETCH_ERROR;
-        }
-        return FetchStatus.ALL_FETCHED;
-    }
 }

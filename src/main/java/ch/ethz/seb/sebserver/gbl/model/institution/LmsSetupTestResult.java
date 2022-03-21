@@ -28,6 +28,7 @@ public final class LmsSetupTestResult {
     public static final String ATTR_MISSING_ATTRIBUTE = "missingLMSSetupAttribute";
 
     public enum ErrorType {
+        API_NOT_SUPPORTED,
         MISSING_ATTRIBUTE,
         TOKEN_REQUEST,
         QUIZ_ACCESS_API_REQUEST,
@@ -109,7 +110,12 @@ public final class LmsSetupTestResult {
         return new LmsSetupTestResult(lmsType);
     }
 
-    public static LmsSetupTestResult ofMissingAttributes(final LmsSetup.LmsType lmsType,
+    public static LmsSetupTestResult ofAPINotSupported(final LmsSetup.LmsType lmsType) {
+        return new LmsSetupTestResult(lmsType, new Error(ErrorType.TOKEN_REQUEST, "Not Supported"));
+    }
+
+    public static LmsSetupTestResult ofMissingAttributes(
+            final LmsSetup.LmsType lmsType,
             final Collection<APIMessage> attrs) {
         return new LmsSetupTestResult(lmsType, new Error(ErrorType.MISSING_ATTRIBUTE, "missing attribute(s)"), attrs);
     }

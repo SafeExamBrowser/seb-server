@@ -17,14 +17,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -45,7 +43,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
-import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -57,12 +54,13 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.CourseAccessAPI;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
  *
  * See also: https://course-catalog-api-guide.readthedocs.io */
-final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
+final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements CourseAccessAPI {
 
     private static final Logger log = LoggerFactory.getLogger(OpenEdxCourseAccess.class);
 
@@ -84,11 +82,9 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
             final JSONMapper jsonMapper,
             final OpenEdxRestTemplateFactory openEdxRestTemplateFactory,
             final WebserviceInfo webserviceInfo,
-            final AsyncService asyncService,
-            final Environment environment,
             final CacheManager cacheManager) {
 
-        super(asyncService, environment, cacheManager);
+        super(cacheManager);
         this.jsonMapper = jsonMapper;
         this.openEdxRestTemplateFactory = openEdxRestTemplateFactory;
         this.webserviceInfo = webserviceInfo;
@@ -104,7 +100,8 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
         return this.lmsSetupId;
     }
 
-    LmsSetupTestResult initAPIAccess() {
+    @Override
+    public LmsSetupTestResult testCourseAccessAPI() {
 
         final LmsSetupTestResult attributesCheck = this.openEdxRestTemplateFactory.test();
         if (!attributesCheck.isOk()) {
@@ -141,68 +138,18 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
     }
 
     @Override
-    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId) {
-        return () -> {
-            try {
-                final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-                final HttpHeaders httpHeaders = new HttpHeaders();
-                final OAuth2RestTemplate template = getRestTemplate()
-                        .getOrThrow();
+    public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
+        return getRestTemplate().map(this::collectAllQuizzes);
+    }
 
-                final String externalStartURI = this.webserviceInfo
-                        .getLmsExternalAddressAlias(lmsSetup.lmsApiUrl);
-
-                final String uri = (externalStartURI != null)
-                        ? externalStartURI + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeSessionId
-                        : lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeSessionId;
-
-                final String responseJSON = template.exchange(
-                        uri,
-                        HttpMethod.GET,
-                        new HttpEntity<>(httpHeaders),
-                        String.class)
-                        .getBody();
-
-                final EdxUserDetails[] userDetails = this.jsonMapper.<EdxUserDetails[]> readValue(
-                        responseJSON,
-                        new TypeReference<EdxUserDetails[]>() {
-                        });
-
-                if (userDetails == null || userDetails.length <= 0) {
-                    throw new RuntimeException("No user details on Open edX API request");
-                }
-
-                final Map<String, String> additionalAttributes = new HashMap<>();
-                additionalAttributes.put("bio", userDetails[0].bio);
-                additionalAttributes.put("country", userDetails[0].country);
-                additionalAttributes.put("date_joined", userDetails[0].date_joined);
-                additionalAttributes.put("gender", userDetails[0].gender);
-                additionalAttributes.put("is_active", String.valueOf(userDetails[0].is_active));
-                additionalAttributes.put("mailing_address", userDetails[0].mailing_address);
-                additionalAttributes.put("secondary_email", userDetails[0].secondary_email);
-
-                return new ExamineeAccountDetails(
-                        userDetails[0].username,
-                        userDetails[0].name,
-                        userDetails[0].username,
-                        userDetails[0].email,
-                        additionalAttributes);
-            } catch (final Exception e) {
-                throw new RuntimeException(e);
+    @Override
+    public Result<QuizData> getQuiz(final String id) {
+        return Result.tryCatch(() -> {
+            final QuizData fromCache = super.getFromCache(id);
+            if (fromCache != null) {
+                return fromCache;
             }
-        };
-    }
 
-    @Override
-    protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
-        return () -> getRestTemplate()
-                .map(this::collectAllQuizzes)
-                .getOrThrow();
-    }
-
-    @Override
-    protected Supplier<QuizData> quizSupplier(final String id) {
-        return () -> {
             final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
             final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
             final QuizData quizData = quizDataOf(
@@ -214,13 +161,13 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
                 super.putToCache(quizData);
             }
             return quizData;
-        };
+        });
     }
 
     @Override
-    protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
+    public Result<Collection<QuizData>> getQuizzes(final Set<String> ids) {
         if (ids.size() == 1) {
-            return () -> {
+            return Result.tryCatch(() -> {
 
                 final String id = ids.iterator().next();
 
@@ -239,17 +186,73 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
                                 getRestTemplate().getOrThrow(),
                                 id),
                         externalStartURI));
-            };
+            });
         } else {
-            return () -> getRestTemplate()
-                    .map(template -> this.collectQuizzes(template, ids))
-                    .getOrThrow();
+            return getRestTemplate().map(template -> this.collectQuizzes(template, ids));
         }
     }
 
     @Override
-    protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
-        return () -> {
+    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeUserId) {
+        return Result.tryCatch(() -> {
+
+            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+            final HttpHeaders httpHeaders = new HttpHeaders();
+            final OAuth2RestTemplate template = getRestTemplate()
+                    .getOrThrow();
+
+            final String externalStartURI = this.webserviceInfo
+                    .getLmsExternalAddressAlias(lmsSetup.lmsApiUrl);
+
+            final String uri = (externalStartURI != null)
+                    ? externalStartURI + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeUserId
+                    : lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_USER_PROFILE_ENDPOINT + examineeUserId;
+
+            final String responseJSON = template.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    new HttpEntity<>(httpHeaders),
+                    String.class)
+                    .getBody();
+
+            final EdxUserDetails[] userDetails = this.jsonMapper.<EdxUserDetails[]> readValue(
+                    responseJSON,
+                    new TypeReference<EdxUserDetails[]>() {
+                    });
+
+            if (userDetails == null || userDetails.length <= 0) {
+                throw new RuntimeException("No user details on Open edX API request");
+            }
+
+            final Map<String, String> additionalAttributes = new HashMap<>();
+            additionalAttributes.put("bio", userDetails[0].bio);
+            additionalAttributes.put("country", userDetails[0].country);
+            additionalAttributes.put("date_joined", userDetails[0].date_joined);
+            additionalAttributes.put("gender", userDetails[0].gender);
+            additionalAttributes.put("is_active", String.valueOf(userDetails[0].is_active));
+            additionalAttributes.put("mailing_address", userDetails[0].mailing_address);
+            additionalAttributes.put("secondary_email", userDetails[0].secondary_email);
+
+            return new ExamineeAccountDetails(
+                    userDetails[0].username,
+                    userDetails[0].name,
+                    userDetails[0].username,
+                    userDetails[0].email,
+                    additionalAttributes);
+        });
+    }
+
+    @Override
+    public String getExamineeName(final String examineeUserId) {
+        return getExamineeAccountDetails(examineeUserId)
+                .map(ExamineeAccountDetails::getDisplayName)
+                .onError(error -> log.warn("Failed to request user-name for ID: {}", error.getMessage(), error))
+                .getOr(examineeUserId);
+    }
+
+    @Override
+    public Result<Chapters> getCourseChapters(final String courseId) {
+        return Result.tryCatch(() -> {
             final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
 
             final String uri =
@@ -262,7 +265,7 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
                             .filter(block -> OPEN_EDX_DEFAULT_BLOCKS_TYPE_CHAPTER.equals(block.type))
                             .map(block -> new Chapters.Chapter(block.display_name, block.block_id))
                             .collect(Collectors.toList()));
-        };
+        });
     }
 
     public Result<Collection<QuizData>> getQuizzesFromCache(final Set<String> ids) {
@@ -279,7 +282,7 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess {
                     });
 
             if (!leftIds.isEmpty()) {
-                result.addAll(super.protectedQuizzesRequest(leftIds).getOrThrow());
+                result.addAll(getQuizzes(leftIds).getOrThrow());
             }
 
             return result;

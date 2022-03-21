@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,9 +36,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
-import ch.ethz.seb.sebserver.gbl.async.AsyncService;
-import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
-import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker.State;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -50,7 +46,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.CourseAccessAPI;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseDataAsyncLoader.CourseDataShort;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseDataAsyncLoader.CourseQuizShort;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
@@ -69,7 +65,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
  * background task if needed and return immediately to do not block the request.
  * The planed Moodle integration on moodle side also defines an improved course access API. This will
  * possibly make this synchronous fetch strategy obsolete in the future. */
-public class MoodleCourseAccess extends AbstractCourseAccess {
+public class MoodleCourseAccess implements CourseAccessAPI {
 
     private static final long INITIAL_WAIT_TIME = 3 * Constants.SECOND_IN_MILLIS;
 
@@ -94,7 +90,6 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
     private final JSONMapper jsonMapper;
     private final MoodleRestTemplateFactory moodleRestTemplateFactory;
     private final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader;
-    private final CircuitBreaker<List<QuizData>> allQuizzesRequest;
     private final boolean prependShortCourseName;
 
     private MoodleAPIRestTemplate restTemplate;
@@ -103,27 +98,11 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
             final JSONMapper jsonMapper,
             final MoodleRestTemplateFactory moodleRestTemplateFactory,
             final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader,
-            final AsyncService asyncService,
             final Environment environment) {
 
-        super(asyncService, environment);
         this.jsonMapper = jsonMapper;
         this.moodleCourseDataAsyncLoader = moodleCourseDataAsyncLoader;
         this.moodleRestTemplateFactory = moodleRestTemplateFactory;
-
-        this.allQuizzesRequest = asyncService.createCircuitBreaker(
-                environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.attempts",
-                        Integer.class,
-                        3),
-                environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.blockingTime",
-                        Long.class,
-                        Constants.MINUTE_IN_MILLIS),
-                environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.allQuizzesRequest.timeToRecover",
-                        Long.class,
-                        Constants.MINUTE_IN_MILLIS));
 
         this.prependShortCourseName = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.lms.moodle.prependShortCourseName",
@@ -135,67 +114,7 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
     }
 
     @Override
-    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String examineeSessionId) {
-        return () -> {
-            try {
-                final MoodleAPIRestTemplate template = getRestTemplate()
-                        .getOrThrow();
-
-                final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
-                queryAttributes.add("field", "id");
-                queryAttributes.add("values[0]", examineeSessionId);
-
-                final String userDetailsJSON = template.callMoodleAPIFunction(
-                        MOODLE_USER_PROFILE_API_FUNCTION_NAME,
-                        queryAttributes);
-
-                if (checkAccessDeniedError(userDetailsJSON)) {
-                    final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-                    log.error("Get access denied error from Moodle: {} for API call: {}, response: {}",
-                            lmsSetup,
-                            MOODLE_USER_PROFILE_API_FUNCTION_NAME,
-                            Utils.truncateText(userDetailsJSON, 2000));
-                    throw new RuntimeException("No user details on Moodle API request (access-denied)");
-                }
-
-                final MoodleUserDetails[] userDetails = this.jsonMapper.<MoodleUserDetails[]> readValue(
-                        userDetailsJSON,
-                        new TypeReference<MoodleUserDetails[]>() {
-                        });
-
-                if (userDetails == null || userDetails.length <= 0) {
-                    throw new RuntimeException("No user details on Moodle API request");
-                }
-
-                final Map<String, String> additionalAttributes = new HashMap<>();
-                additionalAttributes.put("firstname", userDetails[0].firstname);
-                additionalAttributes.put("lastname", userDetails[0].lastname);
-                additionalAttributes.put("department", userDetails[0].department);
-                additionalAttributes.put("firstaccess", String.valueOf(userDetails[0].firstaccess));
-                additionalAttributes.put("lastaccess", String.valueOf(userDetails[0].lastaccess));
-                additionalAttributes.put("auth", userDetails[0].auth);
-                additionalAttributes.put("suspended", String.valueOf(userDetails[0].suspended));
-                additionalAttributes.put("confirmed", String.valueOf(userDetails[0].confirmed));
-                additionalAttributes.put("lang", userDetails[0].lang);
-                additionalAttributes.put("theme", userDetails[0].theme);
-                additionalAttributes.put("timezone", userDetails[0].timezone);
-                additionalAttributes.put("description", userDetails[0].description);
-                additionalAttributes.put("mailformat", String.valueOf(userDetails[0].mailformat));
-                additionalAttributes.put("descriptionformat", String.valueOf(userDetails[0].descriptionformat));
-                return new ExamineeAccountDetails(
-                        userDetails[0].id,
-                        userDetails[0].fullname,
-                        userDetails[0].username,
-                        userDetails[0].email,
-                        additionalAttributes);
-            } catch (final Exception e) {
-                throw new RuntimeException(e);
-            }
-        };
-    }
-
-    LmsSetupTestResult initAPIAccess() {
-
+    public LmsSetupTestResult testCourseAccessAPI() {
         final LmsSetupTestResult attributesCheck = this.moodleRestTemplateFactory.test();
         if (!attributesCheck.isOk()) {
             return attributesCheck;
@@ -223,7 +142,45 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
         return LmsSetupTestResult.ofOkay(LmsType.MOODLE);
     }
 
-    public Result<QuizData> getQuizFromCache(final String id) {
+    @Override
+    public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
+        return Result.tryCatch(() -> getRestTemplate()
+                .map(template -> collectAllQuizzes(template, filterMap))
+                .getOr(Collections.emptyList()));
+    }
+
+    @Override
+    public Result<Collection<QuizData>> getQuizzes(final Set<String> ids) {
+        return Result.tryCatch(() -> {
+            final List<QuizData> cached = getCached();
+            final List<QuizData> available = (cached != null)
+                    ? cached
+                    : Collections.emptyList();
+
+            final Map<String, QuizData> quizMapping = available
+                    .stream()
+                    .collect(Collectors.toMap(q -> q.id, Function.identity()));
+
+            if (!quizMapping.keySet().containsAll(ids)) {
+
+                final Map<String, QuizData> collect = getRestTemplate()
+                        .map(template -> getQuizzesForIds(template, ids))
+                        .getOrElse(() -> Collections.emptyList())
+                        .stream()
+                        .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
+                if (collect != null) {
+                    quizMapping.clear();
+                    quizMapping.putAll(collect);
+                }
+            }
+
+            return quizMapping.values();
+
+        });
+    }
+
+    @Override
+    public Result<QuizData> getQuiz(final String id) {
         return Result.tryCatch(() -> {
 
             final Map<String, CourseDataShort> cachedCourseData = this.moodleCourseDataAsyncLoader
@@ -255,76 +212,93 @@ public class MoodleCourseAccess extends AbstractCourseAccess {
             }
 
             // get from LMS in protected request
-            return super.protectedQuizRequest(id).getOrThrow();
-        });
-    }
-
-    public Result<Collection<QuizData>> getQuizzesFromCache(final Set<String> ids) {
-        return Result.tryCatch(() -> {
-            final List<QuizData> cached = getCached();
-            final List<QuizData> available = (cached != null)
-                    ? cached
-                    : Collections.emptyList();
-
-            final Map<String, QuizData> quizMapping = available
-                    .stream()
-                    .collect(Collectors.toMap(q -> q.id, Function.identity()));
-
-            if (!quizMapping.keySet().containsAll(ids)) {
-
-                final Map<String, QuizData> collect = super.quizzesRequest
-                        .protectedRun(quizzesSupplier(ids))
-                        .onError(error -> log.error("Failed to get quizzes by ids: ", error))
-                        .getOrElse(() -> Collections.emptyList())
-                        .stream()
-                        .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
-                if (collect != null) {
-                    quizMapping.clear();
-                    quizMapping.putAll(collect);
-                }
-            }
-
-            return quizMapping.values();
-
-        });
-    }
-
-    @Override
-    protected Supplier<QuizData> quizSupplier(final String id) {
-        return () -> {
             final Set<String> ids = Stream.of(id).collect(Collectors.toSet());
             return getRestTemplate()
                     .map(template -> getQuizzesForIds(template, ids))
                     .getOr(Collections.emptyList())
                     .get(0);
-        };
+        });
     }
 
     @Override
-    protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
-        return () -> getRestTemplate()
-                .map(template -> getQuizzesForIds(template, ids))
-                .getOr(Collections.emptyList());
+    public void clearCourseCache() {
+        // TODO Auto-generated method stub
 
     }
 
     @Override
-    protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
-        return () -> getRestTemplate()
-                .map(template -> collectAllQuizzes(template, filterMap))
-                .getOr(Collections.emptyList());
+    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
+        return Result.tryCatch(() -> {
+
+            final MoodleAPIRestTemplate template = getRestTemplate()
+                    .getOrThrow();
+
+            final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
+            queryAttributes.add("field", "id");
+            queryAttributes.add("values[0]", examineeSessionId);
+
+            final String userDetailsJSON = template.callMoodleAPIFunction(
+                    MOODLE_USER_PROFILE_API_FUNCTION_NAME,
+                    queryAttributes);
+
+            if (checkAccessDeniedError(userDetailsJSON)) {
+                final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+                log.error("Get access denied error from Moodle: {} for API call: {}, response: {}",
+                        lmsSetup,
+                        MOODLE_USER_PROFILE_API_FUNCTION_NAME,
+                        Utils.truncateText(userDetailsJSON, 2000));
+                throw new RuntimeException("No user details on Moodle API request (access-denied)");
+            }
+
+            final MoodleUserDetails[] userDetails = this.jsonMapper.<MoodleUserDetails[]> readValue(
+                    userDetailsJSON,
+                    new TypeReference<MoodleUserDetails[]>() {
+                    });
+
+            if (userDetails == null || userDetails.length <= 0) {
+                throw new RuntimeException("No user details on Moodle API request");
+            }
+
+            final Map<String, String> additionalAttributes = new HashMap<>();
+            additionalAttributes.put("firstname", userDetails[0].firstname);
+            additionalAttributes.put("lastname", userDetails[0].lastname);
+            additionalAttributes.put("department", userDetails[0].department);
+            additionalAttributes.put("firstaccess", String.valueOf(userDetails[0].firstaccess));
+            additionalAttributes.put("lastaccess", String.valueOf(userDetails[0].lastaccess));
+            additionalAttributes.put("auth", userDetails[0].auth);
+            additionalAttributes.put("suspended", String.valueOf(userDetails[0].suspended));
+            additionalAttributes.put("confirmed", String.valueOf(userDetails[0].confirmed));
+            additionalAttributes.put("lang", userDetails[0].lang);
+            additionalAttributes.put("theme", userDetails[0].theme);
+            additionalAttributes.put("timezone", userDetails[0].timezone);
+            additionalAttributes.put("description", userDetails[0].description);
+            additionalAttributes.put("mailformat", String.valueOf(userDetails[0].mailformat));
+            additionalAttributes.put("descriptionformat", String.valueOf(userDetails[0].descriptionformat));
+            return new ExamineeAccountDetails(
+                    userDetails[0].id,
+                    userDetails[0].fullname,
+                    userDetails[0].username,
+                    userDetails[0].email,
+                    additionalAttributes);
+        });
     }
 
     @Override
-    protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
-        throw new UnsupportedOperationException("not available yet");
+    public String getExamineeName(final String examineeUserId) {
+        return getExamineeAccountDetails(examineeUserId)
+                .map(ExamineeAccountDetails::getDisplayName)
+                .onError(error -> log.warn("Failed to request user-name for ID: {}", error.getMessage(), error))
+                .getOr(examineeUserId);
     }
 
     @Override
-    protected FetchStatus getFetchStatus() {
-        if (this.allQuizzesRequest.getState() != State.CLOSED) {
-            return FetchStatus.FETCH_ERROR;
-        }
+    public Result<Chapters> getCourseChapters(final String courseId) {
+        return Result.ofError(new UnsupportedOperationException("not available yet"));
+    }
+
+    @Override
+    public FetchStatus getFetchStatus() {
+
         if (this.moodleCourseDataAsyncLoader.isRunning()) {
             return FetchStatus.ASYNC_FETCH_RUNNING;
         }
