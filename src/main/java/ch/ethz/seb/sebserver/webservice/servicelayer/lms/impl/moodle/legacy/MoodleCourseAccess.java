@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
+package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,9 +47,9 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.CourseAccessAPI;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseDataAsyncLoader.CourseDataShort;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleCourseDataAsyncLoader.CourseQuizShort;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseDataAsyncLoader.CourseDataShort;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseDataAsyncLoader.CourseQuizShort;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
  *
@@ -94,7 +94,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
 
     private MoodleAPIRestTemplate restTemplate;
 
-    protected MoodleCourseAccess(
+    public MoodleCourseAccess(
             final JSONMapper jsonMapper,
             final MoodleRestTemplateFactory moodleRestTemplateFactory,
             final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader,
