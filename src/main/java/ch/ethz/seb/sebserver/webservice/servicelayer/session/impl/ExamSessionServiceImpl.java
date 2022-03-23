@@ -394,6 +394,22 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @Override
+    public Result<Exam> notifyExamFinished(final Exam exam) {
+        return Result.tryCatch(() -> {
+            if (!isExamRunning(exam.id)) {
+                this.flushCache(exam);
+                if (this.distributedSetup) {
+                    this.clientConnectionDAO
+                            .deleteClientIndicatorValues(exam)
+                            .getOrThrow();
+                }
+            }
+
+            return exam;
+        });
+    }
+
+    @Override
     public Result<Exam> updateExamCache(final Long examId) {
 
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);

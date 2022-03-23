@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -691,6 +692,33 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             }
 
             return records.get(0);
+        });
+    }
+
+    @Override
+    @Transactional
+    public Result<Exam> deleteClientIndicatorValues(final Exam exam) {
+        return Result.tryCatch(() -> {
+
+            final List<Long> clientConnections = this.clientConnectionRecordMapper.selectIdsByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.examId,
+                            SqlBuilder.isEqualTo(exam.id))
+                    .build()
+                    .execute();
+
+            if (clientConnections == null || clientConnections.isEmpty()) {
+                return exam;
+            }
+
+            this.clientIndicatorRecordMapper.deleteByExample()
+                    .where(
+                            ClientIndicatorRecordDynamicSqlSupport.clientConnectionId,
+                            SqlBuilder.isIn(clientConnections))
+                    .build()
+                    .execute();
+
+            return exam;
         });
     }
 
