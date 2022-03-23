@@ -13,6 +13,7 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,8 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamStartedEvent;
 
 @Lazy
 @Service
@@ -33,17 +36,20 @@ class ExamUpdateHandler {
     private static final Logger log = LoggerFactory.getLogger(ExamUpdateHandler.class);
 
     private final ExamDAO examDAO;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final SEBRestrictionService sebRestrictionService;
     private final String updatePrefix;
     private final Long examTimeSuffix;
 
     public ExamUpdateHandler(
             final ExamDAO examDAO,
+            final ApplicationEventPublisher applicationEventPublisher,
             final SEBRestrictionService sebRestrictionService,
             final WebserviceInfo webserviceInfo,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix) {
 
         this.examDAO = examDAO;
+        this.applicationEventPublisher = applicationEventPublisher;
         this.sebRestrictionService = sebRestrictionService;
         this.updatePrefix = webserviceInfo.getLocalHostAddress()
                 + "_" + webserviceInfo.getServerPort() + "_";
@@ -79,14 +85,21 @@ class ExamUpdateHandler {
 
         return this.examDAO
                 .placeLock(exam.id, updateId)
-                .flatMap(e -> this.examDAO.updateState(
-                        exam.id,
-                        ExamStatus.RUNNING,
-                        updateId))
-                .flatMap(this.sebRestrictionService::applySEBClientRestriction)
-                .flatMap(e -> this.examDAO.releaseLock(e, updateId))
-                .onError(error -> this.examDAO.forceUnlock(exam.id)
-                        .onError(unlockError -> log.error("Failed to force unlock update look for exam: {}", exam.id)));
+                .flatMap(e -> this.examDAO.updateState(exam.id, ExamStatus.RUNNING, updateId))
+                .map(e -> {
+                    this.examDAO
+                            .releaseLock(e, updateId)
+                            .onError(error -> this.examDAO
+                                    .forceUnlock(exam.id)
+                                    .onError(unlockError -> log.error(
+                                            "Failed to force unlock update look for exam: {}",
+                                            exam.id)));
+                    return e;
+                })
+                .map(e -> {
+                    this.applicationEventPublisher.publishEvent(new ExamStartedEvent(exam));
+                    return exam;
+                });
     }
 
     Result<Exam> setFinished(final Exam exam, final String updateId) {
@@ -96,13 +109,21 @@ class ExamUpdateHandler {
 
         return this.examDAO
                 .placeLock(exam.id, updateId)
-                .flatMap(e -> this.examDAO.updateState(
-                        exam.id,
-                        ExamStatus.FINISHED,
-                        updateId))
-                .flatMap(this.sebRestrictionService::releaseSEBClientRestriction)
-                .flatMap(e -> this.examDAO.releaseLock(e, updateId))
-                .onError(error -> this.examDAO.forceUnlock(exam.id));
+                .flatMap(e -> this.examDAO.updateState(exam.id, ExamStatus.FINISHED, updateId))
+                .map(e -> {
+                    this.examDAO
+                            .releaseLock(e, updateId)
+                            .onError(error -> this.examDAO
+                                    .forceUnlock(exam.id)
+                                    .onError(unlockError -> log.error(
+                                            "Failed to force unlock update look for exam: {}",
+                                            exam.id)));
+                    return e;
+                })
+                .map(e -> {
+                    this.applicationEventPublisher.publishEvent(new ExamFinishedEvent(exam));
+                    return exam;
+                });
     }
 
 }

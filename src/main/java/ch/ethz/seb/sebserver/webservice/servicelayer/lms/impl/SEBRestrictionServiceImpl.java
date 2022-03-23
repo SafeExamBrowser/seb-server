@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamStartedEvent;
 
 @Lazy
 @Service
@@ -186,6 +189,30 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
             return exam.id;
         })
                 .flatMap(this.examDAO::byPK);
+    }
+
+    @EventListener
+    public void notifyExamStarted(final ExamStartedEvent event) {
+
+        log.info("ExamStartedEvent received, process applySEBClientRestriction...");
+
+        applySEBClientRestriction(event.exam)
+                .onError(error -> log.error(
+                        "Failed to apply SEB restrictions for started exam: {}",
+                        event.exam,
+                        error));
+    }
+
+    @EventListener
+    public void notifyExamFinished(final ExamFinishedEvent event) {
+
+        log.info("ExamFinishedEvent received, process releaseSEBClientRestriction...");
+
+        releaseSEBClientRestriction(event.exam)
+                .onError(error -> log.error(
+                        "Failed to release SEB restrictions for finished exam: {}",
+                        event.exam,
+                        error));
     }
 
     @Override

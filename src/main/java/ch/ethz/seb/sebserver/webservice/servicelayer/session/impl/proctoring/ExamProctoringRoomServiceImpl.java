@@ -40,6 +40,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
@@ -153,6 +154,15 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 log.error("Failed to delete depending proctoring data for exam: {}", examId, e);
             }
         });
+    }
+
+    @EventListener
+    public void notifyExamFinished(final ExamFinishedEvent event) {
+
+        log.info("ExamFinishedEvent received, process disposeRoomsForExam...");
+
+        disposeRoomsForExam(event.exam)
+                .onError(error -> log.error("Failed to dispose rooms for finished exam: {}", event.exam, error));
     }
 
     @Override

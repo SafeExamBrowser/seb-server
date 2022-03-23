@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +48,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
 @Lazy
@@ -402,20 +404,23 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 .getActiveConnctionTokens(examId);
     }
 
-    @Override
-    public Result<Exam> notifyExamFinished(final Exam exam) {
-        return Result.tryCatch(() -> {
-            if (!isExamRunning(exam.id)) {
-                this.flushCache(exam);
+    @EventListener
+    public void notifyExamFinished(final ExamFinishedEvent event) {
+
+        log.info("ExamFinishedEvent received, process exam session cleanup...");
+
+        try {
+            if (!isExamRunning(event.exam.id)) {
+                this.flushCache(event.exam);
                 if (this.distributedSetup) {
                     this.clientConnectionDAO
-                            .deleteClientIndicatorValues(exam)
+                            .deleteClientIndicatorValues(event.exam)
                             .getOrThrow();
                 }
             }
-
-            return exam;
-        });
+        } catch (final Exception e) {
+            log.error("Failed to cleanup on finished exam: {}", event.exam, e);
+        }
     }
 
     @Override
