@@ -832,6 +832,15 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.PROCTORING),
 
+    FINISHED_EXAM_VIEW_LIST(
+            new LocTextKey("sebserver.finished.action.list"),
+            PageStateDefinitionImpl.FINISHED_EXAM_LIST),
+    VIEW_EXAM_FROM_FINISHED_LIST(
+            new LocTextKey("sebserver.finished.exam.action.list.view"),
+            ImageIcon.SHOW,
+            PageStateDefinitionImpl.FINISHED_EXAM,
+            ActionCategory.FINISHED_EXAM_LIST),
+
     LOGS_USER_ACTIVITY_LIST(
             new LocTextKey("sebserver.logs.activity.userlogs"),
             PageStateDefinitionImpl.USER_ACTIVITY_LOGS),

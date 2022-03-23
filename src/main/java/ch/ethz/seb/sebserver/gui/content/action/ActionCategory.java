@@ -35,7 +35,9 @@ public enum ActionCategory {
     LOGS_SEB_CLIENT_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),
     VARIA(new LocTextKey("sebserver.overall.action.category.varia"), 0),
     FILTER(new LocTextKey("sebserver.exam.monitoring.action.category.filter"), 50),
-    PROCTORING(new LocTextKey("sebserver.exam.overall.action.category.proctoring"), 60);
+    PROCTORING(new LocTextKey("sebserver.exam.overall.action.category.proctoring"), 60),
+
+    FINISHED_EXAM_LIST(new LocTextKey("sebserver.finished.exam.list.actions"), 1);
 
     public final LocTextKey title;
     public final int slotPosition;

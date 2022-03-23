@@ -174,6 +174,67 @@ public class ExamMonitoringController {
                 ExamAdministrationController.pageSort(sort));
     }
 
+    /** Get a page of all currently finished exams
+     *
+     * GET /{api}/{entity-type-endpoint-name}
+     *
+     * GET /admin-api/v1/monitoring
+     * GET /admin-api/v1/monitoring?page_number=2&page_size=10&sort=-name
+     * GET /admin-api/v1/monitoring?name=seb&active=true
+     *
+     * @param institutionId The institution identifier of the request.
+     *            Default is the institution identifier of the institution of the current user
+     * @param pageNumber the number of the page that is requested
+     * @param pageSize the size of the page that is requested
+     * @param sort the sort parameter to sort the list of entities before paging
+     *            the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
+     *            descending sort order
+     * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering
+     * @return Page of domain-model-entities of specified type */
+    @RequestMapping(
+            path = API.EXAM_MONITORING_FINISHED_ENDPOINT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Page<Exam> getFinishedExamsPage(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
+            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
+
+        this.authorization.checkRole(
+                institutionId,
+                EntityType.EXAM,
+                UserRole.EXAM_SUPPORTER,
+                UserRole.EXAM_ADMIN);
+
+        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
+
+        // if current user has no read access for specified entity type within other institution
+        // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
+        if (!this.authorization.hasGrant(PrivilegeType.READ, EntityType.EXAM)) {
+            filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+        }
+
+        final Collection<Exam> exams = this.examSessionService
+                .getFilteredFinishedExams(
+                        filterMap,
+                        exam -> this.hasRunningExamPrivilege(exam, institutionId))
+                .getOrThrow();
+
+        return this.paginationService.buildPageFromList(
+                pageNumber,
+                pageSize,
+                sort,
+                exams,
+                ExamAdministrationController.pageSort(sort));
+    }
+
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,

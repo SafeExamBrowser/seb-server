@@ -98,7 +98,7 @@ public class MonitoringRunningExam implements TemplateComposer {
     private final boolean distributedSetup;
     private final long pollInterval;
 
-    protected MonitoringRunningExam(
+    public MonitoringRunningExam(
             final ServerPushService serverPushService,
             final PageService pageService,
             final AsyncRunner asyncRunner,
@@ -122,10 +122,9 @@ public class MonitoringRunningExam implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
-        final RestService restService = this.resourceService.getRestService();
         final EntityKey entityKey = pageContext.getEntityKey();
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
-        final Exam exam = restService.getBuilder(GetExam.class)
+        final Exam exam = this.restService.getBuilder(GetExam.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
                 .getOrThrow();
@@ -134,7 +133,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 exam.supporter.contains(user.uuid);
         final BooleanSupplier isExamSupporter = () -> supporting || user.hasRole(UserRole.EXAM_ADMIN);
 
-        final Collection<Indicator> indicators = restService.getBuilder(GetIndicators.class)
+        final Collection<Indicator> indicators = this.restService.getBuilder(GetIndicators.class)
                 .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, entityKey.modelId)
                 .call()
                 .getOrThrow();

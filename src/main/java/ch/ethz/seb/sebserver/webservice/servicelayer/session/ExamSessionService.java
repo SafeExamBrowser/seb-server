@@ -134,6 +134,15 @@ public interface ExamSessionService {
             FilterMap filterMap,
             Predicate<Exam> predicate);
 
+    /** Gets all finished Exams for a particular FilterMap.
+     *
+     * @param filterMap the FilterMap containing the filter attributes
+     * @param predicate additional filter predicate
+     * @return Result referencing the list of all currently finished Exams or to an error if happened. */
+    Result<Collection<Exam>> getFilteredFinishedExams(
+            FilterMap filterMap,
+            Predicate<Exam> predicate);
+
     /** Streams the default SEB Exam Configuration to a ClientConnection with given connectionToken.
      *
      * @param institutionId the Institution identifier
