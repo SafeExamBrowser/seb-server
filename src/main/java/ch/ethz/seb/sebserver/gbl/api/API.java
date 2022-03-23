@@ -213,6 +213,7 @@ public final class API {
     public static final String EXAM_PROCTORING_ATTR_ALLOW_CHAT = "allow_chat";
 
     public static final String SEB_CLIENT_CONNECTION_ENDPOINT = "/seb-client-connection";
+    public static final String SEB_CLIENT_CONNECTION_DATA_ENDPOINT = "/data";
 
     public static final String SEB_CLIENT_EVENT_ENDPOINT = "/seb-client-event";
     public static final String SEB_CLIENT_EVENT_SEARCH_PATH_SEGMENT = "/search";

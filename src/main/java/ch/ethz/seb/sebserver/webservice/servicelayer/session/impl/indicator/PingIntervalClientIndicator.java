@@ -35,8 +35,8 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     private boolean hidden = false;
 
-    public PingIntervalClientIndicator(final DistributedIndicatorValueService distributedPingCache) {
-        super(distributedPingCache);
+    public PingIntervalClientIndicator(final DistributedIndicatorValueService distributedIndicatorValueService) {
+        super(distributedIndicatorValueService);
         this.cachingEnabled = true;
     }
 
@@ -83,7 +83,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
         }
 
         if (this.initialized && !this.cachingEnabled && this.active
-                && this.lastUpdate != this.distributedPingCache.lastUpdate()) {
+                && this.lastUpdate != this.distributedIndicatorValueService.lastUpdate()) {
 
             final long currentTimeMillis = DateTimeUtils.currentTimeMillis();
             this.currentValue = computeValueAt(currentTimeMillis);
@@ -110,7 +110,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     public final double computeValueAt(final long timestamp) {
         if (super.ditributedIndicatorValueRecordId != null) {
 
-            final Long lastPing = this.distributedPingCache
+            final Long lastPing = this.distributedIndicatorValueService
                     .getIndicatorValue(super.ditributedIndicatorValueRecordId);
 
             return (lastPing != null)

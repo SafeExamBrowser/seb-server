@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 
 public abstract class AbstractPingIndicator extends AbstractClientIndicator {
@@ -21,16 +20,6 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
 
     protected AbstractPingIndicator(final DistributedIndicatorValueService distributedPingCache) {
         super(distributedPingCache);
-    }
-
-    @Override
-    public void init(
-            final Indicator indicatorDefinition,
-            final Long connectionId,
-            final boolean active,
-            final boolean cachingEnabled) {
-
-        super.init(indicatorDefinition, connectionId, active, cachingEnabled);
     }
 
     @Override
@@ -50,7 +39,7 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
                 }
             }
 
-            this.distributedPingCache.updatePingAsync(this.ditributedIndicatorValueRecordId);
+            this.distributedIndicatorValueService.updatePingAsync(this.ditributedIndicatorValueRecordId);
         }
     }
 

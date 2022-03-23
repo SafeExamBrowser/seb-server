@@ -74,6 +74,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final SEBClientInstructionService sebInstructionService;
     private final ExamAdminService examAdminService;
+    private final ClientIndicatorFactory clientIndicatorFactory;
     // TODO get rid of this dependency and use application events for signaling client connection state changes
     private final DistributedIndicatorValueService distributedPingCache;
     private final boolean isDistributedSetup;
@@ -84,6 +85,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final SEBClientConfigDAO sebClientConfigDAO,
             final SEBClientInstructionService sebInstructionService,
             final ExamAdminService examAdminService,
+            final ClientIndicatorFactory clientIndicatorFactory,
             final DistributedIndicatorValueService distributedPingCache) {
 
         this.examSessionService = examSessionService;
@@ -94,6 +96,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.sebInstructionService = sebInstructionService;
         this.examAdminService = examAdminService;
+        this.clientIndicatorFactory = clientIndicatorFactory;
         this.distributedPingCache = distributedPingCache;
         this.isDistributedSetup = sebInstructionService.getWebserviceInfo().isDistributed();
     }
@@ -700,6 +703,13 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     @Override
     public void confirmInstructionDone(final String connectionToken, final String instructionConfirm) {
         this.sebInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
+    }
+
+    @Override
+    public Result<ClientConnectionData> getIndicatorValues(final ClientConnection clientConnection) {
+        return Result.tryCatch(() -> new ClientConnectionData(
+                clientConnection,
+                this.clientIndicatorFactory.createFor(clientConnection, true)));
     }
 
     private void checkExamRunning(final Long examId) {

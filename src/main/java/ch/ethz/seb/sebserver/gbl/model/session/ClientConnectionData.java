@@ -17,10 +17,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ClientConnectionData {
+public class ClientConnectionData implements GrantEntity {
 
     public static final String ATTR_CLIENT_CONNECTION = "cData";
     public static final String ATTR_INDICATOR_VALUE = "iValues";
@@ -48,7 +50,7 @@ public class ClientConnectionData {
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
     }
 
-    protected ClientConnectionData(
+    public ClientConnectionData(
             final ClientConnection clientConnection,
             final List<? extends IndicatorValue> indicatorValues) {
 
@@ -56,6 +58,26 @@ public class ClientConnectionData {
         this.pendingNotification = Boolean.FALSE;
         this.clientConnection = clientConnection;
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
+    }
+
+    @Override
+    public EntityType entityType() {
+        return this.clientConnection.entityType();
+    }
+
+    @Override
+    public String getName() {
+        return this.clientConnection.getName();
+    }
+
+    @Override
+    public String getModelId() {
+        return this.clientConnection.getModelId();
+    }
+
+    @Override
+    public Long getInstitutionId() {
+        return this.clientConnection.getInstitutionId();
     }
 
     @JsonProperty(ATTR_MISSING_PING)

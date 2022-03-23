@@ -12,26 +12,37 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.springframework.http.MediaType;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
+import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -39,13 +50,16 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_CONNECTION_ENDPOINT)
 public class ClientConnectionController extends ReadonlyEntityController<ClientConnection, ClientConnection> {
 
+    private final SEBClientConnectionService sebClientConnectionService;
+
     protected ClientConnectionController(
             final AuthorizationService authorization,
             final BulkActionService bulkActionService,
             final ClientConnectionDAO clientConnectionDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
-            final BeanValidationService beanValidationService) {
+            final BeanValidationService beanValidationService,
+            final SEBClientConnectionService sebClientConnectionService) {
 
         super(authorization,
                 bulkActionService,
@@ -53,6 +67,60 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                 userActivityLogDAO,
                 paginationService,
                 beanValidationService);
+
+        this.sebClientConnectionService = sebClientConnectionService;
+    }
+
+    @RequestMapping(
+            path = API.SEB_CLIENT_CONNECTION_DATA_ENDPOINT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Page<ClientConnectionData> getClientConnectionDataPage(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
+            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
+
+        // at least current user must have read access for specified entity type within its own institution
+        checkReadPrivilege(institutionId);
+
+        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
+        populateFilterMap(filterMap, institutionId, sort);
+
+        final Page<ClientConnectionData> page = this.paginationService.getPage(
+                pageNumber,
+                pageSize,
+                sort,
+                getSQLTableOfEntity().name(),
+                () -> getAllData(filterMap))
+                .getOrThrow();
+
+        return page;
+    }
+
+    @RequestMapping(
+            path = API.SEB_CLIENT_CONNECTION_DATA_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ClientConnectionData getClientConnectionDataBy(@PathVariable final String modelId) {
+        return this.sebClientConnectionService
+                .getIndicatorValues(super.getBy(modelId))
+                .getOrThrow();
+    }
+
+    private Result<Collection<ClientConnectionData>> getAllData(final FilterMap filterMap) {
+        return getAll(filterMap)
+                .map(connection -> connection.stream()
+                        .map(this.sebClientConnectionService::getIndicatorValues)
+                        .flatMap(Result::onErrorLogAndSkip)
+                        .collect(Collectors.toList()));
     }
 
     @Override
