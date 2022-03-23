@@ -191,6 +191,13 @@ public interface ExamSessionService {
      * @return Result refer to the collection of connection tokens or to an error when happened. */
     Result<Collection<String>> getActiveConnectionTokens(Long examId);
 
+    /** Called to notify that the given exam has just been finished.
+     * This cleanup all exam session caches for the given exam and also cleanup session based stores on the persistent.
+     *
+     * @param exam the Exam that has just been finished
+     * @return Result refer to the finished exam or to an error when happened. */
+    Result<Exam> notifyExamFinished(final Exam exam);
+
     /** Use this to check if the current cached running exam is up to date
      * and if not to flush the cache.
      *
