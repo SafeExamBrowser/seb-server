@@ -59,7 +59,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.AccessibilitySettingsData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.SEBServerData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.AssignmentData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.UserData;
 
@@ -252,10 +252,10 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
     }
 
     private List<AssignmentData> getAssignments(final RestTemplate restTemplate) {
-        // NOTE: at the moment, seb_server_enabled cannot be set inside the Ans GUI,
+        // NOTE: at the moment, seb server cannot be enabled inside the Ans GUI,
         // only via the API, so we need to list all assignments. Maybe in the future,
         // we can only list those for which seb server has been enabled in Ans (like in OLAT):
-        //final String url = "/api/v2/search/assignments?query=seb_server_enabled:true";
+        //final String url = "/api/v2/search/assignments?query=integrations.safe_exam_browser_server.enabled:true";
         final String url = "/api/v2/search/assignments";
         return this.apiGetList(restTemplate, url, new ParameterizedTypeReference<List<AssignmentData>>() {
         });
@@ -346,7 +346,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
     private SEBRestriction getRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
         final String url = String.format("/api/v2/assignments/%s", id);
         final AssignmentData assignment = this.apiGet(restTemplate, url, AssignmentData.class);
-        final AccessibilitySettingsData ts = assignment.accessibility_settings;
+        final SEBServerData ts = assignment.integrations.safe_exam_browser_server;
         return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>());
     }
 
@@ -354,24 +354,24 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
             final SEBRestriction restriction) {
         final String url = String.format("/api/v2/assignments/%s", id);
         final AssignmentData assignment = getAssignmentById(restTemplate, id);
-        assignment.accessibility_settings.config_keys = new ArrayList<>(restriction.configKeys);
-        assignment.accessibility_settings.seb_server_enabled = true;
+        assignment.integrations.safe_exam_browser_server.config_keys = new ArrayList<>(restriction.configKeys);
+        assignment.integrations.safe_exam_browser_server.enabled = true;
         @SuppressWarnings("unused")
         final AssignmentData r =
                 this.apiPatch(restTemplate, url, assignment, AssignmentData.class, AssignmentData.class);
-        final AccessibilitySettingsData ts = assignment.accessibility_settings;
+        final SEBServerData ts = assignment.integrations.safe_exam_browser_server;
         return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>());
     }
 
     private SEBRestriction deleteRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
         final String url = String.format("/api/v2/assignments/%s", id);
         final AssignmentData assignment = getAssignmentById(restTemplate, id);
-        assignment.accessibility_settings.config_keys = null;
-        assignment.accessibility_settings.seb_server_enabled = false;
+        assignment.integrations.safe_exam_browser_server.config_keys = null;
+        assignment.integrations.safe_exam_browser_server.enabled = false;
         @SuppressWarnings("unused")
         final AssignmentData r =
                 this.apiPatch(restTemplate, url, assignment, AssignmentData.class, AssignmentData.class);
-        final AccessibilitySettingsData ts = assignment.accessibility_settings;
+        final SEBServerData ts = assignment.integrations.safe_exam_browser_server;
         return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>());
     }
 
@@ -406,7 +406,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
 
     private List<PageLink> parseLinks(final String header) {
         // Extracts the individual links from a header that looks like this:
-        // <https://staging.ans.app/api/v2/search/assignments?query=seb_server_enabled%3Atrue&page=1&items=20>; rel="first",<https://staging.ans.app/api/v2/search/assignments?query=seb_server_enabled%3Atrue&page=1&items=20>; rel="last"
+        // <https://staging.ans.app/api/v2/search/assignments?page=1&items=20>; rel="first",<https://staging.ans.app/api/v2/search/assignments?page=1&items=20>; rel="last"
         final Stream<String> links = Arrays.stream(header.split(","));
         return links
                 .map(s -> {
