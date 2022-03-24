@@ -54,8 +54,14 @@ public class ClientIndicatorFactory {
     }
 
     public List<ClientIndicator> createFor(final ClientConnection clientConnection) {
-        final List<ClientIndicator> result = new ArrayList<>();
+        return createFor(clientConnection, false);
+    }
 
+    public List<ClientIndicator> createFor(
+            final ClientConnection clientConnection,
+            final boolean enableCachingOverride) {
+
+        final List<ClientIndicator> result = new ArrayList<>();
         if (clientConnection.examId == null) {
             return result;
         }
@@ -82,7 +88,7 @@ public class ClientIndicatorFactory {
                             indicatorDef,
                             clientConnection.id,
                             clientConnection.status.clientActiveStatus,
-                            this.enableCaching);
+                            this.enableCaching || enableCachingOverride);
 
                     result.add(indicator);
                 } catch (final Exception e) {
@@ -111,7 +117,7 @@ public class ClientIndicatorFactory {
                         indicator,
                         clientConnection.id,
                         clientConnection.status.clientActiveStatus,
-                        this.enableCaching);
+                        this.enableCaching || enableCachingOverride);
                 result.add(pingIndicator);
             }
 

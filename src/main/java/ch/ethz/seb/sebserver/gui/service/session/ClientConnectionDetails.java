@@ -137,7 +137,8 @@ public class ClientConnectionDetails {
         final ClientConnectionData connectionData = this.restCallBuilder
                 .call()
                 .get(error -> {
-                    log.error("Unexpected error while trying to get current client connection data: ", error);
+                    log.error("Unexpected error while trying to get current client connection data: {}",
+                            error.getMessage());
                     recoverFromDisposedRestTemplate(error);
                     return null;
                 });

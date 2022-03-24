@@ -287,10 +287,6 @@ public class DistributedIndicatorValueService implements DisposableBean {
         if (value == null) {
             try {
 
-                if (log.isDebugEnabled()) {
-                    log.debug("*** Get and cache ping time: {}", indicatorPK);
-                }
-
                 value = this.clientIndicatorValueMapper.selectValueByPrimaryKey(indicatorPK);
                 if (value != null) {
                     this.indicatorValueCache.put(indicatorPK, value);
