@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.content.monitoring;
 
 import java.util.Collection;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 import org.eclipse.swt.widgets.Composite;
@@ -17,26 +18,34 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
+import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
-import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnectionPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
+import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableBuilder;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 
@@ -45,6 +54,8 @@ import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 @GuiProfile
 public class FinishedExam implements TemplateComposer {
 
+    private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
+            new LocTextKey("sebserver.finished.exam.connection.emptySelection");
     private static final LocTextKey TITLE_TEXT_KEY =
             new LocTextKey("sebserver.finished.exam.connections.title");
     private static final LocTextKey EMPTY_LIST_TEXT_KEY =
@@ -64,7 +75,6 @@ public class FinishedExam implements TemplateComposer {
 
     private final PageService pageService;
     private final RestService restService;
-    private final ResourceService resourceService;
     private final int pageSize;
 
     public FinishedExam(
@@ -74,7 +84,6 @@ public class FinishedExam implements TemplateComposer {
 
         this.pageService = pageService;
         this.restService = pageService.getRestService();
-        this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
 
         this.statusFilter = new TableFilterAttribute(
@@ -86,19 +95,29 @@ public class FinishedExam implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
         final EntityKey examKey = pageContext.getEntityKey();
+        final CurrentUser currentUser = this.pageService.getResourceService().getCurrentUser();
+        final UserInfo user = currentUser.get();
 
-        final RestService restService = this.pageService.getRestService();
+        final RestService restService = this.pageService
+                .getRestService();
         final PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(pageContext.clearEntityKeys());
-
-        final Collection<Indicator> indicators = restService.getBuilder(GetIndicators.class)
+        final Collection<Indicator> indicators = restService
+                .getBuilder(GetIndicators.class)
                 .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, examKey.modelId)
                 .call()
                 .getOrThrow();
+        final Exam exam = this.restService.getBuilder(GetExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examKey.modelId)
+                .call()
+                .getOrThrow();
+        final boolean supporting = user.hasRole(UserRole.EXAM_SUPPORTER) &&
+                exam.supporter.contains(user.uuid);
+        final BooleanSupplier isExamSupporter = () -> supporting || user.hasRole(UserRole.EXAM_ADMIN);
 
         final Composite content = this.pageService.getWidgetFactory().defaultPageLayout(
                 pageContext.getParent(),
-                TITLE_TEXT_KEY);
+                new LocTextKey(TITLE_TEXT_KEY.name, exam.getName()));
 
         final TableBuilder<ClientConnectionData> tableBuilder =
                 this.pageService.entityTableBuilder(restService.getRestCall(GetFinishedExamClientConnectionPage.class))
@@ -126,21 +145,30 @@ public class FinishedExam implements TemplateComposer {
                                                 .withFilter(this.statusFilter))
 
                         .withDefaultAction(t -> actionBuilder
-                                .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
+                                .newAction(ActionDefinition.VIEW_FINISHED_EXAM_CLIENT_CONNECTION)
                                 .withParentEntityKey(examKey)
                                 .create());
 
         indicators.stream().forEach(indicator -> {
-            tableBuilder.withColumn(new ColumnDefinition<>(
-                    indicator.name,
-                    new LocTextKey(indicator.name),
-                    indicatorValueFunction(indicator)));
+            if (indicator.type != IndicatorType.LAST_PING) {
+                tableBuilder.withColumn(new ColumnDefinition<>(
+                        indicator.name,
+                        new LocTextKey(indicator.name),
+                        indicatorValueFunction(indicator)));
+            }
         });
 
-        tableBuilder.compose(pageContext.copyOf(content));
+        final EntityTable<ClientConnectionData> table = tableBuilder.compose(pageContext.copyOf(content));
+
+        actionBuilder
+
+                .newAction(ActionDefinition.VIEW_FINISHED_EXAM_CLIENT_CONNECTION)
+                .withParentEntityKey(examKey)
+                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
+                .publishIf(isExamSupporter, false);
     }
 
-    private Function<ClientConnectionData, String> indicatorValueFunction(final Indicator indicator) {
+    public Function<ClientConnectionData, String> indicatorValueFunction(final Indicator indicator) {
         return clientConnectionData -> {
             return clientConnectionData.indicatorValues
                     .stream()

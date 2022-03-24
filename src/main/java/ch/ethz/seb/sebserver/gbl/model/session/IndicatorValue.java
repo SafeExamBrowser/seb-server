@@ -32,7 +32,7 @@ public interface IndicatorValue extends IndicatorValueHolder {
             return Constants.EMPTY_NOTE;
         }
         if (type.integerValue) {
-            return String.valueOf((int) indicatorValue.getValue());
+            return String.valueOf((long) indicatorValue.getValue());
         } else {
             return String.valueOf(indicatorValue.getValue());
         }

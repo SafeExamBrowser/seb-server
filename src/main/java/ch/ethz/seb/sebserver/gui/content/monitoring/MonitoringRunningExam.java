@@ -70,8 +70,6 @@ import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService
 @GuiProfile
 public class MonitoringRunningExam implements TemplateComposer {
 
-    //private static final Logger log = LoggerFactory.getLogger(MonitoringRunningExam.class);
-
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.emptySelection");
     private static final LocTextKey EMPTY_ACTIVE_SELECTION_TEXT_KEY =

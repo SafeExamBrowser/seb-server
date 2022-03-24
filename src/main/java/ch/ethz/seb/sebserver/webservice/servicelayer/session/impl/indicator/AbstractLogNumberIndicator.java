@@ -73,8 +73,8 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
     @Override
     public double computeValueAt(final long timestamp) {
 
-        if (log.isDebugEnabled()) {
-            log.debug("computeValueAt: {}", timestamp);
+        if (log.isTraceEnabled()) {
+            log.trace("computeValueAt: {}", timestamp);
         }
 
         try {

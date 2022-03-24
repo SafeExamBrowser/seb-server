@@ -90,6 +90,11 @@ public class MonitoringClientConnection implements TemplateComposer {
     private static final LocTextKey NOTIFICATION_LIST_COLUMN_TYPE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.notificationlist.type");
 
+    private static final LocTextKey CONFIRM_QUIT =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.confirm");
+    private static final LocTextKey CONFIRM_OPEN_SINGLE_ROOM =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.singleroom.confirm");
+
     private static final LocTextKey EVENT_LIST_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.title");
     private static final LocTextKey EVENT_LIST_TITLE_TOOLTIP_KEY =
@@ -107,10 +112,6 @@ public class MonitoringClientConnection implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.value");
     private static final LocTextKey LIST_COLUMN_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.text");
-    private static final LocTextKey CONFIRM_QUIT =
-            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.confirm");
-    private static final LocTextKey CONFIRM_OPEN_SINGLE_ROOM =
-            new LocTextKey("sebserver.monitoring.exam.connection.action.singleroom.confirm");
 
     private final ServerPushService serverPushService;
     private final PageService pageService;

@@ -129,18 +129,18 @@ public class FinishedExamList implements TemplateComposer {
                                         .sortable())
 
                         .withDefaultAction(actionBuilder
-                                .newAction(ActionDefinition.VIEW_EXAM_FROM_FINISHED_LIST)
+                                .newAction(ActionDefinition.VIEW_FINISHED_EXAM_FROM_LIST)
                                 .create())
 
                         .withSelectionListener(this.pageService.getSelectionPublisher(
                                 pageContext,
-                                ActionDefinition.VIEW_EXAM_FROM_FINISHED_LIST))
+                                ActionDefinition.VIEW_FINISHED_EXAM_FROM_LIST))
 
                         .compose(pageContext.copyOf(content));
 
         actionBuilder
 
-                .newAction(ActionDefinition.VIEW_EXAM_FROM_FINISHED_LIST)
+                .newAction(ActionDefinition.VIEW_FINISHED_EXAM_FROM_LIST)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER), false);
 

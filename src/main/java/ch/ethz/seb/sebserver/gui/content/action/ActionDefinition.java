@@ -835,11 +835,21 @@ public enum ActionDefinition {
     FINISHED_EXAM_VIEW_LIST(
             new LocTextKey("sebserver.finished.action.list"),
             PageStateDefinitionImpl.FINISHED_EXAM_LIST),
-    VIEW_EXAM_FROM_FINISHED_LIST(
+    VIEW_FINISHED_EXAM_FROM_LIST(
             new LocTextKey("sebserver.finished.exam.action.list.view"),
             ImageIcon.SHOW,
             PageStateDefinitionImpl.FINISHED_EXAM,
             ActionCategory.FINISHED_EXAM_LIST),
+    VIEW_FINISHED_EXAM_CLIENT_CONNECTION(
+            new LocTextKey("sebserver.finished.exam.connection.action.view"),
+            ImageIcon.SHOW,
+            PageStateDefinitionImpl.FINISHED_CLIENT_CONNECTION,
+            ActionCategory.CLIENT_EVENT_LIST),
+    FINISHED_EXAM_BACK_TO_OVERVIEW(
+            new LocTextKey("sebserver.finished.exam.action.detail.view"),
+            ImageIcon.SHOW,
+            PageStateDefinitionImpl.FINISHED_EXAM,
+            ActionCategory.FORM),
 
     LOGS_USER_ACTIVITY_LIST(
             new LocTextKey("sebserver.logs.activity.userlogs"),

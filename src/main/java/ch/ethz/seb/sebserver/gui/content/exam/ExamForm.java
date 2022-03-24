@@ -244,10 +244,9 @@ public class ExamForm implements TemplateComposer {
         final boolean modifyGrant = userGrantCheck.m();
         final boolean writeGrant = userGrantCheck.w();
         final ExamStatus examStatus = exam.getStatus();
-        final boolean editable = modifyGrant && (examStatus == ExamStatus.UP_COMING ||
-                examStatus == ExamStatus.RUNNING);
+        final boolean editable = modifyGrant &&
+                (examStatus == ExamStatus.UP_COMING || examStatus == ExamStatus.RUNNING);
 
-//        TODO this is not performat try to improve by doing one check with the CheckExamConsistency above
         final boolean sebRestrictionAvailable = testSEBRestrictionAPI(exam);
         final boolean isRestricted = readonly && sebRestrictionAvailable && this.restService
                 .getBuilder(CheckSEBRestriction.class)
@@ -408,6 +407,11 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && editable)
 
+                .newAction(ActionDefinition.EXAM_DELETE)
+                .withEntityKey(entityKey)
+                .withExec(this.examDeletePopup.deleteWizardFunction(pageContext))
+                .publishIf(() -> writeGrant && readonly)
+
                 .newAction(ActionDefinition.EXAM_SAVE)
                 .withExec(action -> (importFromQuizData)
                         ? importExam(action, formHandle, sebRestrictionAvailable && exam.status == ExamStatus.RUNNING)
@@ -451,20 +455,15 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_ON)
                 .withEntityKey(entityKey)
-                .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant))
+                .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> editable && proctoringEnabled && readonly)
+                .publishIf(() -> proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_OFF)
                 .withEntityKey(entityKey)
-                .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant))
+                .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> editable && !proctoringEnabled && readonly)
-
-                .newAction(ActionDefinition.EXAM_DELETE)
-                .withEntityKey(entityKey)
-                .withExec(this.examDeletePopup.deleteWizardFunction(pageContext))
-                .publishIf(() -> writeGrant && readonly);
+                .publishIf(() -> !proctoringEnabled && readonly);
 
         // additional data in read-only view
         if (readonly && !importFromQuizData) {
