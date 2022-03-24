@@ -147,15 +147,19 @@ public class FinishedExam implements TemplateComposer {
                         .withDefaultAction(t -> actionBuilder
                                 .newAction(ActionDefinition.VIEW_FINISHED_EXAM_CLIENT_CONNECTION)
                                 .withParentEntityKey(examKey)
-                                .create());
+                                .create())
+                        .withSelectionListener(this.pageService.getSelectionPublisher(
+                                pageContext,
+                                ActionDefinition.VIEW_FINISHED_EXAM_CLIENT_CONNECTION));
 
         indicators.stream().forEach(indicator -> {
-            if (indicator.type != IndicatorType.LAST_PING) {
-                tableBuilder.withColumn(new ColumnDefinition<>(
-                        indicator.name,
-                        new LocTextKey(indicator.name),
-                        indicatorValueFunction(indicator)));
+            if (indicator.type == IndicatorType.LAST_PING || indicator.type == IndicatorType.NONE) {
+                return;
             }
+            tableBuilder.withColumn(new ColumnDefinition<>(
+                    indicator.name,
+                    new LocTextKey(indicator.name),
+                    indicatorValueFunction(indicator)));
         });
 
         final EntityTable<ClientConnectionData> table = tableBuilder.compose(pageContext.copyOf(content));

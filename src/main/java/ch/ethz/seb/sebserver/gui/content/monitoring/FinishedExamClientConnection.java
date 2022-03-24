@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
@@ -170,18 +171,23 @@ public class FinishedExamClientConnection implements TemplateComposer {
                         .asColorBox())
                 .addEmptyCell();
 
-        indicators.forEach(indicator -> formBuilder.addField(FormBuilder.text(
-                indicator.name,
-                new LocTextKey(indicator.name),
-                connectionData.indicatorValues
-                        .stream()
-                        .filter(indicatorValue -> indicatorValue.getIndicatorId().equals(indicator.id))
-                        .findFirst()
-                        .map(iv -> IndicatorValue.getDisplayValue(iv, indicator.type))
-                        .orElse(Constants.EMPTY_NOTE))
-                .asColorBox()
-                .withDefaultLabel(indicator.name))
-                .addEmptyCell());
+        indicators.forEach(indicator -> {
+            if (indicator.type == IndicatorType.LAST_PING || indicator.type == IndicatorType.NONE) {
+                return;
+            }
+            formBuilder.addField(FormBuilder.text(
+                    indicator.name,
+                    new LocTextKey(indicator.name),
+                    connectionData.indicatorValues
+                            .stream()
+                            .filter(indicatorValue -> indicatorValue.getIndicatorId().equals(indicator.id))
+                            .findFirst()
+                            .map(iv -> IndicatorValue.getDisplayValue(iv, indicator.type))
+                            .orElse(Constants.EMPTY_NOTE))
+                    .asColorBox()
+                    .withDefaultLabel(indicator.name))
+                    .addEmptyCell();
+        });
 
         formBuilder.build();
 
