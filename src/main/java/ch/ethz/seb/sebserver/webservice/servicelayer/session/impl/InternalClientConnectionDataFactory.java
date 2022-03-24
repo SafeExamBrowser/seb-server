@@ -36,6 +36,7 @@ public class InternalClientConnectionDataFactory {
             final ClientConnection clientConnection,
             final boolean examRunning) {
 
+        // if the exam is not running, we just create a cached indicator anyways
         if (!examRunning) {
             return new ClientConnectionDataInternal(
                     clientConnection,
