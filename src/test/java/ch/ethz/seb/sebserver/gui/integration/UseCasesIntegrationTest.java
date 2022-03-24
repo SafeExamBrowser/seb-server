@@ -251,34 +251,34 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         // Nothing
     }
 
-    @Test
-    @Order(0)
-    public void testUsecase00_cleanupAllExams() {
-        final RestServiceImpl restService = createRestServiceForUser(
-                "admin",
-                "admin",
-                new GetExamNames(),
-                new DeleteExam());
-
-        final Result<List<EntityName>> call = restService
-                .getBuilder(GetExamNames.class)
-                .call();
-
-        if (!call.hasError()) {
-            call.get().stream().forEach(key -> {
-                final Result<EntityProcessingReport> deleted = restService
-                        .getBuilder(DeleteExam.class)
-                        .withURIVariable(API.PARAM_MODEL_ID, key.modelId)
-                        .call();
-
-                if (deleted.hasError()) {
-                    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%% deletion failed: " + key);
-                } else {
-                    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%% deleted: " + key);
-                }
-            });
-        }
-    }
+//    @Test
+//    @Order(0)
+//    public void testUsecase00_cleanupAllExams() {
+//        final RestServiceImpl restService = createRestServiceForUser(
+//                "admin",
+//                "admin",
+//                new GetExamNames(),
+//                new DeleteExam());
+//
+//        final Result<List<EntityName>> call = restService
+//                .getBuilder(GetExamNames.class)
+//                .call();
+//
+//        if (!call.hasError()) {
+//            call.get().stream().forEach(key -> {
+//                final Result<EntityProcessingReport> deleted = restService
+//                        .getBuilder(DeleteExam.class)
+//                        .withURIVariable(API.PARAM_MODEL_ID, key.modelId)
+//                        .call();
+//
+//                if (deleted.hasError()) {
+//                    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%% deletion failed: " + key);
+//                } else {
+//                    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%% deleted: " + key);
+//                }
+//            });
+//        }
+//    }
 
     @Test
     @Order(1)
@@ -2221,8 +2221,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
             assertFalse(ccCall.hasError());
             final ClientConnection clientConnection = ccCall.get();
-            assertEquals("1", clientConnection.examId.toString());
-            //assertEquals("", clientConnection.status.name());
+            assertTrue(clientConnection.userSessionId.contains("connection"));
 
             // get notification
             final Result<Collection<ClientNotification>> notificationsCall =
