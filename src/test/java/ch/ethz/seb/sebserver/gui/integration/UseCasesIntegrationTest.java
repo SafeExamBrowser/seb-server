@@ -252,10 +252,38 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
+    @Order(0)
+    public void testUsecase00_cleanupAllExams() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetExamNames(),
+                new DeleteExam());
+
+        final Result<List<EntityName>> call = restService
+                .getBuilder(GetExamNames.class)
+                .call();
+
+        if (!call.hasError()) {
+            call.get().stream().forEach(key -> {
+                final Result<EntityProcessingReport> deleted = restService
+                        .getBuilder(DeleteExam.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, key.modelId)
+                        .call();
+
+                if (deleted.hasError()) {
+                    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%% deletion failed: " + key);
+                } else {
+                    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%% deleted: " + key);
+                }
+            });
+        }
+    }
+
+    @Test
     @Order(1)
     // *************************************
     // Use Case 1: SEB Administrator creates a new institution and activate this new institution
-
     public void testUsecase01() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "admin",
@@ -829,17 +857,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         //       Find out why!!
         //assertEquals(Long.valueOf(1), quizData.lmsSetupId);
         assertEquals(Long.valueOf(4), quizData.institutionId);
-
-        // check imported
-        final Result<Collection<EntityKey>> checkCall = restService.getBuilder(CheckExamImported.class)
-                .withURIVariable(API.PARAM_MODEL_ID, quizData.getModelId())
-                .call();
-        assertFalse(checkCall.hasError());
-        final Collection<EntityKey> importCheck = checkCall.getOrThrow();
-        //assertTrue(importCheck.isEmpty()); // not imported at all
-        if (!importCheck.isEmpty()) {
-            System.out.println("******************************* " + importCheck.iterator().next());
-        }
 
         // import quiz as exam
         final Result<Exam> newExamResult = restService
