@@ -27,22 +27,17 @@ pipeline {
                 jacoco classPattern: '**/build/classes/*/main/', execPattern: '**/target/*.exec', sourcePattern: '**/src/main/java', inclusionPattern: '**/*.class'
             }        
         }
-        
-        stage('Tag') {
-            steps {
-                echo 'Build is tagged here.'
-            }
-        }
-        
-        stage('Push to Nexus') {
-            steps {
-                echo 'Build is pushed to Nexus here.'
-            }
-        }
-        
     }
 
     post {
+        always {
+            junit testResults: '**/target/surefire-reports/TEST-*.xml'
+
+            recordIssues enabledForFailure: true, tools: [mavenConsole(), java(), javaDoc()]
+            recordIssues enabledForFailure: true, tool: checkStyle()
+            recordIssues enabledForFailure: true, tool: spotBugs()
+            recordIssues enabledForFailure: true, tool: pmdParser(pattern: '**/target/pmd.xml')
+        }
         failure {
             setBuildStatus("Build failed", "FAILURE");
             emailext body: "The build of the LET Application (${env.JOB_NAME}) failed! See ${env.BUILD_URL}", recipientProviders: [[$class: 'CulpritsRecipientProvider']], subject: 'LET Application Build Failure'
