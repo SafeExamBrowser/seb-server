@@ -22,7 +22,9 @@ pipeline {
         
         stage('Reporting') {
             steps {
-                sh '${M2_HOME}/bin/mvn --batch-mode -V -U -e pmd:pmd pmd:cpd findbugs:findbugs spotbugs:spotbugs'
+                withMaven(maven: 'Maven', options: [findbugsPublisher(disabled: true)]) {
+                    sh "mvn --batch-mode -V -U -e pmd:pmd pmd:cpd findbugs:findbugs spotbugs:spotbugs"
+                }
             }
         }
     }
