@@ -22,10 +22,7 @@ pipeline {
         
         stage('Reporting') {
             steps {
-                pmd canComputeNew: false, defaultEncoding: '', healthy: '', pattern: '**/target/pmd.xml', thresholdLimit: 'high', unHealthy: ''
-                findbugs canComputeNew: false, defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', isRankActivated: true, pattern: '**/target/findbugsXml.xml', unHealthy: ''
-                jacoco classPattern: '**/build/classes/*/main/', execPattern: '**/target/*.exec', sourcePattern: '**/src/main/java', inclusionPattern: '**/*.class'
-            }        
+                sh '${M2_HOME}/bin/mvn --batch-mode -V -U -e checkstyle:checkstyle pmd:pmd pmd:cpd findbugs:findbugs spotbugs:spotbugs'
         }
     }
 
