@@ -17,8 +17,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -98,6 +100,26 @@ public class ClientConnectionData implements GrantEntity {
     @JsonIgnore
     public boolean hasAnyIncident() {
         return this.missingPing || this.pendingNotification;
+    }
+
+    @JsonIgnore
+    public Double getIndicatorValue(final Long indicatorId) {
+        return this.indicatorValues
+                .stream()
+                .filter(indicatorValue -> indicatorValue.getIndicatorId().equals(indicatorId))
+                .findFirst()
+                .map(iv -> iv.getValue())
+                .orElse(Double.NaN);
+    }
+
+    @JsonIgnore
+    public String getIndicatorDisplayValue(final Indicator indicator) {
+        return this.indicatorValues
+                .stream()
+                .filter(indicatorValue -> indicatorValue.getIndicatorId().equals(indicator.id))
+                .findFirst()
+                .map(iv -> IndicatorValue.getDisplayValue(iv, indicator.type))
+                .orElse(Constants.EMPTY_NOTE);
     }
 
     public ClientConnection getClientConnection() {

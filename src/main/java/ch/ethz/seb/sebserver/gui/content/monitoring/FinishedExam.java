@@ -10,14 +10,12 @@ package ch.ethz.seb.sebserver.gui.content.monitoring;
 
 import java.util.Collection;
 import java.util.function.BooleanSupplier;
-import java.util.function.Function;
 
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -26,7 +24,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -162,7 +159,7 @@ public class FinishedExam implements TemplateComposer {
             tableBuilder.withColumn(new ColumnDefinition<>(
                     indicator.name,
                     new LocTextKey(indicator.name),
-                    indicatorValueFunction(indicator)));
+                    cc -> cc.getIndicatorDisplayValue(indicator)));
         });
 
         final EntityTable<ClientConnectionData> table = tableBuilder.compose(pageContext.copyOf(content));
@@ -173,17 +170,6 @@ public class FinishedExam implements TemplateComposer {
                 .withParentEntityKey(examKey)
                 .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(isExamSupporter, false);
-    }
-
-    public Function<ClientConnectionData, String> indicatorValueFunction(final Indicator indicator) {
-        return clientConnectionData -> {
-            return clientConnectionData.indicatorValues
-                    .stream()
-                    .filter(indicatorValue -> indicatorValue.getIndicatorId().equals(indicator.id))
-                    .findFirst()
-                    .map(iv -> IndicatorValue.getDisplayValue(iv, indicator.type))
-                    .orElse(Constants.EMPTY_NOTE);
-        };
     }
 
 }

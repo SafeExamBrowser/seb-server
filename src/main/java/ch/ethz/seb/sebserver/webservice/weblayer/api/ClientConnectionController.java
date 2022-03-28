@@ -82,6 +82,73 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
         this.sebClientConnectionService = sebClientConnectionService;
     }
 
+    /** The generic endpoint to get a Page of domain-entities of a specific type.
+     * </p>
+     * GET /{api}/{domain-entity-name}
+     * </p>
+     * For example for the "exam" domain-entity
+     * GET /admin-api/v1/exam
+     * GET /admin-api/v1/exam?page_number=2&page_size=10&sort=-name
+     * GET /admin-api/v1/exam?name=seb&active=true
+     * </p>
+     * Sorting: the sort parameter to sort the list of entities before paging
+     * the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
+     * descending sort order. Note that not all entity-model attribute are suited for sorting while the most
+     * are.
+     * </p>
+     * Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)
+     * and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually
+     * filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing
+     * a given text-snippet.
+     *
+     * @param institutionId The institution identifier of the request.
+     *            Default is the institution identifier of the institution of the current user
+     * @param pageNumber the number of the page that is requested
+     * @param pageSize the size of the page that is requested
+     * @param sort the sort parameter to sort the list of entities before paging
+     *            the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
+     *            descending sort order.
+     * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering.
+     * @return Page of domain-model-entities of specified type */
+    @Override
+    @RequestMapping(
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Page<ClientConnection> getPage(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
+            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
+
+        // at least current user must have read access for specified entity type within its own institution
+        checkReadPrivilege(institutionId);
+
+        final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
+        populateFilterMap(filterMap, institutionId, sort);
+
+        if (StringUtils.isNotBlank(sort) || filterMap.containsAny(EXT_FILTER)) {
+
+            final Collection<ClientConnection> allConnections = getAll(filterMap)
+                    .getOrThrow();
+
+            return this.paginationService.buildPageFromList(
+                    pageNumber,
+                    pageSize,
+                    sort,
+                    allConnections,
+                    pageClientConnectionFunction(filterMap, sort));
+
+        } else {
+            return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
+        }
+    }
+
     @RequestMapping(
             path = API.SEB_CLIENT_CONNECTION_DATA_ENDPOINT,
             method = RequestMethod.GET,
@@ -114,7 +181,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                     pageSize,
                     sort,
                     allConnections,
-                    pageFunction(filterMap, sort));
+                    pageClientConnectionDataFunction(filterMap, sort));
         } else {
 
             return this.paginationService.getPage(
@@ -137,18 +204,6 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                 .getIndicatorValues(super.getBy(modelId))
                 .getOrThrow();
     }
-
-//    @Override
-//    protected Result<Collection<ClientConnection>> getAll(final FilterMap filterMap) {
-//        final String infoFilter = filterMap.getString(ClientConnection.FILTER_ATTR_INFO);
-//        if (StringUtils.isNotBlank(infoFilter)) {
-//            return super.getAll(filterMap)
-//                    .map(all -> all.stream().filter(c -> c.getInfo() == null || c.getInfo().contains(infoFilter))
-//                            .collect(Collectors.toList()));
-//        }
-//
-//        return super.getAll(filterMap);
-//    }
 
     @Override
     public Collection<EntityDependency> getDependencies(
@@ -198,15 +253,35 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                         .collect(Collectors.toList()));
     }
 
-    private Function<Collection<ClientConnectionData>, List<ClientConnectionData>> pageFunction(
+    private Function<Collection<ClientConnection>, List<ClientConnection>> pageClientConnectionFunction(
             final FilterMap filterMap,
             final String sort) {
 
         return connections -> {
 
-            final List<ClientConnectionData> filtered = connections.stream()
-                    .filter(getFilter(filterMap))
+            final List<ClientConnection> filtered = connections
+                    .stream()
+                    .filter(getClientConnectionFilter(filterMap))
                     .collect(Collectors.toList());
+
+            if (StringUtils.isNotBlank(sort)) {
+                filtered.sort(new ClientConnectionComparator(sort));
+            }
+            return filtered;
+        };
+    }
+
+    private Function<Collection<ClientConnectionData>, List<ClientConnectionData>> pageClientConnectionDataFunction(
+            final FilterMap filterMap,
+            final String sort) {
+
+        return connections -> {
+
+            final List<ClientConnectionData> filtered = connections
+                    .stream()
+                    .filter(getClientConnectionDataFilter(filterMap))
+                    .collect(Collectors.toList());
+
             if (StringUtils.isNotBlank(sort)) {
                 filtered.sort(new ClientConnectionDataComparator(sort));
             }
@@ -214,13 +289,51 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
         };
     }
 
-    private Predicate<ClientConnectionData> getFilter(final FilterMap filterMap) {
+    private Predicate<ClientConnection> getClientConnectionFilter(final FilterMap filterMap) {
+        final String infoFilter = filterMap.getString(ClientConnection.FILTER_ATTR_INFO);
+        Predicate<ClientConnection> filter = Utils.truePredicate();
+        if (StringUtils.isNotBlank(infoFilter)) {
+            filter = c -> c.getInfo() == null || c.getInfo().contains(infoFilter);
+        }
+        return filter;
+    }
+
+    private Predicate<ClientConnectionData> getClientConnectionDataFilter(final FilterMap filterMap) {
         final String infoFilter = filterMap.getString(ClientConnection.FILTER_ATTR_INFO);
         Predicate<ClientConnectionData> filter = Utils.truePredicate();
         if (StringUtils.isNotBlank(infoFilter)) {
             filter = c -> c.clientConnection.getInfo() == null || c.clientConnection.getInfo().contains(infoFilter);
         }
         return filter;
+    }
+
+    private static final class ClientConnectionComparator implements Comparator<ClientConnection> {
+
+        final String sortColumn;
+        final boolean descending;
+
+        ClientConnectionComparator(final String sort) {
+            this.sortColumn = PageSortOrder.decode(sort);
+            this.descending = PageSortOrder.getSortOrder(sort) == PageSortOrder.DESCENDING;
+        }
+
+        @Override
+        public int compare(final ClientConnection cc1, final ClientConnection cc2) {
+            int result = 0;
+            if (Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID.equals(this.sortColumn)) {
+                result = cc1.userSessionId
+                        .compareTo(cc2.userSessionId);
+            } else if (ClientConnection.ATTR_INFO.equals(this.sortColumn)) {
+                result = cc1.getInfo().compareTo(cc2.getInfo());
+            } else if (Domain.CLIENT_CONNECTION.ATTR_STATUS.equals(this.sortColumn)) {
+                result = cc1.getStatus()
+                        .compareTo(cc2.getStatus());
+            } else {
+                result = cc1.userSessionId
+                        .compareTo(cc2.userSessionId);
+            }
+            return (this.descending) ? -result : result;
+        }
     }
 
     private static final class ClientConnectionDataComparator implements Comparator<ClientConnectionData> {
