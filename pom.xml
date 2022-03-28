@@ -125,7 +125,7 @@
               </execution>
             </executions>
           </plugin>
-          <plugin>
+<!--          <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>findbugs-maven-plugin</artifactId>
             <version>3.0.4</version>
@@ -145,11 +145,18 @@
                 </goals>
               </execution>
             </executions>
-          </plugin>
+          </plugin>-->
             <plugin>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs-maven-plugin</artifactId>
               <version>4.5.3.0</version>
+              <configuration>
+                <effort>Max</effort>
+                <failOnError>false</failOnError>
+                <threshold>Low</threshold>
+                <xmlOutput>true</xmlOutput>
+                <excludeFilterFile>findbugs-excludes.xml</excludeFilterFile>
+              </configuration>
               <dependencies>
                 <!-- overwrite dependency on spotbugs if you want to specify the version of spotbugs -->
                 <dependency>
