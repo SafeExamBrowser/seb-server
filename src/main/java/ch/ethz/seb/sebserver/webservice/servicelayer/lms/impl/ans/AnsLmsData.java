@@ -15,10 +15,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public final class AnsLmsData {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class AccessibilitySettingsData {
+    static final class SEBServerData {
         /* Ans API example: see nested in AssignmentData */
-        public boolean seb_server_enabled;
+        public boolean enabled;
         public List<String> config_keys;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class IntegrationsData {
+        /* Ans API example: see nested in AssignmentData */
+        public SEBServerData safe_exam_browser_server;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -37,19 +43,10 @@ public final class AnsLmsData {
          * "updated_at": "2021-08-17T03:41:56.747+02:00",
          * "trashed": false,
          * "start_url": "https://staging.ans.app/digital_test/assignments/78805/results/new",
-         * "accessibility_settings": {
-         * "attempts": 1,
-         * "restricted_access_to_other_pages": false,
-         * "notes": false,
-         * "spellchecker": false,
-         * "feedback": false,
-         * "forced_test_navigation": false,
-         * "cannot_reopen_question_groups": false,
-         * "seb_server_enabled": true,
-         * "config_keys": [
-         * "9dd14ac828617116a1230c71b9a1aa9e06f43b32d9fa7db67f4fa113a6896e83e"
-         * ]
-         * },
+         * "integrations": {
+         * "safe_exam_browser_server": {
+         * "enabled": false,
+         * "config_keys": [ "123" ] } }
          * "grades_settings": {
          * "grade_calculation": "formula",
          * "grade_formula": "1 + 9 * points / total",
@@ -70,7 +67,7 @@ public final class AnsLmsData {
         public String start_at;
         public String end_at;
         public String start_url;
-        public AccessibilitySettingsData accessibility_settings;
+        public IntegrationsData integrations;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
