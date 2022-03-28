@@ -8,8 +8,14 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,13 +33,16 @@ import org.springframework.web.bind.annotation.RestController;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -51,6 +60,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class ClientConnectionController extends ReadonlyEntityController<ClientConnection, ClientConnection> {
 
     private final SEBClientConnectionService sebClientConnectionService;
+
+    private static final Set<String> EXT_FILTER = new HashSet<>(Arrays.asList(ClientConnection.FILTER_ATTR_INFO));
 
     protected ClientConnectionController(
             final AuthorizationService authorization,
@@ -93,15 +104,27 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
         populateFilterMap(filterMap, institutionId, sort);
 
-        final Page<ClientConnectionData> page = this.paginationService.getPage(
-                pageNumber,
-                pageSize,
-                sort,
-                getSQLTableOfEntity().name(),
-                () -> getAllData(filterMap))
-                .getOrThrow();
+        if (StringUtils.isNotBlank(sort) || filterMap.containsAny(EXT_FILTER)) {
 
-        return page;
+            final Collection<ClientConnectionData> allConnections = getAllData(filterMap)
+                    .getOrThrow();
+
+            return this.paginationService.buildPageFromList(
+                    pageNumber,
+                    pageSize,
+                    sort,
+                    allConnections,
+                    pageFunction(filterMap, sort));
+        } else {
+
+            return this.paginationService.getPage(
+                    pageNumber,
+                    pageSize,
+                    sort,
+                    getSQLTableOfEntity().name(),
+                    () -> getAllData(filterMap))
+                    .getOrThrow();
+        }
     }
 
     @RequestMapping(
@@ -115,25 +138,17 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                 .getOrThrow();
     }
 
-    private Result<Collection<ClientConnectionData>> getAllData(final FilterMap filterMap) {
-        return getAll(filterMap)
-                .map(connection -> connection.stream()
-                        .map(this.sebClientConnectionService::getIndicatorValues)
-                        .flatMap(Result::onErrorLogAndSkip)
-                        .collect(Collectors.toList()));
-    }
-
-    @Override
-    protected Result<Collection<ClientConnection>> getAll(final FilterMap filterMap) {
-        final String infoFilter = filterMap.getString(ClientConnection.FILTER_ATTR_INFO);
-        if (StringUtils.isNotBlank(infoFilter)) {
-            return super.getAll(filterMap)
-                    .map(all -> all.stream().filter(c -> c.getInfo() == null || c.getInfo().contains(infoFilter))
-                            .collect(Collectors.toList()));
-        }
-
-        return super.getAll(filterMap);
-    }
+//    @Override
+//    protected Result<Collection<ClientConnection>> getAll(final FilterMap filterMap) {
+//        final String infoFilter = filterMap.getString(ClientConnection.FILTER_ATTR_INFO);
+//        if (StringUtils.isNotBlank(infoFilter)) {
+//            return super.getAll(filterMap)
+//                    .map(all -> all.stream().filter(c -> c.getInfo() == null || c.getInfo().contains(infoFilter))
+//                            .collect(Collectors.toList()));
+//        }
+//
+//        return super.getAll(filterMap);
+//    }
 
     @Override
     public Collection<EntityDependency> getDependencies(
@@ -173,5 +188,67 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                 EntityType.CLIENT_EVENT,
                 UserRole.EXAM_ADMIN,
                 UserRole.EXAM_SUPPORTER);
+    }
+
+    private Result<Collection<ClientConnectionData>> getAllData(final FilterMap filterMap) {
+        return getAll(filterMap)
+                .map(connections -> connections.stream()
+                        .map(this.sebClientConnectionService::getIndicatorValues)
+                        .flatMap(Result::onErrorLogAndSkip)
+                        .collect(Collectors.toList()));
+    }
+
+    private Function<Collection<ClientConnectionData>, List<ClientConnectionData>> pageFunction(
+            final FilterMap filterMap,
+            final String sort) {
+
+        return connections -> {
+
+            final List<ClientConnectionData> filtered = connections.stream()
+                    .filter(getFilter(filterMap))
+                    .collect(Collectors.toList());
+            if (StringUtils.isNotBlank(sort)) {
+                filtered.sort(new ClientConnectionDataComparator(sort));
+            }
+            return filtered;
+        };
+    }
+
+    private Predicate<ClientConnectionData> getFilter(final FilterMap filterMap) {
+        final String infoFilter = filterMap.getString(ClientConnection.FILTER_ATTR_INFO);
+        Predicate<ClientConnectionData> filter = Utils.truePredicate();
+        if (StringUtils.isNotBlank(infoFilter)) {
+            filter = c -> c.clientConnection.getInfo() == null || c.clientConnection.getInfo().contains(infoFilter);
+        }
+        return filter;
+    }
+
+    private static final class ClientConnectionDataComparator implements Comparator<ClientConnectionData> {
+
+        final String sortColumn;
+        final boolean descending;
+
+        ClientConnectionDataComparator(final String sort) {
+            this.sortColumn = PageSortOrder.decode(sort);
+            this.descending = PageSortOrder.getSortOrder(sort) == PageSortOrder.DESCENDING;
+        }
+
+        @Override
+        public int compare(final ClientConnectionData cc1, final ClientConnectionData cc2) {
+            int result = 0;
+            if (Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID.equals(this.sortColumn)) {
+                result = cc1.clientConnection.userSessionId
+                        .compareTo(cc2.clientConnection.userSessionId);
+            } else if (ClientConnection.ATTR_INFO.equals(this.sortColumn)) {
+                result = cc1.clientConnection.getInfo().compareTo(cc2.clientConnection.getInfo());
+            } else if (Domain.CLIENT_CONNECTION.ATTR_STATUS.equals(this.sortColumn)) {
+                result = cc1.clientConnection.getStatus()
+                        .compareTo(cc2.clientConnection.getStatus());
+            } else {
+                result = cc1.clientConnection.userSessionId
+                        .compareTo(cc2.clientConnection.userSessionId);
+            }
+            return (this.descending) ? -result : result;
+        }
     }
 }

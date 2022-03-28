@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -331,6 +332,13 @@ public class FilterMap extends POSTMapper {
         public FilterMap create() {
             return new FilterMap(this.filterMap.params, null);
         }
+    }
+
+    public boolean containsAny(final Set<String> extFilter) {
+        return extFilter.stream()
+                .filter(this.params::containsKey)
+                .findFirst()
+                .isPresent();
     }
 
 }

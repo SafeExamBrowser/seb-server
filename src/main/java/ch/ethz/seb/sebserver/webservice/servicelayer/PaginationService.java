@@ -108,16 +108,17 @@ public interface PaginationService {
      * @param pageSize the size of a page
      * @param sort the page sort flag
      * @param all list of all entities, unsorted
-     * @param sorter a sorter function that sorts the list for specific type of entries
+     * @param pageFunction a function that filter and sorts the list for specific type of entries
      * @return current page of objects from the sorted list of entities */
     default <T> Page<T> buildPageFromList(
             final Integer pageNumber,
             final Integer pageSize,
             final String sort,
             final Collection<T> all,
-            final Function<Collection<T>, List<T>> sorter) {
+            final Function<Collection<T>, List<T>> pageFunction) {
 
-        final List<T> sorted = sorter.apply(all);
+        final List<T> sorted = pageFunction.apply(all);
+
         final int _pageNumber = getPageNumber(pageNumber);
         final int _pageSize = getPageSize(pageSize);
         final int start = (_pageNumber - 1) * _pageSize;
@@ -125,7 +126,10 @@ public interface PaginationService {
         if (sorted.size() < end) {
             end = sorted.size();
         }
-        final int numberOfPages = sorted.size() / _pageSize;
+        int numberOfPages = sorted.size() / _pageSize;
+        if (sorted.size() % _pageSize > 0) {
+            numberOfPages++;
+        }
 
         return new Page<>(
                 (numberOfPages > 0) ? numberOfPages : 1,

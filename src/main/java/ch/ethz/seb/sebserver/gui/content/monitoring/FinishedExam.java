@@ -129,20 +129,23 @@ public class FinishedExam implements TemplateComposer {
                                 Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
                                 TABLE_COLUMN_NAME,
                                 c -> c.clientConnection.getUserSessionId())
-                                        .withFilter(this.nameFilter))
+                                        .withFilter(this.nameFilter)
+                                        .sortable())
 
                         .withColumn(new ColumnDefinition<ClientConnectionData>(
                                 ClientConnection.ATTR_INFO,
                                 TABLE_COLUMN_INFO,
                                 c -> c.clientConnection.getInfo())
-                                        .withFilter(this.infoFilter))
+                                        .withFilter(this.infoFilter)
+                                        .sortable())
 
                         .withColumn(new ColumnDefinition<ClientConnectionData>(
                                 Domain.CLIENT_CONNECTION.ATTR_STATUS,
                                 TABLE_COLUMN_STATUS,
                                 row -> this.pageService.getResourceService()
                                         .localizedClientConnectionStatusName(row.clientConnection.getStatus()))
-                                                .withFilter(this.statusFilter))
+                                                .withFilter(this.statusFilter)
+                                                .sortable())
 
                         .withDefaultAction(t -> actionBuilder
                                 .newAction(ActionDefinition.VIEW_FINISHED_EXAM_CLIENT_CONNECTION)
