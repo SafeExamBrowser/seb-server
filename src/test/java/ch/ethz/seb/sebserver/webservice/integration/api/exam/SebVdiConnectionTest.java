@@ -13,6 +13,7 @@ import static org.junit.Assert.*;
 import java.util.List;
 
 import org.junit.Test;
+import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueWrapper;
@@ -22,6 +23,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
@@ -43,7 +45,7 @@ public class SebVdiConnectionTest extends ExamAPIIntegrationTester {
         final String accessToken = super.obtainAccessToken("testVDI", "testVDI", "read write");
         assertNotNull(accessToken);
 
-        final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, null);
+        final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, 2L);
         assertNotNull(createConnection);
 
         // check correct response
@@ -60,13 +62,14 @@ public class SebVdiConnectionTest extends ExamAPIIntegrationTester {
         // check correct stored
         final List<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                 .selectByExample()
+                .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isEqualTo(2L))
                 .build()
                 .execute();
 
         assertTrue(records.size() == 1);
         final ClientConnectionRecord clientConnectionRecord = records.get(0);
         assertEquals("1", String.valueOf(clientConnectionRecord.getInstitutionId()));
-        assertNull(clientConnectionRecord.getExamId());
+        assertEquals("2", clientConnectionRecord.getExamId().toString());
         assertEquals("CONNECTION_REQUESTED", String.valueOf(clientConnectionRecord.getStatus()));
         assertEquals(connectionToken, clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());

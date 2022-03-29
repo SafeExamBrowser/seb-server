@@ -218,6 +218,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisableCl
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnection;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnectionPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetMonitoringFullPageData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetPendingClientNotifications;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunningExamPage;
@@ -2127,7 +2130,10 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new PropagateInstruction(),
                 new GetClientConnectionPage(),
                 new GetPendingClientNotifications(),
-                new ConfirmPendingClientNotification());
+                new ConfirmPendingClientNotification(),
+                new GetFinishedExamPage(),
+                new GetFinishedExamClientConnectionPage(),
+                new GetFinishedExamClientConnection());
 
         final RestServiceImpl adminRestService = createRestServiceForUser(
                 "TestInstAdmin",
