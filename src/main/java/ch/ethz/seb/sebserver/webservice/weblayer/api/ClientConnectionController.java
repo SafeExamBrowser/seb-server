@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -82,34 +83,6 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
         this.sebClientConnectionService = sebClientConnectionService;
     }
 
-    /** The generic endpoint to get a Page of domain-entities of a specific type.
-     * </p>
-     * GET /{api}/{domain-entity-name}
-     * </p>
-     * For example for the "exam" domain-entity
-     * GET /admin-api/v1/exam
-     * GET /admin-api/v1/exam?page_number=2&page_size=10&sort=-name
-     * GET /admin-api/v1/exam?name=seb&active=true
-     * </p>
-     * Sorting: the sort parameter to sort the list of entities before paging
-     * the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
-     * descending sort order. Note that not all entity-model attribute are suited for sorting while the most
-     * are.
-     * </p>
-     * Filter: The filter attributes accepted by this API depend on the actual entity model (domain object)
-     * and are of the form [domain-attribute-name]=[filter-value]. E.g.: name=abc or type=EXAM. Usually
-     * filter attributes of text type are treated as SQL wildcard with %[text]% to filter all text containing
-     * a given text-snippet.
-     *
-     * @param institutionId The institution identifier of the request.
-     *            Default is the institution identifier of the institution of the current user
-     * @param pageNumber the number of the page that is requested
-     * @param pageSize the size of the page that is requested
-     * @param sort the sort parameter to sort the list of entities before paging
-     *            the sort parameter is the name of the entity-model attribute to sort with a leading '-' sign for
-     *            descending sort order.
-     * @param allRequestParams a MultiValueMap of all request parameter that is used for filtering.
-     * @return Page of domain-model-entities of specified type */
     @Override
     @RequestMapping(
             method = RequestMethod.GET,
@@ -299,12 +272,8 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
     }
 
     private Predicate<ClientConnectionData> getClientConnectionDataFilter(final FilterMap filterMap) {
-        final String infoFilter = filterMap.getString(ClientConnection.FILTER_ATTR_INFO);
-        Predicate<ClientConnectionData> filter = Utils.truePredicate();
-        if (StringUtils.isNotBlank(infoFilter)) {
-            filter = c -> c.clientConnection.getInfo() == null || c.clientConnection.getInfo().contains(infoFilter);
-        }
-        return filter;
+        final Predicate<ClientConnection> clientConnectionFilter = getClientConnectionFilter(filterMap);
+        return ccd -> clientConnectionFilter.test(ccd.clientConnection);
     }
 
     private static final class ClientConnectionComparator implements Comparator<ClientConnection> {
@@ -338,30 +307,29 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
 
     private static final class ClientConnectionDataComparator implements Comparator<ClientConnectionData> {
 
-        final String sortColumn;
-        final boolean descending;
+        final ClientConnectionComparator clientConnectionComparator;
 
         ClientConnectionDataComparator(final String sort) {
-            this.sortColumn = PageSortOrder.decode(sort);
-            this.descending = PageSortOrder.getSortOrder(sort) == PageSortOrder.DESCENDING;
+            this.clientConnectionComparator = new ClientConnectionComparator(sort);
         }
 
         @Override
         public int compare(final ClientConnectionData cc1, final ClientConnectionData cc2) {
-            int result = 0;
-            if (Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID.equals(this.sortColumn)) {
-                result = cc1.clientConnection.userSessionId
-                        .compareTo(cc2.clientConnection.userSessionId);
-            } else if (ClientConnection.ATTR_INFO.equals(this.sortColumn)) {
-                result = cc1.clientConnection.getInfo().compareTo(cc2.clientConnection.getInfo());
-            } else if (Domain.CLIENT_CONNECTION.ATTR_STATUS.equals(this.sortColumn)) {
-                result = cc1.clientConnection.getStatus()
-                        .compareTo(cc2.clientConnection.getStatus());
-            } else {
-                result = cc1.clientConnection.userSessionId
-                        .compareTo(cc2.clientConnection.userSessionId);
+            if (this.clientConnectionComparator.sortColumn.startsWith(ClientConnectionData.ATTR_INDICATOR_VALUE)) {
+                try {
+                    final Long iValuePK = Long.valueOf(StringUtils.split(
+                            this.clientConnectionComparator.sortColumn,
+                            Constants.UNDERLINE)[1]);
+                    final Double indicatorValue1 = cc1.getIndicatorValue(iValuePK);
+                    final Double indicatorValue2 = cc2.getIndicatorValue(iValuePK);
+                    final int result = indicatorValue1.compareTo(indicatorValue2);
+                    return (this.clientConnectionComparator.descending) ? -result : result;
+                } catch (final Exception e) {
+                    this.clientConnectionComparator.compare(cc1.clientConnection, cc2.clientConnection);
+                }
             }
-            return (this.descending) ? -result : result;
+
+            return this.clientConnectionComparator.compare(cc1.clientConnection, cc2.clientConnection);
         }
     }
 }

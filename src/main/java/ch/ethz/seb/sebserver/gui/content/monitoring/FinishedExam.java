@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -156,10 +157,11 @@ public class FinishedExam implements TemplateComposer {
             if (indicator.type == IndicatorType.LAST_PING || indicator.type == IndicatorType.NONE) {
                 return;
             }
-            tableBuilder.withColumn(new ColumnDefinition<>(
-                    indicator.name,
+            tableBuilder.withColumn(new ColumnDefinition<ClientConnectionData>(
+                    ClientConnectionData.ATTR_INDICATOR_VALUE + Constants.UNDERLINE + indicator.id,
                     new LocTextKey(indicator.name),
-                    cc -> cc.getIndicatorDisplayValue(indicator)));
+                    cc -> cc.getIndicatorDisplayValue(indicator))
+                            .sortable());
         });
 
         final EntityTable<ClientConnectionData> table = tableBuilder.compose(pageContext.copyOf(content));
