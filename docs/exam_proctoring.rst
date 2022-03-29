@@ -1,9 +1,10 @@
 .. _sebProctoringSettings-label:
 
-Live Proctoring
-===============
+Optional Live Proctoring
+========================
 
-Live proctoring is a new and yet experimental feature of SEB and SEB Server. The main goal of the live proctoring feature is to support the integration
+Live proctoring is a new and yet experimental feature of SEB and SEB Server. The feature is fully optional and not enabled by default.
+The main goal of the live proctoring feature is to support the integration
 of an external meeting service like Jitsi Meet or Zoom for example, within a SEB and SEB Server setup for an exam.
 In this scenario a SEB client is able to join a meeting and send audio and video data to the meeting where a proctor can watch the students during 
 an exam within this meeting(s). The role of SEB Server in this scenario is mainly to bind a particular meeting service and automatically create

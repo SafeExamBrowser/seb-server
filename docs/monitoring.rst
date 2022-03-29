@@ -104,8 +104,12 @@ overview temporary network latency or other irregularities, when this two time v
 
 In the detail view you are also able to use the instructions "Quit SEB Client" and "Mark as Canceled" for the selected SEB client connection.
 
-Live Proctoring
----------------
+Optional Live Proctoring
+------------------------
+
+Live proctoring is a new and yet experimental feature of SEB and SEB Server. The feature is fully optional and not enabled by default.
+This section is about the live proctoring on monitoring a running exam and using the optional live proctoring within.
+To configure the optional live proctoring for a specific exam please have a look at `Optional Live Proctoring <https://seb-server.readthedocs.io/en/latest/exam_proctoring.html#sebProctoringSettings>`_ 
 
 .. note::
     This feature is still in a prototype state and not all functionality might work as expected. Basically the meeting features
