@@ -74,9 +74,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final SEBClientInstructionService sebInstructionService;
     private final ExamAdminService examAdminService;
-    private final ClientIndicatorFactory clientIndicatorFactory;
-    // TODO get rid of this dependency and use application events for signaling client connection state changes
     private final DistributedIndicatorValueService distributedPingCache;
+    private final ClientIndicatorFactory clientIndicatorFactory;
     private final boolean isDistributedSetup;
 
     protected SEBClientConnectionServiceImpl(
@@ -85,8 +84,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final SEBClientConfigDAO sebClientConfigDAO,
             final SEBClientInstructionService sebInstructionService,
             final ExamAdminService examAdminService,
-            final ClientIndicatorFactory clientIndicatorFactory,
-            final DistributedIndicatorValueService distributedPingCache) {
+            final DistributedIndicatorValueService distributedPingCache,
+            final ClientIndicatorFactory clientIndicatorFactory) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();
@@ -167,6 +166,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null))
                     .getOrThrow();
+
+            // initialize distributed indicator value caches if possible and needed
+            if (clientConnection.examId != null && this.isDistributedSetup) {
+                this.clientIndicatorFactory.initializeDistributedCaches(clientConnection);
+            }
 
             // load client connection data into cache
             final ClientConnectionDataInternal activeClientConnection = this.examSessionService
@@ -264,6 +268,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             null,
                             null))
                     .getOrThrow();
+
+            // initialize distributed indicator value caches if possible and needed
+            if (examId != null && this.isDistributedSetup) {
+                this.clientIndicatorFactory.initializeDistributedCaches(clientConnection);
+            }
 
             final ClientConnectionDataInternal activeClientConnection =
                     reloadConnectionCache(connectionToken);
@@ -404,6 +413,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // check exam integrity for established connection
             checkExamIntegrity(establishedClientConnection.examId);
+
+            // initialize distributed indicator value caches if possible and needed
+            if (examId != null && this.isDistributedSetup) {
+                this.clientIndicatorFactory.initializeDistributedCaches(clientConnection);
+            }
 
             // if proctoring is enabled for exam, mark for room update
             if (proctoringEnabled) {
@@ -709,7 +723,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     public Result<ClientConnectionData> getIndicatorValues(final ClientConnection clientConnection) {
         return Result.tryCatch(() -> new ClientConnectionData(
                 clientConnection,
-                this.clientIndicatorFactory.createFor(clientConnection, true)));
+                this.clientIndicatorFactory.getIndicatorValues(clientConnection)));
     }
 
     private void checkExamRunning(final Long examId) {
@@ -878,13 +892,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 if (clientEventRecord.getType() != null && EventType.ERROR_LOG.id == clientEventRecord.getType()) {
                     connection.getIndicatorMapping(EventType.ERROR_LOG)
                             .forEach(indicator -> indicator.notifyValueChange(clientEventRecord));
-                }
-
-                if (this.isDistributedSetup) {
-                    // mark for update and flush the cache
-                    this.clientConnectionDAO.save(connection.clientConnection);
-                    this.examSessionCacheService.evictClientConnection(
-                            connection.clientConnection.connectionToken);
                 }
             }
         };

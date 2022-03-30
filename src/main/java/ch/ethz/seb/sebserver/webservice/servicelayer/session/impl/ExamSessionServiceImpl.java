@@ -292,8 +292,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             throw new IllegalStateException("Missing exam identifier or requested exam is not running");
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Trying to get exam from InMemorySEBConfig");
+        if (log.isTraceEnabled()) {
+            log.trace("Trying to get exam from InMemorySEBConfig");
         }
 
         final InMemorySEBConfig sebConfigForExam = this.examSessionCacheService
@@ -306,14 +306,14 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
         try {
 
-            if (log.isDebugEnabled()) {
-                log.debug("SEB exam configuration download request, start writing SEB exam configuration");
+            if (log.isTraceEnabled()) {
+                log.trace("SEB exam configuration download request, start writing SEB exam configuration");
             }
 
             out.write(sebConfigForExam.getData());
 
-            if (log.isDebugEnabled()) {
-                log.debug("SEB exam configuration download request, finished writing SEB exam configuration");
+            if (log.isTraceEnabled()) {
+                log.trace("SEB exam configuration download request, finished writing SEB exam configuration");
             }
 
         } catch (final IOException e) {

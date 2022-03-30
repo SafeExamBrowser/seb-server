@@ -55,7 +55,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
         assertNotNull(accessToken);
 
-        final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, null);
+        final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, 2L);
         assertNotNull(createConnection);
 
         // check correct response
@@ -79,7 +79,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertTrue(records.size() == 1);
         final ClientConnectionRecord clientConnectionRecord = records.get(0);
         assertEquals("1", String.valueOf(clientConnectionRecord.getInstitutionId()));
-        assertNull(clientConnectionRecord.getExamId());
+        assertEquals("2", clientConnectionRecord.getExamId().toString());
         assertEquals("CONNECTION_REQUESTED", String.valueOf(clientConnectionRecord.getStatus()));
         assertEquals(connectionToken, clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
@@ -321,7 +321,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
         assertNotNull(accessToken);
 
-        final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, 2L);
+        final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, null);
         assertNotNull(createConnection);
 
         final String connectionToken = createConnection.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
@@ -356,7 +356,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check correct stored (no changes)
         final List<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                 .selectByExample()
-                .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isEqualTo(2L))
+                .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isNull())
                 .build()
                 .execute();
 

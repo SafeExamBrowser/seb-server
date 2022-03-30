@@ -555,6 +555,11 @@ public class ZoomProctoringService implements ExamProctoringService {
                     credentials,
                     roomName);
 
+            final int statusCodeValue = createUser.getStatusCodeValue();
+            if (statusCodeValue >= 400) {
+                throw new RuntimeException("Failed to create new Zoom user for room: " + createUser.getBody());
+            }
+
             final UserResponse userResponse = this.jsonMapper.readValue(
                     createUser.getBody(),
                     UserResponse.class);

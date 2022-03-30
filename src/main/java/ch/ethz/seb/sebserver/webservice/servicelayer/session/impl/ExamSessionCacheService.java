@@ -148,9 +148,7 @@ public class ExamSessionCacheService {
         if (clientConnection == null) {
             return null;
         } else {
-            return this.internalClientConnectionDataFactory.createClientConnectionData(
-                    clientConnection,
-                    this.getRunningExam(clientConnection.examId) != null);
+            return this.internalClientConnectionDataFactory.createClientConnectionData(clientConnection);
         }
     }
 
