@@ -69,37 +69,34 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
         this.cachingEnabled = cachingEnabled;
 
         if (!this.cachingEnabled && this.active) {
-            try {
-                this.ditributedIndicatorValueRecordId = this.distributedPingCache.initIndicatorForConnection(
-                        connectionId,
-                        getType(),
-                        initValue());
-            } catch (final Exception e) {
-                tryRecoverIndicatorRecord();
-            }
+            this.ditributedIndicatorValueRecordId = this.distributedPingCache
+                    .getIndicatorForConnection(connectionId, getType());
+//            if (this.ditributedIndicatorValueRecordId == null) {
+//                tryRecoverIndicatorRecord();
+//            }
+//            try {
+//                this.ditributedIndicatorValueRecordId = this.distributedPingCache.initIndicatorForConnection(
+//                        connectionId,
+//                        getType(),
+//                        initValue());
+//            } catch (final Exception e) {
+//                tryRecoverIndicatorRecord();
+//            }
         }
 
         this.currentValue = computeValueAt(Utils.getMillisecondsNow());
         this.initialized = true;
     }
 
-    protected long initValue() {
-        return 0;
-    }
-
     protected void tryRecoverIndicatorRecord() {
+        this.ditributedIndicatorValueRecordId = this.distributedPingCache.getIndicatorForConnection(
+                this.connectionId,
+                getType());
 
-        if (log.isWarnEnabled()) {
-            log.warn("*** Missing indicator value record for connection: {}. Try to recover...", this.connectionId);
-        }
-
-        try {
-            this.ditributedIndicatorValueRecordId = this.distributedPingCache.initIndicatorForConnection(
+        if (this.ditributedIndicatorValueRecordId == null) {
+            log.warn("Failed to recover from missing indicator value cache record: {} type: {}",
                     this.connectionId,
-                    getType(),
-                    initValue());
-        } catch (final Exception e) {
-            log.error("Failed to recover indicator value record for connection: {}", this.connectionId, e);
+                    getType());
         }
     }
 

@@ -20,7 +20,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 @Lazy
@@ -38,11 +37,6 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     public PingIntervalClientIndicator(final DistributedIndicatorValueService distributedPingCache) {
         super(distributedPingCache);
         this.cachingEnabled = true;
-    }
-
-    @Override
-    protected long initValue() {
-        return Utils.getMillisecondsNow();
     }
 
     @Override
@@ -87,6 +81,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
             final long currentTimeMillis = DateTimeUtils.currentTimeMillis();
             this.currentValue = computeValueAt(currentTimeMillis);
+            this.lastUpdate = this.distributedPingCache.lastUpdate();
             return (currentTimeMillis < this.currentValue)
                     ? DateTimeUtils.currentTimeMillis() - this.currentValue
                     : currentTimeMillis - this.currentValue;

@@ -15,6 +15,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
@@ -179,5 +180,11 @@ public interface ClientConnectionDAO extends
      * @param clientName the VDI connection identifier sent by the SEB client on connect
      * @return Result refer to the relevant VDI pair connection if exists or to an error if not */
     Result<ClientConnectionRecord> getVDIPairCompanion(Long examId, String clientName);
+
+    /** Deletes all client indicator value entries within the client_indicator table for a given exam.
+     *
+     * @param exam the Exam to delete all currently registered indicator value entries
+     * @return Result refer to the given Exam or to an error when happened. */
+    Result<Exam> deleteClientIndicatorValues(Exam exam);
 
 }

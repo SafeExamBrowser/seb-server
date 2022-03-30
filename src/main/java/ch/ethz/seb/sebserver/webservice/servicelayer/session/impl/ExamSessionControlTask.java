@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 
 @Service
@@ -42,6 +43,7 @@ public class ExamSessionControlTask implements DisposableBean {
     private final ExamUpdateHandler examUpdateHandler;
     private final ExamProctoringRoomService examProcotringRoomService;
     private final WebserviceInfo webserviceInfo;
+    private final ExamSessionService examSessionService;
 
     private final Long examTimePrefix;
     private final Long examTimeSuffix;
@@ -54,6 +56,7 @@ public class ExamSessionControlTask implements DisposableBean {
             final ExamUpdateHandler examUpdateHandler,
             final ExamProctoringRoomService examProcotringRoomService,
             final WebserviceInfo webserviceInfo,
+            final ExamSessionService examSessionService,
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,
             @Value("${sebserver.webservice.api.exam.update-interval:1 * * * * *}") final String examTaskCron,
@@ -63,6 +66,7 @@ public class ExamSessionControlTask implements DisposableBean {
         this.sebClientConnectionService = sebClientConnectionService;
         this.examUpdateHandler = examUpdateHandler;
         this.webserviceInfo = webserviceInfo;
+        this.examSessionService = examSessionService;
         this.examTimePrefix = examTimePrefix;
         this.examTimeSuffix = examTimeSuffix;
         this.examTaskCron = examTaskCron;
@@ -185,6 +189,7 @@ public class ExamSessionControlTask implements DisposableBean {
                     .filter(exam -> exam.endTime != null && exam.endTime.plus(this.examTimeSuffix).isBefore(now))
                     .flatMap(exam -> Result.skipOnError(this.examUpdateHandler.setFinished(exam, updateId)))
                     .flatMap(exam -> Result.skipOnError(this.examProcotringRoomService.disposeRoomsForExam(exam)))
+                    .flatMap(exam -> Result.skipOnError(this.examSessionService.notifyExamFinished(exam)))
                     .collect(Collectors.toMap(Exam::getId, Exam::getName));
 
             if (!updated.isEmpty()) {
