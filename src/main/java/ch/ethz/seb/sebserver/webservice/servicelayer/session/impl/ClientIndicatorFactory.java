@@ -26,8 +26,10 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedIndicatorValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.PingIntervalClientIndicator;
 
 @Lazy
@@ -39,27 +41,66 @@ public class ClientIndicatorFactory {
 
     private final ApplicationContext applicationContext;
     private final IndicatorDAO indicatorDAO;
+    private final DistributedIndicatorValueService distributedPingCache;
+    private final boolean distributedSetup;
     private final boolean enableCaching;
 
     @Autowired
     public ClientIndicatorFactory(
             final ApplicationContext applicationContext,
             final IndicatorDAO indicatorDAO,
+            final DistributedIndicatorValueService distributedPingCache,
             @Value("${sebserver.webservice.distributed:false}") final boolean distributedSetup,
             @Value("${sebserver.webservice.api.exam.enable-indicator-cache:true}") final boolean enableCaching) {
 
         this.applicationContext = applicationContext;
         this.indicatorDAO = indicatorDAO;
+        this.distributedPingCache = distributedPingCache;
+        this.distributedSetup = distributedSetup;
         this.enableCaching = distributedSetup ? false : enableCaching;
     }
 
-    public List<ClientIndicator> createFor(final ClientConnection clientConnection) {
-        return createFor(clientConnection, false);
+    public void initializeDistributedCaches(final ClientConnection clientConnection) {
+        try {
+
+            if (!this.distributedSetup || clientConnection.examId == null) {
+                return;
+            }
+
+            final Collection<Indicator> examIndicators = this.indicatorDAO
+                    .allForExam(clientConnection.examId)
+                    .getOrThrow();
+
+            boolean pingIndicatorAvailable = false;
+            for (final Indicator indicatorDef : examIndicators) {
+
+                this.distributedPingCache.createIndicatorForConnection(
+                        clientConnection.id,
+                        indicatorDef.type,
+                        indicatorDef.type == IndicatorType.LAST_PING ? Utils.getMillisecondsNow() : 0L);
+
+                if (!pingIndicatorAvailable) {
+                    pingIndicatorAvailable = indicatorDef.type == IndicatorType.LAST_PING;
+                }
+            }
+
+            // If there is no ping interval indicator set from the exam, we add a hidden one
+            // to at least create missing ping events and track missing state
+            if (!pingIndicatorAvailable) {
+                this.distributedPingCache.createIndicatorForConnection(
+                        clientConnection.id,
+                        IndicatorType.LAST_PING,
+                        Utils.getMillisecondsNow());
+            }
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to initialize distributed indicator value cache for: {}",
+                    clientConnection,
+                    e);
+        }
     }
 
-    public List<ClientIndicator> createFor(
-            final ClientConnection clientConnection,
-            final boolean enableCachingOverride) {
+    public List<ClientIndicator> createFor(final ClientConnection clientConnection) {
 
         final List<ClientIndicator> result = new ArrayList<>();
         if (clientConnection.examId == null) {
@@ -73,7 +114,6 @@ public class ClientIndicatorFactory {
                     .getOrThrow();
 
             boolean pingIndicatorAvailable = false;
-
             for (final Indicator indicatorDef : examIndicators) {
                 try {
 
@@ -88,11 +128,12 @@ public class ClientIndicatorFactory {
                             indicatorDef,
                             clientConnection.id,
                             clientConnection.status.clientActiveStatus,
-                            this.enableCaching || enableCachingOverride);
+                            this.enableCaching);
 
                     result.add(indicator);
                 } catch (final Exception e) {
-                    log.warn("No Indicator with type: {} found as registered bean. Ignore this one.", indicatorDef.type,
+                    log.warn("No Indicator with type: {} found as registered bean. Ignore this one.",
+                            indicatorDef.type,
                             e);
                 }
             }
@@ -117,7 +158,7 @@ public class ClientIndicatorFactory {
                         indicator,
                         clientConnection.id,
                         clientConnection.status.clientActiveStatus,
-                        this.enableCaching || enableCachingOverride);
+                        this.enableCaching);
                 result.add(pingIndicator);
             }
 

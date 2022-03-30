@@ -129,100 +129,89 @@ public class DistributedIndicatorValueService implements DisposableBean {
         }
     }
 
-    /** This initializes a SEB client indicator on the persistent storage for a given SEB client
-     * connection identifier and of given IndicatorType.
-     * If there is already such an indicator for the specified SEB client connection identifier and type,
-     * this returns the id of the existing one.
+    /** This creates a distributed indicator value cache record for a given SEB connection and indicator
+     * if it not already exists and returns the PK for the specified distributed indicator value cache record
      *
-     * @param connectionId SEB client connection identifier
-     * @param type indicator type
-     * @param value the initial indicator value
-     * @return SEB client indicator value identifier (PK) */
+     * @param connectionId the client connection identifier
+     * @param type the indicator type
+     * @param value the initialization value
+     * @return the PK of the created or existing distributed indicator value cache record or null when a unexpected
+     *         error happened */
     @Transactional
-    public Long initIndicatorForConnection(
+    public Long createIndicatorForConnection(
             final Long connectionId,
             final IndicatorType type,
-            final Long value) {
+            final long initValue) {
+
+        if (!this.webserviceInfo.isDistributed()) {
+            log.warn("No distributed setup, skip createIndicatorForConnection");
+            return null;
+        }
 
         try {
 
-            if (log.isDebugEnabled()) {
-                log.trace("*** Initialize indicator value record for SEB connection: {}", connectionId);
+            // first check if the record already exists
+            final Long recId = this.clientIndicatorValueMapper.indicatorRecordIdByConnectionId(
+                    connectionId,
+                    type);
+            if (recId != null) {
+                log.debug("Distributed indicator value cache already exists for: {}, {}", connectionId, type);
+                return recId;
             }
 
-            synchronized (this) {
+            // if not, create new one and return PK
+            final ClientIndicatorRecord clientEventRecord = new ClientIndicatorRecord(
+                    null, connectionId, type.id, initValue);
+            this.clientIndicatorRecordMapper.insert(clientEventRecord);
 
-                Long recordId = null;
+            try {
+                // This also double-check by trying again. If we have more then one entry here
+                // this will throw an exception that causes a rollback
+                return this.clientIndicatorValueMapper
+                        .indicatorRecordIdByConnectionId(connectionId, type);
 
-                try {
-                    recordId = this.clientIndicatorValueMapper
-                            .indicatorRecordIdByConnectionId(connectionId, type);
-                } catch (final Exception e) {
-                    // There is already more then one indicator record entry!!!
-                    // delete the second one and work on with the first one
+            } catch (final Exception e) {
 
-                    log.warn("Duplicate indicator entry detected for connectionId: {}, type: {}  --> try to recover",
-                            connectionId, type);
+                log.warn(
+                        "Detected multiple client indicator entries for connection: {} and type: {}. Force rollback to prevent",
+                        connectionId, type);
 
-                    try {
-                        final List<ClientIndicatorRecord> records = this.clientIndicatorRecordMapper.selectByExample()
-                                .where(ClientIndicatorRecordDynamicSqlSupport.clientConnectionId,
-                                        isEqualTo(connectionId))
-                                .and(ClientIndicatorRecordDynamicSqlSupport.type, isEqualTo(type.id))
-                                .build()
-                                .execute();
-                        if (records.size() > 1) {
-                            this.clientIndicatorRecordMapper.deleteByPrimaryKey(records.get(1).getId());
-                        }
-
-                        return records.get(0).getId();
-                    } catch (final Exception ee) {
-                        log.error("Failed to recover from duplicate indicator entry: ", ee);
-                        return null;
-                    }
-                }
-
-                if (recordId == null) {
-                    if (!this.webserviceInfo.isMaster()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Skip indicator record init because this is no master instance");
-                        }
-                        return null;
-                    }
-
-                    final ClientIndicatorRecord clientEventRecord = new ClientIndicatorRecord(
-                            null, connectionId, type.id, value);
-
-                    this.clientIndicatorRecordMapper.insert(clientEventRecord);
-
-                    try {
-                        // This also double-check by trying again. If we have more then one entry here
-                        // this will throw an exception that causes a rollback
-                        return this.clientIndicatorValueMapper
-                                .indicatorRecordIdByConnectionId(connectionId, type);
-
-                    } catch (final Exception e) {
-
-                        log.warn(
-                                "Detected multiple client indicator entries for connection: {} and type: {}. Force rollback to prevent",
-                                connectionId, type);
-
-                        // force rollback
-                        TransactionInterceptor.currentTransactionStatus().setRollbackOnly();
-                        throw new RuntimeException("Detected multiple client indicator value entries");
-                    }
-                }
-
-                return recordId;
-
+                // force rollback
+                TransactionInterceptor.currentTransactionStatus().setRollbackOnly();
+                throw new RuntimeException("Detected multiple client indicator value entries");
             }
         } catch (final Exception e) {
+            log.error(
+                    "Failed to initialize distributed indicator value cache in persistent store. connectionId: {} type: {}",
+                    connectionId, type, e);
 
-            log.error("Failed to initialize indicator value for connection -> {}", connectionId, e);
+            return null;
+        }
+    }
 
-            // force rollback
-            TransactionInterceptor.currentTransactionStatus().setRollbackOnly();
-            throw new RuntimeException("Failed to initialize indicator value for connection -> " + connectionId, e);
+    /** Get the distributed indicator value cache record PK for a given SEB connection and indicator if available.
+     * If not existing for the specified connection and indicator this return null
+     *
+     * @param connectionId the client connection identifier
+     * @param type the indicator type
+     * @return the indicator value cache record PK or null of not defined */
+    @Transactional(readOnly = true)
+    public Long getIndicatorForConnection(final Long connectionId, final IndicatorType type) {
+        try {
+
+            return this.clientIndicatorValueMapper
+                    .indicatorRecordIdByConnectionId(connectionId, type);
+
+        } catch (final Exception e) {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to get indicator PK for connection: {} type: {} cause: {}",
+                        connectionId,
+                        type,
+                        e.getMessage());
+            }
+
+            return null;
         }
     }
 
@@ -235,7 +224,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
         try {
 
             if (log.isDebugEnabled()) {
-                log.debug("*** Delete indicator value record for SEB connection: {}", connectionId);
+                log.debug("Delete indicator value record for SEB connection: {}", connectionId);
             }
 
             final Collection<ClientIndicatorValueRecord> records = this.clientIndicatorValueMapper

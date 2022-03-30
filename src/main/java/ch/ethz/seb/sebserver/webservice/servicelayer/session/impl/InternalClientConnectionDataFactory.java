@@ -32,16 +32,7 @@ public class InternalClientConnectionDataFactory {
         this.sebClientNotificationService = sebClientNotificationService;
     }
 
-    public ClientConnectionDataInternal createClientConnectionData(
-            final ClientConnection clientConnection,
-            final boolean examRunning) {
-
-        if (!examRunning) {
-            return new ClientConnectionDataInternal(
-                    clientConnection,
-                    () -> false,
-                    this.clientIndicatorFactory.createFor(clientConnection, true));
-        }
+    public ClientConnectionDataInternal createClientConnectionData(final ClientConnection clientConnection) {
 
         if (clientConnection.status == ConnectionStatus.CLOSED
                 || clientConnection.status == ConnectionStatus.DISABLED) {
