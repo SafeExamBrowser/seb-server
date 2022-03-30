@@ -364,6 +364,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     examId,
                     connectionToken,
                     e);
+
             return null;
         }
     }
