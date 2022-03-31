@@ -84,8 +84,8 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
                 this.connectionId,
                 getType());
 
-        if (this.ditributedIndicatorValueRecordId == null) {
-            log.warn("Failed to recover from missing indicator value cache record: {} type: {}",
+        if (this.ditributedIndicatorValueRecordId == null && log.isDebugEnabled()) {
+            log.debug("Failed to recover from missing indicator value cache record: {} type: {}",
                     this.connectionId,
                     getType());
         }
