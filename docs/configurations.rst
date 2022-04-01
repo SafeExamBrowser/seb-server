@@ -14,13 +14,13 @@ information about exam configuration see :ref:`exam-configuration-label`
 
 Within Configuration Templates, it is possible to create templates for exam configuration. Within the current version of SEB Server
 there is the possibility to define different default value(s) for each exam configuration attribute and also to define if the attribute
-is been shown in the exam configuration or not. This allows an Exam Administrator to create a exam configuration template for exams
+is been shown in the exam configuration or not. This allows an Exam Administrator to create an exam configuration template for exams
 with context defines default values and also to be able to only see change the attributes that are relevant for an exam configuration.
 This feature is currently in an experimental state and may be changed and / or expanded within future releases of SEB Server. See 
 :ref:`config-template-label`
 
-An new feature since SEB Server version 1.2 is the integrated certificate store where an administator is able to upload and register
-certificates. The certificates can then be used to encrypt and secure a connection configuration for example. Or as planed for another
+An new feature since SEB Server version 1.2 is the integrated certificate store where an administrator is able to upload and register
+certificates. The certificates can then be used to encrypt and secure a connection configuration for example. Or as planned for another
 SEB Server release, to embed into an exam configuration for SEB to allow certificate pinning on SEB - LMS communication.
 
 

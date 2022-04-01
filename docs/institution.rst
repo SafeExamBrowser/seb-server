@@ -4,7 +4,7 @@ Institution
 Overview
 ---------
 
-The institution section within SEB Server is used to support built-in multi-tenancy functionality to allow using SEB server as a 
+The institution section within SEB Server is used to support built-in multi-tenancy functionality to allow using SEB Server as a 
 light-weight stand-alone server but with the possibility to separate operation completely within different institutions.
 
 .. note:: 
@@ -12,10 +12,10 @@ light-weight stand-alone server but with the possibility to separate operation c
 
 Only the role of SEB Server administrator and institutional administrator are able to see and use this section.
 A SEB Server administrator is able to see the whole list of all existing institutions and to create new and maintain every 
-institution within a SEB Server, while a institutional administrator is only able to see the belonging institution and
+institution within a SEB Server, while an institutional administrator is only able to see the belonging institution and
 is able to modify this institution but not to change activity or create new institutions.
 
-If a SEB server administrator clicks on the "Institution" section on the left hand menu, the application will show the a list
+If a SEB Server administrator clicks on the "Institution" section on the left hand menu, the application will show the a list
 of all available institutions. The list can be filtered with the filter above and can be sorted by clicking on the column one 
 would like to sort the list in. 
 
@@ -27,7 +27,7 @@ Currently an institution has a name, an optional url-suffix and an optional logo
 
 - The **Name** is mandatory and must be unique within the SEB Server application.
 - The **URL-Suffix** is optional and defines a suffix that can be used within the browser URL to access the SEB Server within this institution. The institution logo and theme will then be shown.
-- The **Logo** upload where a image can be uploaded to be used as logo for the institution. 
+- The **Logo** upload where an image can be uploaded to be used as logo for the institution. 
   
 .. note:: The logo ideally should have a dimension around 300 pixel width and 80 pixel height 
           to fit well into the logo section of the page. Currently only .png, .jpg and .jpeg image-files are supported.
@@ -100,7 +100,7 @@ access the application with a web-browser and have the own logo.
 **Activate / Deactivate an existing institution**
   
 An institution is shown to other users and ready for applying user-accounts and other entities only if it is active. An inactive
-institution can only be seen by a institutional administrator of this institution or by a SEB Server administrator that are able to 
+institution can only be seen by an institutional administrator of this institution or by a SEB Server administrator that are able to 
 see all institutions.
 
 To activate an institution for the first Time one can either use the "Activate Institution" action form the action pane on the right side
@@ -112,6 +112,6 @@ When an institution is been deactivated, also all existing and active entities t
 This affects user-accounts, configurations and LMS Setups. On deactivation action, the application will search the affected entities
 and will inform the administrator about the number of the affected entities and asks for confirmation.
 After Confirm the deactivation the institution and all affected entities will be deactivated. This means also the user-accounts that has
-not a institutional role or the SEB Server administration role, will not be able to login anymore.
+not an institutional role or the SEB Server administration role, will not be able to log in anymore.
 
 

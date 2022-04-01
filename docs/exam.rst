@@ -10,10 +10,10 @@ see a list of all available exams. You are able to filter and sort the list as u
 .. note::
     The "Start-Time" filter is usually set to the date one year before now or to some other default date in the past. The list shows only 
     the courses that has a start-time after that time. If you have long running courses and it may possible that a course has been stated
-    a year or two ago, you habe to adapt this "Start-Time" filter to view those courses that has been started before. 
+    a year or two ago, you have to adapt this "Start-Time" filter to view those courses that has been started before. 
     
-Double click on the list entry of the exam or select the list entry and use the "View Exam" action of the action pain on the right hand side to
-open the exam in the detail view. Within the detail view of the exam you are able to edit the exam attribute, apply SEB exam configuration and
+Double click on the list entry of the exam or select the list entry and use the "View Exam" action of the action pane on the right hand side to
+open the exam in the detail view. Within the detail view of the exam you are able to edit the exam attributes, apply SEB exam configuration and
 indicators for monitoring as well as defining details of the SEB restriction if this feature is available from the LMS.
 
 .. note::
@@ -36,7 +36,7 @@ At the beginning of the page - if there is no note - you see all the details of 
 - **LMS Exam URL**: Is the start URL of the course/exam
 
 To edit the SEB Server relevant attributes you can use
-the "Edit Exam" action from the action pain on the right hand side to switch to the exam edit mode. In the exam edit mode you can modify
+the "Edit Exam" action from the action pane on the right hand side to switch to the exam edit mode. In the exam edit mode you can modify
 the type of the exam "Exam Type". The exam type has currently only informational character and has no implication on SEB Server side but may be 
 used in the future to apply to different exam scenarios for SEB Server and SEB. Here you can also manage the accounts that shall be able to 
 support and monitor the exam. To do so, use the multi combo selection within the "Exam Supporter" attribute. Click in the
@@ -52,7 +52,7 @@ Apply SEB Exam Configuration
 Just below the exam details you will find the list of applied SEB exam configurations. Currently the number of SEB exam configurations that can be applied
 to an exam is restricted to one since it is not yet possible to apply a SEB exam configuration not just to the exam but also to a specific user or a 
 specific group of users. This feature may come with a future release of seb server. But for now you are able to apply just one SEB exam configuration 
-to the exam and this configuration gets delivered to all the SEB clients that connect to the SEB server and participate to the exam.
+to the exam and this configuration gets delivered to all the SEB clients that connect to the SEB Server and participate to the exam.
 
 To apply a SEB exam configuration to an exam use the "Add Exam Configuration" action on the right action pane. A pop-up will prompt you to select an
 SEB exam configuration by a drop-down selection. The drop-down box will present you all SEB exam configurations that are in state "Ready To Use" and
@@ -70,7 +70,7 @@ the pop-up shows the description and the status of the selected configuration.
     
 There is also the possibility to encrypt the SEB exam configuration by a password. This is done before the SEB configuration is send to a connecting 
 SEB client. Since in the moste cases the SEB client connections are over HTTPS / TSL there is alrady a good protection in place and an 
-additional encryption of the SEB exam configuration is not recommended. Anyways, if you decide the use the additional password encryption, the SEB 
+additional encryption of the SEB exam configuration is not recommended. Anyway, if you decide the use the additional password encryption, the SEB 
 client that receives the encrypted SEB exam configuration will prompt the user for the password to proceed and connect to the LMS.
 
 .. note::
@@ -89,8 +89,8 @@ the SEB restriction details with the generated Config-Key. See :ref:`sebRestrict
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examWithConfig.png
     
-When a SEB exam configuration is applied to the exam you are able to export the SEB exam configuration XML in plain text or the generated Config-Key for
-testing purposes. Just select the SEB exam configuration in the list to activate the action on the action pain on the right side and use the
+When a SEB exam configuration is applied to the exam, you are able to export the SEB exam configuration XML in plain text or the generated Config-Key for
+testing purposes. Just select the SEB exam configuration in the list to activate the action on the action pane on the right side and use the
 appropriate action. The SEB exam configuration export action will instruct the browser to open a download dialog. How the download is applied is up the 
 the browser of use. Usually you are able to either save the file or open it up with a application. If you have already installed the Safe Exam Browser on
 your device, the browser probably associates the download file already with the SEB client application.

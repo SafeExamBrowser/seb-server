@@ -3,8 +3,8 @@ Exam Monitoring
 
 A key feature of the SEB Server is the ability to overview and monitor SEB clients that are connected to the SEB Server and participate in a running exam.
 It is also possible to interact with individual SEB clients that are connected and send them instructions, e.g.: to quit and reload for example.
-But the main focus lies on monitoring and the SEB Server don't take automated actions but always only shows incidents as they are defined by
-indicators to a exam supporter. A exam supporter then can take action.
+But the main focus lies on monitoring and the SEB Server does not take automated actions but always only shows incidents as they are defined by
+indicators to an exam supporter. A exam supporter then can take action.
 
 As an exam supporter you see all running exams where you have been assigned to by an exam administrator in a list. 
 
@@ -13,7 +13,7 @@ As an exam supporter you see all running exams where you have been assigned to b
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/runningExams.png
     
 To navigate to this list click on the "Running Exams" menu within the "Monitoring" category. And you will see the list with the name of the
-exam, the type and start- and end-time of the exam. If the exam you looking for is not on the list, please check the start-time filter 
+exam, the type and start- and end-time of the exam. If the exam you are looking for is not on the list, please check the start-time filter 
 and make sure that it is set before the start-time of the exam. If not, use the filter to set the date before the exams start-date and
 use the lens-symbol on the right to apply the new filter. If the exam you are looking for is still not on the list, please contact a 
 exam administrator of your institution to get help and check if you are correctly assigned to the exam as an exam supporter.
@@ -21,7 +21,7 @@ exam administrator of your institution to get help and check if you are correctl
 To monitor an exam either double-click on the list entry of the exam or select the list entry and use the "Monitoring" action form the
 right action pane to navigate into the main page of exam monitoring.
 
-On the the main page of exam monitoring you find a heat-map list of all SEB client connections that are connected to the exam since the
+On the main page of exam monitoring you find a heat-map list of all SEB client connections that are connected to the exam since the
 exam is running. There are state filter switches on the right action pane that allows to show/hide SEB client connection of specified states.
 As default you should see at least all active connections instantly.
 
@@ -40,7 +40,7 @@ The following SEB connection states are defined:
 
 - **Connection Requested** This state appears from when a SEB client contacted to SEB Server the first time until the SEB client has finished up the hand-shake protocol with the SEB Server and the student has logged into the LMS.
 - **Active** This state appears after successful hand-shake and login into LMS and stays as long as the SEB connection is available and not closed or terminated
-- **Missing** This state appears when a SEB connection is currently in active state but has missing ping (last ping last longer then the highest ping threshold of the ping indicator).
+- **Missing** This state appears when a SEB connection is currently in active state but has missing ping (last ping last longer than the highest ping threshold of the ping indicator).
 - **Closed** This state marks a closed SEB connection that was once active.
 - **Canceled** This state marks a SEB connection that has been canceled.
 
@@ -52,7 +52,7 @@ the cell is tinted in the color of the reached threshold also defined for each i
 
 Since the monitoring heat-map list is automatically sorted and cannot be filtered except on connection status, there is a search feature to find a
 particular connection or a set of connections. To search connection on a running exam, please use the "Search" action from the right action pane.
-A search pop-pup will appear with all connection is a usual list with the possibility to filter and sort the entires.
+A search pop-pup will appear with all connection is a usual list with the possibility to filter and sort the entries.
 Double-click on an entry to go to the detail view of the specified SEB client connection.
 
 .. image:: images/monitoring/search.png
@@ -62,8 +62,8 @@ Double-click on an entry to go to the detail view of the specified SEB client co
 
 **Instructions**
 
-Instructions are actions applied to one or more SEB client connections that also can apply a signal to a active SEB Client connection to
-instruct the SEB client to do a particular action on client side. In the monitoring view you can select one ore more list entries
+Instructions are actions applied to one or more SEB client connections that also can apply a signal to an active SEB Client connection to
+instruct the SEB client to do a particular action on client side. In the monitoring view you can select one or more list entries
 with usual list (multi)selection by holding Ctrl or Shift key plus right mouse click(s). Currently there are two instructions.
 
 - **Quit SEB Client** Sends a quit instruction to the SEB Client to quit the session. This can be applied to all active SEB client connection with the "Quit all SEB Clients" action from the right action pane or to all selected SEB client connections with the "Quit Selected SEB Clients" action. 
@@ -128,7 +128,7 @@ SEB Server will then open a proctoring window and join the proctor to the meetin
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/proctoringExam.png
     
 A proctor is also able to view the names of all participants of a room by right-clicking on the specified room action.
-SEB server will then open a dialog with a list of all participants. Double-clicking on a particular participant will automatically
+SEB Server will then open a dialog with a list of all participants. Double-clicking on a particular participant will automatically
 load the detailed monitoring view of that participant.
 
 .. note:: 
@@ -137,7 +137,7 @@ load the detailed monitoring view of that participant.
     
 **Town-Hall Feature**
     
-Beside the usual collecting room, there is a town-hall room feature. By using the "Open Townhall" action from the right action pane, SEB Server enforce all SEB clients that
+Besides the usual collecting room, there is a town-hall room feature. By using the "Open Townhall" action from the right action pane, SEB Server enforce all SEB clients that
 are in collecting rooms as well as new connecting SEB clients to leave their current meeting and join the town-hall meeting for as long as the town-hall is active.
 Within the town-hall a proctor has the same features as in the collecting room but can connect to all participants at the same time.
 When the town-hall is closed all connected SEB clients are enforced to leave the town-room and go back to its collecting room meetings again.
@@ -160,9 +160,9 @@ When the single room is closed the connected SEB clients is enforced to leave th
 .. note:: 
     This feature is only available if it is enabled within the exam proctoring settings in the exam administration.
 
-**Boradcast Features**
+**Broadcast Features**
 
-Within a live proctoring window a proctor can use the enabled features of the integrated meeting service. And is able to communicate with the SEB clients by using one
+Within a live proctoring window a proctor can use the enabled features of the integrated meeting service and is able to communicate with the SEB clients by using one
 of the following features if available for the service:
 
 - **Start Audio Broadcast** Will enforce the SEB clients within the particular room to enable receive audio and a proctor can speak to the students that are in the meeting.
@@ -170,7 +170,7 @@ of the following features if available for the service:
 - **Enable Chat** Will enforce the SEB clients within the particular room to enable the chat feature and a proctor is able to chat with all students in the meeting.
 
 While a broadcast feature is enabled by a proctor, the SEB Server sends an instruction to each SEB client that is within the same meeting to display the meeting client.
-A Student as well as a proctor is then able to use all the features of the meeting client of the integrated meeting service.
+A student as well as a proctor is then able to use all the features of the meeting client of the integrated meeting service.
 
 .. image:: images/monitoring/proctoringWindow.png
     :align: center
@@ -208,7 +208,7 @@ action form the right action pane to open up a pop-up containing all related inf
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/sebClientLogDetail.png
 
-Currently there is no export functionality to export all interessting SEB client logs to a CSV table for example. But such a feature will probably come
+Currently there is no export functionality to export all interesting SEB client logs to a CSV table for example. But such a feature will probably come
 with a next version of SEB Server.
 
 **Export filtered client logs**
