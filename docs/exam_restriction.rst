@@ -32,7 +32,7 @@ comma separated list if needed.
 
 **SEB restriction on Open edX**
 
-To be able to use the SEB restriction feature with a Open edX LMS, you need to install the `SEB Open edX plugin <https://seb-openedx.readthedocs.io/en/latest/index.html>`_
+To be able to use the SEB restriction feature with an Open edX LMS, you need to install the `SEB Open edX plugin <https://seb-openedx.readthedocs.io/en/latest/index.html>`_
 from eduNEXT. Please consult the documentation for installing the `SEB Open edX plugin <https://seb-openedx.readthedocs.io/en/latest/index.html>`_ as well as for the
 use of all additional supported restriction attributes. 
 

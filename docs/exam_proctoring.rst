@@ -23,15 +23,15 @@ Currently supported meeting services are:
 - `Zoom meeting service <https://zoom.us/>`_ with an account plan that fits your need and supports the `Zoom API and Client SDKs <https://marketplace.zoom.us/docs/sdk/native-sdks/developer-accounts>`_.
 
 
-To bind and setup a live proctoring service in SEB Server for an exam, go to the view page of the exam and use the "Proctoring Settings" action on the right action pain to open up the proctoring settings dialog.
+To bind and setup a live proctoring service in SEB Server for an exam, go to the view page of the exam and use the "Proctoring Settings" action on the right action pane to open up the proctoring settings dialog.
 
 .. image:: images/exam/proctoringSettings.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/proctoringSettings.png
     
-Within the proctoring settings dialog you are able switch the service on and off by using the "Proctoring enabled" checkbox. You also see if the proctoring service is enabled within 
+Within the proctoring settings dialog you are able to switch the service on and off by using the "Proctoring enabled" checkbox. You also see if the proctoring service is enabled within 
 the action icon that is either an eye when active or a slashed eye when not active.
-To define and bind a service you have to chose a service type from the available service types. And you need to give the API access credentials like "Application Key" and "Secret" for
+To define and bind a service you have to choose a service type from the available service types. And you need to give the API access credentials like "Application Key" and "Secret" for
 the external meeting service. SEB Server will then try to connect to the meeting service with these credentials to automatically create meetings/rooms for proctoring.
 Within the "Collecting Room Size" field you can define the number of maximal participants that shall be collected within one proctoring room. SEB Server will automatically
 create these collecting rooms while SEB clients are connecting to the running exam in the monitoring view.
@@ -58,7 +58,7 @@ After you have all the settings done, use "OK" to confirm the settings. SEB Serv
 .. note::
     Once a proctoring service is integrated for an exam, it is currently not possible to switch it to another service anymore. 
     This is because different services needs different meeting reference data on SEB Server and there is no conversion supported.
-    In the future we will make it possible to at least delete a already existing proctoring setup and to start from scratch.
+    In the future we will make it possible to at least delete an already existing proctoring setup and to start from scratch.
 
 The SEB client settings for proctoring can be found in the "Exam Configuration" "SEB Settings". There is a new tab with the name "Proctoring" where all SEB settings for proctoring are available.
 These settings are directly used by a SEB client that supports the proctoring feature. SEB will initialize with this settings when connecting to SEB Server and also will use this settings as default settings during an exam.
@@ -68,7 +68,7 @@ These settings are directly used by a SEB client that supports the proctoring fe
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/proctoringSEBSettings.png
 
 Since SEB Server version 1.2 there is also an Zoom service section  that let you define the default SEB settings for a Zoom proctoring setup.
-Please be aware that not all of the settings are functioning yet. Please refer to the the settings tool-tip to get a actual description of
+Please be aware that not all of the settings are functioning yet. Please refer to the settings tool-tip to get a actual description of
 a particular SEB feature setting
 
 **Jitsi Meet**

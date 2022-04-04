@@ -8,21 +8,21 @@ an exam from the one of the available courses from a LMS that has been setup to 
     If you don't have already set up a LMS binding within SEB Server and your institution, you have to do this first.
     More information about setting up a LMS binding can be found in the chapter :ref:`lms-setup-label`
     
-You will find the list of available courses provided form all LMS that are bound within your institution by going to the "Exam Administration"
+You will find the list of available courses provided from all LMS that are bound within your institution by going to the "Exam Administration"
 section on the left hand side and choosing "LMS Exam Lookup". The SEB Server will present you the list of all available courses and you
 are able to filter and sort the list as usual to find to right course for import.
 
 .. note::
     The "Start-Time" filter is usually set to the date one year before now or to some other default date in the past. The list shows only 
     the courses that has a start-time after that time. If you have long running courses and it may possible that a course has been stated
-    a year or two ago, you habe to adapt this "Start-Time" filter to view those courses that has been started before. 
+    a year or two ago, you have to adapt this "Start-Time" filter to view those courses that has been started before. 
 
 .. image:: images/exam/lmsExamLookup.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/lmsExamLookup.png
     
 You can view more details of a course by double-click on the specific list entry or by selecting the list entry and click the "Show LMS Exam Details" 
-action form the action pain on the right hand side. The application will open a pop-up with available detail information of the course.
+action form the action pane on the right hand side. The application will open a pop-up with available detail information of the course.
 
 To import a course as an exam find the specific course on the list by using the filter and select the list entry. Use the "Import As Exam" action 
 from the action pane on the right hand side. 
@@ -81,7 +81,7 @@ To start setting up a course or quiz form an existing LMS as e-assessment with S
 SEB Server and import it as exam. Define a type and apply exam supporter.
 
 - Login as an exam administrator and go to the "LMS Exam Lookup" page under the "Exam Administration" section. 
-- If you are not sure if the LMS that runs your course has already been setup within the SEB server, go first to the "LMS Setup" page and try to find the particular LMS in the list. If you can't find it, please contact an institutional administrator or setup the LMS by yourself as described in :ref:`lms-setup-label`.
+- If you are not sure if the LMS that runs your course has already been setup within the SEB Server, go first to the "LMS Setup" page and try to find the particular LMS in the list. If you can't find it, please contact an institutional administrator or setup the LMS by yourself as described in :ref:`lms-setup-label`.
 - Find your course or quiz by using the filter of the list and the list navigation as usual.
 - Double click on the list entries to get all information about a particular course or quiz.
 - Once you have found the course or quiz, select it on the list and use the "Import Exam" action on the right action pane.

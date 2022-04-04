@@ -36,12 +36,12 @@ If the automated SEB restriction functionality is available for a LMS depends on
 
 For more information about known SEB integration plugins that are supported by the SEB Server see :ref:`lms-setup-rest-plugin-label`
 
-Regardless if a supported LMS is missing the SEB integration plugin installation, the LMS can be used with the Course API and a exam
+Regardless if a supported LMS is missing the SEB integration plugin installation, the LMS can be used with the Course API and an exam
 setup will be possible but without automated SEB restriction feature.
 
-To be able connect to an LMS from SEB Server, we need to create an API access-acount on the LMS side that can be used by the SEB Server to 
-access the API of the LMS. How to do this for the different supported types of LMS see :ref:`lms-api-account-label`
-After such an account was created the account credentials, username and password, can be used by the SEB Server to connect to the LMS.
+To be able to connect to an LMS from SEB Server, we need to create an API access account on the LMS side that can be used by the SEB Server to 
+access the API of the LMS. How to do this for the different supported types of LMS see :ref:`lms-api-account-label`.
+After such an account was created, the account credentials, username and password, can be used by the SEB Server to connect to the LMS.
 Therefore we need to create a LMS Setup on the SEB Server.
 
 .. image:: images/lmssetup/new.png
@@ -62,13 +62,13 @@ SEB Server internally. Use the "Type" selector to specify the type of the LMS to
     .. note:: 
       If you want to use the automated SEB restriction feature too, the `Open edX SEB Plugin <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-setup-rest-plugin-label>`_ must be installed properly on the LMS.
   
-- **: Moodle**: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
+- **Moodle**: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the described API's of the Moodle system but there is currently no SEB restriction plugin available that works
   with SEB Server. Note that Moodle integration is implemented partially within SEB Server version 1.1.x. Only the course access feature is implemented and the course restriction feature will come with a future SEB Server release
 
-The "LMS Server Address" is the root URL to connect to the LMS server with HTTP over the Internet or intranet. This is usually the the URL that is 
-also used with the Browser to connect to the main page of the LMS system. And additionally the credentials that has been created with the creation of the :ref:`lms-api-account-label` has to be set in the LMS Setup the make the SEB Server
-able to securely connect to te LMS. The API credentials that consists of a client-name and a client-secret must be used with the "LMS Server Username" 
+The "LMS Server Address" is the root URL to connect to the LMS server with HTTP over the Internet or intranet. This is usually the URL that is 
+also used with the Browser to connect to the main page of the LMS system. And additionally the credentials that have been created with the creation of the :ref:`lms-api-account-label` has to be set in the LMS Setup the make the SEB Server
+able to securely connect to the LMS. The API credentials that consists of a client-name and a client-secret must be used with the "LMS Server Username" 
 and the "LMS Server Password" fields of the LMS Setup form on SEB Server.
 
 If the SEB Server running behind a proxy server or a firewall between SEB Server den LMS, the additional proxy settings can be used to setup the proxy-connection.
@@ -76,13 +76,13 @@ If the SEB Server running behind a proxy server or a firewall between SEB Server
 .. note:: 
     To Setup a Test LMS Setup (of type "Test") only a correct URL pattern must be set like "http://test" for example. And API credentials can be anything but must be set.
 
-After all the settings for a LMS Setup has been set, one can use either the "Save LMS Setup" action to save the LMS Setup without activation or the 
-"Activate LMS Setup" action to also activate the settings right after they has been successfully saved. Anyway for both action there is a intial test
+After all the settings for a LMS Setup have been set, one can use either the "Save LMS Setup" action to save the LMS Setup without activation or the 
+"Activate LMS Setup" action to also activate the settings right after they has been successfully saved. Anyway, for both action there is an initial test
 that, additionally to the usual field validation that takes place first, tries to connect to the LMS with the given API details. If the connection 
-was'nt successful the SEB Server will inform the user about a possible reason of failure. Otherwise SEB Server shows a success message and the created
+wasn't successful, the SEB Server will inform the user about a possible reason of failure. Otherwise SEB Server shows a success message and the created
 LMS Setup can be used. 
 
-Use the "Activate / Deactivate LMS Setup" action to activate an inactive LMS Setup or the deactivate a active LMS Setup. 
+Use the "Activate / Deactivate LMS Setup" action to activate an inactive LMS Setup or the deactivate an active LMS Setup. 
 
 .. note:: 
     On deactivation of an LMS Setup, the system checks on depending object and will show a confirmation to the user asking that all depending 
@@ -103,14 +103,14 @@ you have to bind the LMS to the SEB Server.
 - Navigate to "Exam Administration" / "LMS Setup" within the navigation on the left hand side.
 - Use the "Add LMS Setup" action from the right action pane to open a LMS Setup creation form.
 - Give a unique name to the new LMS Setup for internally identification.
-- Set the main URL that points to the new LMS system. This is usually the the URL that is also used with the Browser to connect to the main page of the LMS system
+- Set the main URL that points to the new LMS system. This is usually the URL that is also used with the Browser to connect to the main page of the LMS system
 - Set the API credentials that has been creates within step two (client-id, secret).
 - Use the "Activate LMS Setup" action on the right action pane to test, save and activate the new LMS Setup within one step.
 
 .. note:: 
     If some form attributes are missing or not correct, the SEB Server system will respond with the usual form validation errors.
     If the connection to the LMS is failing because of missing or wrong credentials or for any other reason the system is not able to connect to the LMS
-    the SEB Server will notify a error dialog to the user.
+    the SEB Server will notify an error dialog to the user.
 
 
 **Change API Credentials of an Active LMS Setup**
@@ -132,11 +132,11 @@ that has to be set on the existing LMS Setup on the SEB Server.
 .. note:: 
     If some form attributes are missing or not correct, the SEB Server system will respond with the usual form validation errors.
     If the connection to the LMS is failing because of missing or wrong credentials or for any other reason the system is not able to connect to the LMS
-    the SEB Server will notify a error dialog to the user.
+    the SEB Server will notify an error dialog to the user.
 
 **Deactivate LMS Setup**
 
-A LMS system that was running on your campus to provide e-assessment with SEB and SEB Server has been shout-down and you need to also deactivate
+A LMS system that was running on your campus to provide e-assessment with SEB and SEB Server has been shut down and you need to also deactivate
 the setup and exams on the SEB Server for this LMS.
 
 - Sign into SEB Server with your institutional administrator role account.
@@ -204,17 +204,17 @@ Once the client registration was successful the client id and client secret can 
     
 **Create Moodle API Access Account**
 
-To be able to create an LMS Setup for Moodle you need a Moodle administrator or manager account. You can then use this account in the LMS Setup to connect the the LMS.
+To be able to create an LMS Setup for Moodle you need a Moodle administrator or manager account. You can then use this account in the LMS Setup to connect to the LMS.
 
-Since SEB Server uses some functions from the Moodles mobile API, you have to make sure the web services for mobile apps are enabled within your Moodle setup.
-To do so please login to Moodel with an administrator account and go to "Side Administration", scroll down to "Mobile App" and choose "Mobile Settings.
+Since SEB Server uses some functions from the Moodle's mobile API, you have to make sure the web services for mobile apps are enabled within your Moodle setup.
+To do so please login to Moodle with an administrator account and go to "Side Administration", scroll down to "Mobile App" and choose "Mobile Settings.
 
 .. image:: images/lmssetup/moodle_mobile.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/documentation/docs/images/lmssetup/moodle_mobile.png
     
 If you have a restrictive Moodle setup and troubles with the Moodle API account to use with SEB Server, please try to import the following 
-Moodle role profile within youe Moodle instance. This profile will create a SEB Server role within Moodle that can be used to apply to an 
+Moodle role profile within your Moodle instance. This profile will create a SEB Server role within Moodle that can be used to apply to an 
 API account to be used with SEB Server. The role defines only the necessary privileges and functions needed for SEB Server communication.
 
 Moodle role and account settings: :download:`XML <files/webservice_seb-server.xml>`
