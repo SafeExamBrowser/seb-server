@@ -14,6 +14,7 @@ import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -134,5 +135,7 @@ public interface ExamConfigService {
      * @return true if there are unpublished changed in the SEB setting of the follow-up for the specified
      *         ConfigurationNode */
     Result<Boolean> hasUnpublishedChanged(Long institutionId, Long configurationNodeId);
+
+    Result<ConfigurationNode> checkSaveConsistency(ConfigurationNode configurationNode);
 
 }

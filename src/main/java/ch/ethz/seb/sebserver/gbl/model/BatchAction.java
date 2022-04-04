@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gbl.model;
 
 import java.util.Collection;
+import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 
@@ -21,6 +22,8 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class BatchAction implements Entity {
 
+    public static final String ACTION_ATTRIBUT_TARGET_STATE = "batchActionTargetState";
+
     @JsonProperty(BATCH_ACTION.ATTR_ID)
     public final Long id;
 
@@ -31,6 +34,9 @@ public class BatchAction implements Entity {
     @NotNull
     @JsonProperty(BATCH_ACTION.ATTR_ACTION_TYPE)
     public final BatchActionType actionType;
+
+    @JsonProperty(BATCH_ACTION.ATTR_ATTRIBUTES)
+    public final Map<String, String> attributes;
 
     @NotNull
     @JsonProperty(BATCH_ACTION.ATTR_SOURCE_IDS)
@@ -49,6 +55,7 @@ public class BatchAction implements Entity {
             @JsonProperty(BATCH_ACTION.ATTR_ID) final Long id,
             @JsonProperty(BATCH_ACTION.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(BATCH_ACTION.ATTR_ACTION_TYPE) final BatchActionType actionType,
+            @JsonProperty(BATCH_ACTION.ATTR_ATTRIBUTES) final Map<String, String> attributes,
             @JsonProperty(BATCH_ACTION.ATTR_SOURCE_IDS) final Collection<String> sourceIds,
             @JsonProperty(BATCH_ACTION.ATTR_SUCCESSFUL) final Collection<String> successful,
             @JsonProperty(BATCH_ACTION.ATTR_LAST_UPDATE) final Long lastUpdate,
@@ -58,6 +65,7 @@ public class BatchAction implements Entity {
         this.id = id;
         this.institutionId = institutionId;
         this.actionType = actionType;
+        this.attributes = Utils.immutableMapOf(attributes);
         this.sourceIds = Utils.immutableCollectionOf(sourceIds);
         this.successful = Utils.immutableCollectionOf(successful);
         this.lastUpdate = lastUpdate;
@@ -91,6 +99,10 @@ public class BatchAction implements Entity {
 
     public BatchActionType getActionType() {
         return this.actionType;
+    }
+
+    public Map<String, String> getAttributes() {
+        return this.attributes;
     }
 
     public Collection<String> getSourceIds() {
@@ -143,6 +155,8 @@ public class BatchAction implements Entity {
         builder.append(this.institutionId);
         builder.append(", actionType=");
         builder.append(this.actionType);
+        builder.append(", attributes=");
+        builder.append(this.attributes);
         builder.append(", sourceIds=");
         builder.append(this.sourceIds);
         builder.append(", successful=");

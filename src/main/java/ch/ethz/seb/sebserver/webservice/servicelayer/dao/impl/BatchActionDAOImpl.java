@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -49,10 +50,17 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 @WebServiceProfile
 public class BatchActionDAOImpl implements BatchActionDAO {
 
-    private final BatchActionRecordMapper batchActionRecordMapper;
+    private static final long ABANDONED_BATCH_TIME = Constants.MINUTE_IN_MILLIS * 10;
 
-    public BatchActionDAOImpl(final BatchActionRecordMapper batchActionRecordMapper) {
+    private final BatchActionRecordMapper batchActionRecordMapper;
+    private final JSONMapper jsonMapper;
+
+    public BatchActionDAOImpl(
+            final BatchActionRecordMapper batchActionRecordMapper,
+            final JSONMapper jsonMapper) {
+
         this.batchActionRecordMapper = batchActionRecordMapper;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -65,11 +73,11 @@ public class BatchActionDAOImpl implements BatchActionDAO {
     public Result<BatchAction> getAndReserveNext(final String processId) {
         return Result.tryCatch(() -> {
 
-            final Long oldTherhold = Utils.getMillisecondsNow() - Constants.HOUR_IN_MILLIS;
+            final Long oldThreshold = Utils.getMillisecondsNow() - ABANDONED_BATCH_TIME;
             final List<BatchActionRecord> next = this.batchActionRecordMapper.selectByExample()
                     .where(BatchActionRecordDynamicSqlSupport.lastUpdate, isNull())
                     .and(BatchActionRecordDynamicSqlSupport.processorId, isNull())
-                    .or(BatchActionRecordDynamicSqlSupport.lastUpdate, isLessThan(oldTherhold))
+                    .or(BatchActionRecordDynamicSqlSupport.lastUpdate, isLessThan(oldThreshold))
                     .build()
                     .execute();
 
@@ -88,6 +96,7 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                     null,
                     null,
                     null,
+                    null,
                     Utils.getMillisecondsNow(),
                     processId);
 
@@ -102,30 +111,31 @@ public class BatchActionDAOImpl implements BatchActionDAO {
     @Transactional
     public Result<BatchAction> updateProgress(
             final Long actionId,
-            final String processId,
-            final Collection<String> modelIds) {
+            final String processorId,
+            final String modelId) {
 
         return Result.tryCatch(() -> {
 
             final BatchActionRecord rec = this.batchActionRecordMapper.selectByPrimaryKey(actionId);
 
-            if (!processId.equals(rec.getProcessorId())) {
-                throw new RuntimeException("Batch action processor id mismatch: " + processId + " " + rec);
+            if (!processorId.equals(rec.getProcessorId())) {
+                throw new RuntimeException("Batch action processor id mismatch: " + processorId + " " + rec);
             }
 
             final Set<String> ids = new HashSet<>(Arrays.asList(StringUtils.split(
                     rec.getSuccessful(),
                     Constants.LIST_SEPARATOR)));
-            ids.addAll(modelIds);
+            ids.add(modelId);
 
             final BatchActionRecord newRecord = new BatchActionRecord(
                     actionId,
                     null,
                     null,
                     null,
+                    null,
                     StringUtils.join(ids, Constants.LIST_SEPARATOR),
                     Utils.getMillisecondsNow(),
-                    processId);
+                    null);
 
             this.batchActionRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.batchActionRecordMapper.selectByPrimaryKey(actionId);
@@ -147,6 +157,7 @@ public class BatchActionDAOImpl implements BatchActionDAO {
 
             final BatchActionRecord newRecord = new BatchActionRecord(
                     actionId,
+                    null,
                     null,
                     null,
                     null,
@@ -189,6 +200,7 @@ public class BatchActionDAOImpl implements BatchActionDAO {
 
             final BatchActionRecord newRecord = new BatchActionRecord(
                     actionId,
+                    null,
                     null,
                     null,
                     null,
@@ -262,6 +274,7 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                     null,
                     data.institutionId,
                     data.actionType.toString(),
+                    data.attributes != null ? this.jsonMapper.writeValueAsString(data.attributes) : null,
                     StringUtils.join(data.sourceIds, Constants.LIST_SEPARATOR),
                     null, null, null);
 
@@ -279,6 +292,7 @@ public class BatchActionDAOImpl implements BatchActionDAO {
 
             final BatchActionRecord newRecord = new BatchActionRecord(
                     data.id,
+                    null,
                     null,
                     null,
                     null,
@@ -332,6 +346,7 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                 record.getId(),
                 record.getInstitutionId(),
                 BatchActionType.valueOf(record.getActionType()),
+                Utils.jsonToMap(record.getAttributes(), this.jsonMapper),
                 Arrays.asList(record.getSourceIds().split(Constants.LIST_SEPARATOR)),
                 Arrays.asList(record.getSuccessful().split(Constants.LIST_SEPARATOR)),
                 record.getLastUpdate(),

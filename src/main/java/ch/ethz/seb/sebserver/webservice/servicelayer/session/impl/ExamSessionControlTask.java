@@ -71,7 +71,7 @@ public class ExamSessionControlTask implements DisposableBean {
     }
 
     @EventListener(SEBServerInitEvent.class)
-    public void init() {
+    private void init() {
         SEBServerInit.INIT_LOGGER.info("------>");
         SEBServerInit.INIT_LOGGER.info("------> Activate exam run controller background task");
         SEBServerInit.INIT_LOGGER.info("--------> Task runs on an cron-job interval of {}", this.examTaskCron);
@@ -91,7 +91,7 @@ public class ExamSessionControlTask implements DisposableBean {
     @Scheduled(
             fixedDelayString = "${sebserver.webservice.api.exam.update-interval:60000}",
             initialDelay = 10000)
-    public void examRunUpdateTask() {
+    private void examRunUpdateTask() {
 
         if (!this.webserviceInfo.isMaster()) {
             return;
@@ -111,7 +111,7 @@ public class ExamSessionControlTask implements DisposableBean {
     @Scheduled(
             fixedDelayString = "${sebserver.webservice.api.seb.lostping.update:5000}",
             initialDelay = 5000)
-    public void examSessionUpdateTask() {
+    private void examSessionUpdateTask() {
 
         updateMaster();
 
@@ -132,7 +132,7 @@ public class ExamSessionControlTask implements DisposableBean {
     @Scheduled(
             fixedRateString = "${sebserver.webservice.api.exam.session-cleanup:30000}",
             initialDelay = 30000)
-    public void examSessionCleanupTask() {
+    private void examSessionCleanupTask() {
 
         if (!this.webserviceInfo.isMaster()) {
             return;

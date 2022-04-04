@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import java.util.Collection;
-
 import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -29,10 +27,10 @@ public interface BatchActionDAO extends EntityDAO<BatchAction, BatchAction> {
     /** Use this to update the processing of a running batch action
      *
      * @param actionId The batch action identifier
-     * @param processId The process identifier (must match with the processId on persistent storage)
-     * @param modelIds Collection of model identifiers of entities that has successfully been processed.
+     * @param processorId The processor identifier (must match with the processorId on persistent storage)
+     * @param modelId model identifiers of entity that has successfully been processed.
      * @return Result refer to the involved batch action or to an error when happened. */
-    Result<BatchAction> updateProgress(Long actionId, String processId, Collection<String> modelIds);
+    Result<BatchAction> updateProgress(Long actionId, String processorId, String modelId);
 
     /** Use this to mark processing of a single entity of a specified batch action as successful completed.
      *

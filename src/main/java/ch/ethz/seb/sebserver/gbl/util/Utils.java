@@ -50,9 +50,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 
 public final class Utils {
 
@@ -733,6 +735,19 @@ public final class Utils {
             }
         }
         return builder;
+    }
+
+    public static Map<String, String> jsonToMap(final String attribute, final JSONMapper mapper) {
+        if (StringUtils.isBlank(attribute)) {
+            return Collections.emptyMap();
+        }
+        try {
+            return mapper.readValue(attribute, new TypeReference<Map<String, String>>() {
+            });
+        } catch (final Exception e) {
+            log.error("Failed to parse json to map: ", e);
+            return Collections.emptyMap();
+        }
     }
 
 }

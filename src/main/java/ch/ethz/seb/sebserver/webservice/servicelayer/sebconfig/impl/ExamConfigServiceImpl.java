@@ -33,12 +33,15 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
@@ -47,6 +50,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncrypti
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService.Strategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
+import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
 
 @Lazy
 @Service
@@ -56,6 +60,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
     private static final Logger log = LoggerFactory.getLogger(ExamConfigServiceImpl.class);
 
     private final ExamConfigIO examConfigIO;
+    private final ConfigurationNodeDAO configurationNodeDAO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final Collection<ConfigurationValueValidator> validators;
@@ -66,6 +71,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
 
     protected ExamConfigServiceImpl(
             final ExamConfigIO examConfigIO,
+            final ConfigurationNodeDAO configurationNodeDAO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final Collection<ConfigurationValueValidator> validators,
@@ -75,6 +81,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             final ConfigurationDAO configurationDAO) {
 
         this.examConfigIO = examConfigIO;
+        this.configurationNodeDAO = configurationNodeDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.validators = validators;
@@ -390,6 +397,37 @@ public class ExamConfigServiceImpl implements ExamConfigService {
                     .getOrThrow();
 
             return !followupKey.equals(stableKey);
+        });
+    }
+
+    @Override
+    public Result<ConfigurationNode> checkSaveConsistency(final ConfigurationNode configurationNode) {
+        return Result.tryCatch(() -> {
+
+            // check type compatibility
+            final ConfigurationNode existingNode = this.configurationNodeDAO
+                    .byPK(configurationNode.id)
+                    .getOrThrow();
+
+            if (existingNode.type != configurationNode.type) {
+                throw new APIConstraintViolationException(
+                        "The Type of ConfigurationNode cannot change after creation");
+            }
+
+            // if changing to archived check possibility
+            if (configurationNode.status == ConfigurationStatus.ARCHIVED) {
+                if (existingNode.status != ConfigurationStatus.ARCHIVED) {
+                    // check if this is possible (no upcoming or running exams involved)
+                    if (!this.examConfigurationMapDAO.checkNoActiveExamReferences(configurationNode.id).getOr(false)) {
+                        throw new APIMessageException(
+                                APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                                        .of("Exam configuration has references to at least one upcoming or running exam."));
+                    }
+                }
+            }
+
+            return configurationNode;
+
         });
     }
 

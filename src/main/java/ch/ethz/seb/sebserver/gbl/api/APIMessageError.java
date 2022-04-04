@@ -18,4 +18,15 @@ public interface APIMessageError {
      * @return a List of APIMessage errors if error happened or empty list of not */
     Collection<APIMessage> getAPIMessages();
 
+    /** Get the main APIMessage (first APIMessage in the list) or null if none available
+     *
+     * @return the main APIMessage or null if none available */
+    default APIMessage getMainMessage() {
+        final Collection<APIMessage> apiMessages = getAPIMessages();
+        if (apiMessages != null && !apiMessages.isEmpty()) {
+            return apiMessages.iterator().next();
+        }
+        return null;
+    }
+
 }

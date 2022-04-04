@@ -255,14 +255,18 @@ public final class Result<T> {
      * @return self reference */
     public Result<T> onError(final Consumer<Exception> errorHandler) {
         if (this.error != null) {
-            errorHandler.accept(this.error);
+            try {
+                errorHandler.accept(this.error);
+            } catch (final Exception e) {
+                log.error("Unexpected failure on error handling: ", e);
+            }
         }
         return this;
     }
 
     public Result<T> onErrorDo(final Function<Exception, T> errorHandler) {
         if (this.error != null) {
-            return new Result<>(errorHandler.apply(this.error));
+            return Result.tryCatch(() -> errorHandler.apply(this.error));
         }
         return this;
     }

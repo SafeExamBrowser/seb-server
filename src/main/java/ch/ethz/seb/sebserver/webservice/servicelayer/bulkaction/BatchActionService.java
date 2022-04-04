@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction;
 
 import java.util.Collection;
+import java.util.Map;
 
 import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -24,9 +25,20 @@ public interface BatchActionService {
      *
      * @param institutionId The institution identifier
      * @param actionType The batch action type
+     * @param batchAction specific batch action attributes
      * @param ids comma separated String of model ids to process
      * @return Result refer to the stored batch action or to an error when happened */
-    Result<BatchAction> registerNewBatchAction(final Long institutionId, BatchActionType actionType, String ids);
+    Result<BatchAction> registerNewBatchAction(
+            final Long institutionId,
+            BatchActionType actionType,
+            Map<String, String> actionAttributes,
+            String ids);
+
+    /** Use this to get a specific BatchAction.
+     *
+     * @param actionId The batch action identifier
+     * @return Result refer to the batch actions or to an error when happened */
+    Result<BatchAction> getRunningAction(String actionId);
 
     /** Use this to get all currently running batch actions for a given institution.
      *
