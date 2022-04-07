@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -173,7 +174,7 @@ public interface PageService {
      * @return a message supplier to notify deactivation dependencies to the user */
     default <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final EntityTable<T> table) {
         return () -> confirmDeactivation(table
-                .getSelectedROWData()
+                .getPageSelectionData()
                 .stream()
                 .filter(entity -> entity.isActive()) // NOTE: Activatable::isActive leads to an error here!?
                 .collect(Collectors.toSet()))
@@ -321,7 +322,7 @@ public interface PageService {
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
      * @return TableBuilder of specified type */
-    default <T> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
+    default <T extends ModelIdAware> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
         return entityTableBuilder(apiCall.getClass().getSimpleName(), apiCall);
     }
 
@@ -331,13 +332,14 @@ public interface PageService {
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
      * @return TableBuilder of specified type */
-    <T> TableBuilder<T> entityTableBuilder(
+    <T extends ModelIdAware> TableBuilder<T> entityTableBuilder(
             String name,
             RestCall<Page<T>> apiCall);
 
-    <T> TableBuilder<T> staticListTableBuilder(final List<T> staticList, EntityType entityType);
+    <T extends ModelIdAware> TableBuilder<T> staticListTableBuilder(final List<T> staticList, EntityType entityType);
 
-    <T> TableBuilder<T> remoteListTableBuilder(RestCall<Collection<T>> apiCall, EntityType entityType);
+    <T extends ModelIdAware> TableBuilder<T> remoteListTableBuilder(RestCall<Collection<T>> apiCall,
+            EntityType entityType);
 
     /** Get a new PageActionBuilder for a given PageContext.
      *

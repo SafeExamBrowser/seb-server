@@ -70,6 +70,7 @@ public class SEBExamConfigList implements TemplateComposer {
     private final PageService pageService;
     private final SEBExamConfigImportPopup sebExamConfigImportPopup;
     private final SEBExamConfigCreationPopup sebExamConfigCreationPopup;
+    private final SEBExamConfigStateChangePopup sebExamConfigStateChangePopup;
     private final CurrentUser currentUser;
     private final ResourceService resourceService;
     private final int pageSize;
@@ -78,11 +79,13 @@ public class SEBExamConfigList implements TemplateComposer {
             final PageService pageService,
             final SEBExamConfigImportPopup sebExamConfigImportPopup,
             final SEBExamConfigCreationPopup sebExamConfigCreationPopup,
+            final SEBExamConfigStateChangePopup sebExamConfigStateChangePopup,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.sebExamConfigImportPopup = sebExamConfigImportPopup;
         this.sebExamConfigCreationPopup = sebExamConfigCreationPopup;
+        this.sebExamConfigStateChangePopup = sebExamConfigStateChangePopup;
         this.currentUser = pageService.getCurrentUser();
         this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
@@ -112,6 +115,7 @@ public class SEBExamConfigList implements TemplateComposer {
         // exam configuration table
         final EntityTable<ConfigurationNode> configTable =
                 this.pageService.entityTableBuilder(GetExamConfigNodePage.class)
+                        .withMultiSelection()
                         .withStaticFilter(
                                 Domain.CONFIGURATION_NODE.ATTR_TYPE,
                                 ConfigurationType.EXAM_CONFIG.name())
@@ -154,7 +158,8 @@ public class SEBExamConfigList implements TemplateComposer {
                                 pageContext,
                                 ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST,
                                 ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST,
-                                ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_FROM_LIST))
+                                ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_FROM_LIST,
+                                ActionDefinition.SEB_EXAM_CONFIG_BULK_STATE_CHANGE))
 
                         .compose(pageContext.copyOf(content));
 
@@ -179,7 +184,6 @@ public class SEBExamConfigList implements TemplateComposer {
                 .publishIf(() -> examConfigGrant.im(), false)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_FROM_LIST)
-                //.withEntityKey(entityKey)
                 .withSelect(
                         configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         pageAction -> {
@@ -195,6 +199,14 @@ public class SEBExamConfigList implements TemplateComposer {
                                     .apply(pageAction);
                             return pageAction;
                         },
+                        EMPTY_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(() -> examConfigGrant.im(), false)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_BULK_STATE_CHANGE)
+                .withSelect(
+                        configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
+                        this.sebExamConfigStateChangePopup.popupCreationFunction(pageContext),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
                 .publishIf(() -> examConfigGrant.im(), false)

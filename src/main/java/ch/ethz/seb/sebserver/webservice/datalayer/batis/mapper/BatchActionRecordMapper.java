@@ -32,24 +32,25 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface BatchActionRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.474+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.076+02:00", comments="Source Table: batch_action")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.474+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.076+02:00", comments="Source Table: batch_action")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.474+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.076+02:00", comments="Source Table: batch_action")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<BatchActionRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.474+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.076+02:00", comments="Source Table: batch_action")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
         @Arg(column="institution_id", javaType=Long.class, jdbcType=JdbcType.BIGINT),
+        @Arg(column="owner", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="action_type", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="attributes", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="source_ids", javaType=String.class, jdbcType=JdbcType.VARCHAR),
@@ -59,11 +60,12 @@ public interface BatchActionRecordMapper {
     })
     BatchActionRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
         @Arg(column="institution_id", javaType=Long.class, jdbcType=JdbcType.BIGINT),
+        @Arg(column="owner", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="action_type", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="attributes", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="source_ids", javaType=String.class, jdbcType=JdbcType.VARCHAR),
@@ -73,22 +75,22 @@ public interface BatchActionRecordMapper {
     })
     List<BatchActionRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(batchActionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, batchActionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, batchActionRecord)
                 .where(id, isEqualTo(id_))
@@ -96,11 +98,12 @@ public interface BatchActionRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default int insert(BatchActionRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(batchActionRecord)
                 .map(institutionId).toProperty("institutionId")
+                .map(owner).toProperty("owner")
                 .map(actionType).toProperty("actionType")
                 .map(attributes).toProperty("attributes")
                 .map(sourceIds).toProperty("sourceIds")
@@ -111,11 +114,12 @@ public interface BatchActionRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default int insertSelective(BatchActionRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(batchActionRecord)
                 .map(institutionId).toPropertyWhenPresent("institutionId", record::getInstitutionId)
+                .map(owner).toPropertyWhenPresent("owner", record::getOwner)
                 .map(actionType).toPropertyWhenPresent("actionType", record::getActionType)
                 .map(attributes).toPropertyWhenPresent("attributes", record::getAttributes)
                 .map(sourceIds).toPropertyWhenPresent("sourceIds", record::getSourceIds)
@@ -126,31 +130,32 @@ public interface BatchActionRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<BatchActionRecord>>> selectByExample() {
-        return SelectDSL.selectWithMapper(this::selectMany, id, institutionId, actionType, attributes, sourceIds, successful, lastUpdate, processorId)
+        return SelectDSL.selectWithMapper(this::selectMany, id, institutionId, owner, actionType, attributes, sourceIds, successful, lastUpdate, processorId)
                 .from(batchActionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<BatchActionRecord>>> selectDistinctByExample() {
-        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, institutionId, actionType, attributes, sourceIds, successful, lastUpdate, processorId)
+        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, institutionId, owner, actionType, attributes, sourceIds, successful, lastUpdate, processorId)
                 .from(batchActionRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default BatchActionRecord selectByPrimaryKey(Long id_) {
-        return SelectDSL.selectWithMapper(this::selectOne, id, institutionId, actionType, attributes, sourceIds, successful, lastUpdate, processorId)
+        return SelectDSL.selectWithMapper(this::selectOne, id, institutionId, owner, actionType, attributes, sourceIds, successful, lastUpdate, processorId)
                 .from(batchActionRecord)
                 .where(id, isEqualTo(id_))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(BatchActionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, batchActionRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
+                .set(owner).equalTo(record::getOwner)
                 .set(actionType).equalTo(record::getActionType)
                 .set(attributes).equalTo(record::getAttributes)
                 .set(sourceIds).equalTo(record::getSourceIds)
@@ -159,10 +164,11 @@ public interface BatchActionRecordMapper {
                 .set(processorId).equalTo(record::getProcessorId);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(BatchActionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, batchActionRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)
+                .set(owner).equalToWhenPresent(record::getOwner)
                 .set(actionType).equalToWhenPresent(record::getActionType)
                 .set(attributes).equalToWhenPresent(record::getAttributes)
                 .set(sourceIds).equalToWhenPresent(record::getSourceIds)
@@ -171,10 +177,11 @@ public interface BatchActionRecordMapper {
                 .set(processorId).equalToWhenPresent(record::getProcessorId);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default int updateByPrimaryKey(BatchActionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, batchActionRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
+                .set(owner).equalTo(record::getOwner)
                 .set(actionType).equalTo(record::getActionType)
                 .set(attributes).equalTo(record::getAttributes)
                 .set(sourceIds).equalTo(record::getSourceIds)
@@ -186,10 +193,11 @@ public interface BatchActionRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.475+02:00", comments="Source Table: batch_action")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.077+02:00", comments="Source Table: batch_action")
     default int updateByPrimaryKeySelective(BatchActionRecord record) {
         return UpdateDSL.updateWithMapper(this::update, batchActionRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)
+                .set(owner).equalToWhenPresent(record::getOwner)
                 .set(actionType).equalToWhenPresent(record::getActionType)
                 .set(attributes).equalToWhenPresent(record::getAttributes)
                 .set(sourceIds).equalToWhenPresent(record::getSourceIds)

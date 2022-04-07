@@ -227,10 +227,6 @@ public class CertificateImportPopup {
                             null,
                             CertificateFileType.getAllExtensions()))
 
-//                    .addField(FormBuilder.text(
-//                            CertificateInfo.ATTR_ALIAS,
-//                            CertificateList.FORM_ALIAS_TEXT_KEY))
-
                     .addField(FormBuilder.text(
                             API.IMPORT_PASSWORD_ATTR_NAME,
                             CertificateList.FORM_IMPORT_PASSWORD_TEXT_KEY,

@@ -3341,7 +3341,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertTrue(applyCall.hasError());
         assertTrue(applyCall.getError() instanceof RestCallError);
-        assertTrue(applyCall.getError().getCause().getMessage().contains("SEB Restriction feature not available"));
+        assertTrue(applyCall.getError().toString().contains("SEB Restriction feature not available"));
 
         final Result<Exam> deleteCall = restService
                 .getBuilder(DeactivateSEBRestriction.class)
@@ -3350,7 +3350,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertTrue(deleteCall.hasError());
         assertTrue(deleteCall.getError() instanceof RestCallError);
-        assertTrue(deleteCall.getError().getCause().getMessage().contains("SEB Restriction feature not available"));
+        assertTrue(deleteCall.getError().toString().contains("SEB Restriction feature not available"));
 
         final Result<Chapters> chaptersCall = restService
                 .getBuilder(GetCourseChapters.class)
@@ -3359,7 +3359,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertTrue(chaptersCall.hasError());
         assertTrue(chaptersCall.getError() instanceof RestCallError);
-        assertTrue(chaptersCall.getError().getCause().getMessage().contains("Course Chapter feature not supported"));
+        assertTrue(chaptersCall.getError().toString().contains("Course Chapter feature not supported"));
 
     }
 

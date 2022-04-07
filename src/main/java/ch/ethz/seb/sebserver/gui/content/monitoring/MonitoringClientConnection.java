@@ -276,14 +276,11 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         final Supplier<EntityTable<ClientNotification>> notificationTableSupplier = _notificationTableSupplier;
         // server push update
-        final UpdateErrorHandler updateErrorHandler =
-                new UpdateErrorHandler(this.pageService, pageContext);
-
         this.serverPushService.runServerPush(
                 new ServerPushContext(
                         content,
                         Utils.truePredicate(),
-                        updateErrorHandler),
+                        new UpdateErrorHandler(this.pageService, pageContext)),
                 this.pollInterval,
                 context -> clientConnectionDetails.updateData(),
                 context -> clientConnectionDetails.updateGUI(notificationTableSupplier, pageContext));

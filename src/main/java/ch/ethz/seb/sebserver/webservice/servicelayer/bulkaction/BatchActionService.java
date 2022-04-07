@@ -9,9 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction;
 
 import java.util.Collection;
-import java.util.Map;
 
-import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -21,18 +19,16 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
  * can be reported to the user showing successful action as well as actions that has failed. */
 public interface BatchActionService {
 
-    /** Use this to register a new batch action for further processing.
+    /** Validates a given batch action.
      *
-     * @param institutionId The institution identifier
-     * @param actionType The batch action type
-     * @param batchAction specific batch action attributes
-     * @param ids comma separated String of model ids to process
-     * @return Result refer to the stored batch action or to an error when happened */
-    Result<BatchAction> registerNewBatchAction(
-            final Long institutionId,
-            BatchActionType actionType,
-            Map<String, String> actionAttributes,
-            String ids);
+     * @param batchAction
+     * @return Result refer to the BatchAction or to an error when happened */
+    Result<BatchAction> validate(BatchAction batchAction);
+
+    /** Use this to notify a new batch action for further processing.
+     *
+     * @param batchAction BatchAction */
+    Result<BatchAction> notifyNewBatchAction(BatchAction batchAction);
 
     /** Use this to get a specific BatchAction.
      *

@@ -502,37 +502,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
     @Override
     protected Result<ConfigurationNode> validForSave(final ConfigurationNode entity) {
-        return super.validForSave(entity)
-                .map(e -> {
-                    final ConfigurationNode existingNode = this.entityDAO.byPK(entity.id)
-                            .getOrThrow();
-                    if (existingNode.type != entity.type) {
-                        throw new APIConstraintViolationException(
-                                "The Type of ConfigurationNode cannot change after creation");
-                    }
-                    return e;
-                })
-                .map(this::checkChangeToArchived);
-    }
-
-    private ConfigurationNode checkChangeToArchived(final ConfigurationNode entity) {
-        if (entity.status == ConfigurationStatus.ARCHIVED) {
-            // check if we have a change to archived
-            final ConfigurationNode persistentNode = this.configurationNodeDAO
-                    .byPK(entity.id)
-                    .getOrThrow();
-            // yes we have
-            if (persistentNode.status != ConfigurationStatus.ARCHIVED) {
-                // check if this is possible (no upcoming or running exams involved)
-                if (!this.examConfigurationMapDAO.checkNoActiveExamReferences(entity.id).getOr(false)) {
-                    throw new APIMessageException(
-                            APIMessage.ErrorMessage.INTEGRITY_VALIDATION
-                                    .of("Exam configuration has references to at least one upcoming or running exam."));
-                }
-            }
-        }
-
-        return entity;
+        return this.sebExamConfigService.checkSaveConsistency(entity);
     }
 
     @Override

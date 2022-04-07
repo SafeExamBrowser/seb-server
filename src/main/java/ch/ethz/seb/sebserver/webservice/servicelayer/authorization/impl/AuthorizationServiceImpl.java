@@ -145,6 +145,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
+
         // grants for configuration
         addPrivilege(EntityType.CONFIGURATION)
                 .forRole(UserRole.SEB_SERVER_ADMIN)
@@ -156,6 +157,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_SUPPORTER)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
                 .create();
+
         // grants for configuration value
         addPrivilege(EntityType.CONFIGURATION_VALUE)
                 .forRole(UserRole.SEB_SERVER_ADMIN)
@@ -218,6 +220,17 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.READ)
+                .create();
+
+        // grants for batch actions
+        addPrivilege(EntityType.BATCH_ACTION)
+                .forRole(UserRole.SEB_SERVER_ADMIN)
+                .withBasePrivilege(PrivilegeType.READ)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.INSTITUTIONAL_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
+                .andForRole(UserRole.EXAM_ADMIN)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .create();
     }
 

@@ -239,6 +239,17 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(UnsupportedOperationException.class)
+    public ResponseEntity<Object> handleUnsupportedOperationException(
+            final UnsupportedOperationException ex,
+            final WebRequest request) {
+
+        return new ResponseEntity<>(
+                Arrays.asList(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of(ex)),
+                Utils.createJsonContentHeader(),
+                HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(CompletionException.class)
     public ResponseEntity<Object> handleCompletionException(
             final CompletionException ex,

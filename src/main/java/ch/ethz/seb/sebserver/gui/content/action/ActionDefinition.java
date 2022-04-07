@@ -527,6 +527,12 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_LIST,
             ActionCategory.LIST_VARIA),
 
+    SEB_EXAM_CONFIG_BULK_STATE_CHANGE(
+            new LocTextKey("sebserver.examconfig.list.action.statechange"),
+            ImageIcon.SWITCH,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_LIST,
+            ActionCategory.SEB_EXAM_CONFIG_LIST),
+
     SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.modify.properties"),
             ImageIcon.EDIT,

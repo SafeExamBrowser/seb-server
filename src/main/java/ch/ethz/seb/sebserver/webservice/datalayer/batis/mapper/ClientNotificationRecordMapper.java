@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface ClientNotificationRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.479+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.083+02:00", comments="Source Table: client_notification")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.479+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.083+02:00", comments="Source Table: client_notification")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.479+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.083+02:00", comments="Source Table: client_notification")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<ClientNotificationRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.479+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.083+02:00", comments="Source Table: client_notification")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -57,7 +57,7 @@ public interface ClientNotificationRecordMapper {
     })
     ClientNotificationRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.479+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.083+02:00", comments="Source Table: client_notification")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -69,22 +69,22 @@ public interface ClientNotificationRecordMapper {
     })
     List<ClientNotificationRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.479+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.083+02:00", comments="Source Table: client_notification")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.479+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.083+02:00", comments="Source Table: client_notification")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(clientNotificationRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.479+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.083+02:00", comments="Source Table: client_notification")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientNotificationRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.479+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.084+02:00", comments="Source Table: client_notification")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientNotificationRecord)
                 .where(id, isEqualTo(id_))
@@ -92,7 +92,7 @@ public interface ClientNotificationRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.479+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.084+02:00", comments="Source Table: client_notification")
     default int insert(ClientNotificationRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientNotificationRecord)
@@ -105,7 +105,7 @@ public interface ClientNotificationRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.479+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.084+02:00", comments="Source Table: client_notification")
     default int insertSelective(ClientNotificationRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientNotificationRecord)
@@ -118,19 +118,19 @@ public interface ClientNotificationRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.480+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.084+02:00", comments="Source Table: client_notification")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientNotificationRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(this::selectMany, id, clientConnectionId, eventType, notificationType, value, text)
                 .from(clientNotificationRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.480+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.084+02:00", comments="Source Table: client_notification")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientNotificationRecord>>> selectDistinctByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectMany, id, clientConnectionId, eventType, notificationType, value, text)
                 .from(clientNotificationRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.480+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.084+02:00", comments="Source Table: client_notification")
     default ClientNotificationRecord selectByPrimaryKey(Long id_) {
         return SelectDSL.selectWithMapper(this::selectOne, id, clientConnectionId, eventType, notificationType, value, text)
                 .from(clientNotificationRecord)
@@ -139,7 +139,7 @@ public interface ClientNotificationRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.480+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.084+02:00", comments="Source Table: client_notification")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(ClientNotificationRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientNotificationRecord)
                 .set(clientConnectionId).equalTo(record::getClientConnectionId)
@@ -149,7 +149,7 @@ public interface ClientNotificationRecordMapper {
                 .set(text).equalTo(record::getText);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.480+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.084+02:00", comments="Source Table: client_notification")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(ClientNotificationRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientNotificationRecord)
                 .set(clientConnectionId).equalToWhenPresent(record::getClientConnectionId)
@@ -159,7 +159,7 @@ public interface ClientNotificationRecordMapper {
                 .set(text).equalToWhenPresent(record::getText);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.480+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.084+02:00", comments="Source Table: client_notification")
     default int updateByPrimaryKey(ClientNotificationRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientNotificationRecord)
                 .set(clientConnectionId).equalTo(record::getClientConnectionId)
@@ -172,7 +172,7 @@ public interface ClientNotificationRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-04T10:34:44.480+02:00", comments="Source Table: client_notification")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.084+02:00", comments="Source Table: client_notification")
     default int updateByPrimaryKeySelective(ClientNotificationRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientNotificationRecord)
                 .set(clientConnectionId).equalToWhenPresent(record::getClientConnectionId)

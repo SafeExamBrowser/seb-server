@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EntityDependency implements Comparable<EntityDependency> {
+public class EntityDependency implements Comparable<EntityDependency>, ModelIdAware {
 
     public static final String ATTR_PARENT = "parent";
     public static final String ATTR_SELF = "self";
@@ -46,6 +46,11 @@ public class EntityDependency implements Comparable<EntityDependency> {
 
     public EntityKey getSelf() {
         return this.self;
+    }
+
+    @Override
+    public String getModelId() {
+        return this.self.modelId;
     }
 
     public String getName() {

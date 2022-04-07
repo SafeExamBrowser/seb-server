@@ -14,7 +14,9 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -224,6 +226,14 @@ public class POSTMapper {
         }
 
         return Utils.toDateTime(value);
+    }
+
+    public Map<String, String> getSubMap(final Set<String> actionAttributes) {
+        return this.params
+                .keySet()
+                .stream()
+                .filter(actionAttributes::contains)
+                .collect(Collectors.toMap(Function.identity(), k -> this.params.getFirst(k)));
     }
 
     public List<Threshold> getThresholds() {

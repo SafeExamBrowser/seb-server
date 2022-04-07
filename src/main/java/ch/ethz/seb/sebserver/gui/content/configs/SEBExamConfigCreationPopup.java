@@ -71,13 +71,11 @@ public class SEBExamConfigCreationPopup {
                                     .setLargeDialogWidth();
 
             final CreationFormContext formContext = new CreationFormContext(
-                    this.pageService,
                     pageContext,
                     copyAsTemplate,
                     createFromTemplate);
 
             final Predicate<FormHandle<ConfigCreationInfo>> doCopy = formHandle -> doCreate(
-                    this.pageService,
                     pageContext,
                     copyAsTemplate,
                     createFromTemplate,
@@ -100,7 +98,6 @@ public class SEBExamConfigCreationPopup {
     }
 
     private boolean doCreate(
-            final PageService pageService,
             final PageContext pageContext,
             final boolean copyAsTemplate,
             final boolean createFromTemplate,
@@ -111,7 +108,7 @@ public class SEBExamConfigCreationPopup {
                 ? NewExamConfig.class
                 : CopyConfiguration.class;
 
-        final ConfigurationNode newConfig = pageService
+        final ConfigurationNode newConfig = this.pageService
                 .getRestService()
                 .getBuilder(restCall)
                 .withFormBinding(formHandle.getFormBinding())
@@ -125,34 +122,31 @@ public class SEBExamConfigCreationPopup {
 
         // view either new template or configuration
         final PageAction viewCopy = (copyAsTemplate)
-                ? pageService.pageActionBuilder(pageContext)
+                ? this.pageService.pageActionBuilder(pageContext)
                         .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_VIEW)
                         .withEntityKey(new EntityKey(newConfig.id, EntityType.CONFIGURATION_NODE))
                         .create()
-                : pageService.pageActionBuilder(pageContext)
+                : this.pageService.pageActionBuilder(pageContext)
                         .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP)
                         .withEntityKey(new EntityKey(newConfig.id, EntityType.CONFIGURATION_NODE))
                         .create();
 
-        pageService.executePageAction(viewCopy);
+        this.pageService.executePageAction(viewCopy);
 
         return true;
     }
 
     private final class CreationFormContext implements ModalInputDialogComposer<FormHandle<ConfigCreationInfo>> {
 
-        private final PageService pageService;
         private final PageContext pageContext;
         private final boolean copyAsTemplate;
         private final boolean createFromTemplate;
 
         protected CreationFormContext(
-                final PageService pageService,
                 final PageContext pageContext,
                 final boolean copyAsTemplate,
                 final boolean createFromTemplate) {
 
-            this.pageService = pageService;
             this.pageContext = pageContext;
             this.copyAsTemplate = copyAsTemplate;
             this.createFromTemplate = createFromTemplate;
@@ -161,11 +155,11 @@ public class SEBExamConfigCreationPopup {
         @Override
         public Supplier<FormHandle<ConfigCreationInfo>> compose(final Composite parent) {
 
-            final Composite grid = this.pageService.getWidgetFactory()
+            final Composite grid = SEBExamConfigCreationPopup.this.pageService.getWidgetFactory()
                     .createPopupScrollComposite(parent);
 
             final EntityKey entityKey = this.pageContext.getEntityKey();
-            final FormHandle<ConfigCreationInfo> formHandle = this.pageService.formBuilder(
+            final FormHandle<ConfigCreationInfo> formHandle = SEBExamConfigCreationPopup.this.pageService.formBuilder(
                     this.pageContext.copyOf(grid))
                     .readonly(false)
                     .putStaticValueIf(

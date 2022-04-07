@@ -255,11 +255,7 @@ public final class Result<T> {
      * @return self reference */
     public Result<T> onError(final Consumer<Exception> errorHandler) {
         if (this.error != null) {
-            try {
-                errorHandler.accept(this.error);
-            } catch (final Exception e) {
-                log.error("Unexpected failure on error handling: ", e);
-            }
+            errorHandler.accept(this.error);
         }
         return this;
     }

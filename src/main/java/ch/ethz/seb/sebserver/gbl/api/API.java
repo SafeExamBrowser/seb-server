@@ -232,4 +232,6 @@ public final class API {
     public static final String EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT = "/indicator";
     public static final String EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT = "/default";
 
+    public static final String BATCH_ACTION_ENDPOINT = "/batch-action";
+
 }

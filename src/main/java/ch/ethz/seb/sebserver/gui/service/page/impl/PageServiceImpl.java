@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
@@ -264,7 +265,7 @@ public class PageServiceImpl implements PageService {
             final Function<PageAction, PageAction> testBeforeActivation) {
 
         return action -> {
-            final Set<T> selectedROWData = table.getSelectedROWData();
+            final Set<T> selectedROWData = table.getPageSelectionData();
             if (selectedROWData == null || selectedROWData.isEmpty()) {
                 throw new PageMessageException(noSelectionText);
             }
@@ -365,7 +366,7 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public <T> TableBuilder<T> entityTableBuilder(
+    public <T extends ModelIdAware> TableBuilder<T> entityTableBuilder(
             final String name,
             final RestCall<Page<T>> apiCall) {
 
@@ -373,7 +374,7 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public <T> TableBuilder<T> staticListTableBuilder(
+    public <T extends ModelIdAware> TableBuilder<T> staticListTableBuilder(
             final List<T> staticList,
             final EntityType entityType) {
 
@@ -385,7 +386,7 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public <T> TableBuilder<T> remoteListTableBuilder(
+    public <T extends ModelIdAware> TableBuilder<T> remoteListTableBuilder(
             final RestCall<Collection<T>> apiCall,
             final EntityType entityType) {
 
