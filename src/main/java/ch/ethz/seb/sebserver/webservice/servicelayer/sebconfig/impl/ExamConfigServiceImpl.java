@@ -431,6 +431,25 @@ public class ExamConfigServiceImpl implements ExamConfigService {
         });
     }
 
+    @Override
+    public Result<ConfigurationNode> resetToTemplateSettings(final ConfigurationNode configurationNode) {
+        return Result.tryCatch(() -> {
+            if (configurationNode.templateId == null) {
+                throw new IllegalAccessException(
+                        "Configuration with name: " + configurationNode.name + " has no template!");
+            }
+            if (configurationNode.status == ConfigurationStatus.IN_USE) {
+                throw new IllegalStateException("Configuration with name: " + configurationNode.name + " is in use!");
+            }
+
+            this.configurationDAO
+                    .restoreToDefaultValues(configurationNode.id)
+                    .getOrThrow();
+
+            return configurationNode;
+        });
+    }
+
     private void exportPlainOnly(
             final ConfigurationFormat exportFormat,
             final OutputStream out,

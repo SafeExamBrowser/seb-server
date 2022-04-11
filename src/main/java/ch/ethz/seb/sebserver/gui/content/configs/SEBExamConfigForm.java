@@ -58,6 +58,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.De
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ResetToTemplateSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
@@ -71,6 +72,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 @GuiProfile
 public class SEBExamConfigForm implements TemplateComposer {
 
+    private static final LocTextKey MESSAGE_RESET_TO_TEMPL_SUCCESS =
+            new LocTextKey("sebserver.examconfig.action.restore.template.settings.success");
     static final LocTextKey FORM_TITLE_NEW =
             new LocTextKey("sebserver.examconfig.form.title.new");
     static final LocTextKey FORM_TITLE =
@@ -101,6 +104,8 @@ public class SEBExamConfigForm implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.form.attached-to");
     static final LocTextKey FORM_ATTACHED_EXAMS_TITLE_TOOLTIP_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.attached-to" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
+    static final LocTextKey FORM_RESET_CONFIRM =
+            new LocTextKey("sebserver.examconfig.action.restore.template.settings.confirm");
 
     static final LocTextKey SAVE_CONFIRM_STATE_CHANGE_WHILE_ATTACHED =
             new LocTextKey("sebserver.examconfig.action.state-change.confirm");
@@ -248,6 +253,17 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .withAttribute(PageContext.AttributeKeys.READ_ONLY, String.valueOf(!modifyGrant))
                 .publishIf(() -> isReadonly)
 
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_RESET_TO_TEMPLATE_SETTINGS)
+                .withConfirm(() -> FORM_RESET_CONFIRM)
+                .withEntityKey(entityKey)
+                .withExec(this::restoreToTemplateSettings)
+                .noEventPropagation()
+                .publishIf(() -> modifyGrant
+                        && isReadonly
+                        && examConfig.status != ConfigurationStatus.IN_USE
+                        && examConfig.templateId != null
+                        && examConfig.templateId.longValue() > 0)
+
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG)
                 .withEntityKey(entityKey)
                 .withExec(this.sebExamConfigCreationPopup.configCreationFunction(
@@ -339,6 +355,18 @@ public class SEBExamConfigForm implements TemplateComposer {
                     })
                     .publish(false);
         }
+    }
+
+    private PageAction restoreToTemplateSettings(final PageAction action) {
+        this.restService.getBuilder(ResetToTemplateSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .call()
+                .getOrThrow();
+
+        action.pageContext().publishInfo(MESSAGE_RESET_TO_TEMPL_SUCCESS);
+
+        return action;
+
     }
 
     private PageAction deleteConfiguration(final PageAction action) {

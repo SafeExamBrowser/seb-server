@@ -586,8 +586,12 @@ public enum ActionDefinition {
     SEB_EXAM_CONFIG_COPY_CONFIG_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.copy"),
             ImageIcon.COPY,
-            // PageStateDefinitionImpl.SEB_EXAM_CONFIG_PROP_EDIT,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
+
+    SEB_EXAM_CONFIG_RESET_TO_TEMPLATE_SETTINGS(
+            new LocTextKey("sebserver.examconfig.action.restore.template.settings"),
+            ImageIcon.EXPORT,
+            ActionCategory.FORM),
     SEB_EXAM_CONFIG_COPY_CONFIG(
             new LocTextKey("sebserver.examconfig.action.copy"),
             ImageIcon.COPY,
