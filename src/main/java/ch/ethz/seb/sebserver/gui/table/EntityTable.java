@@ -396,8 +396,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         return getRowData(selection[0]);
     }
 
-    @Deprecated
-    public Set<ROW> getPageSelectionData() {
+    private Set<ROW> getPageSelectionData() {
         final TableItem[] selection = this.table.getSelection();
         if (selection == null || selection.length == 0) {
             return Collections.emptySet();

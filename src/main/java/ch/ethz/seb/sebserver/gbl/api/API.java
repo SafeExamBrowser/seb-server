@@ -75,7 +75,7 @@ public final class API {
     public static final String LIST_PATH_SEGMENT = "/list";
 
     public static final String ACTIVE_PATH_SEGMENT = "/active";
-
+    public static final String TOGGLE_ACTIVITY_PATH_SEGMENT = "/toggle-activity";
     public static final String INACTIVE_PATH_SEGMENT = "/inactive";
 
     public static final String DEPENDENCY_PATH_SEGMENT = "/dependency";

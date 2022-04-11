@@ -34,14 +34,14 @@ import io.micrometer.core.instrument.util.StringUtils;
 @Lazy
 @Component
 @WebServiceProfile
-public class ExamConfigStateChange implements BatchActionExec {
+public class SingleExamConfigStateChange implements BatchActionExec {
 
     private final ExamConfigService sebExamConfigService;
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final AuthorizationService authorizationService;
     private final UserDAO userDAO;
 
-    public ExamConfigStateChange(
+    public SingleExamConfigStateChange(
             final ExamConfigService sebExamConfigService,
             final ConfigurationNodeDAO configurationNodeDAO,
             final AuthorizationService authorizationService,

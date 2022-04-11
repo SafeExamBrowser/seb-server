@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
@@ -38,7 +39,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
  *
  * @param <T> The concrete Entity domain-model type used on all GET, PUT
  * @param <M> The concrete Entity domain-model type used for POST methods (new) */
-public abstract class ActivatableEntityController<T extends GrantEntity, M extends GrantEntity>
+public abstract class ActivatableEntityController<T extends GrantEntity & Activatable, M extends GrantEntity>
         extends EntityController<T, M> {
 
     public ActivatableEntityController(
@@ -57,7 +58,6 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 beanValidationService);
     }
 
-    // TODO use also the getAll method
     @RequestMapping(
             path = API.ACTIVE_PATH_SEGMENT,
             method = RequestMethod.GET,
@@ -120,7 +120,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityProcessingReport activate(@PathVariable final String modelId) {
-        return setActive(modelId, true)
+        return setActiveSingle(modelId, true)
                 .getOrThrow();
     }
 
@@ -130,16 +130,61 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityProcessingReport deactivate(@PathVariable final String modelId) {
-        return setActive(modelId, false)
+        return setActiveSingle(modelId, false)
                 .getOrThrow();
     }
 
-    private Result<EntityProcessingReport> setActive(final String modelId, final boolean active) {
+    @RequestMapping(
+            path = API.TOGGLE_ACTIVITY_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public EntityProcessingReport toggleActivity(
+            @RequestParam(name = API.PARAM_MODEL_ID_LIST, required = true) final String ids) {
+        // TODO
+        throw new UnsupportedOperationException();
+
+//        final EntityType entityType = this.entityDAO.entityType();
+//        final List<EntityKey> entities = new ArrayList<>();
+//        final Set<ErrorEntry> errors = new HashSet<>();
+//        final BulkAction bulkAction = new BulkAction(
+//                (active) ? BulkActionType.ACTIVATE : BulkActionType.DEACTIVATE,
+//                entityType,
+//                entities);
+//
+//        Arrays.asList(StringUtils.split(ids, Constants.LIST_SEPARATOR))
+//                .stream()
+//                .forEach(modelId -> {
+//                    this.entityDAO
+//                            .byModelId(modelId)
+//                            .flatMap(this.authorization::checkWrite)
+//                            .flatMap(entity -> validForActivation(entity, active))
+//                            .map(Entity::getEntityKey)
+//                            .onSuccess(entities::add)
+//                            .onError(error -> errors.add(new ErrorEntry(
+//                                    new EntityKey(modelId, entityType),
+//                                    APIMessage.ErrorMessage.UNAUTHORIZED.of(error))));
+//                });
+//
+//        return this.bulkActionService
+//                .createReport(bulkAction)
+//                .map(report -> {
+//                    if (!errors.isEmpty()) {
+//                        errors.addAll(report.errors);
+//                        return new EntityProcessingReport(report.source, report.results, errors, report.bulkActionType);
+//                    } else {
+//                        return report;
+//                    }
+//                });
+    }
+
+    private Result<EntityProcessingReport> setActiveSingle(final String modelId, final boolean active) {
         final EntityType entityType = this.entityDAO.entityType();
 
-        return this.entityDAO.byModelId(modelId)
+        return this.entityDAO
+                .byModelId(modelId)
                 .flatMap(this.authorization::checkWrite)
-                .flatMap(this::validForActivation)
+                .flatMap(entity -> validForActivation(entity, active))
                 .flatMap(entity -> {
                     final Result<EntityProcessingReport> createReport =
                             this.bulkActionService.createReport(new BulkAction(
@@ -151,8 +196,12 @@ public abstract class ActivatableEntityController<T extends GrantEntity, M exten
                 });
     }
 
-    protected Result<T> validForActivation(final T entity) {
-        return Result.of(entity);
+    protected Result<T> validForActivation(final T entity, final boolean activation) {
+        if ((entity.isActive() && !activation) || (!entity.isActive() && activation)) {
+            return Result.of(entity);
+        } else {
+            throw new IllegalArgumentException("Activation argument mismatch.");
+        }
     }
 
 }

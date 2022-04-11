@@ -8,16 +8,13 @@
 
 package ch.ethz.seb.sebserver.gui.service.page;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -61,6 +58,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 /** The main page service that provides functionality to build a page
  * with forms and tables as well as dealing with page actions */
 public interface PageService {
+
+    LocTextKey MESSAGE_NO_MULTISELECTION =
+            new LocTextKey("sebserver.overall.action.toomanyselection");
 
     enum FormTooltipMode {
         RIGHT,
@@ -154,31 +154,34 @@ public interface PageService {
         return this.activationToggleActionFunction(table, noSelectionText, null);
     }
 
-    /** Get a message supplier to notify deactivation dependencies to the user for all given entities
-     *
-     * @param entities Set of entities to collect the dependencies for
-     * @return a message supplier to notify deactivation dependencies to the user */
-    <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final Set<? extends T> entities);
+//    /** Get a message supplier to notify deactivation dependencies to the user for all given entities
+//     *
+//     * @param entities Set of entities to collect the dependencies for
+//     * @return a message supplier to notify deactivation dependencies to the user */
+//    Supplier<LocTextKey> confirmDeactivation(final Set<EntityKey> keys);
 
     /** Get a message supplier to notify deactivation dependencies to the user for given entity
      *
      * @param entity the entity instance
      * @return a message supplier to notify deactivation dependencies to the user */
-    default <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final T entity) {
-        return confirmDeactivation(new HashSet<>(Arrays.asList(entity)));
-    }
+    <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final T entity);
 
     /** Get a message supplier to notify deactivation dependencies to the user for given entity table selection
      *
      * @param table the entity table
      * @return a message supplier to notify deactivation dependencies to the user */
     default <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final EntityTable<T> table) {
-        return () -> confirmDeactivation(table
-                .getPageSelectionData()
-                .stream()
-                .filter(entity -> entity.isActive()) // NOTE: Activatable::isActive leads to an error here!?
-                .collect(Collectors.toSet()))
-                        .get();
+        return () -> {
+            final List<EntityKey> multiSelection = table.getMultiSelection();
+            if (multiSelection.size() > 1) {
+                throw new PageMessageException(MESSAGE_NO_MULTISELECTION);
+            }
+            final T entity = table.getSingleSelectedROWData();
+            if (!entity.isActive()) {
+                return null;
+            }
+            return confirmDeactivation(entity).get();
+        };
     }
 
     /** Use this to get an action activation publisher that processes the action activation.
