@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionR
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
@@ -203,11 +204,11 @@ public class PaginationServiceImpl implements PaginationService {
             if (StringUtils.isNotBlank(sortColumnName)) {
                 switch (sortOrder) {
                     case DESCENDING: {
-                        PageHelper.orderBy(sortColumnName + " DESC");
+                        PageHelper.orderBy(sortColumnName + " DESC, id DESC");
                         break;
                     }
                     default: {
-                        PageHelper.orderBy(sortColumnName);
+                        PageHelper.orderBy(sortColumnName + ", id");
                         break;
                     }
                 }
@@ -264,6 +265,18 @@ public class PaginationServiceImpl implements PaginationService {
         lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_ACTIVE, LmsSetupRecordDynamicSqlSupport.active.name());
         this.sortColumnMapping.put(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord.name(), lmsSetupTableMap);
         this.defaultSortColumn.put(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord.name(), Domain.LMS_SETUP.ATTR_ID);
+
+        // Exam Template Table
+        final Map<String, String> examTemplateTableMap = new HashMap<>();
+        examTemplateTableMap.put(Entity.FILTER_ATTR_INSTITUTION, institutionNameRef);
+        examTemplateTableMap.put(Domain.EXAM_TEMPLATE.ATTR_NAME, ExamTemplateRecordDynamicSqlSupport.name.name());
+        examTemplateTableMap.put(Domain.EXAM_TEMPLATE.ATTR_EXAM_TYPE,
+                ExamTemplateRecordDynamicSqlSupport.examType.name());
+
+        this.sortColumnMapping.put(ExamTemplateRecordDynamicSqlSupport.examTemplateRecord.name(), examTemplateTableMap);
+        this.defaultSortColumn.put(
+                ExamTemplateRecordDynamicSqlSupport.examTemplateRecord.name(),
+                Domain.EXAM_TEMPLATE.ATTR_ID);
 
         // Exam Table
         final Map<String, String> examTableMap = new HashMap<>();

@@ -268,7 +268,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertTrue(userInfos.numberOfPages == 1);
         assertNotNull(userInfos.content);
         assertTrue(userInfos.content.size() == 3);
-        assertEquals("[user5, user2, user1]", getOrderedUUIDs(userInfos.content));
+        assertEquals("[user1, user2, user5]", getOrderedUUIDs(userInfos.content));
     }
 
     @Test
@@ -347,7 +347,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertTrue(userInfos.numberOfPages == 2);
         assertNotNull(userInfos.content);
         assertTrue(userInfos.content.size() == 3);
-        assertEquals("[user7, user6, user4]", getOrderedUUIDs(userInfos.content));
+        assertEquals("[user4, user6, user7]", getOrderedUUIDs(userInfos.content));
     }
 
     @Test

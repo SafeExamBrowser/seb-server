@@ -22,6 +22,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
+import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +45,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamTemplateRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
@@ -140,24 +144,38 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             final FilterMap filterMap,
             final Predicate<ExamTemplate> predicate) {
 
-        return Result.tryCatch(() -> this.examTemplateRecordMapper
-                .selectByExample()
-                .where(
-                        ExamTemplateRecordDynamicSqlSupport.institutionId,
-                        isEqualToWhenPresent(filterMap.getInstitutionId()))
-                .and(
-                        ExamTemplateRecordDynamicSqlSupport.name,
-                        isLikeWhenPresent(filterMap.getExamTemplateName()))
-                .and(
-                        ExamTemplateRecordDynamicSqlSupport.examType,
-                        isEqualToWhenPresent(filterMap.getString(ExamTemplate.FILTER_ATTR_EXAM_TYPE)))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .filter(predicate)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamTemplateRecord>>>.QueryExpressionWhereBuilder whereClause =
+                    (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
+                            ? this.examTemplateRecordMapper
+                                    .selectByExample()
+                                    .join(InstitutionRecordDynamicSqlSupport.institutionRecord)
+                                    .on(InstitutionRecordDynamicSqlSupport.id,
+                                            SqlBuilder.equalTo(ExamTemplateRecordDynamicSqlSupport.institutionId))
+                                    .where(
+                                            ExamTemplateRecordDynamicSqlSupport.institutionId,
+                                            isEqualToWhenPresent(filterMap.getInstitutionId()))
+                            : this.examTemplateRecordMapper
+                                    .selectByExample()
+                                    .where(
+                                            ExamTemplateRecordDynamicSqlSupport.institutionId,
+                                            isEqualToWhenPresent(filterMap.getInstitutionId()));
+
+            return whereClause
+                    .and(
+                            ExamTemplateRecordDynamicSqlSupport.name,
+                            isLikeWhenPresent(filterMap.getExamTemplateName()))
+                    .and(
+                            ExamTemplateRecordDynamicSqlSupport.examType,
+                            isEqualToWhenPresent(filterMap.getString(ExamTemplate.FILTER_ATTR_EXAM_TYPE)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .filter(predicate)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
