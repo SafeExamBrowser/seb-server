@@ -95,7 +95,7 @@ public class EntityTable<ROW extends ModelIdAware> {
 
     private final MultiValueMap<String, String> staticQueryParams;
     private final BiConsumer<TableItem, ROW> rowDecorator;
-    private final Consumer<Set<ROW>> selectionListener;
+    private final Consumer<EntityTable<ROW>> selectionListener;
     private final Consumer<Integer> contentChangeListener;
 
     private final Set<String> multiselection;
@@ -125,7 +125,7 @@ public class EntityTable<ROW extends ModelIdAware> {
             final boolean hideNavigation,
             final MultiValueMap<String, String> staticQueryParams,
             final BiConsumer<TableItem, ROW> rowDecorator,
-            final Consumer<Set<ROW>> selectionListener,
+            final Consumer<EntityTable<ROW>> selectionListener,
             final Consumer<Integer> contentChangeListener,
             final String defaultSortColumn,
             final PageSortOrder defaultSortOrder) {
@@ -263,6 +263,10 @@ public class EntityTable<ROW extends ModelIdAware> {
         return this.table.getItemCount() > 0;
     }
 
+    public boolean hasSelection() {
+        return (this.multiselection != null && !this.multiselection.isEmpty()) || this.table.getSelectionCount() > 0;
+    }
+
     public void setPageSize(final int pageSize) {
         this.pageSize = pageSize;
         updateTableRows(
@@ -363,15 +367,18 @@ public class EntityTable<ROW extends ModelIdAware> {
         return getEntityKey(selection[0]);
     }
 
-    public List<EntityKey> getMultiSelection() {
+    public Set<EntityKey> getMultiSelection() {
         if (this.multiselection == null) {
-            return Collections.emptyList();
+            return getPageSelectionData()
+                    .stream()
+                    .map(row -> new EntityKey(row.getModelId(), getEntityType()))
+                    .collect(Collectors.toSet());
         }
 
         return this.multiselection
                 .stream()
                 .map(modelId -> new EntityKey(modelId, getEntityType()))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     public ROW getFirstRowData() {
@@ -396,7 +403,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         return getRowData(selection[0]);
     }
 
-    private Set<ROW> getPageSelectionData() {
+    public Set<ROW> getPageSelectionData() {
         final TableItem[] selection = this.table.getSelection();
         if (selection == null || selection.length == 0) {
             return Collections.emptySet();
@@ -405,10 +412,6 @@ public class EntityTable<ROW extends ModelIdAware> {
         return Arrays.stream(selection)
                 .map(this::getRowData)
                 .collect(Collectors.toSet());
-    }
-
-    public Set<EntityKey> getSelection() {
-        return getSelection(null);
     }
 
     public Set<EntityKey> getSelection(final Predicate<ROW> grantCheck) {
@@ -685,7 +688,7 @@ public class EntityTable<ROW extends ModelIdAware> {
             return;
         }
 
-        this.selectionListener.accept(this.getPageSelectionData());
+        this.selectionListener.accept(this);
     }
 
     private void updateCurrentPageAttr() {
@@ -807,6 +810,9 @@ public class EntityTable<ROW extends ModelIdAware> {
                 this.multiselection.remove(modelId);
             } else {
                 this.multiselection.add(modelId);
+                Arrays.asList(this.table.getSelection())
+                        .stream()
+                        .forEach(i -> this.multiselection.add(getModelId(i)));
             }
             multiselectFromPage();
         }

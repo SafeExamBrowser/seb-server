@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -412,6 +413,18 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             if (existingNode.type != configurationNode.type) {
                 throw new APIConstraintViolationException(
                         "The Type of ConfigurationNode cannot change after creation");
+            }
+
+            // if configuration is in use, "Ready to Use" is not possible
+            if (configurationNode.status == ConfigurationStatus.READY_TO_USE) {
+                if (!this.examConfigurationMapDAO
+                        .getExamIdsForConfigNodeId(configurationNode.id)
+                        .getOr(Collections.emptyList())
+                        .isEmpty()) {
+                    throw new APIMessageException(
+                            APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                                    .of("Exam configuration has references to at least one exam."));
+                }
             }
 
             // if changing to archived check possibility

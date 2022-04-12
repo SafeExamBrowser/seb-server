@@ -170,7 +170,10 @@ public class FinishedExam implements TemplateComposer {
 
                 .newAction(ActionDefinition.VIEW_FINISHED_EXAM_CLIENT_CONNECTION)
                 .withParentEntityKey(examKey)
-                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(
+                        table::getMultiSelection,
+                        PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(isExamSupporter, false);
     }
 

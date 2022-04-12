@@ -201,6 +201,7 @@ public class PaginationServiceImpl implements PaginationService {
             final PageSortOrder sortOrder = PageSortOrder.getSortOrder(sort);
             final String sortColumnName = verifySortColumnName(sort, sortMappingName);
             if (StringUtils.isNotBlank(sortColumnName)) {
+                startPage.setOrderByOnly(false);
                 switch (sortOrder) {
                     case DESCENDING: {
                         PageHelper.orderBy(sortColumnName + " DESC");
@@ -211,6 +212,7 @@ public class PaginationServiceImpl implements PaginationService {
                         break;
                     }
                 }
+                PageHelper.orderBy("id");
             }
         }
 

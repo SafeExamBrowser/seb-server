@@ -264,7 +264,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                     .withParentEntityKey(parentEntityKey)
                     .withConfirm(() -> NOTIFICATION_LIST_CONFIRM_TEXT_KEY)
                     .withSelect(
-                            () -> notificationTable.getSelection(),
+                            () -> notificationTable.getMultiSelection(),
                             action -> this.confirmNotification(action, connectionData, notificationTable),
 
                             NOTIFICATION_LIST_NO_SELECTION_KEY)

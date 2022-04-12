@@ -32,7 +32,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class SEBExamConfigStateChangePopup extends AbstractBatchActionWizard {
+public class SEBExamConfigBatchStateChangePopup extends AbstractBatchActionWizard {
 
     private static final String ATTR_SELECTED_TARGET_STATE = "selectedTargetState";
 
@@ -45,7 +45,7 @@ public class SEBExamConfigStateChangePopup extends AbstractBatchActionWizard {
     private final static LocTextKey FORM_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.batch.action.status");
 
-    protected SEBExamConfigStateChangePopup(
+    protected SEBExamConfigBatchStateChangePopup(
             final PageService pageService,
             final ServerPushService serverPushService) {
 

@@ -249,7 +249,7 @@ public class PageServiceImpl implements PageService {
             final Function<PageAction, PageAction> testBeforeActivation) {
 
         return action -> {
-            final List<EntityKey> multiSelection = table.getMultiSelection();
+            final Set<EntityKey> multiSelection = table.getMultiSelection();
             if (multiSelection == null || multiSelection.isEmpty()) {
                 throw new PageMessageException(noSelectionText);
             }

@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -38,6 +40,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BatchActionServi
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.BatchActionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 
 @Service
 @WebServiceProfile
@@ -46,17 +50,23 @@ public class BatchActionServiceImpl implements BatchActionService {
     private static final Logger log = LoggerFactory.getLogger(BatchActionServiceImpl.class);
 
     private final BatchActionDAO batchActionDAO;
+    private final UserDAO userDAO;
     private final TaskScheduler taskScheduler;
+    private final UserActivityLogDAO userActivityLogDAO;
     private final EnumMap<BatchActionType, BatchActionExec> batchExecutions;
 
     private ScheduledFuture<?> runningBatchProcess = null;
 
     public BatchActionServiceImpl(
             final BatchActionDAO batchActionDAO,
+            final UserDAO userDAO,
+            final UserActivityLogDAO userActivityLogDAO,
             final Collection<BatchActionExec> batchExecutions,
             final TaskScheduler taskScheduler) {
 
         this.batchActionDAO = batchActionDAO;
+        this.userDAO = userDAO;
+        this.userActivityLogDAO = userActivityLogDAO;
         this.taskScheduler = taskScheduler;
 
         this.batchExecutions = new EnumMap<>(BatchActionType.class);
@@ -158,7 +168,8 @@ public class BatchActionServiceImpl implements BatchActionService {
                                 new BatchActionProcess(
                                         new BatchActionHandlerImpl(action),
                                         this.batchExecutions.get(action.actionType),
-                                        action),
+                                        action,
+                                        getAuthentication(action)),
                                 Instant.now());
                     })
                     .onError(error -> {
@@ -174,22 +185,43 @@ public class BatchActionServiceImpl implements BatchActionService {
         }
     }
 
+    private Authentication getAuthentication(final BatchAction action) {
+        try {
+            final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null) {
+                return authentication;
+            }
+
+            return this.userDAO.byModelId(action.ownerId)
+                    .flatMap(userInfo -> this.userDAO.sebServerUserByUsername(userInfo.username))
+                    .onError(error -> log.error("Failed to get batch action owner user -> ", error))
+                    .getOr(null);
+
+        } catch (final Exception e) {
+            log.error("Failed to get authentication: ", e);
+            return null;
+        }
+    }
+
     private final static class BatchActionProcess implements Runnable {
 
         private final BatchActionHandler batchActionHandler;
         private final BatchActionExec batchActionExec;
         private final BatchAction batchAction;
+        private final Authentication authentication;
 
         private Set<String> processingIds;
 
         public BatchActionProcess(
                 final BatchActionHandler batchActionHandler,
                 final BatchActionExec batchActionExec,
-                final BatchAction batchAction) {
+                final BatchAction batchAction,
+                final Authentication authentication) {
 
             this.batchActionHandler = batchActionHandler;
             this.batchActionExec = batchActionExec;
             this.batchAction = batchAction;
+            this.authentication = authentication;
         }
 
         @Override
@@ -197,6 +229,13 @@ public class BatchActionServiceImpl implements BatchActionService {
             try {
 
                 log.info("Starting or continuing batch action - {}", this.batchAction);
+
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                    if (this.authentication == null) {
+                        throw new IllegalStateException("No authentication found within batch context");
+                    }
+                    SecurityContextHolder.getContext().setAuthentication(this.authentication);
+                }
 
                 this.processingIds = new HashSet<>(this.batchAction.sourceIds);
                 this.processingIds.removeAll(this.batchAction.successful);
@@ -256,10 +295,10 @@ public class BatchActionServiceImpl implements BatchActionService {
         @Override
         public void handleError(final String modelId, final Exception error) {
             log.error(
-                    "Failed to process single entity on batch action. ModelId: {}, action: ",
+                    "Failed to process single entity on batch action. ModelId: {}, action: {}, errorMessage: {}",
                     modelId,
                     this.batchAction,
-                    error);
+                    error.getMessage());
 
             BatchActionServiceImpl.this.batchActionDAO.setFailure(
                     this.batchAction.id,
@@ -276,6 +315,10 @@ public class BatchActionServiceImpl implements BatchActionService {
                     .onError(error -> log.error(
                             "Failed to mark batch action as finished: {}",
                             this.batchAction, error));
+
+            BatchActionServiceImpl.this.batchActionDAO.byPK(this.batchAction.id)
+                    .flatMap(BatchActionServiceImpl.this.userActivityLogDAO::logFinished)
+                    .onError(error -> log.error("Failed to put audit log for batch action finish: ", error));
         }
     }
 

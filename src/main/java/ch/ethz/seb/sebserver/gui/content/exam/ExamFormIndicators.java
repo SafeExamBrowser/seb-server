@@ -133,7 +133,7 @@ public class ExamFormIndicators implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_INDICATOR_MODIFY_FROM_LIST)
                 .withParentEntityKey(entityKey)
                 .withSelect(
-                        indicatorTable::getSelection,
+                        indicatorTable::getMultiSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         INDICATOR_EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> editable && indicatorTable.hasAnyContent(), false)
@@ -141,7 +141,7 @@ public class ExamFormIndicators implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_INDICATOR_DELETE_FROM_LIST)
                 .withEntityKey(entityKey)
                 .withSelect(
-                        indicatorTable::getSelection,
+                        indicatorTable::getMultiSelection,
                         this::deleteSelectedIndicator,
                         INDICATOR_EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> editable && indicatorTable.hasAnyContent(), false)

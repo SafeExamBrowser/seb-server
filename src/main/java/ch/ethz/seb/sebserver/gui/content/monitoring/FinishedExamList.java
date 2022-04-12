@@ -141,7 +141,10 @@ public class FinishedExamList implements TemplateComposer {
         actionBuilder
 
                 .newAction(ActionDefinition.VIEW_FINISHED_EXAM_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(
+                        table::getMultiSelection,
+                        PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER), false);
 
     }

@@ -147,7 +147,7 @@ public class ConfigTemplateList implements TemplateComposer {
                 .publishIf(examConfigGrant::iw)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_VIEW_FROM_LIST)
-                .withSelect(templateTable::getSelection, PageAction::applySingleSelectionAsEntityKey,
+                .withSelect(templateTable::getMultiSelection, PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_TEMPLATE_SELECTION_TEXT_KEY)
                 .publish(false)
 

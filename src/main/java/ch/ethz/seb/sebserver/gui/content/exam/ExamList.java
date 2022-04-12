@@ -210,7 +210,8 @@ public class ExamList implements TemplateComposer {
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM);
         actionBuilder
                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(table::getMultiSelection, PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publish(false)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)

@@ -88,7 +88,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     private final Table table;
     private final ColorData colorData;
     private final Function<ClientConnectionData, String> localizedClientConnectionStatusNameFunction;
-    private Consumer<Set<EntityKey>> selectionListener;
+    private Consumer<ClientConnectionTable> selectionListener;
 
     private int tableWidth;
     private boolean needsSort = false;
@@ -238,7 +238,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
     }
 
-    public ClientConnectionTable withSelectionListener(final Consumer<Set<EntityKey>> selectionListener) {
+    public ClientConnectionTable withSelectionListener(final Consumer<ClientConnectionTable> selectionListener) {
         this.selectionListener = selectionListener;
         return this;
     }
@@ -402,7 +402,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             return;
         }
 
-        this.selectionListener.accept(this.getSelection());
+        this.selectionListener.accept(this);
     }
 
     private void notifyTableInfoClick(final Event event) {

@@ -70,7 +70,8 @@ public class SEBExamConfigList implements TemplateComposer {
     private final PageService pageService;
     private final SEBExamConfigImportPopup sebExamConfigImportPopup;
     private final SEBExamConfigCreationPopup sebExamConfigCreationPopup;
-    private final SEBExamConfigStateChangePopup sebExamConfigStateChangePopup;
+    private final SEBExamConfigBatchStateChangePopup sebExamConfigBatchStateChangePopup;
+    private final SEBExamConfigBatchResetToTemplatePopup sebExamConfigBatchResetToTemplatePopup;
     private final CurrentUser currentUser;
     private final ResourceService resourceService;
     private final int pageSize;
@@ -79,13 +80,15 @@ public class SEBExamConfigList implements TemplateComposer {
             final PageService pageService,
             final SEBExamConfigImportPopup sebExamConfigImportPopup,
             final SEBExamConfigCreationPopup sebExamConfigCreationPopup,
-            final SEBExamConfigStateChangePopup sebExamConfigStateChangePopup,
+            final SEBExamConfigBatchStateChangePopup sebExamConfigBatchStateChangePopup,
+            final SEBExamConfigBatchResetToTemplatePopup sebExamConfigBatchResetToTemplatePopup,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.sebExamConfigImportPopup = sebExamConfigImportPopup;
         this.sebExamConfigCreationPopup = sebExamConfigCreationPopup;
-        this.sebExamConfigStateChangePopup = sebExamConfigStateChangePopup;
+        this.sebExamConfigBatchStateChangePopup = sebExamConfigBatchStateChangePopup;
+        this.sebExamConfigBatchResetToTemplatePopup = sebExamConfigBatchResetToTemplatePopup;
         this.currentUser = pageService.getCurrentUser();
         this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
@@ -159,7 +162,8 @@ public class SEBExamConfigList implements TemplateComposer {
                                 ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST,
                                 ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST,
                                 ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_FROM_LIST,
-                                ActionDefinition.SEB_EXAM_CONFIG_BULK_STATE_CHANGE))
+                                ActionDefinition.SEB_EXAM_CONFIG_BULK_STATE_CHANGE,
+                                ActionDefinition.SEB_EXAM_CONFIG_BULK_RESET_TO_TEMPLATE))
 
                         .compose(pageContext.copyOf(content));
 
@@ -171,7 +175,7 @@ public class SEBExamConfigList implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
                 .withSelect(
-                        configTable::getSelection,
+                        configTable::getMultiSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
                 .publish(false)
@@ -205,8 +209,16 @@ public class SEBExamConfigList implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_BULK_STATE_CHANGE)
                 .withSelect(
-                        configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
-                        this.sebExamConfigStateChangePopup.popupCreationFunction(pageContext),
+                        configTable::getMultiSelection,
+                        this.sebExamConfigBatchStateChangePopup.popupCreationFunction(pageContext),
+                        EMPTY_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(() -> examConfigGrant.im(), false)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_BULK_RESET_TO_TEMPLATE)
+                .withSelect(
+                        configTable::getMultiSelection,
+                        this.sebExamConfigBatchResetToTemplatePopup.popupCreationFunction(pageContext),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
                 .publishIf(() -> examConfigGrant.im(), false)

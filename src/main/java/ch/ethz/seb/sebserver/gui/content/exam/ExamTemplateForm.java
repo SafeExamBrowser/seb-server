@@ -268,7 +268,7 @@ public class ExamTemplateForm implements TemplateComposer {
                     .newAction(ActionDefinition.INDICATOR_TEMPLATE_MODIFY_FROM_LIST)
                     .withParentEntityKey(entityKey)
                     .withSelect(
-                            indicatorTable::getSelection,
+                            indicatorTable::getMultiSelection,
                             PageAction::applySingleSelectionAsEntityKey,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> userGrant.im() && indicatorTable.hasAnyContent(), false)
@@ -276,7 +276,7 @@ public class ExamTemplateForm implements TemplateComposer {
                     .newAction(ActionDefinition.INDICATOR_TEMPLATE_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
                     .withSelect(
-                            indicatorTable::getSelection,
+                            indicatorTable::getMultiSelection,
                             this::deleteSelectedIndicator,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> userGrant.im() && indicatorTable.hasAnyContent(), false)

@@ -171,7 +171,6 @@ public final class PageAction {
                 // if selection is needed, check selection fist, before confirm dialog
                 if (this.selectionSupplier != null) {
                     getMultiSelection();
-
                 }
 
                 final LocTextKey confirmMessage = this.confirm.apply(this);

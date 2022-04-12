@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.gui.table;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -48,7 +47,7 @@ public class TableBuilder<ROW extends ModelIdAware> {
     private boolean hideNavigation = false;
     private Function<PageSupplier.Builder<ROW>, PageSupplier.Builder<ROW>> restCallAdapter;
     private BiConsumer<TableItem, ROW> rowDecorator;
-    private Consumer<Set<ROW>> selectionListener;
+    private Consumer<EntityTable<ROW>> selectionListener;
     private Consumer<Integer> contentChangeListener;
     private boolean markupEnabled = false;
     private String defaultSortColumn = null;
@@ -152,7 +151,7 @@ public class TableBuilder<ROW extends ModelIdAware> {
         return this;
     }
 
-    public TableBuilder<ROW> withSelectionListener(final Consumer<Set<ROW>> selectionListener) {
+    public TableBuilder<ROW> withSelectionListener(final Consumer<EntityTable<ROW>> selectionListener) {
         this.selectionListener = selectionListener;
         return this;
     }

@@ -138,14 +138,14 @@ public class InstitutionList implements TemplateComposer {
 
                 .newAction(ActionDefinition.INSTITUTION_VIEW_FROM_LIST)
                 .withSelect(
-                        table::getSelection,
+                        table::getMultiSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
                 .publish(false)
 
                 .newAction(ActionDefinition.INSTITUTION_MODIFY_FROM_LIST)
                 .withSelect(
-                        table::getSelection,
+                        table::getMultiSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> instGrant.m(), false)

@@ -533,6 +533,12 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_LIST,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
 
+    SEB_EXAM_CONFIG_BULK_RESET_TO_TEMPLATE(
+            new LocTextKey("sebserver.examconfig.list.action.reset"),
+            ImageIcon.EXPORT,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_LIST,
+            ActionCategory.SEB_EXAM_CONFIG_LIST),
+
     SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST(
             new LocTextKey("sebserver.examconfig.action.list.modify.properties"),
             ImageIcon.EDIT,

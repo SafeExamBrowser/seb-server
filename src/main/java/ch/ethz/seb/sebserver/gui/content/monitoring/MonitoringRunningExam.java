@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.eclipse.swt.SWT;
@@ -172,7 +173,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                                 .withParentEntityKey(entityKey)
                                 .create(),
                         this.pageService)
-                .withSelectionListener(this.pageService.getSelectionPublisher(
+                .withSelectionListener(this.getSelectionPublisherClientConnectionTable(
                         pageContext,
                         ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION,
                         ActionDefinition.MONITOR_EXAM_QUIT_SELECTED,
@@ -503,6 +504,15 @@ public class MonitoringRunningExam implements TemplateComposer {
         clientTable.removeSelection();
         clientTable.forceUpdateAll();
         return action;
+    }
+
+    private Consumer<ClientConnectionTable> getSelectionPublisherClientConnectionTable(
+            final PageContext pageContext,
+            final ActionDefinition... actionDefinitions) {
+
+        return table -> this.pageService.firePageEvent(
+                new ActionActivationEvent(table.getSingleSelection() != null, actionDefinitions),
+                pageContext);
     }
 
 }

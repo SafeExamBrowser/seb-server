@@ -172,7 +172,7 @@ public interface PageService {
      * @return a message supplier to notify deactivation dependencies to the user */
     default <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final EntityTable<T> table) {
         return () -> {
-            final List<EntityKey> multiSelection = table.getMultiSelection();
+            final Set<EntityKey> multiSelection = table.getMultiSelection();
             if (multiSelection.size() > 1) {
                 throw new PageMessageException(MESSAGE_NO_MULTISELECTION);
             }
@@ -204,12 +204,12 @@ public interface PageService {
      * @param pageContext the current PageContext
      * @param actionDefinitions list of action definitions that activity should be toggled on table selection
      * @return the selection publisher that handles this defines action activation on table selection */
-    default <T> Consumer<Set<T>> getSelectionPublisher(
+    default <T extends ModelIdAware> Consumer<EntityTable<T>> getSelectionPublisher(
             final PageContext pageContext,
             final ActionDefinition... actionDefinitions) {
 
-        return rows -> firePageEvent(
-                new ActionActivationEvent(!rows.isEmpty(), actionDefinitions),
+        return table -> firePageEvent(
+                new ActionActivationEvent(table.hasSelection(), actionDefinitions),
                 pageContext);
     }
 
@@ -225,15 +225,15 @@ public interface PageService {
      * @param pageContext the current PageContext
      * @param actionDefinitions list of action definitions that activity should be toggled on table selection
      * @return the selection publisher that handles this defines action activation on table selection */
-    default <T extends Activatable> Consumer<Set<T>> getSelectionPublisher(
+    default <T extends Activatable & ModelIdAware> Consumer<EntityTable<T>> getSelectionPublisher(
             final ActionDefinition toggle,
             final ActionDefinition activate,
             final ActionDefinition deactivate,
             final PageContext pageContext,
             final ActionDefinition... actionDefinitions) {
 
-        return rows -> {
-
+        return table -> {
+            final Set<T> rows = table.getPageSelectionData();
             if (!rows.isEmpty()) {
                 firePageEvent(
                         new ActionActivationEvent(

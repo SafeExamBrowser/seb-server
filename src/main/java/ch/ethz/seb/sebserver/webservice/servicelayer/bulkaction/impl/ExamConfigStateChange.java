@@ -21,36 +21,31 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BatchActionExec;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Component
 @WebServiceProfile
-public class SingleExamConfigStateChange implements BatchActionExec {
+public class ExamConfigStateChange implements BatchActionExec {
 
     private final ExamConfigService sebExamConfigService;
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final AuthorizationService authorizationService;
-    private final UserDAO userDAO;
 
-    public SingleExamConfigStateChange(
+    public ExamConfigStateChange(
             final ExamConfigService sebExamConfigService,
             final ConfigurationNodeDAO configurationNodeDAO,
-            final AuthorizationService authorizationService,
-            final UserDAO userDAO) {
+            final AuthorizationService authorizationService) {
 
         this.sebExamConfigService = sebExamConfigService;
         this.configurationNodeDAO = configurationNodeDAO;
         this.authorizationService = authorizationService;
-        this.userDAO = userDAO;
     }
 
     @Override
@@ -71,13 +66,9 @@ public class SingleExamConfigStateChange implements BatchActionExec {
     @Override
     public Result<EntityKey> doSingleAction(final String modelId, final BatchAction batchAction) {
 
-        final UserInfo user = this.userDAO
-                .byModelId(batchAction.ownerId)
-                .getOrThrow();
-
         return this.configurationNodeDAO
                 .byModelId(modelId)
-                .map(node -> this.authorizationService.check(PrivilegeType.MODIFY, user, node))
+                .flatMap(node -> this.authorizationService.check(PrivilegeType.MODIFY, node))
                 .map(node -> new ConfigurationNode(
                         node.id, null, null, null, null, null, null,
                         getTargetState(batchAction.attributes)))

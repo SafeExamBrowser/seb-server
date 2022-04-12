@@ -244,7 +244,7 @@ public class UserActivityLogs implements TemplateComposer {
         actionBuilder
                 .newAction(ActionDefinition.LOGS_USER_ACTIVITY_SHOW_DETAILS)
                 .withSelect(
-                        table::getSelection,
+                        table::getMultiSelection,
                         action -> this.showDetails(action, table.getSingleSelectedROWData()),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()

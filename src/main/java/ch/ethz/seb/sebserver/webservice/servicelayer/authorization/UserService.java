@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
 import java.security.Principal;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.WebDataBinder;
 
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
@@ -50,5 +51,10 @@ public interface UserService {
      *
      * @param binder Springs WebDataBinder is injected on controller side */
     void addUsersInstitutionDefaultPropertySupport(final WebDataBinder binder);
+
+    /** Used to set authentication on different thread.
+     *
+     * @param authentication */
+    void setAuthenticationIfAbsent(Authentication authentication);
 
 }

@@ -159,7 +159,7 @@ public class CertificateList implements TemplateComposer {
                 .newAction(ActionDefinition.SEB_CERTIFICATE_REMOVE)
                 .withConfirm(() -> FORM_ACTION_MESSAGE_REMOVE_CONFIRM_TEXT_KEY)
                 .withSelect(
-                        table::getSelection,
+                        table::getMultiSelection,
                         this::removeCertificate,
                         EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> grantCheck.iw(), false);
