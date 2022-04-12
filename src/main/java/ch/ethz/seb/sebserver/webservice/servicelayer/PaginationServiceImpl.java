@@ -315,6 +315,10 @@ public class PaginationServiceImpl implements PaginationService {
         configurationNodeTableMap.put(
                 Domain.CONFIGURATION_NODE.ATTR_STATUS,
                 ConfigurationNodeRecordDynamicSqlSupport.status.name());
+        configurationNodeTableMap.put(
+                Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
+                ConfigurationNodeRecordDynamicSqlSupport.templateId.name());
+
         this.sortColumnMapping.put(
                 ConfigurationNodeRecordDynamicSqlSupport.configurationNodeRecord.name(),
                 configurationNodeTableMap);

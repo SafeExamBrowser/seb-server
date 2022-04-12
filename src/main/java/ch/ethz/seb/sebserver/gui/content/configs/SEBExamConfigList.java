@@ -57,6 +57,8 @@ public class SEBExamConfigList implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.list.column.description");
     private static final LocTextKey STATUS_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.column.status");
+    private static final LocTextKey TEMPLATE_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.list.column.template");
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.info.pleaseSelect");
 
@@ -66,6 +68,7 @@ public class SEBExamConfigList implements TemplateComposer {
     private final TableFilterAttribute descFilter =
             new TableFilterAttribute(CriteriaType.TEXT, ConfigurationNode.FILTER_ATTR_DESCRIPTION);
     private final TableFilterAttribute statusFilter;
+    private final TableFilterAttribute templateFilter;
 
     private final PageService pageService;
     private final SEBExamConfigImportPopup sebExamConfigImportPopup;
@@ -102,6 +105,11 @@ public class SEBExamConfigList implements TemplateComposer {
                 CriteriaType.SINGLE_SELECTION,
                 ConfigurationNode.FILTER_ATTR_STATUS,
                 this.resourceService::examConfigStatusFilterResources);
+
+        this.templateFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                ConfigurationNode.FILTER_ATTR_TEMPLATE_ID,
+                this.resourceService::getExamConfigTemplateResourcesSelection);
     }
 
     @Override
@@ -153,6 +161,13 @@ public class SEBExamConfigList implements TemplateComposer {
                                 this.resourceService::localizedExamConfigStatusName)
                                         .withFilter(this.statusFilter)
                                         .sortable())
+
+                        .withColumn(new ColumnDefinition<>(
+                                Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
+                                TEMPLATE_TEXT_KEY,
+                                this.resourceService.examConfigTemplateNameFunction())
+                                        .withFilter(this.templateFilter))
+
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
                                 .create())

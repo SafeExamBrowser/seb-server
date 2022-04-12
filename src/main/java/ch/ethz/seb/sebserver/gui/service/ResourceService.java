@@ -725,6 +725,14 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> getExamConfigTemplateResources() {
+        return getExamConfigTemplateResourcesSelection(true);
+    }
+
+    public List<Tuple<String>> getExamConfigTemplateResourcesSelection() {
+        return getExamConfigTemplateResourcesSelection(false);
+    }
+
+    public List<Tuple<String>> getExamConfigTemplateResourcesSelection(final boolean withEmpty) {
         final UserInfo userInfo = this.currentUser.get();
         final List<Tuple<String>> collect = this.restService.getBuilder(GetExamConfigNodes.class)
                 .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
@@ -735,8 +743,25 @@ public class ResourceService {
                 .map(node -> new Tuple<>(node.getModelId(), node.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
-        collect.add(0, new Tuple<>(null, StringUtils.EMPTY));
+        if (withEmpty) {
+            collect.add(0, new Tuple<>(null, StringUtils.EMPTY));
+        }
         return collect;
+    }
+
+    public final Function<ConfigurationNode, String> examConfigTemplateNameFunction() {
+        final List<Tuple<String>> examTemplateResources = getExamConfigTemplateResourcesSelection();
+        return node -> {
+            if (node.templateId == null) {
+                return Constants.EMPTY_NOTE;
+            }
+            return examTemplateResources
+                    .stream()
+                    .filter(tuple -> node.templateId.toString().equals(tuple._1))
+                    .map(tuple -> tuple._2)
+                    .findAny()
+                    .orElse(Constants.EMPTY_NOTE);
+        };
     }
 
     public List<Tuple<String>> sebRestrictionWhiteListResources() {
