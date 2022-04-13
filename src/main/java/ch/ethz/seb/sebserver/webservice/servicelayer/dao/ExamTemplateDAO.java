@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
+import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
@@ -20,5 +22,23 @@ public interface ExamTemplateDAO extends EntityDAO<ExamTemplate, ExamTemplate>, 
      * @param institutionId The institution identifier
      * @return Result refer to the ExamTemplate instance or to an error when happened */
     Result<ExamTemplate> getInstitutionalDefault(Long institutionId);
+
+    /** Creates a new indicator template
+     *
+     * @param indicatorTemplate The IndicatorTemplate refer also to the exam template (examTemplateId)
+     * @return Result refer to the created IndicatorTemplate or to an error when happened */
+    Result<IndicatorTemplate> createNewIndicatorTemplate(IndicatorTemplate indicatorTemplate);
+
+    /** Saves an already existing indicator template
+     *
+     * @param indicatorTemplate The IndicatorTemplate refer also to the exam template (examTemplateId)
+     * @return Result refer to the saved IndicatorTemplate or to an error when happened */
+    Result<IndicatorTemplate> saveIndicatorTemplate(IndicatorTemplate indicatorTemplate);
+
+    /** Deletes an already existing indicator template
+     *
+     * @param indicatorTemplate The IndicatorTemplate refer also to the exam template (examTemplateId)
+     * @return Result refer to the EntityKey of the deleted IndicatorTemplate or to an error when happened */
+    Result<EntityKey> deleteIndicatorTemplate(String examTemplateId, String indicatorTemplateId);
 
 }

@@ -95,6 +95,17 @@ public class IndicatorTemplate implements Entity {
         this.thresholds = postParams.getThresholds();
     }
 
+    public IndicatorTemplate(final Long id, final IndicatorTemplate other) {
+        this.id = id;
+        this.examTemplateId = other.examTemplateId;
+        this.name = other.name;
+        this.type = other.type;
+        this.defaultColor = other.defaultColor;
+        this.defaultIcon = other.defaultIcon;
+        this.tags = other.tags;
+        this.thresholds = Utils.immutableListOf(other.thresholds);
+    }
+
     @Override
     public String getModelId() {
         return (this.id == null) ? null : String.valueOf(this.id);
@@ -168,7 +179,7 @@ public class IndicatorTemplate implements Entity {
         final StringBuilder builder = new StringBuilder();
         builder.append("Indicator [id=");
         builder.append(this.id);
-        builder.append(", examId=");
+        builder.append(", examTemplateId=");
         builder.append(this.examTemplateId);
         builder.append(", name=");
         builder.append(this.name);
