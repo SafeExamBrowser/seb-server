@@ -53,7 +53,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
@@ -376,7 +376,7 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {
             final ProctoringServiceSettings proctoringSettings = restService
-                    .getBuilder(GetProctoringSettings.class)
+                    .getBuilder(GetExamProctoringSettings.class)
                     .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
                     .call()
                     .onError(error -> log.error("Failed to get ProctoringServiceSettings", error))

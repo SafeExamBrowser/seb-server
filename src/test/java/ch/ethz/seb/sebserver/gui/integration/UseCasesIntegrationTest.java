@@ -132,6 +132,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfi
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamDependencies;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplates;
@@ -140,7 +141,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetSEBRestrictionSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamTemplate;
@@ -148,10 +148,10 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamConfigMapping;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicatorTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
@@ -3371,15 +3371,15 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final RestServiceImpl restService = createRestServiceForUser(
                 "admin",
                 "admin",
-                new GetProctoringSettings(),
-                new SaveProctoringSettings());
+                new GetExamProctoringSettings(),
+                new SaveExamProctoringSettings());
 
         final Exam exam = createTestExam("admin", "admin");
         assertNotNull(exam);
         assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
 
         final ProctoringServiceSettings settings = restService
-                .getBuilder(GetProctoringSettings.class)
+                .getBuilder(GetExamProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
                 .call()
                 .getOrThrow();
@@ -3401,16 +3401,16 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "sdkSecret",
                 false);
 
-        final Result<Exam> saveCall = restService
-                .getBuilder(SaveProctoringSettings.class)
+        final Result<ProctoringServiceSettings> saveCall = restService
+                .getBuilder(SaveExamProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
                 .withBody(newSettings)
                 .call();
 
         if (!saveCall.hasError()) {
             assertFalse(saveCall.hasError());
-            final Exam exam2 = saveCall.get();
-            assertEquals(exam2.id, exam.id);
+            final ProctoringServiceSettings settings2 = saveCall.get();
+            assertEquals(settings2.examId, exam.id);
         }
     }
 

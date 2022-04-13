@@ -17,24 +17,24 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class SaveProctoringSettings extends RestCall<Exam> {
+public class SaveExamTemplateProctoringSettings extends RestCall<ProctoringServiceSettings> {
 
-    public SaveProctoringSettings() {
+    public SaveExamTemplateProctoringSettings() {
         super(new TypeKey<>(
                 CallType.SAVE,
                 EntityType.EXAM_PROCTOR_DATA,
-                new TypeReference<Exam>() {
+                new TypeReference<ProctoringServiceSettings>() {
                 }),
                 HttpMethod.POST,
                 MediaType.APPLICATION_JSON,
-                API.EXAM_ADMINISTRATION_ENDPOINT
+                API.EXAM_TEMPLATE_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT
                         + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT);
     }

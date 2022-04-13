@@ -39,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -48,6 +49,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -56,6 +58,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class ExamTemplateController extends EntityController<ExamTemplate, ExamTemplate> {
 
     private final ExamTemplateDAO examTemplateDAO;
+    private final ProctoringAdminService proctoringServiceSettingsService;
 
     protected ExamTemplateController(
             final AuthorizationService authorization,
@@ -63,7 +66,8 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             final ExamTemplateDAO entityDAO,
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
-            final BeanValidationService beanValidationService) {
+            final BeanValidationService beanValidationService,
+            final ProctoringAdminService proctoringServiceSettingsService) {
 
         super(
                 authorization,
@@ -74,6 +78,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 beanValidationService);
 
         this.examTemplateDAO = entityDAO;
+        this.proctoringServiceSettingsService = proctoringServiceSettingsService;
     }
 
     @RequestMapping(
@@ -92,6 +97,9 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .flatMap(this::checkReadAccess)
                 .getOrThrow();
     }
+
+    // ****************************************************************************
+    // **** Indicator
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
@@ -225,10 +233,64 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
 
         // check write privilege for requested institution and concrete entityType
         this.checkWritePrivilege(institutionId);
-        return this.examTemplateDAO.deleteIndicatorTemplate(parentModelId, modelId)
+        return this.examTemplateDAO
+                .deleteIndicatorTemplate(parentModelId, modelId)
                 .flatMap(this.userActivityLogDAO::logDelete)
                 .getOrThrow();
     }
+
+    // **** Indicator
+    // ****************************************************************************
+    // ****************************************************************************
+    // **** Proctoring
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ProctoringServiceSettings getProctoringServiceSettings(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable final Long modelId) {
+
+        checkReadPrivilege(institutionId);
+        return this.proctoringServiceSettingsService
+                .getProctoringSettings(new EntityKey(modelId, EntityType.EXAM_TEMPLATE))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ExamTemplate saveProctoringServiceSettings(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @Valid @RequestBody final ProctoringServiceSettings proctoringServiceSettings) {
+
+        checkModifyPrivilege(institutionId);
+        return this.entityDAO
+                .byPK(examId)
+                .flatMap(this.authorization::checkModify)
+                .map(exam -> {
+                    this.proctoringServiceSettingsService.saveProctoringServiceSettings(
+                            new EntityKey(examId, EntityType.EXAM_TEMPLATE),
+                            proctoringServiceSettings);
+                    return exam;
+                })
+                .flatMap(this.userActivityLogDAO::logModify)
+                .getOrThrow();
+    }
+
+    // **** Proctoring
+    // ****************************************************************************
 
     @Override
     protected ExamTemplate createNew(final POSTMapper postParams) {

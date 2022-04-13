@@ -381,11 +381,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .byPK(examId)
                 .flatMap(this.authorization::checkModify)
                 .map(exam -> {
-                    if (StringUtils.isNotBlank(proctoringServiceSettings.serverURL)) {
-                        this.examAdminService.getExamProctoringService(proctoringServiceSettings.serverType)
-                                .flatMap(service -> service.testExamProctoring(proctoringServiceSettings))
-                                .getOrThrow();
-                    }
                     this.examAdminService.saveProctoringServiceSettings(examId, proctoringServiceSettings);
                     return exam;
                 })

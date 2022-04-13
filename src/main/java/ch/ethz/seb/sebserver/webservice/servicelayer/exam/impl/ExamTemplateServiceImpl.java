@@ -118,7 +118,8 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
     @Override
     public Result<Exam> initAdditionalAttributes(final Exam exam) {
-        return this.examAdminService.saveLMSAttributes(exam)
+        return this.examAdminService
+                .saveLMSAttributes(exam)
                 .map(_exam -> {
 
                     if (exam.examTemplateId != null) {
@@ -148,7 +149,8 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                         }
                     }
                     return _exam;
-                }).onError(error -> log.error("Failed to create additional attributes defined by template for exam: ",
+                }).onError(error -> log.error(
+                        "Failed to create additional attributes defined by template for exam: ",
                         error));
     }
 

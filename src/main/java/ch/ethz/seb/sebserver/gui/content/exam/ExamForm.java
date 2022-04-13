@@ -65,8 +65,8 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamCon
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetDefaultExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
@@ -143,7 +143,7 @@ public class ExamForm implements TemplateComposer {
     private final PageService pageService;
     private final ResourceService resourceService;
     private final ExamSEBRestrictionSettings examSEBRestrictionSettings;
-    private final ExamProctoringSettings examProctoringSettings;
+    private final ProctoringSettingsPopup proctoringSettingsPopup;
     private final WidgetFactory widgetFactory;
     private final RestService restService;
     private final ExamDeletePopup examDeletePopup;
@@ -154,7 +154,7 @@ public class ExamForm implements TemplateComposer {
     protected ExamForm(
             final PageService pageService,
             final ExamSEBRestrictionSettings examSEBRestrictionSettings,
-            final ExamProctoringSettings examProctoringSettings,
+            final ProctoringSettingsPopup proctoringSettingsPopup,
             final ExamToConfigBindingForm examToConfigBindingForm,
             final DownloadService downloadService,
             final ExamDeletePopup examDeletePopup,
@@ -165,7 +165,7 @@ public class ExamForm implements TemplateComposer {
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.examSEBRestrictionSettings = examSEBRestrictionSettings;
-        this.examProctoringSettings = examProctoringSettings;
+        this.proctoringSettingsPopup = proctoringSettingsPopup;
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = this.resourceService.getRestService();
         this.examDeletePopup = examDeletePopup;
@@ -390,7 +390,7 @@ public class ExamForm implements TemplateComposer {
         }
 
         final boolean proctoringEnabled = importFromQuizData ? false : this.restService
-                .getBuilder(GetProctoringSettings.class)
+                .getBuilder(GetExamProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
                 .map(ProctoringServiceSettings::getEnableProctoring)
@@ -455,13 +455,13 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_ON)
                 .withEntityKey(entityKey)
-                .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant && editable))
+                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
                 .publishIf(() -> proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_OFF)
                 .withEntityKey(entityKey)
-                .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant && editable))
+                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
                 .publishIf(() -> !proctoringEnabled && readonly);
 

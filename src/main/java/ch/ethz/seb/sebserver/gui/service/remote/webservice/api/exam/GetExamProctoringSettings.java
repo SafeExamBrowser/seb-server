@@ -24,9 +24,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class GetProctoringSettings extends RestCall<ProctoringServiceSettings> {
+public class GetExamProctoringSettings extends RestCall<ProctoringServiceSettings> {
 
-    public GetProctoringSettings() {
+    public GetExamProctoringSettings() {
         super(new TypeKey<>(
                 CallType.GET_SINGLE,
                 EntityType.EXAM_PROCTOR_DATA,

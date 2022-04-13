@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
@@ -44,15 +45,17 @@ import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplateProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplateProctoringSettings;
 
 @Lazy
 @Component
 @GuiProfile
-public class ExamProctoringSettings {
+public class ProctoringSettingsPopup {
 
-    private static final Logger log = LoggerFactory.getLogger(ExamProctoringSettings.class);
+    private static final Logger log = LoggerFactory.getLogger(ProctoringSettingsPopup.class);
 
     private final static LocTextKey SEB_PROCTORING_FORM_TITLE =
             new LocTextKey("sebserver.exam.proctoring.form.title");
@@ -178,7 +181,10 @@ public class ExamProctoringSettings {
 
         final boolean saveOk = !pageService
                 .getRestService()
-                .getBuilder(SaveProctoringSettings.class)
+                .getBuilder(
+                        entityKey.entityType == EntityType.EXAM
+                                ? SaveExamProctoringSettings.class
+                                : SaveExamTemplateProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .withBody(examProctoring)
                 .call()
@@ -227,7 +233,10 @@ public class ExamProctoringSettings {
                     .createPopupScrollComposite(parent);
 
             final ProctoringServiceSettings proctoringSettings = restService
-                    .getBuilder(GetProctoringSettings.class)
+                    .getBuilder(
+                            entityKey.entityType == EntityType.EXAM
+                                    ? GetExamProctoringSettings.class
+                                    : GetExamTemplateProctoringSettings.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                     .call()
                     .getOrThrow();
@@ -329,24 +338,6 @@ public class ExamProctoringSettings {
 
             return () -> formHandle;
         }
-
-//        TODO
-//        private void procServiceSelection(final Form form) {
-//            final ProctoringServerType proctoringServerType = ProctoringServerType
-//                    .valueOf(form.getFieldValue(ProctoringServiceSettings.ATTR_SERVER_TYPE));
-//            switch (proctoringServerType) {
-//                case ZOOM: {
-//                    form.setFieldVisible(true, ProctoringServiceSettings.ATTR_SDK_KEY);
-//                    form.setFieldVisible(true, ProctoringServiceSettings.ATTR_SDK_SECRET);
-//                    break;
-//                }
-//                default: {
-//                    form.setFieldVisible(false, ProctoringServiceSettings.ATTR_SDK_KEY);
-//                    form.setFieldVisible(false, ProctoringServiceSettings.ATTR_SDK_SECRET);
-//                }
-//            }
-//        }
-
     }
 
 }

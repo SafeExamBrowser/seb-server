@@ -40,6 +40,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
@@ -58,6 +59,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final ClientConnectionDAO clientConnectionDAO;
     private final ExamAdminService examAdminService;
+    private final ProctoringAdminService proctoringAdminService;
     private final ExamSessionService examSessionService;
     private final SEBClientInstructionService sebInstructionService;
     private final boolean sendBroadcastReset;
@@ -66,6 +68,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
             final ClientConnectionDAO clientConnectionDAO,
             final ExamAdminService examAdminService,
+            final ProctoringAdminService proctoringAdminService,
             final ExamSessionService examSessionService,
             final SEBClientInstructionService sebInstructionService,
             @Value("${sebserver.webservice.proctoring.resetBroadcastOnLeav:true}") final boolean sendBroadcastReset) {
@@ -73,6 +76,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.examAdminService = examAdminService;
+        this.proctoringAdminService = proctoringAdminService;
         this.examSessionService = examSessionService;
         this.sebInstructionService = sebInstructionService;
         this.sendBroadcastReset = sendBroadcastReset;
@@ -146,7 +150,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
         event.ids.forEach(examId -> {
             try {
 
-                this.examAdminService.examForPK(examId)
+                this.examAdminService
+                        .examForPK(examId)
                         .flatMap(this::disposeRoomsForExam)
                         .getOrThrow();
 
@@ -176,7 +181,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(exam.id)
                     .getOrThrow();
 
-            this.examAdminService
+            this.proctoringAdminService
                     .getExamProctoringService(proctoringSettings.serverType)
                     .flatMap(service -> service.disposeServiceRoomsForExam(exam.id, proctoringSettings))
                     .onError(error -> log.error("Failed to dispose proctoring service rooms for exam: {} / {}",
@@ -204,7 +209,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.examAdminService
+            final ExamProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
@@ -242,7 +247,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.examAdminService
+            final ExamProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
@@ -251,7 +256,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .flatMap(room -> this.remoteProctoringRoomDAO.createBreakOutRoom(examId, room, connectionTokens))
                     .getOrThrow();
 
-            return this.examAdminService
+            return this.proctoringAdminService
                     .getExamProctoringService(settings.serverType)
                     .map(service -> sendJoinRoomBreakOutInstructions(
                             settings,
@@ -272,7 +277,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.examAdminService
+            final ExamProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
@@ -357,7 +362,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.examAdminService
+            final ExamProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(proctoringSettings.serverType)
                     .getOrThrow();
 
@@ -401,7 +406,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.examAdminService
+            final ExamProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(proctoringSettings.serverType)
                     .getOrThrow();
 
@@ -574,7 +579,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.examAdminService
+            final ExamProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
@@ -635,7 +640,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.examAdminService
+            final ExamProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
@@ -689,7 +694,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final String roomName,
             final String subject) {
 
-        final ExamProctoringService examProctoringService = this.examAdminService
+        final ExamProctoringService examProctoringService = this.proctoringAdminService
                 .getExamProctoringService(proctoringSettings.serverType)
                 .getOrThrow();
 

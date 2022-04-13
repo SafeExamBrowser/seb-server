@@ -32,7 +32,7 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService.ProctoringWindowData;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -69,7 +69,7 @@ public class JitsiMeetProctoringView extends AbstractProctoringView {
                 .getProctoringGUIService();
         final ProctoringServiceSettings proctoringSettings = this.pageService
                 .getRestService()
-                .getBuilder(GetProctoringSettings.class)
+                .getBuilder(GetExamProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, proctoringWindowData.examId)
                 .call()
                 .onError(error -> log.error("Failed to get ProctoringServiceSettings", error))

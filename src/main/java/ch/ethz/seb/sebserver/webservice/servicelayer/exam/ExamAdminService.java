@@ -12,7 +12,6 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 
@@ -83,19 +82,10 @@ public interface ExamAdminService {
      * @return Result refer to proctoring is enabled flag or to an error when happened. */
     Result<Boolean> isProctoringEnabled(final Long examId);
 
-    /** Get the exam proctoring service implementation of specified type.
-     *
-     * @param type exam proctoring service server type
-     * @return ExamProctoringService instance */
-    Result<ExamProctoringService> getExamProctoringService(final ProctoringServerType type);
-
     /** Get the exam proctoring service implementation for specified exam.
      *
      * @param examId the exam identifier
      * @return ExamProctoringService instance */
-    default Result<ExamProctoringService> getExamProctoringService(final Long examId) {
-        return getProctoringServiceSettings(examId)
-                .flatMap(settings -> getExamProctoringService(settings.serverType));
-    }
+    Result<ExamProctoringService> getExamProctoringService(final Long examId);
 
 }
