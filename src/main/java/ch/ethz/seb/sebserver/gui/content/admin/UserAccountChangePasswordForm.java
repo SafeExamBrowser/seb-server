@@ -54,6 +54,8 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
             new LocTextKey("sebserver.useraccount.form.password.new.confirm");
     private static final LocTextKey FORM_PASSWORD_TEXT_KEY =
             new LocTextKey("sebserver.useraccount.form.password");
+    private static final String PASSWORD_CHANGE_INFO_KEY =
+            "sebserver.useraccount.form.password.info";
 
     private final PageService pageService;
     private final RestService restService;
@@ -84,6 +86,11 @@ public class UserAccountChangePasswordForm implements TemplateComposer {
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
                 new LocTextKey(FORM_TITLE_KEY, userInfo.username));
+
+        widgetFactory.labelLocalized(
+                content,
+                WidgetFactory.CustomVariant.SUBTITLE,
+                new LocTextKey(PASSWORD_CHANGE_INFO_KEY, userInfo.username));
 
         final boolean ownAccount = this.currentUser.get().uuid.equals(entityKey.getModelId());
 
