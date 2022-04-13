@@ -173,6 +173,15 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
+    public Result<EntityKey> logDelete(final EntityKey entityKey) {
+        return Result.tryCatch(() -> {
+            log(UserLogActivityType.DELETE, entityKey.entityType, entityKey.modelId, null);
+            return entityKey;
+        });
+    }
+
+    @Override
+    @Transactional
     public Result<EntityProcessingReport> logBulkAction(final EntityProcessingReport bulkActionReport) {
 
         try {
