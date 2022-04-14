@@ -37,6 +37,8 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
     private String remoteProctoringEndpoint;
     @Value("${sebserver.gui.remote.proctoring.api-servler.endpoint:/remote-view-servlet}")
     private String remoteProctoringViewServletEndpoint;
+    @Value("${springdoc.api-docs.enabled:false}")
+    private boolean springDocsAPIEnabled;
 
     /** Gui-service related public URLS from spring web security perspective */
     public static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
@@ -57,6 +59,10 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(this.guiEntryPoint)
                 .antMatchers(this.remoteProctoringEndpoint)
                 .antMatchers(this.remoteProctoringEndpoint + this.remoteProctoringViewServletEndpoint + "/*");
+
+        if (this.springDocsAPIEnabled) {
+            web.ignoring().antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**");
+        }
     }
 
     @Override
