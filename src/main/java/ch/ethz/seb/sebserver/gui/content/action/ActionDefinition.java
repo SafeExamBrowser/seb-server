@@ -417,6 +417,16 @@ public enum ActionDefinition {
             ImageIcon.DELETE,
             PageStateDefinitionImpl.EXAM_TEMPLATE_LIST,
             ActionCategory.FORM),
+    EXAM_TEMPLATE_PROCTORING_ON(
+            new LocTextKey("sebserver.examtemplate.proctoring.actions.open"),
+            ImageIcon.VISIBILITY,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
+            ActionCategory.FORM),
+    EXAM_TEMPLATE_PROCTORING_OFF(
+            new LocTextKey("sebserver.examtemplate.proctoring.actions.open"),
+            ImageIcon.VISIBILITY_OFF,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
+            ActionCategory.FORM),
 
     INDICATOR_TEMPLATE_NEW(
             new LocTextKey("sebserver.examtemplate.indicator.action.list.new"),

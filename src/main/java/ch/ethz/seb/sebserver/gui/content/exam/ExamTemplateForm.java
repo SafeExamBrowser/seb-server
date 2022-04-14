@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
@@ -39,10 +40,12 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplateProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
@@ -93,13 +96,17 @@ public class ExamTemplateForm implements TemplateComposer {
     private final ResourceService resourceService;
     private final WidgetFactory widgetFactory;
     private final RestService restService;
+    private final ProctoringSettingsPopup proctoringSettingsPopup;
 
-    public ExamTemplateForm(final PageService pageService) {
+    public ExamTemplateForm(
+            final PageService pageService,
+            final ProctoringSettingsPopup proctoringSettingsPopup) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = pageService.getRestService();
+        this.proctoringSettingsPopup = proctoringSettingsPopup;
     }
 
     @Override
@@ -185,7 +192,16 @@ public class ExamTemplateForm implements TemplateComposer {
                         ? this.restService.getRestCall(NewExamTemplate.class)
                         : this.restService.getRestCall(SaveExamTemplate.class));
 
+        final boolean proctoringEnabled = this.restService
+                .getBuilder(GetExamTemplateProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                .call()
+                .map(ProctoringServiceSettings::getEnableProctoring)
+                .getOr(false);
+
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM_TEMPLATE);
+        final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(examTemplate);
+        final boolean modifyGrant = userGrantCheck.m();
         // propagate content actions to action-pane
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
@@ -210,7 +226,17 @@ public class ExamTemplateForm implements TemplateComposer {
                 .withExec(this::deleteExamTemplate)
                 .publishIf(() -> userGrant.iw() && readonly)
 
-        ;
+                .newAction(ActionDefinition.EXAM_TEMPLATE_PROCTORING_ON)
+                .withEntityKey(entityKey)
+                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant))
+                .noEventPropagation()
+                .publishIf(() -> proctoringEnabled && readonly)
+
+                .newAction(ActionDefinition.EXAM_TEMPLATE_PROCTORING_OFF)
+                .withEntityKey(entityKey)
+                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant))
+                .noEventPropagation()
+                .publishIf(() -> !proctoringEnabled && readonly);
 
         if (readonly) {
 

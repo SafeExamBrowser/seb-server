@@ -193,7 +193,10 @@ public class ProctoringSettingsPopup {
 
         if (saveOk) {
             final PageAction action = pageService.pageActionBuilder(pageContext)
-                    .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
+                    .newAction(
+                            entityKey.entityType == EntityType.EXAM
+                                    ? ActionDefinition.EXAM_VIEW_FROM_LIST
+                                    : ActionDefinition.EXAM_TEMPLATE_VIEW_FROM_LIST)
                     .create();
 
             pageService.firePageEvent(
