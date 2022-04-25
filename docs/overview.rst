@@ -160,6 +160,20 @@ that do not have a sort functionality yet.
 Most columns have a short tool-tip description that pops up while the mouse pointer stays over the column header for a moment. 
 A column tool-tip usually also explains how to use the column-related filter.
 
+**List Multi-Selection**
+
+Since SEB Server version 1.4, multi-selection for some lists with bulk-actions is possible. To select multiple rows in a table that allows multi-selection
+just click on the row as usual. If you then click on another (still not selected) row, this row get selected too. You can do this even over several pages.
+To deselect a selected row just click it again then it will be removed from the selection.
+
+.. image:: images/overview/list.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/list_multiselect.png
+    
+.. note::
+    Some actions on the right action pane are used only for single objects but also enabled on multi-selection. If you have multiple selections
+    and use a single object action like "View", "Edit" or "Copy" for exmaple, then the system will take the fist selected object/row to work with.
+
 **Forms**
 
 Forms are used for domain entity specific data input or presentation, like HTML Forms usually do. Forms appear in three 
