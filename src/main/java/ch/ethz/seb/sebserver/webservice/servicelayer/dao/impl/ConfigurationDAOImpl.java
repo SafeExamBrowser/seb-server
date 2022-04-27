@@ -133,8 +133,24 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 .build()
                 .execute()
                 .stream()
-                .collect(Utils.toSingleton())).flatMap(ConfigurationDAOImpl::toDomainModel);
+                .collect(Utils.toSingleton()))
+                .flatMap(ConfigurationDAOImpl::toDomainModel);
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Long> getFollowupConfigurationId(final Long configNodeId) {
+        return Result.tryCatch(() -> this.configurationRecordMapper.selectIdsByExample()
+                .where(
+                        ConfigurationRecordDynamicSqlSupport.configurationNodeId,
+                        isEqualTo(configNodeId))
+                .and(
+                        ConfigurationRecordDynamicSqlSupport.followup,
+                        isEqualTo(BooleanUtils.toInteger(true)))
+                .build()
+                .execute()
+                .stream()
+                .collect(Utils.toSingleton()));
     }
 
     @Override

@@ -128,6 +128,10 @@ public class ExamConfigServiceImpl implements ExamConfigService {
         }
     }
 
+    public Result<Long> getFollowupConfigurationId(final Long examConfigNodeId) {
+        return this.configurationDAO.getFollowupConfigurationId(examConfigNodeId);
+    }
+
     @Override
     public void exportPlainXML(
             final OutputStream out,

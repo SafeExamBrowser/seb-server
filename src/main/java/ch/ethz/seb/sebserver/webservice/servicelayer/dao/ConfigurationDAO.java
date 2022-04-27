@@ -105,4 +105,10 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
      * @return the last version of configuration */
     Result<Configuration> getConfigurationLastStableVersion(Long configNodeId);
 
+    /** Use this to get the follow-up configuration identifer for a specified configuration node.
+     *
+     * @param configurationNode ConfigurationNode to get the current follow-up configuration from
+     * @return the current follow-up configuration identifier */
+    Result<Long> getFollowupConfigurationId(Long configNodeId);
+
 }
