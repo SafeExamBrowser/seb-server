@@ -36,6 +36,13 @@ public interface ExamConfigService {
      * @throws FieldValidationException on validation exception */
     void validate(ConfigurationTableValues tableValue) throws FieldValidationException;
 
+    /** Get the follow-up configuration identifier for a given configuration node identifier.
+     *
+     * @param examConfigNodeId the exam configuration node identifier
+     * @return Result refer to the follow-up configuration identifier of the given config node or to an error when
+     *         happened */
+    Result<Long> getFollowupConfigurationId(final Long examConfigNodeId);
+
     /** Used to export a specified SEB Exam Configuration as plain XML
      * This exports the values of the follow-up configuration defined by a given
      * ConfigurationNode (configurationNodeId)
