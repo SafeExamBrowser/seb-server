@@ -43,6 +43,8 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     private final SEBRestrictionAPI sebBestrictionAPI;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
 
+    /** CircuitBreaker for protected lmsTestRequest */
+    private final CircuitBreaker<LmsSetupTestResult> lmsTestRequest;
     /** CircuitBreaker for protected quiz and course data requests */
     private final CircuitBreaker<List<QuizData>> allQuizzesRequest;
     /** CircuitBreaker for protected quiz and course data requests */
@@ -68,15 +70,29 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
         this.sebBestrictionAPI = sebBestrictionAPI;
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
 
+        this.lmsTestRequest = asyncService.createCircuitBreaker(
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.lmsTestRequest.attempts",
+                        Integer.class,
+                        2),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.lmsTestRequest.blockingTime",
+                        Long.class,
+                        Constants.SECOND_IN_MILLIS * 20),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.lmsTestRequest.timeToRecover",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS));
+
         this.allQuizzesRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
                         Integer.class,
-                        3),
+                        1),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.blockingTime",
                         Long.class,
-                        Constants.MINUTE_IN_MILLIS),
+                        Constants.SECOND_IN_MILLIS * 20),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.timeToRecover",
                         Long.class,
@@ -86,7 +102,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
                         Integer.class,
-                        3),
+                        1),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.blockingTime",
                         Long.class,
@@ -100,7 +116,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
                         Integer.class,
-                        3),
+                        1),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.blockingTime",
                         Long.class,
@@ -178,13 +194,29 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     }
 
     @Override
+    public void checkCourseAPIAccess() {
+        this.lmsTestRequest
+                .protectedRun(() -> {
+                    final LmsSetupTestResult testCourseAccessAPI = this.courseAccessAPI.testCourseAccessAPI();
+                    if (!testCourseAccessAPI.isOk()) {
+                        throw new RuntimeException("No course API Access: " + testCourseAccessAPI);
+                    }
+                    return testCourseAccessAPI;
+                });
+    }
+
+    @Override
     public LmsSetupTestResult testCourseAccessAPI() {
         if (this.courseAccessAPI != null) {
-            return this.courseAccessAPI.testCourseAccessAPI();
-        }
+            if (log.isDebugEnabled()) {
+                log.debug("Test Course Access API for LMSSetup: {}", lmsSetup());
+            }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Test Course Access API for LMSSetup: {}", lmsSetup());
+            return this.lmsTestRequest.protectedRun(() -> this.courseAccessAPI.testCourseAccessAPI())
+                    .onError(error -> log.error(
+                            "Failed to run protectedQuizzesRequest: {}",
+                            error.getMessage()))
+                    .getOrThrow();
         }
 
         return LmsSetupTestResult.ofAPINotSupported(getType());

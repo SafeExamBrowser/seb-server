@@ -42,6 +42,14 @@ public interface CourseAccessAPI {
      * @return {@link LmsSetupTestResult } instance with the test result report */
     LmsSetupTestResult testCourseAccessAPI();
 
+    /** To make a quick course API access check without report that just throws an exception if not available */
+    default void checkCourseAPIAccess() {
+        final LmsSetupTestResult testCourseAccessAPI = this.testCourseAccessAPI();
+        if (!testCourseAccessAPI.isOk()) {
+            throw new RuntimeException("No course API Access: " + testCourseAccessAPI);
+        }
+    }
+
     /** Get an unsorted List of filtered {@link QuizData } from the LMS course/quiz API
      *
      * @param filterMap the {@link FilterMap } to get a filtered result. Possible filter attributes are:

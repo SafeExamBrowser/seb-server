@@ -733,7 +733,9 @@ public class ExamDAOImpl implements ExamDAO {
                     log.debug("Quizzes size mismatch detected by getting exams quiz data from LMS: {}", lmsSetup);
                 }
 
-                if (lmsSetup.testCourseAccessAPI().hasAnyError()) {
+                try {
+                    lmsSetup.checkCourseAPIAccess();
+                } catch (final Exception e) {
                     // No course access on the LMS. This means we can't get any quizzes from this LMSSetup at the moment
                     // All exams are marked as corrupt because of LMS Setup failure
 

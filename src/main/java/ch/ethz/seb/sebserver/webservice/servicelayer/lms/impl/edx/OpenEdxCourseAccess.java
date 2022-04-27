@@ -152,10 +152,12 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
 
             final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
             final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
-            final QuizData quizData = quizDataOf(
-                    lmsSetup,
-                    this.getOneCourse(id, this.restTemplate, id),
-                    externalStartURI);
+            final QuizData quizData = getRestTemplate()
+                    .map(template -> quizDataOf(
+                            lmsSetup,
+                            this.getOneCourse(id, template, id),
+                            externalStartURI))
+                    .getOrThrow();
 
             if (quizData != null) {
                 super.putToCache(quizData);
