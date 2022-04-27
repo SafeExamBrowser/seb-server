@@ -206,6 +206,7 @@ public class WidgetFactory {
         MESSAGE("message"),
         ERROR("error"),
         WARNING("warning"),
+        DISABLED("disabled"),
         CONFIG_INPUT_READONLY("inputreadonly"),
 
         DARK_COLOR_LABEL("colordark"),

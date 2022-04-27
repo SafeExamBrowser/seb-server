@@ -69,7 +69,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.Mood
 @WebServiceProfile
 public class ExamDAOImpl implements ExamDAO {
 
-    public static final String FAILED_TO_LOAD_QUIZ_DATA_MARK = "[FAILED TO LOAD DATA FROM LMS]";
+    //public static final String FAILED_TO_LOAD_QUIZ_DATA_MARK = "[FAILED TO LOAD DATA FROM LMS]";
 
     private final ExamRecordMapper examRecordMapper;
     private final ExamRecordDAO examRecordDAO;
@@ -873,6 +873,10 @@ public class ExamDAOImpl implements ExamDAO {
 
         return Result.tryCatch(() -> {
 
+            if (quizData != null) {
+                saveFormerName(record.getId(), quizData.name);
+            }
+
             final Collection<String> supporter = (StringUtils.isNotBlank(record.getSupporter()))
                     ? Arrays.asList(StringUtils.split(record.getSupporter(), Constants.LIST_SEPARATOR_CHAR))
                     : null;
@@ -905,9 +909,10 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getInstitutionId(),
                     record.getLmsSetupId(),
                     record.getExternalId(),
-                    (quizData != null) ? quizData.name : FAILED_TO_LOAD_QUIZ_DATA_MARK,
-                    (quizData != null) ? quizData.description : FAILED_TO_LOAD_QUIZ_DATA_MARK,
-                    (quizData != null) ? quizData.startTime : new DateTime(0),
+                    (quizData != null),
+                    (quizData != null) ? quizData.name : getFormerName(record.getId()),
+                    (quizData != null) ? quizData.description : null,
+                    (quizData != null) ? quizData.startTime : null,
                     (quizData != null) ? quizData.endTime : null,
                     (quizData != null) ? quizData.startURL : Constants.EMPTY_NOTE,
                     ExamType.valueOf(record.getType()),
@@ -922,6 +927,59 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getLastModified(),
                     additionalAttributes);
         });
+    }
+
+    private void saveFormerName(final Long id, final String name) {
+        try {
+            final Integer updated = this.additionalAttributeRecordMapper
+                    .updateByExampleSelective(new AdditionalAttributeRecord(null, null, null, null, name))
+                    .where(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityType,
+                            SqlBuilder.isEqualTo(EntityType.EXAM.name()))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityId,
+                            SqlBuilder.isEqualTo(id))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.name,
+                            SqlBuilder.isEqualTo("formerQuizName"))
+                    .build()
+                    .execute();
+
+            if (updated == null || updated.intValue() < 1) {
+                this.additionalAttributeRecordMapper.insert(new AdditionalAttributeRecord(
+                        null,
+                        EntityType.EXAM.name(),
+                        id,
+                        "formerQuizName",
+                        name));
+            }
+        } catch (final Exception e) {
+            log.error("Failed to save former name: examId: {}, name: {} error: {}", id, name, e.getMessage());
+        }
+    }
+
+    private String getFormerName(final Long id) {
+        try {
+            return this.additionalAttributeRecordMapper
+                    .selectByExample()
+                    .where(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityType,
+                            SqlBuilder.isEqualTo(EntityType.EXAM.name()))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityId,
+                            SqlBuilder.isEqualTo(id))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.name,
+                            SqlBuilder.isEqualTo("formerQuizName"))
+                    .build()
+                    .execute()
+                    .stream()
+                    .collect(Utils.toSingleton())
+                    .getValue();
+        } catch (final Exception e) {
+            log.error("Failed to get former name: examId: {} error: {}", id, e.getMessage());
+            return null;
+        }
     }
 
 }

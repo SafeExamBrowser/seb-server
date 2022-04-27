@@ -193,7 +193,7 @@ public class ModelObjectJSONGenerator {
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject = new Exam(
-                1L, 1L, 1L, "externalId", "name", "description", DateTime.now(), DateTime.now(),
+                1L, 1L, 1L, "externalId", true, "name", "description", DateTime.now(), DateTime.now(),
                 "startURL", ExamType.BYOD, "owner",
                 Arrays.asList("user1", "user2"),
                 ExamStatus.RUNNING, false, "browserExamKeys", true, null, null, null, null);

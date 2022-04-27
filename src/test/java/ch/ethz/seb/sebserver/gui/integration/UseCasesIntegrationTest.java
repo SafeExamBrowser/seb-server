@@ -883,6 +883,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 newExam.institutionId,
                 newExam.lmsSetupId,
                 newExam.externalId,
+                true,
                 newExam.name,
                 newExam.description,
                 newExam.startTime,

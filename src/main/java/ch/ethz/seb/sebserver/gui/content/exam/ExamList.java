@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TableItem;
@@ -258,6 +259,11 @@ public class ExamList implements TemplateComposer {
             final Exam exam,
             final PageService pageService) {
 
+        if (BooleanUtils.isFalse(exam.lmsDataAvailable)) {
+            item.setData(RWT.CUSTOM_VARIANT, CustomVariant.DISABLED.key);
+            return;
+        }
+
         if (exam.getStatus() == ExamStatus.UP_COMING || exam.getStatus() == ExamStatus.FINISHED) {
             return;
         }
@@ -270,6 +276,8 @@ public class ExamList implements TemplateComposer {
                         item.setData(RWT.CUSTOM_VARIANT, CustomVariant.WARNING.key);
                     }
                 });
+
+        item.setGrayed(true);
     }
 
     private static Function<Exam, String> examLmsSetupNameFunction(final ResourceService resourceService) {

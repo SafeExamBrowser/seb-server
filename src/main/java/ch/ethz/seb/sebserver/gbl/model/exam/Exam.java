@@ -38,6 +38,7 @@ public final class Exam implements GrantEntity {
             -1L,
             -1L,
             Constants.EMPTY_NOTE,
+            false,
             Constants.EMPTY_NOTE,
             Constants.EMPTY_NOTE,
             null,
@@ -59,6 +60,7 @@ public final class Exam implements GrantEntity {
     public static final String FILTER_ATTR_STATUS = "status";
     public static final String FILTER_CACHED_QUIZZES = "cached-quizzes";
 
+    public static final String ATTR_LMS_DATA_AVAILABLE = "lmsDataAvailable";
     public static final String ATTR_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
 
     public enum ExamStatus {
@@ -90,6 +92,9 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_EXTERNAL_ID)
     @NotNull
     public final String externalId;
+
+    @JsonProperty(ATTR_LMS_DATA_AVAILABLE)
+    public final Boolean lmsDataAvailable;
 
     @JsonProperty(QuizData.QUIZ_ATTR_NAME)
     public final String name;
@@ -146,6 +151,7 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(EXAM.ATTR_LMS_SETUP_ID) final Long lmsSetupId,
             @JsonProperty(EXAM.ATTR_EXTERNAL_ID) final String externalId,
+            @JsonProperty(ATTR_LMS_DATA_AVAILABLE) final Boolean lmsDataAvailable,
             @JsonProperty(QuizData.QUIZ_ATTR_NAME) final String name,
             @JsonProperty(QuizData.QUIZ_ATTR_DESCRIPTION) final String description,
             @JsonProperty(QuizData.QUIZ_ATTR_START_TIME) final DateTime startTime,
@@ -167,6 +173,7 @@ public final class Exam implements GrantEntity {
         this.institutionId = institutionId;
         this.lmsSetupId = lmsSetupId;
         this.externalId = externalId;
+        this.lmsDataAvailable = lmsDataAvailable;
         this.name = name;
         this.description = description;
         this.startTime = startTime;
@@ -195,6 +202,7 @@ public final class Exam implements GrantEntity {
         this.institutionId = quizData.institutionId;
         this.lmsSetupId = quizData.lmsSetupId;
         this.externalId = quizData.id;
+        this.lmsDataAvailable = true;
         this.name = quizData.name;
         this.description = quizData.description;
         this.startTime = quizData.startTime;
@@ -225,6 +233,7 @@ public final class Exam implements GrantEntity {
         this.institutionId = null;
         this.lmsSetupId = null;
         this.externalId = null;
+        this.lmsDataAvailable = true;
         this.name = null;
         this.description = null;
         this.startTime = null;
