@@ -534,11 +534,13 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
         }
     }
 
-    private void checkUniqueIndicatorName(final IndicatorTemplate indicatorTemplate,
+    private void checkUniqueIndicatorName(
+            final IndicatorTemplate indicatorTemplate,
             final Collection<IndicatorTemplate> indicators) {
+
         // check unique name
         indicators.stream()
-                .filter(it -> Objects.equals(it.name, indicatorTemplate.name))
+                .filter(it -> !Objects.equals(it, indicatorTemplate) && Objects.equals(it.name, indicatorTemplate.name))
                 .findAny()
                 .ifPresent(it -> {
                     throw new FieldValidationException(

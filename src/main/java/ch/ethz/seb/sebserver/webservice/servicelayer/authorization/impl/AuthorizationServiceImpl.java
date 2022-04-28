@@ -129,7 +129,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .forRole(UserRole.SEB_SERVER_ADMIN)
                 .withBasePrivilege(PrivilegeType.READ)
                 .andForRole(UserRole.INSTITUTIONAL_ADMIN)
-                .withInstitutionalPrivilege(PrivilegeType.READ)
+                .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .create();

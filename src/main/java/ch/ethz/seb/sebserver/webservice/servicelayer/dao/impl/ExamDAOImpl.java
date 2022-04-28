@@ -69,8 +69,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.Mood
 @WebServiceProfile
 public class ExamDAOImpl implements ExamDAO {
 
-    //public static final String FAILED_TO_LOAD_QUIZ_DATA_MARK = "[FAILED TO LOAD DATA FROM LMS]";
-
     private final ExamRecordMapper examRecordMapper;
     private final ExamRecordDAO examRecordDAO;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -979,7 +977,9 @@ public class ExamDAOImpl implements ExamDAO {
                     .collect(Utils.toSingleton())
                     .getValue();
         } catch (final Exception e) {
-            log.error("Failed to get former name: examId: {} error: {}", id, e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.warn("Failed to get former name: examId: {} error: {}", id, e.getMessage());
+            }
             return null;
         }
     }

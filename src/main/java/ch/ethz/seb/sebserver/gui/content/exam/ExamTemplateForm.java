@@ -45,7 +45,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
@@ -192,7 +191,7 @@ public class ExamTemplateForm implements TemplateComposer {
                         ? this.restService.getRestCall(NewExamTemplate.class)
                         : this.restService.getRestCall(SaveExamTemplate.class));
 
-        final boolean proctoringEnabled = this.restService
+        final boolean proctoringEnabled = !isNew && this.restService
                 .getBuilder(GetExamTemplateProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
@@ -200,8 +199,8 @@ public class ExamTemplateForm implements TemplateComposer {
                 .getOr(false);
 
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM_TEMPLATE);
-        final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(examTemplate);
-        final boolean modifyGrant = userGrantCheck.m();
+//        final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(examTemplate);
+//        final boolean modifyGrant = userGrantCheck.m();
         // propagate content actions to action-pane
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
@@ -228,13 +227,13 @@ public class ExamTemplateForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_TEMPLATE_PROCTORING_ON)
                 .withEntityKey(entityKey)
-                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant))
+                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, userGrant.im()))
                 .noEventPropagation()
                 .publishIf(() -> proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_TEMPLATE_PROCTORING_OFF)
                 .withEntityKey(entityKey)
-                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant))
+                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, userGrant.im()))
                 .noEventPropagation()
                 .publishIf(() -> !proctoringEnabled && readonly);
 
