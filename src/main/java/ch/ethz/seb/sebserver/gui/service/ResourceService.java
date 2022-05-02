@@ -471,7 +471,20 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
-    public List<Tuple<String>> examConfigStatusResources(final boolean isAttachedToExam) {
+    public List<Tuple<String>> examConfigStatusResourcesAll() {
+        return Arrays.stream(ConfigurationStatus.values())
+                .map(type -> new Tuple3<>(
+                        type.name(),
+                        this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name())
+                                        + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> examConfigStatusResources(final boolean isAttachedToExam, final boolean hasRunningExam) {
         return Arrays.stream(ConfigurationStatus.values())
                 .filter(status -> {
                     if (isAttachedToExam) {
@@ -480,6 +493,7 @@ public class ResourceService {
                         return status != ConfigurationStatus.IN_USE;
                     }
                 })
+                .filter(status -> !hasRunningExam || status != ConfigurationStatus.ARCHIVED)
                 .map(type -> new Tuple3<>(
                         type.name(),
                         this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name()),

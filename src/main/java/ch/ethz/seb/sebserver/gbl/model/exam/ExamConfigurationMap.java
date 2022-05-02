@@ -26,11 +26,14 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM_CONFIGURATION_MAP;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ExamConfigurationMap implements GrantEntity {
+
+    private static final String ARR_EXAM_STATUS = "examStatus";
 
     public static final String ATTR_CONFIRM_ENCRYPT_SECRET = "confirm_encrypt_secret";
 
@@ -59,6 +62,9 @@ public final class ExamConfigurationMap implements GrantEntity {
 
     @JsonProperty(EXAM.ATTR_TYPE)
     public final ExamType examType;
+
+    @JsonProperty(ARR_EXAM_STATUS)
+    public final ExamStatus examStatus;
 
     @NotNull(message = "examConfigurationMap:configurationNodeId:notNull")
     @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID)
@@ -91,6 +97,7 @@ public final class ExamConfigurationMap implements GrantEntity {
             @JsonProperty(QuizData.QUIZ_ATTR_DESCRIPTION) final String examDescription,
             @JsonProperty(QuizData.QUIZ_ATTR_START_TIME) final DateTime examStartTime,
             @JsonProperty(EXAM.ATTR_TYPE) final ExamType examType,
+            @JsonProperty(ARR_EXAM_STATUS) final ExamStatus examStatus,
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID) final Long configurationNodeId,
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_USER_NAMES) final String userNames,
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_ENCRYPT_SECRET) final CharSequence encryptSecret,
@@ -106,6 +113,7 @@ public final class ExamConfigurationMap implements GrantEntity {
         this.examDescription = examDescription;
         this.examStartTime = examStartTime;
         this.examType = examType;
+        this.examStatus = examStatus;
         this.configurationNodeId = configurationNodeId;
         this.userNames = userNames;
         this.encryptSecret = encryptSecret;
@@ -125,6 +133,7 @@ public final class ExamConfigurationMap implements GrantEntity {
         this.examDescription = postParams.getString(QuizData.QUIZ_ATTR_DESCRIPTION);
         this.examStartTime = postParams.getDateTime(QuizData.QUIZ_ATTR_START_TIME);
         this.examType = postParams.getEnum(EXAM.ATTR_TYPE, ExamType.class);
+        this.examStatus = postParams.getEnum(ARR_EXAM_STATUS, ExamStatus.class);
 
         this.configurationNodeId = postParams.getLong(Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID);
         this.userNames = postParams.getString(Domain.EXAM_CONFIGURATION_MAP.ATTR_USER_NAMES);
@@ -149,6 +158,7 @@ public final class ExamConfigurationMap implements GrantEntity {
         this.examDescription = null;
         this.examStartTime = null;
         this.examType = null;
+        this.examStatus = null;
         this.configurationNodeId = configurationNodeId;
         this.userNames = userNames;
         this.encryptSecret = null;
@@ -205,6 +215,10 @@ public final class ExamConfigurationMap implements GrantEntity {
         return this.examType;
     }
 
+    public ExamStatus getExamStatus() {
+        return this.examStatus;
+    }
+
     public Long getConfigurationNodeId() {
         return this.configurationNodeId;
     }
@@ -250,6 +264,7 @@ public final class ExamConfigurationMap implements GrantEntity {
                 this.examDescription,
                 this.examStartTime,
                 this.examType,
+                this.examStatus,
                 this.configurationNodeId,
                 this.userNames,
                 Constants.EMPTY_NOTE,
@@ -296,7 +311,7 @@ public final class ExamConfigurationMap implements GrantEntity {
 
     public static ExamConfigurationMap createNew(final Exam exam) {
         return new ExamConfigurationMap(
-                null, exam.institutionId, exam.id, exam.name, exam.description, exam.startTime, exam.type,
+                null, exam.institutionId, exam.id, exam.name, exam.description, exam.startTime, exam.type, exam.status,
                 null, null, null, null, null, null, null);
     }
 

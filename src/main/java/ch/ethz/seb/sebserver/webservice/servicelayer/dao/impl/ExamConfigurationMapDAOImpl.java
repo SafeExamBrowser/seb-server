@@ -442,6 +442,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     (exam != null) ? exam.description : null,
                     (exam != null) ? exam.startTime : null,
                     (exam != null) ? exam.type : ExamType.UNDEFINED,
+                    (exam != null) ? exam.status : null,
                     record.getConfigurationNodeId(),
                     record.getUserNames(),
                     record.getEncryptSecret(),

@@ -136,6 +136,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
         }
     }
 
+    @Override
     public Result<Long> getFollowupConfigurationId(final Long examConfigNodeId) {
         return this.configurationDAO.getFollowupConfigurationId(examConfigNodeId);
     }
@@ -440,6 +441,20 @@ public class ExamConfigServiceImpl implements ExamConfigService {
                                 APIMessage.ErrorMessage.INTEGRITY_VALIDATION
                                         .of("Exam configuration has references to at least one upcoming or running exam."));
                     }
+                }
+            }
+
+            // if changing to "In Use" check config is mapped for at least one exam
+            if (configurationNode.status == ConfigurationStatus.IN_USE &&
+                    existingNode.status != ConfigurationStatus.IN_USE) {
+
+                if (this.examConfigurationMapDAO
+                        .getExamIdsForConfigNodeId(configurationNode.id)
+                        .getOr(Collections.emptyList())
+                        .isEmpty()) {
+                    throw new APIMessageException(
+                            APIMessage.ErrorMessage.INTEGRITY_VALIDATION
+                                    .of("Exam configuration has no reference to any exam."));
                 }
             }
 

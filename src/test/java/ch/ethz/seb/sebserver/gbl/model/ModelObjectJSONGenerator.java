@@ -209,7 +209,7 @@ public class ModelObjectJSONGenerator {
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject = new ExamConfigurationMap(
-                1L, 1L, 1L, "examName", "examDescription", DateTime.now(), ExamType.BYOD,
+                1L, 1L, 1L, "examName", "examDescription", DateTime.now(), ExamType.BYOD, ExamStatus.RUNNING,
                 1L, "userNames", "encryptSecret", "confirmEncryptSecret", "configName", "configDescription",
                 ConfigurationStatus.IN_USE);
         System.out.println(domainObject.getClass().getSimpleName() + ":");

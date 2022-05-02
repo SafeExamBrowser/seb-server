@@ -87,7 +87,7 @@ public class SEBExamConfigBatchStateChangePopup extends AbstractBatchActionWizar
                 FORM_STATUS_TEXT_KEY,
                 targetStateName,
                 () -> this.pageService.getResourceService()
-                        .examConfigStatusResources(false))
+                        .examConfigStatusResourcesAll())
                 .readonly(readonly));
     }
 

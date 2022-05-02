@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
@@ -173,6 +174,16 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .call()
                 .map(names -> names != null && !names.isEmpty())
                 .getOr(Boolean.FALSE);
+        final boolean hasRunningExam = isAttachedToExam && this.restService
+                .getBuilder(GetExamConfigMappingsPage.class)
+                .withQueryParam(ExamConfigurationMap.FILTER_ATTR_CONFIG_ID, examConfig.getModelId())
+                .call()
+                .map(res -> res.content
+                        .stream()
+                        .filter(map -> map.examStatus == ExamStatus.RUNNING)
+                        .findAny()
+                        .isPresent())
+                .getOr(false);
 
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(examConfig.getEntityKey());
@@ -223,7 +234,7 @@ public class SEBExamConfigForm implements TemplateComposer {
                         Domain.CONFIGURATION_NODE.ATTR_STATUS,
                         FORM_STATUS_TEXT_KEY,
                         examConfig.status.name(),
-                        () -> resourceService.examConfigStatusResources(isAttachedToExam))
+                        () -> resourceService.examConfigStatusResources(isAttachedToExam, hasRunningExam))
                         .withEmptyCellSeparation(!isReadonly))
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewExamConfig.class)
@@ -297,7 +308,7 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(formHandle::processFormSave)
                 .ignoreMoveAwayFromEdit()
-                .withConfirm(() -> stateChangeConfirm(isAttachedToExam, formHandle))
+                .withConfirm(() -> stateChangeConfirm(hasRunningExam, formHandle))
                 .publishIf(() -> !isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_PROP_CANCEL_MODIFY)
@@ -436,17 +447,17 @@ public class SEBExamConfigForm implements TemplateComposer {
     }
 
     private LocTextKey stateChangeConfirm(
-            final boolean isAttachedToExam,
+            final boolean hasRunningExam,
             final FormHandle<ConfigurationNode> formHandle) {
 
-        if (isAttachedToExam) {
+        if (hasRunningExam) {
             final String fieldValue = formHandle
                     .getForm()
                     .getFieldValue(Domain.CONFIGURATION_NODE.ATTR_STATUS);
 
             if (fieldValue != null) {
                 final ConfigurationStatus state = ConfigurationStatus.valueOf(fieldValue);
-                if (state != ConfigurationStatus.IN_USE) {
+                if (state != ConfigurationStatus.IN_USE && state != ConfigurationStatus.ARCHIVED) {
                     return SAVE_CONFIRM_STATE_CHANGE_WHILE_ATTACHED;
                 }
             }
