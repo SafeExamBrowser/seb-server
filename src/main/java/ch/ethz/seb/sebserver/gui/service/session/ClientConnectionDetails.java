@@ -198,6 +198,9 @@ public class ClientConnectionDetails {
         this.connectionData.getIndicatorValues()
                 .forEach(indValue -> {
                     final IndicatorData indData = this.indicatorMapping.get(indValue.getIndicatorId());
+                    if (indData == null) {
+                        return;
+                    }
                     final double value = indValue.getValue();
                     final String displayValue = IndicatorValue.getDisplayValue(indValue, indData.indicator.type);
 

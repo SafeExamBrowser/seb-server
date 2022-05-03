@@ -109,7 +109,11 @@ public class ExamDAOImpl implements ExamDAO {
                     final QuizData quizData = this.lmsAPIService
                             .getLmsAPITemplate(record.getLmsSetupId())
                             .flatMap(template -> template.getQuiz(record.getExternalId()))
-                            .getOrThrow();
+                            .onError(error -> log.error(
+                                    "Failed to load quiz data for exam: {} error: {}",
+                                    examId,
+                                    error.getMessage()))
+                            .getOr(null);
                     return toDomainModel(record, quizData, null, true);
                 });
     }
@@ -791,26 +795,11 @@ public class ExamDAOImpl implements ExamDAO {
 
                     log.info("Try to recover quiz data for Moodle quiz with internal identifier: {}", externalId);
 
-                    // get additional quiz name attribute
-                    final AdditionalAttributeRecord additionalAttribute =
-                            this.additionalAttributeRecordMapper.selectByExample()
-                                    .where(
-                                            AdditionalAttributeRecordDynamicSqlSupport.entityType,
-                                            SqlBuilder.isEqualTo(EntityType.EXAM.name()))
-                                    .and(
-                                            AdditionalAttributeRecordDynamicSqlSupport.entityId,
-                                            SqlBuilder.isEqualTo(record.getId()))
-                                    .and(
-                                            AdditionalAttributeRecordDynamicSqlSupport.name,
-                                            SqlBuilder.isEqualTo(QuizData.QUIZ_ATTR_NAME))
-                                    .build()
-                                    .execute()
-                                    .stream()
-                                    .findAny()
-                                    .orElse(null);
-                    if (additionalAttribute != null) {
+                    // get former quiz name attribute
+                    final String formerName = getFormerName(record.getId());
+                    if (formerName != null) {
 
-                        log.debug("Found additional quiz name attribute: {}", additionalAttribute);
+                        log.debug("Found formerName quiz name: {}", formerName);
 
                         // get the course name identifier
                         final String shortname = MoodleCourseAccess.getShortname(externalId);
@@ -827,7 +816,7 @@ public class ExamDAOImpl implements ExamDAO {
                                                 final String qShortName = MoodleCourseAccess.getShortname(quiz.id);
                                                 return qShortName != null && qShortName.equals(shortname);
                                             })
-                                            .filter(quiz -> additionalAttribute.getValue().equals(quiz.name))
+                                            .filter(quiz -> formerName.equals(quiz.name))
                                             .findAny()
                                             .get())
                                     .getOrThrow();
@@ -851,7 +840,7 @@ public class ExamDAOImpl implements ExamDAO {
                     }
                 }
             } catch (final Exception e) {
-                log.warn("Failed to try to recover from Moodle quiz restore: {}", e.getMessage());
+                log.debug("Failed to try to recover from Moodle quiz restore: {}", e.getMessage());
             }
             return null;
         }

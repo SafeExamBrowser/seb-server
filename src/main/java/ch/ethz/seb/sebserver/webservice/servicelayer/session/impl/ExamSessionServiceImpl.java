@@ -245,12 +245,20 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 .putIfAbsent(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
                 .putIfAbsent(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name());
 
-        // NOTE: we evict the exam from the cache (if present) to ensure user is seeing always the current state of the Exam
         return this.examDAO.allMatching(filterMap, predicate)
                 .map(col -> col.stream()
                         .map(exam -> {
-                            this.examSessionCacheService.evict(exam);
-                            return this.examSessionCacheService.getRunningExam(exam.id);
+                            final Exam runningExam = this.examSessionCacheService.getRunningExam(exam.id);
+                            if (runningExam == null) {
+                                return null;
+                            }
+                            if (!isUpToDate(exam, runningExam)) {
+                                // If the cached exam-quiz data differs from the one of the currently loaded exam, cache is updated
+                                this.examSessionCacheService.evict(exam);
+                                return this.examSessionCacheService.getRunningExam(exam.id);
+                            } else {
+                                return runningExam;
+                            }
                         })
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList()));
@@ -512,6 +520,13 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         } catch (final Exception e) {
             log.error("Unexpected error while trying to update client connections: ", e);
         }
+    }
+
+    private boolean isUpToDate(final Exam exam, final Exam runningExam) {
+        return Objects.equals(exam.lastModified, runningExam.lastModified)
+                && Objects.equals(exam.startTime, runningExam.startTime)
+                && Objects.equals(exam.endTime, runningExam.endTime)
+                && Objects.equals(exam.name, runningExam.name);
     }
 
 }

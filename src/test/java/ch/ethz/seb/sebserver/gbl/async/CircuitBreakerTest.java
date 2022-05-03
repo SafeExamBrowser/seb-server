@@ -73,7 +73,7 @@ public class CircuitBreakerTest {
         Thread.sleep(100);
         result = circuitBreaker.protectedRun(tester); // 10. call...
         assertEquals(State.OPEN, circuitBreaker.getState());
-        assertEquals(CircuitBreaker.OPEN_STATE_EXCEPTION, result.getError());
+        assertEquals(CircuitBreaker.OPEN_CIRCUIT_BREAKER_EXCEPTION, result.getError().getMessage());
 
         // wait time to recover
         Thread.sleep(1000);

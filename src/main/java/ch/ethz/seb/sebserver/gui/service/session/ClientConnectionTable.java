@@ -496,8 +496,9 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
             for (int i = 0; i < this.connectionData.indicatorValues.size(); i++) {
                 final IndicatorValue indicatorValue = this.connectionData.indicatorValues.get(i);
-                final IndicatorData indicatorData =
-                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getIndicatorId());
+                final IndicatorData indicatorData = ClientConnectionTable.this.indicatorMapping
+                        .get(indicatorValue.getIndicatorId());
+
                 if (indicatorData == null) {
                     continue;
                 }

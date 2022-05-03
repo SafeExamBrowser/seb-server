@@ -50,12 +50,10 @@ public final class CircuitBreaker<T> {
 
     private static final Logger log = LoggerFactory.getLogger(CircuitBreaker.class);
 
+    public static final String OPEN_CIRCUIT_BREAKER_EXCEPTION = "Open CircuitBreaker";
     public static final int DEFAULT_MAX_FAILING_ATTEMPTS = 5;
     public static final long DEFAULT_MAX_BLOCKING_TIME = Constants.MINUTE_IN_MILLIS;
     public static final long DEFAULT_TIME_TO_RECOVER = Constants.MINUTE_IN_MILLIS * 10;
-
-    public static final RuntimeException OPEN_STATE_EXCEPTION =
-            new RuntimeException("Open CircuitBreaker");
 
     public enum State {
         CLOSED,
@@ -243,7 +241,7 @@ public final class CircuitBreaker<T> {
             return protectedRun(supplier);
         }
 
-        return Result.ofError(OPEN_STATE_EXCEPTION);
+        return Result.ofError(new RuntimeException(OPEN_CIRCUIT_BREAKER_EXCEPTION));
     }
 
     private Result<T> attempt(final Supplier<T> supplier) {
