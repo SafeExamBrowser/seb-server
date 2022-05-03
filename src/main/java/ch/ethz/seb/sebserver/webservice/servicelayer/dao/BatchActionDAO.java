@@ -10,8 +10,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
-public interface BatchActionDAO extends EntityDAO<BatchAction, BatchAction> {
+public interface BatchActionDAO extends EntityDAO<BatchAction, BatchAction>, BulkActionSupportDAO<BatchAction> {
 
     /** This checks if there is a pending batch action to process next.
      * If so this reserves the pending batch action and mark it to be processed

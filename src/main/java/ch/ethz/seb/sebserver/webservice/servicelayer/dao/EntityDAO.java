@@ -180,22 +180,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @param keys Collection of EntityKey of various types
      * @return Set of id's (PK's) from the given key collection that match the concrete EntityType */
     default Set<Long> extractPKsFromKeys(final Collection<EntityKey> keys) {
-        try {
-
-            if (keys == null) {
-                return Collections.emptySet();
-            }
-
-            final EntityType entityType = entityType();
-            return keys
-                    .stream()
-                    .filter(key -> key.entityType == entityType)
-                    .map(key -> Long.valueOf(key.modelId))
-                    .collect(Collectors.toSet());
-        } catch (final Exception e) {
-            log.error("unexpected error while trying to extract PK's from EntityKey's : ", e);
-            return Collections.emptySet();
-        }
+        return extractPKsFromKeys(keys, entityType());
     }
 
     /** Context based utility method to extract a set of id's (PK) from a collection of various EntityKey
@@ -209,6 +194,34 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @return List of id's (PK's) from the given key collection that match the concrete EntityType */
     default List<Long> extractListOfPKs(final Collection<EntityKey> keys) {
         return new ArrayList<>(extractPKsFromKeys(keys));
+    }
+
+    /** Context based utility method to extract a set of id's (PK) from a collection of various EntityKey
+     * This uses the EntityType defined by this instance to filter all EntityKey by the given type and
+     * convert the matching EntityKey's to id's (PK's)
+     *
+     * Use this if you need to transform a Collection of EntityKey into a extracted Set of id's of a specified
+     * EntityType
+     *
+     * @param keys Collection of EntityKey of various types
+     * @param entityType the entity type of the keys to extract
+     * @return Set of id's (PK's) from the given key collection that match the concrete EntityType */
+    static Set<Long> extractPKsFromKeys(final Collection<EntityKey> keys, final EntityType entityType) {
+        try {
+
+            if (keys == null) {
+                return Collections.emptySet();
+            }
+
+            return keys
+                    .stream()
+                    .filter(key -> key.entityType == entityType)
+                    .map(key -> Long.valueOf(key.modelId))
+                    .collect(Collectors.toSet());
+        } catch (final Exception e) {
+            log.error("unexpected error while trying to extract PK's from EntityKey's : ", e);
+            return Collections.emptySet();
+        }
     }
 
 }

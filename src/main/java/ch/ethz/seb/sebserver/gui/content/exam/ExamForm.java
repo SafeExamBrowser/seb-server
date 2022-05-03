@@ -240,9 +240,9 @@ public class ExamForm implements TemplateComposer {
 
         final BooleanSupplier isNew = () -> importFromQuizData;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
-        final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(exam);
-        final boolean modifyGrant = userGrantCheck.m();
-        final boolean writeGrant = userGrantCheck.w();
+        final EntityGrantCheck entityGrantCheck = currentUser.entityGrantCheck(exam);
+        final boolean modifyGrant = entityGrantCheck.m();
+        final boolean writeGrant = entityGrantCheck.w();
         final ExamStatus examStatus = exam.getStatus();
         final boolean editable = modifyGrant &&
                 (examStatus == ExamStatus.UP_COMING || examStatus == ExamStatus.RUNNING);
@@ -471,7 +471,7 @@ public class ExamForm implements TemplateComposer {
             this.examFormConfigs.compose(
                     formContext
                             .copyOf(content)
-                            .withAttribute(ATTR_READ_GRANT, String.valueOf(userGrantCheck.r()))
+                            .withAttribute(ATTR_READ_GRANT, String.valueOf(entityGrantCheck.r()))
                             .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
                             .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
 
@@ -479,7 +479,7 @@ public class ExamForm implements TemplateComposer {
             this.examFormIndicators.compose(
                     formContext
                             .copyOf(content)
-                            .withAttribute(ATTR_READ_GRANT, String.valueOf(userGrantCheck.r()))
+                            .withAttribute(ATTR_READ_GRANT, String.valueOf(entityGrantCheck.r()))
                             .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
                             .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
         }

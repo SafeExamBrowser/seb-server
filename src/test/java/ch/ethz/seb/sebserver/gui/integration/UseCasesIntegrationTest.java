@@ -2384,18 +2384,18 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "EXAM, "
-                        + "EXAM_CONFIGURATION_MAP, "
+                "[EXAM, "
                         + "INDICATOR, "
-                        + "INDICATOR]",
+                        + "INDICATOR, "
+                        + "EXAM_CONFIGURATION_MAP, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION]",
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // check that the user is owner of all depending exams and configurations
@@ -2433,14 +2433,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "EXAM, "
-                        + "EXAM_CONFIGURATION_MAP, "
+                "[EXAM, "
                         + "INDICATOR, "
-                        + "INDICATOR]",
+                        + "INDICATOR, "
+                        + "EXAM_CONFIGURATION_MAP, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION]",
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // only with configuration dependencies
@@ -2455,11 +2455,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "EXAM_CONFIGURATION_MAP]",
+                "[EXAM_CONFIGURATION_MAP, CONFIGURATION_NODE, CONFIGURATION_NODE, CONFIGURATION_NODE, CONFIGURATION_NODE]",
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // only with exam and configuration dependencies
@@ -2475,18 +2471,18 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "EXAM, "
-                        + "EXAM_CONFIGURATION_MAP, "
+                "[EXAM, "
                         + "INDICATOR, "
-                        + "INDICATOR]",
+                        + "INDICATOR, "
+                        + "EXAM_CONFIGURATION_MAP, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION]",
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
     }
 

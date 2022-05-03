@@ -73,6 +73,11 @@ public enum ActionDefinition {
             ImageIcon.SWITCH,
             PageStateDefinitionImpl.INSTITUTION_LIST,
             ActionCategory.INSTITUTION_LIST),
+    INSTITUTION_DELETE(
+            new LocTextKey("sebserver.institution.action.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.INSTITUTION_VIEW,
+            ActionCategory.FORM),
 
     USER_ACCOUNT_VIEW_LIST(
             new LocTextKey("sebserver.useraccount.action.list"),
@@ -215,6 +220,11 @@ public enum ActionDefinition {
             ImageIcon.SWITCH,
             PageStateDefinitionImpl.LMS_SETUP_LIST,
             ActionCategory.LMS_SETUP_LIST),
+    LMS_SETUP_DELETE(
+            new LocTextKey("sebserver.lmssetup.action.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.LMS_SETUP_VIEW,
+            ActionCategory.FORM),
 
     QUIZ_DISCOVERY_VIEW_LIST(
             new LocTextKey("sebserver.quizdiscovery.action.list"),

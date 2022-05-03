@@ -8,7 +8,11 @@
 
 package ch.ethz.seb.sebserver.gbl;
 
+import java.text.Collator;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.RGBA;
@@ -19,6 +23,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
@@ -154,6 +159,23 @@ public final class Constants {
     public static final RGB WHITE_RGB = new RGB(255, 255, 255);
     public static final RGB BLACK_RGB = new RGB(0, 0, 0);
     public static final RGBA GREY_DISABLED = new RGBA(150, 150, 150, 50);
+
+    public static final Collator DEFAULT_ENGLISH_COLLATOR = Collator.getInstance(Locale.ENGLISH);
+
+    public static final List<EntityType> ENTITY_TYPE_HIRARCHIE = Arrays.asList(
+            EntityType.INSTITUTION,
+            EntityType.USER,
+            EntityType.USER_ACTIVITY_LOG,
+            EntityType.CERTIFICATE,
+            EntityType.LMS_SETUP,
+            EntityType.SEB_CLIENT_CONFIGURATION,
+            EntityType.EXAM_TEMPLATE,
+            EntityType.EXAM,
+            EntityType.INDICATOR,
+            EntityType.EXAM_CONFIGURATION_MAP,
+            EntityType.CONFIGURATION_NODE,
+            EntityType.CLIENT_CONNECTION,
+            EntityType.CLIENT_EVENT);
 
     public static final String IMPORTED_PASSWORD_MARKER = "_IMPORTED_PASSWORD";
 

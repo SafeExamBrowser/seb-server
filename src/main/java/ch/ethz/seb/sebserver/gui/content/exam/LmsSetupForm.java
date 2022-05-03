@@ -105,11 +105,15 @@ public class LmsSetupForm implements TemplateComposer {
 
     private final PageService pageService;
     private final ResourceService resourceService;
+    private final LmsSetupDeletePopup lmsSetupDeletePopup;
 
-    protected LmsSetupForm(final PageService pageService) {
+    protected LmsSetupForm(
+            final PageService pageService,
+            final LmsSetupDeletePopup lmsSetupDeletePopup) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
+        this.lmsSetupDeletePopup = lmsSetupDeletePopup;
     }
 
     @Override
@@ -304,6 +308,11 @@ public class LmsSetupForm implements TemplateComposer {
                 .newAction(ActionDefinition.LMS_SETUP_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && institutionActive)
+
+                .newAction(ActionDefinition.LMS_SETUP_DELETE)
+                .withEntityKey(entityKey)
+                .withExec(this.lmsSetupDeletePopup.deleteWizardFunction(pageContext))
+                .publishIf(() -> writeGrant && readonly)
 
                 .newAction(ActionDefinition.LMS_SETUP_TEST)
                 .withEntityKey(entityKey)

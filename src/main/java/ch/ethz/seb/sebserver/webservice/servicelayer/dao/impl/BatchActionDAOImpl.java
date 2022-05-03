@@ -35,6 +35,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -43,6 +44,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.BatchActionRecord
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.BatchActionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.BatchActionRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.BatchActionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
@@ -323,6 +325,17 @@ public class BatchActionDAOImpl implements BatchActionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
+        // all of institution
+        if (bulkAction.sourceType == EntityType.INSTITUTION) {
+            return getDependencies(bulkAction, this::allIdsOfInstitution);
+        }
+
+        return Collections.emptySet();
+    }
+
+    @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
@@ -417,6 +430,21 @@ public class BatchActionDAOImpl implements BatchActionDAO {
             log.error("Failed to parse APIMessage for batch action failure: {}", e.getMessage());
             return APIMessage.ErrorMessage.UNEXPECTED.of(e);
         }
+    }
+
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> this.batchActionRecordMapper.selectByExample()
+                .where(BatchActionRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(rec -> new EntityDependency(
+                        institutionKey,
+                        new EntityKey(rec.getId(), EntityType.BATCH_ACTION),
+                        rec.getActionType(),
+                        rec.getOwner()))
+                .collect(Collectors.toList()));
     }
 
 }

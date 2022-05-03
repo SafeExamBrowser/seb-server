@@ -46,7 +46,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamTempl
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
@@ -199,7 +198,6 @@ public class ExamTemplateForm implements TemplateComposer {
                 .map(ProctoringServiceSettings::getEnableProctoring)
                 .getOr(false);
 
-        final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM_TEMPLATE);
         final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(examTemplate);
         // propagate content actions to action-pane
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
