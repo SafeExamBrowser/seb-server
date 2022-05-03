@@ -45,6 +45,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.GrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
@@ -199,14 +200,13 @@ public class ExamTemplateForm implements TemplateComposer {
                 .getOr(false);
 
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM_TEMPLATE);
-//        final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(examTemplate);
-//        final boolean modifyGrant = userGrantCheck.m();
+        final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(examTemplate);
         // propagate content actions to action-pane
         this.pageService.pageActionBuilder(formContext.clearEntityKeys())
 
                 .newAction(ActionDefinition.EXAM_TEMPLATE_MODIFY)
                 .withEntityKey(entityKey)
-                .publishIf(() -> userGrant.im() && readonly)
+                .publishIf(() -> userGrantCheck.m() && readonly)
 
                 .newAction(ActionDefinition.EXAM_TEMPLATE_SAVE)
                 .withEntityKey(entityKey)
@@ -223,17 +223,17 @@ public class ExamTemplateForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withConfirm(() -> EXAM_TEMPLATE_DELETE_CONFIRM)
                 .withExec(this::deleteExamTemplate)
-                .publishIf(() -> userGrant.iw() && readonly)
+                .publishIf(() -> userGrantCheck.w() && readonly)
 
                 .newAction(ActionDefinition.EXAM_TEMPLATE_PROCTORING_ON)
                 .withEntityKey(entityKey)
-                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, userGrant.im()))
+                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, userGrantCheck.m()))
                 .noEventPropagation()
                 .publishIf(() -> proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_TEMPLATE_PROCTORING_OFF)
                 .withEntityKey(entityKey)
-                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, userGrant.im()))
+                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, userGrantCheck.m()))
                 .noEventPropagation()
                 .publishIf(() -> !proctoringEnabled && readonly);
 
@@ -275,7 +275,7 @@ public class ExamTemplateForm implements TemplateComposer {
                                             .asMarkup()
                                             .widthProportion(4))
                             .withDefaultActionIf(
-                                    () -> userGrant.im(),
+                                    () -> userGrantCheck.m(),
                                     () -> actionBuilder
                                             .newAction(ActionDefinition.INDICATOR_TEMPLATE_MODIFY_FROM_LIST)
                                             .withParentEntityKey(entityKey)
@@ -296,7 +296,7 @@ public class ExamTemplateForm implements TemplateComposer {
                             indicatorTable::getMultiSelection,
                             PageAction::applySingleSelectionAsEntityKey,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                    .publishIf(() -> userGrant.im() && indicatorTable.hasAnyContent(), false)
+                    .publishIf(() -> userGrantCheck.m() && indicatorTable.hasAnyContent(), false)
 
                     .newAction(ActionDefinition.INDICATOR_TEMPLATE_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
@@ -304,11 +304,11 @@ public class ExamTemplateForm implements TemplateComposer {
                             indicatorTable::getMultiSelection,
                             this::deleteSelectedIndicator,
                             INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                    .publishIf(() -> userGrant.im() && indicatorTable.hasAnyContent(), false)
+                    .publishIf(() -> userGrantCheck.m() && indicatorTable.hasAnyContent(), false)
 
                     .newAction(ActionDefinition.INDICATOR_TEMPLATE_NEW)
                     .withParentEntityKey(entityKey)
-                    .publishIf(() -> userGrant.im());
+                    .publishIf(() -> userGrantCheck.m());
         }
     }
 
