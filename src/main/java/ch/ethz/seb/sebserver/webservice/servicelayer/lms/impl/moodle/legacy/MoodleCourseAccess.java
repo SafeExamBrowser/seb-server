@@ -47,6 +47,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.CourseAccessAPI;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseDataAsyncLoader.CourseDataShort;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseDataAsyncLoader.CourseQuizShort;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
@@ -146,6 +147,9 @@ public class MoodleCourseAccess implements CourseAccessAPI {
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
         return Result.tryCatch(() -> getRestTemplate()
                 .map(template -> collectAllQuizzes(template, filterMap))
+                .map(quizzes -> quizzes.stream()
+                        .filter(LmsAPIService.quizFilterPredicate(filterMap))
+                        .collect(Collectors.toList()))
                 .getOr(Collections.emptyList()));
     }
 
