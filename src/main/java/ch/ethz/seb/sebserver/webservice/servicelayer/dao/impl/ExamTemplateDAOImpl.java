@@ -110,10 +110,6 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                 throw new ResourceNotFoundException(EntityType.EXAM_TEMPLATE, String.valueOf(institutionId));
             }
 
-            if (defaults.size() != 1) {
-                throw new IllegalStateException("Expected one default but was: " + defaults.size());
-            }
-
             return defaults.get(0);
         })
                 .flatMap(this::toDomainModel);
