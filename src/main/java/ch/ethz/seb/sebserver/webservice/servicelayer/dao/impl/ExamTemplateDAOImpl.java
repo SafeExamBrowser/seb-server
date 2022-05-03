@@ -185,6 +185,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
         return Result.tryCatch(() -> {
 
             checkUniqueName(data);
+            checkUniqueDefault(data);
 
             final Collection<IndicatorTemplate> indicatorTemplates = data.getIndicatorTemplates();
             final String indicatorsJSON = (indicatorTemplates != null && !indicatorTemplates.isEmpty())
