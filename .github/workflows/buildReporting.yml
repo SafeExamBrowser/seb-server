@@ -111,9 +111,6 @@ jobs:
       run: |
         echo $TAG_NAME
         echo ${{ env.TAG_NAME }}
-    - 
-       name: Install Cosign
-       uses: sigstore/cosign-installer@main
     -
       name: Set up QEMU
       uses: docker/setup-qemu-action@v1
@@ -144,14 +141,3 @@ jobs:
         push: true
         tags: |
           anhefti/seb-server:${{ env.TAG_NAME }}
-    - 
-      name: Write signing key to disk
-      run: 'echo "$KEY" > cosign.key'
-      shell: bash
-      env:
-        KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-    -
-      name: Sign the published Docker image
-      env:
-        COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-      run: echo "$COSIGN_PASSWORD" && cosign sign --key cosign.key docker.io/anhefti/seb-server:${{ env.TAG_NAME }}
