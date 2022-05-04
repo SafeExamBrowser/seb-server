@@ -142,7 +142,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             if (examId != null) {
-                checkExamIntegrity(examId);
+                checkExamIntegrity(examId, institutionId);
             }
 
             // Create ClientConnection in status CONNECTION_REQUESTED for further processing
@@ -226,7 +226,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             if (examId != null) {
-                checkExamIntegrity(examId);
+                checkExamIntegrity(examId, institutionId);
             }
 
             if (log.isDebugEnabled()) {
@@ -412,7 +412,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .getOrThrow();
 
             // check exam integrity for established connection
-            checkExamIntegrity(establishedClientConnection.examId);
+            checkExamIntegrity(establishedClientConnection.examId, institutionId);
 
             // initialize distributed indicator value caches if possible and needed
             if (examId != null && this.isDistributedSetup) {
@@ -828,7 +828,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         return clientConnection;
     }
 
-    private void checkExamIntegrity(final Long examId) {
+    private void checkExamIntegrity(final Long examId, final Long institutionId) {
         if (this.isDistributedSetup) {
             // if the cached Exam is not up to date anymore, we have to update the cache first
             final Result<Exam> updateExamCache = this.examSessionService.updateExamCache(examId);
@@ -842,6 +842,16 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         if (this.examSessionService.isExamLocked(examId)) {
             throw new APIConstraintViolationException(
                     "Exam is currently on update and locked for new SEB Client connections");
+        }
+
+        // check Exam is within the correct institution
+        if (this.examSessionService.getRunningExam(examId)
+                .map(e -> !e.institutionId.equals(institutionId))
+                .onError(error -> log.error("Failed to get running exam: ", error))
+                .getOr(true)) {
+
+            throw new APIConstraintViolationException(
+                    "Exam institution mismatch. The requested exam is not within the expected institution");
         }
 
         // check Exam has a default SEB Exam configuration attached

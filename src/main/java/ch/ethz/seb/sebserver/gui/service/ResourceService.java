@@ -81,7 +81,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetIn
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificateNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodeNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -748,7 +747,7 @@ public class ResourceService {
 
     public List<Tuple<String>> getExamConfigTemplateResourcesSelection(final boolean withEmpty) {
         final UserInfo userInfo = this.currentUser.get();
-        final List<Tuple<String>> collect = this.restService.getBuilder(GetExamConfigNodes.class)
+        final List<Tuple<String>> collect = this.restService.getBuilder(GetExamConfigNodeNames.class)
                 .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
                 .withQueryParam(ConfigurationNode.FILTER_ATTR_TYPE, ConfigurationType.TEMPLATE.name())
                 .call()

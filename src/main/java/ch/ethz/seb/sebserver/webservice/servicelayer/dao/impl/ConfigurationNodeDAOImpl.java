@@ -254,17 +254,20 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     .build()
                     .execute();
 
-            // delete all ConfigurationValue's that belongs to the Configuration's to delete
-            this.configurationValueRecordMapper.deleteByExample()
-                    .where(ConfigurationValueRecordDynamicSqlSupport.configurationId, isIn(configurationIds))
-                    .build()
-                    .execute();
+            if (!configurationIds.isEmpty()) {
 
-            // delete all Configuration's
-            this.configurationRecordMapper.deleteByExample()
-                    .where(ConfigurationRecordDynamicSqlSupport.id, isIn(configurationIds))
-                    .build()
-                    .execute();
+                // delete all ConfigurationValue's that belongs to the Configuration's to delete
+                this.configurationValueRecordMapper.deleteByExample()
+                        .where(ConfigurationValueRecordDynamicSqlSupport.configurationId, isIn(configurationIds))
+                        .build()
+                        .execute();
+
+                // delete all Configuration's
+                this.configurationRecordMapper.deleteByExample()
+                        .where(ConfigurationRecordDynamicSqlSupport.id, isIn(configurationIds))
+                        .build()
+                        .execute();
+            }
 
             // and finally delete the requested ConfigurationNode's
             this.configurationNodeRecordMapper.deleteByExample()

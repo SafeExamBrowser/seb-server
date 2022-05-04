@@ -385,6 +385,11 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
     @Override
     public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
+        // all of institution
+        if (bulkAction.sourceType == EntityType.INSTITUTION) {
+            return getDependencies(bulkAction, this::allIdsOfInstitution);
+        }
+
         return Collections.emptySet();
     }
 
@@ -551,6 +556,21 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                 .map(IndicatorTemplate::getId)
                 .max(Long::compare)
                 .orElse(-1L) + 1;
+    }
+
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> this.examTemplateRecordMapper.selectByExample()
+                .where(ExamTemplateRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(rec -> new EntityDependency(
+                        institutionKey,
+                        new EntityKey(rec.getId(), EntityType.EXAM_TEMPLATE),
+                        rec.getName(),
+                        rec.getDescription()))
+                .collect(Collectors.toList()));
     }
 
 }
