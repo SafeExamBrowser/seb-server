@@ -76,19 +76,18 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
             return Double.NaN;
         }
 
+        // take samples, current value before current time to prevent negative ping times
+        final double value = this.currentValue;
+        final long currentTimeMillis = DateTimeUtils.currentTimeMillis();
+
         if (this.initialized && !this.cachingEnabled && this.active
                 && this.lastUpdate != this.distributedIndicatorValueService.lastUpdate()) {
 
-            final long currentTimeMillis = DateTimeUtils.currentTimeMillis();
             this.currentValue = computeValueAt(currentTimeMillis);
             this.lastUpdate = this.distributedIndicatorValueService.lastUpdate();
-            return (currentTimeMillis < this.currentValue)
-                    ? DateTimeUtils.currentTimeMillis() - this.currentValue
-                    : currentTimeMillis - this.currentValue;
-
-        } else {
-            return DateTimeUtils.currentTimeMillis() - this.currentValue;
         }
+
+        return currentTimeMillis - value;
     }
 
     @Override
