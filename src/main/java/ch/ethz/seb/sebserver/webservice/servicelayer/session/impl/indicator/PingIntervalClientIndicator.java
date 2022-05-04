@@ -87,7 +87,8 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
             this.lastUpdate = this.distributedIndicatorValueService.lastUpdate();
         }
 
-        return currentTimeMillis - value;
+        final double res = currentTimeMillis - value;
+        return res >= 0.0D ? res : 0.0D;
     }
 
     @Override

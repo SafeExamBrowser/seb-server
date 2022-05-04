@@ -286,23 +286,23 @@ public class ExamAPI_V1_Controller {
     public void ping(final HttpServletRequest request, final HttpServletResponse response) {
 
         final String connectionToken = request.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
-        final String timeStampString = request.getParameter(API.EXAM_API_PING_TIMESTAMP);
+        //final String timeStampString = request.getParameter(API.EXAM_API_PING_TIMESTAMP);
         final String pingNumString = request.getParameter(API.EXAM_API_PING_NUMBER);
         final String instructionConfirm = request.getParameter(API.EXAM_API_PING_INSTRUCTION_CONFIRM);
 
-        long pingTime;
-        try {
-            pingTime = Long.parseLong(timeStampString);
-        } catch (final Exception e) {
-            log.error("Invalid ping request: {}", connectionToken);
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            return;
-        }
+//        long pingTime;
+//        try {
+//            pingTime = Long.parseLong(timeStampString);
+//        } catch (final Exception e) {
+//            log.error("Invalid ping request: {}", connectionToken);
+//            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+//            return;
+//        }
 
         final String instruction = this.sebClientConnectionService
                 .notifyPing(
                         connectionToken,
-                        pingTime,
+                        Utils.getMillisecondsNow(),
                         pingNumString != null ? Integer.parseInt(pingNumString) : -1,
                         instructionConfirm);
 
