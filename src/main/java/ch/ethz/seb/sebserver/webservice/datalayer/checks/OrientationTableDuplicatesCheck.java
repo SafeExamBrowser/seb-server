@@ -79,7 +79,7 @@ public class OrientationTableDuplicatesCheck implements DBIntegrityCheck {
                 checkedToDelete
                         .stream()
                         .forEach(this.orientationRecordMapper::deleteByPrimaryKey);
-                return "Fixed duplicates by deletion: " + toDelete;
+                return "Fixed duplicates by deletion: " + checkedToDelete + " from findings:" + toDelete;
             } else {
                 return "Found duplicates: " + toDelete;
             }
