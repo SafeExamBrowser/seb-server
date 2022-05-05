@@ -525,7 +525,7 @@ public enum ActionDefinition {
     SEB_CLIENT_CONFIG_DELETE(
             new LocTextKey("sebserver.clientconfig.action.delete"),
             ImageIcon.DELETE,
-            PageStateDefinitionImpl.SEB_CLIENT_CONFIG_VIEW,
+            PageStateDefinitionImpl.SEB_CLIENT_CONFIG_LIST,
             ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_LIST(
