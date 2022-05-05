@@ -285,8 +285,25 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             log.trace("Trying to get exam from InMemorySEBConfig");
         }
 
-        final InMemorySEBConfig sebConfigForExam = this.examSessionCacheService
+        InMemorySEBConfig sebConfigForExam = this.examSessionCacheService
                 .getDefaultSEBConfigForExam(connection.examId, institutionId);
+
+        if (sebConfigForExam == null) {
+            log.error("Failed to get and cache InMemorySEBConfig for connection: {}", connection);
+            return;
+        }
+
+        // for distributed setups check if cached config is still up to date. Flush and reload if not.
+        if (this.distributedSetup && !this.examSessionCacheService.isUpToDate(sebConfigForExam)) {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Detected new version of exam configuration for exam {} ...flush cache", connection.examId);
+            }
+
+            this.examSessionCacheService.evictDefaultSEBConfig(connection.examId);
+            sebConfigForExam = this.examSessionCacheService
+                    .getDefaultSEBConfigForExam(connection.examId, institutionId);
+        }
 
         if (sebConfigForExam == null) {
             log.error("Failed to get and cache InMemorySEBConfig for connection: {}", connection);

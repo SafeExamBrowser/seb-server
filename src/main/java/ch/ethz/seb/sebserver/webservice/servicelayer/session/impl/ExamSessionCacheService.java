@@ -173,12 +173,29 @@ public class ExamSessionCacheService {
                     byteOut,
                     institutionId,
                     examId);
+            final Long followupId = this.sebExamConfigService
+                    .getFollowupConfigurationId(configId)
+                    .onError(error -> log.error("Failed to get follow-up id for config node: {}", configId, error))
+                    .getOr(-1L);
 
-            return new InMemorySEBConfig(configId, examId, byteOut.toByteArray());
+            return new InMemorySEBConfig(configId, followupId, examId, byteOut.toByteArray());
 
         } catch (final Exception e) {
             log.error("Unexpected error while getting default exam configuration for running exam; {}", examId, e);
             throw e;
+        }
+    }
+
+    public boolean isUpToDate(final InMemorySEBConfig inMemorySEBConfig) {
+        try {
+            final Long followupId = this.sebExamConfigService
+                    .getFollowupConfigurationId(inMemorySEBConfig.configId)
+                    .getOrThrow();
+
+            return followupId.equals(inMemorySEBConfig.follwupId);
+        } catch (final Exception e) {
+            log.error("Failed to check if InMemorySEBConfig is up to date for: {}", inMemorySEBConfig);
+            return true;
         }
     }
 

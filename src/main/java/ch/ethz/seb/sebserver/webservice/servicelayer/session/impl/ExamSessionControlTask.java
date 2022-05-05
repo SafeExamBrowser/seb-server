@@ -161,7 +161,7 @@ public class ExamSessionControlTask implements DisposableBean {
                     .getOrThrow()
                     .stream()
                     .filter(exam -> exam.startTime.minus(this.examTimePrefix).isBefore(now))
-                    .filter(exam -> exam.endTime != null && exam.endTime.plus(this.examTimeSuffix).isAfter(now))
+                    .filter(exam -> exam.endTime == null || exam.endTime.plus(this.examTimeSuffix).isAfter(now))
                     .flatMap(exam -> Result.skipOnError(this.examUpdateHandler.setRunning(exam, updateId)))
                     .collect(Collectors.toMap(Exam::getId, Exam::getName));
 

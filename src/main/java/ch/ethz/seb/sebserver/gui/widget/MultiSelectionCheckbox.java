@@ -82,10 +82,14 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
             WidgetFactory.setARIALabel(button, tuple._2);
             this.checkboxes.put(tuple._1, button);
 
-            @SuppressWarnings("unchecked")
-            final Tuple3<String> tuple3 = tuple.adaptTo(Tuple3.class);
-            if (tuple3 != null && StringUtils.isNotBlank(tuple3._3)) {
-                button.setToolTipText(tuple3._3);
+            try {
+                @SuppressWarnings("unchecked")
+                final Tuple3<String> tuple3 = tuple.adaptTo(Tuple3.class);
+                if (tuple3 != null && StringUtils.isNotBlank(tuple3._3)) {
+                    button.setToolTipText(tuple3._3);
+                }
+            } catch (final Exception e) {
+                // ignore
             }
         }
 

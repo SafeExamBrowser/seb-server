@@ -130,6 +130,13 @@ public class MockupLmsAPITemplate implements LmsAPITemplate {
                 DateTime.now(DateTimeZone.UTC).plus(6 * Constants.MINUTE_IN_MILLIS)
                         .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
                 "http://lms.mockup.com/api/"));
+        this.mockups.add(new QuizData(
+                "quiz11", institutionId, lmsSetupId, lmsType, "Demo Quiz 11 (MOCKUP)",
+                "Starts in a minute and ends never",
+                DateTime.now(DateTimeZone.UTC).plus(Constants.MINUTE_IN_MILLIS)
+                        .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
+                null,
+                "http://lms.mockup.com/api/"));
     }
 
     @Override

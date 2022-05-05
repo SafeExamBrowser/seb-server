@@ -16,12 +16,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
+import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.IndicatorRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamTemplateRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
@@ -140,24 +145,38 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             final FilterMap filterMap,
             final Predicate<ExamTemplate> predicate) {
 
-        return Result.tryCatch(() -> this.examTemplateRecordMapper
-                .selectByExample()
-                .where(
-                        ExamTemplateRecordDynamicSqlSupport.institutionId,
-                        isEqualToWhenPresent(filterMap.getInstitutionId()))
-                .and(
-                        ExamTemplateRecordDynamicSqlSupport.name,
-                        isLikeWhenPresent(filterMap.getExamTemplateName()))
-                .and(
-                        ExamTemplateRecordDynamicSqlSupport.examType,
-                        isEqualToWhenPresent(filterMap.getString(ExamTemplate.FILTER_ATTR_EXAM_TYPE)))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .filter(predicate)
-                .collect(Collectors.toList()));
+        return Result.tryCatch(() -> {
+            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamTemplateRecord>>>.QueryExpressionWhereBuilder whereClause =
+                    (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
+                            ? this.examTemplateRecordMapper
+                                    .selectByExample()
+                                    .join(InstitutionRecordDynamicSqlSupport.institutionRecord)
+                                    .on(InstitutionRecordDynamicSqlSupport.id,
+                                            SqlBuilder.equalTo(ExamTemplateRecordDynamicSqlSupport.institutionId))
+                                    .where(
+                                            ExamTemplateRecordDynamicSqlSupport.institutionId,
+                                            isEqualToWhenPresent(filterMap.getInstitutionId()))
+                            : this.examTemplateRecordMapper
+                                    .selectByExample()
+                                    .where(
+                                            ExamTemplateRecordDynamicSqlSupport.institutionId,
+                                            isEqualToWhenPresent(filterMap.getInstitutionId()));
+
+            return whereClause
+                    .and(
+                            ExamTemplateRecordDynamicSqlSupport.name,
+                            isLikeWhenPresent(filterMap.getExamTemplateName()))
+                    .and(
+                            ExamTemplateRecordDynamicSqlSupport.examType,
+                            isEqualToWhenPresent(filterMap.getString(ExamTemplate.FILTER_ATTR_EXAM_TYPE)))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .filter(predicate)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
@@ -202,11 +221,6 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             checkUniqueName(data);
             checkUniqueDefault(data);
 
-            final Collection<IndicatorTemplate> indicatorTemplates = data.getIndicatorTemplates();
-            final String indicatorsJSON = (indicatorTemplates != null && !indicatorTemplates.isEmpty())
-                    ? this.jsonMapper.writeValueAsString(indicatorTemplates)
-                    : null;
-
             final ExamTemplateRecord newRecord = new ExamTemplateRecord(
                     data.id,
                     null,
@@ -219,7 +233,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     (data.supporter != null)
                             ? StringUtils.join(data.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
-                    indicatorsJSON,
+                    null,
                     BooleanUtils.toInteger(data.institutionalDefault));
 
             this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
@@ -242,6 +256,137 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
     }
 
     @Override
+    @Transactional
+    public Result<IndicatorTemplate> createNewIndicatorTemplate(final IndicatorTemplate indicatorTemplate) {
+        return Result.tryCatch(() -> {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Create new indicator template: {}", indicatorTemplate);
+            }
+
+            final Long examTemplatePK = indicatorTemplate.examTemplateId;
+            final ExamTemplateRecord examTemplateRec = this.examTemplateRecordMapper
+                    .selectByPrimaryKey(examTemplatePK);
+            final String indicatorTemplatesJSON = examTemplateRec.getIndicatorTemplates();
+            final Collection<IndicatorTemplate> indicators = (StringUtils.isNotBlank(indicatorTemplatesJSON))
+                    ? this.jsonMapper.readValue(
+                            indicatorTemplatesJSON,
+                            new TypeReference<Collection<IndicatorTemplate>>() {
+                            })
+                    : Collections.emptyList();
+
+            checkUniqueIndicatorName(indicatorTemplate, indicators);
+
+            final IndicatorTemplate newIndicatorTemplate = new IndicatorTemplate(
+                    getNextIndicatorId(indicators),
+                    indicatorTemplate);
+
+            final List<IndicatorTemplate> newIndicators = new ArrayList<>(indicators);
+            newIndicators.add(newIndicatorTemplate);
+
+            final String newIndicatorTemplatesJSON = newIndicators.isEmpty()
+                    ? StringUtils.EMPTY
+                    : this.jsonMapper.writeValueAsString(newIndicators);
+
+            final ExamTemplateRecord newRecord = new ExamTemplateRecord(
+                    examTemplatePK, null, null, null, null, null, null,
+                    newIndicatorTemplatesJSON, null);
+
+            this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
+
+            return newIndicatorTemplate;
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<IndicatorTemplate> saveIndicatorTemplate(final IndicatorTemplate indicatorTemplate) {
+        return Result.tryCatch(() -> {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Save indicator template: {}", indicatorTemplate);
+            }
+
+            final Long examTemplatePK = indicatorTemplate.examTemplateId;
+            final ExamTemplateRecord examTemplateRec = this.examTemplateRecordMapper
+                    .selectByPrimaryKey(examTemplatePK);
+            final String indicatorTemplatesJSON = examTemplateRec.getIndicatorTemplates();
+            final Collection<IndicatorTemplate> indicators = (StringUtils.isNotBlank(indicatorTemplatesJSON))
+                    ? this.jsonMapper.readValue(
+                            indicatorTemplatesJSON,
+                            new TypeReference<Collection<IndicatorTemplate>>() {
+                            })
+                    : Collections.emptyList();
+
+            checkUniqueIndicatorName(indicatorTemplate, indicators);
+
+            final List<IndicatorTemplate> newIndicators = indicators
+                    .stream()
+                    .map(i -> indicatorTemplate.id.equals(i.id) ? indicatorTemplate : i)
+                    .collect(Collectors.toList());
+
+            final String newIndicatorTemplatesJSON = newIndicators.isEmpty()
+                    ? StringUtils.EMPTY
+                    : this.jsonMapper.writeValueAsString(newIndicators);
+
+            final ExamTemplateRecord newRecord = new ExamTemplateRecord(
+                    examTemplatePK, null, null, null, null, null, null,
+                    newIndicatorTemplatesJSON, null);
+
+            this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
+
+            return indicatorTemplate;
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<EntityKey> deleteIndicatorTemplate(
+            final String examTemplateId,
+            final String indicatorTemplateId) {
+
+        return Result.tryCatch(() -> {
+
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Delete indicator template for exam template: {} indicator template id",
+                        examTemplateId,
+                        indicatorTemplateId);
+            }
+
+            final Long examTemplatePK = Long.valueOf(examTemplateId);
+            final ExamTemplateRecord examTemplateRec = this.examTemplateRecordMapper
+                    .selectByPrimaryKey(examTemplatePK);
+            final String indicatorTemplatesJSON = examTemplateRec.getIndicatorTemplates();
+            final Collection<IndicatorTemplate> indicators = (StringUtils.isNotBlank(indicatorTemplatesJSON))
+                    ? this.jsonMapper.readValue(
+                            indicatorTemplatesJSON,
+                            new TypeReference<Collection<IndicatorTemplate>>() {
+                            })
+                    : Collections.emptyList();
+
+            final List<IndicatorTemplate> newIndicators = indicators.stream()
+                    .filter(indicatorTemplate -> !indicatorTemplateId.equals(indicatorTemplate.getModelId()))
+                    .collect(Collectors.toList());
+
+            final String newIndicatorTemplatesJSON = newIndicators.isEmpty()
+                    ? StringUtils.EMPTY
+                    : this.jsonMapper.writeValueAsString(newIndicators);
+
+            final ExamTemplateRecord newRecord = new ExamTemplateRecord(
+                    examTemplatePK, null, null, null, null, null, null,
+                    newIndicatorTemplatesJSON, null);
+
+            this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
+
+            return new EntityKey(indicatorTemplateId, EntityType.INDICATOR);
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
     public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
         return Collections.emptySet();
     }
@@ -251,7 +396,9 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
 
-            log.info("Delete exam templates: {}", all);
+            if (log.isDebugEnabled()) {
+                log.debug("Delete exam templates: {}", all);
+            }
 
             final List<Long> ids = extractListOfPKs(all);
             if (ids == null || ids.isEmpty()) {
@@ -385,6 +532,26 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
         } catch (final Exception e) {
             log.error("Failed to reset institutional default for exam template: {}", record, e);
         }
+    }
+
+    private void checkUniqueIndicatorName(final IndicatorTemplate indicatorTemplate,
+            final Collection<IndicatorTemplate> indicators) {
+        // check unique name
+        indicators.stream()
+                .filter(it -> Objects.equals(it.name, indicatorTemplate.name))
+                .findAny()
+                .ifPresent(it -> {
+                    throw new FieldValidationException(
+                            "name",
+                            "indicatorTemplate:name:exists");
+                });
+    }
+
+    private long getNextIndicatorId(final Collection<IndicatorTemplate> indicators) {
+        return indicators.stream()
+                .map(IndicatorTemplate::getId)
+                .max(Long::compare)
+                .orElse(-1L) + 1;
     }
 
 }

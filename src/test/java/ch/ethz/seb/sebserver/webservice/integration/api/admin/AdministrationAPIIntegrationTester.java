@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -248,11 +249,12 @@ public abstract class AdministrationAPIIntegrationTester {
     }
 
     protected String getOrderedUUIDs(final Collection<? extends Entity> list) {
-        return list
+        final List<String> l = list
                 .stream()
                 .map(userInfo -> userInfo.getModelId())
-                .collect(Collectors.toList())
-                .toString();
+                .collect(Collectors.toList());
+        l.sort((s1, s2) -> s1.compareTo(s2));
+        return l.toString();
     }
 
 }
