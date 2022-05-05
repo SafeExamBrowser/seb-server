@@ -685,6 +685,11 @@ public enum ActionDefinition {
             ImageIcon.SAVE,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
             ActionCategory.FORM),
+    SEB_EXAM_CONFIG_TEMPLATE_DELETE(
+            new LocTextKey("sebserver.configtemplate.action.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_LIST,
+            ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_TEMPLATE_ATTR_EDIT(
             new LocTextKey("sebserver.configtemplate.attr.list.actions.modify"),

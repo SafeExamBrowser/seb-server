@@ -18,12 +18,14 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -37,6 +39,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.DeleteExamConfiguration;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetTemplateAttributePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
@@ -76,6 +79,16 @@ public class ConfigTemplateForm implements TemplateComposer {
             new LocTextKey("sebserver.configtemplate.attrs.list.type");
     private static final LocTextKey EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.configtemplate.attr.info.pleaseSelect");
+
+    static final LocTextKey CONFIRM_DELETE =
+            new LocTextKey("sebserver.configtemplate.message.confirm.delete");
+    static final LocTextKey DELETE_CONFIRM_TITLE =
+            new LocTextKey("sebserver.dialog.confirm.title");
+
+    private final static LocTextKey DELETE_ERROR_DEPENDENCY =
+            new LocTextKey("sebserver.configtemplate.message.delete.partialerror");
+    private final static LocTextKey DELETE_CONFIRM =
+            new LocTextKey("sebserver.configtemplate.message.delete.confirm");
 
     private final PageService pageService;
     private final RestService restService;
@@ -291,6 +304,12 @@ public class ConfigTemplateForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly)
 
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_DELETE)
+                .withEntityKey(entityKey)
+                .withConfirm(() -> CONFIRM_DELETE)
+                .withExec(this::deleteConfiguration)
+                .publishIf(() -> writeGrant && isReadonly)
+
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_CREATE_CONFIG)
                 .withEntityKey(entityKey)
                 .withExec(this.sebxamConfigCreationPopup.configCreationFunction(
@@ -314,6 +333,36 @@ public class ConfigTemplateForm implements TemplateComposer {
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
 
+    }
+
+    private PageAction deleteConfiguration(final PageAction action) {
+        final ConfigurationNode configNode = this.restService
+                .getBuilder(GetExamConfigNode.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .call()
+                .getOrThrow();
+
+        final Result<EntityProcessingReport> call = this.restService
+                .getBuilder(DeleteExamConfiguration.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .call();
+
+        final PageContext pageContext = action.pageContext();
+
+        final EntityProcessingReport report = call.getOrThrow();
+        final String configName = configNode.toName().name;
+        if (report.getErrors().isEmpty()) {
+            pageContext.publishPageMessage(DELETE_CONFIRM_TITLE, new LocTextKey(DELETE_CONFIRM.name, configName));
+        } else {
+            pageContext.publishPageMessage(
+                    DELETE_CONFIRM_TITLE,
+                    new LocTextKey(DELETE_ERROR_DEPENDENCY.name, configName,
+                            report.getErrors().iterator().next().getErrorMessage().systemMessage));
+        }
+
+        return this.pageService.pageActionBuilder(pageContext)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_LIST)
+                .create();
     }
 
     private String getAttributeName(final TemplateAttribute attribute) {

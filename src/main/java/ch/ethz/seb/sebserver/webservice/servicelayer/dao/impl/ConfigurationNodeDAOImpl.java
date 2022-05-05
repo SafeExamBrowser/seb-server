@@ -46,6 +46,10 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationReco
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ViewRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ViewRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
@@ -63,18 +67,24 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     private final ConfigurationNodeRecordMapper configurationNodeRecordMapper;
     private final ConfigurationValueRecordMapper configurationValueRecordMapper;
     private final ConfigurationDAOBatchService configurationDAOBatchService;
+    private final ViewRecordMapper viewRecordMapper;
+    private final OrientationRecordMapper orientationRecordMapper;
 
     protected ConfigurationNodeDAOImpl(
             final ConfigurationRecordMapper configurationRecordMapper,
             final ConfigurationNodeRecordMapper configurationNodeRecordMapper,
             final ConfigurationValueRecordMapper configurationValueRecordMapper,
             final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper,
-            final ConfigurationDAOBatchService ConfigurationDAOBatchService) {
+            final ConfigurationDAOBatchService ConfigurationDAOBatchService,
+            final ViewRecordMapper viewRecordMapper,
+            final OrientationRecordMapper orientationRecordMapper) {
 
         this.configurationRecordMapper = configurationRecordMapper;
         this.configurationNodeRecordMapper = configurationNodeRecordMapper;
         this.configurationValueRecordMapper = configurationValueRecordMapper;
         this.configurationDAOBatchService = ConfigurationDAOBatchService;
+        this.viewRecordMapper = viewRecordMapper;
+        this.orientationRecordMapper = orientationRecordMapper;
     }
 
     @Override
@@ -249,7 +259,8 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             }
 
             // find all configurations for this configuration node
-            final List<Long> configurationIds = this.configurationRecordMapper.selectIdsByExample()
+            final List<Long> configurationIds = this.configurationRecordMapper
+                    .selectIdsByExample()
                     .where(ConfigurationRecordDynamicSqlSupport.configurationNodeId, isIn(ids))
                     .build()
                     .execute();
@@ -269,6 +280,8 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                         .execute();
             }
 
+            handleConfigTemplateDeletion(ids);
+
             // and finally delete the requested ConfigurationNode's
             this.configurationNodeRecordMapper.deleteByExample()
                     .where(ConfigurationNodeRecordDynamicSqlSupport.id, isIn(ids))
@@ -279,6 +292,37 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     .map(id -> new EntityKey(id, EntityType.CONFIGURATION_NODE))
                     .collect(Collectors.toList());
         });
+    }
+
+    private void handleConfigTemplateDeletion(final List<Long> configurationIds) {
+        // get all config template node ids
+        final List<Long> templatesIds = this.configurationNodeRecordMapper
+                .selectIdsByExample()
+                .where(ConfigurationNodeRecordDynamicSqlSupport.id, isIn(configurationIds))
+                .and(ConfigurationNodeRecordDynamicSqlSupport.type, isEqualTo(ConfigurationType.TEMPLATE.name()))
+                .build()
+                .execute();
+
+        if (templatesIds == null || templatesIds.isEmpty()) {
+            return;
+        }
+
+        // delete all related views and orientations
+        this.orientationRecordMapper.deleteByExample()
+                .where(OrientationRecordDynamicSqlSupport.templateId, isIn(templatesIds))
+                .build()
+                .execute();
+        this.viewRecordMapper.deleteByExample()
+                .where(ViewRecordDynamicSqlSupport.templateId, isIn(templatesIds))
+                .build()
+                .execute();
+
+        // update all config nodes that uses one of the templates
+        this.configurationNodeRecordMapper.updateByExampleSelective(
+                new ConfigurationNodeRecord(null, null, 0L, null, null, null, null, null))
+                .where(ConfigurationNodeRecordDynamicSqlSupport.templateId, isIn(configurationIds))
+                .build()
+                .execute();
     }
 
     private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
