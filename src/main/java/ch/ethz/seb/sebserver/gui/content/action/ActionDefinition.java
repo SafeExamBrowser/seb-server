@@ -522,6 +522,11 @@ public enum ActionDefinition {
             ImageIcon.EXPORT,
             PageStateDefinitionImpl.SEB_CLIENT_CONFIG_VIEW,
             ActionCategory.FORM),
+    SEB_CLIENT_CONFIG_DELETE(
+            new LocTextKey("sebserver.clientconfig.action.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.SEB_CLIENT_CONFIG_VIEW,
+            ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_LIST(
             new LocTextKey("sebserver.examconfig.action.list"),

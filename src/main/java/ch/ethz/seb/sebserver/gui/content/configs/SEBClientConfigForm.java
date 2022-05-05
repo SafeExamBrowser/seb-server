@@ -44,11 +44,13 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.download.SEBClientConfigDownload;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.ActivateClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.DeactivateClientConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.DeleteClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.NewClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
@@ -113,6 +115,11 @@ public class SEBClientConfigForm implements TemplateComposer {
             new LocTextKey("sebserver.clientconfig.form.encryptSecret");
     private static final LocTextKey FORM_CONFIRM_ENCRYPT_SECRET_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.encryptSecret.confirm");
+
+    private static final LocTextKey DELETE_CONFIRM =
+            new LocTextKey("sebserver.clientconfig.action.delete.confirm");
+    private static final LocTextKey DELETE_SUCCESS =
+            new LocTextKey("sebserver.clientconfig.action.delete.success");
 
     private static final String DEFAULT_PING_INTERVAL = String.valueOf(1000);
     private static final String FALLBACK_DEFAULT_TIME = String.valueOf(30 * Constants.SECOND_IN_MILLIS);
@@ -193,6 +200,12 @@ public class SEBClientConfigForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly)
 
+                .newAction(ActionDefinition.SEB_CLIENT_CONFIG_DELETE)
+                .withEntityKey(entityKey)
+                .withConfirm(() -> DELETE_CONFIRM)
+                .withExec(this::deleteConnectionConfig)
+                .publishIf(() -> modifyGrant && isReadonly)
+
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_EXPORT)
                 .withEntityKey(entityKey)
                 .withExec(action -> {
@@ -232,6 +245,24 @@ public class SEBClientConfigForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> !isReadonly);
+    }
+
+    private PageAction deleteConnectionConfig(final PageAction pageAction) {
+
+        this.restService.getBuilder(DeleteClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, pageAction.getEntityKey().modelId)
+                .call()
+                .onError(error -> pageAction.pageContext().notifyUnexpectedError(error))
+                .ifPresent(rep -> {
+                    if (rep.getErrors().isEmpty()) {
+                        pageAction.pageContext().publishInfo(DELETE_SUCCESS);
+                    } else {
+                        pageAction.pageContext().notifyUnexpectedError(
+                                new RuntimeException(rep.errors.iterator().next().errorMessage.details));
+                    }
+                });
+
+        return pageAction;
     }
 
     private void buildForm(
