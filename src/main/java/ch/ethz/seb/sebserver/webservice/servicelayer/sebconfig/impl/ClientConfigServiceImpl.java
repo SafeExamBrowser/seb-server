@@ -293,9 +293,9 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
     private SEBConfigEncryptionContext buildCertificateEncryptionContext(final SEBClientConfig config) {
 
-        final Certificate certificate = this.certificateDAO.getCertificate(
-                config.institutionId,
-                String.valueOf(config.getEncryptCertificateAlias()))
+        final String alias = String.valueOf(config.getEncryptCertificateAlias());
+        final Certificate certificate = this.certificateDAO
+                .getCertificate(config.institutionId, alias)
                 .getOrThrow();
 
         return EncryptionContext.contextOf(
@@ -303,7 +303,8 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                 (config.encryptCertificateAsym)
                         ? SEBConfigEncryptionService.Strategy.PUBLIC_KEY_HASH
                         : SEBConfigEncryptionService.Strategy.PUBLIC_KEY_HASH_SYMMETRIC_KEY,
-                certificate);
+                certificate,
+                alias);
     }
 
     private SEBConfigEncryptionContext buildPasswordEncryptionContext(final SEBClientConfig config) {
