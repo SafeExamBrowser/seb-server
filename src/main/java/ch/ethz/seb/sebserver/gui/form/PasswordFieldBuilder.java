@@ -36,7 +36,8 @@ public class PasswordFieldBuilder extends FieldBuilder<CharSequence> {
         final PasswordInput input = new PasswordInput(
                 fieldGrid,
                 builder.widgetFactory,
-                getARIALabel(builder));
+                getARIALabel(builder),
+                this.label);
 
         input.setEditable(!readonly);
         input.setValue((StringUtils.isNotBlank(this.value))

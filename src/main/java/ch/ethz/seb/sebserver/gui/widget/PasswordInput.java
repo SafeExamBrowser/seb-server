@@ -42,12 +42,13 @@ public class PasswordInput extends Composite {
     public PasswordInput(
             final Composite parent,
             final WidgetFactory widgetFactory,
-            final LocTextKey label) {
+            final LocTextKey ariaLabel,
+            final LocTextKey testLabel) {
 
         super(parent, SWT.NONE);
 
-        this.label = widgetFactory.getI18nSupport().getText(label);
-        this.testKey = (label != null) ? label.name : null;
+        this.label = widgetFactory.getI18nSupport().getText(ariaLabel);
+        this.testKey = testLabel != null ? testLabel.name : null;
         GridLayout gridLayout = new GridLayout(2, false);
         gridLayout.horizontalSpacing = 0;
         gridLayout.verticalSpacing = 0;

@@ -279,11 +279,12 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         return this.entityDAO
                 .byPK(examId)
                 .flatMap(this.authorization::checkModify)
-                .map(exam -> {
+                .map(examTemplate -> {
                     this.proctoringServiceSettingsService.saveProctoringServiceSettings(
                             new EntityKey(examId, EntityType.EXAM_TEMPLATE),
-                            proctoringServiceSettings);
-                    return exam;
+                            proctoringServiceSettings)
+                            .getOrThrow();
+                    return examTemplate;
                 })
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();

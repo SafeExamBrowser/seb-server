@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
@@ -97,8 +98,8 @@ public class ProctoringSettingsPopup {
                     new ModalInputDialog<FormHandle<?>>(
                             action.pageContext().getParent().getShell(),
                             pageService.getWidgetFactory())
-                                    .setDialogWidth(800)
-                                    .setDialogHeight(400);
+                                    .setDialogWidth(860)
+                                    .setDialogHeight(600);
 
             final SEBProctoringPropertiesForm bindFormContext = new SEBProctoringPropertiesForm(
                     pageService,
@@ -179,7 +180,7 @@ public class ProctoringSettingsPopup {
             return false;
         }
 
-        final boolean saveOk = !pageService
+        final Result<ProctoringServiceSettings> settings = pageService
                 .getRestService()
                 .getBuilder(
                         entityKey.entityType == EntityType.EXAM
@@ -187,7 +188,9 @@ public class ProctoringSettingsPopup {
                                 : SaveExamTemplateProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .withBody(examProctoring)
-                .call()
+                .call();
+
+        final boolean saveOk = !settings
                 .onError(formHandle::handleError)
                 .hasError();
 
