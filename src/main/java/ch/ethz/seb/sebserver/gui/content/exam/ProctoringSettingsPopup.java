@@ -97,7 +97,7 @@ public class ProctoringSettingsPopup {
                     new ModalInputDialog<FormHandle<?>>(
                             action.pageContext().getParent().getShell(),
                             pageService.getWidgetFactory())
-                                    .setDialogWidth(740)
+                                    .setDialogWidth(800)
                                     .setDialogHeight(400);
 
             final SEBProctoringPropertiesForm bindFormContext = new SEBProctoringPropertiesForm(
