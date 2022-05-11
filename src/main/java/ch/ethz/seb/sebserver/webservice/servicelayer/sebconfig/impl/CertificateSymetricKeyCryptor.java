@@ -194,4 +194,9 @@ public class CertificateSymetricKeyCryptor extends AbstractCertificateCryptor im
         return byteArray;
     }
 
+    @Override
+    protected Strategy getStrategy() {
+        return Strategy.PUBLIC_KEY_HASH_SYMMETRIC_KEY;
+    }
+
 }

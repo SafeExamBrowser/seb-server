@@ -132,4 +132,9 @@ public class CertificateAsymetricKeyCryptor extends AbstractCertificateCryptor i
         }
     }
 
+    @Override
+    protected Strategy getStrategy() {
+        return Strategy.PUBLIC_KEY_HASH;
+    }
+
 }

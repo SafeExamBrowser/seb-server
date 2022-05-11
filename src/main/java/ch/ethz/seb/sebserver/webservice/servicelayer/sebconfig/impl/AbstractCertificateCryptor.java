@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionContext;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
 
 public abstract class AbstractCertificateCryptor {
@@ -65,7 +66,7 @@ public abstract class AbstractCertificateCryptor {
                 if (Arrays.equals(otherPublicKeyHash, publicKeyHash)) {
                     return EncryptionContext.contextOf(
                             sebConfigEncryptionContext.institutionId(),
-                            sebConfigEncryptionContext.getStrategy(),
+                            getStrategy(),
                             certificate,
                             alias);
                 }
@@ -78,6 +79,8 @@ public abstract class AbstractCertificateCryptor {
             return null;
         }
     }
+
+    protected abstract SEBConfigEncryptionService.Strategy getStrategy();
 
     protected byte[] generatePublicKeyHash(final Certificate cert) {
 

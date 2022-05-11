@@ -150,34 +150,6 @@ public final class SEBConfigEncryptionServiceImpl implements SEBConfigEncryption
                     .getOrThrow()
                     .decrypt(pout, newIn, context);
 
-//            if (strategy == Strategy.PLAIN_TEXT) {
-//
-//                getEncryptor(strategy)
-//                        .getOrThrow()
-//                        .decrypt(pout, newIn, context);
-//
-//            } else if ((strategy == Strategy.PASSWORD_PSWD || strategy == Strategy.PASSWORD_PWCC)) {
-//                if (StringUtils.isBlank(context.getPassword())) {
-//                    return new AsyncResult<>(new APIMessage.APIMessageException(
-//                            APIMessage.ErrorMessage.MISSING_PASSWORD.of("Missing Password")));
-//                } else {
-//
-//                    // then decrypt stream with password
-//                    getEncryptor(strategy)
-//                            .getOrThrow()
-//                            .decrypt(pout, newIn, context);
-//                }
-//            } else {
-//
-//                // then decrypt stream with certificate
-//                getEncryptor(strategy)
-//                        .getOrThrow()
-//                        .decrypt(
-//                                pout,
-//                                newIn,
-//                                EncryptionContext.contextOf(context.institutionId(), strategy, null, null));
-//            }
-
             IOUtils.copyLarge(pin, output);
 
             return new AsyncResult<>(null);
