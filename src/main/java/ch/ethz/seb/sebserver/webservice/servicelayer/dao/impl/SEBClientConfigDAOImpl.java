@@ -44,6 +44,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
@@ -63,15 +64,18 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     private final SebClientConfigRecordMapper sebClientConfigRecordMapper;
     private final ClientCredentialService clientCredentialService;
     private final AdditionalAttributesDAOImpl additionalAttributesDAO;
+    private final CurrentUser currentUser;
 
     protected SEBClientConfigDAOImpl(
             final SebClientConfigRecordMapper sebClientConfigRecordMapper,
             final ClientCredentialService clientCredentialService,
-            final AdditionalAttributesDAOImpl additionalAttributesDAO) {
+            final AdditionalAttributesDAOImpl additionalAttributesDAO,
+            final CurrentUser currentUser) {
 
         this.sebClientConfigRecordMapper = sebClientConfigRecordMapper;
         this.clientCredentialService = clientCredentialService;
         this.additionalAttributesDAO = additionalAttributesDAO;
+        this.currentUser = currentUser;
     }
 
     @Override
@@ -202,7 +206,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
             final SebClientConfigRecord record = new SebClientConfigRecord(
                     null, null, null, null, null, null, null,
-                    BooleanUtils.toIntegerObject(active));
+                    BooleanUtils.toIntegerObject(active),
+                    Utils.getMillisecondsNow(),
+                    this.currentUser.get().getUuid());
 
             this.sebClientConfigRecordMapper.updateByExampleSelective(record)
                     .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(ids))
@@ -232,7 +238,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                             cc.clientIdAsString(),
                             cc.secretAsString(),
                             getEncryptionPassword(sebClientConfig),
-                            BooleanUtils.toInteger(BooleanUtils.isTrue(sebClientConfig.active)));
+                            BooleanUtils.toInteger(BooleanUtils.isTrue(sebClientConfig.active)),
+                            Utils.getMillisecondsNow(),
+                            this.currentUser.get().getUuid());
 
                     this.sebClientConfigRecordMapper
                             .insert(newRecord);
@@ -263,7 +271,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     record.getClientName(),
                     record.getClientSecret(),
                     getEncryptionPassword(sebClientConfig),
-                    record.getActive());
+                    record.getActive(),
+                    Utils.getMillisecondsNow(),
+                    this.currentUser.get().getUuid());
 
             this.sebClientConfigRecordMapper.updateByPrimaryKey(newRecord);
 
@@ -447,7 +457,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                         ? additionalAttributes.get(SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS).getValue()
                         : null,
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ASYM),
-                BooleanUtils.toBooleanObject(record.getActive())));
+                BooleanUtils.toBooleanObject(record.getActive()),
+                Utils.toDateTimeUTC(record.getLastUpdateTime()),
+                record.getLastUpdateUser()));
     }
 
     private String getEncryptionPassword(final SEBClientConfig sebClientConfig) {

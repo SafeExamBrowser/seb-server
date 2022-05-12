@@ -231,7 +231,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     replaceVars(this.defaultExamConfigDescTemplate, exam, examTemplate),
                     ConfigurationType.EXAM_CONFIG,
                     exam.owner,
-                    ConfigurationStatus.IN_USE);
+                    ConfigurationStatus.IN_USE,
+                    null,
+                    null);
 
             return this.configurationNodeDAO
                     .createNew(config)
@@ -253,7 +255,9 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     null,
                     null,
                     null,
-                    ConfigurationStatus.IN_USE);
+                    ConfigurationStatus.IN_USE,
+                    null,
+                    null);
 
             return this.configurationNodeDAO
                     .save(config)

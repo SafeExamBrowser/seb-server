@@ -7,34 +7,40 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class SebClientConfigRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.043+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.300+02:00", comments="Source Table: seb_client_configuration")
     public static final SebClientConfigRecord sebClientConfigRecord = new SebClientConfigRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.043+02:00", comments="Source field: seb_client_configuration.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.300+02:00", comments="Source field: seb_client_configuration.id")
     public static final SqlColumn<Long> id = sebClientConfigRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.043+02:00", comments="Source field: seb_client_configuration.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.300+02:00", comments="Source field: seb_client_configuration.institution_id")
     public static final SqlColumn<Long> institutionId = sebClientConfigRecord.institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.043+02:00", comments="Source field: seb_client_configuration.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.301+02:00", comments="Source field: seb_client_configuration.name")
     public static final SqlColumn<String> name = sebClientConfigRecord.name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.044+02:00", comments="Source field: seb_client_configuration.date")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.301+02:00", comments="Source field: seb_client_configuration.date")
     public static final SqlColumn<DateTime> date = sebClientConfigRecord.date;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.044+02:00", comments="Source field: seb_client_configuration.client_name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.301+02:00", comments="Source field: seb_client_configuration.client_name")
     public static final SqlColumn<String> clientName = sebClientConfigRecord.clientName;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.044+02:00", comments="Source field: seb_client_configuration.client_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.301+02:00", comments="Source field: seb_client_configuration.client_secret")
     public static final SqlColumn<String> clientSecret = sebClientConfigRecord.clientSecret;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.044+02:00", comments="Source field: seb_client_configuration.encrypt_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.301+02:00", comments="Source field: seb_client_configuration.encrypt_secret")
     public static final SqlColumn<String> encryptSecret = sebClientConfigRecord.encryptSecret;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.044+02:00", comments="Source field: seb_client_configuration.active")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.301+02:00", comments="Source field: seb_client_configuration.active")
     public static final SqlColumn<Integer> active = sebClientConfigRecord.active;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-04-06T16:51:31.043+02:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.301+02:00", comments="Source field: seb_client_configuration.last_update_time")
+    public static final SqlColumn<Long> lastUpdateTime = sebClientConfigRecord.lastUpdateTime;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.301+02:00", comments="Source field: seb_client_configuration.last_update_user")
+    public static final SqlColumn<String> lastUpdateUser = sebClientConfigRecord.lastUpdateUser;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-12T16:13:18.300+02:00", comments="Source Table: seb_client_configuration")
     public static final class SebClientConfigRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 
@@ -51,6 +57,10 @@ public final class SebClientConfigRecordDynamicSqlSupport {
         public final SqlColumn<String> encryptSecret = column("encrypt_secret", JDBCType.VARCHAR);
 
         public final SqlColumn<Integer> active = column("active", JDBCType.INTEGER);
+
+        public final SqlColumn<Long> lastUpdateTime = column("last_update_time", JDBCType.BIGINT);
+
+        public final SqlColumn<String> lastUpdateUser = column("last_update_user", JDBCType.VARCHAR);
 
         public SebClientConfigRecord() {
             super("seb_client_configuration");

@@ -41,6 +41,8 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.Configuration
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordMapper;
@@ -75,6 +77,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     private final ExamTemplateRecordMapper examTemplateRecordMapper;
     private final ViewRecordMapper viewRecordMapper;
     private final OrientationRecordMapper orientationRecordMapper;
+    private final CurrentUser currentUser;
 
     protected ConfigurationNodeDAOImpl(
             final ConfigurationRecordMapper configurationRecordMapper,
@@ -84,7 +87,8 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             final ConfigurationDAOBatchService ConfigurationDAOBatchService,
             final ExamTemplateRecordMapper examTemplateRecordMapper,
             final ViewRecordMapper viewRecordMapper,
-            final OrientationRecordMapper orientationRecordMapper) {
+            final OrientationRecordMapper orientationRecordMapper,
+            final CurrentUser currentUser) {
 
         this.configurationRecordMapper = configurationRecordMapper;
         this.configurationNodeRecordMapper = configurationNodeRecordMapper;
@@ -93,6 +97,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         this.examTemplateRecordMapper = examTemplateRecordMapper;
         this.viewRecordMapper = viewRecordMapper;
         this.orientationRecordMapper = orientationRecordMapper;
+        this.currentUser = currentUser;
     }
 
     @Override
@@ -233,7 +238,9 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                             data.name,
                             data.description,
                             null,
-                            (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name());
+                            (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name(),
+                            Utils.getMillisecondsNow(),
+                            this.currentUser.get().getUuid());
 
                     this.configurationNodeRecordMapper.updateByPrimaryKeySelective(newRecord);
                     return this.configurationNodeRecordMapper.selectByPrimaryKey(data.id);
@@ -327,7 +334,9 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
 
         // update all config nodes that uses one of the templates
         this.configurationNodeRecordMapper.updateByExampleSelective(
-                new ConfigurationNodeRecord(null, null, 0L, null, null, null, null, null))
+                new ConfigurationNodeRecord(null, null, 0L, null, null, null, null, null,
+                        Utils.getMillisecondsNow(),
+                        this.currentUser.get().getUuid()))
                 .where(ConfigurationNodeRecordDynamicSqlSupport.templateId, isIn(configurationIds))
                 .build()
                 .execute();
@@ -420,7 +429,9 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                 record.getDescription(),
                 ConfigurationType.valueOf(record.getType()),
                 record.getOwner(),
-                ConfigurationStatus.valueOf(record.getStatus())));
+                ConfigurationStatus.valueOf(record.getStatus()),
+                Utils.toDateTimeUTC(record.getLastUpdateTime()),
+                record.getLastUpdateUser()));
     }
 
 }

@@ -611,7 +611,9 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                                     null,
                                     null,
                                     null,
-                                    ConfigurationStatus.READY_TO_USE.name());
+                                    ConfigurationStatus.READY_TO_USE.name(),
+                                    null,
+                                    null);
                             this.configurationNodeRecordMapper.updateByPrimaryKeySelective(newRecord);
                             return id;
                         } else {

@@ -44,6 +44,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues.TableV
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.BatisConfig;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordMapper;
@@ -78,10 +79,11 @@ class ConfigurationDAOBatchService {
     private final ConfigurationAttributeRecordMapper batchConfigurationAttributeRecordMapper;
     private final ConfigurationRecordMapper batchConfigurationRecordMapper;
     private final ExamConfigInitService examConfigInitService;
-
     private final SqlSessionTemplate batchSqlSessionTemplate;
+    private final CurrentUser currentUser;
 
     protected ConfigurationDAOBatchService(
+            final CurrentUser currentUser,
             @Qualifier(BatisConfig.SQL_BATCH_SESSION_TEMPLATE) final SqlSessionTemplate batchSqlSessionTemplate,
             final ExamConfigInitService examConfigInitService) {
 
@@ -117,7 +119,7 @@ class ConfigurationDAOBatchService {
         this.batchConfigurationRecordMapper =
                 batchSqlSessionTemplate.getMapper(ConfigurationRecordMapper.class);
         this.batchSqlSessionTemplate = batchSqlSessionTemplate;
-
+        this.currentUser = currentUser;
     }
 
     Result<ConfigurationNode> createNewConfiguration(final ConfigurationNode data) {
@@ -148,7 +150,9 @@ class ConfigurationDAOBatchService {
                     data.name,
                     data.description,
                     data.type.name(),
-                    (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name());
+                    (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name(),
+                    Utils.getMillisecondsNow(),
+                    this.currentUser.get().getUuid());
 
             this.batchConfigurationNodeRecordMapper.insert(newRecord);
             this.batchSqlSessionTemplate.flushStatements();
@@ -397,7 +401,9 @@ class ConfigurationDAOBatchService {
                 copyInfo.getName(),
                 copyInfo.getDescription(),
                 copyInfo.configurationType.name(),
-                ConfigurationStatus.CONSTRUCTION.name());
+                ConfigurationStatus.CONSTRUCTION.name(),
+                Utils.getMillisecondsNow(),
+                this.currentUser.get().getUuid());
 
         this.batchConfigurationNodeRecordMapper.insert(newNodeRec);
         this.batchSqlSessionTemplate.flushStatements();

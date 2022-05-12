@@ -215,6 +215,8 @@ CREATE TABLE IF NOT EXISTS `configuration_node` (
   `description` VARCHAR(4000) NULL,
   `type` VARCHAR(45) NULL,
   `status` VARCHAR(45) NOT NULL,
+  `last_update_time` BIGINT UNSIGNED NULL,
+  `last_update_user` VARCHAR(255) NULL,
   PRIMARY KEY (`id`),
   INDEX `configurationInstitutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `configurationInstitutionRef`
@@ -535,6 +537,8 @@ CREATE TABLE IF NOT EXISTS `seb_client_configuration` (
   `client_secret` VARCHAR(4000) NOT NULL,
   `encrypt_secret` VARCHAR(255) NULL,
   `active` INT(1) NOT NULL,
+  `last_update_time` BIGINT UNSIGNED NULL,
+  `last_update_user` VARCHAR(255) NULL,
   PRIMARY KEY (`id`),
   INDEX `sebClientCredentialsInstitutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `sebClientConfigInstitutionRef`

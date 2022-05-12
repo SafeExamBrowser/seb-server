@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BatchActionExec;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
@@ -71,7 +72,9 @@ public class ExamConfigStateChange implements BatchActionExec {
                 .flatMap(node -> this.authorizationService.check(PrivilegeType.MODIFY, node))
                 .map(node -> new ConfigurationNode(
                         node.id, null, null, null, null, null, null,
-                        getTargetState(batchAction.attributes)))
+                        getTargetState(batchAction.attributes),
+                        Utils.toDateTimeUTC(Utils.getMillisecondsNow()),
+                        batchAction.ownerId))
                 .flatMap(this.sebExamConfigService::checkSaveConsistency)
                 .flatMap(this.configurationNodeDAO::save)
                 .map(Entity::getEntityKey);
