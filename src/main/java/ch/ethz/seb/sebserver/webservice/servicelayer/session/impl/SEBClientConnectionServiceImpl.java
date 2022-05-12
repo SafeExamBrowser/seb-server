@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
@@ -120,7 +121,13 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             final SEBClientConfig clientConfig = this.sebClientConfigDAO
                     .byClientName(principal.getName())
-                    .getOrThrow();
+                    .getOr(null);
+
+            if (clientConfig == null) {
+                log.error("Illegal client connection request: requested connection config name: {}",
+                        principal.getName());
+                throw new AccessDeniedException("Unknown or illegal client access");
+            }
 
             if (!clientConfig.institutionId.equals(institutionId)) {
                 log.error("Institutional integrity violation: requested institution: {} authenticated institution: {}",
