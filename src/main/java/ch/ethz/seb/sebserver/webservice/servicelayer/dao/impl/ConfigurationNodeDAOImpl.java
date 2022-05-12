@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport.configurationTemplateId;
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport.examTemplateRecord;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +48,8 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationReco
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordMapper;
@@ -67,6 +72,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     private final ConfigurationNodeRecordMapper configurationNodeRecordMapper;
     private final ConfigurationValueRecordMapper configurationValueRecordMapper;
     private final ConfigurationDAOBatchService configurationDAOBatchService;
+    private final ExamTemplateRecordMapper examTemplateRecordMapper;
     private final ViewRecordMapper viewRecordMapper;
     private final OrientationRecordMapper orientationRecordMapper;
 
@@ -76,6 +82,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             final ConfigurationValueRecordMapper configurationValueRecordMapper,
             final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper,
             final ConfigurationDAOBatchService ConfigurationDAOBatchService,
+            final ExamTemplateRecordMapper examTemplateRecordMapper,
             final ViewRecordMapper viewRecordMapper,
             final OrientationRecordMapper orientationRecordMapper) {
 
@@ -83,6 +90,7 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         this.configurationNodeRecordMapper = configurationNodeRecordMapper;
         this.configurationValueRecordMapper = configurationValueRecordMapper;
         this.configurationDAOBatchService = ConfigurationDAOBatchService;
+        this.examTemplateRecordMapper = examTemplateRecordMapper;
         this.viewRecordMapper = viewRecordMapper;
         this.orientationRecordMapper = orientationRecordMapper;
     }
@@ -321,6 +329,13 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
         this.configurationNodeRecordMapper.updateByExampleSelective(
                 new ConfigurationNodeRecord(null, null, 0L, null, null, null, null, null))
                 .where(ConfigurationNodeRecordDynamicSqlSupport.templateId, isIn(configurationIds))
+                .build()
+                .execute();
+
+        // update all examTemplates that uses one of the templates
+        UpdateDSL.updateWithMapper(this.examTemplateRecordMapper::update, examTemplateRecord)
+                .set(configurationTemplateId).equalToNull()
+                .where(ExamTemplateRecordDynamicSqlSupport.configurationTemplateId, isIn(configurationIds))
                 .build()
                 .execute();
     }
