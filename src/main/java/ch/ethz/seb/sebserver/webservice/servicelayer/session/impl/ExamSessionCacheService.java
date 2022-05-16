@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.io.ByteArrayOutputStream;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -76,7 +75,7 @@ public class ExamSessionCacheService {
             log.debug("Verify running exam for id: {}", examId);
         }
 
-        final Result<Exam> byPK = this.examDAO.loadWithAdditionalAttributes(examId);
+        final Result<Exam> byPK = this.examDAO.byPK(examId);
         if (byPK.hasError()) {
             log.error("Failed to find/load Exam with id {}", examId, byPK.getError());
             return null;
@@ -115,7 +114,7 @@ public class ExamSessionCacheService {
     }
 
     public boolean isRunning(final Exam exam) {
-        if (exam == null || !exam.active || BooleanUtils.isFalse(exam.lmsDataAvailable)) {
+        if (exam == null || !exam.active) {
             return false;
         }
 

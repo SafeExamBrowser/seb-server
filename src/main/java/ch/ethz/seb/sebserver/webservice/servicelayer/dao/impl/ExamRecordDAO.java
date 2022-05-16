@@ -28,9 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -71,6 +73,20 @@ public class ExamRecordDAO {
                         String.valueOf(id));
             }
             return record;
+        });
+    }
+
+    @Transactional(readOnly = true)
+    public Result<Long> idByExternalQuizId(final String externalQuizId) {
+        return Result.tryCatch(() -> {
+            return this.examRecordMapper.selectIdsByExample()
+                    .where(
+                            ExamRecordDynamicSqlSupport.externalId,
+                            isEqualToWhenPresent(externalQuizId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .collect(Utils.toSingleton());
         });
     }
 
@@ -162,6 +178,9 @@ public class ExamRecordDAO {
                     .and(
                             ExamRecordDynamicSqlSupport.status,
                             isEqualToWhenPresent(filterMap.getExamStatus()))
+                    .and(
+                            ExamRecordDynamicSqlSupport.quizName,
+                            isLikeWhenPresent(filterMap.getSQLWildcard(EXAM.ATTR_QUIZ_NAME)))
                     .build()
                     .execute();
 
@@ -184,7 +203,7 @@ public class ExamRecordDAO {
                             null, null, null, null, null, null, null, null,
                             status.name(),
                             null, null, null, null, null,
-                            Utils.getMillisecondsNow());
+                            Utils.getMillisecondsNow(), null, null, null, null);
 
                     this.examRecordMapper.updateByPrimaryKeySelective(newExamRecord);
                     return this.examRecordMapper.selectByPrimaryKey(examId);
@@ -221,10 +240,95 @@ public class ExamRecordDAO {
                     null, // lastUpdate
                     null, // active
                     exam.examTemplateId,
-                    Utils.getMillisecondsNow());
+                    Utils.getMillisecondsNow(),
+                    null, null, null, null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(exam.id);
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Transactional
+    public Result<ExamRecord> updateFromQuizData(
+            final Long examId,
+            final QuizData quizData,
+            final String updateId) {
+
+        return Result.tryCatch(() -> {
+
+            // check internal persistent write-lock
+            final ExamRecord oldRecord = this.examRecordMapper.selectByPrimaryKey(examId);
+            if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(oldRecord.getUpdating()))) {
+                throw new IllegalStateException("Exam is currently locked: " + examId);
+            }
+
+            final ExamRecord examRecord = new ExamRecord(
+                    examId,
+                    null, null,
+                    quizData.id,
+                    null, null, null, null, null, null, null, null,
+                    updateId,
+                    null, null,
+                    Utils.getMillisecondsNow(),
+                    quizData.getName(),
+                    quizData.getStartTime(),
+                    quizData.getEndTime(),
+                    BooleanUtils.toIntegerObject(true));
+
+            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
+            return this.examRecordMapper.selectByPrimaryKey(examId);
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Transactional
+    public Result<ExamRecord> updateLmsNotAvailable(final Long examId, final String updateId) {
+        return Result.tryCatch(() -> {
+
+            // check internal persistent write-lock
+            final ExamRecord oldRecord = this.examRecordMapper.selectByPrimaryKey(examId);
+            if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(oldRecord.getUpdating()))) {
+                throw new IllegalStateException("Exam is currently locked: " + examId);
+            }
+
+            final ExamRecord examRecord = new ExamRecord(
+                    examId,
+                    null, null, null, null, null, null, null, null, null,
+                    null, null,
+                    updateId,
+                    null, null,
+                    Utils.getMillisecondsNow(),
+                    null, null, null,
+                    BooleanUtils.toIntegerObject(false));
+
+            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
+            return this.examRecordMapper.selectByPrimaryKey(examId);
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Transactional
+    public Result<ExamRecord> archive(final Long examId) {
+        return Result.tryCatch(() -> {
+
+            // check internal persistent write-lock
+            final ExamRecord oldRecord = this.examRecordMapper.selectByPrimaryKey(examId);
+            if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(oldRecord.getUpdating()))) {
+                throw new IllegalStateException("Exam is currently locked: " + examId);
+            }
+
+            final ExamRecord examRecord = new ExamRecord(
+                    examId,
+                    null, null, null, null, null, null, null, null,
+                    ExamStatus.ARCHIVED.name(),
+                    null, null, null, null, null,
+                    Utils.getMillisecondsNow(),
+                    null, null, null,
+                    BooleanUtils.toIntegerObject(false));
+
+            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
+            return this.examRecordMapper.selectByPrimaryKey(examId);
         })
                 .onError(TransactionHandler::rollback);
     }
@@ -238,7 +342,8 @@ public class ExamRecordDAO {
                     null, null, null, null, null, null, null, null, null,
                     BooleanUtils.toInteger(sebRestriction),
                     null, null, null, null,
-                    Utils.getMillisecondsNow());
+                    Utils.getMillisecondsNow(),
+                    null, null, null, null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(examId);
@@ -285,7 +390,11 @@ public class ExamRecordDAO {
                     null, // lastUpdate
                     BooleanUtils.toInteger(true),
                     exam.examTemplateId,
-                    Utils.getMillisecondsNow());
+                    Utils.getMillisecondsNow(),
+                    exam.name,
+                    exam.startTime,
+                    exam.endTime,
+                    BooleanUtils.toIntegerObject(true));
 
             this.examRecordMapper.insert(examRecord);
             return examRecord;

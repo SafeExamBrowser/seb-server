@@ -156,7 +156,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
             final Collection<String> browserExamKeys = sebRestriction.getBrowserExamKeys();
             final Exam newExam = new Exam(
                     exam.id,
-                    null, null, null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null,
                     exam.supporter,
                     exam.status,
                     null,

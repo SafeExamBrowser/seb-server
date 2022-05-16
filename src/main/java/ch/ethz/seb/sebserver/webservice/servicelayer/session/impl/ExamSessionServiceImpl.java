@@ -132,11 +132,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                             .getOrThrow();
 
             // check lms connection
-            if (exam.status == ExamStatus.CORRUPT_NO_LMS_CONNECTION) {
+            if (!exam.lmsAvailable) {
                 result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_LMS_CONNECTION.of(exam.getModelId()));
-            }
-            if (exam.status == ExamStatus.CORRUPT_INVALID_ID) {
-                result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_INVALID_ID_REFERENCE.of(exam.getModelId()));
             }
 
             if (exam.status == ExamStatus.RUNNING) {

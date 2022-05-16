@@ -46,7 +46,7 @@ public final class RunningExamInfo {
     public RunningExamInfo(final Exam exam, final LmsType lmsType) {
         this.examId = exam.getModelId();
         this.name = exam.name;
-        this.url = exam.startURL;
+        this.url = exam.getStartURL();
         this.lmsType = (lmsType == null) ? "" : lmsType.name();
     }
 

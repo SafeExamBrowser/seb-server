@@ -26,3 +26,13 @@ ADD COLUMN IF NOT EXISTS `last_update_time` BIGINT UNSIGNED NULL AFTER `active`,
 ADD COLUMN IF NOT EXISTS `last_update_user` VARCHAR(255) NULL AFTER `last_update_time`
 ;
 
+-- -----------------------------------------------------
+-- Alter Table `exam`
+-- -----------------------------------------------------
+
+ALTER TABLE `exam`
+ADD COLUMN IF NOT EXISTS `quiz_name` VARCHAR(255) NULL AFTER `last_modified`,
+ADD COLUMN IF NOT EXISTS `quiz_start_time` DATETIME NULL AFTER `quiz_name`,
+ADD COLUMN IF NOT EXISTS `quiz_end_time` DATETIME NULL AFTER `quiz_start_time`,
+ADD COLUMN IF NOT EXISTS `lms_available` INT(1) NULL AFTER `quiz_end_time`,
+;

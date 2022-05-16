@@ -8,7 +8,10 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.joda.time.DateTime;
@@ -103,6 +106,7 @@ public class ExamSessionControlTask implements DisposableBean {
             log.debug("Run exam update task with Id: {}", updateId);
         }
 
+        controlExamLMSUpdate();
         controlExamStart(updateId);
         controlExamEnd(updateId);
         this.examDAO.releaseAgedLocks();
@@ -143,6 +147,46 @@ public class ExamSessionControlTask implements DisposableBean {
         }
 
         this.sebClientConnectionService.cleanupInstructions();
+    }
+
+    private void controlExamLMSUpdate() {
+        if (log.isTraceEnabled()) {
+            log.trace("Start update exams form LMS");
+        }
+
+        try {
+
+            // create mapping
+            final Map<Long, Map<String, Exam>> examToLMSMapping = new HashMap<>();
+            this.examDAO.allForLMSUpdate()
+                    .onError(error -> log.error("Failed to update exams from LMS: ", error))
+                    .getOr(Collections.emptyList())
+                    .stream()
+                    .forEach(exam -> {
+                        final Map<String, Exam> examMap = (examToLMSMapping.computeIfAbsent(
+                                exam.lmsSetupId,
+                                lmsId -> new HashMap<>()));
+                        examMap.put(exam.externalId, exam);
+                    });
+
+            // update per LMS Setup
+            examToLMSMapping.entrySet().stream().forEach(updateEntry -> {
+                final Result<Set<String>> updateExamFromLMS = this.examUpdateHandler
+                        .updateExamFromLMS(updateEntry.getKey(), updateEntry.getValue());
+
+                if (updateExamFromLMS.hasError()) {
+                    log.error("Failed to update exams from LMS: ", updateExamFromLMS.getError());
+                } else {
+                    final Set<String> failedExams = updateExamFromLMS.get();
+                    if (!failedExams.isEmpty()) {
+                        log.warn("Failed to update following exams from LMS: {}", failedExams);
+                    }
+                }
+            });
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while update exams from LMS: ", e);
+        }
     }
 
     private void controlExamStart(final String updateId) {

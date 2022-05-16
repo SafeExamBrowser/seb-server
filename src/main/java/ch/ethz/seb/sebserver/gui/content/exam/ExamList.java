@@ -259,7 +259,7 @@ public class ExamList implements TemplateComposer {
             final Exam exam,
             final PageService pageService) {
 
-        if (BooleanUtils.isFalse(exam.lmsDataAvailable)) {
+        if (BooleanUtils.isFalse(exam.lmsAvailable)) {
             item.setData(RWT.CUSTOM_VARIANT, CustomVariant.DISABLED.key);
             return;
         }

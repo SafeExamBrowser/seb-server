@@ -316,7 +316,7 @@ public class ExamForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_URL,
                         FORM_QUIZ_URL_TEXT_KEY,
-                        exam.startURL)
+                        exam.getStartURL())
                         .readonly(true)
                         .withInputSpan(7)
                         .withEmptyCellSeparation(false))
@@ -324,7 +324,7 @@ public class ExamForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
-                        exam.description)
+                        exam.getDescription())
                         .asHTML(50)
                         .readonly(true)
                         .withInputSpan(6)
@@ -577,7 +577,7 @@ public class ExamForm implements TemplateComposer {
     }
 
     private boolean testSEBRestrictionAPI(final Exam exam) {
-        if (exam.status == ExamStatus.CORRUPT_NO_LMS_CONNECTION || exam.status == ExamStatus.CORRUPT_INVALID_ID) {
+        if (!exam.lmsAvailable) {
             return false;
         }
 

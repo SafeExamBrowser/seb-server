@@ -311,7 +311,8 @@ public final class ExamConfigurationMap implements GrantEntity {
 
     public static ExamConfigurationMap createNew(final Exam exam) {
         return new ExamConfigurationMap(
-                null, exam.institutionId, exam.id, exam.name, exam.description, exam.startTime, exam.type, exam.status,
+                null, exam.institutionId, exam.id, exam.name, exam.getDescription(), exam.startTime, exam.type,
+                exam.status,
                 null, null, null, null, null, null, null);
     }
 

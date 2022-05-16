@@ -16,18 +16,13 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 
 /** Concrete EntityDAO interface of Exam entities */
 public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSupportDAO<Exam> {
-
-    /** Loads the specified exam with all data and additional attributes.
-     *
-     * @param examId the exam identifier to load
-     * @return Result refer to the loaded exam or to an error when happened */
-    Result<Exam> loadWithAdditionalAttributes(Long examId);
 
     /** Get a GrantEntity for the exam of specified id (PK)
      * This is actually a Exam instance but with no course data loaded.
@@ -89,6 +84,11 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @param status the ExamStatus
      * @return Result refer to collection of exam identifiers or to an error if happened */
     Result<Collection<Long>> getExamIdsForStatus(Long institutionId, ExamStatus status);
+
+    /** Gets all for active and none archived exams within the system, independently form institution and LMSSetup.
+     *
+     * @return Result refer to all exams for LMS update or to an error when happened */
+    Result<Collection<Exam>> allForLMSUpdate();
 
     /** This is used to get all Exams to check if they have to set into running state in the meanwhile.
      * Gets all exams in the upcoming status for run-check
@@ -184,5 +184,25 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @param examTemplateId The exam template reference identifier
      * @return Result refer to the collection of entity keys of all involved exams or to an error when happened */
     Result<Collection<EntityKey>> deleteTemplateReferences(Long examTemplateId);
+
+    /** This is used by the internal update process to update the quiz data for the specified exam.
+     * This shall only be called if there are changes to the quiz data of the exam since this also
+     * refreshes the running exam cache.
+     *
+     * @param examId the exam identifier
+     * @param quizData The quiz data to update
+     * @param updateId The update identifier given by the update task
+     * @return Result refer to the given QuizData or to an error when happened */
+    @CacheEvict(
+            cacheNames = ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM,
+            key = "examId")
+    Result<QuizData> updateQuizData(Long examId, QuizData quizData, String updateId);
+
+    /** This is used by the internal update process to mark exams for which the LMS related data is
+     * not currently available and the local data might be out-dated
+     *
+     * @param externalQuizId The exams external UUID or quiz id of the exam to mark
+     * @param updateId The update identifier given by the update task */
+    void markLMSNotAvailable(final String externalQuizId, final String updateId);
 
 }
