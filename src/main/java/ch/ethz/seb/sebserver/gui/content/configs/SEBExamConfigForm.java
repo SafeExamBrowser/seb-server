@@ -81,6 +81,11 @@ public class SEBExamConfigForm implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.form.title");
     static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.name");
+    static final LocTextKey FORM_UPDATE_TIME_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.form.update.time");
+    static final LocTextKey FORM_UPDATE_USER_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.form.update.user");
+
     static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.description");
     static final LocTextKey FORM_HISTORY_TEXT_KEY =
@@ -219,6 +224,28 @@ public class SEBExamConfigForm implements TemplateComposer {
                                         : String.valueOf(examConfig.templateId),
                                 resourceService::getExamConfigTemplateResources)
                                 .readonly(!isNew))
+
+                .addFieldIf(() -> isReadonly,
+                        () -> FormBuilder.text(
+                                Domain.CONFIGURATION_NODE.ATTR_LAST_UPDATE_TIME,
+                                FORM_UPDATE_TIME_TEXT_KEY,
+                                this.pageService.getI18nSupport()
+                                        .formatDisplayDateWithTimeZone(examConfig.lastUpdateTime))
+                                .readonly(true)
+                                .withInputSpan(2)
+                                .withEmptyCellSeparation(false))
+
+                .addFieldIf(() -> isReadonly,
+                        () -> FormBuilder.singleSelection(
+                                Domain.SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_USER,
+                                FORM_UPDATE_USER_TEXT_KEY,
+                                examConfig.lastUpdateUser,
+                                () -> this.pageService.getResourceService().userResources())
+                                .readonly(true)
+                                .withLabelSpan(1)
+                                .withInputSpan(2)
+                                .withEmptyCellSeparation(false))
+
                 .addField(FormBuilder.text(
                         Domain.CONFIGURATION_NODE.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,

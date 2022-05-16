@@ -71,6 +71,10 @@ public class SEBClientConfigForm implements TemplateComposer {
             new LocTextKey("sebserver.clientconfig.form.title");
     private static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.name");
+    private static final LocTextKey FORM_UPDATE_USER_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.update.user");
+    private static final LocTextKey FORM_UPDATE_TIME_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.update.time");
 
     private static final LocTextKey FORM_DATE_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.date");
@@ -295,11 +299,31 @@ public class SEBClientConfigForm implements TemplateComposer {
                         Domain.SEB_CLIENT_CONFIGURATION.ATTR_INSTITUTION_ID,
                         String.valueOf(clientConfig.getInstitutionId()))
 
-                .addFieldIf(() -> !isNew,
+                .addFieldIf(() -> isReadonly,
                         () -> FormBuilder.text(
                                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_DATE,
                                 FORM_DATE_TEXT_KEY,
                                 i18nSupport.formatDisplayDateWithTimeZone(clientConfig.date))
+                                .readonly(true)
+                                .withInputSpan(2)
+                                .withEmptyCellSeparation(false))
+
+                .addFieldIf(() -> isReadonly,
+                        () -> FormBuilder.text(
+                                Domain.SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_TIME,
+                                FORM_UPDATE_TIME_TEXT_KEY,
+                                i18nSupport.formatDisplayDateWithTimeZone(clientConfig.lastUpdateTime))
+                                .readonly(true)
+                                .withLabelSpan(1)
+                                .withInputSpan(2)
+                                .withEmptyCellSeparation(false))
+
+                .addFieldIf(() -> isReadonly,
+                        () -> FormBuilder.singleSelection(
+                                Domain.SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_USER,
+                                FORM_UPDATE_USER_TEXT_KEY,
+                                clientConfig.lastUpdateUser,
+                                () -> this.pageService.getResourceService().userResources())
                                 .readonly(true))
 
                 .addField(FormBuilder.text(

@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
@@ -1715,7 +1716,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 config.description,
                 ConfigurationType.EXAM_CONFIG,
                 config.owner,
-                ConfigurationStatus.READY_TO_USE);
+                ConfigurationStatus.READY_TO_USE,
+                DateTime.now(),
+                config.owner);
 
         final ConfigurationNode savedConfig = restService
                 .getBuilder(SaveExamConfig.class)

@@ -3,8 +3,8 @@ INSERT IGNORE INTO lms_setup VALUES
     ;
     
 INSERT IGNORE INTO seb_client_configuration VALUES
-    (1, 1, 'test', '2019-07-02 09:22:50', 'test', '98ac3c953abf5948d9d13c81cab580819ee2624c76d6d4147d4896a5b79f49956d382c08c93cb3b9ae350b32', null, 1),
-    (2, 1, 'testVDI', '2019-07-02 09:22:50', 'testVDI', '8b92ecd63305c97c359b5f39ba707356e2487cf118eb783b92fb7c6cdb217f87709fefa03abb13f8b4e5a14fa2c2ba', null, 1)
+    (1, 1, 'test', '2019-07-02 09:22:50', 'test', '98ac3c953abf5948d9d13c81cab580819ee2624c76d6d4147d4896a5b79f49956d382c08c93cb3b9ae350b32', null, 1, null, null),
+    (2, 1, 'testVDI', '2019-07-02 09:22:50', 'testVDI', '8b92ecd63305c97c359b5f39ba707356e2487cf118eb783b92fb7c6cdb217f87709fefa03abb13f8b4e5a14fa2c2ba', null, 1, null, null)
     ;
     
 INSERT IGNORE INTO additional_attributes VALUES
@@ -526,7 +526,7 @@ INSERT IGNORE INTO orientation VALUES
     ;
     
 INSERT IGNORE INTO configuration_node VALUES 
-    (1, 1, 0, 'super-admin', 'test', null, 'EXAM_CONFIG', 'READY_TO_USE')
+    (1, 1, 0, 'super-admin', 'test', null, 'EXAM_CONFIG', 'READY_TO_USE', null, null)
     ;
     
 INSERT IGNORE INTO configuration VALUES 

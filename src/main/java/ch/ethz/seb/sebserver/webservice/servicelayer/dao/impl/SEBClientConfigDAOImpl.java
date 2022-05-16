@@ -44,13 +44,13 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SebClientConfigRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.SebClientConfigRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
@@ -64,18 +64,18 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     private final SebClientConfigRecordMapper sebClientConfigRecordMapper;
     private final ClientCredentialService clientCredentialService;
     private final AdditionalAttributesDAOImpl additionalAttributesDAO;
-    private final CurrentUser currentUser;
+    private final DAOUserServcie daoUserServcie;
 
     protected SEBClientConfigDAOImpl(
             final SebClientConfigRecordMapper sebClientConfigRecordMapper,
             final ClientCredentialService clientCredentialService,
             final AdditionalAttributesDAOImpl additionalAttributesDAO,
-            final CurrentUser currentUser) {
+            final DAOUserServcie daoUserServcie) {
 
         this.sebClientConfigRecordMapper = sebClientConfigRecordMapper;
         this.clientCredentialService = clientCredentialService;
         this.additionalAttributesDAO = additionalAttributesDAO;
-        this.currentUser = currentUser;
+        this.daoUserServcie = daoUserServcie;
     }
 
     @Override
@@ -208,7 +208,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     null, null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active),
                     Utils.getMillisecondsNow(),
-                    this.currentUser.get().getUuid());
+                    this.daoUserServcie.getCurrentUserUUID());
 
             this.sebClientConfigRecordMapper.updateByExampleSelective(record)
                     .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(ids))
@@ -240,7 +240,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                             getEncryptionPassword(sebClientConfig),
                             BooleanUtils.toInteger(BooleanUtils.isTrue(sebClientConfig.active)),
                             Utils.getMillisecondsNow(),
-                            this.currentUser.get().getUuid());
+                            this.daoUserServcie.getCurrentUserUUID());
 
                     this.sebClientConfigRecordMapper
                             .insert(newRecord);
@@ -273,7 +273,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     getEncryptionPassword(sebClientConfig),
                     record.getActive(),
                     Utils.getMillisecondsNow(),
-                    this.currentUser.get().getUuid());
+                    this.daoUserServcie.getCurrentUserUUID());
 
             this.sebClientConfigRecordMapper.updateByPrimaryKey(newRecord);
 

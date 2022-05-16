@@ -129,13 +129,15 @@ public class ModelObjectJSONGenerator {
                 "encryptSecretConfirm",
                 "certAlias",
                 false,
-                true);
+                true,
+                DateTime.now(),
+                "user123");
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject = new ConfigurationNode(
                 1L, 1L, 1L, "name", "description", ConfigurationType.EXAM_CONFIG, "ownerUUID",
-                ConfigurationStatus.CONSTRUCTION);
+                ConfigurationStatus.CONSTRUCTION, DateTime.now(), "user123");
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
