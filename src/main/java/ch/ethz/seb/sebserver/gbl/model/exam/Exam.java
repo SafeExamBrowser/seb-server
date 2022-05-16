@@ -226,10 +226,8 @@ public final class Exam implements GrantEntity {
         this.externalId = null;
         this.lmsAvailable = true;
         this.name = null;
-//        this.description = null;
         this.startTime = null;
         this.endTime = null;
-//        this.startURL = null;
         this.type = null;
         this.owner = null;
         this.status = (status != null) ? status : getStatusFromDate(this.startTime, this.endTime);
