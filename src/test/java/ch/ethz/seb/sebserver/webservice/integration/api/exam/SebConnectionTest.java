@@ -13,6 +13,7 @@ import static org.junit.Assert.*;
 import java.util.Collection;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecord
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 
@@ -48,6 +52,16 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
     private ClientEventRecordMapper clientEventRecordMapper;
     @Autowired
     private JSONMapper jsonMapper;
+    @Autowired
+    private ExamDAO examDAO;
+    @Autowired
+    private LmsAPIService lmsAPIService;
+
+    @Before
+    public void init() {
+        final LmsAPITemplate lmsAPITemplate = this.lmsAPIService.getLmsAPITemplate(1L).getOrThrow();
+        this.examDAO.updateQuizData(2L, lmsAPITemplate.getQuiz("quiz6").getOrThrow(), "testUpdate");
+    }
 
     @Test
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
@@ -102,6 +116,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
     @Test
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
     public void testCreateConnectionWithExamId() throws Exception {
+
         final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
         assertNotNull(accessToken);
 

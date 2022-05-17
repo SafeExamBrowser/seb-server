@@ -12,6 +12,7 @@ import static org.junit.Assert.*;
 
 import java.util.Collection;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Order;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,10 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
@@ -42,6 +46,16 @@ public class ExamProctoringRoomServiceTest extends AdministrationAPIIntegrationT
     private ExamAdminService examAdminService;
     @Autowired
     private ClientConnectionDAO clientConnectionDAO;
+    @Autowired
+    private ExamDAO examDAO;
+    @Autowired
+    private LmsAPIService lmsAPIService;
+
+    @Before
+    public void init() {
+        final LmsAPITemplate lmsAPITemplate = this.lmsAPIService.getLmsAPITemplate(1L).getOrThrow();
+        this.examDAO.updateQuizData(2L, lmsAPITemplate.getQuiz("quiz6").getOrThrow(), "testUpdate");
+    }
 
     @Test
     @Order(1)
