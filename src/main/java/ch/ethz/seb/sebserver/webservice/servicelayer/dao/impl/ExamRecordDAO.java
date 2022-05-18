@@ -283,7 +283,7 @@ public class ExamRecordDAO {
     }
 
     @Transactional
-    public Result<ExamRecord> updateLmsNotAvailable(final Long examId, final String updateId) {
+    public Result<ExamRecord> updateLmsNotAvailable(final Long examId, final boolean available, final String updateId) {
         return Result.tryCatch(() -> {
 
             // check internal persistent write-lock
@@ -300,7 +300,7 @@ public class ExamRecordDAO {
                     null, null,
                     Utils.getMillisecondsNow(),
                     null, null, null,
-                    BooleanUtils.toIntegerObject(false));
+                    BooleanUtils.toIntegerObject(available));
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(examId);

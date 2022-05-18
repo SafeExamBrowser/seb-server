@@ -177,12 +177,16 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    public void markLMSNotAvailable(final String externalQuizId, final String updateId) {
+    public void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId) {
 
-        log.info("Mark exam quiz data not available form LMS: {}", externalQuizId);
+        if (!available) {
+            log.info("Mark exam quiz data not available form LMS: {}", externalQuizId);
+        } else {
+            log.info("Mark exam quiz data back again form LMS: {}", externalQuizId);
+        }
 
         this.examRecordDAO.idByExternalQuizId(externalQuizId)
-                .map(examId -> this.examRecordDAO.updateLmsNotAvailable(examId, updateId))
+                .flatMap(examId -> this.examRecordDAO.updateLmsNotAvailable(examId, available, updateId))
                 .onError(error -> log.error("Failed to mark LMS not available: {}", externalQuizId, error));
     }
 

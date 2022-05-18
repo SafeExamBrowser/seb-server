@@ -909,6 +909,11 @@ TableItem:linesvisible:even {
     color: inherit;
 }
 
+TableItem:linesvisible:even.disabled {
+    background-color: #ffffff;
+    color: #aaaaaa;
+}
+
 Table-RowOverlay {
     background-color: transparent;
     color: inherit;

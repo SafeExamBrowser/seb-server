@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -85,9 +86,14 @@ class ExamUpdateHandler {
             final Set<String> failedOrMissing = new HashSet<>(exams.keySet());
             final String updateId = this.createUpdateId();
 
-            this.lmsAPIService.getLmsAPITemplate(lmsSetupId)
+            this.lmsAPIService
+                    .getLmsAPITemplate(lmsSetupId)
                     .flatMap(template -> template.getQuizzes(new HashSet<>(exams.keySet())))
-                    .getOrThrow()
+                    .onError(error -> log.warn(
+                            "Failed to get quizzes form LMS Setup: {} cause: {}",
+                            lmsSetupId,
+                            error.getMessage()))
+                    .getOr(Collections.emptyList())
                     .stream()
                     .forEach(quiz -> {
 
@@ -102,11 +108,17 @@ class ExamUpdateHandler {
                                     log.error("Failed to update quiz data for exam: {}", quiz,
                                             updateQuizData.getError());
                                 } else {
+                                    if (!exam.lmsAvailable) {
+                                        this.examDAO.markLMSAvailability(quiz.id, true, updateId);
+                                    }
                                     failedOrMissing.remove(quiz.id);
                                     log.info("Updated quiz data for exam: {}", updateQuizData.get());
                                 }
 
                             } else {
+                                if (!exam.lmsAvailable) {
+                                    this.examDAO.markLMSAvailability(quiz.id, true, updateId);
+                                }
                                 failedOrMissing.remove(quiz.id);
                             }
                         } catch (final Exception e) {
@@ -214,6 +226,7 @@ class ExamUpdateHandler {
             final String updateId) {
 
         return Result.tryCatch(() -> {
+            final Exam exam = exams.get(quizId);
             final LmsAPITemplate lmsTemplate = this.lmsAPIService
                     .getLmsAPITemplate(lmsSetupId)
                     .getOrThrow();
@@ -230,7 +243,6 @@ class ExamUpdateHandler {
 
                 log.info("Try to recover quiz data for Moodle quiz with internal identifier: {}", quizId);
 
-                final Exam exam = exams.get(quizId);
                 if (exam != null && exam.name != null) {
 
                     log.debug("Found formerName quiz name: {}", exam.name);
@@ -270,7 +282,9 @@ class ExamUpdateHandler {
                 }
             }
 
-            this.examDAO.markLMSNotAvailable(quizId, updateId);
+            if (exam.lmsAvailable) {
+                this.examDAO.markLMSAvailability(quizId, false, updateId);
+            }
             throw new RuntimeException("Not Available");
         });
     }

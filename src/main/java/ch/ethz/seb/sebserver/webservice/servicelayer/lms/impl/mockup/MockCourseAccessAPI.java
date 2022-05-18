@@ -166,6 +166,7 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
     public Result<QuizData> getQuiz(final String id) {
         return Result.of(this.mockups
                 .stream()
+                .map(this::getExternalAddressAlias)
                 .filter(q -> id.equals(q.id))
                 .findFirst()
                 .get());

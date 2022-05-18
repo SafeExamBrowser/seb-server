@@ -276,8 +276,6 @@ public class ExamList implements TemplateComposer {
                         item.setData(RWT.CUSTOM_VARIANT, CustomVariant.WARNING.key);
                     }
                 });
-
-        item.setGrayed(true);
     }
 
     private static Function<Exam, String> examLmsSetupNameFunction(final ResourceService resourceService) {

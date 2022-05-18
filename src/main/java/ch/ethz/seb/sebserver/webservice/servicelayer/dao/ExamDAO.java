@@ -198,11 +198,11 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
             key = "#examId")
     Result<QuizData> updateQuizData(Long examId, QuizData quizData, String updateId);
 
-    /** This is used by the internal update process to mark exams for which the LMS related data is
-     * not currently available and the local data might be out-dated
+    /** This is used by the internal update process to mark exams for which the LMS related data availability
      *
      * @param externalQuizId The exams external UUID or quiz id of the exam to mark
+     * @param available The LMS availability flag to set
      * @param updateId The update identifier given by the update task */
-    void markLMSNotAvailable(final String externalQuizId, final String updateId);
+    void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId);
 
 }
