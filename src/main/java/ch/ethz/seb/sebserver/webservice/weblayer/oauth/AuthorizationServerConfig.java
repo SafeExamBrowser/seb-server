@@ -87,6 +87,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         defaultTokenServices.setTokenEnhancer(jwtAccessTokenConverter);
         defaultTokenServices.setAccessTokenValiditySeconds(this.adminAccessTokenValSec);
         defaultTokenServices.setRefreshTokenValiditySeconds(this.adminRefreshTokenValSec);
+        defaultTokenServices.setClientDetailsService(this.webServiceClientDetails);
 
         endpoints
                 .tokenStore(this.tokenStore)
