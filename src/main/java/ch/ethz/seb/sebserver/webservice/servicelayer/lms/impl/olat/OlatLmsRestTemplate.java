@@ -55,7 +55,8 @@ public class OlatLmsRestTemplate extends RestTemplate {
                 ClientHttpResponse response = execution.execute(request, body);
                 log.debug("OLAT [regular API call] {} Headers: {}", response.getStatusCode(), response.getHeaders());
                 // If we get a 401, re-authenticate and try once more
-                if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                if (response.getStatusCode() == HttpStatus.UNAUTHORIZED ||
+                      response.getStatusCode() == HttpStatus.FORBIDDEN) {
                     authenticate();
                     request.getHeaders().set("X-OLAT-TOKEN", OlatLmsRestTemplate.this.token);
                     response = execution.execute(request, body);
