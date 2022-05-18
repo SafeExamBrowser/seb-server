@@ -211,6 +211,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
                     baseClientDetails.setScope(Collections.emptySet());
                     baseClientDetails.setClientSecret(Utils.toString(pwd));
                     baseClientDetails.setAccessTokenValiditySeconds(-1); // not expiring
+                    baseClientDetails.setRefreshTokenValiditySeconds(-1); // not expiring
 
                     if (log.isDebugEnabled()) {
                         log.debug("Created new BaseClientDetails for id: {}", clientName);

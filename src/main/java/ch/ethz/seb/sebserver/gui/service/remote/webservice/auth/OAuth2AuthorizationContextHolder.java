@@ -85,7 +85,9 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
 
     @Override
     public SEBServerAuthorizationContext getAuthorizationContext(final HttpSession session) {
-        log.debug("Trying to get OAuth2AuthorizationContext from HttpSession: {}", session.getId());
+        if (log.isTraceEnabled()) {
+            log.trace("Trying to get OAuth2AuthorizationContext from HttpSession: {}", session.getId());
+        }
 
         OAuth2AuthorizationContext context =
                 (OAuth2AuthorizationContext) session.getAttribute(CONTEXT_HOLDER_ATTRIBUTE);

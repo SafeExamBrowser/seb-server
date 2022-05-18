@@ -101,8 +101,6 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     private Integer adminAccessTokenValSec;
     @Value("${sebserver.webservice.api.admin.refreshTokenValiditySeconds:-1}")
     private Integer adminRefreshTokenValSec;
-    @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:3600}")
-    private Integer examAccessTokenValSec;
 
     @Lazy
     @Bean
@@ -181,7 +179,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                 this.webServiceClientDetails,
                 authenticationManagerBean(),
                 this.examAPIEndpoint,
-                this.examAccessTokenValSec);
+                -1);
     }
 
     @Bean
@@ -250,7 +248,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
                     true,
                     3,
                     adminAccessTokenValSec,
-                    -1);
+                    1);
         }
     }
 
