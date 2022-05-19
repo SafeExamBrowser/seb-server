@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.MediaType;
@@ -290,16 +291,13 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
         public int compare(final ClientConnection cc1, final ClientConnection cc2) {
             int result = 0;
             if (Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID.equals(this.sortColumn)) {
-                result = cc1.userSessionId
-                        .compareTo(cc2.userSessionId);
+                result = ObjectUtils.compare(cc1.userSessionId, cc2.userSessionId);
             } else if (ClientConnection.ATTR_INFO.equals(this.sortColumn)) {
-                result = cc1.getInfo().compareTo(cc2.getInfo());
+                result = ObjectUtils.compare(cc1.getInfo(), cc2.getInfo());
             } else if (Domain.CLIENT_CONNECTION.ATTR_STATUS.equals(this.sortColumn)) {
-                result = cc1.getStatus()
-                        .compareTo(cc2.getStatus());
+                result = ObjectUtils.compare(cc1.getStatus(), cc2.getStatus());
             } else {
-                result = cc1.userSessionId
-                        .compareTo(cc2.userSessionId);
+                result = ObjectUtils.compare(cc1.userSessionId, cc2.userSessionId);
             }
             return (this.descending) ? -result : result;
         }
