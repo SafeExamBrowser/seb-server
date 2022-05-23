@@ -61,6 +61,7 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ArchiveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetDefaultExamTemplate;
@@ -118,6 +119,8 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.form.examTemplate");
     private static final LocTextKey FORM_EXAM_TEMPLATE_ERROR =
             new LocTextKey("sebserver.exam.form.examTemplate.error");
+    private static final LocTextKey EXAM_ARCHIVE_CONFIRM =
+            new LocTextKey("sebserver.exam.action.archive.confirm");
 
     private final static LocTextKey CONSISTENCY_MESSAGE_TITLE =
             new LocTextKey("sebserver.exam.consistency.title");
@@ -412,6 +415,12 @@ public class ExamForm implements TemplateComposer {
                 .withExec(this.examDeletePopup.deleteWizardFunction(pageContext))
                 .publishIf(() -> writeGrant && readonly)
 
+                .newAction(ActionDefinition.EXAM_ARCHIVE)
+                .withEntityKey(entityKey)
+                .withConfirm(() -> EXAM_ARCHIVE_CONFIRM)
+                .withExec(this::archiveExam)
+                .publishIf(() -> writeGrant && readonly && examStatus == ExamStatus.FINISHED)
+
                 .newAction(ActionDefinition.EXAM_SAVE)
                 .withExec(action -> (importFromQuizData)
                         ? importExam(action, formHandle, sebRestrictionAvailable && exam.status == ExamStatus.RUNNING)
@@ -483,6 +492,16 @@ public class ExamForm implements TemplateComposer {
                             .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
                             .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
         }
+    }
+
+    private PageAction archiveExam(final PageAction action) {
+
+        this.restService.getBuilder(ArchiveExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .call()
+                .onError(error -> action.pageContext().notifyUnexpectedError(error));
+
+        return action;
     }
 
     private String getDefaultExamTemplateId() {

@@ -47,6 +47,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
@@ -211,6 +212,27 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .getOrThrow();
 
         return result;
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_ARCHIVE_PATH_SEGMENT,
+            method = RequestMethod.PATCH,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Exam archive(
+            @PathVariable final Long modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        checkWritePrivilege(institutionId);
+        return this.examDAO.byPK(modelId)
+                .flatMap(this::checkWriteAccess)
+                .flatMap(this::checkArchive)
+                .flatMap(exam -> this.examDAO.updateState(exam.id, ExamStatus.ARCHIVED, null))
+                .flatMap(this::logModify)
+                .getOrThrow();
     }
 
     // ****************************************************************************
@@ -555,6 +577,15 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                         .getOrThrow();
             }
         });
+    }
+
+    private Result<Exam> checkArchive(final Exam exam) {
+        if (exam.status != ExamStatus.FINISHED) {
+            throw new APIMessageException(
+                    APIMessage.ErrorMessage.INTEGRITY_VALIDATION.of("Exam is in wrong status to archive."));
+        }
+
+        return Result.of(exam);
     }
 
     static Function<Collection<Exam>, List<Exam>> pageSort(final String sort) {

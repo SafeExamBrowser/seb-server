@@ -149,7 +149,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             if (examId != null) {
-                checkExamIntegrity(examId, institutionId);
+                checkExamIntegrity(
+                        examId,
+                        institutionId,
+                        (principal != null) ? principal.getName() : "--",
+                        clientAddress);
             }
 
             // Create ClientConnection in status CONNECTION_REQUESTED for further processing
@@ -233,7 +237,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             if (examId != null) {
-                checkExamIntegrity(examId, institutionId);
+                checkExamIntegrity(
+                        examId,
+                        institutionId,
+                        StringUtils.isNoneBlank(userSessionId) ? userSessionId : clientConnection.userSessionId,
+                        clientConnection.clientAddress);
             }
 
             if (log.isDebugEnabled()) {
@@ -419,7 +427,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .getOrThrow();
 
             // check exam integrity for established connection
-            checkExamIntegrity(establishedClientConnection.examId, institutionId);
+            checkExamIntegrity(
+                    establishedClientConnection.examId,
+                    institutionId,
+                    establishedClientConnection.userSessionId,
+                    establishedClientConnection.clientAddress);
 
             // initialize distributed indicator value caches if possible and needed
             if (examId != null && this.isDistributedSetup) {
@@ -733,9 +745,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 this.clientIndicatorFactory.getIndicatorValues(clientConnection)));
     }
 
-    private void checkExamRunning(final Long examId) {
+    private void checkExamRunning(final Long examId, final String user, final String address) {
         if (examId != null && !this.examSessionService.isExamRunning(examId)) {
-            examNotRunningException(examId);
+            examNotRunningException(examId, user, address);
         }
     }
 
@@ -761,9 +773,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         return UUID.randomUUID().toString();
     }
 
-    private void examNotRunningException(final Long examId) {
-        log.error("The exam {} is not running", examId);
-        throw new IllegalStateException("The exam " + examId + " is not running");
+    private void examNotRunningException(final Long examId, final String user, final String address) {
+        log.warn("The exam {} is not running. Called by: {} | on: {}", examId, user, address);
+        throw new APIConstraintViolationException(
+                "The exam " + examId + " is not running");
     }
 
     private void checkExamIntegrity(final Long examId, final ClientConnection clientConnection) {
@@ -776,7 +789,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             throw new IllegalArgumentException(
                     "Exam integrity violation: another examId is already set for the connection");
         }
-        checkExamRunning(examId);
+        checkExamRunning(examId, clientConnection.userSessionId, clientConnection.clientAddress);
     }
 
     private ClientConnection updateUserSessionId(
@@ -835,7 +848,12 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         return clientConnection;
     }
 
-    private void checkExamIntegrity(final Long examId, final Long institutionId) {
+    private void checkExamIntegrity(
+            final Long examId,
+            final Long institutionId,
+            final String user,
+            final String address) {
+
         if (this.isDistributedSetup) {
             // if the cached Exam is not up to date anymore, we have to update the cache first
             final Result<Exam> updateExamCache = this.examSessionService.updateExamCache(examId);
@@ -845,7 +863,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         }
 
         // check Exam is running and not locked
-        checkExamRunning(examId);
+        checkExamRunning(examId, user, address);
         if (this.examSessionService.isExamLocked(examId)) {
             throw new APIConstraintViolationException(
                     "Exam is currently on update and locked for new SEB Client connections");

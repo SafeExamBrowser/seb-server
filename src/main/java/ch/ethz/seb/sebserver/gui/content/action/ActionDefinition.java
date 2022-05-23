@@ -291,6 +291,11 @@ public enum ActionDefinition {
             ImageIcon.DELETE,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
+    EXAM_ARCHIVE(
+            new LocTextKey("sebserver.exam.action.archive"),
+            ImageIcon.ARCHIVE,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
 
     EXAM_MODIFY_SEB_RESTRICTION_DETAILS(
             new LocTextKey("sebserver.exam.action.sebrestriction.details"),

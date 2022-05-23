@@ -170,7 +170,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 new TypeReference<Collection<APIMessage>>() {
                 });
         final APIMessage error = errorMessage.iterator().next();
-        assertEquals(ErrorMessage.UNEXPECTED.messageCode, error.messageCode);
+        assertEquals(ErrorMessage.ILLEGAL_API_ARGUMENT.messageCode, error.messageCode);
         assertEquals("The exam 1 is not running", error.details);
     }
 

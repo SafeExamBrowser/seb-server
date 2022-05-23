@@ -62,7 +62,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
@@ -891,7 +890,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 ExamType.MANAGED,
                 null,
                 Utils.immutableCollectionOf(userId),
-                ExamStatus.RUNNING,
+                null,
                 false,
                 null,
                 true,

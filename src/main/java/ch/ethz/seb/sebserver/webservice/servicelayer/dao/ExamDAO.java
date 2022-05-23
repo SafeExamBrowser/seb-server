@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 import org.springframework.cache.annotation.CacheEvict;
 
@@ -80,10 +81,13 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     /** Use this to get identifiers of all exams in a specified state for a specified institution.
      *
-     * @param institutionId the institution identifier. May be null for all institutions
-     * @param status the ExamStatus
+     * @param filterMap FilterMap with other filter criteria
+     * @param status the list of ExamStatus
      * @return Result refer to collection of exam identifiers or to an error if happened */
-    Result<Collection<Long>> getExamIdsForStatus(Long institutionId, ExamStatus status);
+    Result<Collection<Exam>> getExamIdsForStatus(
+            final FilterMap filterMap,
+            final Predicate<Exam> predicate,
+            final ExamStatus... status);
 
     /** Gets all for active and none archived exams within the system, independently form institution and LMSSetup.
      *

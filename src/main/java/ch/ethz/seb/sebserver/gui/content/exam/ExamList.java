@@ -77,6 +77,8 @@ public class ExamList implements TemplateComposer {
             new LocTextKey("sebserver.exam.list.column.lmssetup");
     public final static LocTextKey COLUMN_TITLE_NAME_KEY =
             new LocTextKey("sebserver.exam.list.column.name");
+    public final static LocTextKey COLUMN_TITLE_STATE_KEY =
+            new LocTextKey("sebserver.exam.list.column.state");
     public final static LocTextKey COLUMN_TITLE_TYPE_KEY =
             new LocTextKey("sebserver.exam.list.column.type");
     public final static LocTextKey NO_MODIFY_OF_OUT_DATED_EXAMS =
@@ -88,6 +90,7 @@ public class ExamList implements TemplateComposer {
     private final TableFilterAttribute lmsFilter;
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
+    private final TableFilterAttribute stateFilter;
     private final TableFilterAttribute typeFilter;
 
     private final PageService pageService;
@@ -111,6 +114,11 @@ public class ExamList implements TemplateComposer {
                 CriteriaType.SINGLE_SELECTION,
                 LmsSetup.FILTER_ATTR_LMS_SETUP,
                 this.resourceService::lmsSetupResource);
+
+        this.stateFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                Exam.FILTER_ATTR_STATUS,
+                this.resourceService::localizedExamStatusSelection);
 
         this.typeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -187,6 +195,13 @@ public class ExamList implements TemplateComposer {
                                                 Utils.toDateTimeUTC(Utils.getMillisecondsNow())
                                                         .minusYears(1)
                                                         .toString()))
+                                        .sortable())
+
+                        .withColumn(new ColumnDefinition<>(
+                                Domain.EXAM.ATTR_STATUS,
+                                COLUMN_TITLE_STATE_KEY,
+                                this.resourceService::localizedExamStatusName)
+                                        .withFilter(this.stateFilter)
                                         .sortable())
 
                         .withColumn(new ColumnDefinition<Exam>(

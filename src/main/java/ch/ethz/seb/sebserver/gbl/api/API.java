@@ -145,6 +145,7 @@ public final class API {
 
     public static final String EXAM_ADMINISTRATION_ENDPOINT = "/exam";
     //public static final String EXAM_ADMINISTRATION_DOWNLOAD_CONFIG_PATH_SEGMENT = "/download-config";
+    public static final String EXAM_ADMINISTRATION_ARCHIVE_PATH_SEGMENT = "/archive";
     public static final String EXAM_ADMINISTRATION_CONSISTENCY_CHECK_PATH_SEGMENT = "/check-consistency";
     public static final String EXAM_ADMINISTRATION_CONSISTENCY_CHECK_INCLUDE_RESTRICTION = "include-restriction";
     public static final String EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT = "/seb-restriction";

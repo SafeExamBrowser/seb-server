@@ -118,6 +118,7 @@ public class ResourceService {
     public static final EnumSet<EventType> CLIENT_EVENT_TYPE_EXCLUDE_MAP = EnumSet.of(
             EventType.UNKNOWN);
 
+    public static final String EXAM_STATUS_PREFIX = "sebserver.exam.status.";
     public static final String EXAMCONFIG_STATUS_PREFIX = "sebserver.examconfig.status.";
     public static final String EXAM_TYPE_PREFIX = "sebserver.exam.type.";
     public static final String USERACCOUNT_ROLE_PREFIX = "sebserver.useraccount.role.";
@@ -546,6 +547,32 @@ public class ResourceService {
     public String localizedExamConfigInstitutionName(final ConfigurationNode config) {
         return getInstitutionNameFunction()
                 .apply(String.valueOf(config.institutionId));
+    }
+
+    public List<Tuple<String>> localizedExamStatusSelection() {
+        return Arrays.stream(ExamStatus.values())
+                .map(type -> new Tuple<>(type.name(),
+                        this.i18nSupport.getText(EXAM_STATUS_PREFIX + type.name())))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> localizedFinishedExamStatusSelection() {
+        return Arrays.stream(ExamStatus.values())
+                .filter(st -> st == ExamStatus.ARCHIVED || st == ExamStatus.FINISHED)
+                .map(type -> new Tuple<>(type.name(),
+                        this.i18nSupport.getText(EXAM_STATUS_PREFIX + type.name())))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public String localizedExamStatusName(final Exam exam) {
+        if (exam.status == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.i18nSupport
+                .getText(ResourceService.EXAM_STATUS_PREFIX + exam.status.name());
     }
 
     public String localizedExamConfigStatusName(final ConfigurationNode config) {

@@ -34,6 +34,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -118,36 +120,40 @@ public class ExamDAOImpl implements ExamDAO {
 
         return Result.tryCatch(() -> {
 
-            final String name = filterMap.getQuizName();
-            final DateTime from = filterMap.getExamFromTime();
-            final Predicate<Exam> quizDataFilter = exam -> {
-                if (StringUtils.isNotBlank(name)) {
-                    if (!exam.name.contains(name)) {
-                        return false;
-                    }
-                }
-
-                if (from != null && exam.startTime != null) {
-                    // always show exams that has not ended yet
-                    if (exam.endTime == null || exam.endTime.isAfter(from)) {
-                        return true;
-                    }
-                    if (exam.startTime.isBefore(from)) {
-                        return false;
-                    }
-                }
-
-                return true;
-            };
-
+            final Predicate<Exam> examDataFilter = createPredicate(filterMap);
             return this.examRecordDAO
-                    .allMatching(filterMap)
+                    .allMatching(filterMap, null)
                     .flatMap(this::toDomainModel)
                     .getOrThrow()
                     .stream()
-                    .filter(quizDataFilter.and(predicate))
+                    .filter(examDataFilter.and(predicate))
                     .collect(Collectors.toList());
         });
+    }
+
+    private Predicate<Exam> createPredicate(final FilterMap filterMap) {
+        final String name = filterMap.getQuizName();
+        final DateTime from = filterMap.getExamFromTime();
+        final Predicate<Exam> quizDataFilter = exam -> {
+            if (StringUtils.isNotBlank(name)) {
+                if (!exam.name.contains(name)) {
+                    return false;
+                }
+            }
+
+            if (from != null && exam.startTime != null) {
+                // always show exams that has not ended yet
+                if (exam.endTime == null || exam.endTime.isAfter(from)) {
+                    return true;
+                }
+                if (exam.startTime.isBefore(from)) {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+        return quizDataFilter;
     }
 
     @Override
@@ -159,9 +165,9 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     public Result<Exam> save(final Exam exam) {
-        return this.examRecordDAO
-                .save(exam)
-                .map(rec -> saveAdditionalAttributes(exam, rec))
+        return this.checkStateEdit(exam)
+                .flatMap(this.examRecordDAO::save)
+                .flatMap(rec -> saveAdditionalAttributes(exam, rec))
                 .flatMap(this::toDomainModel);
     }
 
@@ -201,7 +207,7 @@ public class ExamDAOImpl implements ExamDAO {
     public Result<Exam> createNew(final Exam exam) {
         return this.examRecordDAO
                 .createNew(exam)
-                .map(rec -> saveAdditionalAttributes(exam, rec))
+                .flatMap(rec -> saveAdditionalAttributes(exam, rec))
                 .flatMap(this::toDomainModel);
     }
 
@@ -248,22 +254,26 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Long>> getExamIdsForStatus(final Long institutionId, final ExamStatus status) {
-        return Result.tryCatch(() -> this.examRecordMapper.selectIdsByExample()
-                .where(
-                        ExamRecordDynamicSqlSupport.active,
-                        isEqualTo(BooleanUtils.toInteger(true)))
-                .and(
-                        ExamRecordDynamicSqlSupport.institutionId,
-                        isEqualToWhenPresent(institutionId))
-                .and(
-                        ExamRecordDynamicSqlSupport.status,
-                        isEqualTo(status.name()))
-                .and(
-                        ExamRecordDynamicSqlSupport.updating,
-                        isEqualTo(BooleanUtils.toInteger(false)))
-                .build()
-                .execute());
+    public Result<Collection<Exam>> getExamIdsForStatus(
+            final FilterMap filterMap,
+            final Predicate<Exam> predicate,
+            final ExamStatus... status) {
+
+        return Result.tryCatch(() -> {
+
+            final List<String> stateNames = (status != null && status.length > 0)
+                    ? Arrays.asList(status)
+                            .stream().map(s -> s.name())
+                            .collect(Collectors.toList())
+                    : null;
+            final Predicate<Exam> examDataFilter = createPredicate(filterMap);
+            return this.examRecordDAO.allMatching(filterMap, stateNames)
+                    .flatMap(this::toDomainModel)
+                    .getOrThrow()
+                    .stream()
+                    .filter(examDataFilter.and(predicate))
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
@@ -697,81 +707,6 @@ public class ExamDAOImpl implements ExamDAO {
         });
     }
 
-//    private QuizData getQuizData(
-//            final Map<String, QuizData> quizzes,
-//            final String externalId,
-//            final ExamRecord record) {
-//
-//        if (quizzes.containsKey(externalId)) {
-//            return quizzes.get(externalId);
-//        } else {
-//            // If this is a Moodle quiz, try to recover from eventually restore of the quiz on the LMS side
-//            // NOTE: This is a workaround for Moodle quizzes that had have a recovery within the sandbox tool
-//            //       Where potentially quiz identifiers get changed during such a recovery and the SEB Server
-//            //       internal mapping is not working properly anymore. In this case we try to recover from such
-//            //       a case by using the short name of the quiz and search for the quiz within the course with this
-//            //       short name. If one quiz has been found that matches all criteria, we adapt the internal id
-//            //       mapping to this quiz.
-//            //       If recovering fails, this returns null and the calling side must handle the lack of quiz data
-//            try {
-//                final LmsSetup lmsSetup = this.lmsAPIService
-//                        .getLmsSetup(record.getLmsSetupId())
-//                        .getOrThrow();
-//                if (lmsSetup.lmsType == LmsType.MOODLE) {
-//
-//                    log.info("Try to recover quiz data for Moodle quiz with internal identifier: {}", externalId);
-//
-//                    // get former quiz name attribute
-//                    final String formerName = getFormerName(record.getId());
-//                    if (formerName != null) {
-//
-//                        log.debug("Found formerName quiz name: {}", formerName);
-//
-//                        // get the course name identifier
-//                        final String shortname = MoodleCourseAccess.getShortname(externalId);
-//                        if (StringUtils.isNotBlank(shortname)) {
-//
-//                            log.debug("Using short-name: {} for recovering", shortname);
-//
-//                            final QuizData recoveredQuizData = this.lmsAPIService
-//                                    .getLmsAPITemplate(lmsSetup.id)
-//                                    .map(template -> template.getQuizzes(new FilterMap())
-//                                            .getOrThrow()
-//                                            .stream()
-//                                            .filter(quiz -> {
-//                                                final String qShortName = MoodleCourseAccess.getShortname(quiz.id);
-//                                                return qShortName != null && qShortName.equals(shortname);
-//                                            })
-//                                            .filter(quiz -> formerName.equals(quiz.name))
-//                                            .findAny()
-//                                            .get())
-//                                    .getOrThrow();
-//                            if (recoveredQuizData != null) {
-//
-//                                log.debug("Found quiz data for recovering: {}", recoveredQuizData);
-//
-//                                // save exam with new external id
-//                                this.examRecordMapper.updateByPrimaryKeySelective(new ExamRecord(
-//                                        record.getId(),
-//                                        null, null,
-//                                        recoveredQuizData.id,
-//                                        null, null, null, null, null, null, null, null, null, null, null,
-//                                        Utils.getMillisecondsNow()));
-//
-//                                log.debug("Successfully recovered exam quiz data to new externalId {}",
-//                                        recoveredQuizData.id);
-//                            }
-//                            return recoveredQuizData;
-//                        }
-//                    }
-//                }
-//            } catch (final Exception e) {
-//                log.debug("Failed to try to recover from Moodle quiz restore: {}", e.getMessage());
-//            }
-//            return null;
-//        }
-//    }
-
     private Result<Exam> toDomainModel(final ExamRecord record) {
 
         return Result.tryCatch(() -> {
@@ -817,16 +752,19 @@ public class ExamDAOImpl implements ExamDAO {
         });
     }
 
-    private ExamRecord saveAdditionalAttributes(final Exam exam, final ExamRecord rec) {
-        if (exam.additionalAttributesIncluded()) {
-            this.additionalAttributesDAO.saveAdditionalAttributes(
-                    EntityType.EXAM,
-                    rec.getId(),
-                    exam.additionalAttributes)
-                    .getOrThrow();
-        }
+    private Result<ExamRecord> saveAdditionalAttributes(final Exam exam, final ExamRecord rec) {
+        return Result.tryCatch(() -> {
+            if (exam.additionalAttributesIncluded()) {
+                this.additionalAttributesDAO.saveAdditionalAttributes(
+                        EntityType.EXAM,
+                        rec.getId(),
+                        exam.additionalAttributes)
+                        .getOrThrow();
+            }
 
-        return rec;
+            return rec;
+
+        });
     }
 
     private QuizData saveAdditionalQuizAttributes(final Long examId, final QuizData quizData) {
@@ -843,4 +781,14 @@ public class ExamDAOImpl implements ExamDAO {
         return quizData;
     }
 
+    private Result<Exam> checkStateEdit(final Exam exam) {
+        return Result.tryCatch(() -> {
+
+            if (exam.status == ExamStatus.ARCHIVED) {
+                throw new APIMessageException(APIMessage.ErrorMessage.INTEGRITY_VALIDATION.of("Exam is archived"));
+            }
+
+            return exam;
+        });
+    }
 }

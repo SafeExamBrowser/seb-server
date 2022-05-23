@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +53,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 @Component
 @WebServiceProfile
 public class ExamRecordDAO {
+
+    private static final Logger log = LoggerFactory.getLogger(ExamRecordDAO.class);
 
     private final ExamRecordMapper examRecordMapper;
     private final ClientConnectionRecordMapper clientConnectionRecordMapper;
@@ -133,13 +137,13 @@ public class ExamRecordDAO {
     }
 
     @Transactional(readOnly = true)
-    public Result<Collection<ExamRecord>> allMatching(final FilterMap filterMap) {
+    public Result<Collection<ExamRecord>> allMatching(final FilterMap filterMap, final List<String> stateNames) {
 
         return Result.tryCatch(() -> {
 
             // If we have a sort on institution name, join the institution table
             // If we have a sort on lms setup name, join lms setup table
-            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamRecord>>>.QueryExpressionWhereBuilder whereClause =
+            QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ExamRecord>>>.QueryExpressionWhereBuilder whereClause =
                     (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
                             ? this.examRecordMapper
                                     .selectByExample()
@@ -165,7 +169,9 @@ public class ExamRecordDAO {
                                                     ExamRecordDynamicSqlSupport.active,
                                                     isEqualToWhenPresent(filterMap.getActiveAsInt()));
 
-            final List<ExamRecord> records = whereClause
+            //
+
+            whereClause = whereClause
                     .and(
                             ExamRecordDynamicSqlSupport.institutionId,
                             isEqualToWhenPresent(filterMap.getInstitutionId()))
@@ -174,10 +180,23 @@ public class ExamRecordDAO {
                             isEqualToWhenPresent(filterMap.getLmsSetupId()))
                     .and(
                             ExamRecordDynamicSqlSupport.type,
-                            isEqualToWhenPresent(filterMap.getExamType()))
-                    .and(
-                            ExamRecordDynamicSqlSupport.status,
-                            isEqualToWhenPresent(filterMap.getExamStatus()))
+                            isEqualToWhenPresent(filterMap.getExamType()));
+
+            final String examStatus = filterMap.getExamStatus();
+            if (StringUtils.isNotBlank(examStatus)) {
+                whereClause = whereClause
+                        .and(
+                                ExamRecordDynamicSqlSupport.status,
+                                isEqualToWhenPresent(examStatus));
+            } else if (stateNames != null && !stateNames.isEmpty()) {
+                whereClause = whereClause
+                        .and(
+                                ExamRecordDynamicSqlSupport.status,
+                                isInWhenPresent(stateNames));
+            }
+
+            final List<ExamRecord> records = whereClause
+
                     .and(
                             ExamRecordDynamicSqlSupport.quizName,
                             isLikeWhenPresent(filterMap.getSQLWildcard(EXAM.ATTR_QUIZ_NAME)))
@@ -192,7 +211,9 @@ public class ExamRecordDAO {
     public Result<ExamRecord> updateState(final Long examId, final ExamStatus status, final String updateId) {
         return recordById(examId)
                 .map(examRecord -> {
-                    if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(examRecord.getUpdating()))) {
+                    if (updateId != null &&
+                            BooleanUtils.isTrue(BooleanUtils.toBooleanObject(examRecord.getUpdating()))) {
+
                         if (!updateId.equals(examRecord.getLastupdate())) {
                             throw new IllegalStateException("Exam is currently locked: " + examRecord.getExternalId());
                         }
@@ -221,6 +242,13 @@ public class ExamRecordDAO {
                 throw new IllegalStateException("Exam is currently locked: " + exam.externalId);
             }
 
+            if (exam.status != null && !exam.status.name().equals(oldRecord.getStatus())) {
+                log.warn("Exam state change on save. Exam. {}, Old state: {}, new state: {}",
+                        exam.externalId,
+                        oldRecord.getStatus(),
+                        exam.status);
+            }
+
             final ExamRecord examRecord = new ExamRecord(
                     exam.id,
                     null, null, null, null,
@@ -232,9 +260,7 @@ public class ExamRecordDAO {
                             : null,
                     null,
                     exam.browserExamKeys,
-                    (exam.status != null)
-                            ? exam.status.name()
-                            : null,
+                    null,
                     1, // seb restriction (deprecated)
                     null, // updating
                     null, // lastUpdate
@@ -413,6 +439,9 @@ public class ExamRecordDAO {
                             ExamRecordDynamicSqlSupport.status,
                             isNotEqualTo(ExamStatus.RUNNING.name()))
                     .and(
+                            ExamRecordDynamicSqlSupport.status,
+                            isNotEqualTo(ExamStatus.ARCHIVED.name()))
+                    .and(
                             ExamRecordDynamicSqlSupport.updating,
                             isEqualTo(BooleanUtils.toInteger(false)))
                     .build()
@@ -430,6 +459,9 @@ public class ExamRecordDAO {
                     .and(
                             ExamRecordDynamicSqlSupport.status,
                             isEqualTo(ExamStatus.RUNNING.name()))
+                    .and(
+                            ExamRecordDynamicSqlSupport.status,
+                            isNotEqualTo(ExamStatus.ARCHIVED.name()))
                     .and(
                             ExamRecordDynamicSqlSupport.updating,
                             isEqualTo(BooleanUtils.toInteger(false)))

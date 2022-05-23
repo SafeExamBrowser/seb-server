@@ -122,6 +122,7 @@ public class WidgetFactory {
         SECURE("secure.png"),
         NEW("new.png"),
         DELETE("delete.png"),
+        ARCHIVE("archive.png"),
         SEARCH("lens.png"),
         UNDO("undo.png"),
         COLOR("color.png"),

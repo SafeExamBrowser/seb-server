@@ -266,8 +266,11 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final FilterMap filterMap,
             final Predicate<Exam> predicate) {
 
-        filterMap.putIfAbsent(Exam.FILTER_ATTR_STATUS, ExamStatus.FINISHED.name());
-        return this.examDAO.allMatching(filterMap, predicate);
+        return this.examDAO.getExamIdsForStatus(
+                filterMap,
+                predicate,
+                ExamStatus.FINISHED,
+                ExamStatus.ARCHIVED);
     }
 
     @Override

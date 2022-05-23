@@ -48,6 +48,8 @@ public class FinishedExamList implements TemplateComposer {
             new LocTextKey("sebserver.finished.exam.info.pleaseSelect");
     private final static LocTextKey COLUMN_TITLE_NAME_KEY =
             new LocTextKey("sebserver.finished.exam.list.column.name");
+    private final static LocTextKey COLUMN_TITLE_STATE_KEY =
+            new LocTextKey("sebserver.finished.exam.list.column.state");
     private final static LocTextKey COLUMN_TITLE_TYPE_KEY =
             new LocTextKey("sebserver.finished.exam.list.column.type");
     private final static LocTextKey EMPTY_LIST_TEXT_KEY =
@@ -56,6 +58,7 @@ public class FinishedExamList implements TemplateComposer {
     private final TableFilterAttribute nameFilter =
             new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
     private final TableFilterAttribute typeFilter;
+    private final TableFilterAttribute stateFilter;
 
     private final PageService pageService;
     private final ResourceService resourceService;
@@ -73,6 +76,11 @@ public class FinishedExamList implements TemplateComposer {
                 CriteriaType.SINGLE_SELECTION,
                 Exam.FILTER_ATTR_TYPE,
                 this.resourceService::examTypeResources);
+
+        this.stateFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                Exam.FILTER_ATTR_STATUS,
+                this.resourceService::localizedFinishedExamStatusSelection);
     }
 
     @Override
@@ -103,6 +111,13 @@ public class FinishedExamList implements TemplateComposer {
                                 COLUMN_TITLE_NAME_KEY,
                                 Exam::getName)
                                         .withFilter(this.nameFilter)
+                                        .sortable())
+
+                        .withColumn(new ColumnDefinition<>(
+                                Domain.EXAM.ATTR_STATUS,
+                                COLUMN_TITLE_STATE_KEY,
+                                this.resourceService::localizedExamStatusName)
+                                        .withFilter(this.stateFilter)
                                         .sortable())
 
                         .withColumn(new ColumnDefinition<Exam>(
