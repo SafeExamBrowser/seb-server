@@ -354,17 +354,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
         return reduceCoursesToQuizzes(urlPrefix, courseQuizData);
     }
 
-    private List<QuizData> getCached() {
-        final Collection<CourseDataShort> courseQuizData =
-                this.moodleCourseDataAsyncLoader.getCachedCourseData().values();
-        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-        final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
-                ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
-                : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
-
-        return reduceCoursesToQuizzes(urlPrefix, courseQuizData);
-    }
-
     private ArrayList<QuizData> reduceCoursesToQuizzes(
             final String urlPrefix,
             final Collection<CourseDataShort> courseQuizData) {
