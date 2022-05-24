@@ -49,6 +49,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -191,6 +192,10 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                         null,
                         postMap.getLong(IndicatorTemplate.ATTR_EXAM_TEMPLATE_ID),
                         postMap))
+                .map(indicator -> {
+                    ExamAdminService.checkThresholdConsistency(indicator.thresholds);
+                    return indicator;
+                })
                 .flatMap(this.examTemplateDAO::createNewIndicatorTemplate)
                 .flatMap(this.userActivityLogDAO::logCreate)
                 .getOrThrow();
@@ -212,6 +217,10 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         this.checkModifyPrivilege(institutionId);
         return this.beanValidationService
                 .validateBean(modifyData)
+                .map(indicator -> {
+                    ExamAdminService.checkThresholdConsistency(indicator.thresholds);
+                    return indicator;
+                })
                 .flatMap(this.examTemplateDAO::saveIndicatorTemplate)
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();

@@ -240,6 +240,7 @@ public final class Indicator implements Entity {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class Threshold implements Comparable<Threshold> {
 
         @JsonProperty(THRESHOLD.ATTR_VALUE)

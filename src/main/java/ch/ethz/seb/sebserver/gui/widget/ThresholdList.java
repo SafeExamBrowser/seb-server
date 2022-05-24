@@ -131,7 +131,7 @@ public final class ThresholdList extends Composite {
     private void removeInvalidListEntries() {
         this.thresholds
                 .stream()
-                .filter(entry -> entry.getValue() == null || StringUtils.isBlank(entry.getColor()))
+                .filter(entry -> entry.getValue() == null && StringUtils.isBlank(entry.getColor()))
                 .collect(Collectors.toList())
                 .forEach(this::removeThreshold);
     }
