@@ -279,7 +279,7 @@ public class ExamList implements TemplateComposer {
             return;
         }
 
-        if (exam.getStatus() == ExamStatus.UP_COMING || exam.getStatus() == ExamStatus.FINISHED) {
+        if (exam.getStatus() != ExamStatus.RUNNING) {
             return;
         }
 

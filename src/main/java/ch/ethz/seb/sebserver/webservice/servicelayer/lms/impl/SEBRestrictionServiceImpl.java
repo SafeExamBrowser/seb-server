@@ -248,13 +248,19 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     @Override
     public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
 
-        if (log.isDebugEnabled()) {
-            log.debug(" *** SEB Restriction *** Release SEB Client restrictions from LMS for exam: {}", exam);
-        }
-
         return this.lmsAPIService
                 .getLmsAPITemplate(exam.lmsSetupId)
-                .flatMap(template -> template.releaseSEBClientRestriction(exam));
+                .map(template -> {
+                    if (template.lmsSetup().lmsType.features.contains(Features.SEB_RESTRICTION)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(" *** SEB Restriction *** Release SEB Client restrictions from LMS for exam: {}",
+                                    exam);
+                        }
+                        template.releaseSEBClientRestriction(exam);
+
+                    }
+                    return exam;
+                });
     }
 
 }

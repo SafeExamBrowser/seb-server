@@ -114,7 +114,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
         return this.lmsAPIService
                 .getLmsAPITemplate(exam.lmsSetupId)
-                .map(lmsAPI -> !lmsAPI.getSEBClientRestriction(exam).hasError());
+                .map(lmsAPI -> !lmsAPI.hasSEBClientRestriction(exam));
     }
 
     @Override

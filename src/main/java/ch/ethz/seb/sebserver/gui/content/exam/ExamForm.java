@@ -452,14 +452,14 @@ public class ExamForm implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_ENABLE_SEB_RESTRICTION)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, true, this.restService))
-                .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
+                .publishIf(() -> sebRestrictionAvailable && readonly && editable && !importFromQuizData
                         && BooleanUtils.isFalse(isRestricted))
 
                 .newAction(ActionDefinition.EXAM_DISABLE_SEB_RESTRICTION)
                 .withConfirm(() -> ACTION_MESSAGE_SEB_RESTRICTION_RELEASE)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
-                .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
+                .publishIf(() -> sebRestrictionAvailable && readonly && editable && !importFromQuizData
                         && BooleanUtils.isTrue(isRestricted))
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_ON)

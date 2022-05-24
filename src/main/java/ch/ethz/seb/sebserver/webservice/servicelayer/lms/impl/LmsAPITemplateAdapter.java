@@ -40,7 +40,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     private static final Logger log = LoggerFactory.getLogger(LmsAPITemplateAdapter.class);
 
     private final CourseAccessAPI courseAccessAPI;
-    private final SEBRestrictionAPI sebBestrictionAPI;
+    private final SEBRestrictionAPI sebRestrictionAPI;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
 
     /** CircuitBreaker for protected lmsTestRequest */
@@ -64,10 +64,10 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             final Environment environment,
             final APITemplateDataSupplier apiTemplateDataSupplier,
             final CourseAccessAPI courseAccessAPI,
-            final SEBRestrictionAPI sebBestrictionAPI) {
+            final SEBRestrictionAPI sebRestrictionAPI) {
 
         this.courseAccessAPI = courseAccessAPI;
-        this.sebBestrictionAPI = sebBestrictionAPI;
+        this.sebRestrictionAPI = sebRestrictionAPI;
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
 
         this.lmsTestRequest = asyncService.createCircuitBreaker(
@@ -82,7 +82,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.lmsTestRequest.timeToRecover",
                         Long.class,
-                        Constants.MINUTE_IN_MILLIS));
+                        0L));
 
         this.allQuizzesRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
@@ -96,7 +96,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.timeToRecover",
                         Long.class,
-                        Constants.MINUTE_IN_MILLIS));
+                        0L));
 
         this.quizzesRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
@@ -110,7 +110,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.timeToRecover",
                         Long.class,
-                        Constants.MINUTE_IN_MILLIS));
+                        0L));
 
         this.quizRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
@@ -124,7 +124,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.timeToRecover",
                         Long.class,
-                        Constants.MINUTE_IN_MILLIS));
+                        0L));
 
         this.chaptersRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
@@ -138,7 +138,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.chaptersRequest.timeToRecover",
                         Long.class,
-                        Constants.SECOND_IN_MILLIS * 30));
+                        0L));
 
         this.accountDetailRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
@@ -152,7 +152,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.accountDetailRequest.timeToRecover",
                         Long.class,
-                        Constants.SECOND_IN_MILLIS * 30));
+                        0L));
 
         this.restrictionRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
@@ -166,7 +166,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.sebrestriction.timeToRecover",
                         Long.class,
-                        Constants.SECOND_IN_MILLIS * 30));
+                        0L));
 
         this.releaseRestrictionRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
@@ -180,7 +180,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.sebrestriction.timeToRecover",
                         Long.class,
-                        Constants.SECOND_IN_MILLIS * 30));
+                        0L));
     }
 
     @Override
@@ -363,8 +363,8 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
-        if (this.sebBestrictionAPI != null) {
-            return this.sebBestrictionAPI.testCourseRestrictionAPI();
+        if (this.sebRestrictionAPI != null) {
+            return this.sebRestrictionAPI.testCourseRestrictionAPI();
         }
 
         if (log.isDebugEnabled()) {
@@ -377,7 +377,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
 
-        if (this.sebBestrictionAPI == null) {
+        if (this.sebRestrictionAPI == null) {
             return Result.ofError(
                     new UnsupportedOperationException("SEB Restriction API Not Supported For: " + getType().name()));
         }
@@ -386,7 +386,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Get course restriction: {} for LMSSetup: {}", exam.externalId, lmsSetup());
         }
 
-        return this.restrictionRequest.protectedRun(() -> this.sebBestrictionAPI
+        return this.restrictionRequest.protectedRun(() -> this.sebRestrictionAPI
                 .getSEBClientRestriction(exam)
                 .onError(error -> log.error(
                         "Failed to get SEB restrictions: {}",
@@ -395,11 +395,21 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     }
 
     @Override
+    public boolean hasSEBClientRestriction(final Exam exam) {
+        if (this.sebRestrictionAPI == null) {
+            return false;
+        }
+
+        return this.sebRestrictionAPI
+                .getSEBClientRestriction(exam).hasError();
+    }
+
+    @Override
     public Result<SEBRestriction> applySEBClientRestriction(
             final String externalExamId,
             final SEBRestriction sebRestrictionData) {
 
-        if (this.sebBestrictionAPI == null) {
+        if (this.sebRestrictionAPI == null) {
             return Result.ofError(
                     new UnsupportedOperationException("SEB Restriction API Not Supported For: " + getType().name()));
         }
@@ -408,7 +418,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Apply course restriction: {} for LMSSetup: {}", externalExamId, lmsSetup());
         }
 
-        return this.restrictionRequest.protectedRun(() -> this.sebBestrictionAPI
+        return this.restrictionRequest.protectedRun(() -> this.sebRestrictionAPI
                 .applySEBClientRestriction(externalExamId, sebRestrictionData)
                 .onError(error -> log.error(
                         "Failed to apply SEB restrictions: {}",
@@ -419,7 +429,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     @Override
     public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
 
-        if (this.sebBestrictionAPI == null) {
+        if (this.sebRestrictionAPI == null) {
             return Result.ofError(
                     new UnsupportedOperationException("SEB Restriction API Not Supported For: " + getType().name()));
         }
@@ -428,7 +438,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Release course restriction: {} for LMSSetup: {}", exam.externalId, lmsSetup());
         }
 
-        return this.releaseRestrictionRequest.protectedRun(() -> this.sebBestrictionAPI
+        return this.releaseRestrictionRequest.protectedRun(() -> this.sebRestrictionAPI
                 .releaseSEBClientRestriction(exam)
                 .onError(error -> log.error(
                         "Failed to release SEB restrictions: {}",

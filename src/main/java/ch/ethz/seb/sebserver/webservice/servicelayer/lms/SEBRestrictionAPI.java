@@ -33,6 +33,14 @@ public interface SEBRestrictionAPI {
      *         missing or to another exception on unexpected error case */
     Result<SEBRestriction> getSEBClientRestriction(Exam exam);
 
+    /** Use this to check if there is a SEB restriction available on the LMS for the specified exam.
+     *
+     * @param exam exam the exam to get the SEB restriction data for
+     * @return true if there is a SEB restriction set on the LMS for the exam or false otherwise */
+    default boolean hasSEBClientRestriction(final Exam exam) {
+        return getSEBClientRestriction(exam).hasError();
+    }
+
     /** Applies SEB Client restrictions to the LMS with the given attributes.
      *
      * @param externalExamId The exam/course identifier from LMS side (Exam.externalId)

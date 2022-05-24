@@ -156,30 +156,11 @@ public class MoodleCourseAccess implements CourseAccessAPI {
     @Override
     public Result<Collection<QuizData>> getQuizzes(final Set<String> ids) {
         return Result.tryCatch(() -> {
-            final List<QuizData> cached = getCached();
-            final List<QuizData> available = (cached != null)
-                    ? cached
-                    : Collections.emptyList();
 
-            final Map<String, QuizData> quizMapping = available
-                    .stream()
-                    .collect(Collectors.toMap(q -> q.id, Function.identity()));
-
-            if (!quizMapping.keySet().containsAll(ids)) {
-
-                final Map<String, QuizData> collect = getRestTemplate()
-                        .map(template -> getQuizzesForIds(template, ids))
-                        .getOrElse(() -> Collections.emptyList())
-                        .stream()
-                        .collect(Collectors.toMap(qd -> qd.id, Function.identity()));
-                if (collect != null) {
-                    quizMapping.clear();
-                    quizMapping.putAll(collect);
-                }
-            }
-
-            return quizMapping.values();
-
+            return getRestTemplate()
+                    .map(template -> getQuizzesForIds(template, ids))
+                    .onError(error -> log.error("Failed to get courses for: {}", ids, error))
+                    .getOrElse(() -> Collections.emptyList());
         });
     }
 
