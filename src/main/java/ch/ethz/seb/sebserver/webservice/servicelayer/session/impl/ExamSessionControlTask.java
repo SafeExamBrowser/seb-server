@@ -170,19 +170,21 @@ public class ExamSessionControlTask implements DisposableBean {
                     });
 
             // update per LMS Setup
-            examToLMSMapping.entrySet().stream().forEach(updateEntry -> {
-                final Result<Set<String>> updateExamFromLMS = this.examUpdateHandler
-                        .updateExamFromLMS(updateEntry.getKey(), updateEntry.getValue());
+            examToLMSMapping.entrySet()
+                    .stream()
+                    .forEach(updateEntry -> {
+                        final Result<Set<String>> updateExamFromLMS = this.examUpdateHandler
+                                .updateExamFromLMS(updateEntry.getKey(), updateEntry.getValue());
 
-                if (updateExamFromLMS.hasError()) {
-                    log.error("Failed to update exams from LMS: ", updateExamFromLMS.getError());
-                } else {
-                    final Set<String> failedExams = updateExamFromLMS.get();
-                    if (!failedExams.isEmpty()) {
-                        log.warn("Failed to update following exams from LMS: {}", failedExams);
-                    }
-                }
-            });
+                        if (updateExamFromLMS.hasError()) {
+                            log.error("Failed to update exams from LMS: ", updateExamFromLMS.getError());
+                        } else {
+                            final Set<String> failedExams = updateExamFromLMS.get();
+                            if (!failedExams.isEmpty()) {
+                                log.warn("Failed to update following exams from LMS: {}", failedExams);
+                            }
+                        }
+                    });
 
         } catch (final Exception e) {
             log.error("Unexpected error while update exams from LMS: ", e);

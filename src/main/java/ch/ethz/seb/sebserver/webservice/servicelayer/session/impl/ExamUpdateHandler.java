@@ -24,6 +24,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -243,7 +244,8 @@ class ExamUpdateHandler {
 
                 log.info("Try to recover quiz data for Moodle quiz with internal identifier: {}", quizId);
 
-                if (exam != null && exam.name != null) {
+                if (exam != null && exam.name != null
+                        && !exam.name.startsWith(Constants.SQUARE_BRACE_OPEN.toString())) {
 
                     log.debug("Found formerName quiz name: {}", exam.name);
 
@@ -282,7 +284,7 @@ class ExamUpdateHandler {
                 }
             }
 
-            if (exam.isLmsAvailable()) {
+            if (exam.lmsAvailable == null || exam.isLmsAvailable()) {
                 this.examDAO.markLMSAvailability(quizId, false, updateId);
             }
             throw new RuntimeException("Not Available");
