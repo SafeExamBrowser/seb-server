@@ -66,14 +66,14 @@ public class OrientationTableDuplicatesCheck implements DBIntegrityCheck {
                 }
             }
 
-            if (toDelete.isEmpty()) {
-                return "OK";
-            }
-
             final List<Long> checkedToDelete = toDelete
                     .stream()
                     .filter(this::doubleCheck)
                     .collect(Collectors.toList());
+
+            if (checkedToDelete == null || checkedToDelete.isEmpty()) {
+                return "OK";
+            }
 
             if (tryFix) {
 
