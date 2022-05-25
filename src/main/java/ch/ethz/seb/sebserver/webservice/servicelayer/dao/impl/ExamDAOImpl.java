@@ -735,7 +735,9 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getLmsSetupId(),
                     record.getExternalId(),
                     BooleanUtils.toBooleanObject(record.getLmsAvailable()),
-                    record.getQuizName(),
+                    StringUtils.isNotBlank(record.getQuizName())
+                            ? record.getQuizName()
+                            : Constants.SQUARE_BRACE_OPEN + record.getExternalId() + Constants.SQUARE_BRACE_CLOSE,
                     record.getQuizStartTime(),
                     record.getQuizEndTime(),
                     ExamType.valueOf(record.getType()),
