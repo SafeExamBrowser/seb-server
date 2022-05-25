@@ -684,6 +684,8 @@ public class ResourceService {
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
+                .filter(entityName -> StringUtils.isNotBlank(entityName.name)
+                        && StringUtils.isNotBlank(entityName.modelId))
                 .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
@@ -697,7 +699,7 @@ public class ResourceService {
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
-                .filter(k -> StringUtils.isNotBlank(k.modelId))
+                .filter(k -> StringUtils.isNotBlank(k.name) && StringUtils.isNotBlank(k.modelId))
                 .collect(Collectors.toMap(
                         k -> Long.valueOf(k.modelId),
                         k -> k.name));
