@@ -16,6 +16,7 @@ import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -293,6 +294,11 @@ public final class Exam implements GrantEntity {
 
     public Boolean getLmsAvailable() {
         return this.lmsAvailable;
+    }
+
+    @JsonIgnore
+    public boolean isLmsAvailable() {
+        return BooleanUtils.isTrue(this.lmsAvailable);
     }
 
     public String getExternalId() {

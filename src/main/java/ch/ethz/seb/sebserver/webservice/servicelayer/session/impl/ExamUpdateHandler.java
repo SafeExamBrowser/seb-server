@@ -108,7 +108,7 @@ class ExamUpdateHandler {
                                     log.error("Failed to update quiz data for exam: {}", quiz,
                                             updateQuizData.getError());
                                 } else {
-                                    if (!exam.lmsAvailable) {
+                                    if (!exam.isLmsAvailable()) {
                                         this.examDAO.markLMSAvailability(quiz.id, true, updateId);
                                     }
                                     failedOrMissing.remove(quiz.id);
@@ -116,7 +116,7 @@ class ExamUpdateHandler {
                                 }
 
                             } else {
-                                if (!exam.lmsAvailable) {
+                                if (!exam.isLmsAvailable()) {
                                     this.examDAO.markLMSAvailability(quiz.id, true, updateId);
                                 }
                                 failedOrMissing.remove(quiz.id);
@@ -282,7 +282,7 @@ class ExamUpdateHandler {
                 }
             }
 
-            if (exam.lmsAvailable) {
+            if (exam.isLmsAvailable()) {
                 this.examDAO.markLMSAvailability(quizId, false, updateId);
             }
             throw new RuntimeException("Not Available");

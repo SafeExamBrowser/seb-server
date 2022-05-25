@@ -596,7 +596,7 @@ public class ExamForm implements TemplateComposer {
     }
 
     private boolean testSEBRestrictionAPI(final Exam exam) {
-        if (!exam.lmsAvailable) {
+        if (!exam.isLmsAvailable()) {
             return false;
         }
 

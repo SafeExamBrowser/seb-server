@@ -132,7 +132,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                             .getOrThrow();
 
             // check lms connection
-            if (!exam.lmsAvailable) {
+            if (!exam.isLmsAvailable()) {
                 result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_LMS_CONNECTION.of(exam.getModelId()));
             }
 
