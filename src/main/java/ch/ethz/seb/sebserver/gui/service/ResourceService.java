@@ -671,7 +671,9 @@ public class ResourceService {
                 .stream()
                 .filter(exam -> exam != null
                         && (exam.getStatus() == ExamStatus.RUNNING || exam.getStatus() == ExamStatus.FINISHED))
-                .map(exam -> new Tuple<>(exam.getModelId(), exam.name))
+                .map(exam -> new Tuple<>(
+                        exam.getModelId(),
+                        StringUtils.isBlank(exam.name) ? exam.externalId : exam.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
@@ -684,9 +686,10 @@ public class ResourceService {
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
-                .filter(entityName -> StringUtils.isNotBlank(entityName.name)
-                        && StringUtils.isNotBlank(entityName.modelId))
-                .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .filter(entityName -> StringUtils.isNotBlank(entityName.modelId))
+                .map(entityName -> new Tuple<>(
+                        entityName.modelId,
+                        StringUtils.isBlank(entityName.name) ? entityName.modelId : entityName.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
@@ -699,10 +702,10 @@ public class ResourceService {
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
-                .filter(k -> StringUtils.isNotBlank(k.name) && StringUtils.isNotBlank(k.modelId))
+                .filter(k -> StringUtils.isNotBlank(k.modelId))
                 .collect(Collectors.toMap(
                         k -> Long.valueOf(k.modelId),
-                        k -> k.name));
+                        k -> StringUtils.isBlank(k.name) ? k.modelId : k.name));
     }
 
     public List<Tuple<String>> getViewResources() {
