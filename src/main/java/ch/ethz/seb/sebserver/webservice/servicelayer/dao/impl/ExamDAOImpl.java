@@ -30,6 +30,7 @@ import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -328,7 +329,7 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
     public Result<Long> placeLock(final Long examId, final String updateId) {
         return Result.tryCatch(() -> {
 
@@ -339,7 +340,7 @@ public class ExamDAOImpl implements ExamDAO {
             // consistency check
             if (BooleanUtils.isTrue(BooleanUtils.toBooleanObject(examRec.getUpdating()))) {
                 throw new IllegalStateException(
-                        "Exam to end update is not in expected state: " + examRec.getExternalId());
+                        "Exam to place lock is not in expected state: " + examRec.getExternalId());
             }
 
             final ExamRecord newRecord = new ExamRecord(
@@ -356,7 +357,7 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
     public Result<Long> releaseLock(final Long examId, final String updateId) {
         return Result.tryCatch(() -> {
 
@@ -369,7 +370,7 @@ public class ExamDAOImpl implements ExamDAO {
                     || !updateId.equals(examRec.getLastupdate())) {
 
                 throw new IllegalStateException(
-                        "Exam to end update is not in expected state: " + examRec.getExternalId());
+                        "Exam to release lock is not in expected state: " + examRec.getExternalId());
             }
 
             final ExamRecord newRecord = new ExamRecord(
