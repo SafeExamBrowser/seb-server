@@ -460,9 +460,6 @@ public class ExamRecordDAO {
                             ExamRecordDynamicSqlSupport.status,
                             isEqualTo(ExamStatus.RUNNING.name()))
                     .and(
-                            ExamRecordDynamicSqlSupport.status,
-                            isNotEqualTo(ExamStatus.ARCHIVED.name()))
-                    .and(
                             ExamRecordDynamicSqlSupport.updating,
                             isEqualTo(BooleanUtils.toInteger(false)))
                     .build()
