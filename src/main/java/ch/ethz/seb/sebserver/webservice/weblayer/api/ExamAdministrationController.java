@@ -403,7 +403,9 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .byPK(examId)
                 .flatMap(this.authorization::checkModify)
                 .map(exam -> {
-                    this.examAdminService.saveProctoringServiceSettings(examId, proctoringServiceSettings);
+                    this.examAdminService
+                            .saveProctoringServiceSettings(examId, proctoringServiceSettings)
+                            .getOrThrow();
                     return exam;
                 })
                 .flatMap(this.userActivityLogDAO::logModify)
