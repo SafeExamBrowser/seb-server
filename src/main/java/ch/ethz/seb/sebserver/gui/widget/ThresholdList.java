@@ -121,11 +121,12 @@ public final class ThresholdList extends Composite {
 
     public Collection<Threshold> getThresholds() {
         removeInvalidListEntries();
-        return this.thresholds
+        final List<Threshold> collect = this.thresholds
                 .stream()
                 .map(entry -> new Threshold(entry.getValue(), entry.getColor(),
                         null /* TODO add icon selection here */))
                 .collect(Collectors.toList());
+        return collect;
     }
 
     private void removeInvalidListEntries() {

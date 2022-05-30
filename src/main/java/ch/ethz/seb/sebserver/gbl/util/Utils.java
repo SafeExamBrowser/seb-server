@@ -578,6 +578,9 @@ public final class Utils {
      * @param rgb foreground or text color
      * @return true of the background color for given foreground color shall be dark or false if it shall be light */
     public static boolean darkColorContrast(final RGB rgb) {
+        if (rgb == null) {
+            return true;
+        }
         return rgb.red + rgb.green + rgb.blue > DARK_COLOR_THRESHOLD;
     }
 
@@ -592,15 +595,16 @@ public final class Utils {
     }
 
     public static RGB parseRGB(final String colorString) {
-        if (StringUtils.isBlank(colorString)) {
+        try {
+
+            final int r = Integer.parseInt(colorString.substring(0, 2), 16);
+            final int g = Integer.parseInt(colorString.substring(2, 4), 16);
+            final int b = Integer.parseInt(colorString.substring(4, 6), 16);
+
+            return new RGB(r, g, b);
+        } catch (final Exception e) {
             return null;
         }
-
-        final int r = Integer.parseInt(colorString.substring(0, 2), 16);
-        final int g = Integer.parseInt(colorString.substring(2, 4), 16);
-        final int b = Integer.parseInt(colorString.substring(4, 6), 16);
-
-        return new RGB(r, g, b);
     }
 
     public static String toColorFractionString(final int fraction) {
