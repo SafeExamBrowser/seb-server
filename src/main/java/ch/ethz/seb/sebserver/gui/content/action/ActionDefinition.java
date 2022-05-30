@@ -532,6 +532,11 @@ public enum ActionDefinition {
             ImageIcon.DELETE,
             PageStateDefinitionImpl.SEB_CLIENT_CONFIG_LIST,
             ActionCategory.FORM),
+    SEB_CLIENT_CONFIG_SHOW_CREDENTIALS(
+            new LocTextKey("sebserver.clientconfig.action.credentials"),
+            ImageIcon.SECURE,
+            PageStateDefinitionImpl.SEB_CLIENT_CONFIG_VIEW,
+            ActionCategory.FORM),
 
     SEB_EXAM_CONFIG_LIST(
             new LocTextKey("sebserver.examconfig.action.list"),

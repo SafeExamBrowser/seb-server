@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.content.configs;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
@@ -44,6 +46,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
+import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.download.SEBClientConfigDownload;
@@ -52,11 +55,13 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.DeactivateClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.DeleteClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.GetClientCredentials;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.NewClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.clientconfig.SaveClientConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 @Lazy
 @Component
@@ -75,6 +80,15 @@ public class SEBClientConfigForm implements TemplateComposer {
             new LocTextKey("sebserver.clientconfig.form.update.user");
     private static final LocTextKey FORM_UPDATE_TIME_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.update.time");
+
+    private static final LocTextKey CLIENT_CREDENTIALS_TITLE_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.credentials.title");
+    private static final LocTextKey CLIENT_CREDENTIALS_INFO_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.credentials.info");
+    private static final LocTextKey CLIENT_CREDENTIALS_NAME_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.credentials.name");
+    private static final LocTextKey CLIENT_CREDENTIALS_SECRET_TEXT_KEY =
+            new LocTextKey("sebserver.clientconfig.form.credentials.secret");
 
     private static final LocTextKey FORM_DATE_TEXT_KEY =
             new LocTextKey("sebserver.clientconfig.form.date");
@@ -208,6 +222,12 @@ public class SEBClientConfigForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withConfirm(() -> DELETE_CONFIRM)
                 .withExec(this::deleteConnectionConfig)
+                .publishIf(() -> modifyGrant && isReadonly)
+
+                .newAction(ActionDefinition.SEB_CLIENT_CONFIG_SHOW_CREDENTIALS)
+                .withEntityKey(entityKey)
+                .withExec(getClientCredentialFunction(this.pageService, this.cryptor))
+                .ignoreMoveAwayFromEdit()
                 .publishIf(() -> modifyGrant && isReadonly)
 
                 .newAction(ActionDefinition.SEB_CLIENT_CONFIG_EXPORT)
@@ -556,6 +576,60 @@ public class SEBClientConfigForm implements TemplateComposer {
         if (num < 0) {
             throw new PageMessageException("Number must be positive");
         }
+    }
+
+    public static Function<PageAction, PageAction> getClientCredentialFunction(
+            final PageService pageService,
+            final Cryptor cryptor) {
+
+        final RestService restService = pageService.getResourceService().getRestService();
+        return action -> {
+
+            final ClientCredentials credentials = restService
+                    .getBuilder(GetClientCredentials.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                    .call()
+                    .getOrThrow();
+
+            final WidgetFactory widgetFactory = pageService.getWidgetFactory();
+            final ModalInputDialog<Void> dialog = new ModalInputDialog<>(
+                    action.pageContext().getParent().getShell(),
+                    widgetFactory);
+
+            dialog.setDialogWidth(720);
+
+            dialog.open(
+                    CLIENT_CREDENTIALS_TITLE_TEXT_KEY,
+                    action.pageContext(),
+                    pc -> {
+
+                        final Composite content = widgetFactory.defaultPageLayout(
+                                pc.getParent());
+
+                        widgetFactory.labelLocalized(
+                                content,
+                                CustomVariant.TEXT_H3,
+                                CLIENT_CREDENTIALS_INFO_TEXT_KEY);
+
+                        pageService.formBuilder(
+                                action.pageContext().copyOf(content))
+                                .readonly(true)
+                                .withDefaultSpanLabel(1)
+                                .withDefaultSpanInput(6)
+
+                                .addField(FormBuilder.text(
+                                        "ClientId",
+                                        CLIENT_CREDENTIALS_NAME_TEXT_KEY,
+                                        credentials.clientIdAsString()))
+
+                                .addField(FormBuilder.password(
+                                        "ClientSecret",
+                                        CLIENT_CREDENTIALS_SECRET_TEXT_KEY,
+                                        cryptor.decrypt(credentials.secret).getOrThrow()))
+                                .build();
+                    });
+            return action;
+        };
     }
 
     private static final class FormHandleAnchor {

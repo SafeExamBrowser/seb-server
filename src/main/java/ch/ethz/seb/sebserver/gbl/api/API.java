@@ -157,6 +157,7 @@ public final class API {
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 
     public static final String SEB_CLIENT_CONFIG_ENDPOINT = "/client_configuration";
+    public static final String SEB_CLIENT_CONFIG_CREDENTIALS_PATH_SEGMENT = "/credentials";
     public static final String SEB_CLIENT_CONFIG_DOWNLOAD_PATH_SEGMENT = "/download";
 
     public static final String CONFIGURATION_NODE_ENDPOINT = "/configuration-node";
