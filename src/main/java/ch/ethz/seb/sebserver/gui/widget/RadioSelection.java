@@ -75,7 +75,7 @@ public final class RadioSelection extends Composite implements Selection {
                     this.listener.handleEvent(event);
                 }
             });
-            WidgetFactory.setTestId(button, (this.testKey != null) ? this.testKey + tuple._1 : tuple._1);
+            WidgetFactory.setTestId(button, (this.testKey != null) ? this.testKey + "_" + tuple._1 : tuple._1);
             WidgetFactory.setARIALabel(button, tuple._2);
             this.radioButtons.put(tuple._1, button);
         }

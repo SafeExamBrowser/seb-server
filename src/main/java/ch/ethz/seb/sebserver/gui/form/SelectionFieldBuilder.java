@@ -34,6 +34,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public final class SelectionFieldBuilder extends FieldBuilder<String> {
 
+    private static final String TEST_KEY_SUFFIX = ".action";
+
     final Supplier<List<Tuple<String>>> itemsSupplier;
     Consumer<Form> selectionListener = null;
     final Selection.Type type;
@@ -69,14 +71,14 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
     private void buildInput(final FormBuilder builder, final Control titleLabel) {
 
         final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
-        final String actionKey = (this.label != null) ? this.label.name + ".action" : null;
+        final String testKey = (this.label != null) ? this.label.name + TEST_KEY_SUFFIX : null;
         final Selection selection = builder.widgetFactory.selectionLocalized(
                 this.type,
                 fieldGrid,
                 this.itemsSupplier,
                 (builder.pageService.getFormTooltipMode() == PageService.FormTooltipMode.INPUT) ? this.tooltip : null,
                 null,
-                actionKey,
+                testKey,
                 builder.i18nSupport.getText(getARIALabel(builder)));
 
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
@@ -161,7 +163,12 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         }
 
         if (this.label != null) {
-            WidgetFactory.setTestId(label, this.label.name + "_" + valueKey);
+            final String testKey = this.label.name + TEST_KEY_SUFFIX;
+            if (this.type == Type.MULTI || this.type == Type.MULTI_COMBO || this.type == Type.MULTI_CHECKBOX) {
+                WidgetFactory.setTestId(label, testKey + "_" + valueKey);
+            } else {
+                WidgetFactory.setTestId(label, testKey);
+            }
         }
 
         return label;
