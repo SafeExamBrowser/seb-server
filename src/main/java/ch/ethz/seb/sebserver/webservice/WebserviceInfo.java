@@ -201,7 +201,8 @@ public class WebserviceInfo {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (final UnknownHostException e) {
-            return null;
+            log.error("Failed to get local host name: {}", e.getMessage());
+            return Constants.EMPTY_NOTE;
         }
     }
 
@@ -209,7 +210,8 @@ public class WebserviceInfo {
         try {
             return InetAddress.getLocalHost().getHostAddress();
         } catch (final UnknownHostException e) {
-            return null;
+            log.error("Failed to get local host address: {}", e.getMessage());
+            return Constants.EMPTY_NOTE;
         }
     }
 

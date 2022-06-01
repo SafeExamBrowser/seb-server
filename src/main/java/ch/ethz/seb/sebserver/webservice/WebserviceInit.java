@@ -8,9 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import javax.annotation.PreDestroy;
 
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -126,21 +123,15 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
                     this.environment.getProperty("sebserver.webservice.distributed.connectionUpdate", "2000"));
         }
 
-        try {
-            SEBServerInit.INIT_LOGGER.info("----> ");
-            SEBServerInit.INIT_LOGGER.info("----> Server address: {}", this.environment.getProperty("server.address"));
-            SEBServerInit.INIT_LOGGER.info("----> Server port: {}", this.environment.getProperty("server.port"));
-            SEBServerInit.INIT_LOGGER.info("---->");
-            SEBServerInit.INIT_LOGGER.info("----> Local-Host address: {}", InetAddress.getLocalHost().getHostAddress());
-            SEBServerInit.INIT_LOGGER.info("----> Local-Host name: {}", InetAddress.getLocalHost().getHostName());
-            SEBServerInit.INIT_LOGGER.info("---->");
-            SEBServerInit.INIT_LOGGER.info("----> Remote-Host address: {}",
-                    InetAddress.getLoopbackAddress().getHostAddress());
-            SEBServerInit.INIT_LOGGER.info("----> Remote-Host name: {}",
-                    InetAddress.getLoopbackAddress().getHostName());
-        } catch (final UnknownHostException e) {
-            SEBServerInit.INIT_LOGGER.error("Unknown Host: ", e);
-        }
+        SEBServerInit.INIT_LOGGER.info("----> ");
+        SEBServerInit.INIT_LOGGER.info("----> Server address: {}", this.environment.getProperty("server.address"));
+        SEBServerInit.INIT_LOGGER.info("----> Server port: {}", this.environment.getProperty("server.port"));
+        SEBServerInit.INIT_LOGGER.info("---->");
+        SEBServerInit.INIT_LOGGER.info("----> Local-Host address: {}", this.webserviceInfo.getLocalHostAddress());
+        SEBServerInit.INIT_LOGGER.info("----> Local-Host name: {}", this.webserviceInfo.getLocalHostName());
+        SEBServerInit.INIT_LOGGER.info("---->");
+        SEBServerInit.INIT_LOGGER.info("----> Remote-Host address: {}", this.webserviceInfo.getLoopbackHostAddress());
+        SEBServerInit.INIT_LOGGER.info("----> Remote-Host name: {}", this.webserviceInfo.getLoopbackHostName());
 
         SEBServerInit.INIT_LOGGER.info("---->");
         SEBServerInit.INIT_LOGGER.info("----> Context Path: {}", this.webserviceInfo.getContextPath());
@@ -162,7 +153,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         boolean registered = false;
         try {
             final String webserviceUUID = this.webserviceInfo.getWebserviceUUID();
-            final String hostAddress = InetAddress.getLocalHost().getHostAddress();
+            final String hostAddress = this.webserviceInfo.getLocalHostAddress();
             registered = this.webserviceInfoDAO.register(webserviceUUID, hostAddress);
             if (registered) {
                 SEBServerInit.INIT_LOGGER.info("----> Successfully register Webservice instance. uuid: {}, address: {}",
