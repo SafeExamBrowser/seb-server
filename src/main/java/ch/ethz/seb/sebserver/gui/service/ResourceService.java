@@ -669,8 +669,10 @@ public class ResourceService {
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
-                .filter(exam -> exam != null
-                        && (exam.getStatus() == ExamStatus.RUNNING || exam.getStatus() == ExamStatus.FINISHED))
+                .filter(exam -> exam != null &&
+                        (exam.getStatus() == ExamStatus.RUNNING ||
+                                exam.getStatus() == ExamStatus.FINISHED ||
+                                exam.getStatus() == ExamStatus.ARCHIVED))
                 .map(exam -> new Tuple<>(
                         exam.getModelId(),
                         StringUtils.isBlank(exam.name) ? exam.externalId : exam.name))

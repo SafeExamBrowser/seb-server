@@ -125,11 +125,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         return Result.tryCatch(() -> {
             final Collection<APIMessage> result = new ArrayList<>();
 
-            final Exam exam = (this.isExamRunning(examId))
-                    ? this.examSessionCacheService.getRunningExam(examId)
-                    : this.examDAO
-                            .byPK(examId)
-                            .getOrThrow();
+            final Exam exam = this.examDAO
+                    .byPK(examId)
+                    .getOrThrow();
 
             // check lms connection
             if (!exam.isLmsAvailable()) {
