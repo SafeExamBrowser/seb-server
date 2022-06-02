@@ -328,6 +328,11 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         return Result.tryCatch(() -> {
 
             final long millisecondsNow = Utils.getMillisecondsNow();
+            // NOTE: we use nanoseconds here to get a better precision to better avoid
+            //       same value of real concurrent calls on distributed systems
+            // TODO: Better solution for the future would be to count this value and
+            //       isolation is done via DB transaction
+            final long nanosecondsNow = System.nanoTime();
             final ClientConnectionRecord newRecord = new ClientConnectionRecord(
                     null,
                     data.institutionId,
@@ -340,7 +345,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     BooleanUtils.toInteger(data.vdi, 1, 0, 0),
                     data.vdiPairToken,
                     millisecondsNow,
-                    millisecondsNow,
+                    nanosecondsNow,
                     data.remoteProctoringRoomId,
                     null,
                     Utils.truncateText(data.sebMachineName, 255),
@@ -359,7 +364,11 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public Result<ClientConnection> save(final ClientConnection data) {
         return Result.tryCatch(() -> {
 
-            final long millisecondsNow = Utils.getMillisecondsNow();
+            // NOTE: we use nanoseconds here to get a better precision to better avoid
+            //       same value of real concurrent calls on distributed systems
+            // TODO: Better solution for the future would be to count this value and
+            //       isolation is done via DB transaction
+            final long nanosecondsNow = System.nanoTime();
             final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
                     data.id,
                     null,
@@ -372,7 +381,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     BooleanUtils.toInteger(data.vdi, 1, 0, 0),
                     data.vdiPairToken,
                     null,
-                    millisecondsNow,
+                    nanosecondsNow,
                     null,
                     null,
                     Utils.truncateText(data.sebMachineName, 255),
