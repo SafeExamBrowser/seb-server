@@ -169,6 +169,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     private final WebserviceInfo webserviceInfo;
     private final CertificateDAO certificateDAO;
     private final long defaultPingInterval;
+    private final int examAPITokenValiditySeconds;
 
     protected ClientConfigServiceImpl(
             final SEBClientConfigDAO sebClientConfigDAO,
@@ -178,7 +179,8 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             final WebserviceInfo webserviceInfo,
             final CertificateDAO certificateDAO,
             @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
-            @Value("${sebserver.webservice.api.exam.defaultPingInterval:1000}") final long defaultPingInterval) {
+            @Value("${sebserver.webservice.api.exam.defaultPingInterval:1000}") final long defaultPingInterval,
+            @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:-1}") final int examAPITokenValiditySeconds) {
 
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.clientCredentialService = clientCredentialService;
@@ -188,6 +190,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         this.webserviceInfo = webserviceInfo;
         this.certificateDAO = certificateDAO;
         this.defaultPingInterval = defaultPingInterval;
+        this.examAPITokenValiditySeconds = examAPITokenValiditySeconds;
     }
 
     @Override
@@ -210,8 +213,8 @@ public class ClientConfigServiceImpl implements ClientConfigService {
 
                     baseClientDetails.setScope(Collections.emptySet());
                     baseClientDetails.setClientSecret(Utils.toString(pwd));
-                    baseClientDetails.setAccessTokenValiditySeconds(-1); // not expiring
-                    baseClientDetails.setRefreshTokenValiditySeconds(-1); // not expiring
+                    baseClientDetails.setAccessTokenValiditySeconds(this.examAPITokenValiditySeconds);
+                    baseClientDetails.setRefreshTokenValiditySeconds(-1); // not used, not expiring
 
                     if (log.isDebugEnabled()) {
                         log.debug("Created new BaseClientDetails for id: {}", clientName);
