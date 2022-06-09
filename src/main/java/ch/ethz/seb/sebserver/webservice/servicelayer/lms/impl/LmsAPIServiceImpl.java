@@ -93,8 +93,9 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             log.debug("LmsSetup changed. Update cache by removing eventually used references");
         }
 
-        final LmsAPITemplate removedTemplate = this.cache
-                .remove(new CacheKey(lmsSetup.getModelId(), 0));
+        final LmsAPITemplate removedTemplate = this.cache.remove(
+                new CacheKey(lmsSetup.getModelId(), 0));
+
         if (removedTemplate != null) {
             removedTemplate.clearCourseCache();
         }
