@@ -44,55 +44,62 @@ public class OlatLmsRestTemplate extends RestTemplate {
                     final byte[] body,
                     final ClientHttpRequestExecution execution) throws IOException {
 
-                // if there's no token, authenticate first
-                if (OlatLmsRestTemplate.this.token == null) {
-                    authenticate();
-                }
-                // when authenticating, just do a normal call
-                else if (OlatLmsRestTemplate.this.token.equals("authenticating")) {
+                try {
 
-                    if (log.isDebugEnabled()) {
-                        log.debug("OLAT [authentication call]: URL {}", request.getURI());
+                    // if there's no token, authenticate first
+                    if (OlatLmsRestTemplate.this.token == null) {
+                        authenticate();
                     }
+                    // when authenticating, just do a normal call
+                    else if (OlatLmsRestTemplate.this.token.equals("authenticating")) {
 
-                    return execution.execute(request, body);
-                }
-                // otherwise, add the X-OLAT-TOKEN
-                request.getHeaders().set("accept", "application/json");
-                request.getHeaders().set("X-OLAT-TOKEN", OlatLmsRestTemplate.this.token);
+                        if (log.isDebugEnabled()) {
+                            log.debug("OLAT [authentication call]: URL {}", request.getURI());
+                        }
 
-                if (log.isDebugEnabled()) {
-                    log.debug("OLAT [regular API call]: URL {}", request.getURI());
-                }
-
-                ClientHttpResponse response = execution.execute(request, body);
-
-                if (log.isDebugEnabled()) {
-                    log.debug("OLAT [regular API call response] {} Headers: {}",
-                            response.getStatusCode(),
-                            response.getHeaders());
-                }
-
-                // If we get a 401, re-authenticate and try once more
-                if (response.getStatusCode() == HttpStatus.UNAUTHORIZED
-                /* || response.getStatusCode() == HttpStatus.FORBIDDEN */) {
-
-                    authenticate();
+                        return execution.execute(request, body);
+                    }
+                    // otherwise, add the X-OLAT-TOKEN
+                    request.getHeaders().set("accept", "application/json");
                     request.getHeaders().set("X-OLAT-TOKEN", OlatLmsRestTemplate.this.token);
 
                     if (log.isDebugEnabled()) {
-                        log.debug("OLAT [retry API call]: URL {}", request.getURI());
+                        log.debug("OLAT [regular API call]: URL {}", request.getURI());
                     }
 
-                    response = execution.execute(request, body);
+                    ClientHttpResponse response = execution.execute(request, body);
 
                     if (log.isDebugEnabled()) {
-                        log.debug("OLAT [retry API call response] {} Headers: {}",
+                        log.debug("OLAT [regular API call response] {} Headers: {}",
                                 response.getStatusCode(),
                                 response.getHeaders());
                     }
+
+                    // If we get a 401, re-authenticate and try once more
+                    if (response.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+
+                        authenticate();
+                        request.getHeaders().set("X-OLAT-TOKEN", OlatLmsRestTemplate.this.token);
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("OLAT [retry API call]: URL {}", request.getURI());
+                        }
+
+                        response = execution.execute(request, body);
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("OLAT [retry API call response] {} Headers: {}",
+                                    response.getStatusCode(),
+                                    response.getHeaders());
+                        }
+                    }
+                    return response;
+
+                } catch (final Exception e) {
+                    // TODO find a way to better deal with Olat temporary unavailability
+                    log.error("Unexpected error: ", e);
+                    throw e;
                 }
-                return response;
             }
         });
     }
