@@ -48,22 +48,19 @@ public interface ClientConnectionDAO extends
 
     }
 
-    /** Get a list of all connection tokens of all connections (no matter what state)
-     * of an exam.
-     *
-     * @param examId The exam identifier
-     * @return list of all connection tokens of all connections (no matter what state)
-     *         of an exam */
-    default Result<Collection<String>> getConnectionTokensNoCache(final Long examId) {
-        return getConnectionTokens(examId);
-    }
-
     /** Get a list of all connection tokens of all connections of an exam
-     * that are in state active
+     * that are in state <code>ConnectionStatus.ACTIVE</code>
      *
      * @param examId The exam identifier
      * @return Result refer to the collection of connection tokens or to an error when happened */
-    Result<Collection<String>> getActiveConnctionTokens(Long examId);
+    Result<Collection<String>> getActiveConnectionTokens(Long examId);
+
+    /** Get a list of all connection tokens of all connections of an exam
+     * that are in state an active state. See <code>ClientConnection</code>
+     *
+     * @param examId The exam identifier
+     * @return Result refer to the collection of connection tokens or to an error when happened */
+    Result<Collection<String>> getAllActiveConnectionTokens(Long examId);
 
     /** Get all inactive connection tokens from the set of given tokens.
      * This is usually used for cleanup purposes to filter a bunch of connection tokens

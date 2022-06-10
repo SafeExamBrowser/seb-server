@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientConnectionTokenMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
@@ -70,19 +71,22 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     private final ClientInstructionRecordMapper clientInstructionRecordMapper;
     private final ClientIndicatorRecordMapper clientIndicatorRecordMapper;
     private final ClientNotificationRecordMapper clientNotificationRecordMapper;
+    private final ClientConnectionTokenMapper clientConnectionMinMapper;
 
     protected ClientConnectionDAOImpl(
             final ClientConnectionRecordMapper clientConnectionRecordMapper,
             final ClientEventRecordMapper clientEventRecordMapper,
             final ClientInstructionRecordMapper clientInstructionRecordMapper,
             final ClientIndicatorRecordMapper clientIndicatorRecordMapper,
-            final ClientNotificationRecordMapper clientNotificationRecordMapper) {
+            final ClientNotificationRecordMapper clientNotificationRecordMapper,
+            final ClientConnectionTokenMapper clientConnectionMinMapper) {
 
         this.clientConnectionRecordMapper = clientConnectionRecordMapper;
         this.clientEventRecordMapper = clientEventRecordMapper;
         this.clientInstructionRecordMapper = clientInstructionRecordMapper;
         this.clientIndicatorRecordMapper = clientIndicatorRecordMapper;
         this.clientNotificationRecordMapper = clientNotificationRecordMapper;
+        this.clientConnectionMinMapper = clientConnectionMinMapper;
     }
 
     @Override
@@ -162,7 +166,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<String>> getConnectionTokens(final Long examId) {
-        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+        return Result.tryCatch(() -> this.clientConnectionMinMapper
                 .selectByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.examId,
@@ -170,15 +174,15 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(ClientConnectionRecord::getConnectionToken)
+                .map(rec -> rec.connection_token)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList()));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<String>> getActiveConnctionTokens(final Long examId) {
-        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+    public Result<Collection<String>> getActiveConnectionTokens(final Long examId) {
+        return Result.tryCatch(() -> this.clientConnectionMinMapper
                 .selectByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.examId,
@@ -189,7 +193,26 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(ClientConnectionRecord::getConnectionToken)
+                .map(rec -> rec.connection_token)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<String>> getAllActiveConnectionTokens(final Long examId) {
+        return Result.tryCatch(() -> this.clientConnectionMinMapper
+                .selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        SqlBuilder.isIn(ClientConnection.ACTIVE_STATES))
+                .build()
+                .execute()
+                .stream()
+                .map(rec -> rec.connection_token)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList()));
     }

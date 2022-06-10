@@ -11,9 +11,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,8 +22,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -69,7 +67,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
     private final ExamSessionService examSessionService;
     private final ExamSessionCacheService examSessionCacheService;
-    private final CacheManager cacheManager;
     private final EventHandlingStrategy eventHandlingStrategy;
     private final ClientConnectionDAO clientConnectionDAO;
     private final SEBClientConfigDAO sebClientConfigDAO;
@@ -90,7 +87,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();
-        this.cacheManager = examSessionService.getCacheManager();
         this.clientConnectionDAO = examSessionService.getClientConnectionDAO();
         this.eventHandlingStrategy = eventHandlingStrategyFactory.get();
         this.sebClientConfigDAO = sebClientConfigDAO;
@@ -645,28 +641,19 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     public void updatePingEvents() {
         try {
 
-            final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION);
-            final long now = Utils.getMillisecondsNow();
-            final Consumer<ClientConnectionDataInternal> missingPingUpdate = missingPingUpdate(now);
             this.examSessionService
                     .getExamDAO()
                     .allRunningExamIds()
                     .getOrThrow()
                     .stream()
-                    .flatMap(examId -> this.isDistributedSetup
-                            ? this.clientConnectionDAO
-                                    .getConnectionTokensNoCache(examId)
-                                    .getOrThrow()
-                                    .stream()
-                            : this.clientConnectionDAO
-                                    .getConnectionTokens(examId)
-                                    .getOrThrow()
-                                    .stream())
-                    .map(token -> cache.get(token, ClientConnectionDataInternal.class))
+                    .flatMap(examId -> this.clientConnectionDAO
+                            .getAllActiveConnectionTokens(examId)
+                            .getOr(Collections.emptyList())
+                            .stream())
+                    .map(this.examSessionService::getConnectionDataInternal)
                     .filter(Objects::nonNull)
-                    .filter(connection -> connection.pingIndicator != null &&
-                            connection.clientConnection.status.clientActiveStatus)
-                    .forEach(connection -> missingPingUpdate.accept(connection));
+                    .filter(connection -> connection.pingIndicator != null)
+                    .forEach(this::missingPingUpdate);
 
         } catch (final Exception e) {
             log.error("Failed to update ping events: ", e);
@@ -905,31 +892,29 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         return this.examSessionService.getConnectionDataInternal(connectionToken);
     }
 
-    private Consumer<ClientConnectionDataInternal> missingPingUpdate(final long now) {
+    private void missingPingUpdate(final ClientConnectionDataInternal connection) {
+        if (connection.pingIndicator.changeOnIncident()) {
 
-        return connection -> {
+            final boolean missingPing = connection.getMissingPing();
+            final long millisecondsNow = Utils.getMillisecondsNow();
+            final ClientEventRecord clientEventRecord = new ClientEventRecord(
+                    null,
+                    connection.getConnectionId(),
+                    (missingPing) ? EventType.ERROR_LOG.id : EventType.INFO_LOG.id,
+                    millisecondsNow,
+                    millisecondsNow,
+                    new BigDecimal(connection.pingIndicator.getValue()),
+                    (missingPing) ? "Missing Client Ping" : "Client Ping Back To Normal");
 
-            if (connection.pingIndicator.missingPingUpdate(now)) {
-                final boolean missingPing = connection.getMissingPing();
-                final ClientEventRecord clientEventRecord = new ClientEventRecord(
-                        null,
-                        connection.getConnectionId(),
-                        (missingPing) ? EventType.ERROR_LOG.id : EventType.INFO_LOG.id,
-                        now,
-                        now,
-                        new BigDecimal(connection.pingIndicator.getValue()),
-                        (missingPing) ? "Missing Client Ping" : "Client Ping Back To Normal");
+            // store event and and flush cache
+            this.eventHandlingStrategy.accept(clientEventRecord);
 
-                // store event and and flush cache
-                this.eventHandlingStrategy.accept(clientEventRecord);
-
-                // update indicators
-                if (clientEventRecord.getType() != null && EventType.ERROR_LOG.id == clientEventRecord.getType()) {
-                    connection.getIndicatorMapping(EventType.ERROR_LOG)
-                            .forEach(indicator -> indicator.notifyValueChange(clientEventRecord));
-                }
+            // update indicators
+            if (clientEventRecord.getType() != null && EventType.ERROR_LOG.id == clientEventRecord.getType()) {
+                connection.getIndicatorMapping(EventType.ERROR_LOG)
+                        .forEach(indicator -> indicator.notifyValueChange(clientEventRecord));
             }
-        };
+        }
     }
 
 }

@@ -25,20 +25,19 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 
 @Mapper
-public interface ClientConnectionMinMapper {
+public interface ClientConnectionTokenMapper {
 
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
     Long num(SelectStatementProvider selectStatement);
 
     @SelectProvider(type = SqlProviderAdapter.class, method = "select")
-    @ResultType(ClientConnectionMinRecord.class)
+    @ResultType(ClientConnectionTokenRecord.class)
     @ConstructorArgs({
-            @Arg(column = "connection_token", javaType = String.class, jdbcType = JdbcType.VARCHAR, id = true),
-            @Arg(column = "update_time", javaType = Long.class, jdbcType = JdbcType.BIGINT),
+            @Arg(column = "connection_token", javaType = String.class, jdbcType = JdbcType.VARCHAR, id = true)
     })
-    Collection<ClientConnectionMinRecord> selectMany(SelectStatementProvider select);
+    Collection<ClientConnectionTokenRecord> selectMany(SelectStatementProvider select);
 
-    default QueryExpressionDSL<MyBatis3SelectModelAdapter<Collection<ClientConnectionMinRecord>>> selectByExample() {
+    default QueryExpressionDSL<MyBatis3SelectModelAdapter<Collection<ClientConnectionTokenRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(
                 this::selectMany,
 
@@ -48,17 +47,12 @@ public interface ClientConnectionMinMapper {
                 .from(ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord);
     }
 
-    final class ClientConnectionMinRecord {
+    final class ClientConnectionTokenRecord {
 
         public final String connection_token;
-        public final Long update_time;
 
-        public ClientConnectionMinRecord(
-                final String connection_token,
-                final Long update_time) {
-
+        public ClientConnectionTokenRecord(final String connection_token) {
             this.connection_token = connection_token;
-            this.update_time = update_time;
         }
     }
 

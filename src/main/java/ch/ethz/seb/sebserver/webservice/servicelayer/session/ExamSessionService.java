@@ -210,7 +210,7 @@ public interface ExamSessionService {
      * @return Result with reference to the given Exam or to an error if happened */
     Result<Exam> flushCache(final Exam exam);
 
-    /** Is is supposed to be the single access point to internally get client connection
+    /** This is supposed to be the single access point to internally get client connection
      * data for a specified connection token.
      * This uses the client connection data cache for lookup and also synchronizes asynchronous
      * cache calls to prevent parallel creation of ClientConnectionDataInternal

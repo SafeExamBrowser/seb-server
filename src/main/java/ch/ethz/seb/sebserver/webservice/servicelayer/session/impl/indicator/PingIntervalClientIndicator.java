@@ -118,22 +118,27 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     @Override
     public final boolean hasIncident() {
+        if (!this.active) {
+            return false;
+        }
+
         return getValue() >= super.incidentThreshold;
     }
 
     private double lastCheckVal = 0;
 
-    public final boolean missingPingUpdate(final long now) {
-        if (this.currentValue <= 0) {
+    public final boolean changeOnIncident() {
+        if (!this.active || this.currentValue <= 0) {
             return false;
         }
 
-        final double val = now - this.currentValue;
-        // check if incidentThreshold was passed (up or down) since last update
-        final boolean result = (this.lastCheckVal < this.incidentThreshold && val >= this.incidentThreshold) ||
+        final double val = getValue();
+        // check if incident threshold has passed (up or down) since last update
+        final boolean changed = (this.lastCheckVal < this.incidentThreshold && val >= this.incidentThreshold) ||
                 (this.lastCheckVal >= this.incidentThreshold && val < this.incidentThreshold);
+
         this.lastCheckVal = val;
-        return result;
+        return changed;
     }
 
 }

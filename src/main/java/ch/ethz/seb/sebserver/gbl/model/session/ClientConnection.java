@@ -8,8 +8,10 @@
 
 package ch.ethz.seb.sebserver.gbl.model.session;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.function.Predicate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -45,6 +47,11 @@ public final class ClientConnection implements GrantEntity {
             this.clientActiveStatus = connectingStatus || establishedStatus;
         }
     }
+
+    public final static List<String> ACTIVE_STATES = Arrays.asList(
+            ConnectionStatus.ACTIVE.name(),
+            ConnectionStatus.AUTHENTICATED.name(),
+            ConnectionStatus.CONNECTION_REQUESTED.name());
 
     public static final ClientConnection EMPTY_CLIENT_CONNECTION = new ClientConnection(
             -1L, -1L, -1L,
