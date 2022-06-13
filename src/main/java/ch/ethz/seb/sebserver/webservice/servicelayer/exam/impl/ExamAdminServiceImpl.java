@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -130,7 +131,14 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
         return this.lmsAPIService
                 .getLmsAPITemplate(exam.lmsSetupId)
-                .map(lmsAPI -> !lmsAPI.getSEBClientRestriction(exam).hasError());
+                .map(lmsAPI -> {
+                    final Result<SEBRestriction> sebClientRestriction = lmsAPI.getSEBClientRestriction(exam);
+                    if (sebClientRestriction.hasError()) {
+                        return false;
+                    }
+                    final SEBRestriction sebRestriction = sebClientRestriction.get();
+                    return !sebRestriction.configKeys.isEmpty() || !sebRestriction.browserExamKeys.isEmpty();
+                });
     }
 
     @Override
