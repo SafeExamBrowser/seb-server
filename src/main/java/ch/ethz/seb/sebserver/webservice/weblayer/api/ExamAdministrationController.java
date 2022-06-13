@@ -47,7 +47,6 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
@@ -229,8 +228,9 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         checkWritePrivilege(institutionId);
         return this.examDAO.byPK(modelId)
                 .flatMap(this::checkWriteAccess)
-                .flatMap(this::checkArchive)
-                .flatMap(exam -> this.examDAO.updateState(exam.id, ExamStatus.ARCHIVED, null))
+                .flatMap(this.examAdminService::archiveExam)
+//                .flatMap(this::checkArchive)
+//                .flatMap(exam -> this.examDAO.updateState(exam.id, ExamStatus.ARCHIVED, null))
                 .flatMap(this::logModify)
                 .getOrThrow();
     }
@@ -579,15 +579,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                         .getOrThrow();
             }
         });
-    }
-
-    private Result<Exam> checkArchive(final Exam exam) {
-        if (exam.status != ExamStatus.FINISHED) {
-            throw new APIMessageException(
-                    APIMessage.ErrorMessage.INTEGRITY_VALIDATION.of("Exam is in wrong status to archive."));
-        }
-
-        return Result.of(exam);
     }
 
     static Function<Collection<Exam>, List<Exam>> pageSort(final String sort) {

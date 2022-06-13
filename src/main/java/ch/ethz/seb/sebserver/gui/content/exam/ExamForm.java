@@ -445,21 +445,21 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.examSEBRestrictionSettings.settingsFunction(this.pageService))
                 .withAttribute(ExamSEBRestrictionSettings.PAGE_CONTEXT_ATTR_LMS_ID, String.valueOf(exam.lmsSetupId))
-                .withAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY, String.valueOf(!modifyGrant))
+                .withAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY, String.valueOf(!modifyGrant || !editable))
                 .noEventPropagation()
                 .publishIf(() -> sebRestrictionAvailable && readonly)
 
                 .newAction(ActionDefinition.EXAM_ENABLE_SEB_RESTRICTION)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, true, this.restService))
-                .publishIf(() -> sebRestrictionAvailable && readonly && editable && !importFromQuizData
+                .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
                         && BooleanUtils.isFalse(isRestricted))
 
                 .newAction(ActionDefinition.EXAM_DISABLE_SEB_RESTRICTION)
                 .withConfirm(() -> ACTION_MESSAGE_SEB_RESTRICTION_RELEASE)
                 .withEntityKey(entityKey)
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
-                .publishIf(() -> sebRestrictionAvailable && readonly && editable && !importFromQuizData
+                .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
                         && BooleanUtils.isTrue(isRestricted))
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_ON)

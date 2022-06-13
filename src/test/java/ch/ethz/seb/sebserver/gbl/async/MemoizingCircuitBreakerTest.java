@@ -42,7 +42,7 @@ public class MemoizingCircuitBreakerTest {
     @Test
     public void roundtrip1() throws InterruptedException {
         final MemoizingCircuitBreaker<String> circuitBreaker = this.asyncService.createMemoizingCircuitBreaker(
-                tester(100, 5, 10), 3, 500, 1000, true, 1000);
+                tester(100, 5, 10), 4, 500, 1000, true, 1000);
 
         assertNull(circuitBreaker.getCached());
 

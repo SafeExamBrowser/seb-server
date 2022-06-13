@@ -87,7 +87,7 @@ public final class CircuitBreaker<T> {
     /** Create new CircuitBreakerSupplier.
      *
      * @param asyncRunner the AsyncRunner used to create asynchronous calls on the given supplier function
-     * @param maxFailingAttempts the number of maximal failing attempts before go form CLOSE into HALF_OPEN state
+     * @param maxFailingAttempts the number of maximal failing attempts before go from CLOSE into HALF_OPEN state
      * @param maxBlockingTime the maximal time that an call attempt can block until an error is responded
      * @param timeToRecover the time the circuit breaker needs to cool-down on OPEN-STATE before going back to HALF_OPEN
      *            state */
@@ -169,7 +169,7 @@ public final class CircuitBreaker<T> {
 
             final long currentBlockingTime = Utils.getMillisecondsNow() - startTime;
             final int failing = this.failingCount.incrementAndGet();
-            if (failing > this.maxFailingAttempts || currentBlockingTime > this.maxBlockingTime) {
+            if (failing >= this.maxFailingAttempts || currentBlockingTime > this.maxBlockingTime) {
                 // brake thought to HALF_OPEN state and return error
                 if (log.isDebugEnabled()) {
                     log.debug("Changing state from Open to Half Open");

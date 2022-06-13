@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -63,6 +64,10 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 @Component
 @WebServiceProfile
 public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
+
+    private static final List<String> ACTIVE_EXAM_STATE_NAMES = Arrays.asList(
+            ExamStatus.FINISHED.name(),
+            ExamStatus.ARCHIVED.name());
 
     private final ExamRecordMapper examRecordMapper;
     private final ExamConfigurationMapRecordMapper examConfigurationMapRecordMapper;
@@ -344,7 +349,8 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<Long>> getExamIdsForConfigNodeId(final Long configurationNodeId) {
-        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectByExample()
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
+                .selectByExample()
                 .where(
                         ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
                         isEqualTo(configurationNodeId))
@@ -383,16 +389,16 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .build()
                 .execute()
                 .stream()
-                .filter(rec -> !isExamFinished(rec.getExamId()))
+                .filter(rec -> !isExamActive(rec.getExamId()))
                 .findFirst()
                 .isPresent());
     }
 
-    private boolean isExamFinished(final Long examId) {
+    private boolean isExamActive(final Long examId) {
         try {
             return this.examRecordMapper.countByExample()
                     .where(ExamRecordDynamicSqlSupport.id, isEqualTo(examId))
-                    .and(ExamRecordDynamicSqlSupport.status, isEqualTo(ExamStatus.FINISHED.name()))
+                    .and(ExamRecordDynamicSqlSupport.status, isIn(ACTIVE_EXAM_STATE_NAMES))
                     .build()
                     .execute() >= 1;
         } catch (final Exception e) {

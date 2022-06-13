@@ -20,17 +20,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
@@ -49,17 +56,23 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     private final ExamDAO examDAO;
     private final ProctoringAdminService proctoringServiceSettingsService;
     private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final ConfigurationNodeDAO configurationNodeDAO;
+    private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final LmsAPIService lmsAPIService;
 
     protected ExamAdminServiceImpl(
             final ExamDAO examDAO,
             final ProctoringAdminService proctoringServiceSettingsService,
             final AdditionalAttributesDAO additionalAttributesDAO,
+            final ConfigurationNodeDAO configurationNodeDAO,
+            final ExamConfigurationMapDAO examConfigurationMapDAO,
             final LmsAPIService lmsAPIService) {
 
         this.examDAO = examDAO;
         this.proctoringServiceSettingsService = proctoringServiceSettingsService;
         this.additionalAttributesDAO = additionalAttributesDAO;
+        this.configurationNodeDAO = configurationNodeDAO;
+        this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.lmsAPIService = lmsAPIService;
     }
 
@@ -114,7 +127,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
         return this.lmsAPIService
                 .getLmsAPITemplate(exam.lmsSetupId)
-                .map(lmsAPI -> !lmsAPI.hasSEBClientRestriction(exam));
+                .map(lmsAPI -> lmsAPI.hasSEBClientRestriction(exam))
+                .onError(error -> log.error("Failed to check SEB restriction: ", error));
     }
 
     @Override
@@ -179,6 +193,57 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             }
 
             return exam;
+        });
+    }
+
+    @Override
+    public Result<Exam> archiveExam(final Exam exam) {
+        return Result.tryCatch(() -> {
+
+            if (exam.status != ExamStatus.FINISHED) {
+                throw new APIMessageException(
+                        APIMessage.ErrorMessage.INTEGRITY_VALIDATION.of("Exam is in wrong status to archive."));
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Archiving exam: {}", exam);
+            }
+
+            if (this.isRestricted(exam).getOr(false)) {
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Archiving exam, SEB restriction still active, try to release: {}", exam);
+                }
+
+                this.lmsAPIService
+                        .getLmsAPITemplate(exam.lmsSetupId)
+                        .flatMap(lms -> lms.releaseSEBClientRestriction(exam))
+                        .onError(error -> log.error(
+                                "Failed to release SEB client restriction for archiving exam: ",
+                                error));
+            }
+
+            final Exam result = this.examDAO
+                    .updateState(exam.id, ExamStatus.ARCHIVED, null)
+                    .getOrThrow();
+
+            this.examConfigurationMapDAO
+                    .getConfigurationNodeIds(result.id)
+                    .getOrThrow()
+                    .stream()
+                    .forEach(configNodeId -> {
+                        if (this.examConfigurationMapDAO.checkNoActiveExamReferences(configNodeId).getOr(false)) {
+                            log.debug("Also set exam configuration to archived: ", configNodeId);
+                            this.configurationNodeDAO.save(
+                                    new ConfigurationNode(
+                                            configNodeId, null, null, null, null, null,
+                                            null, ConfigurationStatus.ARCHIVED, null, null))
+                                    .onError(error -> log.error("Failed to set exam configuration to archived state: ",
+                                            error));
+                        }
+                    });
+
+            return result;
         });
     }
 

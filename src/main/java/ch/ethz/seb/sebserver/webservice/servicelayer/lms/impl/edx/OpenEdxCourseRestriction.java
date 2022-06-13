@@ -30,7 +30,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionAPI;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 
 /** The open edX SEB course restriction API implementation.
  *
@@ -134,8 +133,9 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
                 }
                 return SEBRestriction.from(exam.id, data);
             } catch (final HttpClientErrorException ce) {
-                if (ce.getStatusCode() == HttpStatus.NOT_FOUND || ce.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                    throw new NoSEBRestrictionException(ce);
+                if (ce.getStatusCode() == HttpStatus.NOT_FOUND) {
+                    // No SEB restriction is set for the specified exam, return an empty one
+                    return new SEBRestriction(exam.id, null, null, null);
                 }
                 throw ce;
             }

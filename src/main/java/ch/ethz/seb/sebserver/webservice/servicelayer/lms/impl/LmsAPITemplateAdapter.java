@@ -130,7 +130,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.chaptersRequest.attempts",
                         Integer.class,
-                        3),
+                        1),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.chaptersRequest.blockingTime",
                         Long.class,
@@ -158,7 +158,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.sebrestriction.attempts",
                         Integer.class,
-                        2),
+                        1),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.sebrestriction.blockingTime",
                         Long.class,
@@ -388,20 +388,24 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
         return this.restrictionRequest.protectedRun(() -> this.sebRestrictionAPI
                 .getSEBClientRestriction(exam)
-                .onError(error -> log.error(
-                        "Failed to get SEB restrictions: {}",
-                        error.getMessage()))
+                .onError(error -> {
+                    if (error instanceof NoSEBRestrictionException) {
+                        return;
+                    }
+                    log.error("Failed to get SEB restrictions: {}", error.getMessage());
+                })
                 .getOrThrow());
     }
 
     @Override
     public boolean hasSEBClientRestriction(final Exam exam) {
-        if (this.sebRestrictionAPI == null) {
+        final Result<SEBRestriction> sebClientRestriction = getSEBClientRestriction(exam);
+        if (sebClientRestriction.hasError()) {
             return false;
         }
 
-        return this.sebRestrictionAPI
-                .getSEBClientRestriction(exam).hasError();
+        final SEBRestriction sebRestriction = sebClientRestriction.get();
+        return !sebRestriction.configKeys.isEmpty() || !sebRestriction.browserExamKeys.isEmpty();
     }
 
     @Override

@@ -97,6 +97,13 @@ public interface ExamAdminService {
      * @return ExamProctoringService instance */
     Result<ExamProctoringService> getExamProctoringService(final Long examId);
 
+    /** This archives a finished exam and set it to archived state as well as the assigned
+     * exam configurations that are also set to archived state.
+     *
+     * @param exam The exam to archive
+     * @return Result refer to the archived exam or to an error when happened */
+    Result<Exam> archiveExam(Exam exam);
+
     /** Used to check threshold consistency for a given list of thresholds.
      * Checks if all values are present (none null value)
      * Checks if there are duplicates

@@ -37,7 +37,7 @@ public interface SEBRestrictionAPI {
      *
      * A SEB Restriction is available if there it can get from LMS and if there is either a Config-Key
      * or a BrowserExam-Key set or both. If none of this keys is set, the SEB Restriction is been
-     * considdered to not set on the LMS.
+     * considered to not set on the LMS.
      *
      * @param exam exam the exam to get the SEB restriction data for
      * @return true if there is a SEB restriction set on the LMS for the exam or false otherwise */
