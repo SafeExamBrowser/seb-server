@@ -35,10 +35,20 @@ public interface SEBRestrictionAPI {
 
     /** Use this to check if there is a SEB restriction available on the LMS for the specified exam.
      *
+     * A SEB Restriction is available if there it can get from LMS and if there is either a Config-Key
+     * or a BrowserExam-Key set or both. If none of this keys is set, the SEB Restriction is been
+     * considdered to not set on the LMS.
+     *
      * @param exam exam the exam to get the SEB restriction data for
      * @return true if there is a SEB restriction set on the LMS for the exam or false otherwise */
     default boolean hasSEBClientRestriction(final Exam exam) {
-        return getSEBClientRestriction(exam).hasError();
+        final Result<SEBRestriction> sebClientRestriction = getSEBClientRestriction(exam);
+        if (sebClientRestriction.hasError()) {
+            return false;
+        }
+
+        final SEBRestriction sebRestriction = sebClientRestriction.get();
+        return !sebRestriction.configKeys.isEmpty() || !sebRestriction.browserExamKeys.isEmpty();
     }
 
     /** Applies SEB Client restrictions to the LMS with the given attributes.
