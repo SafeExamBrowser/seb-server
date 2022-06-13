@@ -194,6 +194,7 @@ public class ExamRecordDAO {
                                 ExamRecordDynamicSqlSupport.status,
                                 isInWhenPresent(stateNames));
             } else {
+                // for default the archived state is not presented only on explicit request
                 whereClause = whereClause
                         .and(
                                 ExamRecordDynamicSqlSupport.status,
