@@ -193,6 +193,11 @@ public class ExamRecordDAO {
                         .and(
                                 ExamRecordDynamicSqlSupport.status,
                                 isInWhenPresent(stateNames));
+            } else {
+                whereClause = whereClause
+                        .and(
+                                ExamRecordDynamicSqlSupport.status,
+                                isNotEqualTo(ExamStatus.ARCHIVED.name()));
             }
 
             final List<ExamRecord> records = whereClause

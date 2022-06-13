@@ -228,6 +228,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             this.examRecordMapper.updateByExampleSelective(examRecord)
                     .where(ExamRecordDynamicSqlSupport.id, isIn(ids))
+                    .and(ExamRecordDynamicSqlSupport.status, isNotEqualTo(ExamStatus.ARCHIVED.name()))
                     .build()
                     .execute();
 
