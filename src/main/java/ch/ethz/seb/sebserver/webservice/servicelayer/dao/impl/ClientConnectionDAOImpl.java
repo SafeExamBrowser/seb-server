@@ -126,6 +126,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                                             isEqualToWhenPresent(filterMap.getInstitutionId()));
             return whereClause
                     .and(
+                            ClientConnectionRecordDynamicSqlSupport.connectionToken,
+                            isInWhenPresent(filterMap.getClientConnectionTokenList()))
+                    .and(
                             ClientConnectionRecordDynamicSqlSupport.examId,
                             isEqualToWhenPresent(filterMap.getClientConnectionExamId()))
                     .and(

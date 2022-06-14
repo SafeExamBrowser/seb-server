@@ -94,6 +94,7 @@ public class ProctoringSettingsPopup {
                     .withAttribute(
                             PageContext.AttributeKeys.FORCE_READ_ONLY,
                             (modifyGrant) ? Constants.FALSE_STRING : Constants.TRUE_STRING);
+
             final ModalInputDialog<FormHandle<?>> dialog =
                     new ModalInputDialog<FormHandle<?>>(
                             action.pageContext().getParent().getShell(),

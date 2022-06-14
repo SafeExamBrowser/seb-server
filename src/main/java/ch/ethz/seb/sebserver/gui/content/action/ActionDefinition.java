@@ -769,7 +769,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.monitoring.exam.connection.action.view"),
             ImageIcon.SHOW,
             PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
-            ActionCategory.CLIENT_EVENT_LIST),
+            ActionCategory.EXAM_MONITORING_3),
     MONITOR_EXAM_CLIENT_CONNECTION_QUIT(
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit"),
             ImageIcon.SEND_QUIT,
@@ -795,12 +795,18 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.selected"),
             ImageIcon.SEND_QUIT,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.CLIENT_EVENT_LIST),
+            ActionCategory.EXAM_MONITORING_2),
     MONITOR_EXAM_QUIT_ALL(
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.all"),
             ImageIcon.SEND_QUIT,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.FORM),
+    MONITOR_EXAM_LOCK_SELECTED(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.lock.selected"),
+            ImageIcon.LOCK,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.EXAM_MONITORING_2),
+
     MONITOR_EXAM_BACK_TO_OVERVIEW(
             new LocTextKey("sebserver.monitoring.exam.action.detail.view"),
             ImageIcon.SHOW,
@@ -811,7 +817,7 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.monitoring.exam.connection.action.disable"),
             ImageIcon.DISABLE,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.CLIENT_EVENT_LIST),
+            ActionCategory.EXAM_MONITORING_3),
 
     MONITOR_EXAM_HIDE_REQUESTED_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.hide.requested"),

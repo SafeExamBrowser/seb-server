@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.gui.service.session;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -55,7 +57,7 @@ public class InstructionProcessor {
     }
 
     public void propagateSEBQuitInstruction(
-            final Long examId,
+            final String examId,
             final String connectionToken,
             final PageContext pageContext) {
 
@@ -67,40 +69,89 @@ public class InstructionProcessor {
     }
 
     public void propagateSEBQuitInstruction(
-            final Long examId,
+            final String examId,
             final Function<Predicate<ClientConnection>, Set<String>> selectionFunction,
             final PageContext pageContext) {
 
-        final Set<String> connectionTokens = selectionFunction
-                .apply(ClientConnection.getStatusPredicate(
-                        ConnectionStatus.CONNECTION_REQUESTED,
-                        ConnectionStatus.ACTIVE));
+        try {
+            final Set<String> connectionTokens = selectionFunction
+                    .apply(ClientConnection.getStatusPredicate(
+                            ConnectionStatus.CONNECTION_REQUESTED,
+                            ConnectionStatus.ACTIVE));
 
-        if (connectionTokens.isEmpty()) {
-            log.warn("Empty selection");
-            return;
+            if (connectionTokens.isEmpty()) {
+                return;
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Propagate SEB quit instruction for exam: {} and connections: {}",
+                        examId,
+                        connectionTokens);
+            }
+
+            final ClientInstruction clientInstruction = new ClientInstruction(
+                    null,
+                    Long.valueOf(examId),
+                    InstructionType.SEB_QUIT,
+                    StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR),
+                    null);
+
+            processInstruction(() -> this.restService.getBuilder(PropagateInstruction.class)
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(examId))
+                    .withBody(clientInstruction)
+                    .call()
+                    .getOrThrow(),
+                    pageContext);
+
+        } catch (final Exception e) {
+            pageContext.notifyUnexpectedError(e);
         }
+    }
 
-        if (log.isDebugEnabled()) {
-            log.debug("Propagate SEB quit instruction for exam: {} and connections: {}",
-                    examId,
-                    connectionTokens);
+    public void propagateSEBLockInstruction(
+            final String examId,
+            final String message,
+            final String imageURL,
+            final String connectionTokens,
+            final PageContext pageContext) {
+
+        try {
+
+            if (connectionTokens.isEmpty()) {
+                return;
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Propagate SEB lock instruction for exam: {} and connections: {}",
+                        examId,
+                        connectionTokens);
+            }
+
+            final Map<String, String> attributes = new HashMap<>();
+            if (StringUtils.isNotBlank(message)) {
+                attributes.put(ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_FORCE_LOCK_SCREEN.MESSAGE, message);
+            }
+            if (StringUtils.isNotBlank(imageURL)) {
+                attributes.put(ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_FORCE_LOCK_SCREEN.IMAGE_URL, imageURL);
+            }
+
+            final ClientInstruction clientInstruction = new ClientInstruction(
+                    null,
+                    Long.valueOf(examId),
+                    InstructionType.SEB_FORCE_LOCK_SCREEN,
+                    connectionTokens,
+                    attributes);
+
+            processInstruction(() -> this.restService.getBuilder(PropagateInstruction.class)
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, examId)
+                    .withBody(clientInstruction)
+                    .call()
+                    .getOrThrow(),
+                    pageContext);
+
+        } catch (final Exception e) {
+            pageContext.notifyUnexpectedError(e);
         }
-
-        final ClientInstruction clientInstruction = new ClientInstruction(
-                null,
-                examId,
-                InstructionType.SEB_QUIT,
-                StringUtils.join(connectionTokens, Constants.LIST_SEPARATOR),
-                null);
-
-        processInstruction(() -> this.restService.getBuilder(PropagateInstruction.class)
-                .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(examId))
-                .withBody(clientInstruction)
-                .call()
-                .getOrThrow(),
-                pageContext);
-
     }
 
     public void disableConnection(
@@ -113,6 +164,7 @@ public class InstructionProcessor {
                         ConnectionStatus.CONNECTION_REQUESTED,
                         ConnectionStatus.UNDEFINED,
                         ConnectionStatus.CLOSED,
+                        ConnectionStatus.ACTIVE,
                         ConnectionStatus.AUTHENTICATED));
 
         if (connectionTokens.isEmpty()) {

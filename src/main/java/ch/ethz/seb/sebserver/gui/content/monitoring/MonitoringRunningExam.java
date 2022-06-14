@@ -55,8 +55,8 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
 import ch.ethz.seb.sebserver.gui.service.session.FullPageMonitoringGUIUpdate;
@@ -93,6 +93,7 @@ public class MonitoringRunningExam implements TemplateComposer {
     private final AsyncRunner asyncRunner;
     private final InstructionProcessor instructionProcessor;
     private final MonitoringExamSearchPopup monitoringExamSearchPopup;
+    private final SEBSendLockPopup sebSendLockPopup;
     private final MonitoringProctoringService monitoringProctoringService;
     private final boolean distributedSetup;
     private final long pollInterval;
@@ -103,6 +104,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             final AsyncRunner asyncRunner,
             final InstructionProcessor instructionProcessor,
             final MonitoringExamSearchPopup monitoringExamSearchPopup,
+            final SEBSendLockPopup sebSendLockPopup,
             final MonitoringProctoringService monitoringProctoringService,
             final GuiServiceInfo guiServiceInfo,
             @Value("${sebserver.gui.webservice.poll-interval:2000}") final long pollInterval) {
@@ -117,6 +119,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         this.pollInterval = pollInterval;
         this.distributedSetup = guiServiceInfo.isDistributedSetup();
         this.monitoringExamSearchPopup = monitoringExamSearchPopup;
+        this.sebSendLockPopup = sebSendLockPopup;
     }
 
     @Override
@@ -177,10 +180,47 @@ public class MonitoringRunningExam implements TemplateComposer {
                         pageContext,
                         ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION,
                         ActionDefinition.MONITOR_EXAM_QUIT_SELECTED,
+                        ActionDefinition.MONITOR_EXAM_LOCK_SELECTED,
                         ActionDefinition.MONITOR_EXAM_DISABLE_SELECTED_CONNECTION,
                         ActionDefinition.MONITOR_EXAM_NEW_PROCTOR_ROOM));
 
         actionBuilder
+
+                .newAction(ActionDefinition.MONITORING_EXAM_SEARCH_CONNECTIONS)
+                .withEntityKey(entityKey)
+                .withExec(this::openSearchPopup)
+                .noEventPropagation()
+                .publishIf(isExamSupporter)
+
+                .newAction(ActionDefinition.MONITOR_EXAM_QUIT_ALL)
+                .withEntityKey(entityKey)
+                .withConfirm(() -> CONFIRM_QUIT_ALL)
+                .withExec(action -> this.quitSEBClients(action, clientTable, true))
+                .noEventPropagation()
+                .publishIf(isExamSupporter)
+
+                .newAction(ActionDefinition.MONITOR_EXAM_QUIT_SELECTED)
+                .withEntityKey(entityKey)
+                .withConfirm(() -> CONFIRM_QUIT_SELECTED)
+                .withSelect(
+                        () -> this.selectionForInstruction(clientTable),
+                        action -> this.quitSEBClients(action, clientTable, false),
+                        EMPTY_ACTIVE_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(isExamSupporter, false)
+
+                .newAction(ActionDefinition.MONITOR_EXAM_LOCK_SELECTED)
+                .withEntityKey(entityKey)
+                .withSelect(
+                        () -> this.selectionForInstruction(clientTable),
+                        action -> this.sebSendLockPopup.show(
+                                action,
+                                statesPredicate -> clientTable.getConnectionTokens(
+                                        statesPredicate,
+                                        true)),
+                        EMPTY_ACTIVE_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(isExamSupporter, false)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
                 .withParentEntityKey(entityKey)
@@ -200,29 +240,6 @@ public class MonitoringRunningExam implements TemplateComposer {
 
                     return copyOfPageAction;
                 })
-                .publishIf(isExamSupporter, false)
-
-                .newAction(ActionDefinition.MONITOR_EXAM_QUIT_ALL)
-                .withEntityKey(entityKey)
-                .withConfirm(() -> CONFIRM_QUIT_ALL)
-                .withExec(action -> this.quitSEBClients(action, clientTable, true))
-                .noEventPropagation()
-                .publishIf(isExamSupporter)
-
-                .newAction(ActionDefinition.MONITORING_EXAM_SEARCH_CONNECTIONS)
-                .withEntityKey(entityKey)
-                .withExec(this::openSearchPopup)
-                .noEventPropagation()
-                .publishIf(isExamSupporter)
-
-                .newAction(ActionDefinition.MONITOR_EXAM_QUIT_SELECTED)
-                .withEntityKey(entityKey)
-                .withConfirm(() -> CONFIRM_QUIT_SELECTED)
-                .withSelect(
-                        () -> this.selectionForQuitInstruction(clientTable),
-                        action -> this.quitSEBClients(action, clientTable, false),
-                        EMPTY_ACTIVE_SELECTION_TEXT_KEY)
-                .noEventPropagation()
                 .publishIf(isExamSupporter, false)
 
                 .newAction(ActionDefinition.MONITOR_EXAM_DISABLE_SELECTED_CONNECTION)
@@ -461,7 +478,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         };
     }
 
-    private Set<EntityKey> selectionForQuitInstruction(final ClientConnectionTable clientTable) {
+    private Set<EntityKey> selectionForInstruction(final ClientConnectionTable clientTable) {
         final Set<String> connectionTokens = clientTable.getConnectionTokens(
                 cc -> cc.status.clientActiveStatus,
                 true);
@@ -478,7 +495,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             final boolean all) {
 
         this.instructionProcessor.propagateSEBQuitInstruction(
-                clientTable.getExam().id,
+                clientTable.getExam().getModelId(),
                 statesPredicate -> clientTable.getConnectionTokens(
                         statesPredicate,
                         !all),
@@ -488,6 +505,23 @@ public class MonitoringRunningExam implements TemplateComposer {
         clientTable.forceUpdateAll();
         return action;
     }
+
+//    private PageAction lockSEBClients(
+//            final PageAction action,
+//            final ClientConnectionTable clientTable,
+//            final boolean all) {
+//
+//        this.instructionProcessor.propagateSEBLockInstruction(
+//                clientTable.getExam().getModelId(),
+//                statesPredicate -> clientTable.getConnectionTokens(
+//                        statesPredicate,
+//                        !all),
+//                action.pageContext());
+//
+//        clientTable.removeSelection();
+//        clientTable.forceUpdateAll();
+//        return action;
+//    }
 
     private PageAction disableSEBClients(
             final PageAction action,

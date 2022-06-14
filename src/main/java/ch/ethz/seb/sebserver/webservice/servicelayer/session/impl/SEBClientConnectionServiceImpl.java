@@ -63,6 +63,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     ConnectionStatus.UNDEFINED,
                     ConnectionStatus.CONNECTION_REQUESTED,
                     ConnectionStatus.AUTHENTICATED,
+                    ConnectionStatus.ACTIVE,
                     ConnectionStatus.CLOSED);
 
     private final ExamSessionService examSessionService;

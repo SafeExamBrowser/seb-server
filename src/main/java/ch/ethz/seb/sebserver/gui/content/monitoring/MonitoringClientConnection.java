@@ -52,8 +52,8 @@ import ch.ethz.seb.sebserver.gui.service.push.UpdateErrorHandler;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
@@ -365,7 +365,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .withConfirm(() -> CONFIRM_QUIT)
                 .withExec(action -> {
                     this.instructionProcessor.propagateSEBQuitInstruction(
-                            exam.id,
+                            exam.getModelId(),
                             connectionToken,
                             pageContext);
                     return action;

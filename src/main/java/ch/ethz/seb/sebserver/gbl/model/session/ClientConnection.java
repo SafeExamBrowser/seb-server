@@ -67,6 +67,7 @@ public final class ClientConnection implements GrantEntity {
     public static final String FILTER_ATTR_SESSION_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID;
     public static final String FILTER_ATTR_IP_STRING = Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS;
     public static final String FILTER_ATTR_INFO = ATTR_INFO;
+    public static final String FILTER_ATTR_TOKEN_LIST = "CONNECTION_TOKENS";
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID)
     public final Long id;
@@ -388,7 +389,7 @@ public final class ClientConnection implements GrantEntity {
     }
 
     public static Predicate<ClientConnection> getStatusPredicate(final ConnectionStatus... status) {
-        final EnumSet<ConnectionStatus> states = EnumSet.allOf(ConnectionStatus.class);
+        final EnumSet<ConnectionStatus> states = EnumSet.noneOf(ConnectionStatus.class);
         if (status != null) {
             Collections.addAll(states, status);
         }

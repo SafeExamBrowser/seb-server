@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -204,6 +205,15 @@ public class FilterMap extends POSTMapper {
 
     public String getSQLWildcard(final String name) {
         return Utils.toSQLWildcard(this.params.getFirst(name));
+    }
+
+    public List<String> getClientConnectionTokenList() {
+        final String tokenList = getString(ClientConnection.FILTER_ATTR_TOKEN_LIST);
+        if (StringUtils.isBlank(tokenList)) {
+            return null;
+        }
+
+        return Utils.asImmutableList(StringUtils.split(tokenList, Constants.LIST_SEPARATOR));
     }
 
     public Long getClientConnectionExamId() {
