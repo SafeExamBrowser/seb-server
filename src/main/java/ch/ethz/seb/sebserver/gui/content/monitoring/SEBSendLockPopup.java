@@ -76,44 +76,48 @@ public class SEBSendLockPopup {
             final PageAction action,
             final Function<Predicate<ClientConnection>, Set<String>> selectionFunction) {
 
-        final PageContext pageContext = action.pageContext();
-        final Set<String> selection = selectionFunction.apply(ClientConnection.getStatusPredicate(
-                ConnectionStatus.CONNECTION_REQUESTED,
-                ConnectionStatus.ACTIVE));
+        try {
 
-        if (selection == null || selection.isEmpty()) {
-            action
-                    .pageContext()
-                    .publishInfo(new LocTextKey("sebserver.monitoring.lock.noselection"));
-            return action;
+            final PageContext pageContext = action.pageContext();
+            final Set<String> selection = selectionFunction.apply(ClientConnection.getStatusPredicate(
+                    ConnectionStatus.CONNECTION_REQUESTED,
+                    ConnectionStatus.ACTIVE));
+
+            if (selection == null || selection.isEmpty()) {
+                action
+                        .pageContext()
+                        .publishInfo(new LocTextKey("sebserver.monitoring.lock.noselection"));
+                return action;
+            }
+
+            final String connectionTokens = StringUtils.join(selection, Constants.LIST_SEPARATOR_CHAR);
+            final boolean showList = selection.size() > 1;
+            final PopupComposer popupComposer = new PopupComposer(
+                    this.pageService,
+                    pageContext,
+                    connectionTokens,
+                    showList);
+
+            final ModalInputDialog<FormHandle<?>> dialog =
+                    new ModalInputDialog<FormHandle<?>>(
+                            action.pageContext().getParent().getShell(),
+                            this.pageService.getWidgetFactory())
+                                    .setDialogWidth(800)
+                                    .setDialogHeight(showList ? 500 : 200);
+
+            final Predicate<FormHandle<?>> doLock = formHandle -> propagateLockInstruction(
+                    connectionTokens,
+                    pageContext,
+                    formHandle);
+
+            dialog.open(
+                    TITLE_TEXT_KEY,
+                    doLock,
+                    Utils.EMPTY_EXECUTION,
+                    popupComposer);
+        } catch (final Exception e) {
+            action.pageContext().notifyUnexpectedError(e);
         }
-
-        final String connectionTokens = StringUtils.join(selection, Constants.LIST_SEPARATOR_CHAR);
-        final boolean showList = selection.size() > 1;
-        final PopupComposer popupComposer = new PopupComposer(
-                this.pageService,
-                pageContext,
-                connectionTokens,
-                showList);
-
-        final ModalInputDialog<FormHandle<?>> dialog =
-                new ModalInputDialog<FormHandle<?>>(
-                        action.pageContext().getParent().getShell(),
-                        this.pageService.getWidgetFactory())
-                                .setDialogWidth(800)
-                                .setDialogHeight(showList ? 500 : 200);
-
-        final Predicate<FormHandle<?>> doLock = formHandle -> propagateLockInstruction(
-                connectionTokens,
-                pageContext,
-                formHandle);
-
-        dialog.open(
-                TITLE_TEXT_KEY,
-                doLock,
-                Utils.EMPTY_EXECUTION,
-                popupComposer);
-
         return action;
     }
 
@@ -195,17 +199,23 @@ public class SEBSendLockPopup {
             final PageContext pageContext,
             final FormHandle<?> formHandle) {
 
-        final EntityKey examKey = pageContext.getEntityKey();
-        final String lockMessage = formHandle
-                .getForm()
-                .getFieldValue(ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_FORCE_LOCK_SCREEN.MESSAGE);
+        try {
 
-        this.instructionProcessor.propagateSEBLockInstruction(
-                examKey.modelId,
-                lockMessage,
-                null,
-                connectionTokens,
-                pageContext);
+            final EntityKey examKey = pageContext.getEntityKey();
+            final String lockMessage = formHandle
+                    .getForm()
+                    .getFieldValue(ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_FORCE_LOCK_SCREEN.MESSAGE);
+
+            this.instructionProcessor.propagateSEBLockInstruction(
+                    examKey.modelId,
+                    lockMessage,
+                    null,
+                    connectionTokens,
+                    pageContext);
+
+        } catch (final Exception e) {
+            pageContext.notifyUnexpectedError(e);
+        }
 
         return true;
     }
