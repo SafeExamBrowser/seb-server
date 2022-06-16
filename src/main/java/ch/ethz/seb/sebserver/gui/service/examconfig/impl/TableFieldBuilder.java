@@ -150,8 +150,19 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
         private void deleteRow(final int selectionIndex) {
             this.control.remove(selectionIndex);
             this.values.remove(selectionIndex);
+            try {
+                if (this.values.size() > selectionIndex) {
+                    this.control.select(selectionIndex);
+                } else {
+                    this.control.select(this.values.size() - 1);
+                }
+                this.control.showSelection();
+            } catch (final Exception e) {
+                // ignore auto selection error
+            }
             // send new values to web-service
-            this.tableContext.getValueChangeListener()
+            this.tableContext
+                    .getValueChangeListener()
                     .tableChanged(extractTableValue(this.values));
         }
 
@@ -168,6 +179,12 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
             this.values.add(rowValues);
             addTableRow(this.values.size() - 1, rowValues);
             this.control.layout();
+            try {
+                this.control.select(index);
+                this.control.showSelection();
+            } catch (final Exception e) {
+                // ignore auto selection error
+            }
             // send new values to web-service
             this.tableContext.getValueChangeListener()
                     .tableChanged(extractTableValue(this.values));
