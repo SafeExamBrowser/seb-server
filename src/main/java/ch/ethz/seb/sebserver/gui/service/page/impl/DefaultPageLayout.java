@@ -12,7 +12,6 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.codec.binary.Base64InputStream;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
@@ -31,11 +30,10 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
@@ -70,19 +68,17 @@ public class DefaultPageLayout implements TemplateComposer {
     private final PolyglotPageService polyglotPageService;
     private final AuthorizationContextHolder authorizationContextHolder;
     private final PageService pageService;
-    private final String sebServerVersion;
-    private final boolean multilingual;
+    private final GuiServiceInfo guiServiceInfo;
 
     public DefaultPageLayout(
             final PageService pageService,
-            final Environment environment) {
+            final GuiServiceInfo guiServiceInfo) {
 
         this.widgetFactory = pageService.getWidgetFactory();
         this.polyglotPageService = pageService.getPolyglotPageService();
         this.authorizationContextHolder = pageService.getAuthorizationContextHolder();
         this.pageService = pageService;
-        this.sebServerVersion = environment.getProperty("sebserver.version", Constants.EMPTY_NOTE);
-        this.multilingual = BooleanUtils.toBoolean(environment.getProperty("sebserver.gui.multilingual", "false"));
+        this.guiServiceInfo = guiServiceInfo;
     }
 
     @Override
@@ -198,7 +194,7 @@ public class DefaultPageLayout implements TemplateComposer {
         rowLayout.marginRight = 70;
         langSupport.setLayout(rowLayout);
 
-        if (this.multilingual) {
+        if (this.guiServiceInfo.isMultilingualGUI()) {
             this.polyglotPageService.createLanguageSelector(pageContext.copyOf(langSupport));
         }
     }
@@ -332,7 +328,7 @@ public class DefaultPageLayout implements TemplateComposer {
         this.widgetFactory.labelLocalized(
                 footerRight,
                 CustomVariant.FOOTER,
-                new LocTextKey("sebserver.overall.version", this.sebServerVersion));
+                new LocTextKey("sebserver.overall.version", this.guiServiceInfo.getSebServerVersion()));
     }
 
     private void loadInstitutionalLogo(final PageContext pageContext, final Composite logo) {

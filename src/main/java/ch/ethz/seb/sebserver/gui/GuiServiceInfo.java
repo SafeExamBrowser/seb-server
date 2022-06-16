@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 @GuiProfile
 public class GuiServiceInfo {
 
+    private final String sebServerVersion;
     private final String externalScheme;
     private final String internalServer;
     private final String externalServer;
@@ -29,8 +30,10 @@ public class GuiServiceInfo {
     private final UriComponentsBuilder internalServerURIBuilder;
     private final UriComponentsBuilder externalServerURIBuilder;
     private final boolean distributedSetup;
+    private final boolean multilingualGUI;
 
     public GuiServiceInfo(
+            @Value("${sebserver.version:--}") final String sebServerVersion,
             @Value("${server.address}") final String internalServer,
             @Value("${server.port}") final String internalPort,
             @Value("${sebserver.gui.http.external.scheme}") final String externalScheme,
@@ -38,7 +41,8 @@ public class GuiServiceInfo {
             @Value("${sebserver.gui.http.external.port}") final String externalPort,
             @Value("${sebserver.gui.entrypoint:/gui}") final String entryPoint,
             @Value("${server.servlet.context-path:/}") final String contextPath,
-            @Value("${sebserver.webservice.distributed:false}") final boolean distributedSetup) {
+            @Value("${sebserver.webservice.distributed:false}") final boolean distributedSetup,
+            @Value("${sebserver.gui.multilingual:false}") final boolean multilingualGUI) {
 
         if (StringUtils.isBlank(externalScheme)) {
             throw new RuntimeException("Missing mandatory inital parameter sebserver.gui.http.external.servername");
@@ -48,6 +52,7 @@ public class GuiServiceInfo {
             throw new RuntimeException("Missing mandatory inital parameter sebserver.gui.http.external.servername");
         }
 
+        this.sebServerVersion = sebServerVersion;
         this.externalScheme = externalScheme;
         this.internalServer = internalServer;
         this.externalServer = externalServer;
@@ -73,6 +78,7 @@ public class GuiServiceInfo {
         }
 
         this.distributedSetup = distributedSetup;
+        this.multilingualGUI = multilingualGUI;
     }
 
     public String getExternalScheme() {
@@ -113,6 +119,14 @@ public class GuiServiceInfo {
 
     public boolean isDistributedSetup() {
         return this.distributedSetup;
+    }
+
+    public String getSebServerVersion() {
+        return this.sebServerVersion;
+    }
+
+    public boolean isMultilingualGUI() {
+        return this.multilingualGUI;
     }
 
 }

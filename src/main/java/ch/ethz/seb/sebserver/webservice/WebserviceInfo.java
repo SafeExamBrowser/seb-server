@@ -77,7 +77,6 @@ public class WebserviceInfo {
             final Environment environment) {
 
         this.webserviceInfoDAO = webserviceInfoDAO;
-        this.webserviceUUID = UUID.randomUUID().toString();
         this.sebServerVersion = environment.getRequiredProperty(VERSION_KEY);
         this.testProperty = environment.getProperty(WEB_SERVICE_TEST_PROPERTY, "NOT_AVAILABLE");
         this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
@@ -87,6 +86,9 @@ public class WebserviceInfo {
         this.webserverPort = environment.getProperty(WEB_SERVICE_HTTP_PORT);
         this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
         this.contextPath = environment.getProperty(WEB_SERVICE_CONTEXT_PATH, "");
+        this.webserviceUUID = UUID.randomUUID().toString()
+                + Constants.UNDERLINE
+                + this.getSEBServerVersion();
 
         this.distributedUpdateInterval = environment.getProperty(
                 "sebserver.webservice.distributed.updateInterval",
