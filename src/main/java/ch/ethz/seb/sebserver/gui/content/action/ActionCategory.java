@@ -31,8 +31,11 @@ public enum ActionCategory {
             "sebserver.monitoring.exam.connection.notificationlist.actions"),
             1),
     EXAM_MONITORING_2(new LocTextKey(
-            "sebserver.monitoring.exam.connection.selected.actions"), 2),
-    EXAM_MONITORING_3(null, 3),
+            "sebserver.monitoring.exam.connection.actions.group2"),
+            2),
+    EXAM_MONITORING_3(new LocTextKey(
+            "sebserver.monitoring.exam.connection.actions.group3"),
+            3),
     CLIENT_EVENT_LIST(new LocTextKey("sebserver.monitoring.exam.connection.list.actions"), 1),
     LOGS_USER_ACTIVITY_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),
     LOGS_SEB_CLIENT_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),

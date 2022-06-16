@@ -506,23 +506,6 @@ public class MonitoringRunningExam implements TemplateComposer {
         return action;
     }
 
-//    private PageAction lockSEBClients(
-//            final PageAction action,
-//            final ClientConnectionTable clientTable,
-//            final boolean all) {
-//
-//        this.instructionProcessor.propagateSEBLockInstruction(
-//                clientTable.getExam().getModelId(),
-//                statesPredicate -> clientTable.getConnectionTokens(
-//                        statesPredicate,
-//                        !all),
-//                action.pageContext());
-//
-//        clientTable.removeSelection();
-//        clientTable.forceUpdateAll();
-//        return action;
-//    }
-
     private PageAction disableSEBClients(
             final PageAction action,
             final ClientConnectionTable clientTable,
