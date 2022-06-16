@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
@@ -39,6 +40,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeD
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.OrientationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ViewDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigTemplateService;
@@ -172,7 +174,13 @@ public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService 
         return Result.tryCatch(() -> {
             final Orientation orientation = getOrientation(templateId, attributeId);
 
-            this.orientationDAO.delete(new HashSet<>(Arrays.asList(orientation.getEntityKey())))
+            if (orientation == null) {
+                throw new NoResourceFoundException(EntityType.ORIENTATION,
+                        "No default view found for attribute: " + attributeId);
+            }
+
+            this.orientationDAO
+                    .delete(new HashSet<>(Arrays.asList(orientation.getEntityKey())))
                     .getOrThrow();
 
             final TemplateAttribute attribute = getAttribute(institutionId, templateId, attributeId)
@@ -198,8 +206,14 @@ public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService 
             final Orientation orientation = getOrientation(templateId, attributeId);
             final Orientation devOrientation = getOrientation(ConfigurationNode.DEFAULT_TEMPLATE_ID, attributeId);
 
+            if (devOrientation == null) {
+                throw new NoResourceFoundException(EntityType.ORIENTATION,
+                        "No default view found for attribute: " + attributeId);
+            }
+
             if (orientation != null) {
-                this.orientationDAO.delete(new HashSet<>(Arrays.asList(orientation.getEntityKey())))
+                this.orientationDAO
+                        .delete(new HashSet<>(Arrays.asList(orientation.getEntityKey())))
                         .getOrThrow();
             }
 
@@ -246,7 +260,7 @@ public class ExamConfigTemplateServiceImpl implements ExamConfigTemplateService 
 
         return this.orientationDAO.allMatching(filterMap)
                 .get(error -> {
-                    log.warn("Unexpecrted error while get Orientation: ", error);
+                    log.warn("Unexpected error while get Orientation: ", error);
                     return Collections.emptyList();
                 })
                 .stream()

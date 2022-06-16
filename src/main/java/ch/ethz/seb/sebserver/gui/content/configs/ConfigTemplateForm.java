@@ -8,6 +8,10 @@
 
 package ch.ethz.seb.sebserver.gui.content.configs;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
@@ -19,13 +23,16 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -40,6 +47,8 @@ import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.DeleteExamConfiguration;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurationValues;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetConfigurations;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetTemplateAttributePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
@@ -75,6 +84,8 @@ public class ConfigTemplateForm implements TemplateComposer {
             new LocTextKey("sebserver.configtemplate.attrs.list.view");
     private static final LocTextKey ATTRIBUTES_LIST_GROUP_TEXT_KEY =
             new LocTextKey("sebserver.configtemplate.attrs.list.group");
+    private static final LocTextKey ATTRIBUTES_LIST_VALUE_TEXT_KEY =
+            new LocTextKey("sebserver.configtemplate.attrs.list.value");
     private static final LocTextKey ATTRIBUTES_LIST_TYPE_TEXT_KEY =
             new LocTextKey("sebserver.configtemplate.attrs.list.type");
     private static final LocTextKey EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY =
@@ -205,6 +216,20 @@ public class ConfigTemplateForm implements TemplateComposer {
                     TemplateAttribute.FILTER_ATTR_TYPE,
                     this.resourceService::getAttributeTypeResources);
 
+            // TODO move this to an supplier that also can be updated
+            // the follow-up configuration
+            final Configuration configuration = this.restService
+                    .getBuilder(GetConfigurations.class)
+                    .withQueryParam(Configuration.FILTER_ATTR_CONFIGURATION_NODE_ID, examConfig.getModelId())
+                    .withQueryParam(Configuration.FILTER_ATTR_FOLLOWUP, Constants.TRUE_STRING)
+                    .call()
+                    .map(Utils::toSingleton)
+                    .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION, error))
+                    .getOrThrow();
+            final AttributeValueSupplier attributeValueSupplier = new AttributeValueSupplier(
+                    this.pageService,
+                    configuration.getModelId());
+
             final EntityTable<TemplateAttribute> attrTable =
                     this.pageService.entityTableBuilder(
                             Domain.CONFIGURATION_NODE.TYPE_NAME + "_Template",
@@ -213,6 +238,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                                     API.PARAM_PARENT_MODEL_ID,
                                     entityKey.modelId))
                             .withPaging(15)
+
                             .withColumn(new ColumnDefinition<>(
                                     Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME,
                                     ATTRIBUTES_LIST_NAME_TEXT_KEY,
@@ -220,6 +246,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                                             .withFilter(this.nameFilter)
                                             .sortable()
                                             .widthProportion(3))
+
                             .withColumn(new ColumnDefinition<TemplateAttribute>(
                                     Domain.CONFIGURATION_ATTRIBUTE.ATTR_TYPE,
                                     ATTRIBUTES_LIST_TYPE_TEXT_KEY,
@@ -227,6 +254,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                                             .withFilter(typeFilter)
                                             .sortable()
                                             .widthProportion(1))
+
                             .withColumn(new ColumnDefinition<>(
                                     Domain.ORIENTATION.ATTR_VIEW_ID,
                                     ATTRIBUTES_LIST_VIEW_TEXT_KEY,
@@ -234,6 +262,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                                             .withFilter(viewFilter)
                                             .sortable()
                                             .widthProportion(1))
+
                             .withColumn(new ColumnDefinition<>(
                                     Domain.ORIENTATION.ATTR_GROUP_ID,
                                     ATTRIBUTES_LIST_GROUP_TEXT_KEY,
@@ -241,6 +270,13 @@ public class ConfigTemplateForm implements TemplateComposer {
                                             .withFilter(this.groupFilter)
                                             .sortable()
                                             .widthProportion(1))
+
+                            .withColumn(new ColumnDefinition<TemplateAttribute>(
+                                    Domain.CONFIGURATION_VALUE.ATTR_VALUE,
+                                    ATTRIBUTES_LIST_VALUE_TEXT_KEY,
+                                    attr -> attributeValueSupplier.getAttributeValue(attr.getConfigAttribute().id))
+                                            .widthProportion(1))
+
                             .withDefaultActionIf(
                                     () -> modifyGrant,
                                     () -> pageActionBuilder
@@ -271,7 +307,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                     .withParentEntityKey(entityKey)
                     .withSelect(
                             attrTable::getMultiSelection,
-                            action -> this.resetToDefaults(action, attrTable),
+                            action -> this.resetToDefaults(attributeValueSupplier, action, attrTable),
                             EMPTY_ATTRIBUTE_SELECTION_TEXT_KEY)
                     .noEventPropagation()
                     .publishIf(() -> modifyGrant, false)
@@ -378,12 +414,14 @@ public class ConfigTemplateForm implements TemplateComposer {
     }
 
     private PageAction resetToDefaults(
+            final AttributeValueSupplier attributeValueSupplier,
             final PageAction action,
             final EntityTable<TemplateAttribute> attrTable) {
 
         final PageAction resetToDefaults = this.examConfigurationService.resetToDefaults(action);
         // reload the list
-        attrTable.applyFilter();
+        attributeValueSupplier.update();
+        attrTable.updateCurrentPage();
         return resetToDefaults;
     }
 
@@ -392,8 +430,8 @@ public class ConfigTemplateForm implements TemplateComposer {
             final EntityTable<TemplateAttribute> attrTable) {
 
         final PageAction removeFormView = this.examConfigurationService.removeFromView(action);
-        // reload the list
-        attrTable.applyFilter();
+        // reload the page
+        attrTable.updateCurrentPage();
         return removeFormView;
     }
 
@@ -402,9 +440,54 @@ public class ConfigTemplateForm implements TemplateComposer {
             final EntityTable<TemplateAttribute> attrTable) {
 
         final PageAction attachView = this.examConfigurationService.attachToDefaultView(action);
-        // reload the list
-        attrTable.applyFilter();
+        // reload the page
+        attrTable.updateCurrentPage();
         return attachView;
+    }
+
+    private final class AttributeValueSupplier {
+
+        private final PageService pageService;
+        private final String configurationId;
+        private final Map<Long, String> attrValueMapping = new HashMap<>();
+
+        public AttributeValueSupplier(
+                final PageService pageService,
+                final String configurationId) {
+
+            this.pageService = pageService;
+            this.configurationId = configurationId;
+            update();
+        }
+
+        public String getAttributeValue(final Long attributeId) {
+            if (this.attrValueMapping.containsKey(attributeId)) {
+                return this.attrValueMapping.get(attributeId);
+            } else {
+                return Constants.EMPTY_NOTE;
+            }
+        }
+
+        private void update() {
+            this.attrValueMapping.clear();
+
+            this.pageService.getRestService()
+                    .getBuilder(GetConfigurationValues.class)
+                    .withQueryParam(
+                            ConfigurationValue.FILTER_ATTR_CONFIGURATION_ID,
+                            this.configurationId)
+                    .call()
+                    .getOrElse(Collections::emptyList)
+                    .stream()
+                    .forEach(val -> {
+                        if (this.attrValueMapping.containsKey(val.attributeId)) {
+                            this.attrValueMapping.put(val.attributeId,
+                                    this.attrValueMapping.get(val.attributeId) + "," + val.value);
+                        } else {
+                            this.attrValueMapping.put(val.attributeId, val.value);
+                        }
+                    });
+        }
     }
 
 }

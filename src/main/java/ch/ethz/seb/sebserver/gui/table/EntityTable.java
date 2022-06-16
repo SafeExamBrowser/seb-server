@@ -300,6 +300,10 @@ public class EntityTable<ROW extends ModelIdAware> {
         applyFilter();
     }
 
+    public void updateCurrentPage() {
+        this.selectPage(this.pageNumber);
+    }
+
     public void applyFilter() {
         try {
 
