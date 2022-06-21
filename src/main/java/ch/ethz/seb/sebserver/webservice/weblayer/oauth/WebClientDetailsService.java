@@ -11,7 +11,7 @@ package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
@@ -67,7 +67,7 @@ public class WebClientDetailsService implements ClientDetailsService {
         return getForExamClientAPI(clientId)
                 .get(t -> {
                     log.error("Active ClientConfig not found: {} cause: {}", clientId, t.getMessage());
-                    throw new AccessDeniedException(t.getMessage());
+                    throw new UsernameNotFoundException(t.getMessage());
                 });
     }
 

@@ -140,6 +140,7 @@ public interface ClientConnectionDAO extends
      * @return Result refer to a collection of deleted entities or to an error if happened */
     @Override
     @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
+    // TODO this probably is nor working when called from BulkActionSupportDAO
     Result<Collection<EntityKey>> delete(Set<EntityKey> all);
 
     /** Get a ClientConnection by connection token.

@@ -24,6 +24,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +57,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint.RevokeExamTokenEvent;
 
 @Lazy
 @Component
@@ -65,17 +69,23 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     private final ClientCredentialService clientCredentialService;
     private final AdditionalAttributesDAOImpl additionalAttributesDAO;
     private final DAOUserServcie daoUserServcie;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final CacheManager cacheManager;
 
     protected SEBClientConfigDAOImpl(
             final SebClientConfigRecordMapper sebClientConfigRecordMapper,
             final ClientCredentialService clientCredentialService,
             final AdditionalAttributesDAOImpl additionalAttributesDAO,
-            final DAOUserServcie daoUserServcie) {
+            final DAOUserServcie daoUserServcie,
+            final ApplicationEventPublisher applicationEventPublisher,
+            final CacheManager cacheManager) {
 
         this.sebClientConfigRecordMapper = sebClientConfigRecordMapper;
         this.clientCredentialService = clientCredentialService;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.daoUserServcie = daoUserServcie;
+        this.applicationEventPublisher = applicationEventPublisher;
+        this.cacheManager = cacheManager;
     }
 
     @Override
@@ -144,6 +154,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<SEBClientConfig> byClientName(final String clientName) {
         return Result.tryCatch(() -> this.sebClientConfigRecordMapper
                 .selectByExample()
@@ -217,6 +228,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.SEB_CLIENT_CONFIGURATION))
+                    .map(this::revokeClientConnection)
                     .collect(Collectors.toList());
         });
     }
@@ -303,6 +315,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.SEB_CLIENT_CONFIGURATION))
+                    .map(this::revokeClientConnection)
                     .collect(Collectors.toList());
         });
     }
@@ -657,4 +670,28 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
         }
     }
 
+    private EntityKey revokeClientConnection(final EntityKey key) {
+
+        try {
+            final SebClientConfigRecord rec = recordById(Long.parseLong(key.modelId))
+                    .getOrThrow();
+
+            // revoke token
+            try {
+                this.applicationEventPublisher
+                        .publishEvent(new RevokeExamTokenEvent(rec.getClientName()));
+            } catch (final Exception e) {
+                log.error("Failed to revoke token for SEB client connection. Connection Configuration: {}", key, e);
+            }
+
+            // clear cache
+            this.cacheManager.getCache(ClientConfigService.EXAM_CLIENT_DETAILS_CACHE)
+                    .evictIfPresent(rec.getClientName());
+
+        } catch (final Exception e) {
+            log.error("Failed to revoke SEB client connection. Connection Configuration: {}", key, e);
+        }
+
+        return key;
+    }
 }

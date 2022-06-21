@@ -205,50 +205,6 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
                 .getOrThrow();
     }
 
-    @RequestMapping(
-            path = API.TOGGLE_ACTIVITY_PATH_SEGMENT,
-            method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public EntityProcessingReport toggleActivity(
-            @RequestParam(name = API.PARAM_MODEL_ID_LIST, required = true) final String ids) {
-        // TODO
-        throw new UnsupportedOperationException();
-
-//        final EntityType entityType = this.entityDAO.entityType();
-//        final List<EntityKey> entities = new ArrayList<>();
-//        final Set<ErrorEntry> errors = new HashSet<>();
-//        final BulkAction bulkAction = new BulkAction(
-//                (active) ? BulkActionType.ACTIVATE : BulkActionType.DEACTIVATE,
-//                entityType,
-//                entities);
-//
-//        Arrays.asList(StringUtils.split(ids, Constants.LIST_SEPARATOR))
-//                .stream()
-//                .forEach(modelId -> {
-//                    this.entityDAO
-//                            .byModelId(modelId)
-//                            .flatMap(this.authorization::checkWrite)
-//                            .flatMap(entity -> validForActivation(entity, active))
-//                            .map(Entity::getEntityKey)
-//                            .onSuccess(entities::add)
-//                            .onError(error -> errors.add(new ErrorEntry(
-//                                    new EntityKey(modelId, entityType),
-//                                    APIMessage.ErrorMessage.UNAUTHORIZED.of(error))));
-//                });
-//
-//        return this.bulkActionService
-//                .createReport(bulkAction)
-//                .map(report -> {
-//                    if (!errors.isEmpty()) {
-//                        errors.addAll(report.errors);
-//                        return new EntityProcessingReport(report.source, report.results, errors, report.bulkActionType);
-//                    } else {
-//                        return report;
-//                    }
-//                });
-    }
-
     private Result<EntityProcessingReport> setActiveSingle(final String modelId, final boolean active) {
         final EntityType entityType = this.entityDAO.entityType();
 
