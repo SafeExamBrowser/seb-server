@@ -140,6 +140,14 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("---->");
         SEBServerInit.INIT_LOGGER.info("----> HTTP Scheme {}", this.webserviceInfo.getHttpScheme());
         SEBServerInit.INIT_LOGGER.info("---->");
+        SEBServerInit.INIT_LOGGER.info("----> Access-Tokens:");
+        SEBServerInit.INIT_LOGGER.info(
+                "----> admin API access token validity: " + this.webserviceInfo.getAdminAccessTokenValSec() + "s");
+        SEBServerInit.INIT_LOGGER.info(
+                "----> admin API refresh token validity: " + this.webserviceInfo.getAdminRefreshTokenValSec() + "s");
+        SEBServerInit.INIT_LOGGER.info(
+                "----> exam API access token validity: " + this.webserviceInfo.getExamAPITokenValiditySeconds() + "s");
+        SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Property Override Test: {}", this.webserviceInfo.getTestProperty());
 
         SEBServerInit.INIT_LOGGER.info("---->");

@@ -180,7 +180,7 @@ public class ClientConfigServiceImpl implements ClientConfigService {
             final CertificateDAO certificateDAO,
             @Qualifier(WebSecurityConfig.CLIENT_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder clientPasswordEncoder,
             @Value("${sebserver.webservice.api.exam.defaultPingInterval:1000}") final long defaultPingInterval,
-            @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:-1}") final int examAPITokenValiditySeconds) {
+            @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:43200}") final int examAPITokenValiditySeconds) {
 
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.clientCredentialService = clientCredentialService;

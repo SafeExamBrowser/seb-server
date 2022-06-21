@@ -22,6 +22,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -71,6 +72,13 @@ public class WebserviceInfo {
 
     private final WebserviceInfoDAO webserviceInfoDAO;
     private boolean isMaster = false;
+
+    @Value("${sebserver.webservice.api.admin.accessTokenValiditySeconds:3600}")
+    private int adminAccessTokenValSec;
+    @Value("${sebserver.webservice.api.admin.refreshTokenValiditySeconds:-1}")
+    private int adminRefreshTokenValSec;
+    @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:43200}")
+    private int examAPITokenValiditySeconds;
 
     public WebserviceInfo(
             final WebserviceInfoDAO webserviceInfoDAO,
@@ -251,6 +259,18 @@ public class WebserviceInfo {
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .orElse(null);
+    }
+
+    public int getAdminAccessTokenValSec() {
+        return this.adminAccessTokenValSec;
+    }
+
+    public int getAdminRefreshTokenValSec() {
+        return this.adminRefreshTokenValSec;
+    }
+
+    public int getExamAPITokenValiditySeconds() {
+        return this.examAPITokenValiditySeconds;
     }
 
     @Override
