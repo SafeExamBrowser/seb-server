@@ -180,6 +180,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 this.clientIndicatorFactory.initializeDistributedCaches(clientConnection);
             }
 
+            // flash connection token cache for exam if available
+            if (examId != null) {
+                this.clientConnectionDAO.evictConnectionTokenCache(examId);
+            }
+
             // load client connection data into cache
             final ClientConnectionDataInternal activeClientConnection = this.examSessionService
                     .getConnectionDataInternal(connectionToken);
@@ -286,8 +291,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 this.clientIndicatorFactory.initializeDistributedCaches(clientConnection);
             }
 
-            final ClientConnectionDataInternal activeClientConnection =
-                    reloadConnectionCache(connectionToken);
+            final ClientConnectionDataInternal activeClientConnection = reloadConnectionCache(
+                    connectionToken,
+                    examId);
 
             if (activeClientConnection == null) {
                 log.warn("Failed to load ClientConnectionDataInternal into cache on update");
@@ -441,8 +447,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             }
 
             // flush and reload caches to work with actual connection data
-            final ClientConnectionDataInternal activeClientConnection =
-                    reloadConnectionCache(connectionToken);
+            final ClientConnectionDataInternal activeClientConnection = reloadConnectionCache(
+                    connectionToken,
+                    examId);
 
             if (activeClientConnection == null) {
                 log.warn("Failed to load ClientConnectionDataInternal into cache on update");
@@ -496,13 +503,14 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 establishedClientConnection.remoteProctoringRoomUpdate);
 
         // Update other connection with token and exam id
-        this.clientConnectionDAO
+        final ClientConnection connection = this.clientConnectionDAO
                 .save(new ClientConnection(
                         vdiPairCompanion.getId(), null,
                         vdiExamId, null, null, null, null, null, null,
                         establishedClientConnection.connectionToken, null, null, null, null, null, null, null))
                 .getOrThrow();
-        reloadConnectionCache(vdiPairCompanion.getConnectionToken());
+
+        reloadConnectionCache(vdiPairCompanion.getConnectionToken(), connection.examId);
         return updatedConnection;
     }
 
@@ -557,7 +565,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         .deleteIndicatorValues(updatedClientConnection.id);
             }
 
-            reloadConnectionCache(connectionToken);
+            reloadConnectionCache(connectionToken, clientConnection.examId);
             return updatedClientConnection;
         });
     }
@@ -619,7 +627,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         .deleteIndicatorValues(updatedClientConnection.id);
             }
 
-            reloadConnectionCache(connectionToken);
+            reloadConnectionCache(connectionToken, clientConnection.examId);
             return updatedClientConnection;
         });
     }
@@ -886,7 +894,14 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 .getOrThrow();
     }
 
-    private ClientConnectionDataInternal reloadConnectionCache(final String connectionToken) {
+    private ClientConnectionDataInternal reloadConnectionCache(
+            final String connectionToken,
+            final Long examId) {
+
+        if (examId != null) {
+            // evict connection tokens for exam
+            this.clientConnectionDAO.evictConnectionTokenCache(examId);
+        }
         // evict cached ClientConnection
         this.examSessionCacheService.evictClientConnection(connectionToken);
         // and load updated ClientConnection into cache

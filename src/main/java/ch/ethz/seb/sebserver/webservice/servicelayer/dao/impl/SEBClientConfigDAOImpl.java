@@ -215,6 +215,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 return Collections.emptyList();
             }
 
+            // clear caches and revoke tokens first
+            ids.stream().forEach(this::disposeSEBClientConfig);
+
             final SebClientConfigRecord record = new SebClientConfigRecord(
                     null, null, null, null, null, null, null,
                     BooleanUtils.toIntegerObject(active),
@@ -228,7 +231,6 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.SEB_CLIENT_CONFIGURATION))
-                    .map(this::revokeClientConnection)
                     .collect(Collectors.toList());
         });
     }
@@ -308,6 +310,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 return Collections.emptyList();
             }
 
+            // clear caches and revoke tokens first
+            ids.stream().forEach(this::disposeSEBClientConfig);
+
             this.sebClientConfigRecordMapper.deleteByExample()
                     .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(ids))
                     .build()
@@ -315,7 +320,6 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
 
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.SEB_CLIENT_CONFIGURATION))
-                    .map(this::revokeClientConnection)
                     .collect(Collectors.toList());
         });
     }
@@ -670,10 +674,10 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
         }
     }
 
-    private EntityKey revokeClientConnection(final EntityKey key) {
+    private Long disposeSEBClientConfig(final Long pk) {
 
         try {
-            final SebClientConfigRecord rec = recordById(Long.parseLong(key.modelId))
+            final SebClientConfigRecord rec = recordById(pk)
                     .getOrThrow();
 
             // revoke token
@@ -681,17 +685,18 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 this.applicationEventPublisher
                         .publishEvent(new RevokeExamTokenEvent(rec.getClientName()));
             } catch (final Exception e) {
-                log.error("Failed to revoke token for SEB client connection. Connection Configuration: {}", key, e);
+                log.error("Failed to revoke token for SEB client connection. Connection Configuration: {}", pk, e);
             }
 
             // clear cache
-            this.cacheManager.getCache(ClientConfigService.EXAM_CLIENT_DETAILS_CACHE)
+            this.cacheManager
+                    .getCache(ClientConfigService.EXAM_CLIENT_DETAILS_CACHE)
                     .evictIfPresent(rec.getClientName());
 
         } catch (final Exception e) {
-            log.error("Failed to revoke SEB client connection. Connection Configuration: {}", key, e);
+            log.error("Failed to revoke SEB client connection. Connection Configuration: {}", pk, e);
         }
 
-        return key;
+        return pk;
     }
 }

@@ -24,6 +24,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +73,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     private final ClientIndicatorRecordMapper clientIndicatorRecordMapper;
     private final ClientNotificationRecordMapper clientNotificationRecordMapper;
     private final ClientConnectionTokenMapper clientConnectionMinMapper;
+    private final CacheManager cacheManager;
 
     protected ClientConnectionDAOImpl(
             final ClientConnectionRecordMapper clientConnectionRecordMapper,
@@ -79,7 +81,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             final ClientInstructionRecordMapper clientInstructionRecordMapper,
             final ClientIndicatorRecordMapper clientIndicatorRecordMapper,
             final ClientNotificationRecordMapper clientNotificationRecordMapper,
-            final ClientConnectionTokenMapper clientConnectionMinMapper) {
+            final ClientConnectionTokenMapper clientConnectionMinMapper,
+            final CacheManager cacheManager) {
 
         this.clientConnectionRecordMapper = clientConnectionRecordMapper;
         this.clientEventRecordMapper = clientEventRecordMapper;
@@ -87,6 +90,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         this.clientIndicatorRecordMapper = clientIndicatorRecordMapper;
         this.clientNotificationRecordMapper = clientNotificationRecordMapper;
         this.clientConnectionMinMapper = clientConnectionMinMapper;
+        this.cacheManager = cacheManager;
     }
 
     @Override
@@ -529,6 +533,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 return Collections.emptyList();
             }
 
+            ids.stream().forEach(this::clearConnecionTokenCache);
+
             // delete all related client indicators
             this.clientIndicatorRecordMapper.deleteByExample()
                     .where(
@@ -877,6 +883,24 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         }
 
         return record.getConnectionToken();
+    }
+
+    private Long clearConnecionTokenCache(final Long id) {
+
+        try {
+
+            final ClientConnectionRecord rec = recordById(id)
+                    .getOrThrow();
+
+            this.cacheManager
+                    .getCache(CONNECTION_TOKENS_CACHE)
+                    .evictIfPresent(rec.getExamId());
+
+        } catch (final Exception e) {
+            log.error("Failed to clear connection token cache: ", e);
+        }
+
+        return id;
     }
 
 }

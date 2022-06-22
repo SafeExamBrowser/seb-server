@@ -79,8 +79,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     log.warn(
-                            "Unauthorized Request: {}, {}",
-                            request,
+                            "Unauthorized Request: {}",
                             exception != null ? exception.getMessage() : Constants.EMPTY_NOTE);
                     response.getOutputStream().println("{ \"error\": \"" + exception.getMessage() + "\" }");
                 });

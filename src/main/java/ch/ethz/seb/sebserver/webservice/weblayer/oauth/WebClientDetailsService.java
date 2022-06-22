@@ -66,7 +66,9 @@ public class WebClientDetailsService implements ClientDetailsService {
 
         return getForExamClientAPI(clientId)
                 .get(t -> {
-                    log.error("Active ClientConfig not found: {} cause: {}", clientId, t.getMessage());
+                    if (log.isDebugEnabled()) {
+                        log.warn("Active ClientConfig not found: {} cause: {}", clientId, t.getMessage());
+                    }
                     throw new UsernameNotFoundException(t.getMessage());
                 });
     }

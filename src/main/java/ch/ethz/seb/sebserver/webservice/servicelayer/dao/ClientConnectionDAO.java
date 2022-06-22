@@ -11,10 +11,11 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 import java.util.Collection;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -25,6 +26,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCac
 public interface ClientConnectionDAO extends
         EntityDAO<ClientConnection, ClientConnection>,
         BulkActionSupportDAO<ClientConnection> {
+
+    Logger log = LoggerFactory.getLogger(ClientConnectionDAO.class);
 
     String CONNECTION_TOKENS_CACHE = "CONNECTION_TOKENS_CACHE";
 
@@ -43,9 +46,13 @@ public interface ClientConnectionDAO extends
             unless = "#result.hasError()")
     Result<Collection<String>> getConnectionTokens(Long examId);
 
-    @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, key = "#examId")
+    @CacheEvict(
+            cacheNames = CONNECTION_TOKENS_CACHE,
+            key = "#examId")
     default void evictConnectionTokenCache(final Long examId) {
-
+        if (log.isDebugEnabled()) {
+            log.debug("Evict SEB connection tokens for exam: {}", examId);
+        }
     }
 
     /** Get a list of all connection tokens of all connections of an exam
@@ -101,22 +108,6 @@ public interface ClientConnectionDAO extends
      * @return Result refer to a collection of all ClientConnection of the room or to an error if happened */
     Result<Collection<ClientConnection>> getCollectingRoomConnections(final Long examId, final String roomName);
 
-    /** Creates new ClientConnection from the given ClientConnection data.
-     *
-     * This evicts all entries from the CONNECTION_TOKENS_CACHE.
-     *
-     * TODO improvement: Use the examId to evict only the relevant cache entry
-     *
-     * @param data ClientConnection instance
-     * @return Result refer to the newly created ClientConnection data or to an error if happened */
-    @Override
-    @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
-    Result<ClientConnection> createNew(ClientConnection data);
-
-    @Override
-    @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
-    Result<ClientConnection> save(ClientConnection data);
-
     @CacheEvict(
             cacheNames = ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
             key = "#connectionToken")
@@ -129,19 +120,6 @@ public interface ClientConnectionDAO extends
 
     /** Used to re-mark a client connection record for room update in error case. */
     Result<Void> markForProctoringUpdate(Long id);
-
-    /** Deletes the given ClientConnection data.
-     *
-     * This evicts all entries from the CONNECTION_TOKENS_CACHE.
-     *
-     * TODO improvement: Use the examId to evict only the relevant cache entry
-     *
-     * @param all Set of EntityKey for entities to delete
-     * @return Result refer to a collection of deleted entities or to an error if happened */
-    @Override
-    @CacheEvict(cacheNames = CONNECTION_TOKENS_CACHE, allEntries = true)
-    // TODO this probably is nor working when called from BulkActionSupportDAO
-    Result<Collection<EntityKey>> delete(Set<EntityKey> all);
 
     /** Get a ClientConnection by connection token.
      *
