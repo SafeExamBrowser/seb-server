@@ -213,11 +213,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withSelect(
                         () -> this.selectionForInstruction(clientTable),
-                        action -> this.sebSendLockPopup.show(
-                                action,
-                                statesPredicate -> clientTable.getConnectionTokens(
-                                        statesPredicate,
-                                        true)),
+                        action -> this.showSEBLockActionPopup(action, clientTable),
                         EMPTY_ACTIVE_SELECTION_TEXT_KEY)
                 .noEventPropagation()
                 .publishIf(isExamSupporter, false)
@@ -277,6 +273,19 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         // finally start the page update (server push)
         fullPageMonitoringUpdate.start(pageContext, content, this.pollInterval);
+    }
+
+    private PageAction showSEBLockActionPopup(
+            final PageAction action,
+            final ClientConnectionTable clientTable) {
+
+        this.sebSendLockPopup.show(
+                action,
+                statesPredicate -> clientTable.getConnectionTokens(
+                        statesPredicate,
+                        true));
+        clientTable.removeSelection();
+        return action;
     }
 
     private FullPageMonitoringGUIUpdate createProctoringActions(
