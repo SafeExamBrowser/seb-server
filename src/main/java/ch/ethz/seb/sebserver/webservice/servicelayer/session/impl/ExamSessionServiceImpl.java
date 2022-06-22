@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -264,7 +265,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final FilterMap filterMap,
             final Predicate<Exam> predicate) {
 
-        return this.examDAO.getExamIdsForStatus(
+        filterMap.putIfAbsent(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING);
+
+        return this.examDAO.getExamsForStatus(
                 filterMap,
                 predicate,
                 ExamStatus.FINISHED,

@@ -256,7 +256,7 @@ public class ExamDAOImpl implements ExamDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<Exam>> getExamIdsForStatus(
+    public Result<Collection<Exam>> getExamsForStatus(
             final FilterMap filterMap,
             final Predicate<Exam> predicate,
             final ExamStatus... status) {
@@ -269,7 +269,8 @@ public class ExamDAOImpl implements ExamDAO {
                             .collect(Collectors.toList())
                     : null;
             final Predicate<Exam> examDataFilter = createPredicate(filterMap);
-            return this.examRecordDAO.allMatching(filterMap, stateNames)
+            return this.examRecordDAO
+                    .allMatching(filterMap, stateNames)
                     .flatMap(this::toDomainModel)
                     .getOrThrow()
                     .stream()

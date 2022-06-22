@@ -60,7 +60,7 @@ public class FilterMap extends POSTMapper {
     }
 
     public Integer getActiveAsInt() {
-        return getBooleanAsInteger(UserInfo.FILTER_ATTR_ACTIVE);
+        return getBooleanAsInteger(Entity.FILTER_ATTR_ACTIVE);
     }
 
     public Long getInstitutionId() {

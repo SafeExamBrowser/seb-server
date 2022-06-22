@@ -84,7 +84,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @param filterMap FilterMap with other filter criteria
      * @param status the list of ExamStatus
      * @return Result refer to collection of exam identifiers or to an error if happened */
-    Result<Collection<Exam>> getExamIdsForStatus(
+    Result<Collection<Exam>> getExamsForStatus(
             final FilterMap filterMap,
             final Predicate<Exam> predicate,
             final ExamStatus... status);
