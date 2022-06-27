@@ -20,6 +20,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -30,6 +32,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 public final class MultiSelectionCheckbox extends Composite implements Selection {
 
     private static final long serialVersionUID = -8507565817745610126L;
+    private static final Logger log = LoggerFactory.getLogger(MultiSelectionCheckbox.class);
 
     private Listener listener = null;
     private final Map<String, Button> checkboxes;
@@ -90,6 +93,7 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
                 }
             } catch (final Exception e) {
                 // ignore
+                log.warn("Failed to get Tuple3<String>: {}", e.getMessage());
             }
         }
 

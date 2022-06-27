@@ -21,11 +21,11 @@ public class SettingsPublished {
 
     @NotNull
     @JsonProperty(ATTR_SETTINGS_PUBLISHED)
-    public final Boolean settingsPublished;
+    public final Boolean pubished;
 
     @JsonCreator
     public SettingsPublished(@JsonProperty(ATTR_SETTINGS_PUBLISHED) final Boolean settingsPublished) {
-        this.settingsPublished = settingsPublished;
+        this.pubished = settingsPublished;
     }
 
 }

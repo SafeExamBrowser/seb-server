@@ -26,24 +26,24 @@ public final class Chapters {
 
     public static final String ATTR_CHAPTERS = "chapters";
 
-    public final List<Chapter> chapters;
+    public final List<Chapter> chapter_list;
 
     @JsonCreator
     public Chapters(@JsonProperty(ATTR_CHAPTERS) final Collection<Chapter> chapters) {
         final List<Chapter> c = (chapters != null) ? new ArrayList<>(chapters) : new ArrayList<>();
         Collections.sort(c);
-        this.chapters = Utils.immutableListOf(c);
+        this.chapter_list = Utils.immutableListOf(c);
     }
 
     public Collection<Chapter> getChapters() {
-        return this.chapters;
+        return this.chapter_list;
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("Chapters [chapters=");
-        builder.append(this.chapters);
+        builder.append(this.chapter_list);
         builder.append("]");
         return builder.toString();
     }

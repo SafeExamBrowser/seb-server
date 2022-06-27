@@ -20,6 +20,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +43,8 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 @Component
 @GuiProfile
 public class TableFieldBuilder extends AbstractTableFieldBuilder {
+
+    private static final Logger log = LoggerFactory.getLogger(TableFieldBuilder.class);
 
     private static final String TOOLTIP_SUFFIX = ".tooltip";
     private static final String ADD_TOOLTIP_SUFFIX = ".add" + TOOLTIP_SUFFIX;
@@ -159,6 +163,7 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
                 this.control.showSelection();
             } catch (final Exception e) {
                 // ignore auto selection error
+                log.warn("Failed to apply auto selection: {}", e.getMessage());
             }
             // send new values to web-service
             this.tableContext
@@ -184,6 +189,7 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
                 this.control.showSelection();
             } catch (final Exception e) {
                 // ignore auto selection error
+                log.warn("Failed to apply auto selection: {}", e.getMessage());
             }
             // send new values to web-service
             this.tableContext.getValueChangeListener()

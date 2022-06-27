@@ -57,8 +57,7 @@ public class POSTMapper {
 
     // NOTE: this is a workaround since URI parameter are not automatically decoded in the HTTPServletRequest
     //       while parameter from form-urlencoded body part are.
-    //       I also tried to set application property: server.tomcat.uri-encoding=UTF-8 bit with no effect.
-    // TODO  Didn't found a better solution for now but if there is some time, we should find a better solution
+    //       I also tried to set application property: server.tomcat.uri-encoding=UTF-8 but with no effect.
     private void handleEncodedURIParams(final String uriQueryString) {
         final MultiValueMap<String, String> override = new LinkedMultiValueMap<>();
         this.params
@@ -252,6 +251,7 @@ public class POSTMapper {
                         try {
                             val = Double.parseDouble(split[0]);
                         } catch (final Exception e) {
+                            log.error("Failed to parse double: ", e.getMessage());
                         }
                         return new Threshold(
                                 val,

@@ -79,6 +79,8 @@ public class BrowserViewModeRule implements ValueChangeRule {
                         break;
                     }
                     default: {
+                        log.warn("Unexpected state");
+                        break;
                     }
                 }
             }

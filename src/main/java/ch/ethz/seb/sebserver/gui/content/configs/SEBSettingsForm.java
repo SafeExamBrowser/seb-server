@@ -303,7 +303,7 @@ public class SEBSettingsForm implements TemplateComposer {
                     .withURIVariable(API.PARAM_MODEL_ID, this.nodeId)
                     .call()
                     .onError(error -> log.warn("Failed to verify published settings. Cause: ", error.getMessage()))
-                    .map(result -> result.settingsPublished)
+                    .map(result -> result.pubished)
                     .getOr(false);
 
             if (!settingsPublished) {

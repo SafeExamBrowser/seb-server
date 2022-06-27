@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -236,7 +237,7 @@ public class CertificateDAOImpl implements CertificateDAO {
             if (StringUtils.isBlank(dn)) {
                 return String.valueOf(certificate.getSerialNumber());
             } else {
-                return dn.replace(" ", "_").toLowerCase();
+                return dn.replace(" ", "_").toLowerCase(Locale.ENGLISH);
             }
         } catch (final CertificateEncodingException e) {
             log.warn("Error while trying to get alias from certificate subject name. Use serial number as alias");
