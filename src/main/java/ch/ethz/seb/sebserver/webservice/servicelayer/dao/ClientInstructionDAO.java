@@ -45,7 +45,7 @@ public interface ClientInstructionDAO {
      * @return Collection of all active instructions for specified connection token */
     Result<Collection<ClientInstructionRecord>> getAllActive(String connectionToken);
 
-    /** Deletes all old instructions form the persistent storage to clean-up.
+    /** Deletes all old instructions from the persistent storage to clean-up.
      * Old in this case means the timestamp is older then one minute or a configured time interval
      *
      * @param timestamp the time-stamp (milliseconds) of the time in the past from that earlier instructions are
@@ -53,7 +53,7 @@ public interface ClientInstructionDAO {
      * @return Result collection of keys of deleted entities or refer to an error when happened */
     Result<Collection<EntityKey>> deleteAllInactive(long timestamp);
 
-    /** Deletes the specified instruction form the data base
+    /** Deletes the specified instruction from the data base
      *
      * @param id the identifier (PK) if the ClientInstruction to delete
      * @return Void Result refer to an error if happened */

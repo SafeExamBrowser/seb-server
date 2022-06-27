@@ -89,7 +89,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
             final Predicate<Exam> predicate,
             final ExamStatus... status);
 
-    /** Gets all for active and none archived exams within the system, independently form institution and LMSSetup.
+    /** Gets all for active and none archived exams within the system, independently from institution and LMSSetup.
      *
      * @return Result refer to all exams for LMS update or to an error when happened */
     Result<Collection<Exam>> allForLMSUpdate();

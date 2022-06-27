@@ -70,7 +70,7 @@ public final class Form implements FormBinding {
             flush();
             return this.jsonMapper.writeValueAsString(this.objectRoot);
         } catch (final Exception e) {
-            throw new RuntimeException("Unexpected error while trying to create json form Form post: ", e);
+            throw new RuntimeException("Unexpected error while trying to create json from form post: ", e);
         }
     }
 

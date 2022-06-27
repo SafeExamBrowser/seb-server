@@ -233,7 +233,7 @@ public class WebserviceInfo {
         return InetAddress.getLoopbackAddress().getHostAddress();
     }
 
-    /** Get the server URL prefix in form of;
+    /** Get the server URL prefix in the form of;
      * [scheme{http|https}]://[server-address{DNS-name|IP}]:[port]
      *
      * E.g.: https://seb.server.ch:8080

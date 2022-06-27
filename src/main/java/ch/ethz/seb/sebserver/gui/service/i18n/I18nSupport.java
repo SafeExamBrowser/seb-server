@@ -43,7 +43,7 @@ public interface I18nSupport {
      * This uses the date-format defined by either the attribute 'sebserver.gui.date.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
      *
-     * Adds time-zone offset information if the currents user time-zone is different form UTC
+     * Adds time-zone offset information if the currents user time-zone is different from UTC
      *
      * @param date the DateTime instance
      * @return date formatted date String to display */
@@ -53,7 +53,7 @@ public interface I18nSupport {
      * This uses the date-format defined by either the attribute 'sebserver.gui.date.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
      *
-     * Adds time-zone offset information if the currents user time-zone is different form UTC
+     * Adds time-zone offset information if the currents user time-zone is different from UTC
      *
      * @param date the DateTime instance
      * @return date formatted date String to display */
@@ -65,7 +65,7 @@ public interface I18nSupport {
      * This uses the date-format defined by either the attribute 'sebserver.gui.date.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
      *
-     * Adds time-zone information if the currents user time-zone is different form UTC
+     * Adds time-zone information if the currents user time-zone is different from UTC
      *
      * @param timestamp the unix-timestamp in milliseconds
      * @return date formatted date String to display */
@@ -77,7 +77,7 @@ public interface I18nSupport {
      * This uses the date-format defined by either the attribute 'sebserver.gui.datetime.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_TIME_FORMAT
      *
-     * Adds time-zone information if the currents user time-zone is different form UTC
+     * Adds time-zone information if the currents user time-zone is different from UTC
      *
      * @param date the DateTime instance
      * @return date formatted date time String to display */
@@ -87,7 +87,7 @@ public interface I18nSupport {
      * This uses the date-format defined by either the attribute 'sebserver.gui.datetime.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_TIME_FORMAT
      *
-     * Adds time-zone information if the currents user time-zone is different form UTC
+     * Adds time-zone information if the currents user time-zone is different from UTC
      *
      * @param timestamp the unix-timestamp in milliseconds
      * @return date formatted date time String to display */
@@ -99,7 +99,7 @@ public interface I18nSupport {
      * This uses the date-format defined by either the attribute 'sebserver.gui.time.display format'
      * or the Constants.DEFAULT_DISPLAY_TIME_FORMAT
      *
-     * Adds time-zone information if the currents user time-zone is different form UTC
+     * Adds time-zone information if the currents user time-zone is different from UTC
      *
      * @param date the DateTime instance
      * @return date formatted time String to display */
@@ -109,7 +109,7 @@ public interface I18nSupport {
      * This uses the date-format defined by either the attribute 'sebserver.gui.time.display format'
      * or the Constants.DEFAULT_DISPLAY_TIME_FORMAT
      *
-     * Adds time-zone information if the currents user time-zone is different form UTC
+     * Adds time-zone information if the currents user time-zone is different from UTC
      *
      * @param timestamp the unix-timestamp in milliseconds
      * @return date formatted time String to display */

@@ -19,7 +19,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
-/** A service to apply pagination functionality within collection results form data access layer.
+/** A service to apply pagination functionality within collection results from data access layer.
  * The default implementation uses Mybatis-PageHelper to apply the pagination on SQL level where possible:
  * https://github.com/pagehelper/Mybatis-PageHelper */
 

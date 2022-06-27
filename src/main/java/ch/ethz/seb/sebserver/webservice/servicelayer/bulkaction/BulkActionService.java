@@ -56,7 +56,7 @@ public interface BulkActionService {
      * If the given BulkAction has not already been executed, it will be executed first
      *
      * @param action the BulkAction of a concrete type
-     * @return EntityProcessingReport extracted form an executed BulkAction */
+     * @return EntityProcessingReport extracted from an executed BulkAction */
     Result<EntityProcessingReport> createReport(BulkAction action);
 
 }

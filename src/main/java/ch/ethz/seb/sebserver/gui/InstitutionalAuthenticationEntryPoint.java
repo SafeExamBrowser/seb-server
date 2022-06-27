@@ -231,7 +231,7 @@ public final class InstitutionalAuthenticationEntryPoint implements Authenticati
             final Object attribute = RWT.getUISession().getHttpSession().getAttribute(INST_SUFFIX_ATTRIBUTE);
             return (attribute != null) ? String.valueOf(attribute) : null;
         } catch (final Exception e) {
-            log.warn("Failed to extract institutional endpoint form user session: {}", e.getMessage());
+            log.warn("Failed to extract institutional endpoint from user session: {}", e.getMessage());
             return null;
         }
     }

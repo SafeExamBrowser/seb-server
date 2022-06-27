@@ -23,7 +23,7 @@ public interface SEBRestrictionAPI {
      * @return {@link LmsSetupTestResult } instance with the test result report */
     LmsSetupTestResult testCourseRestrictionAPI();
 
-    /** Get SEB restriction data form LMS within a {@link SEBRestrictionData } instance. The available restriction
+    /** Get SEB restriction data from LMS within a {@link SEBRestrictionData } instance. The available restriction
      * details
      * depends on the type of LMS but shall at least contains the config-key(s) and the browser-exam-key(s).
      *

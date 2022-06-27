@@ -239,7 +239,7 @@ public class CertificateDAOImpl implements CertificateDAO {
                 return dn.replace(" ", "_").toLowerCase();
             }
         } catch (final CertificateEncodingException e) {
-            log.warn("Error while trying to get alias form certificate subject name. Use serial number as alias");
+            log.warn("Error while trying to get alias from certificate subject name. Use serial number as alias");
             return String.valueOf(certificate.getSerialNumber());
         }
     }

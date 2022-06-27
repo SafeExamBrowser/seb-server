@@ -108,7 +108,7 @@ public class SEBExamConfigBatchStateChangePopup extends AbstractBatchActionWizar
 
         final String targetStateName = pageContext.getAttribute(ATTR_SELECTED_TARGET_STATE);
         if (StringUtils.isBlank(targetStateName)) {
-            throw new IllegalArgumentException("missing " + ATTR_SELECTED_TARGET_STATE + " form pageContext");
+            throw new IllegalArgumentException("missing " + ATTR_SELECTED_TARGET_STATE + " from pageContext");
         }
 
         batchActionRequestBuilder.withFormParam(BatchAction.ACTION_ATTRIBUT_TARGET_STATE, targetStateName);

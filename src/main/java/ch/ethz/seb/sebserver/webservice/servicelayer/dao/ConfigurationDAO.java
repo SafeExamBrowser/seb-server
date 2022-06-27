@@ -38,7 +38,7 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
     /** Saves the current follow-up Configuration of the ConfigurationNode of given id
      * as a point in history and creates new new follow-up Configuration.
      *
-     * @param configurationNodeId the identifier of the ConfigurationNode to create a new history entry form current
+     * @param configurationNodeId the identifier of the ConfigurationNode to create a new history entry from current
      *            follow-up
      * @return the new follow-up Configuration model */
     Result<Configuration> saveToHistory(Long configurationNodeId);

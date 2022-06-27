@@ -187,9 +187,9 @@ public class ExamDAOImpl implements ExamDAO {
     public void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId) {
 
         if (!available) {
-            log.info("Mark exam quiz data not available form LMS: {}", externalQuizId);
+            log.info("Mark exam quiz data not available from LMS: {}", externalQuizId);
         } else {
-            log.info("Mark exam quiz data back again form LMS: {}", externalQuizId);
+            log.info("Mark exam quiz data back again from LMS: {}", externalQuizId);
         }
 
         this.examRecordDAO.idByExternalQuizId(externalQuizId)

@@ -48,7 +48,7 @@ public interface Entity extends ModelIdAware {
 
     /** Creates an EntityName instance from this Entity instance.
      *
-     * @return EntityName instance created form given Entity */
+     * @return EntityName instance created from given Entity */
     default EntityName toName() {
         return new EntityName(
                 this.getModelId(),

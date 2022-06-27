@@ -716,7 +716,7 @@ public class EntityTable<ROW extends ModelIdAware> {
                 return 1;
             }
         } catch (final Exception e) {
-            log.error("Failed to get sort attribute form current user attributes", e);
+            log.error("Failed to get sort attribute from current user attributes", e);
             return 1;
         }
     }
@@ -757,7 +757,7 @@ public class EntityTable<ROW extends ModelIdAware> {
             setTableSort();
 
         } catch (final Exception e) {
-            log.error("Failed to get sort attribute form current user attributes", e);
+            log.error("Failed to get sort attribute from current user attributes", e);
         }
     }
 
@@ -794,7 +794,7 @@ public class EntityTable<ROW extends ModelIdAware> {
                                 .getCurrentUser()
                                 .getAttribute(this.filterAttrName));
             } catch (final Exception e) {
-                log.error("Failed to get filter attributes form current user attributes", e);
+                log.error("Failed to get filter attributes from current user attributes", e);
             }
         }
     }

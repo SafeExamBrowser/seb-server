@@ -127,7 +127,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                     if (exam.examTemplateId != null) {
 
                         if (log.isDebugEnabled()) {
-                            log.debug("Init exam: {} with additional attributes form exam template: {}",
+                            log.debug("Init exam: {} with additional attributes from exam template: {}",
                                     exam.externalId,
                                     exam.examTemplateId);
                         }

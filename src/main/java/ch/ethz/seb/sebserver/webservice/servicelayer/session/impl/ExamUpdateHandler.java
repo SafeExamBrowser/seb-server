@@ -91,7 +91,7 @@ class ExamUpdateHandler {
                     .getLmsAPITemplate(lmsSetupId)
                     .flatMap(template -> template.getQuizzes(new HashSet<>(exams.keySet())))
                     .onError(error -> log.warn(
-                            "Failed to get quizzes form LMS Setup: {} cause: {}",
+                            "Failed to get quizzes from LMS Setup: {} cause: {}",
                             lmsSetupId,
                             error.getMessage()))
                     .getOr(Collections.emptyList())

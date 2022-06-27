@@ -148,14 +148,14 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @return Result referring to collection of all matching entities or an error if happened */
     Result<Collection<T>> allMatching(FilterMap filterMap, Predicate<T> predicate);
 
-    /** Context based utility method to extract an expected single resource entry form a Collection of specified type.
-     * Gets a Result refer to an expected single resource entry form a Collection of specified type or refer
+    /** Context based utility method to extract an expected single resource entry from a Collection of specified type.
+     * Gets a Result refer to an expected single resource entry from a Collection of specified type or refer
      * to a ResourceNotFoundException if specified collection is null or empty or refer to a
      * unexpected RuntimeException if there are more then the expected single element in the given collection
      *
      * @param id The resource id to wrap within a ResourceNotFoundException if needed
      * @param resources the collection of resource entries
-     * @return Result refer to an expected single resource entry form a Collection of specified type or refer to an
+     * @return Result refer to an expected single resource entry from a Collection of specified type or refer to an
      *         error if happened */
     default <R> Result<R> getSingleResource(final String id, final Collection<R> resources) {
 

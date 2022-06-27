@@ -151,7 +151,7 @@ public class ExamSessionControlTask implements DisposableBean {
 
     private void controlExamLMSUpdate() {
         if (log.isTraceEnabled()) {
-            log.trace("Start update exams form LMS");
+            log.trace("Start update exams from LMS");
         }
 
         try {

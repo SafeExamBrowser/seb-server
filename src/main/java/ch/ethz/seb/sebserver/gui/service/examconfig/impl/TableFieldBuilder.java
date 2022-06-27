@@ -168,7 +168,7 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
 
         private void addRow() {
             final int index = this.values.size();
-            // create new values form default values
+            // create new values from default values
             final Map<Long, TableValue> rowValues = this.tableContext.getRowAttributes()
                     .stream()
                     .map(attr -> new TableValue(attr.id, index, attr.defaultValue))
