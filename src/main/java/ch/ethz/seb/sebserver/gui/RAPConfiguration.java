@@ -64,7 +64,10 @@ public class RAPConfiguration implements ApplicationConfiguration {
             application.addResource("fav_icon", new ResourceLoader() {
                 @Override
                 public InputStream getResourceAsStream(final String resourceName) throws IOException {
-                    return RAPConfiguration.class.getClassLoader().getResourceAsStream("static/images/fav_icon.png");
+                    return Thread
+                            .currentThread()
+                            .getContextClassLoader()
+                            .getResourceAsStream("static/images/fav_icon.png");
                 }
             });
 

@@ -226,11 +226,11 @@ public class CertificateController {
                     .flatMap(certData -> this.userActivityLogDAO.log(UserLogActivityType.IMPORT, certData))
                     .getOrThrow();
 
+        } catch (final RuntimeException re) {
+            IOUtils.closeQuietly(inputStream);
+            throw re;
         } catch (final Exception e) {
             IOUtils.closeQuietly(inputStream);
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
             throw new RuntimeException(e);
         }
     }
