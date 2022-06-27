@@ -96,7 +96,7 @@ public class WebserviceInfo {
         this.contextPath = environment.getProperty(WEB_SERVICE_CONTEXT_PATH, "");
         this.webserviceUUID = UUID.randomUUID().toString()
                 + Constants.UNDERLINE
-                + this.getSEBServerVersion();
+                + this.sebServerVersion;
 
         this.distributedUpdateInterval = environment.getProperty(
                 "sebserver.webservice.distributed.updateInterval",
