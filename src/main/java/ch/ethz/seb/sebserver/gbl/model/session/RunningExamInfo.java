@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl.model.session;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 
@@ -47,7 +48,7 @@ public final class RunningExamInfo {
         this.examId = exam.getModelId();
         this.name = exam.name;
         this.url = exam.getStartURL();
-        this.lmsType = (lmsType == null) ? "" : lmsType.name();
+        this.lmsType = (lmsType == null) ? Constants.EMPTY_NOTE : lmsType.name();
     }
 
     public String getExamId() {
