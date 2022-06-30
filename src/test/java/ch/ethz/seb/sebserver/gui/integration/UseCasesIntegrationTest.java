@@ -254,35 +254,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         // Nothing
     }
 
-//    @Test
-//    @Order(0)
-//    public void testUsecase00_cleanupAllExams() {
-//        final RestServiceImpl restService = createRestServiceForUser(
-//                "admin",
-//                "admin",
-//                new GetExamNames(),
-//                new DeleteExam());
-//
-//        final Result<List<EntityName>> call = restService
-//                .getBuilder(GetExamNames.class)
-//                .call();
-//
-//        if (!call.hasError()) {
-//            call.get().stream().forEach(key -> {
-//                final Result<EntityProcessingReport> deleted = restService
-//                        .getBuilder(DeleteExam.class)
-//                        .withURIVariable(API.PARAM_MODEL_ID, key.modelId)
-//                        .call();
-//
-//                if (deleted.hasError()) {
-//                    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%% deletion failed: " + key);
-//                } else {
-//                    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%% deleted: " + key);
-//                }
-//            });
-//        }
-//    }
-
     @Test
     @Order(1)
     // *************************************
@@ -815,6 +786,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // - Check if there are some quizzes from previous LMS Setup
     // - Import a quiz as Exam
     // - get exam page and check the exam is there
+    // - get exam page with none native sort attribute to test this
     // - edit exam property and save again
     public void testUsecase07_ImportExam() {
         final RestServiceImpl restService = createRestServiceForUser(
@@ -922,6 +894,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .filter(exam -> exam.name.equals(newExam.name))
                 .findFirst().isPresent());
 
+        final Result<Page<Exam>> examsSorted = restService
+                .getBuilder(GetExamPage.class)
+                .withQueryParam(Page.ATTR_SORT, LmsSetup.FILTER_ATTR_LMS_SETUP)
+                .call();
+
+        assertNotNull(examsSorted);
+        assertFalse(examsSorted.hasError());
     }
 
     @Test
