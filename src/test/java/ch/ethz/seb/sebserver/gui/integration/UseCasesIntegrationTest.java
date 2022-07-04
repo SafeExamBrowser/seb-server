@@ -95,6 +95,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
@@ -253,35 +254,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     public void cleanup() {
         // Nothing
     }
-
-//    @Test
-//    @Order(0)
-//    public void testUsecase00_cleanupAllExams() {
-//        final RestServiceImpl restService = createRestServiceForUser(
-//                "admin",
-//                "admin",
-//                new GetExamNames(),
-//                new DeleteExam());
-//
-//        final Result<List<EntityName>> call = restService
-//                .getBuilder(GetExamNames.class)
-//                .call();
-//
-//        if (!call.hasError()) {
-//            call.get().stream().forEach(key -> {
-//                final Result<EntityProcessingReport> deleted = restService
-//                        .getBuilder(DeleteExam.class)
-//                        .withURIVariable(API.PARAM_MODEL_ID, key.modelId)
-//                        .call();
-//
-//                if (deleted.hasError()) {
-//                    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%% deletion failed: " + key);
-//                } else {
-//                    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%% deleted: " + key);
-//                }
-//            });
-//        }
-//    }
 
     @Test
     @Order(1)
@@ -815,6 +787,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // - Check if there are some quizzes from previous LMS Setup
     // - Import a quiz as Exam
     // - get exam page and check the exam is there
+    // - get exam page with none native sort attribute to test this
     // - edit exam property and save again
     public void testUsecase07_ImportExam() {
         final RestServiceImpl restService = createRestServiceForUser(
@@ -922,6 +895,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .filter(exam -> exam.name.equals(newExam.name))
                 .findFirst().isPresent());
 
+        final Result<Page<Exam>> examsSorted = restService
+                .getBuilder(GetExamPage.class)
+                .withQueryParam(Page.ATTR_SORT, LmsSetup.FILTER_ATTR_LMS_SETUP)
+                .call();
+
+        assertNotNull(examsSorted);
+        assertFalse(examsSorted.hasError());
     }
 
     @Test
@@ -2169,7 +2149,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertTrue(connections.isEmpty());
 
         // get MonitoringFullPageData
-        final Result<MonitoringFullPageData> fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
+        Result<MonitoringFullPageData> fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
                 .call();
         assertNotNull(fullPageData);
@@ -2220,6 +2200,22 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             final Iterator<ClientConnectionData> iterator = connections.iterator();
             iterator.next();
             final ClientConnectionData con = iterator.next();
+
+            fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                    .withHeader(API.EXAM_MONITORING_STATE_FILTER, ConnectionStatus.DISABLED.name())
+                    .call();
+            assertNotNull(fullPageData);
+            assertFalse(fullPageData.hasError());
+
+            fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                    .withHeader(
+                            API.EXAM_MONITORING_STATE_FILTER,
+                            ConnectionStatus.DISABLED.name() + "," + ConnectionStatus.ACTIVE.name())
+                    .call();
+            assertNotNull(fullPageData);
+            assertFalse(fullPageData.hasError());
 
             // get single client connection
             final Result<ClientConnection> ccCall = restService.getBuilder(GetClientConnection.class)

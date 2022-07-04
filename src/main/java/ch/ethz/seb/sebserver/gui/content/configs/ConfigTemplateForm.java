@@ -340,7 +340,7 @@ public class ConfigTemplateForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly)
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_DELETE)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_DELETE)
                 .withEntityKey(entityKey)
                 .withConfirm(() -> CONFIRM_DELETE)
                 .withExec(this::deleteConfiguration)

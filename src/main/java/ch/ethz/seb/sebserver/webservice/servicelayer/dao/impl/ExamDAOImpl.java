@@ -648,6 +648,9 @@ public class ExamDAOImpl implements ExamDAO {
                 .and(
                         ExamRecordDynamicSqlSupport.status,
                         isEqualTo(ExamStatus.RUNNING.name()))
+                .and(
+                        ExamRecordDynamicSqlSupport.lmsAvailable,
+                        isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))
                 .build()
                 .execute());
     }

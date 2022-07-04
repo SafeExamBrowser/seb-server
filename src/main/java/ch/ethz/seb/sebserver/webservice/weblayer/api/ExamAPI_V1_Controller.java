@@ -137,6 +137,7 @@ public class ExamAPI_V1_Controller {
                                 .getOrThrow()
                                 .stream()
                                 .map(this::createRunningExamInfo)
+                                .filter(this::checkConsistency)
                                 .collect(Collectors.toList());
                     } else {
                         final Exam exam = this.examSessionService.getExamDAO()
@@ -156,6 +157,18 @@ public class ExamAPI_V1_Controller {
                     return result;
                 },
                 this.executor);
+    }
+
+    private boolean checkConsistency(final RunningExamInfo info) {
+        if (StringUtils.isNotBlank(info.name) &&
+                StringUtils.isNotBlank(info.url) &&
+                StringUtils.isNotBlank(info.examId)) {
+
+            return true;
+        }
+
+        log.warn("Invalid running exam detected. Filter out exam : {}", info);
+        return false;
     }
 
     @RequestMapping(

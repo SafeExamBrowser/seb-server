@@ -430,6 +430,12 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 .getActiveConnectionTokens(examId);
     }
 
+    @Override
+    public Result<Collection<String>> getAllActiveConnectionTokens(final Long examId) {
+        return this.clientConnectionDAO
+                .getAllActiveConnectionTokens(examId);
+    }
+
     @EventListener
     public void notifyExamFinished(final ExamFinishedEvent event) {
 

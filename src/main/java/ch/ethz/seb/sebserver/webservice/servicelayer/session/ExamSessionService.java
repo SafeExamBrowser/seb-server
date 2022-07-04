@@ -77,7 +77,7 @@ public interface ExamSessionService {
     /** Use this to check if a specified Exam has currently active SEB Client connections.
      *
      * Active SEB Client connections are established connections that are not yet closed and
-     * connection attempts that are older the a defined time interval.
+     * open connection attempts.
      *
      * @param examId The Exam identifier
      * @return true if the given Exam has currently no active client connection, false otherwise. */
@@ -86,7 +86,7 @@ public interface ExamSessionService {
             return false;
         }
 
-        return !this.getActiveConnectionTokens(examId)
+        return !this.getAllActiveConnectionTokens(examId)
                 .getOrThrow()
                 .isEmpty();
     }
@@ -184,12 +184,20 @@ public interface ExamSessionService {
             final Long examId,
             final Predicate<ClientConnectionData> filter);
 
-    /** Gets all connection tokens of active client connection that are related to a specified exam
+    /** Gets all connection tokens of client connection that are in ACTIVE state and related to a specified exam
      * from persistence storage without caching involved.
      *
      * @param examId the exam identifier
      * @return Result refer to the collection of connection tokens or to an error when happened. */
     Result<Collection<String>> getActiveConnectionTokens(Long examId);
+
+    /** Gets all connection tokens of client connections that are in an active state. See <code>ClientConnection</code>
+     * And that are related to a specified exam.
+     * There is no caching involved here, gets actual data from persistent storage
+     *
+     * @param examId the exam identifier
+     * @return Result refer to the collection of connection tokens or to an error when happened. */
+    Result<Collection<String>> getAllActiveConnectionTokens(Long examId);
 
     /** Use this to check if the current cached running exam is up to date
      * and if not to flush the cache.

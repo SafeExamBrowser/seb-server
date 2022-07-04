@@ -568,7 +568,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                                     .of("Exam currently has active SEB Client connections."));
                 }
 
-                // TODO double check before setSEBRestriction
                 return this.checkNoActiveSEBClientConnections(exam)
                         .flatMap(this.sebRestrictionService::applySEBClientRestriction)
                         .flatMap(e -> this.examDAO.setSEBRestriction(exam.id, restrict))

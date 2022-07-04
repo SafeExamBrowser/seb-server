@@ -9,13 +9,14 @@ INSERT IGNORE INTO seb_client_configuration VALUES
     
 INSERT IGNORE INTO additional_attributes VALUES
     (1, 'SEB_CLIENT_CONFIGURATION', 2, 'vdiSetup', 'VM_WARE'),
-    (2, 'SEB_CLIENT_CONFIGURATION', 2, 'vdiExecutable', 'vmware-view.exe')
+    (2, 'SEB_CLIENT_CONFIGURATION', 2, 'vdiExecutable', 'vmware-view.exe'),
+    (3, 'EXAM', 2, 'quiz_start_url', 'https://test.lms.mockup')
     ;
     
 INSERT IGNORE INTO exam VALUES
-    (1, 1, 1, 'quiz1', 'admin', 'admin', 'MANAGED', null, null, 'UP_COMING', 1, 0, null, 1, null, null, null, null, null, null),
-    (2, 1, 1, 'quiz6', 'admin', 'admin', 'MANAGED', null, null, 'RUNNING', 1, 0, null, 1, null, null, null, null, null, null),
-    (3, 1, 1, 'quiz3', 'admin', 'admin', 'MANAGED', null, null, 'FINISHED', 1, 0, null, 1, null, null, null, null, null, null)
+    (1, 1, 1, 'quiz1', 'admin', 'admin', 'MANAGED', null, null, 'UP_COMING', 1, 0, null, 1, null, null, 'quiz1', null, null, 1),
+    (2, 1, 1, 'quiz6', 'admin', 'admin', 'MANAGED', null, null, 'RUNNING', 1, 0, null, 1, null, null, 'quiz6', null, null, 1),
+    (3, 1, 1, 'quiz3', 'admin', 'admin', 'MANAGED', null, null, 'FINISHED', 1, 0, null, 1, null, null, 'quiz3', null, null, 1)
     ;
     
 INSERT IGNORE INTO indicator VALUES
