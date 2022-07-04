@@ -95,6 +95,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
@@ -2148,7 +2149,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertTrue(connections.isEmpty());
 
         // get MonitoringFullPageData
-        final Result<MonitoringFullPageData> fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
+        Result<MonitoringFullPageData> fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
                 .call();
         assertNotNull(fullPageData);
@@ -2199,6 +2200,22 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             final Iterator<ClientConnectionData> iterator = connections.iterator();
             iterator.next();
             final ClientConnectionData con = iterator.next();
+
+            fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                    .withHeader(API.EXAM_MONITORING_STATE_FILTER, ConnectionStatus.DISABLED.name())
+                    .call();
+            assertNotNull(fullPageData);
+            assertFalse(fullPageData.hasError());
+
+            fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                    .withHeader(
+                            API.EXAM_MONITORING_STATE_FILTER,
+                            ConnectionStatus.DISABLED.name() + "," + ConnectionStatus.ACTIVE.name())
+                    .call();
+            assertNotNull(fullPageData);
+            assertFalse(fullPageData.hasError());
 
             // get single client connection
             final Result<ClientConnection> ccCall = restService.getBuilder(GetClientConnection.class)
