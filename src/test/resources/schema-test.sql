@@ -556,7 +556,6 @@ CREATE TABLE IF NOT EXISTS `seb_client_configuration` (
 -- -----------------------------------------------------
 -- Table `webservice_server_info`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `webservice_server_info` ;
 
 CREATE TABLE IF NOT EXISTS `webservice_server_info` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

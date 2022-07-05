@@ -70,7 +70,7 @@ public abstract class GuiIntegrationTest {
 
     @Before
     public void setup() {
-        this.webserviceInfoDAO.unregister(this.webserviceInfo.getWebserviceUUID());
+        //this.webserviceInfoDAO.unregister(this.webserviceInfo.getWebserviceUUID());
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
                 .addFilter(this.springSecurityFilterChain).build();
 
