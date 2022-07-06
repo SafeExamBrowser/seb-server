@@ -48,12 +48,15 @@ import org.springframework.util.StreamUtils;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
+import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Domain.BATCH_ACTION;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -119,6 +122,9 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ExamConfigurationServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.DoBatchAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchActionPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ActivateSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamImported;
@@ -264,7 +270,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     @Before
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void init() {
-        System.out.println("*** init");
+        // Nothing
     }
 
     @After
@@ -3876,6 +3882,67 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         } catch (final Exception e) {
             fail(e.getMessage());
         }
+    }
+
+    @Test
+    @Order(29)
+    // *************************************
+    // Use Case 29: Login as admin and create some batch actions
+    // - Get Exam (running)
+    // - start some SEB clients connecting to running exam
+    // - Check collecting rooms created
+    public void testUsecase29_TestBatchAction() throws IOException, InterruptedException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new DoBatchAction(),
+                new GetBatchAction(),
+                new GetBatchActionPage(),
+                new GetExamConfigNodePage());
+
+        final ConfigurationNode config = restService
+                .getBuilder(GetExamConfigNodePage.class)
+                .call()
+                .getOrThrow().content
+                        .get(0);
+        assertNotNull(config);
+        assertEquals("READY_TO_USE", config.status.toString());
+
+        // apply batch action
+        final Result<BatchAction> doBatchAction = restService
+                .getBuilder(DoBatchAction.class)
+                .withFormParam(Domain.BATCH_ACTION.ATTR_ACTION_TYPE, BatchActionType.EXAM_CONFIG_STATE_CHANGE.name())
+                .withFormParam(BATCH_ACTION.ATTR_SOURCE_IDS, config.getModelId())
+                .withFormParam(BatchAction.ACTION_ATTRIBUT_TARGET_STATE, ConfigurationStatus.CONSTRUCTION.name())
+                .call();
+
+        assertNotNull(doBatchAction);
+        assertFalse(doBatchAction.hasError());
+        final BatchAction batchAction = doBatchAction.get();
+        assertNotNull(batchAction);
+        assertNotNull(batchAction.ownerId);
+        assertFalse(batchAction.isFinished());
+        assertEquals("EXAM_CONFIG_STATE_CHANGE", batchAction.actionType.name());
+
+        Thread.sleep(1000);
+
+        final BatchAction savedBatchAction = restService
+                .getBuilder(GetBatchAction.class)
+                .withURIVariable(API.PARAM_MODEL_ID, batchAction.getModelId())
+                .call().get();
+
+        assertNotNull(savedBatchAction);
+        assertNotNull(savedBatchAction.ownerId);
+        assertTrue(savedBatchAction.isFinished());
+        assertEquals("EXAM_CONFIG_STATE_CHANGE", savedBatchAction.actionType.name());
+        assertNotNull(savedBatchAction.processorId);
+
+        final Page<BatchAction> page = restService
+                .getBuilder(GetBatchActionPage.class)
+                .call().get();
+
+        assertNotNull(page);
+        assertFalse(page.content.isEmpty());
     }
 
 }
