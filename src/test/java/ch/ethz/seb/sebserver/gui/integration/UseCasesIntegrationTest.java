@@ -2361,6 +2361,33 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         connectionPage = connectionPageRes.get();
         assertNotNull(connectionPage);
         assertTrue(connectionPage.isEmpty());
+
+        final Result<Page<ClientConnectionData>> connectionDatacall = restService
+                .getBuilder(GetFinishedExamClientConnectionPage.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                .call();
+        assertNotNull(connectionDatacall);
+        assertFalse(connectionDatacall.hasError());
+        final Page<ClientConnectionData> ccDataPage = connectionDatacall.get();
+        assertNotNull(ccDataPage);
+        assertFalse(ccDataPage.content.isEmpty());
+        final ClientConnectionData clientConnectionData = ccDataPage.content.get(0);
+        assertNotNull(clientConnectionData);
+        assertEquals("DISABLED", clientConnectionData.clientConnection.status.toString());
+
+        final Result<ClientConnectionData> ccDataCall = restService
+                .getBuilder(GetFinishedExamClientConnection.class)
+                .withURIVariable(API.PARAM_MODEL_ID, clientConnectionData.getModelId())
+                .call();
+
+        assertNotNull(ccDataCall);
+        assertFalse(ccDataCall.hasError());
+        final ClientConnectionData clientConnectionData2 = ccDataCall.get();
+        assertNotNull(clientConnectionData2);
+        assertEquals(
+                clientConnectionData2.clientConnection.connectionToken,
+                clientConnectionData.clientConnection.connectionToken);
+
     }
 
     @Test
