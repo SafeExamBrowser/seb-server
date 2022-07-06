@@ -40,6 +40,7 @@ import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -99,6 +100,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
@@ -168,7 +170,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSe
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllClientEvents;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllUserLogs;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.ExportSEBClientLogs;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogPage;
@@ -2121,6 +2125,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetClientConnection(),
                 new GetMonitoringFullPageData(),
                 new GetExtendedClientEventPage(),
+                new ExportSEBClientLogs(),
+                new DeleteAllClientEvents(),
                 new DisableClientConnection(),
                 new PropagateInstruction(),
                 new GetClientConnectionPage(),
@@ -2137,7 +2143,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new ActivateClientConfig(),
                 new GetClientConfigPage(),
                 new GetIndicatorPage(),
-                new GetIndicators());
+                new GetIndicators(),
+                new DeleteAllClientEvents());
 
         // get running exams
         final Result<Page<Exam>> runningExamsCall = restService.getBuilder(GetRunningExamPage.class)
@@ -2332,7 +2339,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals("DISABLED", conData.clientConnection.status.name());
 
         // get client logs
-        final Result<Page<ExtendedClientEvent>> clientLogPage = restService.getBuilder(GetExtendedClientEventPage.class)
+        final Result<Page<ExtendedClientEvent>> clientLogPage = restService
+                .getBuilder(GetExtendedClientEventPage.class)
                 .call();
 
         assertNotNull(clientLogPage);
@@ -2341,6 +2349,32 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(clientLogs.isEmpty());
         final ExtendedClientEvent extendedClientEvent = clientLogs.content.get(0);
         assertNotNull(extendedClientEvent);
+
+        // export client logs
+        restService
+                .getBuilder(ExportSEBClientLogs.class)
+                .withQueryParam(API.SEB_CLIENT_EVENT_EXPORT_TYPE, ExportType.CSV.name())
+                .withQueryParam(API.SEB_CLIENT_EVENT_EXPORT_INCLUDE_EXAMS, "true")
+                .withResponseExtractor(response -> {
+                    final HttpStatus statusCode = response.getStatusCode();
+                    assertEquals("200 OK", statusCode.toString());
+                    final String csvExport = IOUtils.toString(response.getBody());
+                    assertTrue(StringUtils.isNotBlank(csvExport));
+                    return true;
+                })
+                .call();
+
+        // delete client logs
+        final Result<EntityProcessingReport> report = adminRestService
+                .getBuilder(DeleteAllClientEvents.class)
+                .withFormParam(
+                        API.PARAM_MODEL_ID_LIST,
+                        StringUtils.join(
+                                clientLogs.content.stream().map(e -> e.getModelId()).collect(Collectors.toList()), ","))
+                .call();
+
+        assertNotNull(report);
+        assertFalse(report.hasError());
 
         // get client connection page
         Result<Page<ClientConnection>> connectionPageRes = restService
@@ -2362,18 +2396,29 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(connectionPage);
         assertTrue(connectionPage.isEmpty());
 
-        final Result<Page<ClientConnectionData>> connectionDatacall = restService
+        Result<Page<ClientConnectionData>> connectionDatacall = restService
                 .getBuilder(GetFinishedExamClientConnectionPage.class)
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
                 .call();
         assertNotNull(connectionDatacall);
         assertFalse(connectionDatacall.hasError());
-        final Page<ClientConnectionData> ccDataPage = connectionDatacall.get();
+        Page<ClientConnectionData> ccDataPage = connectionDatacall.get();
         assertNotNull(ccDataPage);
         assertFalse(ccDataPage.content.isEmpty());
         final ClientConnectionData clientConnectionData = ccDataPage.content.get(0);
         assertNotNull(clientConnectionData);
         assertEquals("DISABLED", clientConnectionData.clientConnection.status.toString());
+
+        connectionDatacall = restService
+                .getBuilder(GetFinishedExamClientConnectionPage.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                .withQueryParam(ClientConnection.FILTER_ATTR_INFO, "test")
+                .call();
+        assertNotNull(connectionDatacall);
+        assertFalse(connectionDatacall.hasError());
+        ccDataPage = connectionDatacall.get();
+        assertNotNull(ccDataPage);
+        assertTrue(ccDataPage.content.isEmpty());
 
         final Result<ClientConnectionData> ccDataCall = restService
                 .getBuilder(GetFinishedExamClientConnection.class)

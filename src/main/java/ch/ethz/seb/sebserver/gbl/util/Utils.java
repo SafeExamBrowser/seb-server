@@ -248,6 +248,9 @@ public final class Utils {
     }
 
     public static String formatDate(final DateTime dateTime) {
+        if (dateTime == null) {
+            return Constants.EMPTY_NOTE;
+        }
         return dateTime.toString(Constants.STANDARD_DATE_TIME_MILLIS_FORMATTER);
     }
 
