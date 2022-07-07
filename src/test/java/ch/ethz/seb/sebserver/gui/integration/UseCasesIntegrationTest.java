@@ -126,6 +126,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.DoBatchActi
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchActionPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ActivateSEBRestriction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ArchiveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamImported;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
@@ -3943,6 +3944,75 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertNotNull(page);
         assertFalse(page.content.isEmpty());
+    }
+
+    @Test
+    @Order(30)
+    // *************************************
+    // Use Case 30: Login as admin and archive finished exam
+    // - Get Exam (finished), archive and check
+    public void testUsecase30_TestArchiveExam() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetExamPage(),
+                new GetExam(),
+                new ArchiveExam());
+
+        final Page<Exam> finishedExams = restService
+                .getBuilder(GetExamPage.class)
+                .withQueryParam(Exam.FILTER_ATTR_STATUS, ExamStatus.FINISHED.name())
+                .call()
+                .get();
+
+        assertNotNull(finishedExams);
+        assertFalse(finishedExams.content.isEmpty());
+        final Exam exam = finishedExams.content.get(0);
+        assertEquals(ExamStatus.FINISHED, exam.status);
+
+        final Result<Exam> archiveCall = restService.getBuilder(ArchiveExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call();
+
+        assertNotNull(archiveCall);
+        assertFalse(archiveCall.hasError());
+        final Exam exam2 = archiveCall.get();
+        assertNotNull(exam2);
+        assertEquals(exam.id, exam2.id);
+        assertEquals(ExamStatus.ARCHIVED, exam2.status);
+    }
+
+    @Test
+    @Order(31)
+    // *************************************
+    // Use Case 31: Login as admin and archive finished exam
+    // - Get Exam (running), archive and check not possible
+    public void testUsecase31_TestArchiveRunningExam_NotPossible() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetExamPage(),
+                new GetExam(),
+                new ArchiveExam());
+
+        final Page<Exam> finishedExams = restService
+                .getBuilder(GetExamPage.class)
+                .withQueryParam(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name())
+                .call()
+                .get();
+
+        assertNotNull(finishedExams);
+        assertFalse(finishedExams.content.isEmpty());
+        final Exam exam = finishedExams.content.get(0);
+        assertEquals(ExamStatus.RUNNING, exam.status);
+
+        final Result<Exam> archiveCall = restService.getBuilder(ArchiveExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call();
+
+        assertNotNull(archiveCall);
+        assertTrue(archiveCall.hasError());
+        assertTrue(archiveCall.getError().getMessage().contains("Exam is in wrong status to archive"));
     }
 
 }

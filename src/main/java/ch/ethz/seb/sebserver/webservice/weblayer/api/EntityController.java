@@ -206,19 +206,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         return page;
     }
 
-    protected void populateFilterMap(final FilterMap filterMap, final Long institutionId, final String sort) {
-        // If current user has no read access for specified entity type within other institution
-        // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
-        if (!this.authorization.hasGrant(PrivilegeType.READ, getGrantEntityType())) {
-            filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
-        }
-
-        // If sorting is on institution name we need to join the institution table
-        if (sort != null && sort.contains(Entity.FILTER_ATTR_INSTITUTION)) {
-            filterMap.putIfAbsent(FilterMap.ATTR_ADD_INSITUTION_JOIN, Constants.TRUE_STRING);
-        }
-    }
-
     // ******************
     // * GET (names)
     // ******************
@@ -581,6 +568,19 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 .getOrThrow();
     }
 
+    protected void populateFilterMap(final FilterMap filterMap, final Long institutionId, final String sort) {
+        // If current user has no read access for specified entity type within other institution
+        // then the current users institutionId is put as a SQL filter criteria attribute to extends query performance
+        if (!this.authorization.hasGrant(PrivilegeType.READ, getGrantEntityType())) {
+            filterMap.putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+        }
+
+        // If sorting is on institution name we need to join the institution table
+        if (sort != null && sort.contains(Entity.FILTER_ATTR_INSTITUTION)) {
+            filterMap.putIfAbsent(FilterMap.ATTR_ADD_INSITUTION_JOIN, Constants.TRUE_STRING);
+        }
+    }
+
     protected EnumSet<EntityType> convertToEntityType(final boolean addIncludes, final List<String> includes) {
         final EnumSet<EntityType> includeDependencies = (includes != null)
                 ? (includes.isEmpty())
@@ -781,24 +781,6 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
      * @return Result refer to the logged Entity instance or to an error if happened */
     protected Result<T> logModify(final T entity) {
         return this.userActivityLogDAO.logModify(entity);
-    }
-
-    /** Makes a DELETE user activity log for the specified entity.
-     * This may be overwritten if the create user activity log should be skipped.
-     *
-     * @param entity the Entity instance
-     * @return Result refer to the logged Entity instance or to an error if happened */
-    protected String logDelete(final String modelId) {
-        try {
-            return this.entityDAO
-                    .byModelId(modelId)
-                    .flatMap(this::logDelete)
-                    .map(Entity::getModelId)
-                    .getOrThrow();
-        } catch (final Exception e) {
-            log.warn("Failed to log delete for entity id: {}", modelId, e);
-            return modelId;
-        }
     }
 
     /** Makes a DELETE user activity log for the specified entity.
