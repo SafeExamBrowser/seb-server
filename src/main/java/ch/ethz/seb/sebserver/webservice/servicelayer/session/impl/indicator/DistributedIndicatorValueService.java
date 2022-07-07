@@ -154,9 +154,16 @@ public class DistributedIndicatorValueService implements DisposableBean {
             final Long recId = this.clientIndicatorValueMapper.indicatorRecordIdByConnectionId(
                     connectionId,
                     type);
+
             if (recId != null) {
-                log.debug("Distributed indicator value cache already exists for: {}, {}", connectionId, type);
+                if (log.isTraceEnabled()) {
+                    log.trace("Distributed indicator value cache already exists for: {}, {}", connectionId, type);
+                }
                 return recId;
+            }
+
+            if (log.isDebugEnabled()) {
+                log.info("Missing distributed indicator value cache. Create for: {}, {}", connectionId, type);
             }
 
             // if not, create new one and return PK

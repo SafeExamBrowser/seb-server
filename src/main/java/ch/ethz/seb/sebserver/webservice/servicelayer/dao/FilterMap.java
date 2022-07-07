@@ -156,7 +156,7 @@ public class FilterMap extends POSTMapper {
     }
 
     public String getConfigAttributeType() {
-        return getSQLWildcard(ConfigurationAttribute.FILTER_ATTR_TYPE);
+        return getString(ConfigurationAttribute.FILTER_ATTR_TYPE);
     }
 
     public Long getConfigValueConfigId() {

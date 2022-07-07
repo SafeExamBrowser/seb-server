@@ -40,6 +40,7 @@ import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -47,12 +48,15 @@ import org.springframework.util.StreamUtils;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
+import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Domain.BATCH_ACTION;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -62,6 +66,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
@@ -69,6 +74,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
@@ -97,6 +103,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
@@ -104,6 +111,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.model.session.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.model.session.MonitoringSEBConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -114,7 +122,11 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ExamConfigurationServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.DoBatchAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchActionPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ActivateSEBRestriction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ArchiveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamImported;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
@@ -165,7 +177,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSe
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllClientEvents;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllUserLogs;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.ExportSEBClientLogs;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogPage;
@@ -214,18 +228,27 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Sa
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.CloseProctoringRoom;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisableClientConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRoomConnections;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnectionPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetMonitoringFullPageData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetPendingClientNotifications;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunningExamPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetTownhallRoom;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.IsTownhallRoomAvailable;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.NotifyProctoringRoomOpened;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.OpenTownhallRoom;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.PropagateInstruction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendProctoringReconfigurationAttributes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.DeleteUserAccount;
@@ -235,7 +258,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUs
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.RegisterNewUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
@@ -2107,6 +2132,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetClientConnection(),
                 new GetMonitoringFullPageData(),
                 new GetExtendedClientEventPage(),
+                new ExportSEBClientLogs(),
+                new DeleteAllClientEvents(),
                 new DisableClientConnection(),
                 new PropagateInstruction(),
                 new GetClientConnectionPage(),
@@ -2123,7 +2150,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new ActivateClientConfig(),
                 new GetClientConfigPage(),
                 new GetIndicatorPage(),
-                new GetIndicators());
+                new GetIndicators(),
+                new DeleteAllClientEvents());
 
         // get running exams
         final Result<Page<Exam>> runningExamsCall = restService.getBuilder(GetRunningExamPage.class)
@@ -2162,7 +2190,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         .collect(Collectors.toList()).toString());
 
         // get active client config's credentials
-        final Result<Page<SEBClientConfig>> cconfigs = adminRestService.getBuilder(GetClientConfigPage.class)
+        final Result<Page<SEBClientConfig>> cconfigs = adminRestService
+                .getBuilder(GetClientConfigPage.class)
                 .call();
         assertNotNull(cconfigs);
         assertFalse(cconfigs.hasError());
@@ -2171,7 +2200,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         final SEBClientConfig clientConfig = ccPage.content.get(0);
         assertTrue(clientConfig.isActive());
-        final ClientCredentials credentials = this.sebClientConfigDAO.getSEBClientCredentials(clientConfig.getModelId())
+        final ClientCredentials credentials = this.sebClientConfigDAO
+                .getSEBClientCredentials(clientConfig.getModelId())
                 .getOrThrow();
 
         adminRestService.getBuilder(ActivateClientConfig.class)
@@ -2184,8 +2214,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     credentials.clientIdAsString(),
                     this.cryptor.decrypt(credentials.secret).getOrThrow().toString(),
                     exam.getModelId(),
-                    String.valueOf(exam.institutionId));
-            Thread.sleep(1000);
+                    String.valueOf(exam.institutionId),
+                    true);
+            //Thread.sleep(1000);
 
             // send get connections
             connectionsCall =
@@ -2263,7 +2294,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             assertNotNull(instructionCall);
             assertFalse(instructionCall.hasError());
 
-            Thread.sleep(1000);
+            //Thread.sleep(1000);
         } catch (final Exception e) {
             fail(e.getMessage());
         }
@@ -2315,7 +2346,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals("DISABLED", conData.clientConnection.status.name());
 
         // get client logs
-        final Result<Page<ExtendedClientEvent>> clientLogPage = restService.getBuilder(GetExtendedClientEventPage.class)
+        final Result<Page<ExtendedClientEvent>> clientLogPage = restService
+                .getBuilder(GetExtendedClientEventPage.class)
                 .call();
 
         assertNotNull(clientLogPage);
@@ -2324,6 +2356,32 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(clientLogs.isEmpty());
         final ExtendedClientEvent extendedClientEvent = clientLogs.content.get(0);
         assertNotNull(extendedClientEvent);
+
+        // export client logs
+        restService
+                .getBuilder(ExportSEBClientLogs.class)
+                .withQueryParam(API.SEB_CLIENT_EVENT_EXPORT_TYPE, ExportType.CSV.name())
+                .withQueryParam(API.SEB_CLIENT_EVENT_EXPORT_INCLUDE_EXAMS, "true")
+                .withResponseExtractor(response -> {
+                    final HttpStatus statusCode = response.getStatusCode();
+                    assertEquals("200 OK", statusCode.toString());
+                    final String csvExport = IOUtils.toString(response.getBody());
+                    assertTrue(StringUtils.isNotBlank(csvExport));
+                    return true;
+                })
+                .call();
+
+        // delete client logs
+        final Result<EntityProcessingReport> report = adminRestService
+                .getBuilder(DeleteAllClientEvents.class)
+                .withFormParam(
+                        API.PARAM_MODEL_ID_LIST,
+                        StringUtils.join(
+                                clientLogs.content.stream().map(e -> e.getModelId()).collect(Collectors.toList()), ","))
+                .call();
+
+        assertNotNull(report);
+        assertFalse(report.hasError());
 
         // get client connection page
         Result<Page<ClientConnection>> connectionPageRes = restService
@@ -2344,6 +2402,44 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         connectionPage = connectionPageRes.get();
         assertNotNull(connectionPage);
         assertTrue(connectionPage.isEmpty());
+
+        Result<Page<ClientConnectionData>> connectionDatacall = restService
+                .getBuilder(GetFinishedExamClientConnectionPage.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                .call();
+        assertNotNull(connectionDatacall);
+        assertFalse(connectionDatacall.hasError());
+        Page<ClientConnectionData> ccDataPage = connectionDatacall.get();
+        assertNotNull(ccDataPage);
+        assertFalse(ccDataPage.content.isEmpty());
+        final ClientConnectionData clientConnectionData = ccDataPage.content.get(0);
+        assertNotNull(clientConnectionData);
+        assertEquals("DISABLED", clientConnectionData.clientConnection.status.toString());
+
+        connectionDatacall = restService
+                .getBuilder(GetFinishedExamClientConnectionPage.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                .withQueryParam(ClientConnection.FILTER_ATTR_INFO, "test")
+                .call();
+        assertNotNull(connectionDatacall);
+        assertFalse(connectionDatacall.hasError());
+        ccDataPage = connectionDatacall.get();
+        assertNotNull(ccDataPage);
+        assertTrue(ccDataPage.content.isEmpty());
+
+        final Result<ClientConnectionData> ccDataCall = restService
+                .getBuilder(GetFinishedExamClientConnection.class)
+                .withURIVariable(API.PARAM_MODEL_ID, clientConnectionData.getModelId())
+                .call();
+
+        assertNotNull(ccDataCall);
+        assertFalse(ccDataCall.hasError());
+        final ClientConnectionData clientConnectionData2 = ccDataCall.get();
+        assertNotNull(clientConnectionData2);
+        assertEquals(
+                clientConnectionData2.clientConnection.connectionToken,
+                clientConnectionData.clientConnection.connectionToken);
+
     }
 
     @Test
@@ -3455,6 +3551,468 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withFormParam(QuizData.QUIZ_ATTR_ID, quizData.id)
                 .call()
                 .getOrThrow();
+    }
+
+    @Test
+    @Order(27)
+    // *************************************
+    // Use Case 27: Login as admin and set exam proctoring settings for Jtisi
+    // - Get Exam (running)
+    // - Set Proctoring settings for exam
+    // - Check settings for exam
+    public void testUsecase27_SetProctoringSettingsJitsiForExam() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetExamPage(),
+                new GetExamProctoringSettings(),
+                new SaveExamProctoringSettings(),
+                new IsTownhallRoomAvailable(),
+                new GetCollectingRooms());
+
+        // get exam
+        final Result<Page<Exam>> exams = restService
+                .getBuilder(GetExamPage.class)
+                .call();
+
+        assertNotNull(exams);
+        assertFalse(exams.hasError());
+        final Page<Exam> examPage = exams.get();
+        assertFalse(examPage.isEmpty());
+
+        final Exam runningExam = examPage.content
+                .stream()
+                .filter(exam -> exam.status == ExamStatus.RUNNING)
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(runningExam);
+        assertTrue(runningExam.status == ExamStatus.RUNNING);
+
+        final Result<ProctoringServiceSettings> pSettings = restService
+                .getBuilder(GetExamProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .call();
+
+        assertNotNull(pSettings);
+        assertFalse(pSettings.hasError());
+        ProctoringServiceSettings proctoringServiceSettings = pSettings.get();
+        assertFalse(proctoringServiceSettings.enableProctoring);
+        assertNull(proctoringServiceSettings.serverURL);
+
+        // set proctoring settings
+        final ProctoringServiceSettings newProctoringServiceSettings = new ProctoringServiceSettings(
+                runningExam.id,
+                true,
+                ProctoringServerType.JITSI_MEET,
+                "https://test.proc/service",
+                2,
+                EnumSet.allOf(ProctoringFeature.class),
+                true,
+                "appKey", "appSecret",
+                "sdkKey", "sdkSecret",
+                false);
+
+        final Result<ProctoringServiceSettings> newProcSettings = restService
+                .getBuilder(SaveExamProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .withBody(newProctoringServiceSettings)
+                .call();
+
+        assertNotNull(newProcSettings);
+        assertFalse(newProcSettings.hasError());
+
+        proctoringServiceSettings = restService
+                .getBuilder(GetExamProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .call()
+                .get();
+
+        assertTrue(proctoringServiceSettings.enableProctoring);
+        assertEquals("https://test.proc/service", proctoringServiceSettings.serverURL);
+
+        final String twonhallRoom = restService
+                .getBuilder(IsTownhallRoomAvailable.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .call()
+                .get();
+
+        assertEquals("true", twonhallRoom);
+
+        final Collection<RemoteProctoringRoom> collectingRooms = restService
+                .getBuilder(GetCollectingRooms.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .call()
+                .get();
+
+        assertNotNull(collectingRooms);
+        assertTrue(collectingRooms.isEmpty());
+    }
+
+    @Autowired
+    private ExamProctoringRoomService examProcotringRoomService;
+    @Autowired
+    private ClientConnectionDAO clientConnectionDAO;
+
+    @Test
+    @Order(28)
+    // *************************************
+    // Use Case 28: Login as admin and connect with SEBs to running exam with procotring enabled
+    // - Get Exam (running)
+    // - start some SEB clients connecting to running exam
+    // - Check collecting rooms created
+    public void testUsecase28_TestExamProctoring() throws IOException {
+
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetExamPage(),
+                new GetExamProctoringSettings(),
+                new SaveExamProctoringSettings(),
+                new IsTownhallRoomAvailable(),
+                new GetCollectingRooms(),
+                new GetClientConfigPage(),
+                new ActivateClientConfig(),
+                new NewClientConfig(),
+                new GetClientConfig(),
+                new GetProctorRoomConnection(),
+                new GetCollectingRoomConnections(),
+                new NotifyProctoringRoomOpened(),
+                new SendProctoringReconfigurationAttributes(),
+                new GetTownhallRoom(),
+                new OpenTownhallRoom(),
+                new CloseProctoringRoom());
+
+        // get exam
+        final Result<Page<Exam>> exams = restService
+                .getBuilder(GetExamPage.class)
+                .call();
+
+        assertNotNull(exams);
+        assertFalse(exams.hasError());
+        final Page<Exam> examPage = exams.get();
+        assertFalse(examPage.isEmpty());
+
+        final Exam runningExam = examPage.content
+                .stream()
+                .filter(exam -> exam.status == ExamStatus.RUNNING)
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(runningExam);
+        assertTrue(runningExam.status == ExamStatus.RUNNING);
+
+        final Result<ProctoringServiceSettings> pSettings = restService
+                .getBuilder(GetExamProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .call();
+
+        assertNotNull(pSettings);
+        assertFalse(pSettings.hasError());
+        final ProctoringServiceSettings proctoringServiceSettings = pSettings.get();
+        assertTrue(proctoringServiceSettings.enableProctoring);
+        assertEquals("https://test.proc/service", proctoringServiceSettings.serverURL);
+
+        // start some SEB connections for this exam
+
+        // create SEB Client Config without password protection
+        Result<SEBClientConfig> newConfigResponse = restService
+                .getBuilder(NewClientConfig.class)
+                .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "No Password Protection")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
+                .withFormParam(SEBClientConfig.ATTR_CONFIG_PURPOSE, SEBClientConfig.ConfigPurpose.START_EXAM.name())
+                .call();
+
+        assertNotNull(newConfigResponse);
+        assertFalse(newConfigResponse.hasError());
+        final SEBClientConfig sebClientConfig = newConfigResponse.get();
+        assertEquals("No Password Protection", sebClientConfig.name);
+        assertFalse(sebClientConfig.isActive());
+        assertEquals("http://fallback.com/fallback", sebClientConfig.fallbackStartURL);
+
+        // activate the new Client Configuration
+        restService
+                .getBuilder(ActivateClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, sebClientConfig.getModelId())
+                .call();
+
+        newConfigResponse = restService.getBuilder(GetClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, sebClientConfig.getModelId())
+                .call();
+
+        final SEBClientConfig clientConfig = newConfigResponse.get();
+        assertTrue(clientConfig.isActive());
+        final ClientCredentials credentials = this.sebClientConfigDAO
+                .getSEBClientCredentials(clientConfig.getModelId())
+                .getOrThrow();
+
+        assertTrue(clientConfig.isActive());
+
+        // simulate a SEB connection
+        try {
+            new SEBClientBot(
+                    credentials.clientIdAsString(),
+                    this.cryptor.decrypt(credentials.secret).getOrThrow().toString(),
+                    runningExam.getModelId(),
+                    String.valueOf(runningExam.institutionId),
+                    false);
+
+            Thread.sleep(1000);
+
+            this.examProcotringRoomService.updateProctoringCollectingRooms();
+
+            // check collecting room was created
+            final Collection<RemoteProctoringRoom> collectingRooms = restService
+                    .getBuilder(GetCollectingRooms.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+
+            assertNotNull(collectingRooms);
+            assertFalse(collectingRooms.isEmpty());
+            // Two rooms a two people for four connections
+            assertEquals(2, collectingRooms.size());
+            final RemoteProctoringRoom room1 = collectingRooms.iterator().next();
+            assertEquals(2, room1.roomSize.intValue());
+            assertFalse(room1.townhallRoom);
+
+            final ProctoringRoomConnection proctoringRoomConnection = restService
+                    .getBuilder(GetProctorRoomConnection.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room1.name)
+                    .call()
+                    .get();
+
+            assertNotNull(proctoringRoomConnection);
+            assertEquals(room1.name, proctoringRoomConnection.roomName);
+            assertNotNull(proctoringRoomConnection.accessToken);
+
+            // notify room open
+            restService
+                    .getBuilder(NotifyProctoringRoomOpened.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room1.name)
+                    .call()
+                    .get();
+
+            // reconfigure clients in room
+            restService
+                    .getBuilder(SendProctoringReconfigurationAttributes.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .withQueryParam(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID, room1.name)
+                    .withQueryParam(API.EXAM_PROCTORING_ATTR_RECEIVE_AUDIO, "true")
+                    .withQueryParam(API.EXAM_PROCTORING_ATTR_RECEIVE_VIDEO, "true")
+                    .withQueryParam(API.EXAM_PROCTORING_ATTR_ALLOW_CHAT, "true")
+                    .call()
+                    .get();
+
+            final Collection<ClientConnection> collection = restService
+                    .getBuilder(GetCollectingRoomConnections.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .withQueryParam(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID, room1.name)
+                    .call()
+                    .get();
+
+            assertNotNull(collection);
+            assertFalse(collection.isEmpty());
+            assertEquals(2, collection.size());
+            final ClientConnection connection = collection.iterator().next();
+            assertEquals(runningExam.id, connection.examId);
+            // this is because the Json model do not contian certain attributes due to performance
+            assertNull(connection.remoteProctoringRoomId);
+            // we can geht the room number by getting it directyl from the record
+            final ClientConnection clientConnection = this.clientConnectionDAO.byPK(connection.id).get();
+            assertNotNull(clientConnection.remoteProctoringRoomId);
+
+            // get and open townhall
+            final String townhallActive = restService
+                    .getBuilder(IsTownhallRoomAvailable.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+
+            assertEquals("true", townhallActive);
+
+            // check no Townhallroom yet
+            RemoteProctoringRoom townhallRoom = restService
+                    .getBuilder(GetTownhallRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+            assertEquals(RemoteProctoringRoom.NULL_ROOM, townhallRoom);
+
+            // open townhall room
+            final ProctoringRoomConnection townhallRoomConntection = restService
+                    .getBuilder(OpenTownhallRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+
+            assertNotNull(townhallRoomConntection);
+
+            // check  Townhallroom is available yet
+            townhallRoom = restService
+                    .getBuilder(GetTownhallRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+            assertTrue(townhallRoom.townhallRoom);
+            assertEquals(townhallRoom.name, townhallRoomConntection.roomName);
+
+            // close townhall room
+            restService
+                    .getBuilder(CloseProctoringRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, townhallRoom.name)
+                    .call()
+                    .get();
+
+            townhallRoom = restService
+                    .getBuilder(GetTownhallRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+            assertEquals(RemoteProctoringRoom.NULL_ROOM, townhallRoom);
+
+            Thread.sleep(5000);
+
+        } catch (final Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(29)
+    // *************************************
+    // Use Case 29: Login as admin and create some batch actions
+    // - Get Exam (running)
+    // - start some SEB clients connecting to running exam
+    // - Check collecting rooms created
+    public void testUsecase29_TestBatchAction() throws IOException, InterruptedException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new DoBatchAction(),
+                new GetBatchAction(),
+                new GetBatchActionPage(),
+                new GetExamConfigNodePage());
+
+        final ConfigurationNode config = restService
+                .getBuilder(GetExamConfigNodePage.class)
+                .call()
+                .getOrThrow().content
+                        .get(0);
+        assertNotNull(config);
+        assertEquals("READY_TO_USE", config.status.toString());
+
+        // apply batch action
+        final Result<BatchAction> doBatchAction = restService
+                .getBuilder(DoBatchAction.class)
+                .withFormParam(Domain.BATCH_ACTION.ATTR_ACTION_TYPE, BatchActionType.EXAM_CONFIG_STATE_CHANGE.name())
+                .withFormParam(BATCH_ACTION.ATTR_SOURCE_IDS, config.getModelId())
+                .withFormParam(BatchAction.ACTION_ATTRIBUT_TARGET_STATE, ConfigurationStatus.CONSTRUCTION.name())
+                .call();
+
+        assertNotNull(doBatchAction);
+        assertFalse(doBatchAction.hasError());
+        final BatchAction batchAction = doBatchAction.get();
+        assertNotNull(batchAction);
+        assertNotNull(batchAction.ownerId);
+        assertFalse(batchAction.isFinished());
+        assertEquals("EXAM_CONFIG_STATE_CHANGE", batchAction.actionType.name());
+
+        Thread.sleep(1000);
+
+        final BatchAction savedBatchAction = restService
+                .getBuilder(GetBatchAction.class)
+                .withURIVariable(API.PARAM_MODEL_ID, batchAction.getModelId())
+                .call().get();
+
+        assertNotNull(savedBatchAction);
+        assertNotNull(savedBatchAction.ownerId);
+        assertTrue(savedBatchAction.isFinished());
+        assertEquals("EXAM_CONFIG_STATE_CHANGE", savedBatchAction.actionType.name());
+        assertNotNull(savedBatchAction.processorId);
+
+        final Page<BatchAction> page = restService
+                .getBuilder(GetBatchActionPage.class)
+                .call().get();
+
+        assertNotNull(page);
+        assertFalse(page.content.isEmpty());
+    }
+
+    @Test
+    @Order(30)
+    // *************************************
+    // Use Case 30: Login as admin and archive finished exam
+    // - Get Exam (finished), archive and check
+    public void testUsecase30_TestArchiveExam() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetExamPage(),
+                new GetExam(),
+                new ArchiveExam());
+
+        final Page<Exam> finishedExams = restService
+                .getBuilder(GetExamPage.class)
+                .withQueryParam(Exam.FILTER_ATTR_STATUS, ExamStatus.FINISHED.name())
+                .call()
+                .get();
+
+        assertNotNull(finishedExams);
+        assertFalse(finishedExams.content.isEmpty());
+        final Exam exam = finishedExams.content.get(0);
+        assertEquals(ExamStatus.FINISHED, exam.status);
+
+        final Result<Exam> archiveCall = restService.getBuilder(ArchiveExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call();
+
+        assertNotNull(archiveCall);
+        assertFalse(archiveCall.hasError());
+        final Exam exam2 = archiveCall.get();
+        assertNotNull(exam2);
+        assertEquals(exam.id, exam2.id);
+        assertEquals(ExamStatus.ARCHIVED, exam2.status);
+    }
+
+    @Test
+    @Order(31)
+    // *************************************
+    // Use Case 31: Login as admin and archive finished exam
+    // - Get Exam (running), archive and check not possible
+    public void testUsecase31_TestArchiveRunningExam_NotPossible() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetExamPage(),
+                new GetExam(),
+                new ArchiveExam());
+
+        final Page<Exam> finishedExams = restService
+                .getBuilder(GetExamPage.class)
+                .withQueryParam(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name())
+                .call()
+                .get();
+
+        assertNotNull(finishedExams);
+        assertFalse(finishedExams.content.isEmpty());
+        final Exam exam = finishedExams.content.get(0);
+        assertEquals(ExamStatus.RUNNING, exam.status);
+
+        final Result<Exam> archiveCall = restService.getBuilder(ArchiveExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call();
+
+        assertNotNull(archiveCall);
+        assertTrue(archiveCall.hasError());
+        assertTrue(archiveCall.getError().getMessage().contains("Exam is in wrong status to archive"));
     }
 
 }

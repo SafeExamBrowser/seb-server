@@ -96,10 +96,15 @@ public class SEBClientBot {
     long errorInterval = ONE_SECOND;
     long warnInterval = ONE_SECOND / 2;
     long notificationInterval = 800;
-    long runtime = ONE_SECOND * 3;
+    long runtime = ONE_SECOND * 5;
     int connectionAttempts = 1;
 
-    public SEBClientBot(final String clientId, final String clientSecret, final String examId, final String instId)
+    public SEBClientBot(
+            final String clientId,
+            final String clientSecret,
+            final String examId,
+            final String instId,
+            final boolean wait)
             throws Exception {
 
         this.clientId = clientId;
@@ -114,7 +119,13 @@ public class SEBClientBot {
                     ? this.sessionId
                     : "connection_" + getRandomName();
 
-            new ConnectionBot(sessionId).run();
+            if (wait) {
+                new ConnectionBot(sessionId).run();
+            } else {
+                new Thread(new ConnectionBot(sessionId)).start();
+            }
+
+            //new ConnectionBot(sessionId).run();
             //this.executorService.execute(new ConnectionBot(sessionId));
         }
 
