@@ -94,17 +94,17 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @return Result refer to all exams for LMS update or to an error when happened */
     Result<Collection<Exam>> allForLMSUpdate();
 
-    /** This is used to get all Exams to check if they have to set into running state in the meanwhile.
-     * Gets all exams in the upcoming status for run-check
+    /** This is used to get all Exams that potentially needs a state change.
+     * Checks if the stored running time frame of the exam is not in sync with the current state and return
+     * all exams for this is the case.
+     * Adding also leadTime before and followupTime after the specified running time frame of the exam for
+     * this check.
      *
+     * @param leadTime Time period in milliseconds that is added to now-time-point to check the start time of the exam
+     * @param followupTime Time period in milliseconds that is subtracted from now-time-point check the end time of the
+     *            exam
      * @return Result refer to a collection of exams or to an error if happened */
-    Result<Collection<Exam>> allForRunCheck();
-
-    /** This is used to get all Exams to check if they have to set into finished state in the meanwhile.
-     * Gets all exams in the running status for end-check
-     *
-     * @return Result refer to a collection of exams or to an error if happened */
-    Result<Collection<Exam>> allForEndCheck();
+    Result<Collection<Exam>> allThatNeedsStatusUpdate(long leadTime, long followupTime);
 
     /** Get a collection of all currently running exam identifiers
      *

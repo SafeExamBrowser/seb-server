@@ -79,8 +79,6 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
             //       not accessible within OAuth2 authentication (just with user - authentication),
             //       we can only check if the endpoint is available for now. This is checked
             //       if there is no 404 response.
-            // TODO: Ask eduNEXT to implement also OAuth2 API access for this endpoint to be able
-            //       to check the version of the installed plugin.
             final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
             final String url = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_INFO;
 

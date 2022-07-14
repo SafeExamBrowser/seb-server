@@ -50,6 +50,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamResetEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
 @Lazy
@@ -434,6 +435,24 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     public Result<Collection<String>> getAllActiveConnectionTokens(final Long examId) {
         return this.clientConnectionDAO
                 .getAllActiveConnectionTokens(examId);
+    }
+
+    @EventListener
+    public void notifyExamRest(final ExamResetEvent event) {
+        log.info("ExamResetEvent received, process exam session cleanup...");
+
+        try {
+            if (!isExamRunning(event.exam.id)) {
+                this.flushCache(event.exam);
+                if (this.distributedSetup) {
+                    this.clientConnectionDAO
+                            .deleteClientIndicatorValues(event.exam)
+                            .getOrThrow();
+                }
+            }
+        } catch (final Exception e) {
+            log.error("Failed to cleanup on reset exam: {}", event.exam, e);
+        }
     }
 
     @EventListener

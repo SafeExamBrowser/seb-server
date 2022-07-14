@@ -19,7 +19,10 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.SqlCriterion;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.slf4j.Logger;
@@ -435,9 +438,51 @@ public class ExamRecordDAO {
     }
 
     @Transactional(readOnly = true)
-    public Result<Collection<ExamRecord>> allForRunCheck() {
+    public Result<Collection<ExamRecord>> allThatNeedsStatusUpdate(final long leadTime, final long followupTime) {
         return Result.tryCatch(() -> {
-            return this.examRecordMapper.selectByExample()
+
+            final DateTime now = DateTime.now(DateTimeZone.UTC);
+            final List<ExamRecord> result = new ArrayList<>();
+
+            // check those on running state that are not within the time-frame anymore
+            final List<ExamRecord> running = this.examRecordMapper.selectByExample()
+                    .where(
+                            ExamRecordDynamicSqlSupport.active,
+                            isEqualTo(BooleanUtils.toInteger(true)))
+                    .and(
+                            ExamRecordDynamicSqlSupport.status,
+                            isEqualTo(ExamStatus.RUNNING.name()))
+                    .and(
+                            ExamRecordDynamicSqlSupport.updating,
+                            isEqualTo(BooleanUtils.toInteger(false)))
+                    .and( // not within time frame
+                            ExamRecordDynamicSqlSupport.quizStartTime,
+                            SqlBuilder.isGreaterThanOrEqualToWhenPresent(now.plus(leadTime)),
+                            or(
+                                    ExamRecordDynamicSqlSupport.quizEndTime,
+                                    SqlBuilder.isLessThanWhenPresent(now.minus(followupTime))))
+                    .build()
+                    .execute();
+
+            // check those in not running state (and not archived) and are within the time-frame or on wrong side of the time-frame
+            // if finished but up-coming
+            final SqlCriterion<String> finished = or(
+                    ExamRecordDynamicSqlSupport.status,
+                    isEqualTo(ExamStatus.FINISHED.name()),
+                    and(
+                            ExamRecordDynamicSqlSupport.quizStartTime,
+                            SqlBuilder.isGreaterThanOrEqualToWhenPresent(now.plus(leadTime))));
+
+            // if up-coming but finished
+            final SqlCriterion<String> upcoming = or(
+                    ExamRecordDynamicSqlSupport.status,
+                    isEqualTo(ExamStatus.UP_COMING.name()),
+                    and(
+                            ExamRecordDynamicSqlSupport.quizEndTime,
+                            SqlBuilder.isLessThanWhenPresent(now.minus(followupTime))),
+                    finished);
+
+            final List<ExamRecord> notRunning = this.examRecordMapper.selectByExample()
                     .where(
                             ExamRecordDynamicSqlSupport.active,
                             isEqualTo(BooleanUtils.toInteger(true)))
@@ -450,26 +495,19 @@ public class ExamRecordDAO {
                     .and(
                             ExamRecordDynamicSqlSupport.updating,
                             isEqualTo(BooleanUtils.toInteger(false)))
+                    .and( // within time frame
+                            ExamRecordDynamicSqlSupport.quizStartTime,
+                            SqlBuilder.isLessThanWhenPresent(now.plus(leadTime)),
+                            and(
+                                    ExamRecordDynamicSqlSupport.quizEndTime,
+                                    SqlBuilder.isGreaterThanOrEqualToWhenPresent(now.minus(followupTime))),
+                            upcoming)
                     .build()
                     .execute();
-        });
-    }
 
-    @Transactional(readOnly = true)
-    public Result<Collection<ExamRecord>> allForEndCheck() {
-        return Result.tryCatch(() -> {
-            return this.examRecordMapper.selectByExample()
-                    .where(
-                            ExamRecordDynamicSqlSupport.active,
-                            isEqualTo(BooleanUtils.toInteger(true)))
-                    .and(
-                            ExamRecordDynamicSqlSupport.status,
-                            isEqualTo(ExamStatus.RUNNING.name()))
-                    .and(
-                            ExamRecordDynamicSqlSupport.updating,
-                            isEqualTo(BooleanUtils.toInteger(false)))
-                    .build()
-                    .execute();
+            result.addAll(running);
+            result.addAll(notRunning);
+            return result;
         });
     }
 

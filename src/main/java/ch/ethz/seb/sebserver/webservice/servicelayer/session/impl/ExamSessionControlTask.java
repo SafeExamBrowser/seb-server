@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -107,8 +106,9 @@ public class ExamSessionControlTask implements DisposableBean {
         }
 
         controlExamLMSUpdate();
-        controlExamStart(updateId);
-        controlExamEnd(updateId);
+        controlExamState(updateId);
+//        controlExamStart(updateId);
+//        controlExamEnd(updateId);
         this.examDAO.releaseAgedLocks();
     }
 
@@ -191,7 +191,7 @@ public class ExamSessionControlTask implements DisposableBean {
         }
     }
 
-    private void controlExamStart(final String updateId) {
+    private void controlExamState(final String updateId) {
         if (log.isTraceEnabled()) {
             log.trace("Check starting exams: {}", updateId);
         }
@@ -199,47 +199,73 @@ public class ExamSessionControlTask implements DisposableBean {
         try {
 
             final DateTime now = DateTime.now(DateTimeZone.UTC);
-            final Map<Long, String> updated = this.examDAO.allForRunCheck()
+            this.examDAO
+                    .allThatNeedsStatusUpdate(this.examTimePrefix, this.examTimeSuffix)
                     .getOrThrow()
                     .stream()
-                    .filter(exam -> exam.startTime != null && exam.startTime.minus(this.examTimePrefix).isBefore(now))
-                    .filter(exam -> exam.endTime == null || exam.endTime.plus(this.examTimeSuffix).isAfter(now))
-                    .flatMap(exam -> Result.skipOnError(this.examUpdateHandler.setRunning(exam, updateId)))
-                    .collect(Collectors.toMap(Exam::getId, Exam::getName));
-
-            if (!updated.isEmpty()) {
-                log.info("Updated exams to running state: {}", updated);
-            }
+                    .forEach(exam -> this.examUpdateHandler.updateState(
+                            exam,
+                            now,
+                            this.examTimePrefix,
+                            this.examTimeSuffix,
+                            updateId));
 
         } catch (final Exception e) {
-            log.error("Unexpected error while trying to update exams: ", e);
+            log.error("Unexpected error while trying to run exam state update task: ", e);
         }
     }
 
-    private void controlExamEnd(final String updateId) {
-        if (log.isTraceEnabled()) {
-            log.trace("Check ending exams: {}", updateId);
-        }
-
-        try {
-
-            final DateTime now = DateTime.now(DateTimeZone.UTC);
-
-            final Map<Long, String> updated = this.examDAO.allForEndCheck()
-                    .getOrThrow()
-                    .stream()
-                    .filter(exam -> exam.endTime != null && exam.endTime.plus(this.examTimeSuffix).isBefore(now))
-                    .flatMap(exam -> Result.skipOnError(this.examUpdateHandler.setFinished(exam, updateId)))
-                    .collect(Collectors.toMap(Exam::getId, Exam::getName));
-
-            if (!updated.isEmpty()) {
-                log.info("Updated exams to finished state: {}", updated);
-            }
-
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to update exams: ", e);
-        }
-    }
+//    @Deprecated
+//    private void controlExamStart(final String updateId) {
+//        if (log.isTraceEnabled()) {
+//            log.trace("Check starting exams: {}", updateId);
+//        }
+//
+//        try {
+//
+//            final DateTime now = DateTime.now(DateTimeZone.UTC);
+//            final Map<Long, String> updated = this.examDAO.allForRunCheck()
+//                    .getOrThrow()
+//                    .stream()
+//                    .filter(exam -> exam.startTime != null && exam.startTime.minus(this.examTimePrefix).isBefore(now))
+//                    .filter(exam -> exam.endTime == null || exam.endTime.plus(this.examTimeSuffix).isAfter(now))
+//                    .flatMap(exam -> Result.skipOnError(this.examUpdateHandler.setRunning(exam, updateId)))
+//                    .collect(Collectors.toMap(Exam::getId, Exam::getName));
+//
+//            if (!updated.isEmpty()) {
+//                log.info("Updated exams to running state: {}", updated);
+//            }
+//
+//        } catch (final Exception e) {
+//            log.error("Unexpected error while trying to update exams: ", e);
+//        }
+//    }
+//
+//    @Deprecated
+//    private void controlExamEnd(final String updateId) {
+//        if (log.isTraceEnabled()) {
+//            log.trace("Check ending exams: {}", updateId);
+//        }
+//
+//        try {
+//
+//            final DateTime now = DateTime.now(DateTimeZone.UTC);
+//
+//            final Map<Long, String> updated = this.examDAO.allForEndCheck()
+//                    .getOrThrow()
+//                    .stream()
+//                    .filter(exam -> exam.endTime != null && exam.endTime.plus(this.examTimeSuffix).isBefore(now))
+//                    .flatMap(exam -> Result.skipOnError(this.examUpdateHandler.setFinished(exam, updateId)))
+//                    .collect(Collectors.toMap(Exam::getId, Exam::getName));
+//
+//            if (!updated.isEmpty()) {
+//                log.info("Updated exams to finished state: {}", updated);
+//            }
+//
+//        } catch (final Exception e) {
+//            log.error("Unexpected error while trying to update exams: ", e);
+//        }
+//    }
 
     private void updateMaster() {
         this.webserviceInfo.updateMaster();

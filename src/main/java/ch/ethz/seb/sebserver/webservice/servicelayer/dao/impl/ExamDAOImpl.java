@@ -317,16 +317,9 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    public Result<Collection<Exam>> allForRunCheck() {
+    public Result<Collection<Exam>> allThatNeedsStatusUpdate(final long leadTime, final long followupTime) {
         return this.examRecordDAO
-                .allForRunCheck()
-                .flatMap(this::toDomainModel);
-    }
-
-    @Override
-    public Result<Collection<Exam>> allForEndCheck() {
-        return this.examRecordDAO
-                .allForEndCheck()
+                .allThatNeedsStatusUpdate(leadTime, followupTime)
                 .flatMap(this::toDomainModel);
     }
 
@@ -799,4 +792,5 @@ public class ExamDAOImpl implements ExamDAO {
             return exam;
         });
     }
+
 }
