@@ -137,21 +137,17 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final HttpServletRequest request) {
 
         checkReadPrivilege(institutionId);
+        this.authorization.check(
+                PrivilegeType.READ,
+                EntityType.EXAM,
+                institutionId);
 
-        // NOTE: several attributes for sorting may be originated by the QuizData from LMS not by the database
-        //       of the SEB Server. Therefore in the case we have no or the default sorting we can use the
-        //       native PaginationService within MyBatis and SQL. For the other cases we need an in-line sorting and paging
         if (StringUtils.isBlank(sort) ||
                 (this.paginationService.isNativeSortingSupported(ExamRecordDynamicSqlSupport.examRecord, sort))) {
 
             return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
 
         } else {
-
-            this.authorization.check(
-                    PrivilegeType.READ,
-                    EntityType.EXAM,
-                    institutionId);
 
             final Collection<Exam> exams = this.examDAO
                     .allMatching(new FilterMap(

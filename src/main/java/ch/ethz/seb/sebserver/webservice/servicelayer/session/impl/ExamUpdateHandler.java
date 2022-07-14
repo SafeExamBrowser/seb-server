@@ -40,6 +40,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamResetEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamStartedEvent;
 
 @Lazy
@@ -89,6 +90,11 @@ class ExamUpdateHandler {
 
             this.lmsAPIService
                     .getLmsAPITemplate(lmsSetupId)
+                    .map(template -> {
+                        // TODO flush only involved courses from cache!
+                        template.clearCourseCache();
+                        return template;
+                    })
                     .flatMap(template -> template.getQuizzes(new HashSet<>(exams.keySet())))
                     .onError(error -> log.warn(
                             "Failed to get quizzes from LMS Setup: {} cause: {}",
@@ -148,6 +154,113 @@ class ExamUpdateHandler {
                     } else {
                         return exam;
                     }
+                });
+    }
+
+    void updateState(
+            final Exam exam,
+            final DateTime now,
+            final long leadTime,
+            final long followupTime,
+            final String updateId) {
+
+        try {
+            // Include leadTime and followupTime
+            final DateTime startTimeThreshold = now.plus(leadTime);
+            final DateTime endTimeThreshold = now.minus(leadTime);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Check exam update for startTimeThreshold: {}, endTimeThreshold {}, exam: {}",
+                        startTimeThreshold,
+                        endTimeThreshold,
+                        exam);
+            }
+
+            if (exam.status == ExamStatus.ARCHIVED) {
+                log.warn("Exam in unexpected state for status update. Skip update. Exam: {}", exam);
+                return;
+            }
+
+            if (exam.status != ExamStatus.RUNNING && withinTimeframe(
+                    exam.startTime,
+                    startTimeThreshold,
+                    exam.endTime,
+                    endTimeThreshold)) {
+
+                if (withinTimeframe(exam.startTime, startTimeThreshold, exam.endTime, endTimeThreshold)) {
+                    setRunning(exam, updateId)
+                            .onError(error -> log.error("Failed to update exam to running state: {}",
+                                    exam,
+                                    error));
+                    return;
+                }
+            }
+
+            if (exam.status != ExamStatus.FINISHED &&
+                    exam.endTime != null &&
+                    endTimeThreshold.isAfter(exam.endTime)) {
+                setFinished(exam, updateId)
+                        .onError(error -> log.error("Failed to update exam to finished state: {}",
+                                exam,
+                                error));
+                return;
+            }
+
+            if (exam.status != ExamStatus.UP_COMING &&
+                    exam.startTime != null &&
+                    startTimeThreshold.isBefore(exam.startTime)) {
+                setUpcoming(exam, updateId)
+                        .onError(error -> log.error("Failed to update exam to up-coming state: {}",
+                                exam,
+                                error));
+            }
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to update exam state for exam: {}", exam, e);
+        }
+    }
+
+    private boolean withinTimeframe(
+            final DateTime startTime,
+            final DateTime startTimeThreshold,
+            final DateTime endTime,
+            final DateTime endTimeThreshold) {
+
+        if (startTime == null && endTime == null) {
+            return true;
+        }
+
+        if (startTime == null && endTime.isAfter(endTimeThreshold)) {
+            return true;
+        }
+
+        if (endTime == null && startTime.isBefore(startTimeThreshold)) {
+            return true;
+        }
+
+        return (startTime.isBefore(startTimeThreshold) && endTime.isAfter(endTimeThreshold));
+    }
+
+    Result<Exam> setUpcoming(final Exam exam, final String updateId) {
+        if (log.isDebugEnabled()) {
+            log.debug("Update exam as up-coming: {}", exam);
+        }
+
+        return this.examDAO
+                .placeLock(exam.id, updateId)
+                .flatMap(e -> this.examDAO.updateState(exam.id, ExamStatus.UP_COMING, updateId))
+                .map(e -> {
+                    this.examDAO
+                            .releaseLock(e, updateId)
+                            .onError(error -> this.examDAO
+                                    .forceUnlock(exam.id)
+                                    .onError(unlockError -> log.error(
+                                            "Failed to force unlock update look for exam: {}",
+                                            exam.id)));
+                    return e;
+                })
+                .map(e -> {
+                    this.applicationEventPublisher.publishEvent(new ExamResetEvent(exam));
+                    return exam;
                 });
     }
 

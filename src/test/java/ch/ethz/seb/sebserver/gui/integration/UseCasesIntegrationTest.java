@@ -2395,7 +2395,19 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         connectionPageRes = restService
                 .getBuilder(GetClientConnectionPage.class)
+                .withQueryParam(ClientConnection.FILTER_ATTR_INFO, "")
+                .withQueryParam(Page.ATTR_SORT, Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID)
+                .call();
+
+        assertNotNull(connectionPageRes);
+        connectionPage = connectionPageRes.get();
+        assertNotNull(connectionPage);
+        assertFalse(connectionPage.isEmpty());
+
+        connectionPageRes = restService
+                .getBuilder(GetClientConnectionPage.class)
                 .withQueryParam(ClientConnection.FILTER_ATTR_INFO, "ghfhrthjrt")
+                .withQueryParam(Page.ATTR_SORT, Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID)
                 .call();
 
         assertNotNull(connectionPageRes);
