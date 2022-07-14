@@ -91,6 +91,7 @@ class ExamUpdateHandler {
             this.lmsAPIService
                     .getLmsAPITemplate(lmsSetupId)
                     .map(template -> {
+                        // TODO flush only involved courses from cache!
                         template.clearCourseCache();
                         return template;
                     })
@@ -213,43 +214,6 @@ class ExamUpdateHandler {
                                 exam,
                                 error));
             }
-
-//            switch (exam.status) {
-//                case UP_COMING: {
-//                    // move to RUNNING when now is within the running time frame
-//                    if (withinTimeframe(exam.startTime, startTimeThreshold, exam.endTime, endTimeThreshold)) {
-//                        setRunning(exam, updateId)
-//                                .onError(error -> log.error("Failed to update exam to running state: {}", exam, error));
-//                        break;
-//                    }
-//                    // move to FINISHED when now is behind the end date
-//                    if (exam.endTime != null && endTimeThreshold.isAfter(exam.endTime)) {
-//                        setFinished(exam, updateId)
-//                                .onError(
-//                                        error -> log.error("Failed to update exam to finished state: {}", exam, error));
-//                        break;
-//                    }
-//                }
-//                case RUNNING: {
-//                    // move to FINISHED when now is behind the end date
-//                    if (exam.endTime != null && endTimeThreshold.isAfter(exam.endTime)) {
-//                        setFinished(exam, updateId)
-//                                .onError(
-//                                        error -> log.error("Failed to update exam to finished state: {}", exam, error));
-//                        break;
-//                    }
-//                    // move to UP_COMMING when now is before the start date
-//                    break;
-//                }
-//                case FINISHED: {
-//                    // move to RUNNING when now is within the running time frame
-//                    // move to UP_COMMING when now is before the start date
-//                    break;
-//                }
-//                default: {
-//                    log.warn("Exam for status update in unexpected state. Skip update. Exam: {}", exam);
-//                }
-//            }
         } catch (final Exception e) {
             log.error("Unexpected error while trying to update exam state for exam: {}", exam, e);
         }
