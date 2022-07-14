@@ -338,6 +338,9 @@ public class TableFilter<ROW extends ModelIdAware> {
                     TableFilter.this.entityTable.applyFilter();
                 }
             });
+            this.textInput.addListener(SWT.FocusOut, event -> {
+                TableFilter.this.entityTable.applyFilter();
+            });
             return this;
         }
 
