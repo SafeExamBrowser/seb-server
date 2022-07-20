@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
@@ -121,40 +120,14 @@ public class ExamDAOImpl implements ExamDAO {
 
         return Result.tryCatch(() -> {
 
-            final Predicate<Exam> examDataFilter = createPredicate(filterMap);
             return this.examRecordDAO
                     .allMatching(filterMap, null)
                     .flatMap(this::toDomainModel)
                     .getOrThrow()
                     .stream()
-                    .filter(examDataFilter.and(predicate))
+                    .filter(predicate)
                     .collect(Collectors.toList());
         });
-    }
-
-    private Predicate<Exam> createPredicate(final FilterMap filterMap) {
-        final String name = filterMap.getQuizName();
-        final DateTime from = filterMap.getExamFromTime();
-        final Predicate<Exam> quizDataFilter = exam -> {
-            if (StringUtils.isNotBlank(name)) {
-                if (!exam.name.contains(name)) {
-                    return false;
-                }
-            }
-
-            if (from != null && exam.startTime != null) {
-                // always show exams that has not ended yet
-                if (exam.endTime == null || exam.endTime.isAfter(from)) {
-                    return true;
-                }
-                if (exam.startTime.isBefore(from)) {
-                    return false;
-                }
-            }
-
-            return true;
-        };
-        return quizDataFilter;
     }
 
     @Override
@@ -268,13 +241,12 @@ public class ExamDAOImpl implements ExamDAO {
                             .stream().map(s -> s.name())
                             .collect(Collectors.toList())
                     : null;
-            final Predicate<Exam> examDataFilter = createPredicate(filterMap);
             return this.examRecordDAO
                     .allMatching(filterMap, stateNames)
                     .flatMap(this::toDomainModel)
                     .getOrThrow()
                     .stream()
-                    .filter(examDataFilter.and(predicate))
+                    .filter(predicate)
                     .collect(Collectors.toList());
         });
     }

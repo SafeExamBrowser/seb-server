@@ -30,7 +30,6 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
-import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -89,7 +88,7 @@ public class ExamList implements TemplateComposer {
     private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute lmsFilter;
     private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
+            new TableFilterAttribute(CriteriaType.TEXT, Domain.EXAM.ATTR_QUIZ_NAME);
     private final TableFilterAttribute stateFilter;
     private final TableFilterAttribute typeFilter;
 
@@ -177,21 +176,21 @@ public class ExamList implements TemplateComposer {
                                         .sortable())
 
                         .withColumn(new ColumnDefinition<>(
-                                QuizData.QUIZ_ATTR_NAME,
+                                Domain.EXAM.ATTR_QUIZ_NAME,
                                 COLUMN_TITLE_NAME_KEY,
                                 Exam::getName)
                                         .withFilter(this.nameFilter)
                                         .sortable())
 
                         .withColumn(new ColumnDefinition<>(
-                                QuizData.QUIZ_ATTR_START_TIME,
+                                Domain.EXAM.ATTR_QUIZ_START_TIME,
                                 new LocTextKey(
                                         EXAM_LIST_COLUMN_START_TIME,
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 Exam::getStartTime)
                                         .withFilter(new TableFilterAttribute(
                                                 CriteriaType.DATE,
-                                                QuizData.FILTER_ATTR_START_TIME,
+                                                Domain.EXAM.ATTR_QUIZ_START_TIME,
                                                 Utils.toDateTimeUTC(Utils.getMillisecondsNow())
                                                         .minusYears(1)
                                                         .toString()))

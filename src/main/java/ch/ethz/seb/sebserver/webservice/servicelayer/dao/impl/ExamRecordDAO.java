@@ -172,8 +172,6 @@ public class ExamRecordDAO {
                                                     ExamRecordDynamicSqlSupport.active,
                                                     isEqualToWhenPresent(filterMap.getActiveAsInt()));
 
-            //
-
             whereClause = whereClause
                     .and(
                             ExamRecordDynamicSqlSupport.institutionId,
@@ -209,6 +207,10 @@ public class ExamRecordDAO {
                     .and(
                             ExamRecordDynamicSqlSupport.quizName,
                             isLikeWhenPresent(filterMap.getSQLWildcard(EXAM.ATTR_QUIZ_NAME)))
+                    .and(
+                            ExamRecordDynamicSqlSupport.quizEndTime,
+                            isGreaterThanOrEqualToWhenPresent(filterMap.getExamFromTime()),
+                            or(ExamRecordDynamicSqlSupport.quizEndTime, isNull()))
                     .build()
                     .execute();
 
@@ -465,20 +467,20 @@ public class ExamRecordDAO {
                     .execute();
 
             // check those in not running state (and not archived) and are within the time-frame or on wrong side of the time-frame
-            // if finished but up-coming
+            // if finished but up-coming or running
             final SqlCriterion<String> finished = or(
                     ExamRecordDynamicSqlSupport.status,
                     isEqualTo(ExamStatus.FINISHED.name()),
                     and(
-                            ExamRecordDynamicSqlSupport.quizStartTime,
+                            ExamRecordDynamicSqlSupport.quizEndTime,
                             SqlBuilder.isGreaterThanOrEqualToWhenPresent(now.plus(leadTime))));
 
-            // if up-coming but finished
+            // if up-coming but running or finished
             final SqlCriterion<String> upcoming = or(
                     ExamRecordDynamicSqlSupport.status,
                     isEqualTo(ExamStatus.UP_COMING.name()),
                     and(
-                            ExamRecordDynamicSqlSupport.quizEndTime,
+                            ExamRecordDynamicSqlSupport.quizStartTime,
                             SqlBuilder.isLessThanWhenPresent(now.minus(followupTime))),
                     finished);
 
