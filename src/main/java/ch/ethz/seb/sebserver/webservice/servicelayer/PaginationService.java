@@ -119,9 +119,14 @@ public interface PaginationService {
 
         final List<T> sorted = pageFunction.apply(all);
 
-        final int _pageNumber = getPageNumber(pageNumber);
+        int _pageNumber = getPageNumber(pageNumber);
         final int _pageSize = getPageSize(pageSize);
-        final int start = (_pageNumber - 1) * _pageSize;
+
+        int start = (_pageNumber - 1) * _pageSize;
+        if (start >= sorted.size()) {
+            start = 0;
+            _pageNumber = 1;
+        }
         int end = start + _pageSize;
         if (sorted.size() < end) {
             end = sorted.size();

@@ -202,15 +202,18 @@ public class ExamRecordDAO {
                                 isNotEqualTo(ExamStatus.ARCHIVED.name()));
             }
 
-            final List<ExamRecord> records = whereClause
+            if (filterMap.getExamFromTime() != null) {
+                whereClause = whereClause
+                        .and(
+                                ExamRecordDynamicSqlSupport.quizEndTime,
+                                isGreaterThanOrEqualToWhenPresent(filterMap.getExamFromTime()),
+                                or(ExamRecordDynamicSqlSupport.quizEndTime, isNull()));
+            }
 
+            final List<ExamRecord> records = whereClause
                     .and(
                             ExamRecordDynamicSqlSupport.quizName,
                             isLikeWhenPresent(filterMap.getSQLWildcard(EXAM.ATTR_QUIZ_NAME)))
-                    .and(
-                            ExamRecordDynamicSqlSupport.quizEndTime,
-                            isGreaterThanOrEqualToWhenPresent(filterMap.getExamFromTime()),
-                            or(ExamRecordDynamicSqlSupport.quizEndTime, isNull()))
                     .build()
                     .execute();
 
