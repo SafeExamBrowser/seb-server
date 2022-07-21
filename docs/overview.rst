@@ -166,7 +166,7 @@ Since SEB Server version 1.4, multi-selection for some lists with bulk-actions i
 just click on the row as usual. If you then click on another (still not selected) row, this row get selected too. You can do this even over several pages.
 To deselect a selected row just click it again then it will be removed from the selection.
 
-.. image:: images/overview/list.png
+.. image:: images/overview/list_multiselect.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/list_multiselect.png
     
@@ -205,3 +205,19 @@ After correcting the missing or wrong input and saveing the form again, the SEB 
 .. note::
     If you navigate away from a form in edit mode, the GUI will inform you about possible data loss on this action and will prompt you to 
     proceed or abort the action.
+    
+**Actions**
+
+Actions are usually placed on the right action pane of the application and belongs to the actual site or view. There are generally three types of actions:
+
+- Form Actions that directly belongs to the actual view or object and either save, manipulate or create a new object.
+- List Action - Single Selection are actions on a list page that effects the selected list entry.
+- List Action - Multi Selection are actions that refer to the current multi selection on a list and apply for every selected item.
+
+.. note::
+    List action are disabled when nothing is selected from the list and get enabled as soon as one or more list items are selected.
+    Actions that are considdered single selection actions, and are used with a multi selection on the list will only affect the first selected item in the list.
+    
+.. image:: images/overview/list_multiselect_actions.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/list_multiselect_actions.png

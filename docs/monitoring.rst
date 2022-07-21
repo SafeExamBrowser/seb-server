@@ -181,7 +181,39 @@ A Student as well as a proctor is then able to use all the features of the meeti
 - In Zoom it is not possible to fully control a participant microphone. Therefore it may happen that participant can hear each other even if no proctor is in the meeting.
 - Within Jitsi Meet service when a proctor leaves the room it currently happens that a random participant became host/moderator since it is not possible in Jitsi Meet to have a meeting without host. We try to mitigate the problem with the `moderator plugin <https://github.com/nvonahsen/jitsi-token-moderation-plugin>`_ or `Jitsi Meet SaS <https://jaas.8x8.vc/#/>`_
 - In both services while broadcasting, it is not guaranteed that a student always see the proctor. Usually the meeting service shows or pins the participant that is currently speaking automatically.
- 
+
+
+Finished Exams
+--------------
+
+Since SEB Server version 1.4 there is a new section "Finished Exams" within the monitoring section to view finished and archived exams
+like you do within the monitoring. You see all the SEB connections that has been connected to the exam when running and are able to view
+particular SEB client connection details by either double-click on a SEB client connection entry in the list or by selection and using the View action
+on the right action pane.
+
+In the "Finished Exams" list you can see all finished or archived exams and filter the list by Name, State and Type.
+
+.. image:: images/monitoring/finishedExams.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/finishedExams.png
+    
+To see a particular finished or archived exam you can just double-click in the list entry or use the View action on the right action pane.
+In the exam view you see all SEB connections that has been connected to the exam during the exam run just like in the usual monitoring view
+but with no update since the SEB connections are not active and the data is not changing anymore. You are able to filter the list by
+User or Session Info, Connection Info or Status and are also be able to sort the list even for indicator columns. 
+
+.. image:: images/monitoring/finishedExam.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/finishedExam.png
+    
+As in the usual monitoring view, you can show SEB client connection details by double-clicking on a list entry or by selecting a list entry
+and use the View action on the right action pane.
+In the detail view you see the same information for a particular SEB client connection as within the usual monitoring view. You can view
+the SEB client logs of a SEB client connection here and analyze it after the exam was running.
+
+.. image:: images/monitoring/finishedClientConnection.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/finishedClientConnection.png
 
 
 All SEB Client Logs

@@ -19,6 +19,7 @@ import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
@@ -108,7 +109,7 @@ public class FilterMap extends POSTMapper {
     }
 
     public DateTime getExamFromTime() {
-        return Utils.toDateTime(getString(QuizData.FILTER_ATTR_START_TIME));
+        return Utils.toDateTime(getString(Domain.EXAM.ATTR_QUIZ_START_TIME));
     }
 
     public DateTime getSEBClientConfigFromTime() {

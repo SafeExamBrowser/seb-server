@@ -17,13 +17,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.MediaType;
-import org.springframework.util.MultiValueMap;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,14 +38,13 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
@@ -120,50 +118,56 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return ExamRecordDynamicSqlSupport.examRecord;
     }
 
-    @RequestMapping(
-            method = RequestMethod.GET,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @Override
-    public Page<Exam> getPage(
-            @RequestParam(
-                    name = API.PARAM_INSTITUTION_ID,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
-            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
-            final HttpServletRequest request) {
-
-        checkReadPrivilege(institutionId);
-        this.authorization.check(
-                PrivilegeType.READ,
-                EntityType.EXAM,
-                institutionId);
-
-        if (StringUtils.isBlank(sort) ||
-                (this.paginationService.isNativeSortingSupported(ExamRecordDynamicSqlSupport.examRecord, sort))) {
-
-            return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
-
-        } else {
-
-            final Collection<Exam> exams = this.examDAO
-                    .allMatching(new FilterMap(
-                            allRequestParams,
-                            request.getQueryString()),
-                            this::hasReadAccess)
-                    .getOrThrow();
-
-            return this.paginationService.buildPageFromList(
-                    pageNumber,
-                    pageSize,
-                    sort,
-                    exams,
-                    pageSort(sort));
-        }
-    }
+//    @RequestMapping(
+//            method = RequestMethod.GET,
+//            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    @Override
+//    public Page<Exam> getPage(
+//            @RequestParam(
+//                    name = API.PARAM_INSTITUTION_ID,
+//                    required = true,
+//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+//            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
+//            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
+//            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+//            @RequestParam final MultiValueMap<String, String> allRequestParams,
+//            final HttpServletRequest request) {
+//
+//        checkReadPrivilege(institutionId);
+//        this.authorization.check(
+//                PrivilegeType.READ,
+//                EntityType.EXAM,
+//                institutionId);
+//
+//        if (StringUtils.isBlank(sort) ||
+//                (this.paginationService.isNativeSortingSupported(ExamRecordDynamicSqlSupport.examRecord, sort))) {
+//
+//            System.out.println("*********************** sort, filter on DB");
+//
+//            return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
+//
+//        } else {
+//
+//            System.out.println("*********************** sort, filter on List");
+//
+//            return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
+//
+////            final Collection<Exam> exams = this.examDAO
+////                    .allMatching(new FilterMap(
+////                            allRequestParams,
+////                            request.getQueryString()),
+////                            this::hasReadAccess)
+////                    .getOrThrow();
+////
+////            return this.paginationService.buildPageFromList(
+////                    pageNumber,
+////                    pageSize,
+////                    sort,
+////                    exams,
+////                    pageSort(sort));
+//        }
+//    }
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
@@ -586,13 +590,13 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             }
 
             if (sortBy.equals(Exam.FILTER_ATTR_NAME) || sortBy.equals(QuizData.QUIZ_ATTR_NAME)) {
-                list.sort(Comparator.comparing(exam -> exam.name));
+                list.sort(Comparator.comparing(exam -> (exam.name != null) ? exam.name : StringUtils.EMPTY));
             }
             if (sortBy.equals(Exam.FILTER_ATTR_TYPE)) {
-                list.sort(Comparator.comparing(exam -> exam.type));
+                list.sort(Comparator.comparing(exam -> (exam.type != null) ? exam.type : ExamType.UNDEFINED));
             }
             if (sortBy.equals(QuizData.FILTER_ATTR_START_TIME) || sortBy.equals(QuizData.QUIZ_ATTR_START_TIME)) {
-                list.sort(Comparator.comparing(exam -> exam.startTime));
+                list.sort(Comparator.comparing(exam -> (exam.startTime != null) ? exam.startTime : new DateTime(0)));
             }
 
             if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
