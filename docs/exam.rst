@@ -170,3 +170,25 @@ If you have "Exam Administrator" privileges you are able to entirely delete an e
 - Within the delete exam dialog you see a list of a dependencies that also will be deleted. Please check them carefully before deletion.
 - Use the below action to either delete the exam or cancel the action and go back to the exam view.
 
+** Archive an exam**
+
+Since SEB Server version 1.4 it is possible to archive an exam that has been finished. An archived exam and all its data is still available
+on the SEB Server but read only and the exam is not been updated from the LMS data anymore and it is not possible to run this exam again.
+
+This is a good use-case to organize your exams since archived exam are not shown in the Exam list with the default filter anymore. They are
+only shown if the status filter of the exam list is explicitly set to Archived status. An they are shown within the new "Finished Exam"
+section in the monitoring view.
+
+.. image:: images/exam/archiveExamsFilter.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/archiveExamsFilter.png
+
+This is also a good use-case if you want to remove an LMS and LMS Setup but still want to be able to access the exams data on the SEB Server.
+In this case you can archive all exams from that LMS Setup before deactivating or deleting the respective LMS Setup.
+
+To archive a finished exam you just have to use the "Archive Exam" action on the right action pane of the exam view:
+
+.. image:: images/exam/archiveExam1.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/archiveExam1.png
+
