@@ -151,26 +151,7 @@ your institution use the type information of the exam to set them into context.
 - When you have selected a exam configuration the dialog shows you some additional information about the exam configuration. 
 - If you want or need to put an password protected encryption to the exam configuration for this exam you can do so by give the password for the encryption also within the attachment dialog. Be aware that every SEB client that will receive an encrypted exam configuration from the SEB Server will prompt the user to give the correct password. In most cases an encryption of the exam configuration is not needed, because a secure HTTPS connection form SEB client to SEB Server is already in place.
 
-**Delete an exam**
-
-If you have "Exam Administrator" privileges you are able to entirely delete an existing exam and its dependencies. 
-
-.. note::
-    Please be aware that deletion in this context means a fully removal of the data. The data will be lost and not recoverable.
-
-- Login as an exam administrator and go to the "Exam" page under the "Exam Administration" section.
-- Use the filter to find the exam on that you have to delete. 
-- Double click the list entry of the exam to go to the exam details page. Check if you are on the right exam.
-- Use the "Delete" action on the right action pane to open a deletion dialog.
-
-.. image:: images/exam/deleteExam.png
-    :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/deleteExam.png
-    
-- Within the delete exam dialog you see a list of a dependencies that also will be deleted. Please check them carefully before deletion.
-- Use the below action to either delete the exam or cancel the action and go back to the exam view.
-
-** Archive an exam**
+**Archive an exam**
 
 Since SEB Server version 1.4 it is possible to archive an exam that has been finished. An archived exam and all its data is still available
 on the SEB Server but read only and the exam is not been updated from the LMS data anymore and it is not possible to run this exam again.
@@ -191,4 +172,24 @@ To archive a finished exam you just have to use the "Archive Exam" action on the
 .. image:: images/exam/archiveExam1.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/archiveExam1.png
+
+
+**Delete an exam**
+
+If you have "Exam Administrator" privileges you are able to entirely delete an existing exam and its dependencies. 
+
+.. note::
+    Please be aware that deletion in this context means a fully removal of the data. The data will be lost and not recoverable.
+
+- Login as an exam administrator and go to the "Exam" page under the "Exam Administration" section.
+- Use the filter to find the exam on that you have to delete. 
+- Double click the list entry of the exam to go to the exam details page. Check if you are on the right exam.
+- Use the "Delete" action on the right action pane to open a deletion dialog.
+
+.. image:: images/exam/deleteExam.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/deleteExam.png
+    
+- Within the delete exam dialog you see a list of a dependencies that also will be deleted. Please check them carefully before deletion.
+- Use the below action to either delete the exam or cancel the action and go back to the exam view.
 
