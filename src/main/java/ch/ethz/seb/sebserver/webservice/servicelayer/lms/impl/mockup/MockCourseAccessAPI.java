@@ -92,25 +92,25 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
                 null,
                 "http://lms.mockup.com/api/"));
 
-        if (webserviceInfo.hasProfile("dev")) {
-            for (int i = 12; i < 50; i++) {
-                this.mockups.add(new QuizData(
-                        "quiz10" + i, institutionId, lmsSetupId, lmsType, "Demo Quiz 10 " + i + " (MOCKUP)",
-                        i + "_Starts in a minute and ends after five minutes",
-                        DateTime.now(DateTimeZone.UTC).plus(Constants.MINUTE_IN_MILLIS)
-                                .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
-                        DateTime.now(DateTimeZone.UTC).plus(6 * Constants.MINUTE_IN_MILLIS)
-                                .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
-                        "http://lms.mockup.com/api/"));
-                this.mockups.add(new QuizData(
-                        "quiz11" + i, institutionId, lmsSetupId, lmsType, "Demo Quiz 11 " + i + " (MOCKUP)",
-                        i + "_Starts in a minute and ends never",
-                        DateTime.now(DateTimeZone.UTC).plus(Constants.MINUTE_IN_MILLIS)
-                                .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
-                        null,
-                        "http://lms.mockup.com/api/"));
-            }
-        }
+//        if (webserviceInfo.hasProfile("dev")) {
+//            for (int i = 12; i < 50; i++) {
+//                this.mockups.add(new QuizData(
+//                        "quiz10" + i, institutionId, lmsSetupId, lmsType, "Demo Quiz 10 " + i + " (MOCKUP)",
+//                        i + "_Starts in a minute and ends after five minutes",
+//                        DateTime.now(DateTimeZone.UTC).plus(Constants.MINUTE_IN_MILLIS)
+//                                .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
+//                        DateTime.now(DateTimeZone.UTC).plus(6 * Constants.MINUTE_IN_MILLIS)
+//                                .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
+//                        "http://lms.mockup.com/api/"));
+//                this.mockups.add(new QuizData(
+//                        "quiz11" + i, institutionId, lmsSetupId, lmsType, "Demo Quiz 11 " + i + " (MOCKUP)",
+//                        i + "_Starts in a minute and ends never",
+//                        DateTime.now(DateTimeZone.UTC).plus(Constants.MINUTE_IN_MILLIS)
+//                                .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
+//                        null,
+//                        "http://lms.mockup.com/api/"));
+//            }
+//        }
     }
 
     @Override
