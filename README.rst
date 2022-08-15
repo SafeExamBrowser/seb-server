@@ -98,8 +98,8 @@ Changes:
 
 - User Account: Improved description for change password form
 - Monitoring: Search pop-up width to fit full navigation
-- Exam Configuratipon: Rename option "Enable SEB with browser windows" to "Use SEB without browser window" and invert logic (same as in SEB Config Tool)
-- Exam Proctoring Settings: Make popup larger to fit all settings
+- Exam Configuration: Rename option "Enable SEB with browser windows" to "Use SEB without browser window" and invert logic (same as in SEB Config Tool)
+- Exam Proctoring Settings: Make pop-up larger to fit all settings
 - Client Configuration - Fallback Password: Improved arrangement for better TAB handling 
 - Improve form validation in add indicator form
 - Change order of actions in monitoring according to user-input
