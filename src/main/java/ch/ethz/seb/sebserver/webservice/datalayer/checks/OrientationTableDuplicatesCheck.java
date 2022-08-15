@@ -66,22 +66,23 @@ public class OrientationTableDuplicatesCheck implements DBIntegrityCheck {
                 }
             }
 
-            if (toDelete.isEmpty()) {
+            final List<Long> checkedToDelete = toDelete
+                    .stream()
+                    .filter(this::doubleCheck)
+                    .collect(Collectors.toList());
+
+            if (checkedToDelete == null || checkedToDelete.isEmpty()) {
                 return "OK";
             }
 
             if (tryFix) {
-                final List<Long> checkedToDelete = toDelete
-                        .stream()
-                        .filter(this::doubleCheck)
-                        .collect(Collectors.toList());
 
                 checkedToDelete
                         .stream()
                         .forEach(this.orientationRecordMapper::deleteByPrimaryKey);
-                return "Fixed duplicates by deletion: " + checkedToDelete + " from findings:" + toDelete;
+                return "Fixed duplicates by deletion: " + checkedToDelete;
             } else {
-                return "Found duplicates: " + toDelete;
+                return "Found duplicates: " + checkedToDelete;
             }
 
         });

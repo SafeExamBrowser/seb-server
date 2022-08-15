@@ -192,7 +192,8 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final APIConstraintViolationException ex,
             final WebRequest request) {
 
-        log.warn("Illegal API Argument Exception: ", ex);
+        log.warn("Illegal API Argument Exception: {}", ex.getMessage());
+
         return APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT
                 .createErrorResponse(ex.getMessage());
     }
@@ -235,6 +236,17 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(
                 Arrays.asList(ex.apiMessage),
+                Utils.createJsonContentHeader(),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UnsupportedOperationException.class)
+    public ResponseEntity<Object> handleUnsupportedOperationException(
+            final UnsupportedOperationException ex,
+            final WebRequest request) {
+
+        return new ResponseEntity<>(
+                Arrays.asList(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of(ex)),
                 Utils.createJsonContentHeader(),
                 HttpStatus.BAD_REQUEST);
     }

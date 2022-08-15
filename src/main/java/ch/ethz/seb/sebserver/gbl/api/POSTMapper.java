@@ -14,7 +14,10 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -226,6 +229,14 @@ public class POSTMapper {
         return Utils.toDateTime(value);
     }
 
+    public Map<String, String> getSubMap(final Set<String> actionAttributes) {
+        return this.params
+                .keySet()
+                .stream()
+                .filter(actionAttributes::contains)
+                .collect(Collectors.toMap(Function.identity(), k -> this.params.getFirst(k)));
+    }
+
     public List<Threshold> getThresholds() {
         final List<String> thresholdStrings = this.params.get(Domain.THRESHOLD.REFERENCE_NAME);
         if (thresholdStrings == null || thresholdStrings.isEmpty()) {
@@ -237,14 +248,20 @@ public class POSTMapper {
                 .map(ts -> {
                     try {
                         final String[] split = StringUtils.split(ts, Constants.EMBEDDED_LIST_SEPARATOR);
-                        return new Threshold(Double.parseDouble(
-                                split[0]),
-                                (split.length > 1) ? split[1] : null,
-                                (split.length > 2) ? split[2] : null);
+                        Double val = null;
+                        try {
+                            val = Double.parseDouble(split[0]);
+                        } catch (final Exception e) {
+                        }
+                        return new Threshold(
+                                val,
+                                (split.length > 1) ? Utils.parseColorString(Utils.parseRGB(split[1])) : null,
+                                (split.length > 2 && "null".equals(split[2])) ? split[2] : null);
                     } catch (final Exception e) {
                         return null;
                     }
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 

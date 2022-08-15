@@ -24,6 +24,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.ClientConnectionTokenMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
@@ -70,19 +72,25 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     private final ClientInstructionRecordMapper clientInstructionRecordMapper;
     private final ClientIndicatorRecordMapper clientIndicatorRecordMapper;
     private final ClientNotificationRecordMapper clientNotificationRecordMapper;
+    private final ClientConnectionTokenMapper clientConnectionMinMapper;
+    private final CacheManager cacheManager;
 
     protected ClientConnectionDAOImpl(
             final ClientConnectionRecordMapper clientConnectionRecordMapper,
             final ClientEventRecordMapper clientEventRecordMapper,
             final ClientInstructionRecordMapper clientInstructionRecordMapper,
             final ClientIndicatorRecordMapper clientIndicatorRecordMapper,
-            final ClientNotificationRecordMapper clientNotificationRecordMapper) {
+            final ClientNotificationRecordMapper clientNotificationRecordMapper,
+            final ClientConnectionTokenMapper clientConnectionMinMapper,
+            final CacheManager cacheManager) {
 
         this.clientConnectionRecordMapper = clientConnectionRecordMapper;
         this.clientEventRecordMapper = clientEventRecordMapper;
         this.clientInstructionRecordMapper = clientInstructionRecordMapper;
         this.clientIndicatorRecordMapper = clientIndicatorRecordMapper;
         this.clientNotificationRecordMapper = clientNotificationRecordMapper;
+        this.clientConnectionMinMapper = clientConnectionMinMapper;
+        this.cacheManager = cacheManager;
     }
 
     @Override
@@ -121,6 +129,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                                             ClientConnectionRecordDynamicSqlSupport.institutionId,
                                             isEqualToWhenPresent(filterMap.getInstitutionId()));
             return whereClause
+                    .and(
+                            ClientConnectionRecordDynamicSqlSupport.connectionToken,
+                            isInWhenPresent(filterMap.getClientConnectionTokenList()))
                     .and(
                             ClientConnectionRecordDynamicSqlSupport.examId,
                             isEqualToWhenPresent(filterMap.getClientConnectionExamId()))
@@ -162,7 +173,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Collection<String>> getConnectionTokens(final Long examId) {
-        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+        return Result.tryCatch(() -> this.clientConnectionMinMapper
                 .selectByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.examId,
@@ -170,15 +181,15 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(ClientConnectionRecord::getConnectionToken)
+                .map(rec -> rec.connection_token)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList()));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<String>> getActiveConnctionTokens(final Long examId) {
-        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+    public Result<Collection<String>> getActiveConnectionTokens(final Long examId) {
+        return Result.tryCatch(() -> this.clientConnectionMinMapper
                 .selectByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.examId,
@@ -189,7 +200,26 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute()
                 .stream()
-                .map(ClientConnectionRecord::getConnectionToken)
+                .map(rec -> rec.connection_token)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<String>> getAllActiveConnectionTokens(final Long examId) {
+        return Result.tryCatch(() -> this.clientConnectionMinMapper
+                .selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        SqlBuilder.isIn(ClientConnection.ACTIVE_STATES))
+                .build()
+                .execute()
+                .stream()
+                .map(rec -> rec.connection_token)
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toList()));
     }
@@ -328,6 +358,11 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         return Result.tryCatch(() -> {
 
             final long millisecondsNow = Utils.getMillisecondsNow();
+            // NOTE: we use nanoseconds here to get a better precision to better avoid
+            //       same value of real concurrent calls on distributed systems
+            // TODO: Better solution for the future would be to count this value and
+            //       isolation is done via DB transaction
+            final long nanosecondsNow = System.nanoTime();
             final ClientConnectionRecord newRecord = new ClientConnectionRecord(
                     null,
                     data.institutionId,
@@ -340,7 +375,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     BooleanUtils.toInteger(data.vdi, 1, 0, 0),
                     data.vdiPairToken,
                     millisecondsNow,
-                    millisecondsNow,
+                    nanosecondsNow,
                     data.remoteProctoringRoomId,
                     null,
                     Utils.truncateText(data.sebMachineName, 255),
@@ -359,7 +394,11 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public Result<ClientConnection> save(final ClientConnection data) {
         return Result.tryCatch(() -> {
 
-            final long millisecondsNow = Utils.getMillisecondsNow();
+            // NOTE: we use nanoseconds here to get a better precision to better avoid
+            //       same value of real concurrent calls on distributed systems
+            // TODO: Better solution for the future would be to count this value and
+            //       isolation is done via DB transaction
+            final long nanosecondsNow = System.nanoTime();
             final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
                     data.id,
                     null,
@@ -372,7 +411,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     BooleanUtils.toInteger(data.vdi, 1, 0, 0),
                     data.vdiPairToken,
                     null,
-                    millisecondsNow,
+                    nanosecondsNow,
                     null,
                     null,
                     Utils.truncateText(data.sebMachineName, 255),
@@ -493,6 +532,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             if (ids == null || ids.isEmpty()) {
                 return Collections.emptyList();
             }
+
+            ids.stream().forEach(this::clearConnecionTokenCache);
 
             // delete all related client indicators
             this.clientIndicatorRecordMapper.deleteByExample()
@@ -842,6 +883,24 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         }
 
         return record.getConnectionToken();
+    }
+
+    private Long clearConnecionTokenCache(final Long id) {
+
+        try {
+
+            final ClientConnectionRecord rec = recordById(id)
+                    .getOrThrow();
+
+            this.cacheManager
+                    .getCache(CONNECTION_TOKENS_CACHE)
+                    .evictIfPresent(rec.getExamId());
+
+        } catch (final Exception e) {
+            log.error("Failed to clear connection token cache: ", e);
+        }
+
+        return id;
     }
 
 }

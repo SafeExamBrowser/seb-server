@@ -11,13 +11,14 @@ package ch.ethz.seb.sebserver.gbl.model.sebconfig;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.joda.time.DateTime;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 
@@ -72,6 +73,12 @@ public final class ConfigurationNode implements GrantEntity {
     @JsonProperty(CONFIGURATION_NODE.ATTR_STATUS)
     public final ConfigurationStatus status;
 
+    @JsonProperty(CONFIGURATION_NODE.ATTR_LAST_UPDATE_TIME)
+    public final DateTime lastUpdateTime;
+
+    @JsonProperty(CONFIGURATION_NODE.ATTR_LAST_UPDATE_USER)
+    public final String lastUpdateUser;
+
     @JsonCreator
     public ConfigurationNode(
             @JsonProperty(CONFIGURATION_NODE.ATTR_ID) final Long id,
@@ -81,7 +88,9 @@ public final class ConfigurationNode implements GrantEntity {
             @JsonProperty(CONFIGURATION_NODE.ATTR_DESCRIPTION) final String description,
             @JsonProperty(CONFIGURATION_NODE.ATTR_TYPE) final ConfigurationType type,
             @JsonProperty(CONFIGURATION_NODE.ATTR_OWNER) final String owner,
-            @JsonProperty(CONFIGURATION_NODE.ATTR_STATUS) final ConfigurationStatus status) {
+            @JsonProperty(CONFIGURATION_NODE.ATTR_STATUS) final ConfigurationStatus status,
+            @JsonProperty(CONFIGURATION_NODE.ATTR_LAST_UPDATE_TIME) final DateTime lastUpdateTime,
+            @JsonProperty(CONFIGURATION_NODE.ATTR_LAST_UPDATE_USER) final String lastUpdateUser) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -91,24 +100,29 @@ public final class ConfigurationNode implements GrantEntity {
         this.type = (type != null) ? type : ConfigurationType.EXAM_CONFIG;
         this.owner = owner;
         this.status = status;
+        this.lastUpdateTime = lastUpdateTime;
+        this.lastUpdateUser = lastUpdateUser;
     }
 
     public ConfigurationNode(final Long institutionId, final POSTMapper postParams) {
         this.id = null;
         this.institutionId = institutionId;
-        final Long tplId = postParams.getLong(Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID);
+        final Long tplId = postParams.getLong(CONFIGURATION_NODE.ATTR_TEMPLATE_ID);
         this.templateId = (tplId != null) ? tplId : DEFAULT_TEMPLATE_ID;
-        this.name = postParams.getString(Domain.CONFIGURATION_NODE.ATTR_NAME);
-        this.description = postParams.getString(Domain.CONFIGURATION_NODE.ATTR_DESCRIPTION);
+        this.name = postParams.getString(CONFIGURATION_NODE.ATTR_NAME);
+        this.description = postParams.getString(CONFIGURATION_NODE.ATTR_DESCRIPTION);
         this.type = postParams.getEnum(
-                Domain.CONFIGURATION_NODE.ATTR_TYPE,
+                CONFIGURATION_NODE.ATTR_TYPE,
                 ConfigurationType.class,
                 ConfigurationType.EXAM_CONFIG);
-        this.owner = postParams.getString(Domain.CONFIGURATION_NODE.ATTR_OWNER);
+        this.owner = postParams.getString(CONFIGURATION_NODE.ATTR_OWNER);
         this.status = postParams.getEnum(
-                Domain.CONFIGURATION_NODE.ATTR_STATUS,
+                CONFIGURATION_NODE.ATTR_STATUS,
                 ConfigurationStatus.class,
                 ConfigurationStatus.CONSTRUCTION);
+        this.lastUpdateTime = postParams.getDateTime(CONFIGURATION_NODE.ATTR_LAST_UPDATE_TIME);
+        this.lastUpdateUser = postParams.getString(CONFIGURATION_NODE.ATTR_LAST_UPDATE_USER);
+
     }
 
     @Override
@@ -158,6 +172,14 @@ public final class ConfigurationNode implements GrantEntity {
         return this.status;
     }
 
+    public DateTime getLastUpdateTime() {
+        return this.lastUpdateTime;
+    }
+
+    public String getLastUpdateUser() {
+        return this.lastUpdateUser;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -173,10 +195,12 @@ public final class ConfigurationNode implements GrantEntity {
         builder.append(this.description);
         builder.append(", type=");
         builder.append(this.type);
-        builder.append(", owner=");
-        builder.append(this.owner);
         builder.append(", status=");
         builder.append(this.status);
+        builder.append(", lastUpdateTime=");
+        builder.append(this.lastUpdateTime);
+        builder.append(", lastUpdateUser=");
+        builder.append(this.lastUpdateUser);
         builder.append("]");
         return builder.toString();
     }
@@ -190,7 +214,9 @@ public final class ConfigurationNode implements GrantEntity {
                 null,
                 ConfigurationType.EXAM_CONFIG,
                 null,
-                ConfigurationStatus.CONSTRUCTION);
+                ConfigurationStatus.CONSTRUCTION,
+                null,
+                null);
     }
 
     public static ConfigurationNode createNewTemplate(final Long institutionId) {
@@ -202,7 +228,9 @@ public final class ConfigurationNode implements GrantEntity {
                 null,
                 ConfigurationType.TEMPLATE,
                 null,
-                ConfigurationStatus.CONSTRUCTION);
+                ConfigurationStatus.CONSTRUCTION,
+                null,
+                null);
     }
 
 }

@@ -9,6 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -17,6 +19,7 @@ import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
@@ -58,7 +61,7 @@ public class FilterMap extends POSTMapper {
     }
 
     public Integer getActiveAsInt() {
-        return getBooleanAsInteger(UserInfo.FILTER_ATTR_ACTIVE);
+        return getBooleanAsInteger(Entity.FILTER_ATTR_ACTIVE);
     }
 
     public Long getInstitutionId() {
@@ -106,7 +109,7 @@ public class FilterMap extends POSTMapper {
     }
 
     public DateTime getExamFromTime() {
-        return Utils.toDateTime(getString(QuizData.FILTER_ATTR_START_TIME));
+        return Utils.toDateTime(getString(Domain.EXAM.ATTR_QUIZ_START_TIME));
     }
 
     public DateTime getSEBClientConfigFromTime() {
@@ -154,7 +157,7 @@ public class FilterMap extends POSTMapper {
     }
 
     public String getConfigAttributeType() {
-        return getSQLWildcard(ConfigurationAttribute.FILTER_ATTR_TYPE);
+        return getString(ConfigurationAttribute.FILTER_ATTR_TYPE);
     }
 
     public Long getConfigValueConfigId() {
@@ -203,6 +206,15 @@ public class FilterMap extends POSTMapper {
 
     public String getSQLWildcard(final String name) {
         return Utils.toSQLWildcard(this.params.getFirst(name));
+    }
+
+    public List<String> getClientConnectionTokenList() {
+        final String tokenList = getString(ClientConnection.FILTER_ATTR_TOKEN_LIST);
+        if (StringUtils.isBlank(tokenList)) {
+            return null;
+        }
+
+        return Utils.asImmutableList(StringUtils.split(tokenList, Constants.LIST_SEPARATOR));
     }
 
     public Long getClientConnectionExamId() {
@@ -331,6 +343,13 @@ public class FilterMap extends POSTMapper {
         public FilterMap create() {
             return new FilterMap(this.filterMap.params, null);
         }
+    }
+
+    public boolean containsAny(final Set<String> extFilter) {
+        return extFilter.stream()
+                .filter(this.params::containsKey)
+                .findFirst()
+                .isPresent();
     }
 
 }

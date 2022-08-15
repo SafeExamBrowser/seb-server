@@ -227,7 +227,7 @@ public class SEBClientEvents implements TemplateComposer {
         actionBuilder
                 .newAction(ActionDefinition.LOGS_SEB_CLIENT_SHOW_DETAILS)
                 .withSelect(
-                        table::getSelection,
+                        table::getMultiSelection,
                         action -> this.sebClientEventDetailsPopup.showDetails(action, table.getSingleSelectedROWData()),
                         EMPTY_SELECTION_TEXT)
                 .noEventPropagation()

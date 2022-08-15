@@ -167,24 +167,24 @@ public final class PageAction {
 
     void applyAction(final Consumer<Result<PageAction>> callback) {
         if (this.confirm != null) {
-            // if selection is needed, check selection fist, before confirm dialog
-            if (this.selectionSupplier != null) {
-                try {
+            try {
+                // if selection is needed, check selection fist, before confirm dialog
+                if (this.selectionSupplier != null) {
                     getMultiSelection();
-                } catch (final PageMessageException pme) {
-                    PageAction.this.pageContext.publishPageMessage(pme);
-                    return;
                 }
-            }
 
-            final LocTextKey confirmMessage = this.confirm.apply(this);
-            if (confirmMessage != null) {
-                this.pageContext.applyConfirmDialog(confirmMessage,
-                        confirm -> callback.accept((confirm)
-                                ? exec().onError(error -> this.pageContext.notifyUnexpectedError(error))
-                                : Result.ofRuntimeError("Confirm denied")));
-            } else {
-                callback.accept(exec());
+                final LocTextKey confirmMessage = this.confirm.apply(this);
+                if (confirmMessage != null) {
+                    this.pageContext.applyConfirmDialog(confirmMessage,
+                            confirm -> callback.accept((confirm)
+                                    ? exec().onError(error -> this.pageContext.notifyUnexpectedError(error))
+                                    : Result.ofRuntimeError("Confirm denied")));
+                } else {
+                    callback.accept(exec());
+                }
+            } catch (final PageMessageException pme) {
+                PageAction.this.pageContext.publishPageMessage(pme);
+                return;
             }
         } else {
             callback.accept(exec());

@@ -60,7 +60,7 @@ public interface LmsAPIService {
      * @param pageSize the page size
      * @param sort the sort parameter
      * @param filterMap the FilterMap containing all filter criteria
-     * @return the specified Page of QuizData form all active LMS Setups of the current users institution */
+     * @return the specified Page of QuizData from all active LMS Setups of the current users institution */
     Result<Page<QuizData>> requestQuizDataPage(
             final int pageNumber,
             final int pageSize,
@@ -139,7 +139,7 @@ public interface LmsAPIService {
      * @param sortAttribute the sort attribute for the new Page
      * @param pageNumber the number of the Page to build
      * @param pageSize the size of the Page to build
-     * @return A Page of QuizData extracted form a given list of QuizData */
+     * @return A Page of QuizData extracted from a given list of QuizData */
     static Function<List<QuizData>, Page<QuizData>> quizzesToPageFunction(
             final String sortAttribute,
             final int pageNumber,

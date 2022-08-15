@@ -61,12 +61,13 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ArchiveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetDefaultExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.quiz.GetQuizData;
@@ -118,6 +119,8 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.form.examTemplate");
     private static final LocTextKey FORM_EXAM_TEMPLATE_ERROR =
             new LocTextKey("sebserver.exam.form.examTemplate.error");
+    private static final LocTextKey EXAM_ARCHIVE_CONFIRM =
+            new LocTextKey("sebserver.exam.action.archive.confirm");
 
     private final static LocTextKey CONSISTENCY_MESSAGE_TITLE =
             new LocTextKey("sebserver.exam.consistency.title");
@@ -143,7 +146,7 @@ public class ExamForm implements TemplateComposer {
     private final PageService pageService;
     private final ResourceService resourceService;
     private final ExamSEBRestrictionSettings examSEBRestrictionSettings;
-    private final ExamProctoringSettings examProctoringSettings;
+    private final ProctoringSettingsPopup proctoringSettingsPopup;
     private final WidgetFactory widgetFactory;
     private final RestService restService;
     private final ExamDeletePopup examDeletePopup;
@@ -154,7 +157,7 @@ public class ExamForm implements TemplateComposer {
     protected ExamForm(
             final PageService pageService,
             final ExamSEBRestrictionSettings examSEBRestrictionSettings,
-            final ExamProctoringSettings examProctoringSettings,
+            final ProctoringSettingsPopup proctoringSettingsPopup,
             final ExamToConfigBindingForm examToConfigBindingForm,
             final DownloadService downloadService,
             final ExamDeletePopup examDeletePopup,
@@ -165,7 +168,7 @@ public class ExamForm implements TemplateComposer {
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.examSEBRestrictionSettings = examSEBRestrictionSettings;
-        this.examProctoringSettings = examProctoringSettings;
+        this.proctoringSettingsPopup = proctoringSettingsPopup;
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = this.resourceService.getRestService();
         this.examDeletePopup = examDeletePopup;
@@ -240,14 +243,13 @@ public class ExamForm implements TemplateComposer {
 
         final BooleanSupplier isNew = () -> importFromQuizData;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
-        final EntityGrantCheck userGrantCheck = currentUser.entityGrantCheck(exam);
-        final boolean modifyGrant = userGrantCheck.m();
-        final boolean writeGrant = userGrantCheck.w();
+        final EntityGrantCheck entityGrantCheck = currentUser.entityGrantCheck(exam);
+        final boolean modifyGrant = entityGrantCheck.m();
+        final boolean writeGrant = entityGrantCheck.w();
         final ExamStatus examStatus = exam.getStatus();
-        final boolean editable = modifyGrant && (examStatus == ExamStatus.UP_COMING ||
-                examStatus == ExamStatus.RUNNING);
+        final boolean editable = modifyGrant &&
+                (examStatus == ExamStatus.UP_COMING || examStatus == ExamStatus.RUNNING);
 
-//        TODO this is not performat try to improve by doing one check with the CheckExamConsistency above
         final boolean sebRestrictionAvailable = testSEBRestrictionAPI(exam);
         final boolean isRestricted = readonly && sebRestrictionAvailable && this.restService
                 .getBuilder(CheckSEBRestriction.class)
@@ -317,7 +319,7 @@ public class ExamForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_START_URL,
                         FORM_QUIZ_URL_TEXT_KEY,
-                        exam.startURL)
+                        exam.getStartURL())
                         .readonly(true)
                         .withInputSpan(7)
                         .withEmptyCellSeparation(false))
@@ -325,7 +327,7 @@ public class ExamForm implements TemplateComposer {
                 .addField(FormBuilder.text(
                         QuizData.QUIZ_ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
-                        exam.description)
+                        exam.getDescription())
                         .asHTML(50)
                         .readonly(true)
                         .withInputSpan(6)
@@ -391,7 +393,7 @@ public class ExamForm implements TemplateComposer {
         }
 
         final boolean proctoringEnabled = importFromQuizData ? false : this.restService
-                .getBuilder(GetProctoringSettings.class)
+                .getBuilder(GetExamProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
                 .map(ProctoringServiceSettings::getEnableProctoring)
@@ -407,6 +409,17 @@ public class ExamForm implements TemplateComposer {
                 .newAction(ActionDefinition.EXAM_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && readonly && editable)
+
+                .newAction(ActionDefinition.EXAM_DELETE)
+                .withEntityKey(entityKey)
+                .withExec(this.examDeletePopup.deleteWizardFunction(pageContext))
+                .publishIf(() -> writeGrant && readonly)
+
+                .newAction(ActionDefinition.EXAM_ARCHIVE)
+                .withEntityKey(entityKey)
+                .withConfirm(() -> EXAM_ARCHIVE_CONFIRM)
+                .withExec(this::archiveExam)
+                .publishIf(() -> writeGrant && readonly && examStatus == ExamStatus.FINISHED)
 
                 .newAction(ActionDefinition.EXAM_SAVE)
                 .withExec(action -> (importFromQuizData)
@@ -432,7 +445,7 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.examSEBRestrictionSettings.settingsFunction(this.pageService))
                 .withAttribute(ExamSEBRestrictionSettings.PAGE_CONTEXT_ATTR_LMS_ID, String.valueOf(exam.lmsSetupId))
-                .withAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY, String.valueOf(!modifyGrant))
+                .withAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY, String.valueOf(!modifyGrant || !editable))
                 .noEventPropagation()
                 .publishIf(() -> sebRestrictionAvailable && readonly)
 
@@ -451,20 +464,15 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_ON)
                 .withEntityKey(entityKey)
-                .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant))
+                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> editable && proctoringEnabled && readonly)
+                .publishIf(() -> proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_OFF)
                 .withEntityKey(entityKey)
-                .withExec(this.examProctoringSettings.settingsFunction(this.pageService, modifyGrant))
+                .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> editable && !proctoringEnabled && readonly)
-
-                .newAction(ActionDefinition.EXAM_DELETE)
-                .withEntityKey(entityKey)
-                .withExec(this.examDeletePopup.deleteWizardFunction(pageContext))
-                .publishIf(() -> writeGrant && readonly);
+                .publishIf(() -> !proctoringEnabled && readonly);
 
         // additional data in read-only view
         if (readonly && !importFromQuizData) {
@@ -472,7 +480,7 @@ public class ExamForm implements TemplateComposer {
             this.examFormConfigs.compose(
                     formContext
                             .copyOf(content)
-                            .withAttribute(ATTR_READ_GRANT, String.valueOf(userGrantCheck.r()))
+                            .withAttribute(ATTR_READ_GRANT, String.valueOf(entityGrantCheck.r()))
                             .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
                             .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
 
@@ -480,10 +488,20 @@ public class ExamForm implements TemplateComposer {
             this.examFormIndicators.compose(
                     formContext
                             .copyOf(content)
-                            .withAttribute(ATTR_READ_GRANT, String.valueOf(userGrantCheck.r()))
+                            .withAttribute(ATTR_READ_GRANT, String.valueOf(entityGrantCheck.r()))
                             .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
                             .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
         }
+    }
+
+    private PageAction archiveExam(final PageAction action) {
+
+        this.restService.getBuilder(ArchiveExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .call()
+                .onError(error -> action.pageContext().notifyUnexpectedError(error));
+
+        return action;
     }
 
     private String getDefaultExamTemplateId() {
@@ -578,7 +596,7 @@ public class ExamForm implements TemplateComposer {
     }
 
     private boolean testSEBRestrictionAPI(final Exam exam) {
-        if (exam.status == ExamStatus.CORRUPT_NO_LMS_CONNECTION || exam.status == ExamStatus.CORRUPT_INVALID_ID) {
+        if (!exam.isLmsAvailable() || exam.status == ExamStatus.ARCHIVED) {
             return false;
         }
 

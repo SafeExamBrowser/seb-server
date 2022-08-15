@@ -21,6 +21,12 @@ public class DefaultTokenServicesFallback extends DefaultTokenServices {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultTokenServicesFallback.class);
 
+    public DefaultTokenServicesFallback() {
+        super();
+        super.setSupportRefreshToken(true);
+        super.setReuseRefreshToken(true);
+    }
+
     @Override
     public OAuth2AccessToken createAccessToken(final OAuth2Authentication authentication)
             throws AuthenticationException {

@@ -27,12 +27,21 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsAPITemplateAdapter;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseDataAsyncLoader;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseRestriction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleRestTemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCheck;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseRestriction;
 
 @Lazy
 @Service
 @WebServiceProfile
 public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
+    private final MoodlePluginCheck moodlePluginCheck;
     private final JSONMapper jsonMapper;
     private final AsyncService asyncService;
     private final Environment environment;
@@ -42,6 +51,7 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
     private final String[] alternativeTokenRequestPaths;
 
     protected MoodleLmsAPITemplateFactory(
+            final MoodlePluginCheck moodlePluginCheck,
             final JSONMapper jsonMapper,
             final AsyncService asyncService,
             final Environment environment,
@@ -50,6 +60,7 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
             final ApplicationContext applicationContext,
             @Value("${sebserver.webservice.lms.moodle.api.token.request.paths:}") final String alternativeTokenRequestPaths) {
 
+        this.moodlePluginCheck = moodlePluginCheck;
         this.jsonMapper = jsonMapper;
         this.asyncService = asyncService;
         this.environment = environment;
@@ -72,32 +83,48 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
         return Result.tryCatch(() -> {
 
             final LmsSetup lmsSetup = apiTemplateDataSupplier.getLmsSetup();
-
             final MoodleCourseDataAsyncLoader asyncLoaderPrototype = this.applicationContext
                     .getBean(MoodleCourseDataAsyncLoader.class);
             asyncLoaderPrototype.init(lmsSetup.getModelId());
 
-            final MoodleRestTemplateFactory moodleRestTemplateFactory = new MoodleRestTemplateFactory(
-                    this.jsonMapper,
-                    apiTemplateDataSupplier,
-                    this.clientCredentialService,
-                    this.clientHttpRequestFactoryService,
-                    this.alternativeTokenRequestPaths);
+            if (this.moodlePluginCheck.checkPluginAvailable(lmsSetup)) {
 
-            final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
-                    this.jsonMapper,
-                    moodleRestTemplateFactory,
-                    asyncLoaderPrototype,
-                    this.asyncService,
-                    this.environment);
+                final MoodlePluginCourseAccess moodlePluginCourseAccess = new MoodlePluginCourseAccess();
+                final MoodlePluginCourseRestriction moodlePluginCourseRestriction = new MoodlePluginCourseRestriction();
 
-            final MoodleCourseRestriction moodleCourseRestriction = new MoodleCourseRestriction(
-                    this.jsonMapper,
-                    moodleRestTemplateFactory);
+                return new LmsAPITemplateAdapter(
+                        this.asyncService,
+                        this.environment,
+                        apiTemplateDataSupplier,
+                        moodlePluginCourseAccess,
+                        moodlePluginCourseRestriction);
 
-            return new MoodleLmsAPITemplate(
-                    moodleCourseAccess,
-                    moodleCourseRestriction);
+            } else {
+
+                final MoodleRestTemplateFactory moodleRestTemplateFactory = new MoodleRestTemplateFactory(
+                        this.jsonMapper,
+                        apiTemplateDataSupplier,
+                        this.clientCredentialService,
+                        this.clientHttpRequestFactoryService,
+                        this.alternativeTokenRequestPaths);
+
+                final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
+                        this.jsonMapper,
+                        moodleRestTemplateFactory,
+                        asyncLoaderPrototype,
+                        this.environment);
+
+                final MoodleCourseRestriction moodleCourseRestriction = new MoodleCourseRestriction(
+                        this.jsonMapper,
+                        moodleRestTemplateFactory);
+
+                return new LmsAPITemplateAdapter(
+                        this.asyncService,
+                        this.environment,
+                        apiTemplateDataSupplier,
+                        moodleCourseAccess,
+                        moodleCourseRestriction);
+            }
         });
     }
 

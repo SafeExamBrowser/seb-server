@@ -8,16 +8,13 @@
 
 package ch.ethz.seb.sebserver.gui.service.page;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -35,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
@@ -60,6 +58,9 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 /** The main page service that provides functionality to build a page
  * with forms and tables as well as dealing with page actions */
 public interface PageService {
+
+    LocTextKey MESSAGE_NO_MULTISELECTION =
+            new LocTextKey("sebserver.overall.action.toomanyselection");
 
     enum FormTooltipMode {
         RIGHT,
@@ -153,31 +154,34 @@ public interface PageService {
         return this.activationToggleActionFunction(table, noSelectionText, null);
     }
 
-    /** Get a message supplier to notify deactivation dependencies to the user for all given entities
-     *
-     * @param entities Set of entities to collect the dependencies for
-     * @return a message supplier to notify deactivation dependencies to the user */
-    <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final Set<? extends T> entities);
+//    /** Get a message supplier to notify deactivation dependencies to the user for all given entities
+//     *
+//     * @param entities Set of entities to collect the dependencies for
+//     * @return a message supplier to notify deactivation dependencies to the user */
+//    Supplier<LocTextKey> confirmDeactivation(final Set<EntityKey> keys);
 
     /** Get a message supplier to notify deactivation dependencies to the user for given entity
      *
      * @param entity the entity instance
      * @return a message supplier to notify deactivation dependencies to the user */
-    default <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final T entity) {
-        return confirmDeactivation(new HashSet<>(Arrays.asList(entity)));
-    }
+    <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final T entity);
 
     /** Get a message supplier to notify deactivation dependencies to the user for given entity table selection
      *
      * @param table the entity table
      * @return a message supplier to notify deactivation dependencies to the user */
     default <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final EntityTable<T> table) {
-        return () -> confirmDeactivation(table
-                .getSelectedROWData()
-                .stream()
-                .filter(entity -> entity.isActive()) // NOTE: Activatable::isActive leads to an error here!?
-                .collect(Collectors.toSet()))
-                        .get();
+        return () -> {
+            final Set<EntityKey> multiSelection = table.getMultiSelection();
+            if (multiSelection.size() > 1) {
+                throw new PageMessageException(MESSAGE_NO_MULTISELECTION);
+            }
+            final T entity = table.getSingleSelectedROWData();
+            if (!entity.isActive()) {
+                return null;
+            }
+            return confirmDeactivation(entity).get();
+        };
     }
 
     /** Use this to get an action activation publisher that processes the action activation.
@@ -200,12 +204,12 @@ public interface PageService {
      * @param pageContext the current PageContext
      * @param actionDefinitions list of action definitions that activity should be toggled on table selection
      * @return the selection publisher that handles this defines action activation on table selection */
-    default <T> Consumer<Set<T>> getSelectionPublisher(
+    default <T extends ModelIdAware> Consumer<EntityTable<T>> getSelectionPublisher(
             final PageContext pageContext,
             final ActionDefinition... actionDefinitions) {
 
-        return rows -> firePageEvent(
-                new ActionActivationEvent(!rows.isEmpty(), actionDefinitions),
+        return table -> firePageEvent(
+                new ActionActivationEvent(table.hasSelection(), actionDefinitions),
                 pageContext);
     }
 
@@ -221,15 +225,15 @@ public interface PageService {
      * @param pageContext the current PageContext
      * @param actionDefinitions list of action definitions that activity should be toggled on table selection
      * @return the selection publisher that handles this defines action activation on table selection */
-    default <T extends Activatable> Consumer<Set<T>> getSelectionPublisher(
+    default <T extends Activatable & ModelIdAware> Consumer<EntityTable<T>> getSelectionPublisher(
             final ActionDefinition toggle,
             final ActionDefinition activate,
             final ActionDefinition deactivate,
             final PageContext pageContext,
             final ActionDefinition... actionDefinitions) {
 
-        return rows -> {
-
+        return table -> {
+            final Set<T> rows = table.getPageSelectionData();
             if (!rows.isEmpty()) {
                 firePageEvent(
                         new ActionActivationEvent(
@@ -321,7 +325,7 @@ public interface PageService {
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
      * @return TableBuilder of specified type */
-    default <T> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
+    default <T extends ModelIdAware> TableBuilder<T> entityTableBuilder(final RestCall<Page<T>> apiCall) {
         return entityTableBuilder(apiCall.getClass().getSimpleName(), apiCall);
     }
 
@@ -331,13 +335,14 @@ public interface PageService {
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
      * @return TableBuilder of specified type */
-    <T> TableBuilder<T> entityTableBuilder(
+    <T extends ModelIdAware> TableBuilder<T> entityTableBuilder(
             String name,
             RestCall<Page<T>> apiCall);
 
-    <T> TableBuilder<T> staticListTableBuilder(final List<T> staticList, EntityType entityType);
+    <T extends ModelIdAware> TableBuilder<T> staticListTableBuilder(final List<T> staticList, EntityType entityType);
 
-    <T> TableBuilder<T> remoteListTableBuilder(RestCall<Collection<T>> apiCall, EntityType entityType);
+    <T extends ModelIdAware> TableBuilder<T> remoteListTableBuilder(RestCall<Collection<T>> apiCall,
+            EntityType entityType);
 
     /** Get a new PageActionBuilder for a given PageContext.
      *

@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.SequenceInputStream;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverter;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.AttributeValueConverterService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService.Strategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ZipService;
 
 @Lazy
@@ -241,6 +243,10 @@ public class ExamConfigIO {
         final int read = input.read(zipHeader);
         if (read < Constants.GZIP_HEADER_LENGTH) {
             throw new IllegalArgumentException("Failed to verify Zip type from input stream. Header size mismatch.");
+        }
+
+        if (Arrays.equals(Strategy.PLAIN_TEXT.header, zipHeader)) {
+            return unzip(input);
         }
 
         final boolean isZipped = Byte.toUnsignedInt(zipHeader[0]) == Constants.GZIP_ID1

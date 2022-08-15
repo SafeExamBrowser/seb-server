@@ -26,12 +26,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -47,6 +49,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamResetEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
 @Lazy
@@ -123,18 +127,13 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         return Result.tryCatch(() -> {
             final Collection<APIMessage> result = new ArrayList<>();
 
-            final Exam exam = (this.isExamRunning(examId))
-                    ? this.examSessionCacheService.getRunningExam(examId)
-                    : this.examDAO
-                            .byPK(examId)
-                            .getOrThrow();
+            final Exam exam = this.examDAO
+                    .byPK(examId)
+                    .getOrThrow();
 
             // check lms connection
-            if (exam.status == ExamStatus.CORRUPT_NO_LMS_CONNECTION) {
+            if (!exam.isLmsAvailable()) {
                 result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_LMS_CONNECTION.of(exam.getModelId()));
-            }
-            if (exam.status == ExamStatus.CORRUPT_INVALID_ID) {
-                result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_INVALID_ID_REFERENCE.of(exam.getModelId()));
             }
 
             if (exam.status == ExamStatus.RUNNING) {
@@ -243,15 +242,37 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 .putIfAbsent(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
                 .putIfAbsent(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name());
 
-        // NOTE: we evict the exam from the cache (if present) to ensure user is seeing always the current state of the Exam
         return this.examDAO.allMatching(filterMap, predicate)
                 .map(col -> col.stream()
                         .map(exam -> {
-                            this.examSessionCacheService.evict(exam);
-                            return this.examSessionCacheService.getRunningExam(exam.id);
+                            final Exam runningExam = this.examSessionCacheService.getRunningExam(exam.id);
+                            if (runningExam == null) {
+                                return null;
+                            }
+                            if (!isUpToDate(exam, runningExam)) {
+                                // If the cached exam-quiz data differs from the one of the currently loaded exam, cache is updated
+                                this.examSessionCacheService.evict(exam);
+                                return this.examSessionCacheService.getRunningExam(exam.id);
+                            } else {
+                                return runningExam;
+                            }
                         })
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList()));
+    }
+
+    @Override
+    public Result<Collection<Exam>> getFilteredFinishedExams(
+            final FilterMap filterMap,
+            final Predicate<Exam> predicate) {
+
+        filterMap.putIfAbsent(Entity.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING);
+
+        return this.examDAO.getExamsForStatus(
+                filterMap,
+                predicate,
+                ExamStatus.FINISHED,
+                ExamStatus.ARCHIVED);
     }
 
     @Override
@@ -407,23 +428,50 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     @Override
     public Result<Collection<String>> getActiveConnectionTokens(final Long examId) {
         return this.clientConnectionDAO
-                .getActiveConnctionTokens(examId);
+                .getActiveConnectionTokens(examId);
     }
 
     @Override
-    public Result<Exam> notifyExamFinished(final Exam exam) {
-        return Result.tryCatch(() -> {
-            if (!isExamRunning(exam.id)) {
-                this.flushCache(exam);
+    public Result<Collection<String>> getAllActiveConnectionTokens(final Long examId) {
+        return this.clientConnectionDAO
+                .getAllActiveConnectionTokens(examId);
+    }
+
+    @EventListener
+    public void notifyExamRest(final ExamResetEvent event) {
+        log.info("ExamResetEvent received, process exam session cleanup...");
+
+        try {
+            if (!isExamRunning(event.exam.id)) {
+                this.flushCache(event.exam);
                 if (this.distributedSetup) {
                     this.clientConnectionDAO
-                            .deleteClientIndicatorValues(exam)
+                            .deleteClientIndicatorValues(event.exam)
                             .getOrThrow();
                 }
             }
+        } catch (final Exception e) {
+            log.error("Failed to cleanup on reset exam: {}", event.exam, e);
+        }
+    }
 
-            return exam;
-        });
+    @EventListener
+    public void notifyExamFinished(final ExamFinishedEvent event) {
+
+        log.info("ExamFinishedEvent received, process exam session cleanup...");
+
+        try {
+            if (!isExamRunning(event.exam.id)) {
+                this.flushCache(event.exam);
+                if (this.distributedSetup) {
+                    this.clientConnectionDAO
+                            .deleteClientIndicatorValues(event.exam)
+                            .getOrThrow();
+                }
+            }
+        } catch (final Exception e) {
+            log.error("Failed to cleanup on finished exam: {}", event.exam, e);
+        }
     }
 
     @Override
@@ -498,6 +546,13 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         } catch (final Exception e) {
             log.error("Unexpected error while trying to update client connections: ", e);
         }
+    }
+
+    private boolean isUpToDate(final Exam exam, final Exam runningExam) {
+        return Objects.equals(exam.lastModified, runningExam.lastModified)
+                && Objects.equals(exam.startTime, runningExam.startTime)
+                && Objects.equals(exam.endTime, runningExam.endTime)
+                && Objects.equals(exam.name, runningExam.name);
     }
 
 }

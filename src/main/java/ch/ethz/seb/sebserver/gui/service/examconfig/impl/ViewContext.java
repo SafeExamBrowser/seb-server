@@ -8,10 +8,13 @@
 
 package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -29,6 +32,10 @@ import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 public final class ViewContext {
 
     private static final Logger log = LoggerFactory.getLogger(ViewContext.class);
+
+    /** Defines a list of checkbox fields that are inverted on the display of SEB settings */
+    public static final Set<String> INVERTED_CHECKBOX_SETTINGS = new HashSet<>(Arrays.asList(
+            "enableSebBrowser"));
 
     private final Configuration configuration;
     private final View view;
@@ -274,6 +281,16 @@ public final class ViewContext {
         }
     }
 
+    public void putValue(final String name, final String value) {
+        try {
+            final ConfigurationAttribute attributeByName = getAttributeByName(name);
+            final InputField inputField = this.inputFieldMapping.get(attributeByName.id);
+            inputField.initValue(value, 0);
+        } catch (final Exception e) {
+            log.error("Failed to put attribute value: {} : {}, cause {}", name, value, e.getMessage());
+        }
+    }
+
     public void setValue(final String name, final String value) {
         try {
             final ConfigurationAttribute attributeByName = getAttributeByName(name);
@@ -289,7 +306,6 @@ public final class ViewContext {
         } catch (final Exception e) {
             log.error("Failed to set attribute value: {} : {}, cause {}", name, value, e.getMessage());
         }
-
     }
 
     void setValuesToInputFields(final Collection<ConfigurationValue> values) {

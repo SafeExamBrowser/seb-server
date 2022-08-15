@@ -11,8 +11,10 @@ package ch.ethz.seb.sebserver.gbl.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EntityDependency implements Comparable<EntityDependency> {
+public class EntityDependency implements Comparable<EntityDependency>, ModelIdAware {
 
     public static final String ATTR_PARENT = "parent";
     public static final String ATTR_SELF = "self";
@@ -46,6 +48,11 @@ public class EntityDependency implements Comparable<EntityDependency> {
 
     public EntityKey getSelf() {
         return this.self;
+    }
+
+    @Override
+    public String getModelId() {
+        return this.self.modelId;
     }
 
     public String getName() {
@@ -108,9 +115,16 @@ public class EntityDependency implements Comparable<EntityDependency> {
             return -1;
         }
 
-        final int compareTo = this.self.entityType.name().compareTo(other.self.entityType.name());
+        final int compareTo = Integer.compare(
+                Constants.ENTITY_TYPE_HIRARCHIE.indexOf(this.self.entityType),
+                Constants.ENTITY_TYPE_HIRARCHIE.indexOf(other.self.entityType));
+        //this.self.entityType.name().compareTo(other.self.entityType.name());
         if (compareTo == 0) {
-            return this.self.modelId.compareTo(other.self.modelId);
+            if (this.name != null) {
+                return this.name.compareTo(other.name);
+            } else {
+                return this.self.modelId.compareTo(other.self.modelId);
+            }
         } else {
             return compareTo;
         }

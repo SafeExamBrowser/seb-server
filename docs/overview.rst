@@ -160,6 +160,20 @@ that do not have a sort functionality yet.
 Most columns have a short tool-tip description that pops up while the mouse pointer stays over the column header for a moment. 
 A column tool-tip usually also explains how to use the column-related filter.
 
+**List Multi-Selection**
+
+Since SEB Server version 1.4, multi-selection for some lists with bulk-actions is possible. To select multiple rows in a table that allows multi-selection
+just click on the row as usual. If you then click on another (still not selected) row, this row get selected too. You can do this even over several pages.
+To deselect a selected row just click it again then it will be removed from the selection.
+
+.. image:: images/overview/list_multiselect.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/list_multiselect.png
+    
+.. note::
+    Some actions on the right action pane are used only for single objects but also enabled on multi-selection. If you have multiple selections
+    and use a single object action like "View", "Edit" or "Copy" for exmaple, then the system will take the fist selected object/row to work with.
+
 **Forms**
 
 Forms are used for domain entity specific data input or presentation, like HTML Forms usually do. Forms appear in three 
@@ -191,3 +205,20 @@ After correcting the missing or wrong input and saving the form again, the SEB S
 .. note::
     If you navigate away from a form in edit mode, the GUI will inform you about possible data loss on this action and will prompt you to 
     proceed or abort the action.
+    
+    
+**Actions**
+
+Actions are usually placed on the right action pane of the application and belongs to the actual site or view. There are generally three types of actions:
+
+- Form Actions that directly belongs to the actual view or object and either save, manipulate or create a new object.
+- List Action - Single Selection are actions on a list page that effects the selected list entry.
+- List Action - Multi Selection are actions that refer to the current multi selection on a list and apply for every selected item.
+
+.. note::
+    List action are disabled when nothing is selected from the list and get enabled as soon as one or more list items are selected.
+    Actions that are considdered single selection actions, and are used with a multi selection on the list will only affect the first selected item in the list.
+    
+.. image:: images/overview/list_multiselect_actions.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/list_multiselect_actions.png

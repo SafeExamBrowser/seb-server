@@ -12,12 +12,17 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
@@ -107,11 +112,16 @@ public class SEBClientEventCSVExporterTest {
 
     @Test
     public void streamDataTestWithExam() {
+
+        final Map<String, String> attrs = Stream.of(new Tuple<>(QuizData.QUIZ_ATTR_DESCRIPTION, "description"))
+                .collect(Collectors.toMap(t -> t._1, t -> t._2));
+
         final SEBClientEventCSVExporter exporter = new SEBClientEventCSVExporter();
         final ClientEventRecord event = new ClientEventRecord(0L, 1L, 2, 3L, 4L, new BigDecimal(5), "text");
-        final Exam exam = new Exam(0L, 1L, 3L, "externalid", "name", "description", new DateTime(1L), new DateTime(1L),
-                "startURL", Exam.ExamType.BYOD, "owner", new ArrayList<>(), Exam.ExamStatus.RUNNING, false, "bek", true,
-                "lastUpdate", 4L, null, null);
+        final Exam exam = new Exam(0L, 1L, 3L, "externalid", true, "name", new DateTime(1L),
+                new DateTime(1L),
+                Exam.ExamType.BYOD, "owner", new ArrayList<>(), Exam.ExamStatus.RUNNING, false, "bek", true,
+                "lastUpdate", 4L, null, attrs);
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         final BufferedOutputStream output = new BufferedOutputStream(stream);
 
@@ -127,14 +137,19 @@ public class SEBClientEventCSVExporterTest {
 
     @Test
     public void streamDataTestWithConnectionAndExam() {
+
+        final Map<String, String> attrs = Stream.of(new Tuple<>(QuizData.QUIZ_ATTR_DESCRIPTION, "description"))
+                .collect(Collectors.toMap(t -> t._1, t -> t._2));
+
         final ClientConnectionRecord connection = new ClientConnectionRecord(0L, 1L, 2L, "status", "token", "sessionid",
                 "clientaddress", "virtualaddress", 3, "vdi", 4L, 5L, 6L, 7,
                 "seb_os_name", "seb_machine_name", "seb_version");
         final SEBClientEventCSVExporter exporter = new SEBClientEventCSVExporter();
         final ClientEventRecord event = new ClientEventRecord(0L, 1L, 2, 3L, 4L, new BigDecimal(5), "text");
-        final Exam exam = new Exam(0L, 1L, 3L, "externalid", "name", "description", new DateTime(1L), new DateTime(1L),
-                "startURL", Exam.ExamType.BYOD, "owner", new ArrayList<>(), Exam.ExamStatus.RUNNING, false, "bek", true,
-                "lastUpdate", 4L, null, null);
+        final Exam exam = new Exam(0L, 1L, 3L, "externalid", true, "name", new DateTime(1L),
+                new DateTime(1L),
+                Exam.ExamType.BYOD, "owner", new ArrayList<>(), Exam.ExamStatus.RUNNING, false, "bek", true,
+                "lastUpdate", 4L, null, attrs);
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
         final BufferedOutputStream output = new BufferedOutputStream(stream);
 

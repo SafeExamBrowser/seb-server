@@ -110,10 +110,6 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                 throw new ResourceNotFoundException(EntityType.EXAM_TEMPLATE, String.valueOf(institutionId));
             }
 
-            if (defaults.size() != 1) {
-                throw new IllegalStateException("Expected one default but was: " + defaults.size());
-            }
-
             return defaults.get(0);
         })
                 .flatMap(this::toDomainModel);
@@ -185,6 +181,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
         return Result.tryCatch(() -> {
 
             checkUniqueName(data);
+            checkUniqueDefault(data);
 
             final Collection<IndicatorTemplate> indicatorTemplates = data.getIndicatorTemplates();
             final String indicatorsJSON = (indicatorTemplates != null && !indicatorTemplates.isEmpty())
@@ -388,6 +385,11 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
     @Override
     public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
+        // all of institution
+        if (bulkAction.sourceType == EntityType.INSTITUTION) {
+            return getDependencies(bulkAction, this::allIdsOfInstitution);
+        }
+
         return Collections.emptySet();
     }
 
@@ -534,11 +536,13 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
         }
     }
 
-    private void checkUniqueIndicatorName(final IndicatorTemplate indicatorTemplate,
+    private void checkUniqueIndicatorName(
+            final IndicatorTemplate indicatorTemplate,
             final Collection<IndicatorTemplate> indicators) {
+
         // check unique name
         indicators.stream()
-                .filter(it -> Objects.equals(it.name, indicatorTemplate.name))
+                .filter(it -> !Objects.equals(it, indicatorTemplate) && Objects.equals(it.name, indicatorTemplate.name))
                 .findAny()
                 .ifPresent(it -> {
                     throw new FieldValidationException(
@@ -552,6 +556,21 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                 .map(IndicatorTemplate::getId)
                 .max(Long::compare)
                 .orElse(-1L) + 1;
+    }
+
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> this.examTemplateRecordMapper.selectByExample()
+                .where(ExamTemplateRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(rec -> new EntityDependency(
+                        institutionKey,
+                        new EntityKey(rec.getId(), EntityType.EXAM_TEMPLATE),
+                        rec.getName(),
+                        rec.getDescription()))
+                .collect(Collectors.toList()));
     }
 
 }

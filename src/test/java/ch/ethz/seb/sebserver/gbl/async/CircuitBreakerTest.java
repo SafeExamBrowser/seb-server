@@ -40,9 +40,60 @@ public class CircuitBreakerTest {
     }
 
     @Test
+    public void testMaxAttempts1() {
+        final CircuitBreaker<String> circuitBreaker =
+                this.asyncService.createCircuitBreaker(1, 500, 1000);
+
+        final AtomicInteger attemptCounter = new AtomicInteger(0);
+        final Supplier<String> tester = () -> {
+            attemptCounter.getAndIncrement();
+            throw new RuntimeException("Test Error");
+        };
+
+        final Result<String> result = circuitBreaker.protectedRun(tester); // 1. call...
+        assertTrue(result.hasError());
+        assertEquals(State.HALF_OPEN, circuitBreaker.getState());
+        assertEquals("1", String.valueOf(attemptCounter.get()));
+    }
+
+    @Test
+    public void testMaxAttempts4() {
+        final CircuitBreaker<String> circuitBreaker =
+                this.asyncService.createCircuitBreaker(4, 500, 1000);
+
+        final AtomicInteger attemptCounter = new AtomicInteger(0);
+        final Supplier<String> tester = () -> {
+            attemptCounter.getAndIncrement();
+            throw new RuntimeException("Test Error");
+        };
+
+        final Result<String> result = circuitBreaker.protectedRun(tester); // 1. call...
+        assertTrue(result.hasError());
+        assertEquals(State.HALF_OPEN, circuitBreaker.getState());
+        assertEquals("4", String.valueOf(attemptCounter.get()));
+    }
+
+    @Test
+    public void testMaxAttempts0() {
+        final CircuitBreaker<String> circuitBreaker =
+                this.asyncService.createCircuitBreaker(0, 500, 1000);
+
+        final AtomicInteger attemptCounter = new AtomicInteger(0);
+        final Supplier<String> tester = () -> {
+            attemptCounter.getAndIncrement();
+            throw new RuntimeException("Test Error");
+        };
+
+        final Result<String> result = circuitBreaker.protectedRun(tester); // 1. call...
+        assertTrue(result.hasError());
+        assertEquals(State.HALF_OPEN, circuitBreaker.getState());
+        assertEquals("1", String.valueOf(attemptCounter.get()));
+    }
+
+    @Test
     public void roundtrip1() throws InterruptedException {
         final CircuitBreaker<String> circuitBreaker =
-                this.asyncService.createCircuitBreaker(3, 500, 1000);
+                this.asyncService.createCircuitBreaker(4, 500, 1000);
 
         final Supplier<String> tester = tester(100, 5, 10);
 
@@ -73,7 +124,7 @@ public class CircuitBreakerTest {
         Thread.sleep(100);
         result = circuitBreaker.protectedRun(tester); // 10. call...
         assertEquals(State.OPEN, circuitBreaker.getState());
-        assertEquals(CircuitBreaker.OPEN_STATE_EXCEPTION, result.getError());
+        assertEquals(CircuitBreaker.OPEN_CIRCUIT_BREAKER_EXCEPTION, result.getError().getMessage());
 
         // wait time to recover
         Thread.sleep(1000);

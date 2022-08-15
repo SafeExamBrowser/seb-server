@@ -72,6 +72,11 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamConfigurationServiceImpl.class);
 
+    public static final LocTextKey ACTION_ERROR_TITLE =
+            new LocTextKey("sebserver.configtemplate.action.error.title");
+    public static final LocTextKey ACTION_ERROR_MSG =
+            new LocTextKey("sebserver.configtemplate.action.error.noview.message");
+
     private final RestService restService;
     private final JSONMapper jsonMapper;
     private final WidgetFactory widgetFactory;
@@ -254,12 +259,14 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         final Set<EntityKey> selection = action.getMultiSelection();
         if (selection != null && !selection.isEmpty()) {
             selection.forEach(entityKey -> callTemplateAction(
+                    action,
                     ResetTemplateValues.class,
                     parentEntityKey.modelId,
                     entityKey.modelId));
         } else {
             final EntityKey entityKey = action.getEntityKey();
             callTemplateAction(
+                    action,
                     ResetTemplateValues.class,
                     parentEntityKey.modelId,
                     entityKey.modelId);
@@ -274,12 +281,14 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         final Set<EntityKey> selection = action.getMultiSelection();
         if (selection != null && !selection.isEmpty()) {
             selection.forEach(entityKey -> callTemplateAction(
+                    action,
                     RemoveOrientation.class,
                     parentEntityKey.modelId,
                     entityKey.modelId));
         } else {
             final EntityKey entityKey = action.getEntityKey();
             callTemplateAction(
+                    action,
                     RemoveOrientation.class,
                     parentEntityKey.modelId,
                     entityKey.modelId);
@@ -294,21 +303,23 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
         final Set<EntityKey> selection = action.getMultiSelection();
         if (selection != null && !selection.isEmpty()) {
             selection.forEach(entityKey -> callTemplateAction(
+                    action,
                     AttachDefaultOrientation.class,
                     parentEntityKey.modelId,
                     entityKey.modelId));
         } else {
             final EntityKey entityKey = action.getEntityKey();
             callTemplateAction(
+                    action,
                     AttachDefaultOrientation.class,
                     parentEntityKey.modelId,
                     entityKey.modelId);
         }
-
         return action;
     }
 
     private void callTemplateAction(
+            final PageAction action,
             final Class<? extends RestCall<TemplateAttribute>> actionType,
             final String templateId,
             final String attributeId) {
@@ -317,7 +328,11 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, templateId)
                 .withURIVariable(API.PARAM_MODEL_ID, attributeId)
                 .call()
-                .getOrThrow();
+                .onError(error -> {
+                    action.pageContext().publishPageMessage(
+                            ACTION_ERROR_TITLE,
+                            ACTION_ERROR_MSG);
+                });
     }
 
     private static final class ValueChangeListenerImpl implements ValueChangeListener {

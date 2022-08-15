@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
+import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
+
 import java.io.ByteArrayInputStream;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
@@ -21,6 +24,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -43,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo.CertificateType;
@@ -54,7 +59,9 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.CertificateRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.CertificateRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.CertificateRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.CertificateDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
@@ -74,6 +81,11 @@ public class CertificateDAOImpl implements CertificateDAO {
 
         this.certificateRecordMapper = certificateRecordMapper;
         this.cryptor = cryptor;
+    }
+
+    @Override
+    public EntityType entityType() {
+        return EntityType.CERTIFICATE;
     }
 
     @Override
@@ -137,6 +149,17 @@ public class CertificateDAOImpl implements CertificateDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
+        // all of institution
+        if (bulkAction.sourceType == EntityType.INSTITUTION) {
+            return getDependencies(bulkAction, this::allIdsOfInstitution);
+        }
+
+        return Collections.emptySet();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<String>> getAllIdentityAlias(final Long institutionId) {
         return getCertificates(institutionId)
                 .map(certs -> certs.aliases
@@ -178,6 +201,28 @@ public class CertificateDAOImpl implements CertificateDAO {
     }
 
     @Override
+    @Transactional
+    public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
+        return Result.tryCatch(() -> {
+
+            final List<Long> ids = new ArrayList<>(EntityDAO.extractPKsFromKeys(all, EntityType.CERTIFICATE));
+
+            if (ids.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            this.certificateRecordMapper.deleteByExample()
+                    .where(CertificateRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
+            return ids.stream()
+                    .map(id -> new EntityKey(id, EntityType.CERTIFICATE))
+                    .collect(Collectors.toList());
+        });
+    }
+
+    @Override
     public String extractAlias(final X509Certificate certificate, final String alias) {
         if (StringUtils.isNotBlank(alias)) {
             return alias;
@@ -194,7 +239,7 @@ public class CertificateDAOImpl implements CertificateDAO {
                 return dn.replace(" ", "_").toLowerCase();
             }
         } catch (final CertificateEncodingException e) {
-            log.warn("Error while trying to get alias form certificate subject name. Use serial number as alias");
+            log.warn("Error while trying to get alias from certificate subject name. Use serial number as alias");
             return String.valueOf(certificate.getSerialNumber());
         }
     }
@@ -413,6 +458,21 @@ public class CertificateDAOImpl implements CertificateDAO {
     private Result<PKCS12KeyStoreSpi> loadCertificateStore(final byte[] certStore) {
         return Result.tryCatch(() -> new ByteArrayInputStream(certStore))
                 .flatMap(input -> this.cryptor.loadKeyStore(input));
+    }
+
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> this.certificateRecordMapper.selectByExample()
+                .where(CertificateRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(rec -> new EntityDependency(
+                        institutionKey,
+                        new EntityKey(rec.getId(), EntityType.CERTIFICATE),
+                        rec.getAliases(),
+                        rec.getAliases()))
+                .collect(Collectors.toList()));
     }
 
 }

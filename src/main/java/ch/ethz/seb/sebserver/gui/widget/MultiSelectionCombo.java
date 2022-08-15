@@ -48,6 +48,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
     private final Text textInput;
     private final GridData textCell;
     private final Composite updateAnchor;
+    private final String testKey;
 
     private Listener listener = null;
 
@@ -59,6 +60,7 @@ public final class MultiSelectionCombo extends Composite implements Selection {
 
         super(parent, SWT.NONE);
         this.widgetFactory = widgetFactory;
+        this.testKey = locTextPrefix;
 
         final GridLayout gridLayout = new GridLayout();
         gridLayout.verticalSpacing = 1;
@@ -174,6 +176,9 @@ public final class MultiSelectionCombo extends Composite implements Selection {
         label.setLayoutData(textCell);
         label.addListener(SWT.MouseDoubleClick, this::removeComboSelection);
         this.selectionControls.add(label);
+
+        WidgetFactory.setARIALabel(label, item._2);
+        WidgetFactory.setTestId(label, (this.testKey != null) ? this.testKey + "_" + item._1 : item._1);
 
         this.availableValues.remove(item);
         PageService.updateScrolledComposite(this);

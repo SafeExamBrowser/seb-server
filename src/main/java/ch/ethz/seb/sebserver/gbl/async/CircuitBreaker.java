@@ -8,8 +8,10 @@
 
 package ch.ethz.seb.sebserver.gbl.async;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -50,12 +52,10 @@ public final class CircuitBreaker<T> {
 
     private static final Logger log = LoggerFactory.getLogger(CircuitBreaker.class);
 
+    public static final String OPEN_CIRCUIT_BREAKER_EXCEPTION = "Open CircuitBreaker";
     public static final int DEFAULT_MAX_FAILING_ATTEMPTS = 5;
     public static final long DEFAULT_MAX_BLOCKING_TIME = Constants.MINUTE_IN_MILLIS;
     public static final long DEFAULT_TIME_TO_RECOVER = Constants.MINUTE_IN_MILLIS * 10;
-
-    public static final RuntimeException OPEN_STATE_EXCEPTION =
-            new RuntimeException("Open CircuitBreaker");
 
     public enum State {
         CLOSED,
@@ -87,7 +87,7 @@ public final class CircuitBreaker<T> {
     /** Create new CircuitBreakerSupplier.
      *
      * @param asyncRunner the AsyncRunner used to create asynchronous calls on the given supplier function
-     * @param maxFailingAttempts the number of maximal failing attempts before go form CLOSE into HALF_OPEN state
+     * @param maxFailingAttempts the number of maximal failing attempts before go from CLOSE into HALF_OPEN state
      * @param maxBlockingTime the maximal time that an call attempt can block until an error is responded
      * @param timeToRecover the time the circuit breaker needs to cool-down on OPEN-STATE before going back to HALF_OPEN
      *            state */
@@ -169,10 +169,10 @@ public final class CircuitBreaker<T> {
 
             final long currentBlockingTime = Utils.getMillisecondsNow() - startTime;
             final int failing = this.failingCount.incrementAndGet();
-            if (failing > this.maxFailingAttempts || currentBlockingTime > this.maxBlockingTime) {
+            if (failing >= this.maxFailingAttempts || currentBlockingTime > this.maxBlockingTime) {
                 // brake thought to HALF_OPEN state and return error
                 if (log.isDebugEnabled()) {
-                    log.debug("Changing state from Open to Half Open and return cached value");
+                    log.debug("Changing state from Open to Half Open");
                 }
 
                 this.state = State.HALF_OPEN;
@@ -203,7 +203,7 @@ public final class CircuitBreaker<T> {
         if (result.hasError()) {
             // on fail go to OPEN state
             if (log.isDebugEnabled()) {
-                log.debug("Changing state from Half Open to Open and return cached value");
+                log.debug("Changing state from Half Open to Open");
             }
 
             this.lastOpenTime = Utils.getMillisecondsNow();
@@ -214,7 +214,7 @@ public final class CircuitBreaker<T> {
         } else {
             // on success go to CLOSED state
             if (log.isDebugEnabled()) {
-                log.debug("Changing state from Half Open to Closed and return value");
+                log.debug("Changing state from Half Open to Closed");
             }
 
             this.state = State.CLOSED;
@@ -243,14 +243,26 @@ public final class CircuitBreaker<T> {
             return protectedRun(supplier);
         }
 
-        return Result.ofError(OPEN_STATE_EXCEPTION);
+        return Result.ofError(new RuntimeException(OPEN_CIRCUIT_BREAKER_EXCEPTION));
     }
 
     private Result<T> attempt(final Supplier<T> supplier) {
         final Future<T> future = this.asyncRunner.runAsync(supplier);
+
         try {
             return Result.of(future.get(this.maxBlockingTime, TimeUnit.MILLISECONDS));
-        } catch (final Exception e) {
+        } catch (final InterruptedException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Attempt interruption: {}, {}", e.getMessage(), this.state);
+            }
+            return Result.ofError(e);
+        } catch (final ExecutionException e) {
+            future.cancel(false);
+            if (log.isWarnEnabled()) {
+                log.warn("Attempt error: {}, {}", e.getMessage(), this.state);
+            }
+            return Result.ofError(e);
+        } catch (final TimeoutException e) {
             future.cancel(false);
             log.warn("Max blocking timeout exceeded: {}, {}", this.maxBlockingTime, this.state);
             return Result.ofError(e);

@@ -14,6 +14,7 @@ import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -141,5 +142,20 @@ public interface ExamConfigService {
      * @return true if there are unpublished changed in the SEB setting of the follow-up for the specified
      *         ConfigurationNode */
     Result<Boolean> hasUnpublishedChanged(Long institutionId, Long configurationNodeId);
+
+    /** Used to reset the settings of a given configuration to the settings of its origin template.
+     * If the given configuration has no origin template, an error will be reported.
+     *
+     * NOTE: This do not publish the changes (applied template settings).
+     *
+     * @param configurationNode The ConfigurationNode
+     * @return Result refer to the configuration with reseted settings or to an error when happened */
+    Result<ConfigurationNode> resetToTemplateSettings(ConfigurationNode configurationNode);
+
+    /** Checks if given configuration is ready to save.
+     *
+     * @param configurationNode the ConfigurationNode instance
+     * @return Result refer to the given ConfigurationNode or to an error if the check has failed */
+    Result<ConfigurationNode> checkSaveConsistency(ConfigurationNode configurationNode);
 
 }

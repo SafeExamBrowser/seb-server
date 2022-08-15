@@ -24,10 +24,12 @@ import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.InstitutionDAO;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @WebServiceProfile
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.INFO_ENDPOINT)
+@SecurityRequirement(name = "oauth2")
 public class InfoController {
 
     private final InstitutionDAO institutionDAO;

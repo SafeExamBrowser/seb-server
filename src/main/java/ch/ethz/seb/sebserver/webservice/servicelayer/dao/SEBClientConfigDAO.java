@@ -8,17 +8,10 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import java.util.Collection;
-import java.util.Set;
-
-import org.springframework.cache.annotation.CacheEvict;
-
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 
 /** Concrete EntityDAO interface of SEBClientConfig entities */
 public interface SEBClientConfigDAO extends
@@ -53,11 +46,5 @@ public interface SEBClientConfigDAO extends
      * @param clientName the client name
      * @return encrypted configuration password */
     Result<CharSequence> getConfigPasswordCipherByClientName(String clientName);
-
-    @Override
-    @CacheEvict(
-            cacheNames = ClientConfigService.EXAM_CLIENT_DETAILS_CACHE,
-            allEntries = true)
-    Result<Collection<EntityKey>> delete(Set<EntityKey> all);
 
 }

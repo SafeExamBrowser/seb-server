@@ -339,14 +339,25 @@ public class ActivitiesPane implements TemplateComposer {
 
             // Monitoring exams
             if (isSupporter) {
-                final TreeItem clientConfig = this.widgetFactory.treeItemLocalized(
+
+                final TreeItem monitoringExams = this.widgetFactory.treeItemLocalized(
                         monitoring,
                         ActivityDefinition.MONITORING_EXAMS.displayName);
                 injectActivitySelection(
-                        clientConfig,
+                        monitoringExams,
                         actionBuilder
                                 .newAction(ActionDefinition.RUNNING_EXAM_VIEW_LIST)
                                 .create());
+
+                final TreeItem clientConfig = this.widgetFactory.treeItemLocalized(
+                        monitoring,
+                        ActivityDefinition.FINISHED_EXAMS.displayName);
+                injectActivitySelection(
+                        clientConfig,
+                        actionBuilder
+                                .newAction(ActionDefinition.FINISHED_EXAM_VIEW_LIST)
+                                .create());
+
             }
 
             // SEB Client Logs

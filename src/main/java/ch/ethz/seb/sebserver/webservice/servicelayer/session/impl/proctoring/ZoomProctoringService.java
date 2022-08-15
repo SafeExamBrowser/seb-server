@@ -455,7 +455,6 @@ public class ZoomProctoringService implements ExamProctoringService {
                         e);
             }
         });
-
     }
 
     @Override

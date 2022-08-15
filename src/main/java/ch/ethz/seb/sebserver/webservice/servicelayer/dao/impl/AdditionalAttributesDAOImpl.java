@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttributeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttributeRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
@@ -124,7 +125,7 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
                         type.name(),
                         entityId,
                         name,
-                        value);
+                        Utils.truncateText(value, 4000));
                 this.additionalAttributeRecordMapper
                         .updateByPrimaryKeySelective(rec);
 
@@ -136,7 +137,7 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
                         type.name(),
                         entityId,
                         name,
-                        value);
+                        Utils.truncateText(value, 4000));
                 this.additionalAttributeRecordMapper
                         .insert(rec);
 

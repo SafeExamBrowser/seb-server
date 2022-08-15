@@ -56,7 +56,7 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
     private void valueChanged(final String text, final double value) {
         if (this.tags == null || this.tags.length == 0 || hasTag(text)) {
             if (super.ditributedIndicatorValueRecordId != null) {
-                if (!this.distributedPingCache.updateIndicatorValueAsync(
+                if (!this.distributedIndicatorValueService.updateIndicatorValueAsync(
                         this.ditributedIndicatorValueRecordId,
                         Double.valueOf(value).longValue())) {
 
@@ -100,7 +100,7 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
 
                 // update active indicator value record on persistent when caching is not enabled
                 if (this.active && this.ditributedIndicatorValueRecordId != null) {
-                    this.distributedPingCache.updateIndicatorValue(
+                    this.distributedIndicatorValueService.updateIndicatorValue(
                             this.ditributedIndicatorValueRecordId,
                             numericValue.longValue());
                 }

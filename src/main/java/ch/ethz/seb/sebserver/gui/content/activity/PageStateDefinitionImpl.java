@@ -33,6 +33,9 @@ import ch.ethz.seb.sebserver.gui.content.exam.IndicatorTemplateForm;
 import ch.ethz.seb.sebserver.gui.content.exam.LmsSetupForm;
 import ch.ethz.seb.sebserver.gui.content.exam.LmsSetupList;
 import ch.ethz.seb.sebserver.gui.content.exam.QuizLookupList;
+import ch.ethz.seb.sebserver.gui.content.monitoring.FinishedExam;
+import ch.ethz.seb.sebserver.gui.content.monitoring.FinishedExamClientConnection;
+import ch.ethz.seb.sebserver.gui.content.monitoring.FinishedExamList;
 import ch.ethz.seb.sebserver.gui.content.monitoring.MonitoringClientConnection;
 import ch.ethz.seb.sebserver.gui.content.monitoring.MonitoringRunningExam;
 import ch.ethz.seb.sebserver.gui.content.monitoring.MonitoringRunningExamList;
@@ -95,6 +98,10 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
     MONITORING_RUNNING_EXAM_LIST(Type.LIST_VIEW, MonitoringRunningExamList.class, ActivityDefinition.MONITORING_EXAMS),
     MONITORING_RUNNING_EXAM(Type.FORM_VIEW, MonitoringRunningExam.class, ActivityDefinition.MONITORING_EXAMS),
     MONITORING_CLIENT_CONNECTION(Type.FORM_VIEW, MonitoringClientConnection.class, ActivityDefinition.MONITORING_EXAMS),
+
+    FINISHED_EXAM_LIST(Type.LIST_VIEW, FinishedExamList.class, ActivityDefinition.FINISHED_EXAMS),
+    FINISHED_EXAM(Type.FORM_VIEW, FinishedExam.class, ActivityDefinition.FINISHED_EXAMS),
+    FINISHED_CLIENT_CONNECTION(Type.FORM_VIEW, FinishedExamClientConnection.class, ActivityDefinition.FINISHED_EXAMS),
 
     USER_ACTIVITY_LOGS(Type.LIST_VIEW, UserActivityLogs.class, ActivityDefinition.USER_ACTIVITY_LOGS),
     SEB_CLIENT_LOGS(Type.LIST_VIEW, SEBClientEvents.class, ActivityDefinition.SEB_CLIENT_LOGS)

@@ -12,6 +12,7 @@ import static ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService.POLYGLO
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -24,8 +25,6 @@ import java.util.stream.Collectors;
 
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -46,6 +45,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -60,7 +60,7 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 import io.micrometer.core.instrument.util.StringUtils;
 
-public class EntityTable<ROW> {
+public class EntityTable<ROW extends ModelIdAware> {
 
     private static final Logger log = LoggerFactory.getLogger(EntityTable.class);
 
@@ -92,10 +92,13 @@ public class EntityTable<ROW> {
     private final TableFilter<ROW> filter;
     private final Table table;
     private final TableNavigator navigator;
+
     private final MultiValueMap<String, String> staticQueryParams;
     private final BiConsumer<TableItem, ROW> rowDecorator;
-    private final Consumer<Set<ROW>> selectionListener;
+    private final Consumer<EntityTable<ROW>> selectionListener;
     private final Consumer<Integer> contentChangeListener;
+
+    private final Set<String> multiselection;
 
     private final String defaultSortColumn;
     private final PageSortOrder defaultSortOrder;
@@ -122,7 +125,7 @@ public class EntityTable<ROW> {
             final boolean hideNavigation,
             final MultiValueMap<String, String> staticQueryParams,
             final BiConsumer<TableItem, ROW> rowDecorator,
-            final Consumer<Set<ROW>> selectionListener,
+            final Consumer<EntityTable<ROW>> selectionListener,
             final Consumer<Integer> contentChangeListener,
             final String defaultSortColumn,
             final PageSortOrder defaultSortOrder) {
@@ -187,6 +190,8 @@ public class EntityTable<ROW> {
             this.table.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
         }
 
+        this.multiselection = ((type & SWT.MULTI) > 0) ? new HashSet<>() : null;
+
         if (defaultActionFunction != null) {
             final PageAction defaultAction = defaultActionFunction.apply(this);
             if (defaultAction != null) {
@@ -204,23 +209,10 @@ public class EntityTable<ROW> {
                 });
             }
         }
-        this.table.addListener(SWT.MouseDown, event -> {
-            if (event.button == Constants.RWT_MOUSE_BUTTON_1) {
-                return;
-            }
-            final Rectangle bounds = event.getBounds();
-            final Point point = new Point(bounds.x, bounds.y);
-            final TableItem item = this.table.getItem(point);
-            if (item == null) {
-                return;
-            }
-
-            for (int i = 0; i < columns.size(); i++) {
-                final Rectangle itemBounds = item.getBounds(i);
-                if (itemBounds.contains(point)) {
-                    handleCellSelection(item, i);
-                    return;
-                }
+        this.table.addListener(SWT.Selection, event -> {
+            if (this.multiselection != null && event.item != null) {
+                handleMultiSelection((TableItem) event.item);
+                event.doit = false;
             }
         });
 
@@ -271,6 +263,10 @@ public class EntityTable<ROW> {
         return this.table.getItemCount() > 0;
     }
 
+    public boolean hasSelection() {
+        return (this.multiselection != null && !this.multiselection.isEmpty()) || this.table.getSelectionCount() > 0;
+    }
+
     public void setPageSize(final int pageSize) {
         this.pageSize = pageSize;
         updateTableRows(
@@ -302,6 +298,10 @@ public class EntityTable<ROW> {
         updateSortUserAttr();
         setTableSort();
         applyFilter();
+    }
+
+    public void updateCurrentPage() {
+        this.selectPage(this.pageNumber);
     }
 
     public void applyFilter() {
@@ -368,7 +368,21 @@ public class EntityTable<ROW> {
             return null;
         }
 
-        return getRowDataId(selection[0]);
+        return getEntityKey(selection[0]);
+    }
+
+    public Set<EntityKey> getMultiSelection() {
+        if (this.multiselection == null) {
+            return getPageSelectionData()
+                    .stream()
+                    .map(row -> new EntityKey(row.getModelId(), getEntityType()))
+                    .collect(Collectors.toSet());
+        }
+
+        return this.multiselection
+                .stream()
+                .map(modelId -> new EntityKey(modelId, getEntityType()))
+                .collect(Collectors.toSet());
     }
 
     public ROW getFirstRowData() {
@@ -393,7 +407,7 @@ public class EntityTable<ROW> {
         return getRowData(selection[0]);
     }
 
-    public Set<ROW> getSelectedROWData() {
+    public Set<ROW> getPageSelectionData() {
         final TableItem[] selection = this.table.getSelection();
         if (selection == null || selection.length == 0) {
             return Collections.emptySet();
@@ -404,10 +418,6 @@ public class EntityTable<ROW> {
                 .collect(Collectors.toSet());
     }
 
-    public Set<EntityKey> getSelection() {
-        return getSelection(null);
-    }
-
     public Set<EntityKey> getSelection(final Predicate<ROW> grantCheck) {
         final TableItem[] selection = this.table.getSelection();
         if (selection == null) {
@@ -416,7 +426,7 @@ public class EntityTable<ROW> {
 
         return Arrays.stream(selection)
                 .filter(item -> grantCheck == null || grantCheck.test(getRowData(item)))
-                .map(this::getRowDataId)
+                .map(this::getEntityKey)
                 .collect(Collectors.toSet());
     }
 
@@ -609,12 +619,17 @@ public class EntityTable<ROW> {
         return (ROW) item.getData(TABLE_ROW_DATA);
     }
 
-    private EntityKey getRowDataId(final TableItem item) {
+    private EntityKey getEntityKey(final TableItem item) {
         final ROW rowData = getRowData(item);
         if (rowData instanceof Entity) {
             return ((Entity) rowData).getEntityKey();
         }
         return null;
+    }
+
+    private String getModelId(final TableItem item) {
+        final ROW rowData = getRowData(item);
+        return (rowData != null) ? rowData.getModelId() : null;
     }
 
     private void updateValues(final EntityTable<ROW> table) {
@@ -672,16 +687,12 @@ public class EntityTable<ROW> {
         }
     }
 
-    private void handleCellSelection(final TableItem item, final int index) {
-        // TODO handle selection tool-tips on cell level
-    }
-
     private void notifySelectionChange() {
         if (this.selectionListener == null) {
             return;
         }
 
-        this.selectionListener.accept(this.getSelectedROWData());
+        this.selectionListener.accept(this);
     }
 
     private void updateCurrentPageAttr() {
@@ -705,7 +716,7 @@ public class EntityTable<ROW> {
                 return 1;
             }
         } catch (final Exception e) {
-            log.error("Failed to get sort attribute form current user attributes", e);
+            log.error("Failed to get sort attribute from current user attributes", e);
             return 1;
         }
     }
@@ -746,7 +757,7 @@ public class EntityTable<ROW> {
             setTableSort();
 
         } catch (final Exception e) {
-            log.error("Failed to get sort attribute form current user attributes", e);
+            log.error("Failed to get sort attribute from current user attributes", e);
         }
     }
 
@@ -783,14 +794,49 @@ public class EntityTable<ROW> {
                                 .getCurrentUser()
                                 .getAttribute(this.filterAttrName));
             } catch (final Exception e) {
-                log.error("Failed to get filter attributes form current user attributes", e);
+                log.error("Failed to get filter attributes from current user attributes", e);
             }
         }
     }
 
     private void notifyContentChange() {
+        multiselectFromPage();
+
         if (this.contentChangeListener != null) {
             this.contentChangeListener.accept(this.table.getItemCount());
+        }
+    }
+
+    private void handleMultiSelection(final TableItem item) {
+        if (this.multiselection != null) {
+            final String modelId = getModelId(item);
+            if (this.multiselection.contains(modelId)) {
+                this.multiselection.remove(modelId);
+            } else {
+                this.multiselection.add(modelId);
+                Arrays.asList(this.table.getSelection())
+                        .stream()
+                        .forEach(i -> this.multiselection.add(getModelId(i)));
+            }
+            multiselectFromPage();
+        }
+    }
+
+    private void multiselectFromPage() {
+        if (this.multiselection != null) {
+            Arrays.asList(this.table.getItems())
+                    .stream()
+                    .forEach(item -> {
+                        final int index = this.table.indexOf(item);
+                        if (this.multiselection.contains(getModelId(item))) {
+                            if (!this.table.isSelected(index)) {
+                                this.table.select(index);
+                            }
+                        } else {
+                            this.table.deselect(index);
+                        }
+                    });
+            notifySelectionChange();
         }
     }
 

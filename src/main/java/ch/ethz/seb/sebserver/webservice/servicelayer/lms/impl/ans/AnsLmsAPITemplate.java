@@ -18,7 +18,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -39,7 +37,6 @@ import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
@@ -78,11 +75,9 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final ClientCredentialService clientCredentialService,
             final APITemplateDataSupplier apiTemplateDataSupplier,
-            final AsyncService asyncService,
-            final Environment environment,
             final CacheManager cacheManager) {
 
-        super(asyncService, environment, cacheManager);
+        super(cacheManager);
 
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.clientCredentialService = clientCredentialService;
@@ -170,7 +165,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
     @Override
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
         return this
-                .protectedQuizzesRequest(filterMap)
+                .allQuizzesRequest(filterMap)
                 .map(quizzes -> quizzes.stream()
                         .filter(LmsAPIService.quizFilterPredicate(filterMap))
                         .collect(Collectors.toList()));
@@ -191,7 +186,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
                     });
 
             if (!leftIds.isEmpty()) {
-                result.addAll(super.protectedQuizzesRequest(leftIds).getOrThrow());
+                result.addAll(quizzesRequest(leftIds).getOrThrow());
             }
 
             return result;
@@ -205,7 +200,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
             return Result.of(fromCache);
         }
 
-        return super.protectedQuizRequest(id);
+        return quizRequest(id);
     }
 
     private List<QuizData> collectAllQuizzes(final AnsPersonalRestTemplate restTemplate) {
@@ -279,33 +274,28 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
                 .collect(Collectors.toList());
     }
 
-    @Override
-    protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
+    protected Result<List<QuizData>> allQuizzesRequest(final FilterMap filterMap) {
         // We cannot filter by from-date or partial names using the Ans search API.
         // Only exact matches are permitted. So we're not implementing filtering
         // on the API level and always retrieve all assignments and let SEB server
         // do the filtering.
-        return () -> {
+        return Result.tryCatch(() -> {
             final List<QuizData> res = getRestTemplate()
                     .map(this::collectAllQuizzes)
                     .getOrThrow();
             super.putToCache(res);
             return res;
-        };
+        });
     }
 
-    @Override
-    protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
-        return () -> getRestTemplate()
-                .map(t -> this.getQuizzesByIds(t, ids))
-                .getOrThrow();
+    protected Result<Collection<QuizData>> quizzesRequest(final Set<String> ids) {
+        return getRestTemplate()
+                .map(t -> this.getQuizzesByIds(t, ids));
     }
 
-    @Override
-    protected Supplier<QuizData> quizSupplier(final String id) {
-        return () -> getRestTemplate()
-                .map(t -> this.getQuizByAssignmentId(t, id))
-                .getOrThrow();
+    protected Result<QuizData> quizRequest(final String id) {
+        return getRestTemplate()
+                .map(t -> this.getQuizByAssignmentId(t, id));
     }
 
     private ExamineeAccountDetails getExamineeById(final RestTemplate restTemplate, final String id) {
@@ -324,17 +314,21 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
     }
 
     @Override
-    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String id) {
-        return () -> getRestTemplate()
-                .map(t -> this.getExamineeById(t, id))
-                .getOrThrow();
+    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeUserId) {
+        return getRestTemplate().map(t -> this.getExamineeById(t, examineeUserId));
     }
 
     @Override
-    protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
-        return () -> {
-            throw new UnsupportedOperationException("not available yet");
-        };
+    public String getExamineeName(final String examineeUserId) {
+        return getExamineeAccountDetails(examineeUserId)
+                .map(ExamineeAccountDetails::getDisplayName)
+                .onError(error -> log.warn("Failed to request user-name for ID: {}", error.getMessage(), error))
+                .getOr(examineeUserId);
+    }
+
+    @Override
+    public Result<Chapters> getCourseChapters(final String courseId) {
+        return Result.ofError(new UnsupportedOperationException("not available yet"));
     }
 
     @Override

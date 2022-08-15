@@ -72,6 +72,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ViewDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigTemplateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -87,6 +88,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     private final ViewDAO viewDAO;
     private final OrientationDAO orientationDAO;
     private final ExamConfigService sebExamConfigService;
+    private final ExamConfigUpdateService examConfigUpdateService;
     private final ExamConfigTemplateService sebExamConfigTemplateService;
 
     protected ConfigurationNodeController(
@@ -101,6 +103,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             final ViewDAO viewDAO,
             final OrientationDAO orientationDAO,
             final ExamConfigService sebExamConfigService,
+            final ExamConfigUpdateService examConfigUpdateService,
             final ExamConfigTemplateService sebExamConfigTemplateService) {
 
         super(authorization,
@@ -116,6 +119,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         this.viewDAO = viewDAO;
         this.orientationDAO = orientationDAO;
         this.sebExamConfigService = sebExamConfigService;
+        this.examConfigUpdateService = examConfigUpdateService;
         this.sebExamConfigTemplateService = sebExamConfigTemplateService;
     }
 
@@ -172,6 +176,26 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     }
 
     @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_RESET_TO_TEMPLATE_PATH_SEGMENT,
+            method = RequestMethod.PATCH,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ConfigurationNode resetToTemplateValues(@PathVariable final String modelId) {
+        return this.entityDAO
+                .byModelId(modelId)
+                .flatMap(this.authorization::checkModify)
+                .flatMap(this.sebExamConfigService::resetToTemplateSettings)
+                .flatMap(super::logModify)
+                .map(node -> {
+                    this.examConfigUpdateService
+                            .processExamConfigurationChange(node.id)
+                            .getOrThrow();
+                    return node;
+                })
+                .getOrThrow();
+    }
+
+    @RequestMapping(
             path = API.CONFIGURATION_COPY_PATH_SEGMENT,
             method = RequestMethod.PUT,
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -183,7 +207,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @Valid @RequestBody final ConfigCreationInfo copyInfo) {
 
-        this.entityDAO.byPK(copyInfo.configurationNodeId)
+        this.entityDAO
+                .byPK(copyInfo.configurationNodeId)
                 .flatMap(this.authorization::checkWrite);
 
         final SEBServerUser currentUser = this.authorization
@@ -289,7 +314,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 description,
                 ConfigurationType.EXAM_CONFIG,
                 currentUser.uuid(),
-                ConfigurationStatus.CONSTRUCTION);
+                ConfigurationStatus.CONSTRUCTION,
+                null, null);
 
         final Configuration followup = this.beanValidationService.validateBean(configurationNode)
                 .flatMap(this.entityDAO::createNew)
@@ -502,37 +528,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
 
     @Override
     protected Result<ConfigurationNode> validForSave(final ConfigurationNode entity) {
-        return super.validForSave(entity)
-                .map(e -> {
-                    final ConfigurationNode existingNode = this.entityDAO.byPK(entity.id)
-                            .getOrThrow();
-                    if (existingNode.type != entity.type) {
-                        throw new APIConstraintViolationException(
-                                "The Type of ConfigurationNode cannot change after creation");
-                    }
-                    return e;
-                })
-                .map(this::checkChangeToArchived);
-    }
-
-    private ConfigurationNode checkChangeToArchived(final ConfigurationNode entity) {
-        if (entity.status == ConfigurationStatus.ARCHIVED) {
-            // check if we have a change to archived
-            final ConfigurationNode persistentNode = this.configurationNodeDAO
-                    .byPK(entity.id)
-                    .getOrThrow();
-            // yes we have
-            if (persistentNode.status != ConfigurationStatus.ARCHIVED) {
-                // check if this is possible (no upcoming or running exams involved)
-                if (!this.examConfigurationMapDAO.checkNoActiveExamReferences(entity.id).getOr(false)) {
-                    throw new APIMessageException(
-                            APIMessage.ErrorMessage.INTEGRITY_VALIDATION
-                                    .of("Exam configuration has references to at least one upcoming or running exam."));
-                }
-            }
-        }
-
-        return entity;
+        return this.sebExamConfigService.checkSaveConsistency(entity);
     }
 
     @Override

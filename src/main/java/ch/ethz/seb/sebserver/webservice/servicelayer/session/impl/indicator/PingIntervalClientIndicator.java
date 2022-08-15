@@ -34,8 +34,8 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     private boolean hidden = false;
 
-    public PingIntervalClientIndicator(final DistributedIndicatorValueService distributedPingCache) {
-        super(distributedPingCache);
+    public PingIntervalClientIndicator(final DistributedIndicatorValueService distributedIndicatorValueService) {
+        super(distributedIndicatorValueService);
         this.cachingEnabled = true;
     }
 
@@ -76,19 +76,19 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
             return Double.NaN;
         }
 
+        // take samples, current value before current time to prevent negative ping times
+        final double value = this.currentValue;
+        final long currentTimeMillis = DateTimeUtils.currentTimeMillis();
+
         if (this.initialized && !this.cachingEnabled && this.active
-                && this.lastUpdate != this.distributedPingCache.lastUpdate()) {
+                && this.lastUpdate != this.distributedIndicatorValueService.lastUpdate()) {
 
-            final long currentTimeMillis = DateTimeUtils.currentTimeMillis();
             this.currentValue = computeValueAt(currentTimeMillis);
-            this.lastUpdate = this.distributedPingCache.lastUpdate();
-            return (currentTimeMillis < this.currentValue)
-                    ? DateTimeUtils.currentTimeMillis() - this.currentValue
-                    : currentTimeMillis - this.currentValue;
-
-        } else {
-            return DateTimeUtils.currentTimeMillis() - this.currentValue;
+            this.lastUpdate = this.distributedIndicatorValueService.lastUpdate();
         }
+
+        final double res = currentTimeMillis - value;
+        return res >= 0.0D ? res : 0.0D;
     }
 
     @Override
@@ -105,7 +105,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     public final double computeValueAt(final long timestamp) {
         if (super.ditributedIndicatorValueRecordId != null) {
 
-            final Long lastPing = this.distributedPingCache
+            final Long lastPing = this.distributedIndicatorValueService
                     .getIndicatorValue(super.ditributedIndicatorValueRecordId);
 
             return (lastPing != null)
@@ -118,22 +118,27 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
 
     @Override
     public final boolean hasIncident() {
+        if (!this.active) {
+            return false;
+        }
+
         return getValue() >= super.incidentThreshold;
     }
 
     private double lastCheckVal = 0;
 
-    public final boolean missingPingUpdate(final long now) {
-        if (this.currentValue <= 0) {
+    public final boolean changeOnIncident() {
+        if (!this.active || this.currentValue <= 0) {
             return false;
         }
 
-        final double val = now - this.currentValue;
-        // check if incidentThreshold was passed (up or down) since last update
-        final boolean result = (this.lastCheckVal < this.incidentThreshold && val >= this.incidentThreshold) ||
+        final double val = getValue();
+        // check if incident threshold has passed (up or down) since last update
+        final boolean changed = (this.lastCheckVal < this.incidentThreshold && val >= this.incidentThreshold) ||
                 (this.lastCheckVal >= this.incidentThreshold && val < this.incidentThreshold);
+
         this.lastCheckVal = val;
-        return result;
+        return changed;
     }
 
 }

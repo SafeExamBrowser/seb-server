@@ -77,7 +77,7 @@ public interface ExamSessionService {
     /** Use this to check if a specified Exam has currently active SEB Client connections.
      *
      * Active SEB Client connections are established connections that are not yet closed and
-     * connection attempts that are older the a defined time interval.
+     * open connection attempts.
      *
      * @param examId The Exam identifier
      * @return true if the given Exam has currently no active client connection, false otherwise. */
@@ -86,7 +86,7 @@ public interface ExamSessionService {
             return false;
         }
 
-        return !this.getActiveConnectionTokens(examId)
+        return !this.getAllActiveConnectionTokens(examId)
                 .getOrThrow()
                 .isEmpty();
     }
@@ -134,6 +134,15 @@ public interface ExamSessionService {
             FilterMap filterMap,
             Predicate<Exam> predicate);
 
+    /** Gets all finished Exams for a particular FilterMap.
+     *
+     * @param filterMap the FilterMap containing the filter attributes
+     * @param predicate additional filter predicate
+     * @return Result referencing the list of all currently finished Exams or to an error if happened. */
+    Result<Collection<Exam>> getFilteredFinishedExams(
+            FilterMap filterMap,
+            Predicate<Exam> predicate);
+
     /** Streams the default SEB Exam Configuration to a ClientConnection with given connectionToken.
      *
      * @param institutionId the Institution identifier
@@ -175,19 +184,20 @@ public interface ExamSessionService {
             final Long examId,
             final Predicate<ClientConnectionData> filter);
 
-    /** Gets all connection tokens of active client connection that are related to a specified exam
+    /** Gets all connection tokens of client connection that are in ACTIVE state and related to a specified exam
      * from persistence storage without caching involved.
      *
      * @param examId the exam identifier
      * @return Result refer to the collection of connection tokens or to an error when happened. */
     Result<Collection<String>> getActiveConnectionTokens(Long examId);
 
-    /** Called to notify that the given exam has just been finished.
-     * This cleanup all exam session caches for the given exam and also cleanup session based stores on the persistent.
+    /** Gets all connection tokens of client connections that are in an active state. See <code>ClientConnection</code>
+     * And that are related to a specified exam.
+     * There is no caching involved here, gets actual data from persistent storage
      *
-     * @param exam the Exam that has just been finished
-     * @return Result refer to the finished exam or to an error when happened. */
-    Result<Exam> notifyExamFinished(final Exam exam);
+     * @param examId the exam identifier
+     * @return Result refer to the collection of connection tokens or to an error when happened. */
+    Result<Collection<String>> getAllActiveConnectionTokens(Long examId);
 
     /** Use this to check if the current cached running exam is up to date
      * and if not to flush the cache.
@@ -208,7 +218,7 @@ public interface ExamSessionService {
      * @return Result with reference to the given Exam or to an error if happened */
     Result<Exam> flushCache(final Exam exam);
 
-    /** Is is supposed to be the single access point to internally get client connection
+    /** This is supposed to be the single access point to internally get client connection
      * data for a specified connection token.
      * This uses the client connection data cache for lookup and also synchronizes asynchronous
      * cache calls to prevent parallel creation of ClientConnectionDataInternal

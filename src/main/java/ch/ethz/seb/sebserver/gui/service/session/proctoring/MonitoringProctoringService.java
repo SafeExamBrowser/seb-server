@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -229,7 +230,9 @@ public class MonitoringProctoringService {
                     }
                 });
 
-        updateTownhallButton(proctoringGUIService, pageContext);
+        if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.TOWN_HALL)) {
+            updateTownhallButton(proctoringGUIService, pageContext);
+        }
     }
 
     private void showCollectingRoomPopup(

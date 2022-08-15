@@ -171,7 +171,9 @@ public class ModalInputWizard<T> extends Dialog {
                 }
             }
 
-            final Button cancel = this.widgetFactory.buttonLocalized(actionsComp, ModalInputDialog.CANCEL_TEXT_KEY);
+            final Button cancel = this.widgetFactory.buttonLocalized(
+                    actionsComp,
+                    (page.actions.isEmpty()) ? ModalInputDialog.OK_TEXT_KEY : ModalInputDialog.CANCEL_TEXT_KEY);
             final RowData data = new RowData();
             data.width = this.buttonWidth;
             cancel.setLayoutData(data);

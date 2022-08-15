@@ -161,6 +161,11 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     }
 
     @Override
+    public <E extends Entity> Result<E> logFinished(final E entity) {
+        return log(UserLogActivityType.FINISHED, entity);
+    }
+
+    @Override
     @Transactional
     public <E extends Entity> Result<E> logDelete(final E entity) {
         return log(UserLogActivityType.DELETE, entity);

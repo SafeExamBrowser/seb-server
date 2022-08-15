@@ -14,8 +14,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -35,7 +34,6 @@ import org.springframework.web.client.RestTemplate;
 
 import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
-import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
@@ -75,11 +73,9 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final ClientCredentialService clientCredentialService,
             final APITemplateDataSupplier apiTemplateDataSupplier,
-            final AsyncService asyncService,
-            final Environment environment,
             final CacheManager cacheManager) {
 
-        super(asyncService, environment, cacheManager);
+        super(cacheManager);
 
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.clientCredentialService = clientCredentialService;
@@ -166,7 +162,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     @Override
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
         return this
-                .protectedQuizzesRequest(filterMap)
+                .allQuizzesRequest(filterMap)
                 .map(quizzes -> quizzes.stream()
                         .filter(LmsAPIService.quizFilterPredicate(filterMap))
                         .collect(Collectors.toList()));
@@ -187,7 +183,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                     });
 
             if (!leftIds.isEmpty()) {
-                result.addAll(super.protectedQuizzesRequest(leftIds).getOrThrow());
+                result.addAll(quizzesRequest(leftIds).getOrThrow());
             }
 
             return result;
@@ -201,18 +197,35 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             return Result.of(fromCache);
         }
 
-        return super.protectedQuizRequest(id);
+        return quizRequest(id);
     }
 
     @Override
-    protected Supplier<List<QuizData>> allQuizzesSupplier(final FilterMap filterMap) {
-        return () -> {
+    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeUserId) {
+        return getRestTemplate().map(t -> this.getExamineeById(t, examineeUserId));
+    }
+
+    @Override
+    public String getExamineeName(final String examineeUserId) {
+        return getExamineeAccountDetails(examineeUserId)
+                .map(ExamineeAccountDetails::getDisplayName)
+                .onError(error -> log.warn("Failed to request user-name for ID: {}", error.getMessage(), error))
+                .getOr(examineeUserId);
+    }
+
+    @Override
+    public Result<Chapters> getCourseChapters(final String courseId) {
+        return Result.ofError(new UnsupportedOperationException("No Course Chapter available for OpenOLAT LMS"));
+    }
+
+    protected Result<List<QuizData>> allQuizzesRequest(final FilterMap filterMap) {
+        return Result.tryCatch(() -> {
             final List<QuizData> res = getRestTemplate()
                     .map(t -> this.collectAllQuizzes(t, filterMap))
                     .getOrThrow();
             super.putToCache(res);
             return res;
-        };
+        });
     }
 
     private String examUrl(final long olatRepositoryId) {
@@ -254,16 +267,15 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 .collect(Collectors.toList());
     }
 
-    @Override
-    protected Supplier<Collection<QuizData>> quizzesSupplier(final Set<String> ids) {
-        return () -> ids.stream().map(id -> quizSupplier(id).get()).collect(Collectors.toList());
+    protected Result<Collection<QuizData>> quizzesRequest(final Set<String> ids) {
+        return Result.tryCatch(() -> ids.stream()
+                .map(id -> quizRequest(id).getOr(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
     }
 
-    @Override
-    protected Supplier<QuizData> quizSupplier(final String id) {
-        return () -> getRestTemplate()
-                .map(t -> this.quizById(t, id))
-                .getOrThrow();
+    protected Result<QuizData> quizRequest(final String id) {
+        return getRestTemplate().map(t -> this.quizById(t, id));
     }
 
     private QuizData quizById(final OlatLmsRestTemplate restTemplate, final String id) {
@@ -293,20 +305,6 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 u.username,
                 "OLAT API does not provide email addresses",
                 attrs);
-    }
-
-    @Override
-    protected Supplier<ExamineeAccountDetails> accountDetailsSupplier(final String id) {
-        return () -> getRestTemplate()
-                .map(t -> this.getExamineeById(t, id))
-                .getOrThrow();
-    }
-
-    @Override
-    protected Supplier<Chapters> getCourseChaptersSupplier(final String courseId) {
-        return () -> {
-            throw new UnsupportedOperationException("No Course Chapter available for OpenOLAT LMS");
-        };
     }
 
     private SEBRestriction getRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {

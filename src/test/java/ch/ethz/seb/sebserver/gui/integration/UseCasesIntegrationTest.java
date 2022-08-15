@@ -27,10 +27,10 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Before;
@@ -40,6 +40,7 @@ import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -47,12 +48,15 @@ import org.springframework.util.StreamUtils;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
+import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Domain.BATCH_ACTION;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
@@ -70,6 +74,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
@@ -96,7 +101,9 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
@@ -104,6 +111,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.model.session.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.model.session.MonitoringSEBConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -114,7 +122,11 @@ import ch.ethz.seb.sebserver.gui.service.examconfig.impl.AttributeMapping;
 import ch.ethz.seb.sebserver.gui.service.examconfig.impl.ExamConfigurationServiceImpl;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestServiceImpl;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.DoBatchAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.batch.GetBatchActionPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ActivateSEBRestriction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ArchiveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamImported;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
@@ -133,6 +145,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamConfi
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamDependencies;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplates;
@@ -141,7 +154,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetSEBRestrictionSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamTemplate;
@@ -149,10 +161,10 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamConfigMapping;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicatorTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
@@ -165,7 +177,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSe
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.NewLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.SaveLmsSetup;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllClientEvents;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.DeleteAllUserLogs;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.ExportSEBClientLogs;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetUserLogPage;
@@ -214,15 +228,27 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Sa
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigTableValues;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigValue;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.CloseProctoringRoom;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisableClientConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionDataList;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRoomConnections;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnection;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamClientConnectionPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetFinishedExamPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetMonitoringFullPageData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetPendingClientNotifications;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetRunningExamPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetTownhallRoom;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.IsTownhallRoomAvailable;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.NotifyProctoringRoomOpened;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.OpenTownhallRoom;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.PropagateInstruction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.SendProctoringReconfigurationAttributes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ActivateUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.ChangePassword;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.DeleteUserAccount;
@@ -232,35 +258,32 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUs
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.NewUserAccount;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.RegisterNewUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
     @Autowired
     private Cryptor cryptor;
-    @Autowired
-    private LmsAPIService lmsAPIService;
 
     @Before
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void init() {
-        this.lmsAPIService.cleanup();
+        // Nothing
     }
 
     @After
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql" })
     public void cleanup() {
-        this.lmsAPIService.cleanup();
+        // Nothing
     }
 
     @Test
     @Order(1)
     // *************************************
     // Use Case 1: SEB Administrator creates a new institution and activate this new institution
-
     public void testUsecase01() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "admin",
@@ -789,6 +812,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // - Check if there are some quizzes from previous LMS Setup
     // - Import a quiz as Exam
     // - get exam page and check the exam is there
+    // - get exam page with none native sort attribute to test this
     // - edit exam property and save again
     public void testUsecase07_ImportExam() {
         final RestServiceImpl restService = createRestServiceForUser(
@@ -835,14 +859,6 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         //assertEquals(Long.valueOf(1), quizData.lmsSetupId);
         assertEquals(Long.valueOf(4), quizData.institutionId);
 
-        // check imported
-        final Result<Collection<EntityKey>> checkCall = restService.getBuilder(CheckExamImported.class)
-                .withURIVariable(API.PARAM_MODEL_ID, quizData.getModelId())
-                .call();
-        assertFalse(checkCall.hasError());
-        final Collection<EntityKey> importCheck = checkCall.getOrThrow();
-        assertTrue(importCheck.isEmpty()); // not imported at all
-
         // import quiz as exam
         final Result<Exam> newExamResult = restService
                 .getBuilder(ImportAsExam.class)
@@ -865,15 +881,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 newExam.institutionId,
                 newExam.lmsSetupId,
                 newExam.externalId,
+                true,
                 newExam.name,
-                newExam.description,
                 newExam.startTime,
                 newExam.endTime,
-                newExam.startURL,
                 ExamType.MANAGED,
                 null,
                 Utils.immutableCollectionOf(userId),
-                ExamStatus.RUNNING,
+                null,
                 false,
                 null,
                 true,
@@ -905,6 +920,13 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .filter(exam -> exam.name.equals(newExam.name))
                 .findFirst().isPresent());
 
+        final Result<Page<Exam>> examsSorted = restService
+                .getBuilder(GetExamPage.class)
+                .withQueryParam(Page.ATTR_SORT, LmsSetup.FILTER_ATTR_LMS_SETUP)
+                .call();
+
+        assertNotNull(examsSorted);
+        assertFalse(examsSorted.hasError());
     }
 
     @Test
@@ -1555,7 +1577,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withURIVariable(API.PARAM_MODEL_ID, configurationNode.getModelId())
                 .withResponseExtractor(response -> {
                     final InputStream input = response.getBody();
-                    final String xmlString = StreamUtils.copyToString(input, Charsets.UTF_8);
+                    final String xmlString = StreamUtils.copyToString(input, java.nio.charset.StandardCharsets.UTF_8);
                     assertNotNull(xmlString);
                     for (final ConfigurationAttribute attribute : attributes) {
                         if (attribute.name.contains(".") || attribute.name.equals("kioskMode")) {
@@ -1696,7 +1718,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 config.description,
                 ConfigurationType.EXAM_CONFIG,
                 config.owner,
-                ConfigurationStatus.READY_TO_USE);
+                ConfigurationStatus.READY_TO_USE,
+                DateTime.now(),
+                config.owner);
 
         final ConfigurationNode savedConfig = restService
                 .getBuilder(SaveExamConfig.class)
@@ -2078,7 +2102,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(examConfigurationMap.examId))
                 .withResponseExtractor(response -> {
                     final InputStream input = response.getBody();
-                    final String xmlString = StreamUtils.copyToString(input, Charsets.UTF_8);
+                    final String xmlString = StreamUtils.copyToString(input, java.nio.charset.StandardCharsets.UTF_8);
                     assertNotNull(xmlString);
 //                  assertEquals(
 //                  "<?xml version=\"1.0\" encoding=\"utf-8\"?><!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict><key>allowAudioCapture</key><false /><key>allowBrowsingBackForward</key><false /><key>allowDictation</key><false /><key>allowDictionaryLookup</key><false /><key>allowDisplayMirroring</key><false /><key>allowDownUploads</key><true /><key>allowedDisplayBuiltin</key><true /><key>allowedDisplaysMaxNumber</key><integer>1</integer><key>allowFlashFullscreen</key><false /><key>allowiOSBetaVersionNumber</key><integer>0</integer><key>allowiOSVersionNumberMajor</key><integer>9</integer><key>allowiOSVersionNumberMinor</key><integer>3</integer><key>allowiOSVersionNumberPatch</key><integer>5</integer><key>allowPDFPlugIn</key><true /><key>allowPreferencesWindow</key><true /><key>allowQuit</key><true /><key>allowScreenSharing</key><false /><key>allowSiri</key><false /><key>allowSpellCheck</key><false /><key>allowSpellCheckDictionary</key><array><string>da-DK</string><string>en-AU</string><string>en-GB</string><string>en-US</string><string>es-ES</string><string>fr-FR</string><string>pt-PT</string><string>sv-SE</string><string>sv-FI</string></array><key>allowSwitchToApplications</key><false /><key>allowUserAppFolderInstall</key><false /><key>allowUserSwitching</key><false /><key>allowVideoCapture</key><false /><key>allowVirtualMachine</key><false /><key>allowWlan</key><false /><key>audioControlEnabled</key><false /><key>audioMute</key><false /><key>audioSetVolumeLevel</key><false /><key>audioVolumeLevel</key><integer>25</integer><key>blacklistURLFilter</key><string /><key>blockPopUpWindows</key><false /><key>browserMessagingPingTime</key><integer>120000</integer><key>browserMessagingSocket</key><string>ws://localhost:8706</string><key>browserScreenKeyboard</key><false /><key>browserURLSalt</key><true /><key>browserUserAgent</key><string /><key>browserUserAgentiOS</key><integer>0</integer><key>browserUserAgentiOSCustom</key><string /><key>browserUserAgentMac</key><integer>0</integer><key>browserUserAgentMacCustom</key><string /><key>browserUserAgentWinDesktopMode</key><integer>0</integer><key>browserUserAgentWinDesktopModeCustom</key><string /><key>browserUserAgentWinTouchMode</key><integer>0</integer><key>browserUserAgentWinTouchModeCustom</key><string /><key>browserUserAgentWinTouchModeIPad</key><string>Mozilla/5.0 (iPad; CPU OS 12_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Mobile/15E148 Safari/604.1</string><key>browserViewMode</key><integer>0</integer><key>browserWindowAllowReload</key><true /><key>browserWindowShowURL</key><integer>0</integer><key>browserWindowTitleSuffix</key><string /><key>chooseFileToUploadPolicy</key><integer>0</integer><key>createNewDesktop</key><true /><key>detectStoppedProcess</key><true /><key>downloadAndOpenSebConfig</key><true /><key>downloadDirectoryOSX</key><string /><key>downloadDirectoryWin</key><string /><key>downloadPDFFiles</key><true /><key>enableAltEsc</key><false /><key>enableAltF4</key><false /><key>enableAltMouseWheel</key><false /><key>enableAltTab</key><true /><key>enableAppSwitcherCheck</key><true /><key>enableBrowserWindowToolbar</key><false /><key>enableCtrlEsc</key><false /><key>enableDrawingEditor</key><false /><key>enableEsc</key><false /><key>enableF1</key><false /><key>enableF10</key><false /><key>enableF11</key><false /><key>enableF12</key><false /><key>enableF2</key><false /><key>enableF3</key><false /><key>enableF4</key><false /><key>enableF5</key><false /><key>enableF6</key><false /><key>enableF7</key><false /><key>enableF8</key><false /><key>enableF9</key><false /><key>enableJava</key><false /><key>enableJavaScript</key><true /><key>enableLogging</key><false /><key>enablePlugIns</key><true /><key>enablePrintScreen</key><false /><key>enablePrivateClipboard</key><true /><key>enableRightMouse</key><false /><key>enableSebBrowser</key><true /><key>enableStartMenu</key><false /><key>enableTouchExit</key><false /><key>enableZoomPage</key><true /><key>enableZoomText</key><true /><key>examSessionClearCookiesOnEnd</key><true /><key>examSessionClearCookiesOnStart</key><true /><key>exitKey1</key><integer>2</integer><key>exitKey2</key><integer>10</integer><key>exitKey3</key><integer>5</integer><key>forceAppFolderInstall</key><true /><key>hashedAdminPassword</key><string /><key>hashedQuitPassword</key><string /><key>hideBrowserWindowToolbar</key><false /><key>hookKeys</key><true /><key>ignoreExitKeys</key><false /><key>insideSebEnableChangeAPassword</key><false /><key>insideSebEnableEaseOfAccess</key><false /><key>insideSebEnableLockThisComputer</key><false /><key>insideSebEnableLogOff</key><false /><key>insideSebEnableNetworkConnectionSelector</key><false /><key>insideSebEnableShutDown</key><false /><key>insideSebEnableStartTaskManager</key><false /><key>insideSebEnableSwitchUser</key><false /><key>insideSebEnableVmWareClientShade</key><false /><key>killExplorerShell</key><false /><key>lockOnMessageSocketClose</key><false /><key>logDirectoryOSX</key><string /><key>logDirectoryWin</key><string /><key>logLevel</key><integer>1</integer><key>mainBrowserWindowHeight</key><string>100%</string><key>mainBrowserWindowPositioning</key><integer>1</integer><key>mainBrowserWindowWidth</key><string>100%</string><key>minMacOSVersion</key><integer>0</integer><key>mobileAllowPictureInPictureMediaPlayback</key><false /><key>mobileAllowQRCodeConfig</key><false /><key>mobileAllowSingleAppMode</key><false /><key>mobileEnableASAM</key><true /><key>mobileEnableGuidedAccessLinkTransform</key><false /><key>mobilePreventAutoLock</key><true /><key>mobileShowSettings</key><false /><key>mobileStatusBarAppearance</key><integer>1</integer><key>mobileStatusBarAppearanceExtended</key><integer>1</integer><key>monitorProcesses</key><false /><key>newBrowserWindowAllowReload</key><true /><key>newBrowserWindowByLinkBlockForeign</key><false /><key>newBrowserWindowByLinkHeight</key><string>100%</string><key>newBrowserWindowByLinkPolicy</key><integer>2</integer><key>newBrowserWindowByLinkPositioning</key><integer>2</integer><key>newBrowserWindowByLinkWidth</key><string>100%</string><key>newBrowserWindowByScriptBlockForeign</key><false /><key>newBrowserWindowByScriptPolicy</key><integer>2</integer><key>newBrowserWindowNavigation</key><true /><key>newBrowserWindowShowReloadWarning</key><false /><key>newBrowserWindowShowURL</key><integer>1</integer><key>openDownloads</key><false /><key>originatorVersion</key><string>SEB_Server_0.3.0</string><key>permittedProcesses</key><array><dict><key>active</key><true /><key>allowUserToChooseApp</key><false /><key>arguments</key><array /><key>autostart</key><true /><key>description</key><string /><key>executable</key><string>firefox.exe</string><key>iconInTaskbar</key><true /><key>identifier</key><string>Firefox</string><key>originalName</key><string>firefox.exe</string><key>os</key><integer>1</integer><key>path</key><string>../xulrunner/</string><key>runInBackground</key><false /><key>strongKill</key><true /><key>title</key><string>SEB</string></dict></array><key>pinEmbeddedCertificates</key><false /><key>prohibitedProcesses</key><array><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Riot</string><key>identifier</key><string /><key>originalName</key><string>Riot</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>seamonkey</string><key>identifier</key><string /><key>originalName</key><string>seamonkey</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Discord</string><key>identifier</key><string /><key>originalName</key><string>Discord</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Slack</string><key>identifier</key><string /><key>originalName</key><string>Slack</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Teams</string><key>identifier</key><string /><key>originalName</key><string>Teams</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>CamRecorder</string><key>identifier</key><string /><key>originalName</key><string>CamRecorder</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>join.me</string><key>identifier</key><string /><key>originalName</key><string>join.me</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>RPCSuite</string><key>identifier</key><string /><key>originalName</key><string>RPCSuite</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>RPCService</string><key>identifier</key><string /><key>originalName</key><string>RPCService</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>RemotePCDesktop</string><key>identifier</key><string /><key>originalName</key><string>RemotePCDesktop</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>beamyourscreen-host</string><key>identifier</key><string /><key>originalName</key><string>beamyourscreen-host</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>AeroAdmin</string><key>identifier</key><string /><key>originalName</key><string>AeroAdmin</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Mikogo-host</string><key>identifier</key><string /><key>originalName</key><string>Mikogo-host</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>chromoting</string><key>identifier</key><string /><key>originalName</key><string>chromoting</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>vncserverui</string><key>identifier</key><string /><key>originalName</key><string>vncserverui</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>vncviewer</string><key>identifier</key><string /><key>originalName</key><string>vncviewer</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>vncserver</string><key>identifier</key><string /><key>originalName</key><string>vncserver</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>TeamViewer</string><key>identifier</key><string /><key>originalName</key><string>TeamViewer</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>GotoMeetingWinStore</string><key>identifier</key><string /><key>originalName</key><string>GotoMeetingWinStore</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>g2mcomm.exe</string><key>identifier</key><string /><key>originalName</key><string>g2mcomm.exe</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>SkypeHost</string><key>identifier</key><string /><key>originalName</key><string>SkypeHost</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict><dict><key>active</key><true /><key>currentUser</key><true /><key>description</key><string /><key>executable</key><string>Skype</string><key>identifier</key><string /><key>originalName</key><string>Skype</string><key>os</key><integer>1</integer><key>strongKill</key><false /><key>user</key><string /></dict></array><key>proxies</key><dict><key>AutoConfigurationEnabled</key><false /><key>AutoConfigurationJavaScript</key><string /><key>AutoConfigurationURL</key><string /><key>AutoDiscoveryEnabled</key><false /><key>ExceptionsList</key><array></array><key>ExcludeSimpleHostnames</key><false /><key>FTPEnable</key><false /><key>FTPPassive</key><true /><key>FTPPassword</key><string /><key>FTPPort</key><integer>21</integer><key>FTPProxy</key><string /><key>FTPRequiresPassword</key><false /><key>FTPUsername</key><string /><key>HTTPEnable</key><false /><key>HTTPPassword</key><string /><key>HTTPPort</key><integer>80</integer><key>HTTPProxy</key><string /><key>HTTPRequiresPassword</key><false /><key>HTTPSEnable</key><false /><key>HTTPSPassword</key><string /><key>HTTPSPort</key><integer>443</integer><key>HTTPSProxy</key><string /><key>HTTPSRequiresPassword</key><false /><key>HTTPSUsername</key><string /><key>HTTPUsername</key><string /><key>RTSPEnable</key><false /><key>RTSPPassword</key><string /><key>RTSPPort</key><integer>554</integer><key>RTSPProxy</key><string /><key>RTSPRequiresPassword</key><false /><key>RTSPUsername</key><string /><key>SOCKSEnable</key><false /><key>SOCKSPassword</key><string /><key>SOCKSPort</key><integer>1080</integer><key>SOCKSProxy</key><string /><key>SOCKSRequiresPassword</key><false /><key>SOCKSUsername</key><string /></dict><key>proxySettingsPolicy</key><integer>0</integer><key>quitURL</key><string /><key>quitURLConfirm</key><true /><key>removeBrowserProfile</key><false /><key>removeLocalStorage</key><false /><key>restartExamPasswordProtected</key><true /><key>restartExamText</key><string /><key>restartExamURL</key><string /><key>restartExamUseStartURL</key><false /><key>sebConfigPurpose</key><integer>0</integer><key>sebServicePolicy</key><integer>2</integer><key>sendBrowserExamKey</key><true /><key>showBackToStartButton</key><true /><key>showInputLanguage</key><false /><key>showMenuBar</key><false /><key>showNavigationButtons</key><false /><key>showReloadButton</key><true /><key>showReloadWarning</key><true /><key>showScanQRCodeButton</key><false /><key>showSettingsInApp</key><false /><key>showTaskBar</key><true /><key>showTime</key><true /><key>startResource</key><string /><key>taskBarHeight</key><integer>40</integer><key>touchOptimized</key><false /><key>URLFilterEnable</key><false /><key>URLFilterEnableContentFilter</key><false /><key>URLFilterMessage</key><integer>0</integer><key>URLFilterRules</key><array /><key>useAsymmetricOnlyEncryption</key><false /><key>whitelistURLFilter</key><string /><key>zoomMode</key><integer>0</integer></dict></plist>",
@@ -2108,11 +2132,16 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new GetClientConnection(),
                 new GetMonitoringFullPageData(),
                 new GetExtendedClientEventPage(),
+                new ExportSEBClientLogs(),
+                new DeleteAllClientEvents(),
                 new DisableClientConnection(),
                 new PropagateInstruction(),
                 new GetClientConnectionPage(),
                 new GetPendingClientNotifications(),
-                new ConfirmPendingClientNotification());
+                new ConfirmPendingClientNotification(),
+                new GetFinishedExamPage(),
+                new GetFinishedExamClientConnectionPage(),
+                new GetFinishedExamClientConnection());
 
         final RestServiceImpl adminRestService = createRestServiceForUser(
                 "TestInstAdmin",
@@ -2121,7 +2150,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 new ActivateClientConfig(),
                 new GetClientConfigPage(),
                 new GetIndicatorPage(),
-                new GetIndicators());
+                new GetIndicators(),
+                new DeleteAllClientEvents());
 
         // get running exams
         final Result<Page<Exam>> runningExamsCall = restService.getBuilder(GetRunningExamPage.class)
@@ -2147,7 +2177,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertTrue(connections.isEmpty());
 
         // get MonitoringFullPageData
-        final Result<MonitoringFullPageData> fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
+        Result<MonitoringFullPageData> fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
                 .call();
         assertNotNull(fullPageData);
@@ -2160,7 +2190,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         .collect(Collectors.toList()).toString());
 
         // get active client config's credentials
-        final Result<Page<SEBClientConfig>> cconfigs = adminRestService.getBuilder(GetClientConfigPage.class)
+        final Result<Page<SEBClientConfig>> cconfigs = adminRestService
+                .getBuilder(GetClientConfigPage.class)
                 .call();
         assertNotNull(cconfigs);
         assertFalse(cconfigs.hasError());
@@ -2169,7 +2200,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         final SEBClientConfig clientConfig = ccPage.content.get(0);
         assertTrue(clientConfig.isActive());
-        final ClientCredentials credentials = this.sebClientConfigDAO.getSEBClientCredentials(clientConfig.getModelId())
+        final ClientCredentials credentials = this.sebClientConfigDAO
+                .getSEBClientCredentials(clientConfig.getModelId())
                 .getOrThrow();
 
         adminRestService.getBuilder(ActivateClientConfig.class)
@@ -2182,8 +2214,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                     credentials.clientIdAsString(),
                     this.cryptor.decrypt(credentials.secret).getOrThrow().toString(),
                     exam.getModelId(),
-                    String.valueOf(exam.institutionId));
-            Thread.sleep(1000);
+                    String.valueOf(exam.institutionId),
+                    true);
+            //Thread.sleep(1000);
 
             // send get connections
             connectionsCall =
@@ -2199,6 +2232,22 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             iterator.next();
             final ClientConnectionData con = iterator.next();
 
+            fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                    .withHeader(API.EXAM_MONITORING_STATE_FILTER, ConnectionStatus.DISABLED.name())
+                    .call();
+            assertNotNull(fullPageData);
+            assertFalse(fullPageData.hasError());
+
+            fullPageData = restService.getBuilder(GetMonitoringFullPageData.class)
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                    .withHeader(
+                            API.EXAM_MONITORING_STATE_FILTER,
+                            ConnectionStatus.DISABLED.name() + "," + ConnectionStatus.ACTIVE.name())
+                    .call();
+            assertNotNull(fullPageData);
+            assertFalse(fullPageData.hasError());
+
             // get single client connection
             final Result<ClientConnection> ccCall = restService.getBuilder(GetClientConnection.class)
                     .withURIVariable(API.PARAM_MODEL_ID, con.clientConnection.getModelId())
@@ -2206,8 +2255,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
             assertFalse(ccCall.hasError());
             final ClientConnection clientConnection = ccCall.get();
-            assertEquals("1", clientConnection.examId.toString());
-            //assertEquals("", clientConnection.status.name());
+            assertTrue(clientConnection.userSessionId.contains("connection"));
 
             // get notification
             final Result<Collection<ClientNotification>> notificationsCall =
@@ -2246,7 +2294,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
             assertNotNull(instructionCall);
             assertFalse(instructionCall.hasError());
 
-            Thread.sleep(1000);
+            //Thread.sleep(1000);
         } catch (final Exception e) {
             fail(e.getMessage());
         }
@@ -2298,7 +2346,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals("DISABLED", conData.clientConnection.status.name());
 
         // get client logs
-        final Result<Page<ExtendedClientEvent>> clientLogPage = restService.getBuilder(GetExtendedClientEventPage.class)
+        final Result<Page<ExtendedClientEvent>> clientLogPage = restService
+                .getBuilder(GetExtendedClientEventPage.class)
                 .call();
 
         assertNotNull(clientLogPage);
@@ -2307,6 +2356,32 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(clientLogs.isEmpty());
         final ExtendedClientEvent extendedClientEvent = clientLogs.content.get(0);
         assertNotNull(extendedClientEvent);
+
+        // export client logs
+        restService
+                .getBuilder(ExportSEBClientLogs.class)
+                .withQueryParam(API.SEB_CLIENT_EVENT_EXPORT_TYPE, ExportType.CSV.name())
+                .withQueryParam(API.SEB_CLIENT_EVENT_EXPORT_INCLUDE_EXAMS, "true")
+                .withResponseExtractor(response -> {
+                    final HttpStatus statusCode = response.getStatusCode();
+                    assertEquals("200 OK", statusCode.toString());
+                    final String csvExport = IOUtils.toString(response.getBody());
+                    assertTrue(StringUtils.isNotBlank(csvExport));
+                    return true;
+                })
+                .call();
+
+        // delete client logs
+        final Result<EntityProcessingReport> report = adminRestService
+                .getBuilder(DeleteAllClientEvents.class)
+                .withFormParam(
+                        API.PARAM_MODEL_ID_LIST,
+                        StringUtils.join(
+                                clientLogs.content.stream().map(e -> e.getModelId()).collect(Collectors.toList()), ","))
+                .call();
+
+        assertNotNull(report);
+        assertFalse(report.hasError());
 
         // get client connection page
         Result<Page<ClientConnection>> connectionPageRes = restService
@@ -2320,13 +2395,63 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         connectionPageRes = restService
                 .getBuilder(GetClientConnectionPage.class)
+                .withQueryParam(ClientConnection.FILTER_ATTR_INFO, "")
+                .withQueryParam(Page.ATTR_SORT, Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID)
+                .call();
+
+        assertNotNull(connectionPageRes);
+        connectionPage = connectionPageRes.get();
+        assertNotNull(connectionPage);
+        assertFalse(connectionPage.isEmpty());
+
+        connectionPageRes = restService
+                .getBuilder(GetClientConnectionPage.class)
                 .withQueryParam(ClientConnection.FILTER_ATTR_INFO, "ghfhrthjrt")
+                .withQueryParam(Page.ATTR_SORT, Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID)
                 .call();
 
         assertNotNull(connectionPageRes);
         connectionPage = connectionPageRes.get();
         assertNotNull(connectionPage);
         assertTrue(connectionPage.isEmpty());
+
+        Result<Page<ClientConnectionData>> connectionDatacall = restService
+                .getBuilder(GetFinishedExamClientConnectionPage.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                .call();
+        assertNotNull(connectionDatacall);
+        assertFalse(connectionDatacall.hasError());
+        Page<ClientConnectionData> ccDataPage = connectionDatacall.get();
+        assertNotNull(ccDataPage);
+        assertFalse(ccDataPage.content.isEmpty());
+        final ClientConnectionData clientConnectionData = ccDataPage.content.get(0);
+        assertNotNull(clientConnectionData);
+        assertEquals("DISABLED", clientConnectionData.clientConnection.status.toString());
+
+        connectionDatacall = restService
+                .getBuilder(GetFinishedExamClientConnectionPage.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
+                .withQueryParam(ClientConnection.FILTER_ATTR_INFO, "test")
+                .call();
+        assertNotNull(connectionDatacall);
+        assertFalse(connectionDatacall.hasError());
+        ccDataPage = connectionDatacall.get();
+        assertNotNull(ccDataPage);
+        assertTrue(ccDataPage.content.isEmpty());
+
+        final Result<ClientConnectionData> ccDataCall = restService
+                .getBuilder(GetFinishedExamClientConnection.class)
+                .withURIVariable(API.PARAM_MODEL_ID, clientConnectionData.getModelId())
+                .call();
+
+        assertNotNull(ccDataCall);
+        assertFalse(ccDataCall.hasError());
+        final ClientConnectionData clientConnectionData2 = ccDataCall.get();
+        assertNotNull(clientConnectionData2);
+        assertEquals(
+                clientConnectionData2.clientConnection.connectionToken,
+                clientConnectionData.clientConnection.connectionToken);
+
     }
 
     @Test
@@ -2363,18 +2488,18 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "EXAM, "
-                        + "EXAM_CONFIGURATION_MAP, "
+                "[EXAM, "
                         + "INDICATOR, "
-                        + "INDICATOR]",
+                        + "INDICATOR, "
+                        + "EXAM_CONFIGURATION_MAP, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION]",
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // check that the user is owner of all depending exams and configurations
@@ -2412,14 +2537,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "EXAM, "
-                        + "EXAM_CONFIGURATION_MAP, "
+                "[EXAM, "
                         + "INDICATOR, "
-                        + "INDICATOR]",
+                        + "INDICATOR, "
+                        + "EXAM_CONFIGURATION_MAP, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION]",
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // only with configuration dependencies
@@ -2434,11 +2559,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "EXAM_CONFIGURATION_MAP]",
+                "[EXAM_CONFIGURATION_MAP, CONFIGURATION_NODE, CONFIGURATION_NODE, CONFIGURATION_NODE, CONFIGURATION_NODE]",
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
 
         // only with exam and configuration dependencies
@@ -2454,18 +2575,18 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .collect(Collectors.toList());
 
         assertEquals(
-                "[CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CLIENT_CONNECTION, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "CONFIGURATION_NODE, "
-                        + "EXAM, "
-                        + "EXAM_CONFIGURATION_MAP, "
+                "[EXAM, "
                         + "INDICATOR, "
-                        + "INDICATOR]",
+                        + "INDICATOR, "
+                        + "EXAM_CONFIGURATION_MAP, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CONFIGURATION_NODE, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION, "
+                        + "CLIENT_CONNECTION]",
                 dependencies.stream().map(dep -> dep.self.entityType).collect(Collectors.toList()).toString());
     }
 
@@ -3321,7 +3442,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertTrue(applyCall.hasError());
         assertTrue(applyCall.getError() instanceof RestCallError);
-        assertTrue(applyCall.getError().getCause().getMessage().contains("SEB Restriction feature not available"));
+        assertTrue(applyCall.getError().toString().contains("SEB Restriction feature not available"));
 
         final Result<Exam> deleteCall = restService
                 .getBuilder(DeactivateSEBRestriction.class)
@@ -3330,7 +3451,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertTrue(deleteCall.hasError());
         assertTrue(deleteCall.getError() instanceof RestCallError);
-        assertTrue(deleteCall.getError().getCause().getMessage().contains("SEB Restriction feature not available"));
+        assertTrue(deleteCall.getError().toString().contains("SEB Restriction feature not available"));
 
         final Result<Chapters> chaptersCall = restService
                 .getBuilder(GetCourseChapters.class)
@@ -3339,7 +3460,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertTrue(chaptersCall.hasError());
         assertTrue(chaptersCall.getError() instanceof RestCallError);
-        assertTrue(chaptersCall.getError().getCause().getMessage().contains("Course Chapter feature not supported"));
+        assertTrue(chaptersCall.getError().toString().contains("Course Chapter feature not supported"));
 
     }
 
@@ -3351,15 +3472,15 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         final RestServiceImpl restService = createRestServiceForUser(
                 "admin",
                 "admin",
-                new GetProctoringSettings(),
-                new SaveProctoringSettings());
+                new GetExamProctoringSettings(),
+                new SaveExamProctoringSettings());
 
         final Exam exam = createTestExam("admin", "admin");
         assertNotNull(exam);
         assertEquals("Demo Quiz 6 (MOCKUP)", exam.name);
 
         final ProctoringServiceSettings settings = restService
-                .getBuilder(GetProctoringSettings.class)
+                .getBuilder(GetExamProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
                 .call()
                 .getOrThrow();
@@ -3381,16 +3502,16 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "sdkSecret",
                 false);
 
-        final Result<Exam> saveCall = restService
-                .getBuilder(SaveProctoringSettings.class)
+        final Result<ProctoringServiceSettings> saveCall = restService
+                .getBuilder(SaveExamProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
                 .withBody(newSettings)
                 .call();
 
         if (!saveCall.hasError()) {
             assertFalse(saveCall.hasError());
-            final Exam exam2 = saveCall.get();
-            assertEquals(exam2.id, exam.id);
+            final ProctoringServiceSettings settings2 = saveCall.get();
+            assertEquals(settings2.examId, exam.id);
         }
     }
 
@@ -3442,6 +3563,468 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withFormParam(QuizData.QUIZ_ATTR_ID, quizData.id)
                 .call()
                 .getOrThrow();
+    }
+
+    @Test
+    @Order(27)
+    // *************************************
+    // Use Case 27: Login as admin and set exam proctoring settings for Jtisi
+    // - Get Exam (running)
+    // - Set Proctoring settings for exam
+    // - Check settings for exam
+    public void testUsecase27_SetProctoringSettingsJitsiForExam() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetExamPage(),
+                new GetExamProctoringSettings(),
+                new SaveExamProctoringSettings(),
+                new IsTownhallRoomAvailable(),
+                new GetCollectingRooms());
+
+        // get exam
+        final Result<Page<Exam>> exams = restService
+                .getBuilder(GetExamPage.class)
+                .call();
+
+        assertNotNull(exams);
+        assertFalse(exams.hasError());
+        final Page<Exam> examPage = exams.get();
+        assertFalse(examPage.isEmpty());
+
+        final Exam runningExam = examPage.content
+                .stream()
+                .filter(exam -> exam.status == ExamStatus.RUNNING)
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(runningExam);
+        assertTrue(runningExam.status == ExamStatus.RUNNING);
+
+        final Result<ProctoringServiceSettings> pSettings = restService
+                .getBuilder(GetExamProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .call();
+
+        assertNotNull(pSettings);
+        assertFalse(pSettings.hasError());
+        ProctoringServiceSettings proctoringServiceSettings = pSettings.get();
+        assertFalse(proctoringServiceSettings.enableProctoring);
+        assertNull(proctoringServiceSettings.serverURL);
+
+        // set proctoring settings
+        final ProctoringServiceSettings newProctoringServiceSettings = new ProctoringServiceSettings(
+                runningExam.id,
+                true,
+                ProctoringServerType.JITSI_MEET,
+                "https://test.proc/service",
+                2,
+                EnumSet.allOf(ProctoringFeature.class),
+                true,
+                "appKey", "appSecret",
+                "sdkKey", "sdkSecret",
+                false);
+
+        final Result<ProctoringServiceSettings> newProcSettings = restService
+                .getBuilder(SaveExamProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .withBody(newProctoringServiceSettings)
+                .call();
+
+        assertNotNull(newProcSettings);
+        assertFalse(newProcSettings.hasError());
+
+        proctoringServiceSettings = restService
+                .getBuilder(GetExamProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .call()
+                .get();
+
+        assertTrue(proctoringServiceSettings.enableProctoring);
+        assertEquals("https://test.proc/service", proctoringServiceSettings.serverURL);
+
+        final String twonhallRoom = restService
+                .getBuilder(IsTownhallRoomAvailable.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .call()
+                .get();
+
+        assertEquals("true", twonhallRoom);
+
+        final Collection<RemoteProctoringRoom> collectingRooms = restService
+                .getBuilder(GetCollectingRooms.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .call()
+                .get();
+
+        assertNotNull(collectingRooms);
+        assertTrue(collectingRooms.isEmpty());
+    }
+
+    @Autowired
+    private ExamProctoringRoomService examProcotringRoomService;
+    @Autowired
+    private ClientConnectionDAO clientConnectionDAO;
+
+    @Test
+    @Order(28)
+    // *************************************
+    // Use Case 28: Login as admin and connect with SEBs to running exam with procotring enabled
+    // - Get Exam (running)
+    // - start some SEB clients connecting to running exam
+    // - Check collecting rooms created
+    public void testUsecase28_TestExamProctoring() throws IOException {
+
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetExamPage(),
+                new GetExamProctoringSettings(),
+                new SaveExamProctoringSettings(),
+                new IsTownhallRoomAvailable(),
+                new GetCollectingRooms(),
+                new GetClientConfigPage(),
+                new ActivateClientConfig(),
+                new NewClientConfig(),
+                new GetClientConfig(),
+                new GetProctorRoomConnection(),
+                new GetCollectingRoomConnections(),
+                new NotifyProctoringRoomOpened(),
+                new SendProctoringReconfigurationAttributes(),
+                new GetTownhallRoom(),
+                new OpenTownhallRoom(),
+                new CloseProctoringRoom());
+
+        // get exam
+        final Result<Page<Exam>> exams = restService
+                .getBuilder(GetExamPage.class)
+                .call();
+
+        assertNotNull(exams);
+        assertFalse(exams.hasError());
+        final Page<Exam> examPage = exams.get();
+        assertFalse(examPage.isEmpty());
+
+        final Exam runningExam = examPage.content
+                .stream()
+                .filter(exam -> exam.status == ExamStatus.RUNNING)
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(runningExam);
+        assertTrue(runningExam.status == ExamStatus.RUNNING);
+
+        final Result<ProctoringServiceSettings> pSettings = restService
+                .getBuilder(GetExamProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                .call();
+
+        assertNotNull(pSettings);
+        assertFalse(pSettings.hasError());
+        final ProctoringServiceSettings proctoringServiceSettings = pSettings.get();
+        assertTrue(proctoringServiceSettings.enableProctoring);
+        assertEquals("https://test.proc/service", proctoringServiceSettings.serverURL);
+
+        // start some SEB connections for this exam
+
+        // create SEB Client Config without password protection
+        Result<SEBClientConfig> newConfigResponse = restService
+                .getBuilder(NewClientConfig.class)
+                .withFormParam(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME, "No Password Protection")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK, Constants.TRUE_STRING)
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_START_URL, "http://fallback.com/fallback")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_TIMEOUT, "100")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPTS, "5")
+                .withFormParam(SEBClientConfig.ATTR_FALLBACK_ATTEMPT_INTERVAL, "5")
+                .withFormParam(SEBClientConfig.ATTR_CONFIG_PURPOSE, SEBClientConfig.ConfigPurpose.START_EXAM.name())
+                .call();
+
+        assertNotNull(newConfigResponse);
+        assertFalse(newConfigResponse.hasError());
+        final SEBClientConfig sebClientConfig = newConfigResponse.get();
+        assertEquals("No Password Protection", sebClientConfig.name);
+        assertFalse(sebClientConfig.isActive());
+        assertEquals("http://fallback.com/fallback", sebClientConfig.fallbackStartURL);
+
+        // activate the new Client Configuration
+        restService
+                .getBuilder(ActivateClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, sebClientConfig.getModelId())
+                .call();
+
+        newConfigResponse = restService.getBuilder(GetClientConfig.class)
+                .withURIVariable(API.PARAM_MODEL_ID, sebClientConfig.getModelId())
+                .call();
+
+        final SEBClientConfig clientConfig = newConfigResponse.get();
+        assertTrue(clientConfig.isActive());
+        final ClientCredentials credentials = this.sebClientConfigDAO
+                .getSEBClientCredentials(clientConfig.getModelId())
+                .getOrThrow();
+
+        assertTrue(clientConfig.isActive());
+
+        // simulate a SEB connection
+        try {
+            new SEBClientBot(
+                    credentials.clientIdAsString(),
+                    this.cryptor.decrypt(credentials.secret).getOrThrow().toString(),
+                    runningExam.getModelId(),
+                    String.valueOf(runningExam.institutionId),
+                    false);
+
+            Thread.sleep(1000);
+
+            this.examProcotringRoomService.updateProctoringCollectingRooms();
+
+            // check collecting room was created
+            final Collection<RemoteProctoringRoom> collectingRooms = restService
+                    .getBuilder(GetCollectingRooms.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+
+            assertNotNull(collectingRooms);
+            assertFalse(collectingRooms.isEmpty());
+            // Two rooms a two people for four connections
+            assertEquals(2, collectingRooms.size());
+            final RemoteProctoringRoom room1 = collectingRooms.iterator().next();
+            assertEquals(2, room1.roomSize.intValue());
+            assertFalse(room1.townhallRoom);
+
+            final ProctoringRoomConnection proctoringRoomConnection = restService
+                    .getBuilder(GetProctorRoomConnection.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room1.name)
+                    .call()
+                    .get();
+
+            assertNotNull(proctoringRoomConnection);
+            assertEquals(room1.name, proctoringRoomConnection.roomName);
+            assertNotNull(proctoringRoomConnection.accessToken);
+
+            // notify room open
+            restService
+                    .getBuilder(NotifyProctoringRoomOpened.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, room1.name)
+                    .call()
+                    .get();
+
+            // reconfigure clients in room
+            restService
+                    .getBuilder(SendProctoringReconfigurationAttributes.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .withQueryParam(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID, room1.name)
+                    .withQueryParam(API.EXAM_PROCTORING_ATTR_RECEIVE_AUDIO, "true")
+                    .withQueryParam(API.EXAM_PROCTORING_ATTR_RECEIVE_VIDEO, "true")
+                    .withQueryParam(API.EXAM_PROCTORING_ATTR_ALLOW_CHAT, "true")
+                    .call()
+                    .get();
+
+            final Collection<ClientConnection> collection = restService
+                    .getBuilder(GetCollectingRoomConnections.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .withQueryParam(Domain.REMOTE_PROCTORING_ROOM.ATTR_ID, room1.name)
+                    .call()
+                    .get();
+
+            assertNotNull(collection);
+            assertFalse(collection.isEmpty());
+            assertEquals(2, collection.size());
+            final ClientConnection connection = collection.iterator().next();
+            assertEquals(runningExam.id, connection.examId);
+            // this is because the Json model do not contian certain attributes due to performance
+            assertNull(connection.remoteProctoringRoomId);
+            // we can geht the room number by getting it directyl from the record
+            final ClientConnection clientConnection = this.clientConnectionDAO.byPK(connection.id).get();
+            assertNotNull(clientConnection.remoteProctoringRoomId);
+
+            // get and open townhall
+            final String townhallActive = restService
+                    .getBuilder(IsTownhallRoomAvailable.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+
+            assertEquals("true", townhallActive);
+
+            // check no Townhallroom yet
+            RemoteProctoringRoom townhallRoom = restService
+                    .getBuilder(GetTownhallRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+            assertEquals(RemoteProctoringRoom.NULL_ROOM, townhallRoom);
+
+            // open townhall room
+            final ProctoringRoomConnection townhallRoomConntection = restService
+                    .getBuilder(OpenTownhallRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+
+            assertNotNull(townhallRoomConntection);
+
+            // check  Townhallroom is available yet
+            townhallRoom = restService
+                    .getBuilder(GetTownhallRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+            assertTrue(townhallRoom.townhallRoom);
+            assertEquals(townhallRoom.name, townhallRoomConntection.roomName);
+
+            // close townhall room
+            restService
+                    .getBuilder(CloseProctoringRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .withQueryParam(ProctoringRoomConnection.ATTR_ROOM_NAME, townhallRoom.name)
+                    .call()
+                    .get();
+
+            townhallRoom = restService
+                    .getBuilder(GetTownhallRoom.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, runningExam.getModelId())
+                    .call()
+                    .get();
+            assertEquals(RemoteProctoringRoom.NULL_ROOM, townhallRoom);
+
+            Thread.sleep(5000);
+
+        } catch (final Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    @Order(29)
+    // *************************************
+    // Use Case 29: Login as admin and create some batch actions
+    // - Get Exam (running)
+    // - start some SEB clients connecting to running exam
+    // - Check collecting rooms created
+    public void testUsecase29_TestBatchAction() throws IOException, InterruptedException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new DoBatchAction(),
+                new GetBatchAction(),
+                new GetBatchActionPage(),
+                new GetExamConfigNodePage());
+
+        final ConfigurationNode config = restService
+                .getBuilder(GetExamConfigNodePage.class)
+                .call()
+                .getOrThrow().content
+                        .get(0);
+        assertNotNull(config);
+        assertEquals("READY_TO_USE", config.status.toString());
+
+        // apply batch action
+        final Result<BatchAction> doBatchAction = restService
+                .getBuilder(DoBatchAction.class)
+                .withFormParam(Domain.BATCH_ACTION.ATTR_ACTION_TYPE, BatchActionType.EXAM_CONFIG_STATE_CHANGE.name())
+                .withFormParam(BATCH_ACTION.ATTR_SOURCE_IDS, config.getModelId())
+                .withFormParam(BatchAction.ACTION_ATTRIBUT_TARGET_STATE, ConfigurationStatus.CONSTRUCTION.name())
+                .call();
+
+        assertNotNull(doBatchAction);
+        assertFalse(doBatchAction.hasError());
+        final BatchAction batchAction = doBatchAction.get();
+        assertNotNull(batchAction);
+        assertNotNull(batchAction.ownerId);
+        assertFalse(batchAction.isFinished());
+        assertEquals("EXAM_CONFIG_STATE_CHANGE", batchAction.actionType.name());
+
+        Thread.sleep(1000);
+
+        final BatchAction savedBatchAction = restService
+                .getBuilder(GetBatchAction.class)
+                .withURIVariable(API.PARAM_MODEL_ID, batchAction.getModelId())
+                .call().get();
+
+        assertNotNull(savedBatchAction);
+        assertNotNull(savedBatchAction.ownerId);
+        assertTrue(savedBatchAction.isFinished());
+        assertEquals("EXAM_CONFIG_STATE_CHANGE", savedBatchAction.actionType.name());
+        assertNotNull(savedBatchAction.processorId);
+
+        final Page<BatchAction> page = restService
+                .getBuilder(GetBatchActionPage.class)
+                .call().get();
+
+        assertNotNull(page);
+        assertFalse(page.content.isEmpty());
+    }
+
+    @Test
+    @Order(30)
+    // *************************************
+    // Use Case 30: Login as admin and archive finished exam
+    // - Get Exam (finished), archive and check
+    public void testUsecase30_TestArchiveExam() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetExamPage(),
+                new GetExam(),
+                new ArchiveExam());
+
+        final Page<Exam> finishedExams = restService
+                .getBuilder(GetExamPage.class)
+                .withQueryParam(Exam.FILTER_ATTR_STATUS, ExamStatus.FINISHED.name())
+                .call()
+                .get();
+
+        assertNotNull(finishedExams);
+        assertFalse(finishedExams.content.isEmpty());
+        final Exam exam = finishedExams.content.get(0);
+        assertEquals(ExamStatus.FINISHED, exam.status);
+
+        final Result<Exam> archiveCall = restService.getBuilder(ArchiveExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call();
+
+        assertNotNull(archiveCall);
+        assertFalse(archiveCall.hasError());
+        final Exam exam2 = archiveCall.get();
+        assertNotNull(exam2);
+        assertEquals(exam.id, exam2.id);
+        assertEquals(ExamStatus.ARCHIVED, exam2.status);
+    }
+
+    @Test
+    @Order(31)
+    // *************************************
+    // Use Case 31: Login as admin and archive finished exam
+    // - Get Exam (running), archive and check not possible
+    public void testUsecase31_TestArchiveRunningExam_NotPossible() throws IOException {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "admin",
+                "admin",
+                new GetExamPage(),
+                new GetExam(),
+                new ArchiveExam());
+
+        final Page<Exam> finishedExams = restService
+                .getBuilder(GetExamPage.class)
+                .withQueryParam(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name())
+                .call()
+                .get();
+
+        assertNotNull(finishedExams);
+        assertFalse(finishedExams.content.isEmpty());
+        final Exam exam = finishedExams.content.get(0);
+        assertEquals(ExamStatus.RUNNING, exam.status);
+
+        final Result<Exam> archiveCall = restService.getBuilder(ArchiveExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
+                .call();
+
+        assertNotNull(archiveCall);
+        assertTrue(archiveCall.hasError());
+        assertTrue(archiveCall.getError().getMessage().contains("Exam is in wrong status to archive"));
     }
 
 }

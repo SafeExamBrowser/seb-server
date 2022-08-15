@@ -13,6 +13,7 @@ import static org.junit.Assert.*;
 import java.util.Collection;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +31,15 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 
@@ -47,6 +52,16 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
     private ClientEventRecordMapper clientEventRecordMapper;
     @Autowired
     private JSONMapper jsonMapper;
+    @Autowired
+    private ExamDAO examDAO;
+    @Autowired
+    private LmsAPIService lmsAPIService;
+
+    @Before
+    public void init() {
+        final LmsAPITemplate lmsAPITemplate = this.lmsAPIService.getLmsAPITemplate(1L).getOrThrow();
+        this.examDAO.updateQuizData(2L, lmsAPITemplate.getQuiz("quiz6").getOrThrow(), "testUpdate");
+    }
 
     @Test
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
@@ -54,7 +69,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
         assertNotNull(accessToken);
 
-        final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, null);
+        final MockHttpServletResponse createConnection = super.createConnection(accessToken, 1L, 2L);
         assertNotNull(createConnection);
 
         // check correct response
@@ -71,13 +86,14 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check correct stored
         final List<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                 .selectByExample()
+                .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isEqualTo(2L))
                 .build()
                 .execute();
 
         assertTrue(records.size() == 1);
         final ClientConnectionRecord clientConnectionRecord = records.get(0);
         assertEquals("1", String.valueOf(clientConnectionRecord.getInstitutionId()));
-        assertNull(clientConnectionRecord.getExamId());
+        assertEquals("2", clientConnectionRecord.getExamId().toString());
         assertEquals("CONNECTION_REQUESTED", String.valueOf(clientConnectionRecord.getStatus()));
         assertEquals(connectionToken, clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
@@ -100,6 +116,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
     @Test
     @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
     public void testCreateConnectionWithExamId() throws Exception {
+
         final String accessToken = super.obtainAccessToken("test", "test", "SEBClient");
         assertNotNull(accessToken);
 
@@ -120,6 +137,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check correct stored
         final List<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                 .selectByExample()
+                .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isEqualTo(2L))
                 .build()
                 .execute();
 
@@ -152,7 +170,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 new TypeReference<Collection<APIMessage>>() {
                 });
         final APIMessage error = errorMessage.iterator().next();
-        assertEquals(ErrorMessage.UNEXPECTED.messageCode, error.messageCode);
+        assertEquals(ErrorMessage.ILLEGAL_API_ARGUMENT.messageCode, error.messageCode);
         assertEquals("The exam 1 is not running", error.details);
     }
 
@@ -209,6 +227,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check correct stored
         final List<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                 .selectByExample()
+                .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isEqualTo(2L))
                 .build()
                 .execute();
 
@@ -289,6 +308,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check correct stored
         final List<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                 .selectByExample()
+                .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isEqualTo(2L))
                 .build()
                 .execute();
 
@@ -351,6 +371,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check correct stored (no changes)
         final List<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                 .selectByExample()
+                .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isNull())
                 .build()
                 .execute();
 
@@ -413,6 +434,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check correct stored (no changes)
         final List<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                 .selectByExample()
+                .where(ClientConnectionRecordDynamicSqlSupport.examId, SqlBuilder.isEqualTo(2L))
                 .build()
                 .execute();
 

@@ -30,12 +30,20 @@ public enum ActionCategory {
     EXAM_MONITORING_NOTIFICATION_LIST(new LocTextKey(
             "sebserver.monitoring.exam.connection.notificationlist.actions"),
             1),
+    EXAM_MONITORING_2(new LocTextKey(
+            "sebserver.monitoring.exam.connection.actions.group2"),
+            2),
+    EXAM_MONITORING_3(new LocTextKey(
+            "sebserver.monitoring.exam.connection.actions.group3"),
+            3),
     CLIENT_EVENT_LIST(new LocTextKey("sebserver.monitoring.exam.connection.list.actions"), 1),
     LOGS_USER_ACTIVITY_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),
     LOGS_SEB_CLIENT_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),
     VARIA(new LocTextKey("sebserver.overall.action.category.varia"), 0),
     FILTER(new LocTextKey("sebserver.exam.monitoring.action.category.filter"), 50),
-    PROCTORING(new LocTextKey("sebserver.exam.overall.action.category.proctoring"), 60);
+    PROCTORING(new LocTextKey("sebserver.exam.overall.action.category.proctoring"), 60),
+
+    FINISHED_EXAM_LIST(new LocTextKey("sebserver.finished.exam.list.actions"), 1);
 
     public final LocTextKey title;
     public final int slotPosition;

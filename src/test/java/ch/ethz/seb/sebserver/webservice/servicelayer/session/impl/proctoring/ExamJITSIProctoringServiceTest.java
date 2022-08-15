@@ -81,7 +81,7 @@ public class ExamJITSIProctoringServiceTest {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn(Result.of("fbvgeghergrgrthrehreg123"));
         final JitsiProctoringService examJITSIProctoringService =
-                new JitsiProctoringService(null, null, cryptorMock, null, new JSONMapper());
+                new JitsiProctoringService(null, null, cryptorMock, null, new JSONMapper(), null);
 
         String accessToken = examJITSIProctoringService.createPayload(
                 "test-app",
@@ -115,7 +115,7 @@ public class ExamJITSIProctoringServiceTest {
         final Cryptor cryptorMock = Mockito.mock(Cryptor.class);
         Mockito.when(cryptorMock.decrypt(Mockito.any())).thenReturn(Result.of("fbvgeghergrgrthrehreg123"));
         final JitsiProctoringService examJITSIProctoringService =
-                new JitsiProctoringService(null, null, cryptorMock, null, new JSONMapper());
+                new JitsiProctoringService(null, null, cryptorMock, null, new JSONMapper(), null);
         final ProctoringRoomConnection data = examJITSIProctoringService.createProctoringConnection(
                 "connectionToken",
                 "https://seb-jitsi.example.ch",
@@ -160,7 +160,7 @@ public class ExamJITSIProctoringServiceTest {
                 examSessionService,
                 cryptor,
                 clientHttpRequestFactoryService,
-                jsonMapper);
+                jsonMapper, null);
     }
 
 }

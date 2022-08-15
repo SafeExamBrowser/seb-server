@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.gui.table;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -23,6 +22,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -31,7 +31,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
-public class TableBuilder<ROW> {
+public class TableBuilder<ROW extends ModelIdAware> {
 
     private final String name;
     private final PageService pageService;
@@ -47,7 +47,7 @@ public class TableBuilder<ROW> {
     private boolean hideNavigation = false;
     private Function<PageSupplier.Builder<ROW>, PageSupplier.Builder<ROW>> restCallAdapter;
     private BiConsumer<TableItem, ROW> rowDecorator;
-    private Consumer<Set<ROW>> selectionListener;
+    private Consumer<EntityTable<ROW>> selectionListener;
     private Consumer<Integer> contentChangeListener;
     private boolean markupEnabled = false;
     private String defaultSortColumn = null;
@@ -151,7 +151,7 @@ public class TableBuilder<ROW> {
         return this;
     }
 
-    public TableBuilder<ROW> withSelectionListener(final Consumer<Set<ROW>> selectionListener) {
+    public TableBuilder<ROW> withSelectionListener(final Consumer<EntityTable<ROW>> selectionListener) {
         this.selectionListener = selectionListener;
         return this;
     }

@@ -22,6 +22,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -72,12 +73,18 @@ public class WebserviceInfo {
     private final WebserviceInfoDAO webserviceInfoDAO;
     private boolean isMaster = false;
 
+    @Value("${sebserver.webservice.api.admin.accessTokenValiditySeconds:3600}")
+    private int adminAccessTokenValSec;
+    @Value("${sebserver.webservice.api.admin.refreshTokenValiditySeconds:-1}")
+    private int adminRefreshTokenValSec;
+    @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:43200}")
+    private int examAPITokenValiditySeconds;
+
     public WebserviceInfo(
             final WebserviceInfoDAO webserviceInfoDAO,
             final Environment environment) {
 
         this.webserviceInfoDAO = webserviceInfoDAO;
-        this.webserviceUUID = UUID.randomUUID().toString();
         this.sebServerVersion = environment.getRequiredProperty(VERSION_KEY);
         this.testProperty = environment.getProperty(WEB_SERVICE_TEST_PROPERTY, "NOT_AVAILABLE");
         this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
@@ -87,6 +94,9 @@ public class WebserviceInfo {
         this.webserverPort = environment.getProperty(WEB_SERVICE_HTTP_PORT);
         this.discoveryEndpoint = environment.getRequiredProperty(WEB_SERVICE_EXAM_API_DISCOVERY_ENDPOINT_KEY);
         this.contextPath = environment.getProperty(WEB_SERVICE_CONTEXT_PATH, "");
+        this.webserviceUUID = UUID.randomUUID().toString()
+                + Constants.UNDERLINE
+                + this.sebServerVersion;
 
         this.distributedUpdateInterval = environment.getProperty(
                 "sebserver.webservice.distributed.updateInterval",
@@ -201,7 +211,8 @@ public class WebserviceInfo {
         try {
             return InetAddress.getLocalHost().getHostName();
         } catch (final UnknownHostException e) {
-            return null;
+            log.error("Failed to get local host name: {}", e.getMessage());
+            return Constants.EMPTY_NOTE;
         }
     }
 
@@ -209,7 +220,8 @@ public class WebserviceInfo {
         try {
             return InetAddress.getLocalHost().getHostAddress();
         } catch (final UnknownHostException e) {
-            return null;
+            log.error("Failed to get local host address: {}", e.getMessage());
+            return Constants.EMPTY_NOTE;
         }
     }
 
@@ -221,7 +233,7 @@ public class WebserviceInfo {
         return InetAddress.getLoopbackAddress().getHostAddress();
     }
 
-    /** Get the server URL prefix in form of;
+    /** Get the server URL prefix in the form of;
      * [scheme{http|https}]://[server-address{DNS-name|IP}]:[port]
      *
      * E.g.: https://seb.server.ch:8080
@@ -247,6 +259,18 @@ public class WebserviceInfo {
                 .findFirst()
                 .map(Map.Entry::getValue)
                 .orElse(null);
+    }
+
+    public int getAdminAccessTokenValSec() {
+        return this.adminAccessTokenValSec;
+    }
+
+    public int getAdminRefreshTokenValSec() {
+        return this.adminRefreshTokenValSec;
+    }
+
+    public int getExamAPITokenValiditySeconds() {
+        return this.examAPITokenValiditySeconds;
     }
 
     @Override

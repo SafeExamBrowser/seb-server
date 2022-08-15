@@ -238,6 +238,9 @@ public class ActionPane implements TemplateComposer {
                     CustomVariant.TEXT_H3,
                     category.title);
             final GridData titleLayout = new GridData(SWT.FILL, SWT.TOP, true, false);
+            if ("&nbsp;".equals(this.pageService.getI18nSupport().getText(category.title))) {
+                titleLayout.heightHint = 6;
+            }
             actionsTitle.setLayoutData(titleLayout);
         }
 

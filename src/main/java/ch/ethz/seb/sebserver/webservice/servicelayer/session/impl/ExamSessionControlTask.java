@@ -8,8 +8,10 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -29,7 +31,6 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 
 @Service
@@ -43,7 +44,6 @@ public class ExamSessionControlTask implements DisposableBean {
     private final ExamUpdateHandler examUpdateHandler;
     private final ExamProctoringRoomService examProcotringRoomService;
     private final WebserviceInfo webserviceInfo;
-    private final ExamSessionService examSessionService;
 
     private final Long examTimePrefix;
     private final Long examTimeSuffix;
@@ -56,7 +56,6 @@ public class ExamSessionControlTask implements DisposableBean {
             final ExamUpdateHandler examUpdateHandler,
             final ExamProctoringRoomService examProcotringRoomService,
             final WebserviceInfo webserviceInfo,
-            final ExamSessionService examSessionService,
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,
             @Value("${sebserver.webservice.api.exam.update-interval:1 * * * * *}") final String examTaskCron,
@@ -66,7 +65,6 @@ public class ExamSessionControlTask implements DisposableBean {
         this.sebClientConnectionService = sebClientConnectionService;
         this.examUpdateHandler = examUpdateHandler;
         this.webserviceInfo = webserviceInfo;
-        this.examSessionService = examSessionService;
         this.examTimePrefix = examTimePrefix;
         this.examTimeSuffix = examTimeSuffix;
         this.examTaskCron = examTaskCron;
@@ -75,7 +73,7 @@ public class ExamSessionControlTask implements DisposableBean {
     }
 
     @EventListener(SEBServerInitEvent.class)
-    public void init() {
+    private void init() {
         SEBServerInit.INIT_LOGGER.info("------>");
         SEBServerInit.INIT_LOGGER.info("------> Activate exam run controller background task");
         SEBServerInit.INIT_LOGGER.info("--------> Task runs on an cron-job interval of {}", this.examTaskCron);
@@ -95,7 +93,7 @@ public class ExamSessionControlTask implements DisposableBean {
     @Scheduled(
             fixedDelayString = "${sebserver.webservice.api.exam.update-interval:60000}",
             initialDelay = 10000)
-    public void examRunUpdateTask() {
+    private void examRunUpdateTask() {
 
         if (!this.webserviceInfo.isMaster()) {
             return;
@@ -107,15 +105,15 @@ public class ExamSessionControlTask implements DisposableBean {
             log.debug("Run exam update task with Id: {}", updateId);
         }
 
-        controlExamStart(updateId);
-        controlExamEnd(updateId);
+        controlExamLMSUpdate();
+        controlExamState(updateId);
         this.examDAO.releaseAgedLocks();
     }
 
     @Scheduled(
             fixedDelayString = "${sebserver.webservice.api.seb.lostping.update:5000}",
             initialDelay = 5000)
-    public void examSessionUpdateTask() {
+    private void examSessionUpdateTask() {
 
         updateMaster();
 
@@ -136,7 +134,7 @@ public class ExamSessionControlTask implements DisposableBean {
     @Scheduled(
             fixedRateString = "${sebserver.webservice.api.exam.session-cleanup:30000}",
             initialDelay = 30000)
-    public void examSessionCleanupTask() {
+    private void examSessionCleanupTask() {
 
         if (!this.webserviceInfo.isMaster()) {
             return;
@@ -149,7 +147,49 @@ public class ExamSessionControlTask implements DisposableBean {
         this.sebClientConnectionService.cleanupInstructions();
     }
 
-    private void controlExamStart(final String updateId) {
+    private void controlExamLMSUpdate() {
+        if (log.isTraceEnabled()) {
+            log.trace("Start update exams from LMS");
+        }
+
+        try {
+
+            // create mapping
+            final Map<Long, Map<String, Exam>> examToLMSMapping = new HashMap<>();
+            this.examDAO.allForLMSUpdate()
+                    .onError(error -> log.error("Failed to update exams from LMS: ", error))
+                    .getOr(Collections.emptyList())
+                    .stream()
+                    .forEach(exam -> {
+                        final Map<String, Exam> examMap = (examToLMSMapping.computeIfAbsent(
+                                exam.lmsSetupId,
+                                lmsId -> new HashMap<>()));
+                        examMap.put(exam.externalId, exam);
+                    });
+
+            // update per LMS Setup
+            examToLMSMapping.entrySet()
+                    .stream()
+                    .forEach(updateEntry -> {
+                        final Result<Set<String>> updateExamFromLMS = this.examUpdateHandler
+                                .updateExamFromLMS(updateEntry.getKey(), updateEntry.getValue());
+
+                        if (updateExamFromLMS.hasError()) {
+                            log.error("Failed to update exams from LMS: ", updateExamFromLMS.getError());
+                        } else {
+                            final Set<String> failedExams = updateExamFromLMS.get();
+                            if (!failedExams.isEmpty()) {
+                                log.warn("Failed to update following exams from LMS: {}", failedExams);
+                            }
+                        }
+                    });
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while update exams from LMS: ", e);
+        }
+    }
+
+    private void controlExamState(final String updateId) {
         if (log.isTraceEnabled()) {
             log.trace("Check starting exams: {}", updateId);
         }
@@ -157,47 +197,19 @@ public class ExamSessionControlTask implements DisposableBean {
         try {
 
             final DateTime now = DateTime.now(DateTimeZone.UTC);
-            final Map<Long, String> updated = this.examDAO.allForRunCheck()
+            this.examDAO
+                    .allThatNeedsStatusUpdate(this.examTimePrefix, this.examTimeSuffix)
                     .getOrThrow()
                     .stream()
-                    .filter(exam -> exam.startTime.minus(this.examTimePrefix).isBefore(now))
-                    .filter(exam -> exam.endTime == null || exam.endTime.plus(this.examTimeSuffix).isAfter(now))
-                    .flatMap(exam -> Result.skipOnError(this.examUpdateHandler.setRunning(exam, updateId)))
-                    .collect(Collectors.toMap(Exam::getId, Exam::getName));
-
-            if (!updated.isEmpty()) {
-                log.info("Updated exams to running state: {}", updated);
-            }
+                    .forEach(exam -> this.examUpdateHandler.updateState(
+                            exam,
+                            now,
+                            this.examTimePrefix,
+                            this.examTimeSuffix,
+                            updateId));
 
         } catch (final Exception e) {
-            log.error("Unexpected error while trying to update exams: ", e);
-        }
-    }
-
-    private void controlExamEnd(final String updateId) {
-        if (log.isTraceEnabled()) {
-            log.trace("Check ending exams: {}", updateId);
-        }
-
-        try {
-
-            final DateTime now = DateTime.now(DateTimeZone.UTC);
-
-            final Map<Long, String> updated = this.examDAO.allForEndCheck()
-                    .getOrThrow()
-                    .stream()
-                    .filter(exam -> exam.endTime != null && exam.endTime.plus(this.examTimeSuffix).isBefore(now))
-                    .flatMap(exam -> Result.skipOnError(this.examUpdateHandler.setFinished(exam, updateId)))
-                    .flatMap(exam -> Result.skipOnError(this.examProcotringRoomService.disposeRoomsForExam(exam)))
-                    .flatMap(exam -> Result.skipOnError(this.examSessionService.notifyExamFinished(exam)))
-                    .collect(Collectors.toMap(Exam::getId, Exam::getName));
-
-            if (!updated.isEmpty()) {
-                log.info("Updated exams to finished state: {}", updated);
-            }
-
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to update exams: ", e);
+            log.error("Unexpected error while trying to run exam state update task: ", e);
         }
     }
 

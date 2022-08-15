@@ -3,18 +3,20 @@ INSERT IGNORE INTO lms_setup VALUES
     ;
     
 INSERT IGNORE INTO seb_client_configuration VALUES
-    (1, 1, 'test', '2019-07-02 09:22:50', 'test', '98ac3c953abf5948d9d13c81cab580819ee2624c76d6d4147d4896a5b79f49956d382c08c93cb3b9ae350b32', null, 1),
-    (2, 1, 'testVDI', '2019-07-02 09:22:50', 'testVDI', '8b92ecd63305c97c359b5f39ba707356e2487cf118eb783b92fb7c6cdb217f87709fefa03abb13f8b4e5a14fa2c2ba', null, 1)
+    (1, 1, 'test', '2019-07-02 09:22:50', 'test', '98ac3c953abf5948d9d13c81cab580819ee2624c76d6d4147d4896a5b79f49956d382c08c93cb3b9ae350b32', null, 1, null, null),
+    (2, 1, 'testVDI', '2019-07-02 09:22:50', 'testVDI', '8b92ecd63305c97c359b5f39ba707356e2487cf118eb783b92fb7c6cdb217f87709fefa03abb13f8b4e5a14fa2c2ba', null, 1, null, null)
     ;
     
 INSERT IGNORE INTO additional_attributes VALUES
     (1, 'SEB_CLIENT_CONFIGURATION', 2, 'vdiSetup', 'VM_WARE'),
-    (2, 'SEB_CLIENT_CONFIGURATION', 2, 'vdiExecutable', 'vmware-view.exe')
+    (2, 'SEB_CLIENT_CONFIGURATION', 2, 'vdiExecutable', 'vmware-view.exe'),
+    (3, 'EXAM', 2, 'quiz_start_url', 'https://test.lms.mockup')
     ;
     
 INSERT IGNORE INTO exam VALUES
-    (1, 1, 1, 'quiz1', 'super-admin', 'super-admin', 'MANAGED', null, null, 'UP_COMING', 1, 0, null, 1, null, null),
-    (2, 1, 1, 'quiz6', 'super-admin', 'super-admin', 'MANAGED', null, null, 'RUNNING', 1, 0, null, 1, null, null)
+    (1, 1, 1, 'quiz1', 'admin', 'admin', 'MANAGED', null, null, 'UP_COMING', 1, 0, null, 1, null, null, 'quiz1', null, null, 1),
+    (2, 1, 1, 'quiz6', 'admin', 'admin', 'MANAGED', null, null, 'RUNNING', 1, 0, null, 1, null, null, 'quiz6', null, null, 1),
+    (3, 1, 1, 'quiz3', 'admin', 'admin', 'MANAGED', null, null, 'FINISHED', 1, 0, null, 1, null, null, 'quiz3', null, null, 1)
     ;
     
 INSERT IGNORE INTO indicator VALUES
@@ -525,7 +527,7 @@ INSERT IGNORE INTO orientation VALUES
     ;
     
 INSERT IGNORE INTO configuration_node VALUES 
-    (1, 1, 0, 'super-admin', 'test', null, 'EXAM_CONFIG', 'READY_TO_USE')
+    (1, 1, 0, 'super-admin', 'test', null, 'EXAM_CONFIG', 'READY_TO_USE', null, null)
     ;
     
 INSERT IGNORE INTO configuration VALUES 
@@ -873,4 +875,11 @@ INSERT IGNORE INTO configuration_value VALUES
 INSERT IGNORE INTO exam_configuration_map VALUES 
     (1, 1, 2, 1, null, null)
     ;
+    
+INSERT IGNORE INTO client_connection VALUES 
+    (1,1,3,'CLOSED','62c4bbdc-e8a5-42bc-8161-c3d187360184','-- (connection_080)','127.0.0.1',NULL,0,NULL,1647960776988,1647960797388,NULL,NULL,'machineName','osName','versionXY'),
+    (2,1,3,'CLOSED','e3abf4e5-ee5c-4cf1-a13a-1ff8fd23718a','-- (connection_063)','127.0.0.1',NULL,0,NULL,1647960776989,1647960797482,NULL,NULL,'machineName','osName','versionXY'),
+    (3,1,3,'DISABLED','3120f91e-76a9-4810-8628-f25f4099c47b','-- (connection_043)','127.0.0.1',NULL,0,NULL,1647960814460,1648130312083,NULL,NULL,'machineName','osName','versionXY'),
+    (4,1,3,'ACTIVE','6b901e7f-65fb-425f-a303-25e9d6fcbdf2','-- (connection_003)','127.0.0.1',NULL,0,NULL,1648134709401,1648542395328,NULL,NULL,'machineName','osName','versionXY'),
+    (5,1,3,'ACTIVE','2a2013a6-1664-4798-8f1d-362e9ec0a4e4','-- (connection_038)','127.0.0.1',NULL,0,NULL,1648135999634,1648542400438,NULL,NULL,'machineName','osName','versionXY');
     

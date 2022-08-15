@@ -16,10 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.core.env.Environment;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 
 /** This implements an overall short time cache for QuizData objects for all implementing
@@ -28,7 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
  * The QuizData are stored with a key composed from the id of the key
  * </p>
  * The EH-Cache can be configured in file ehcache.xml **/
-public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
+public abstract class AbstractCachedCourseAccess {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractCachedCourseAccess.class);
 
@@ -37,17 +35,12 @@ public abstract class AbstractCachedCourseAccess extends AbstractCourseAccess {
 
     private final Cache cache;
 
-    protected AbstractCachedCourseAccess(
-            final AsyncService asyncService,
-            final Environment environment,
-            final CacheManager cacheManager) {
-
-        super(asyncService, environment);
+    protected AbstractCachedCourseAccess(final CacheManager cacheManager) {
         this.cache = cacheManager.getCache(CACHE_NAME_QUIZ_DATA);
     }
 
     /** Used to clear the entire cache */
-    public void clearCache() {
+    public void clearCourseCache() {
         final Object nativeCache = this.cache.getNativeCache();
         if (nativeCache instanceof javax.cache.Cache) {
             try {

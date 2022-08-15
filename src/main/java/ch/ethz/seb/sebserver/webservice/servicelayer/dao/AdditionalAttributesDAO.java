@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 
@@ -21,6 +22,18 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttribut
  * Additional attributes are name/value pairs associated with a specified entity but stored
  * in a separated data-base table. */
 public interface AdditionalAttributesDAO {
+
+    /** Use this to get all additional attribute records for a specific entity.
+     *
+     * @param type the entity type
+     * @param entityId the entity identifier (primary key)
+     * @return Result refer to the collection of additional attribute records or to an error if happened */
+    default Result<Collection<AdditionalAttributeRecord>> getAdditionalAttributes(final EntityKey entityKey) {
+        return Result.tryCatch(() -> getAdditionalAttributes(
+                entityKey.entityType,
+                Long.valueOf(entityKey.modelId))
+                        .getOrThrow());
+    }
 
     /** Use this to get all additional attribute records for a specific entity.
      *

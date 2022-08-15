@@ -57,6 +57,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationAttri
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationValueRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigInitService;
@@ -78,10 +79,11 @@ class ConfigurationDAOBatchService {
     private final ConfigurationAttributeRecordMapper batchConfigurationAttributeRecordMapper;
     private final ConfigurationRecordMapper batchConfigurationRecordMapper;
     private final ExamConfigInitService examConfigInitService;
-
     private final SqlSessionTemplate batchSqlSessionTemplate;
+    private final DAOUserServcie daoUserServcie;
 
     protected ConfigurationDAOBatchService(
+            final DAOUserServcie daoUserServcie,
             @Qualifier(BatisConfig.SQL_BATCH_SESSION_TEMPLATE) final SqlSessionTemplate batchSqlSessionTemplate,
             final ExamConfigInitService examConfigInitService) {
 
@@ -117,7 +119,7 @@ class ConfigurationDAOBatchService {
         this.batchConfigurationRecordMapper =
                 batchSqlSessionTemplate.getMapper(ConfigurationRecordMapper.class);
         this.batchSqlSessionTemplate = batchSqlSessionTemplate;
-
+        this.daoUserServcie = daoUserServcie;
     }
 
     Result<ConfigurationNode> createNewConfiguration(final ConfigurationNode data) {
@@ -148,7 +150,9 @@ class ConfigurationDAOBatchService {
                     data.name,
                     data.description,
                     data.type.name(),
-                    (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name());
+                    (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name(),
+                    Utils.getMillisecondsNow(),
+                    this.daoUserServcie.getCurrentUserUUID());
 
             this.batchConfigurationNodeRecordMapper.insert(newRecord);
             this.batchSqlSessionTemplate.flushStatements();
@@ -397,7 +401,9 @@ class ConfigurationDAOBatchService {
                 copyInfo.getName(),
                 copyInfo.getDescription(),
                 copyInfo.configurationType.name(),
-                ConfigurationStatus.CONSTRUCTION.name());
+                ConfigurationStatus.CONSTRUCTION.name(),
+                Utils.getMillisecondsNow(),
+                this.daoUserServcie.getCurrentUserUUID());
 
         this.batchConfigurationNodeRecordMapper.insert(newNodeRec);
         this.batchSqlSessionTemplate.flushStatements();

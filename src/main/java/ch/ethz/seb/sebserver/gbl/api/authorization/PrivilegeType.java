@@ -29,7 +29,7 @@ public enum PrivilegeType {
      * and so on.
      *
      * @param type the PrivilegeType
-     * @return true if given PrivilegeType is implicit form this PrivilegeType */
+     * @return true if given PrivilegeType is implicit from this PrivilegeType */
     public boolean hasImplicit(final PrivilegeType type) {
         if (type == null) {
             return false;

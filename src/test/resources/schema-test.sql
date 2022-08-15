@@ -70,6 +70,10 @@ CREATE TABLE IF NOT EXISTS `exam` (
   `active` INT(1) NOT NULL,
   `exam_template_id` BIGINT UNSIGNED NULL,
   `last_modified` BIGINT NULL,
+  `quiz_name` VARCHAR(255) NULL,
+  `quiz_start_time` DATETIME NULL,
+  `quiz_end_time` DATETIME NULL,
+  `lms_available` INT(1) NULL,
   PRIMARY KEY (`id`),
   INDEX `lms_setup_key_idx` (`lms_setup_id` ASC),
   INDEX `institution_key_idx` (`institution_id` ASC),
@@ -215,6 +219,8 @@ CREATE TABLE IF NOT EXISTS `configuration_node` (
   `description` VARCHAR(4000) NULL,
   `type` VARCHAR(45) NULL,
   `status` VARCHAR(45) NOT NULL,
+  `last_update_time` BIGINT UNSIGNED NULL,
+  `last_update_user` VARCHAR(255) NULL,
   PRIMARY KEY (`id`),
   INDEX `configurationInstitutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `configurationInstitutionRef`
@@ -535,6 +541,8 @@ CREATE TABLE IF NOT EXISTS `seb_client_configuration` (
   `client_secret` VARCHAR(4000) NOT NULL,
   `encrypt_secret` VARCHAR(255) NULL,
   `active` INT(1) NOT NULL,
+  `last_update_time` BIGINT UNSIGNED NULL,
+  `last_update_user` VARCHAR(255) NULL,
   PRIMARY KEY (`id`),
   INDEX `sebClientCredentialsInstitutionRef_idx` (`institution_id` ASC),
   CONSTRAINT `sebClientConfigInstitutionRef`
@@ -548,7 +556,6 @@ CREATE TABLE IF NOT EXISTS `seb_client_configuration` (
 -- -----------------------------------------------------
 -- Table `webservice_server_info`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `webservice_server_info` ;
 
 CREATE TABLE IF NOT EXISTS `webservice_server_info` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -645,8 +652,10 @@ DROP TABLE IF EXISTS `batch_action` ;
 CREATE TABLE IF NOT EXISTS `batch_action` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
+  `owner` VARCHAR(255) NULL,
   `action_type` VARCHAR(45) NOT NULL,
-  `source_ids` VARCHAR(8000) NULL,
+  `attributes` VARCHAR(4000) NULL,
+  `source_ids` VARCHAR(4000) NULL,
   `successful` VARCHAR(4000) NULL,
   `last_update` BIGINT NULL,
   `processor_id` VARCHAR(45) NULL,

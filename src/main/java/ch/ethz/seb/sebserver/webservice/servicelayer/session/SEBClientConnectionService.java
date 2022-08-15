@@ -13,6 +13,7 @@ import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
@@ -183,5 +184,12 @@ public interface SEBClientConnectionService {
      * @param connectionToken The SEB client connection token
      * @param instructionConfirm the instruction confirm identifier */
     void confirmInstructionDone(String connectionToken, String instructionConfirm);
+
+    /** Use this to get the get the specific indicator values for a given client connection.
+     *
+     * @param clientConnection The client connection values
+     * @return Result refer to ClientConnectionData instance containing the given clientConnection plus the indicator
+     *         values or to an error when happened */
+    Result<ClientConnectionData> getIndicatorValues(final ClientConnection clientConnection);
 
 }

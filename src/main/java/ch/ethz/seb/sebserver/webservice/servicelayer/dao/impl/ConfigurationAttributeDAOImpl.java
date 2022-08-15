@@ -177,7 +177,7 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
             final ConfigurationAttributeRecord newRecord = new ConfigurationAttributeRecord(
                     data.id,
                     data.name,
-                    data.type.name(),
+                    data.type != null ? data.type.name() : null,
                     data.parentId,
                     data.resources,
                     data.validator,

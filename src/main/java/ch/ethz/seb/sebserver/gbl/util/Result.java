@@ -262,7 +262,7 @@ public final class Result<T> {
 
     public Result<T> onErrorDo(final Function<Exception, T> errorHandler) {
         if (this.error != null) {
-            return new Result<>(errorHandler.apply(this.error));
+            return Result.tryCatch(() -> errorHandler.apply(this.error));
         }
         return this;
     }

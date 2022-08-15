@@ -28,6 +28,7 @@ public enum ActivityDefinition implements Activity {
     SEB_CERTIFICATE_MANAGEMENT(new LocTextKey("sebserver.certificate.action.list")),
     MONITORING(new LocTextKey("sebserver.overall.activity.title.monitoring")),
     MONITORING_EXAMS(new LocTextKey("sebserver.monitoring.action.list")),
+    FINISHED_EXAMS(new LocTextKey("sebserver.finished.action.list")),
     SEB_CLIENT_LOGS(new LocTextKey("sebserver.logs.activity.seblogs"));
 
     public final LocTextKey displayName;

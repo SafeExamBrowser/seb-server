@@ -129,13 +129,15 @@ public class ModelObjectJSONGenerator {
                 "encryptSecretConfirm",
                 "certAlias",
                 false,
-                true);
+                true,
+                DateTime.now(),
+                "user123");
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject = new ConfigurationNode(
                 1L, 1L, 1L, "name", "description", ConfigurationType.EXAM_CONFIG, "ownerUUID",
-                ConfigurationStatus.CONSTRUCTION);
+                ConfigurationStatus.CONSTRUCTION, DateTime.now(), "user123");
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
@@ -193,8 +195,8 @@ public class ModelObjectJSONGenerator {
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject = new Exam(
-                1L, 1L, 1L, "externalId", "name", "description", DateTime.now(), DateTime.now(),
-                "startURL", ExamType.BYOD, "owner",
+                1L, 1L, 1L, "externalId", true, "name", DateTime.now(), DateTime.now(),
+                ExamType.BYOD, "owner",
                 Arrays.asList("user1", "user2"),
                 ExamStatus.RUNNING, false, "browserExamKeys", true, null, null, null, null);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
@@ -209,7 +211,7 @@ public class ModelObjectJSONGenerator {
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject = new ExamConfigurationMap(
-                1L, 1L, 1L, "examName", "examDescription", DateTime.now(), ExamType.BYOD,
+                1L, 1L, 1L, "examName", "examDescription", DateTime.now(), ExamType.BYOD, ExamStatus.RUNNING,
                 1L, "userNames", "encryptSecret", "confirmEncryptSecret", "configName", "configDescription",
                 ConfigurationStatus.IN_USE);
         System.out.println(domainObject.getClass().getSimpleName() + ":");

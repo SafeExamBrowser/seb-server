@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigCryptor;
@@ -60,9 +61,10 @@ public class CertificateSymetricKeyCryptor extends AbstractCertificateCryptor im
     public CertificateSymetricKeyCryptor(
             final PasswordEncryptor passwordEncryptor,
             final PasswordDecryptor passwordDecryptor,
-            final CertificateService certificateService) {
+            final CertificateService certificateService,
+            final Cryptor cryptor) {
 
-        super(certificateService);
+        super(certificateService, cryptor);
         this.passwordEncryptor = passwordEncryptor;
         this.passwordDecryptor = passwordDecryptor;
     }
@@ -120,16 +122,17 @@ public class CertificateSymetricKeyCryptor extends AbstractCertificateCryptor im
         try {
 
             final byte[] publicKeyHash = parsePublicKeyHash(input);
-            final Certificate certificate = getCertificateByPublicKeyHash(
-                    context.institutionId(),
+            final SEBConfigEncryptionContext sebConfigEncryptionContext = getCertificateByPublicKeyHash(
+                    context,
                     publicKeyHash);
+            final Certificate certificate = sebConfigEncryptionContext.getCertificate();
 
             if (certificate == null) {
                 throw new RuntimeException("No matching certificate found to decrypt the configuration");
             }
 
             final byte[] encryptedKey = getEncryptedKey(input);
-            final byte[] symetricKey = decryptWithCert(certificate, encryptedKey);
+            final byte[] symetricKey = decryptWithCert(sebConfigEncryptionContext, encryptedKey);
             final CharSequence symetricKeyBase64 = Base64.getEncoder().encodeToString(symetricKey);
 
             this.passwordDecryptor.decrypt(output, input, symetricKeyBase64);
@@ -189,6 +192,11 @@ public class CertificateSymetricKeyCryptor extends AbstractCertificateCryptor im
         final byte[] byteArray = data.toByteArray();
 
         return byteArray;
+    }
+
+    @Override
+    protected Strategy getStrategy() {
+        return Strategy.PUBLIC_KEY_HASH_SYMMETRIC_KEY;
     }
 
 }

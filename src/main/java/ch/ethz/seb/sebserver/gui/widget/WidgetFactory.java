@@ -122,6 +122,7 @@ public class WidgetFactory {
         SECURE("secure.png"),
         NEW("new.png"),
         DELETE("delete.png"),
+        ARCHIVE("archive.png"),
         SEARCH("lens.png"),
         UNDO("undo.png"),
         COLOR("color.png"),
@@ -206,6 +207,7 @@ public class WidgetFactory {
         MESSAGE("message"),
         ERROR("error"),
         WARNING("warning"),
+        DISABLED("disabled"),
         CONFIG_INPUT_READONLY("inputreadonly"),
 
         DARK_COLOR_LABEL("colordark"),

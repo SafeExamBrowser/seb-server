@@ -36,7 +36,7 @@ public class AsyncService {
      *
      * @param maxFailingAttempts maximal number of attempts the CircuitBreaker allows before going onto open state.
      * @param maxBlockingTime maximal time since call CircuitBreaker waits for a response before going onto open state.
-     * @param timeToRecover the time the CircuitBreaker takes to recover form open state.
+     * @param timeToRecover the time the CircuitBreaker takes to recover from open state.
      * @param <T> the type of the CircuitBreaker
      * @return a CircuitBreaker of specified type */
     public <T> CircuitBreaker<T> createCircuitBreaker(
@@ -57,7 +57,7 @@ public class AsyncService {
      * @param blockingSupplier the blocking result supplier that the MemoizingCircuitBreaker must call
      * @param maxFailingAttempts maximal number of attempts the CircuitBreaker allows before going onto open state.
      * @param maxBlockingTime maximal time since call CircuitBreaker waits for a response before going onto open state.
-     * @param timeToRecover the time the CircuitBreaker takes to recover form open state.
+     * @param timeToRecover the time the CircuitBreaker takes to recover from open state.
      * @param momoized whether the memoizing functionality is on or off
      * @param maxMemoizingTime the maximal time memorized data is valid
      * @param <T> the type of the CircuitBreaker

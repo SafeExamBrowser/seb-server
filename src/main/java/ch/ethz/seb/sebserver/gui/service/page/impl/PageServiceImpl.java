@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import javax.servlet.http.HttpSession;
 
@@ -35,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
@@ -69,13 +69,11 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class PageServiceImpl implements PageService {
 
-    private static final LocTextKey CONFIRM_DEACTIVATION_NO_DEP_KEY =
-            new LocTextKey("sebserver.dialog.confirm.deactivation.noDependencies");
-
-    private static final String CONFIRM_DEACTIVATION_KEY = "sebserver.dialog.confirm.deactivation";
-
     private static final Logger log = LoggerFactory.getLogger(PageServiceImpl.class);
 
+    private static final LocTextKey CONFIRM_DEACTIVATION_NO_DEP_KEY =
+            new LocTextKey("sebserver.dialog.confirm.deactivation.noDependencies");
+    private static final String CONFIRM_DEACTIVATION_KEY = "sebserver.dialog.confirm.deactivation";
     private static final LocTextKey MSG_GO_AWAY_FROM_EDIT =
             new LocTextKey("sebserver.overall.action.goAwayFromEditPageConfirm");
 
@@ -167,7 +165,6 @@ public class PageServiceImpl implements PageService {
 
     @Override
     public FormTooltipMode getFormTooltipMode() {
-        // TODO make this configurable
         return FormTooltipMode.INPUT;
     }
 
@@ -219,31 +216,19 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final Set<? extends T> entities) {
+    public <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final T entity) {
         final RestService restService = this.resourceService.getRestService();
         return () -> {
-            if (entities == null || entities.isEmpty()) {
-                return null;
-            }
-
             try {
-                final int dependencies = (int) entities.stream()
-                        .flatMap(entity -> {
-                            final RestCall<Set<EntityKey>>.RestCallBuilder builder =
-                                    restService.<Set<EntityKey>> getBuilder(
-                                            entity.entityType(),
-                                            CallType.GET_DEPENDENCIES);
+                final int dependencies = restService.<Set<EntityKey>> getBuilder(
+                        entity.entityType(),
+                        CallType.GET_DEPENDENCIES)
+                        .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(entity.getModelId()))
+                        .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
+                        .call()
+                        .getOrThrow()
+                        .size();
 
-                            if (builder != null) {
-                                return builder
-                                        .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(entity.getModelId()))
-                                        .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.DEACTIVATE.name())
-                                        .call()
-                                        .getOrThrow().stream();
-                            } else {
-                                return Stream.empty();
-                            }
-                        }).count();
                 if (dependencies > 0) {
                     return new LocTextKey(CONFIRM_DEACTIVATION_KEY, String.valueOf(dependencies));
                 } else {
@@ -264,43 +249,47 @@ public class PageServiceImpl implements PageService {
             final Function<PageAction, PageAction> testBeforeActivation) {
 
         return action -> {
-            final Set<T> selectedROWData = table.getSelectedROWData();
-            if (selectedROWData == null || selectedROWData.isEmpty()) {
+            final Set<EntityKey> multiSelection = table.getMultiSelection();
+            if (multiSelection == null || multiSelection.isEmpty()) {
                 throw new PageMessageException(noSelectionText);
+            }
+            if (multiSelection.size() > 1) {
+                throw new PageMessageException(MESSAGE_NO_MULTISELECTION);
             }
 
             final RestService restService = this.resourceService.getRestService();
             final EntityType entityType = table.getEntityType();
-
             final Collection<Exception> errors = new ArrayList<>();
-            for (final T entity : selectedROWData) {
+            final T singleSelection = table.getSingleSelectedROWData();
+            if (singleSelection == null) {
+                throw new PageMessageException(noSelectionText);
+            }
 
-                if (!entity.isActive()) {
-                    final RestCall<T>.RestCallBuilder restCallBuilder = restService.<T> getBuilder(
-                            entityType,
-                            CallType.ACTIVATION_ACTIVATE)
-                            .withURIVariable(API.PARAM_MODEL_ID, entity.getModelId());
-                    if (testBeforeActivation != null) {
-                        try {
-                            action.withEntityKey(entity.getEntityKey());
-                            testBeforeActivation.apply(action);
-                            restCallBuilder
-                                    .call()
-                                    .onError(errors::add);
-                        } catch (final Exception e) {
-                            errors.add(e);
-                        }
-                    } else {
+            if (!singleSelection.isActive()) {
+                final RestCall<T>.RestCallBuilder restCallBuilder = restService.<T> getBuilder(
+                        entityType,
+                        CallType.ACTIVATION_ACTIVATE)
+                        .withURIVariable(API.PARAM_MODEL_ID, singleSelection.getModelId());
+                if (testBeforeActivation != null) {
+                    try {
+                        action.withEntityKey(singleSelection.getEntityKey());
+                        testBeforeActivation.apply(action);
                         restCallBuilder
                                 .call()
                                 .onError(errors::add);
+                    } catch (final Exception e) {
+                        errors.add(e);
                     }
                 } else {
-                    restService.<T> getBuilder(entityType, CallType.ACTIVATION_DEACTIVATE)
-                            .withURIVariable(API.PARAM_MODEL_ID, entity.getModelId())
+                    restCallBuilder
                             .call()
                             .onError(errors::add);
                 }
+            } else {
+                restService.<T> getBuilder(entityType, CallType.ACTIVATION_DEACTIVATE)
+                        .withURIVariable(API.PARAM_MODEL_ID, singleSelection.getModelId())
+                        .call()
+                        .onError(errors::add);
             }
 
             if (!errors.isEmpty()) {
@@ -365,7 +354,7 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public <T> TableBuilder<T> entityTableBuilder(
+    public <T extends ModelIdAware> TableBuilder<T> entityTableBuilder(
             final String name,
             final RestCall<Page<T>> apiCall) {
 
@@ -373,7 +362,7 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public <T> TableBuilder<T> staticListTableBuilder(
+    public <T extends ModelIdAware> TableBuilder<T> staticListTableBuilder(
             final List<T> staticList,
             final EntityType entityType) {
 
@@ -385,7 +374,7 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public <T> TableBuilder<T> remoteListTableBuilder(
+    public <T extends ModelIdAware> TableBuilder<T> remoteListTableBuilder(
             final RestCall<Collection<T>> apiCall,
             final EntityType entityType) {
 

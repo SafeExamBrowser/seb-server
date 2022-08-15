@@ -27,7 +27,8 @@ public final class ClientInstruction {
         SEB_QUIT,
         SEB_PROCTORING,
         SEB_RECONFIGURE_SETTINGS,
-        NOTIFICATION_CONFIRM
+        NOTIFICATION_CONFIRM,
+        SEB_FORCE_LOCK_SCREEN
     }
 
     public enum ProctoringInstructionMethod {
@@ -69,6 +70,11 @@ public final class ClientInstruction {
             public static final String ZOOM_RECEIVE_AUDIO = "zoomReceiveAudio";
             public static final String ZOOM_RECEIVE_VIDEO = "zoomReceiveVideo";
             public static final String ZOOM_ALLOW_CHAT = "zoomFeatureFlagChat";
+        }
+
+        public interface SEB_FORCE_LOCK_SCREEN {
+            public static final String MESSAGE = "message";
+            public static final String IMAGE_URL = "imageURL";
         }
     }
 

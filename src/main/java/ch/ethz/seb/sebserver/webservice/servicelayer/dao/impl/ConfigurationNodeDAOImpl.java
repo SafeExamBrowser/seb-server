@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport.configurationTemplateId;
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport.examTemplateRecord;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +41,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.Configuration
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationAttributeRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationNodeRecordMapper;
@@ -45,11 +49,18 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationReco
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.OrientationRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ViewRecordDynamicSqlSupport;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ViewRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationNodeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
@@ -63,18 +74,30 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
     private final ConfigurationNodeRecordMapper configurationNodeRecordMapper;
     private final ConfigurationValueRecordMapper configurationValueRecordMapper;
     private final ConfigurationDAOBatchService configurationDAOBatchService;
+    private final ExamTemplateRecordMapper examTemplateRecordMapper;
+    private final ViewRecordMapper viewRecordMapper;
+    private final OrientationRecordMapper orientationRecordMapper;
+    private final DAOUserServcie daoUserServcie;
 
     protected ConfigurationNodeDAOImpl(
             final ConfigurationRecordMapper configurationRecordMapper,
             final ConfigurationNodeRecordMapper configurationNodeRecordMapper,
             final ConfigurationValueRecordMapper configurationValueRecordMapper,
             final ConfigurationAttributeRecordMapper configurationAttributeRecordMapper,
-            final ConfigurationDAOBatchService ConfigurationDAOBatchService) {
+            final ConfigurationDAOBatchService ConfigurationDAOBatchService,
+            final ExamTemplateRecordMapper examTemplateRecordMapper,
+            final ViewRecordMapper viewRecordMapper,
+            final OrientationRecordMapper orientationRecordMapper,
+            final DAOUserServcie daoUserServcie) {
 
         this.configurationRecordMapper = configurationRecordMapper;
         this.configurationNodeRecordMapper = configurationNodeRecordMapper;
         this.configurationValueRecordMapper = configurationValueRecordMapper;
         this.configurationDAOBatchService = ConfigurationDAOBatchService;
+        this.examTemplateRecordMapper = examTemplateRecordMapper;
+        this.viewRecordMapper = viewRecordMapper;
+        this.orientationRecordMapper = orientationRecordMapper;
+        this.daoUserServcie = daoUserServcie;
     }
 
     @Override
@@ -215,7 +238,9 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                             data.name,
                             data.description,
                             null,
-                            (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name());
+                            (data.status != null) ? data.status.name() : ConfigurationStatus.CONSTRUCTION.name(),
+                            Utils.getMillisecondsNow(),
+                            this.daoUserServcie.getCurrentUserUUID());
 
                     this.configurationNodeRecordMapper.updateByPrimaryKeySelective(newRecord);
                     return this.configurationNodeRecordMapper.selectByPrimaryKey(data.id);
@@ -249,22 +274,28 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
             }
 
             // find all configurations for this configuration node
-            final List<Long> configurationIds = this.configurationRecordMapper.selectIdsByExample()
+            final List<Long> configurationIds = this.configurationRecordMapper
+                    .selectIdsByExample()
                     .where(ConfigurationRecordDynamicSqlSupport.configurationNodeId, isIn(ids))
                     .build()
                     .execute();
 
-            // delete all ConfigurationValue's that belongs to the Configuration's to delete
-            this.configurationValueRecordMapper.deleteByExample()
-                    .where(ConfigurationValueRecordDynamicSqlSupport.configurationId, isIn(configurationIds))
-                    .build()
-                    .execute();
+            if (!configurationIds.isEmpty()) {
 
-            // delete all Configuration's
-            this.configurationRecordMapper.deleteByExample()
-                    .where(ConfigurationRecordDynamicSqlSupport.id, isIn(configurationIds))
-                    .build()
-                    .execute();
+                // delete all ConfigurationValue's that belongs to the Configuration's to delete
+                this.configurationValueRecordMapper.deleteByExample()
+                        .where(ConfigurationValueRecordDynamicSqlSupport.configurationId, isIn(configurationIds))
+                        .build()
+                        .execute();
+
+                // delete all Configuration's
+                this.configurationRecordMapper.deleteByExample()
+                        .where(ConfigurationRecordDynamicSqlSupport.id, isIn(configurationIds))
+                        .build()
+                        .execute();
+            }
+
+            handleConfigTemplateDeletion(ids);
 
             // and finally delete the requested ConfigurationNode's
             this.configurationNodeRecordMapper.deleteByExample()
@@ -276,6 +307,46 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                     .map(id -> new EntityKey(id, EntityType.CONFIGURATION_NODE))
                     .collect(Collectors.toList());
         });
+    }
+
+    private void handleConfigTemplateDeletion(final List<Long> configurationIds) {
+        // get all config template node ids
+        final List<Long> templatesIds = this.configurationNodeRecordMapper
+                .selectIdsByExample()
+                .where(ConfigurationNodeRecordDynamicSqlSupport.id, isIn(configurationIds))
+                .and(ConfigurationNodeRecordDynamicSqlSupport.type, isEqualTo(ConfigurationType.TEMPLATE.name()))
+                .build()
+                .execute();
+
+        if (templatesIds == null || templatesIds.isEmpty()) {
+            return;
+        }
+
+        // delete all related views and orientations
+        this.orientationRecordMapper.deleteByExample()
+                .where(OrientationRecordDynamicSqlSupport.templateId, isIn(templatesIds))
+                .build()
+                .execute();
+        this.viewRecordMapper.deleteByExample()
+                .where(ViewRecordDynamicSqlSupport.templateId, isIn(templatesIds))
+                .build()
+                .execute();
+
+        // update all config nodes that uses one of the templates
+        this.configurationNodeRecordMapper.updateByExampleSelective(
+                new ConfigurationNodeRecord(null, null, 0L, null, null, null, null, null,
+                        Utils.getMillisecondsNow(),
+                        this.daoUserServcie.getCurrentUserUUID()))
+                .where(ConfigurationNodeRecordDynamicSqlSupport.templateId, isIn(configurationIds))
+                .build()
+                .execute();
+
+        // update all examTemplates that uses one of the templates
+        UpdateDSL.updateWithMapper(this.examTemplateRecordMapper::update, examTemplateRecord)
+                .set(configurationTemplateId).equalToNull()
+                .where(ExamTemplateRecordDynamicSqlSupport.configurationTemplateId, isIn(configurationIds))
+                .build()
+                .execute();
     }
 
     private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
@@ -358,7 +429,9 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                 record.getDescription(),
                 ConfigurationType.valueOf(record.getType()),
                 record.getOwner(),
-                ConfigurationStatus.valueOf(record.getStatus())));
+                ConfigurationStatus.valueOf(record.getStatus()),
+                Utils.toDateTimeUTC(record.getLastUpdateTime()),
+                record.getLastUpdateUser()));
     }
 
 }

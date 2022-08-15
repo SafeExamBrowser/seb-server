@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigCryptor;
@@ -37,8 +38,11 @@ public class CertificateAsymetricKeyCryptor extends AbstractCertificateCryptor i
     private static final Set<Strategy> STRATEGIES = Utils.immutableSetOf(
             Strategy.PUBLIC_KEY_HASH);
 
-    public CertificateAsymetricKeyCryptor(final CertificateService certificateService) {
-        super(certificateService);
+    public CertificateAsymetricKeyCryptor(
+            final CertificateService certificateService,
+            final Cryptor cryptor) {
+
+        super(certificateService, cryptor);
     }
 
     @Override
@@ -94,9 +98,10 @@ public class CertificateAsymetricKeyCryptor extends AbstractCertificateCryptor i
 
         try {
             final byte[] publicKeyHash = parsePublicKeyHash(input);
-            final Certificate certificate = getCertificateByPublicKeyHash(
-                    context.institutionId(),
+            final SEBConfigEncryptionContext sebConfigEncryptionContext = getCertificateByPublicKeyHash(
+                    context,
                     publicKeyHash);
+            final Certificate certificate = sebConfigEncryptionContext.getCertificate();
 
             if (certificate == null) {
                 throw new RuntimeException("No matching certificate found to decrypt the configuration");
@@ -106,7 +111,7 @@ public class CertificateAsymetricKeyCryptor extends AbstractCertificateCryptor i
 
             int readBytes = input.read(buffer, 0, buffer.length);
             while (readBytes > 0) {
-                final byte[] encryptedBlock = decryptWithCert(certificate, buffer, readBytes);
+                final byte[] encryptedBlock = decryptWithCert(sebConfigEncryptionContext, buffer, readBytes);
                 output.write(encryptedBlock, 0, encryptedBlock.length);
                 readBytes = input.read(buffer, 0, buffer.length);
             }
@@ -125,6 +130,11 @@ public class CertificateAsymetricKeyCryptor extends AbstractCertificateCryptor i
         if (log.isDebugEnabled()) {
             log.debug("*** Start streaming asynchronous certificate asymmetric-key decryption");
         }
+    }
+
+    @Override
+    protected Strategy getStrategy() {
+        return Strategy.PUBLIC_KEY_HASH;
     }
 
 }

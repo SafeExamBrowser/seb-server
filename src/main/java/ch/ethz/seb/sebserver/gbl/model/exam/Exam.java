@@ -11,10 +11,12 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -29,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class Exam implements GrantEntity {
@@ -38,11 +41,10 @@ public final class Exam implements GrantEntity {
             -1L,
             -1L,
             Constants.EMPTY_NOTE,
-            Constants.EMPTY_NOTE,
+            false,
             Constants.EMPTY_NOTE,
             null,
             null,
-            Constants.EMPTY_NOTE,
             ExamType.UNDEFINED,
             null,
             null,
@@ -65,8 +67,7 @@ public final class Exam implements GrantEntity {
         UP_COMING,
         RUNNING,
         FINISHED,
-        CORRUPT_NO_LMS_CONNECTION,
-        CORRUPT_INVALID_ID
+        ARCHIVED
     }
 
     public enum ExamType {
@@ -91,20 +92,17 @@ public final class Exam implements GrantEntity {
     @NotNull
     public final String externalId;
 
-    @JsonProperty(QuizData.QUIZ_ATTR_NAME)
+    @JsonProperty(EXAM.ATTR_LMS_AVAILABLE)
+    public final Boolean lmsAvailable;
+
+    @JsonProperty(EXAM.ATTR_QUIZ_NAME)
     public final String name;
 
-    @JsonProperty(QuizData.QUIZ_ATTR_DESCRIPTION)
-    public final String description;
-
-    @JsonProperty(QuizData.QUIZ_ATTR_START_TIME)
+    @JsonProperty(EXAM.ATTR_QUIZ_START_TIME)
     public final DateTime startTime;
 
-    @JsonProperty(QuizData.QUIZ_ATTR_END_TIME)
+    @JsonProperty(EXAM.ATTR_QUIZ_END_TIME)
     public final DateTime endTime;
-
-    @JsonProperty(QuizData.QUIZ_ATTR_START_URL)
-    public final String startURL;
 
     @JsonProperty(EXAM.ATTR_TYPE)
     @NotNull
@@ -138,7 +136,7 @@ public final class Exam implements GrantEntity {
     public final Long lastModified;
 
     @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES)
-    private final Map<String, String> additionalAttributes;
+    public final Map<String, String> additionalAttributes;
 
     @JsonCreator
     public Exam(
@@ -146,11 +144,10 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(EXAM.ATTR_LMS_SETUP_ID) final Long lmsSetupId,
             @JsonProperty(EXAM.ATTR_EXTERNAL_ID) final String externalId,
-            @JsonProperty(QuizData.QUIZ_ATTR_NAME) final String name,
-            @JsonProperty(QuizData.QUIZ_ATTR_DESCRIPTION) final String description,
-            @JsonProperty(QuizData.QUIZ_ATTR_START_TIME) final DateTime startTime,
-            @JsonProperty(QuizData.QUIZ_ATTR_END_TIME) final DateTime endTime,
-            @JsonProperty(QuizData.QUIZ_ATTR_START_URL) final String startURL,
+            @JsonProperty(EXAM.ATTR_LMS_AVAILABLE) final Boolean lmsAvailable,
+            @JsonProperty(EXAM.ATTR_QUIZ_NAME) final String name,
+            @JsonProperty(EXAM.ATTR_QUIZ_START_TIME) final DateTime startTime,
+            @JsonProperty(EXAM.ATTR_QUIZ_END_TIME) final DateTime endTime,
             @JsonProperty(EXAM.ATTR_TYPE) final ExamType type,
             @JsonProperty(EXAM.ATTR_OWNER) final String owner,
             @JsonProperty(EXAM.ATTR_SUPPORTER) final Collection<String> supporter,
@@ -167,11 +164,10 @@ public final class Exam implements GrantEntity {
         this.institutionId = institutionId;
         this.lmsSetupId = lmsSetupId;
         this.externalId = externalId;
+        this.lmsAvailable = lmsAvailable;
         this.name = name;
-        this.description = description;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.startURL = startURL;
         this.type = type;
         this.owner = owner;
         this.status = (status != null) ? status : getStatusFromDate(startTime, endTime);
@@ -191,15 +187,18 @@ public final class Exam implements GrantEntity {
 
     public Exam(final String modelId, final QuizData quizData, final POSTMapper mapper) {
 
+        final Map<String, String> additionalAttributes = new HashMap<>(quizData.getAdditionalAttributes());
+        additionalAttributes.put(QuizData.QUIZ_ATTR_DESCRIPTION, quizData.description);
+        additionalAttributes.put(QuizData.QUIZ_ATTR_START_URL, quizData.startURL);
+
         this.id = (modelId != null) ? Long.parseLong(modelId) : null;
         this.institutionId = quizData.institutionId;
         this.lmsSetupId = quizData.lmsSetupId;
         this.externalId = quizData.id;
+        this.lmsAvailable = true;
         this.name = quizData.name;
-        this.description = quizData.description;
         this.startTime = quizData.startTime;
         this.endTime = quizData.endTime;
-        this.startURL = quizData.startURL;
         this.type = mapper.getEnum(EXAM.ATTR_TYPE, ExamType.class, ExamType.UNDEFINED);
         this.owner = mapper.getString(EXAM.ATTR_OWNER);
         this.status = mapper.getEnum(
@@ -213,7 +212,8 @@ public final class Exam implements GrantEntity {
         this.lastUpdate = null;
         this.examTemplateId = mapper.getLong(EXAM.ATTR_EXAM_TEMPLATE_ID);
         this.lastModified = null;
-        this.additionalAttributes = null;
+        this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
+
     }
 
     public Exam(final QuizData quizData) {
@@ -225,11 +225,10 @@ public final class Exam implements GrantEntity {
         this.institutionId = null;
         this.lmsSetupId = null;
         this.externalId = null;
+        this.lmsAvailable = true;
         this.name = null;
-        this.description = null;
         this.startTime = null;
         this.endTime = null;
-        this.startURL = null;
         this.type = null;
         this.owner = null;
         this.status = (status != null) ? status : getStatusFromDate(this.startTime, this.endTime);
@@ -293,6 +292,15 @@ public final class Exam implements GrantEntity {
         return this.lmsSetupId;
     }
 
+    public Boolean getLmsAvailable() {
+        return this.lmsAvailable;
+    }
+
+    @JsonIgnore
+    public boolean isLmsAvailable() {
+        return BooleanUtils.isTrue(this.lmsAvailable);
+    }
+
     public String getExternalId() {
         return this.externalId;
     }
@@ -311,7 +319,7 @@ public final class Exam implements GrantEntity {
     }
 
     public String getDescription() {
-        return this.description;
+        return this.getAdditionalAttribute(QuizData.QUIZ_ATTR_DESCRIPTION);
     }
 
     public DateTime getStartTime() {
@@ -323,7 +331,7 @@ public final class Exam implements GrantEntity {
     }
 
     public String getStartURL() {
-        return this.startURL;
+        return this.getAdditionalAttribute(QuizData.QUIZ_ATTR_START_URL);
     }
 
     public ExamStatus getStatus() {
@@ -372,13 +380,13 @@ public final class Exam implements GrantEntity {
         builder.append(", name=");
         builder.append(this.name);
         builder.append(", description=");
-        builder.append(this.description);
+        builder.append(this.getDescription());
         builder.append(", startTime=");
         builder.append(this.startTime);
         builder.append(", endTime=");
         builder.append(this.endTime);
         builder.append(", startURL=");
-        builder.append(this.startURL);
+        builder.append(this.getStartURL());
         builder.append(", type=");
         builder.append(this.type);
         builder.append(", owner=");

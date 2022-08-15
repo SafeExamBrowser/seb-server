@@ -148,14 +148,14 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @return Result referring to collection of all matching entities or an error if happened */
     Result<Collection<T>> allMatching(FilterMap filterMap, Predicate<T> predicate);
 
-    /** Context based utility method to extract an expected single resource entry form a Collection of specified type.
-     * Gets a Result refer to an expected single resource entry form a Collection of specified type or refer
+    /** Context based utility method to extract an expected single resource entry from a Collection of specified type.
+     * Gets a Result refer to an expected single resource entry from a Collection of specified type or refer
      * to a ResourceNotFoundException if specified collection is null or empty or refer to a
      * unexpected RuntimeException if there are more then the expected single element in the given collection
      *
      * @param id The resource id to wrap within a ResourceNotFoundException if needed
      * @param resources the collection of resource entries
-     * @return Result refer to an expected single resource entry form a Collection of specified type or refer to an
+     * @return Result refer to an expected single resource entry from a Collection of specified type or refer to an
      *         error if happened */
     default <R> Result<R> getSingleResource(final String id, final Collection<R> resources) {
 
@@ -180,22 +180,7 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @param keys Collection of EntityKey of various types
      * @return Set of id's (PK's) from the given key collection that match the concrete EntityType */
     default Set<Long> extractPKsFromKeys(final Collection<EntityKey> keys) {
-        try {
-
-            if (keys == null) {
-                return Collections.emptySet();
-            }
-
-            final EntityType entityType = entityType();
-            return keys
-                    .stream()
-                    .filter(key -> key.entityType == entityType)
-                    .map(key -> Long.valueOf(key.modelId))
-                    .collect(Collectors.toSet());
-        } catch (final Exception e) {
-            log.error("unexpected error while trying to extract PK's from EntityKey's : ", e);
-            return Collections.emptySet();
-        }
+        return extractPKsFromKeys(keys, entityType());
     }
 
     /** Context based utility method to extract a set of id's (PK) from a collection of various EntityKey
@@ -209,6 +194,34 @@ public interface EntityDAO<T extends Entity, M extends ModelIdAware> {
      * @return List of id's (PK's) from the given key collection that match the concrete EntityType */
     default List<Long> extractListOfPKs(final Collection<EntityKey> keys) {
         return new ArrayList<>(extractPKsFromKeys(keys));
+    }
+
+    /** Context based utility method to extract a set of id's (PK) from a collection of various EntityKey
+     * This uses the EntityType defined by this instance to filter all EntityKey by the given type and
+     * convert the matching EntityKey's to id's (PK's)
+     *
+     * Use this if you need to transform a Collection of EntityKey into a extracted Set of id's of a specified
+     * EntityType
+     *
+     * @param keys Collection of EntityKey of various types
+     * @param entityType the entity type of the keys to extract
+     * @return Set of id's (PK's) from the given key collection that match the concrete EntityType */
+    static Set<Long> extractPKsFromKeys(final Collection<EntityKey> keys, final EntityType entityType) {
+        try {
+
+            if (keys == null) {
+                return Collections.emptySet();
+            }
+
+            return keys
+                    .stream()
+                    .filter(key -> key.entityType == entityType)
+                    .map(key -> Long.valueOf(key.modelId))
+                    .collect(Collectors.toSet());
+        } catch (final Exception e) {
+            log.error("unexpected error while trying to extract PK's from EntityKey's : ", e);
+            return Collections.emptySet();
+        }
     }
 
 }

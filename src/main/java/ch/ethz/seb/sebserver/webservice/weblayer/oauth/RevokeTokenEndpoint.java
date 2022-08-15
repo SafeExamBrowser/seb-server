@@ -69,6 +69,18 @@ public class RevokeTokenEndpoint {
         }
     }
 
+    @EventListener(RevokeExamTokenEvent.class)
+    void revokeExamAccessToken(final RevokeExamTokenEvent event) {
+        final Collection<OAuth2AccessToken> tokens = this.tokenStore
+                .findTokensByClientId(event.clientId);
+
+        if (tokens != null) {
+            for (final OAuth2AccessToken token : tokens) {
+                this.tokenStore.removeAccessToken(token);
+            }
+        }
+    }
+
     public static final class RevokeTokenEvent extends ApplicationEvent {
 
         private static final long serialVersionUID = 5776699085388043743L;
@@ -78,6 +90,19 @@ public class RevokeTokenEndpoint {
         public RevokeTokenEvent(final Object source, final String userName) {
             super(source);
             this.userName = userName;
+        }
+
+    }
+
+    public static final class RevokeExamTokenEvent extends ApplicationEvent {
+
+        private static final long serialVersionUID = 5776699085388043743L;
+
+        public final String clientId;
+
+        public RevokeExamTokenEvent(final String clientId) {
+            super(clientId);
+            this.clientId = clientId;
         }
 
     }

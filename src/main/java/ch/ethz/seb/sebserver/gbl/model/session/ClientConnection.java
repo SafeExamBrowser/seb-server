@@ -8,8 +8,10 @@
 
 package ch.ethz.seb.sebserver.gbl.model.session;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.function.Predicate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -46,6 +48,11 @@ public final class ClientConnection implements GrantEntity {
         }
     }
 
+    public final static List<String> ACTIVE_STATES = Arrays.asList(
+            ConnectionStatus.ACTIVE.name(),
+            ConnectionStatus.AUTHENTICATED.name(),
+            ConnectionStatus.CONNECTION_REQUESTED.name());
+
     public static final ClientConnection EMPTY_CLIENT_CONNECTION = new ClientConnection(
             -1L, -1L, -1L,
             ConnectionStatus.UNDEFINED,
@@ -60,6 +67,7 @@ public final class ClientConnection implements GrantEntity {
     public static final String FILTER_ATTR_SESSION_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID;
     public static final String FILTER_ATTR_IP_STRING = Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS;
     public static final String FILTER_ATTR_INFO = ATTR_INFO;
+    public static final String FILTER_ATTR_TOKEN_LIST = "CONNECTION_TOKENS";
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID)
     public final Long id;
@@ -381,7 +389,7 @@ public final class ClientConnection implements GrantEntity {
     }
 
     public static Predicate<ClientConnection> getStatusPredicate(final ConnectionStatus... status) {
-        final EnumSet<ConnectionStatus> states = EnumSet.allOf(ConnectionStatus.class);
+        final EnumSet<ConnectionStatus> states = EnumSet.noneOf(ConnectionStatus.class);
         if (status != null) {
             Collections.addAll(states, status);
         }

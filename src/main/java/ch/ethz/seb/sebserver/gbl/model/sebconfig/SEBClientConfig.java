@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.Domain.CONFIGURATION_NODE;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_CLIENT_CONFIGURATION;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
@@ -168,6 +169,12 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
     @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE)
     public final Boolean active;
 
+    @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_TIME)
+    public final DateTime lastUpdateTime;
+
+    @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_USER)
+    public final String lastUpdateUser;
+
     @JsonCreator
     public SEBClientConfig(
             @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ID) final Long id,
@@ -195,7 +202,9 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
             @JsonProperty(ATTR_ENCRYPT_SECRET_CONFIRM) final CharSequence encryptSecretConfirm,
             @JsonProperty(ATTR_ENCRYPT_CERTIFICATE_ALIAS) final String encryptCertificateAlias,
             @JsonProperty(ATTR_ENCRYPT_CERTIFICATE_ASYM) final Boolean encryptCertificateAsym,
-            @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE) final Boolean active) {
+            @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE) final Boolean active,
+            @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_TIME) final DateTime lastUpdateTime,
+            @JsonProperty(SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_USER) final String lastUpdateUser) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -229,6 +238,8 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         this.encryptCertificateAlias = encryptCertificateAlias;
         this.encryptCertificateAsym = encryptCertificateAsym;
         this.active = active;
+        this.lastUpdateTime = lastUpdateTime;
+        this.lastUpdateUser = lastUpdateUser;
     }
 
     public SEBClientConfig(final Long institutionId, final POSTMapper postParams) {
@@ -268,6 +279,8 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         this.encryptCertificateAlias = postParams.getString(ATTR_ENCRYPT_CERTIFICATE_ALIAS);
         this.encryptCertificateAsym = postParams.getBooleanObject(ATTR_ENCRYPT_CERTIFICATE_ASYM);
         this.active = false;
+        this.lastUpdateTime = postParams.getDateTime(CONFIGURATION_NODE.ATTR_LAST_UPDATE_TIME);
+        this.lastUpdateUser = postParams.getString(CONFIGURATION_NODE.ATTR_LAST_UPDATE_USER);
     }
 
     @Override
@@ -379,6 +392,38 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
         return this.active;
     }
 
+    public Long getSebServerPingTime() {
+        return this.sebServerPingTime;
+    }
+
+    public VDIType getVdiType() {
+        return this.vdiType;
+    }
+
+    public String getVdiExecutable() {
+        return this.vdiExecutable;
+    }
+
+    public String getVdiPath() {
+        return this.vdiPath;
+    }
+
+    public String getVdiArguments() {
+        return this.vdiArguments;
+    }
+
+    public Boolean getEncryptCertificateAsym() {
+        return this.encryptCertificateAsym;
+    }
+
+    public DateTime getLastUpdateTime() {
+        return this.lastUpdateTime;
+    }
+
+    public String getLastUpdateUser() {
+        return this.lastUpdateUser;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -456,7 +501,9 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
                 Constants.EMPTY_NOTE,
                 Constants.EMPTY_NOTE,
                 this.encryptCertificateAsym,
-                this.active);
+                this.active,
+                this.lastUpdateTime,
+                this.lastUpdateUser);
     }
 
     public static SEBClientConfig createNew(final Long institutionId) {
@@ -484,7 +531,9 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
                 null,
                 null,
                 false,
-                false);
+                false,
+                null,
+                null);
     }
 
 }

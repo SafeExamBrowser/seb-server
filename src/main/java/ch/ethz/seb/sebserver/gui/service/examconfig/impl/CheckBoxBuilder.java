@@ -114,23 +114,38 @@ public class CheckBoxBuilder implements InputFieldBuilder {
 
         @Override
         protected void setValueToControl(final String value) {
-            this.control.setSelection(Boolean.parseBoolean(this.initValue));
+            if (ViewContext.INVERTED_CHECKBOX_SETTINGS.contains(this.attribute.name)) {
+                this.control.setSelection(!Boolean.parseBoolean(this.initValue));
+            } else {
+                this.control.setSelection(Boolean.parseBoolean(this.initValue));
+            }
         }
 
         @Override
         public String getValue() {
-            return this.control.getSelection()
-                    ? Constants.TRUE_STRING
-                    : Constants.FALSE_STRING;
+            if (ViewContext.INVERTED_CHECKBOX_SETTINGS.contains(this.attribute.name)) {
+                return this.control.getSelection()
+                        ? Constants.FALSE_STRING
+                        : Constants.TRUE_STRING;
+            } else {
+                return this.control.getSelection()
+                        ? Constants.TRUE_STRING
+                        : Constants.FALSE_STRING;
+            }
         }
 
         @Override
         public String getReadableValue() {
-            return this.control.getSelection()
-                    ? "Active"
-                    : "Inactive";
+            if (ViewContext.INVERTED_CHECKBOX_SETTINGS.contains(this.attribute.name)) {
+                return this.control.getSelection()
+                        ? "Inactive"
+                        : "Active";
+            } else {
+                return this.control.getSelection()
+                        ? "Active"
+                        : "Inactive";
+            }
         }
-
     }
 
 }

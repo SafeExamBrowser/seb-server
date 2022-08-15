@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsAPITemplateAdapter;
 
 @Lazy
 @Service
@@ -47,11 +48,19 @@ public class MockLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
     @Override
     public Result<LmsAPITemplate> create(final APITemplateDataSupplier apiTemplateDataSupplier) {
-        return Result.tryCatch(() -> new MockupLmsAPITemplate(
+
+        final MockCourseAccessAPI mockCourseAccessAPI = new MockCourseAccessAPI(
+                apiTemplateDataSupplier,
+                this.webserviceInfo);
+
+        final MockSEBRestrictionAPI mockSEBRestrictionAPI = new MockSEBRestrictionAPI();
+
+        return Result.tryCatch(() -> new LmsAPITemplateAdapter(
                 this.asyncService,
                 this.environment,
                 apiTemplateDataSupplier,
-                this.webserviceInfo));
+                mockCourseAccessAPI,
+                mockSEBRestrictionAPI));
     }
 
 }

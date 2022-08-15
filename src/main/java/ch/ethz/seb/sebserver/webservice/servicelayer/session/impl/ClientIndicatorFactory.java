@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
@@ -98,6 +99,43 @@ public class ClientIndicatorFactory {
                     clientConnection,
                     e);
         }
+    }
+
+    public List<? extends IndicatorValue> getIndicatorValues(final ClientConnection clientConnection) {
+
+        final List<ClientIndicator> result = new ArrayList<>();
+        if (clientConnection.examId == null) {
+            return result;
+        }
+
+        try {
+
+            final Collection<Indicator> examIndicators = this.indicatorDAO
+                    .allForExam(clientConnection.examId)
+                    .getOrThrow();
+
+            for (final Indicator indicatorDef : examIndicators) {
+                try {
+
+                    final ClientIndicator indicator = this.applicationContext
+                            .getBean(indicatorDef.type.name(), ClientIndicator.class);
+
+                    indicator.init(
+                            indicatorDef,
+                            clientConnection.id,
+                            clientConnection.status.clientActiveStatus,
+                            true);
+
+                    result.add(indicator);
+                } catch (final Exception e) {
+                    log.error("Failed to create IndicatorValue for indicator: {}", indicatorDef, e);
+                }
+            }
+        } catch (final Exception e) {
+            log.error("Failed to create IndicatorValues for ClientConnection: {}", clientConnection);
+        }
+
+        return Collections.unmodifiableList(result);
     }
 
     public List<ClientIndicator> createFor(final ClientConnection clientConnection) {

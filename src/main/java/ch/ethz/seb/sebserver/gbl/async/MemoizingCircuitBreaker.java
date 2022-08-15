@@ -94,7 +94,7 @@ public final class MemoizingCircuitBreaker<T> implements Supplier<Result<T>> {
      *
      * @param asyncRunner the AsyncRunner used to create asynchronous calls on the given supplier function
      * @param supplier The Supplier function that can fail or block for a long time
-     * @param maxFailingAttempts the number of maximal failing attempts before go form CLOSE into HALF_OPEN state
+     * @param maxFailingAttempts the number of maximal failing attempts before go from CLOSE into HALF_OPEN state
      * @param maxBlockingTime the maximal time that an call attempt can block until an error is responded
      * @param timeToRecover the time the circuit breaker needs to cool-down on OPEN-STATE before going back to HALF_OPEN
      *            state

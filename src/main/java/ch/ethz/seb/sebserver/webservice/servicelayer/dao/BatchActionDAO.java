@@ -8,14 +8,11 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
-import java.util.Collection;
-
 import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
-public interface BatchActionDAO extends EntityDAO<BatchAction, BatchAction> {
-
-    public static final String FLAG_FINISHED = "_FINISHED";
+public interface BatchActionDAO extends EntityDAO<BatchAction, BatchAction>, BulkActionSupportDAO<BatchAction> {
 
     /** This checks if there is a pending batch action to process next.
      * If so this reserves the pending batch action and mark it to be processed
@@ -26,20 +23,20 @@ public interface BatchActionDAO extends EntityDAO<BatchAction, BatchAction> {
      * @return Result refer to the batch action to process or to an error when happened */
     Result<BatchAction> getAndReserveNext(String processId);
 
-    /** Use this to update the processing of a running batch action
-     *
-     * @param actionId The batch action identifier
-     * @param processId The process identifier (must match with the processId on persistent storage)
-     * @param modelIds Collection of model identifiers of entities that has successfully been processed.
-     * @return Result refer to the involved batch action or to an error when happened. */
-    Result<BatchAction> updateProgress(Long actionId, String processId, Collection<String> modelIds);
-
     /** Use this to mark processing of a single entity of a specified batch action as successful completed.
      *
      * @param actionId The batch action identifier
      * @param processId The process identifier (must match with the processId on persistent storage)
      * @param modelId The model identifier to mark as completed for the given batch action */
     void setSuccessfull(Long actionId, String processId, String modelId);
+
+    /** Use this to mark processing of a single entity of a specified batch action as failed.
+     *
+     * @param actionId The batch action identifier
+     * @param processId The process identifier (must match with the processId on persistent storage)
+     * @param modelId The model identifier to mark as failure for the given batch action
+     * @param error The failure error if available */
+    void setFailure(Long actionId, String processId, String modelId, Exception error);
 
     /** This is used by a processing background task that is processing a batch action to finish up
      * its work and register the batch action as done within the persistent storage.

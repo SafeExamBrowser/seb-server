@@ -236,7 +236,7 @@ public class QuizLookupList implements TemplateComposer {
         actionBuilder
                 .newAction(ActionDefinition.QUIZ_DISCOVERY_SHOW_DETAILS)
                 .withSelect(
-                        table::getSelection,
+                        table::getMultiSelection,
                         action -> this.showDetails(
                                 action,
                                 table.getSingleSelectedROWData(),

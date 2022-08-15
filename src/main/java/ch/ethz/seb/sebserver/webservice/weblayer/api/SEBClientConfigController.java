@@ -37,6 +37,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.EXAM;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -79,6 +80,25 @@ public class SEBClientConfigController extends ActivatableEntityController<SEBCl
                 beanValidationService);
 
         this.sebClientConfigService = sebClientConfigService;
+    }
+
+    @RequestMapping(
+            path = API.SEB_CLIENT_CONFIG_CREDENTIALS_PATH_SEGMENT + API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ClientCredentials getClientCredentials(
+            @PathVariable final String modelId,
+            @RequestParam(
+                    name = Entity.FILTER_ATTR_INSTITUTION,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        checkReadPrivilege(institutionId);
+
+        return this.entityDAO.byModelId(modelId)
+                .flatMap(this.authorization::checkWrite)
+                .flatMap(config -> ((SEBClientConfigDAO) this.entityDAO).getSEBClientCredentials(modelId))
+                .getOrThrow();
     }
 
     @RequestMapping(

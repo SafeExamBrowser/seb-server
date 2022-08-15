@@ -34,20 +34,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface SebClientConfigRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.419+02:00", comments="Source Table: seb_client_configuration")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.419+02:00", comments="Source Table: seb_client_configuration")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.419+02:00", comments="Source Table: seb_client_configuration")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<SebClientConfigRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.419+02:00", comments="Source Table: seb_client_configuration")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -57,11 +57,13 @@ public interface SebClientConfigRecordMapper {
         @Arg(column="client_name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="client_secret", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="encrypt_secret", javaType=String.class, jdbcType=JdbcType.VARCHAR),
-        @Arg(column="active", javaType=Integer.class, jdbcType=JdbcType.INTEGER)
+        @Arg(column="active", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
+        @Arg(column="last_update_time", javaType=Long.class, jdbcType=JdbcType.BIGINT),
+        @Arg(column="last_update_user", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
     SebClientConfigRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -71,26 +73,28 @@ public interface SebClientConfigRecordMapper {
         @Arg(column="client_name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="client_secret", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="encrypt_secret", javaType=String.class, jdbcType=JdbcType.VARCHAR),
-        @Arg(column="active", javaType=Integer.class, jdbcType=JdbcType.INTEGER)
+        @Arg(column="active", javaType=Integer.class, jdbcType=JdbcType.INTEGER),
+        @Arg(column="last_update_time", javaType=Long.class, jdbcType=JdbcType.BIGINT),
+        @Arg(column="last_update_user", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
     List<SebClientConfigRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(sebClientConfigRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, sebClientConfigRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, sebClientConfigRecord)
                 .where(id, isEqualTo(id_))
@@ -98,7 +102,7 @@ public interface SebClientConfigRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default int insert(SebClientConfigRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(sebClientConfigRecord)
@@ -109,11 +113,13 @@ public interface SebClientConfigRecordMapper {
                 .map(clientSecret).toProperty("clientSecret")
                 .map(encryptSecret).toProperty("encryptSecret")
                 .map(active).toProperty("active")
+                .map(lastUpdateTime).toProperty("lastUpdateTime")
+                .map(lastUpdateUser).toProperty("lastUpdateUser")
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default int insertSelective(SebClientConfigRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(sebClientConfigRecord)
@@ -124,32 +130,34 @@ public interface SebClientConfigRecordMapper {
                 .map(clientSecret).toPropertyWhenPresent("clientSecret", record::getClientSecret)
                 .map(encryptSecret).toPropertyWhenPresent("encryptSecret", record::getEncryptSecret)
                 .map(active).toPropertyWhenPresent("active", record::getActive)
+                .map(lastUpdateTime).toPropertyWhenPresent("lastUpdateTime", record::getLastUpdateTime)
+                .map(lastUpdateUser).toPropertyWhenPresent("lastUpdateUser", record::getLastUpdateUser)
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<SebClientConfigRecord>>> selectByExample() {
-        return SelectDSL.selectWithMapper(this::selectMany, id, institutionId, name, date, clientName, clientSecret, encryptSecret, active)
+        return SelectDSL.selectWithMapper(this::selectMany, id, institutionId, name, date, clientName, clientSecret, encryptSecret, active, lastUpdateTime, lastUpdateUser)
                 .from(sebClientConfigRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<SebClientConfigRecord>>> selectDistinctByExample() {
-        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, institutionId, name, date, clientName, clientSecret, encryptSecret, active)
+        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, institutionId, name, date, clientName, clientSecret, encryptSecret, active, lastUpdateTime, lastUpdateUser)
                 .from(sebClientConfigRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.178+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default SebClientConfigRecord selectByPrimaryKey(Long id_) {
-        return SelectDSL.selectWithMapper(this::selectOne, id, institutionId, name, date, clientName, clientSecret, encryptSecret, active)
+        return SelectDSL.selectWithMapper(this::selectOne, id, institutionId, name, date, clientName, clientSecret, encryptSecret, active, lastUpdateTime, lastUpdateUser)
                 .from(sebClientConfigRecord)
                 .where(id, isEqualTo(id_))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.180+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(SebClientConfigRecord record) {
         return UpdateDSL.updateWithMapper(this::update, sebClientConfigRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
@@ -158,10 +166,12 @@ public interface SebClientConfigRecordMapper {
                 .set(clientName).equalTo(record::getClientName)
                 .set(clientSecret).equalTo(record::getClientSecret)
                 .set(encryptSecret).equalTo(record::getEncryptSecret)
-                .set(active).equalTo(record::getActive);
+                .set(active).equalTo(record::getActive)
+                .set(lastUpdateTime).equalTo(record::getLastUpdateTime)
+                .set(lastUpdateUser).equalTo(record::getLastUpdateUser);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.180+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(SebClientConfigRecord record) {
         return UpdateDSL.updateWithMapper(this::update, sebClientConfigRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)
@@ -170,10 +180,12 @@ public interface SebClientConfigRecordMapper {
                 .set(clientName).equalToWhenPresent(record::getClientName)
                 .set(clientSecret).equalToWhenPresent(record::getClientSecret)
                 .set(encryptSecret).equalToWhenPresent(record::getEncryptSecret)
-                .set(active).equalToWhenPresent(record::getActive);
+                .set(active).equalToWhenPresent(record::getActive)
+                .set(lastUpdateTime).equalToWhenPresent(record::getLastUpdateTime)
+                .set(lastUpdateUser).equalToWhenPresent(record::getLastUpdateUser);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.180+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default int updateByPrimaryKey(SebClientConfigRecord record) {
         return UpdateDSL.updateWithMapper(this::update, sebClientConfigRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
@@ -183,12 +195,14 @@ public interface SebClientConfigRecordMapper {
                 .set(clientSecret).equalTo(record::getClientSecret)
                 .set(encryptSecret).equalTo(record::getEncryptSecret)
                 .set(active).equalTo(record::getActive)
+                .set(lastUpdateTime).equalTo(record::getLastUpdateTime)
+                .set(lastUpdateUser).equalTo(record::getLastUpdateUser)
                 .where(id, isEqualTo(record::getId))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-01-18T17:36:21.180+01:00", comments="Source Table: seb_client_configuration")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.420+02:00", comments="Source Table: seb_client_configuration")
     default int updateByPrimaryKeySelective(SebClientConfigRecord record) {
         return UpdateDSL.updateWithMapper(this::update, sebClientConfigRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)
@@ -198,6 +212,8 @@ public interface SebClientConfigRecordMapper {
                 .set(clientSecret).equalToWhenPresent(record::getClientSecret)
                 .set(encryptSecret).equalToWhenPresent(record::getEncryptSecret)
                 .set(active).equalToWhenPresent(record::getActive)
+                .set(lastUpdateTime).equalToWhenPresent(record::getLastUpdateTime)
+                .set(lastUpdateUser).equalToWhenPresent(record::getLastUpdateUser)
                 .where(id, isEqualTo(record::getId))
                 .build()
                 .execute();

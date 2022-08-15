@@ -175,11 +175,13 @@ public class ExamTemplateList implements TemplateComposer {
                 .publishIf(userGrant::iw)
 
                 .newAction(ActionDefinition.EXAM_TEMPLATE_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(table::getMultiSelection, PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publish(false)
 
                 .newAction(ActionDefinition.EXAM_TEMPLATE_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(table::getMultiSelection, PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im(), false);
     }
 

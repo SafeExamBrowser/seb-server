@@ -8,7 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.content.monitoring;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
@@ -52,8 +54,8 @@ import ch.ethz.seb.sebserver.gui.service.push.UpdateErrorHandler;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
@@ -90,6 +92,11 @@ public class MonitoringClientConnection implements TemplateComposer {
     private static final LocTextKey NOTIFICATION_LIST_COLUMN_TYPE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.notificationlist.type");
 
+    private static final LocTextKey CONFIRM_QUIT =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.confirm");
+    private static final LocTextKey CONFIRM_OPEN_SINGLE_ROOM =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.singleroom.confirm");
+
     private static final LocTextKey EVENT_LIST_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.title");
     private static final LocTextKey EVENT_LIST_TITLE_TOOLTIP_KEY =
@@ -107,10 +114,6 @@ public class MonitoringClientConnection implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.value");
     private static final LocTextKey LIST_COLUMN_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.text");
-    private static final LocTextKey CONFIRM_QUIT =
-            new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.confirm");
-    private static final LocTextKey CONFIRM_OPEN_SINGLE_ROOM =
-            new LocTextKey("sebserver.monitoring.exam.connection.action.singleroom.confirm");
 
     private final ServerPushService serverPushService;
     private final PageService pageService;
@@ -118,6 +121,7 @@ public class MonitoringClientConnection implements TemplateComposer {
     private final I18nSupport i18nSupport;
     private final InstructionProcessor instructionProcessor;
     private final SEBClientEventDetailsPopup sebClientLogDetailsPopup;
+    private final SEBSendLockPopup sebSendLockPopup;
     private final MonitoringProctoringService monitoringProctoringService;
     private final long pollInterval;
     private final int pageSize;
@@ -132,6 +136,7 @@ public class MonitoringClientConnection implements TemplateComposer {
             final InstructionProcessor instructionProcessor,
             final SEBClientEventDetailsPopup sebClientLogDetailsPopup,
             final MonitoringProctoringService monitoringProctoringService,
+            final SEBSendLockPopup sebSendLockPopup,
             @Value("${sebserver.gui.webservice.poll-interval:500}") final long pollInterval,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
@@ -143,6 +148,7 @@ public class MonitoringClientConnection implements TemplateComposer {
         this.monitoringProctoringService = monitoringProctoringService;
         this.pollInterval = pollInterval;
         this.sebClientLogDetailsPopup = sebClientLogDetailsPopup;
+        this.sebSendLockPopup = sebSendLockPopup;
         this.pageSize = pageSize;
 
         this.typeFilter = new TableFilterAttribute(
@@ -263,7 +269,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                     .withParentEntityKey(parentEntityKey)
                     .withConfirm(() -> NOTIFICATION_LIST_CONFIRM_TEXT_KEY)
                     .withSelect(
-                            () -> notificationTable.getSelection(),
+                            () -> notificationTable.getMultiSelection(),
                             action -> this.confirmNotification(action, connectionData, notificationTable),
 
                             NOTIFICATION_LIST_NO_SELECTION_KEY)
@@ -275,14 +281,11 @@ public class MonitoringClientConnection implements TemplateComposer {
 
         final Supplier<EntityTable<ClientNotification>> notificationTableSupplier = _notificationTableSupplier;
         // server push update
-        final UpdateErrorHandler updateErrorHandler =
-                new UpdateErrorHandler(this.pageService, pageContext);
-
         this.serverPushService.runServerPush(
                 new ServerPushContext(
                         content,
                         Utils.truePredicate(),
-                        updateErrorHandler),
+                        new UpdateErrorHandler(this.pageService, pageContext)),
                 this.pollInterval,
                 context -> clientConnectionDetails.updateData(),
                 context -> clientConnectionDetails.updateGUI(notificationTableSupplier, pageContext));
@@ -367,18 +370,26 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .withConfirm(() -> CONFIRM_QUIT)
                 .withExec(action -> {
                     this.instructionProcessor.propagateSEBQuitInstruction(
-                            exam.id,
+                            exam.getModelId(),
                             connectionToken,
                             pageContext);
                     return action;
                 })
                 .noEventPropagation()
                 .publishIf(() -> isExamSupporter.getAsBoolean() &&
+                        connectionData.clientConnection.status.clientActiveStatus)
+
+                .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_LOCK)
+                .withEntityKey(parentEntityKey)
+                .withExec(action -> this.sebSendLockPopup.show(action,
+                        some -> new HashSet<>(Arrays.asList(connectionToken))))
+                .noEventPropagation()
+                .publishIf(() -> isExamSupporter.getAsBoolean() &&
                         connectionData.clientConnection.status.clientActiveStatus);
 
         if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {
             final ProctoringServiceSettings proctoringSettings = restService
-                    .getBuilder(GetProctoringSettings.class)
+                    .getBuilder(GetExamProctoringSettings.class)
                     .withURIVariable(API.PARAM_MODEL_ID, parentEntityKey.modelId)
                     .call()
                     .onError(error -> log.error("Failed to get ProctoringServiceSettings", error))

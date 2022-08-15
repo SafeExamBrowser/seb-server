@@ -69,7 +69,7 @@ public class MonitoringExamSearchPopup {
         final ModalInputDialog<Void> dialog = new ModalInputDialog<>(
                 pageContext.getParent().getShell(),
                 this.pageService.getWidgetFactory());
-        dialog.setLargeDialogWidth();
+        dialog.setVeryLargeDialogWidth();
         dialog.setDialogHeight(380);
         dialog.open(
                 TITLE_TEXT_KEY,
@@ -93,20 +93,23 @@ public class MonitoringExamSearchPopup {
                         Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
                         TABLE_COLUMN_NAME,
                         ClientConnection::getUserSessionId)
-                                .withFilter(this.nameFilter))
+                                .withFilter(this.nameFilter)
+                                .widthProportion(2))
 
                 .withColumn(new ColumnDefinition<>(
                         ClientConnection.ATTR_INFO,
                         TABLE_COLUMN_INFO,
                         ClientConnection::getInfo)
-                                .withFilter(this.infoFilter))
+                                .withFilter(this.infoFilter)
+                                .widthProportion(3))
 
                 .withColumn(new ColumnDefinition<ClientConnection>(
                         Domain.CLIENT_CONNECTION.ATTR_STATUS,
                         TABLE_COLUMN_STATUS,
                         row -> this.pageService.getResourceService()
                                 .localizedClientConnectionStatusName(row.getStatus()))
-                                        .withFilter(this.statusFilter))
+                                        .withFilter(this.statusFilter)
+                                        .widthProportion(1))
 
                 .withDefaultAction(t -> actionBuilder
                         .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)

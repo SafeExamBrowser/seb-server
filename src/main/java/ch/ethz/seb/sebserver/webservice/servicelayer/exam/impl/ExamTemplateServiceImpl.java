@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
@@ -44,6 +45,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
@@ -118,13 +120,14 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
     @Override
     public Result<Exam> initAdditionalAttributes(final Exam exam) {
-        return this.examAdminService.saveLMSAttributes(exam)
+        return this.examAdminService
+                .saveLMSAttributes(exam)
                 .map(_exam -> {
 
                     if (exam.examTemplateId != null) {
 
                         if (log.isDebugEnabled()) {
-                            log.debug("Init exam: {} with additional attributes form exam template: {}",
+                            log.debug("Init exam: {} with additional attributes from exam template: {}",
                                     exam.externalId,
                                     exam.examTemplateId);
                         }
@@ -148,7 +151,8 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                         }
                     }
                     return _exam;
-                }).onError(error -> log.error("Failed to create additional attributes defined by template for exam: ",
+                }).onError(error -> log.error(
+                        "Failed to create additional attributes defined by template for exam: ",
                         error));
     }
 
@@ -175,28 +179,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 if (examTemplate.configTemplateId != null) {
 
-                    // create new exam configuration for the exam
-                    final ConfigurationNode configurationNode = new ConfigurationNode(
-                            null,
-                            exam.institutionId,
-                            examTemplate.configTemplateId,
-                            replaceVars(this.defaultExamConfigNameTemplate, exam, examTemplate),
-                            replaceVars(this.defaultExamConfigDescTemplate, exam, examTemplate),
-                            ConfigurationType.EXAM_CONFIG,
-                            exam.owner,
-                            ConfigurationStatus.IN_USE);
-
-                    final ConfigurationNode examConfig = this.configurationNodeDAO
-                            .createNew(configurationNode)
-                            .onError(error -> log.error(
-                                    "Failed to create exam configuration for exam: {} from template: {} examConfig: {}",
-                                    exam.name,
-                                    examTemplate.name,
-                                    configurationNode,
-                                    error))
-                            .getOrThrow(error -> new APIMessageException(
-                                    ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG,
-                                    error));
+                    final ConfigurationNode examConfig = createOrReuseConfig(exam, examTemplate);
 
                     // map the exam configuration to the exam
                     this.examConfigurationMapDAO.createNew(new ExamConfigurationMap(
@@ -222,6 +205,72 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
             return exam;
         }).onError(error -> log.error("Failed to create exam configuration defined by template for exam: ", error));
+    }
+
+    private ConfigurationNode createOrReuseConfig(final Exam exam, final ExamTemplate examTemplate) {
+        final String configName = replaceVars(this.defaultExamConfigNameTemplate, exam, examTemplate);
+        final FilterMap filterMap = new FilterMap();
+        filterMap.putIfAbsent(Entity.FILTER_ATTR_INSTITUTION, exam.institutionId.toString());
+        filterMap.putIfAbsent(Entity.FILTER_ATTR_NAME, configName);
+
+        // get existing config if available
+        final ConfigurationNode examConfig = this.configurationNodeDAO
+                .allMatching(filterMap)
+                .getOrThrow()
+                .stream()
+                .filter(res -> res.name.equals(configName))
+                .findFirst()
+                .orElse(null);
+
+        if (examConfig == null || examConfig.status != ConfigurationStatus.READY_TO_USE) {
+            final ConfigurationNode config = new ConfigurationNode(
+                    null,
+                    exam.institutionId,
+                    examTemplate.configTemplateId,
+                    configName,
+                    replaceVars(this.defaultExamConfigDescTemplate, exam, examTemplate),
+                    ConfigurationType.EXAM_CONFIG,
+                    exam.owner,
+                    ConfigurationStatus.IN_USE,
+                    null,
+                    null);
+
+            return this.configurationNodeDAO
+                    .createNew(config)
+                    .onError(error -> log.error(
+                            "Failed to create exam configuration for exam: {} from template: {} examConfig: {}",
+                            exam.name,
+                            examTemplate.name,
+                            config,
+                            error))
+                    .getOrThrow(error -> new APIMessageException(
+                            ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG,
+                            error));
+        } else {
+            final ConfigurationNode config = new ConfigurationNode(
+                    examConfig.id,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    ConfigurationStatus.IN_USE,
+                    null,
+                    null);
+
+            return this.configurationNodeDAO
+                    .save(config)
+                    .onError(error -> log.error(
+                            "Failed to save exam configuration for exam: {} from template: {} examConfig: {}",
+                            exam.name,
+                            examTemplate.name,
+                            config,
+                            error))
+                    .getOrThrow(error -> new APIMessageException(
+                            ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG,
+                            error));
+        }
     }
 
     private Result<Exam> addIndicatorsFromTemplate(final Exam exam) {

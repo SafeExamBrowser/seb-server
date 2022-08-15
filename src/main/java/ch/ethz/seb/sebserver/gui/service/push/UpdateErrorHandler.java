@@ -63,7 +63,7 @@ public final class UpdateErrorHandler implements Function<Exception, Boolean> {
     @Override
     public Boolean apply(final Exception error) {
         this.errors++;
-        log.error("Failed to update server push: {}", error.getMessage());
+        log.error("Failed to update server push: {}", error.getMessage(), error);
         if (this.errors > 5) {
             checkUserSession();
         }

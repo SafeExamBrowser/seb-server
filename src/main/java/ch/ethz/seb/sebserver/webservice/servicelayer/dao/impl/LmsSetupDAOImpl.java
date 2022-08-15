@@ -159,7 +159,7 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
             }
             return lmsSetup.updateTime.equals(record.getUpdateTime());
         } catch (final Exception e) {
-            log.error("Failed to check snyc on LmsSetup: {}", lmsSetup);
+            log.error("Failed to check sync on LmsSetup: {}", lmsSetup);
             return false;
         }
     }

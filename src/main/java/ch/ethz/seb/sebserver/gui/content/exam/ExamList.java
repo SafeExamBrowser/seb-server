@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TableItem;
@@ -29,7 +30,6 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
-import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -76,6 +76,8 @@ public class ExamList implements TemplateComposer {
             new LocTextKey("sebserver.exam.list.column.lmssetup");
     public final static LocTextKey COLUMN_TITLE_NAME_KEY =
             new LocTextKey("sebserver.exam.list.column.name");
+    public final static LocTextKey COLUMN_TITLE_STATE_KEY =
+            new LocTextKey("sebserver.exam.list.column.state");
     public final static LocTextKey COLUMN_TITLE_TYPE_KEY =
             new LocTextKey("sebserver.exam.list.column.type");
     public final static LocTextKey NO_MODIFY_OF_OUT_DATED_EXAMS =
@@ -86,7 +88,8 @@ public class ExamList implements TemplateComposer {
     private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute lmsFilter;
     private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
+            new TableFilterAttribute(CriteriaType.TEXT, Domain.EXAM.ATTR_QUIZ_NAME);
+    private final TableFilterAttribute stateFilter;
     private final TableFilterAttribute typeFilter;
 
     private final PageService pageService;
@@ -110,6 +113,11 @@ public class ExamList implements TemplateComposer {
                 CriteriaType.SINGLE_SELECTION,
                 LmsSetup.FILTER_ATTR_LMS_SETUP,
                 this.resourceService::lmsSetupResource);
+
+        this.stateFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                Exam.FILTER_ATTR_STATUS,
+                this.resourceService::localizedExamStatusSelection);
 
         this.typeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -168,24 +176,31 @@ public class ExamList implements TemplateComposer {
                                         .sortable())
 
                         .withColumn(new ColumnDefinition<>(
-                                QuizData.QUIZ_ATTR_NAME,
+                                Domain.EXAM.ATTR_QUIZ_NAME,
                                 COLUMN_TITLE_NAME_KEY,
                                 Exam::getName)
                                         .withFilter(this.nameFilter)
                                         .sortable())
 
                         .withColumn(new ColumnDefinition<>(
-                                QuizData.QUIZ_ATTR_START_TIME,
+                                Domain.EXAM.ATTR_QUIZ_START_TIME,
                                 new LocTextKey(
                                         EXAM_LIST_COLUMN_START_TIME,
                                         i18nSupport.getUsersTimeZoneTitleSuffix()),
                                 Exam::getStartTime)
                                         .withFilter(new TableFilterAttribute(
                                                 CriteriaType.DATE,
-                                                QuizData.FILTER_ATTR_START_TIME,
+                                                Domain.EXAM.ATTR_QUIZ_START_TIME,
                                                 Utils.toDateTimeUTC(Utils.getMillisecondsNow())
                                                         .minusYears(1)
                                                         .toString()))
+                                        .sortable())
+
+                        .withColumn(new ColumnDefinition<>(
+                                Domain.EXAM.ATTR_STATUS,
+                                COLUMN_TITLE_STATE_KEY,
+                                this.resourceService::localizedExamStatusName)
+                                        .withFilter(this.stateFilter)
                                         .sortable())
 
                         .withColumn(new ColumnDefinition<Exam>(
@@ -210,7 +225,8 @@ public class ExamList implements TemplateComposer {
         final GrantCheck userGrant = currentUser.grantCheck(EntityType.EXAM);
         actionBuilder
                 .newAction(ActionDefinition.EXAM_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(table::getMultiSelection, PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publish(false)
 
                 .newAction(ActionDefinition.EXAM_MODIFY_FROM_LIST)
@@ -257,7 +273,12 @@ public class ExamList implements TemplateComposer {
             final Exam exam,
             final PageService pageService) {
 
-        if (exam.getStatus() == ExamStatus.UP_COMING || exam.getStatus() == ExamStatus.FINISHED) {
+        if (BooleanUtils.isFalse(exam.isLmsAvailable())) {
+            item.setData(RWT.CUSTOM_VARIANT, CustomVariant.DISABLED.key);
+            return;
+        }
+
+        if (exam.getStatus() != ExamStatus.RUNNING) {
             return;
         }
 

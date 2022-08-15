@@ -17,9 +17,10 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
 
 /** Concrete EntityDAO interface of Certificate entities */
-public interface CertificateDAO {
+public interface CertificateDAO extends BulkActionSupportDAO<CertificateInfo> {
 
     Result<Certificate> getCertificate(final Long institutionId, String alias);
 

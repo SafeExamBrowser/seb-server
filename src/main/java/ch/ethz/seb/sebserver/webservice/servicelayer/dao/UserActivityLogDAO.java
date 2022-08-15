@@ -78,6 +78,12 @@ public interface UserActivityLogDAO extends
      * @return Result of the Entity or referring to an Error if happened */
     <E extends Entity> Result<E> logModify(E entity);
 
+    /** Create a user activity log entry for the current user of activity type FINISHED
+     *
+     * @param entity the Entity
+     * @return Result of the Entity or referring to an Error if happened */
+    <E extends Entity> Result<E> logFinished(E entity);
+
     /** Create a user activity log entry for the current user of activity type DELETE
      *
      * @param entity the Entity

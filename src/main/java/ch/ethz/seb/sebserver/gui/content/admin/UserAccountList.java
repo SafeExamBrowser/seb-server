@@ -222,11 +222,12 @@ public class UserAccountList implements TemplateComposer {
                 .publishIf(userGrant::iw)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_VIEW_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(table::getMultiSelection, PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publish(false)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_MODIFY_FROM_LIST)
-                .withSelect(table::getSelection, this::editAction, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(table::getMultiSelection, this::editAction, EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im(), false)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_TOGGLE_ACTIVITY)

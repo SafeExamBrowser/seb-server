@@ -890,6 +890,14 @@ TableItem {
     background-image: none;
 }
 
+TableItem.disabled {
+    background-color: transparent;
+    color: #aaaaaa;
+    text-decoration: none;
+    text-shadow: none;
+    background-image: none;
+}
+
 Table-RowOverlay.warning {
     background-color: rgba( 168, 50, 45, 0.5 );
     background-gradient-color: rgba( 168, 50, 45, 0.5 );
@@ -899,6 +907,11 @@ Table-RowOverlay.warning {
 TableItem:linesvisible:even {
     background-color: #ffffff;
     color: inherit;
+}
+
+TableItem:linesvisible:even.disabled {
+    background-color: #ffffff;
+    color: #aaaaaa;
 }
 
 Table-RowOverlay {

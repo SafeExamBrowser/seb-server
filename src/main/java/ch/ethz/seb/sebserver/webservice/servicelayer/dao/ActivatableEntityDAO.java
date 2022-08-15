@@ -42,7 +42,7 @@ public interface ActivatableEntityDAO<T extends Entity, M extends ModelIdAware> 
     Result<Collection<EntityKey>> setActive(Set<EntityKey> all, boolean active);
 
     default Result<T> setActive(final T entity, final boolean active) {
-        return setActive(new HashSet<>(Arrays.asList(entity.getEntityKey())), true)
+        return setActive(new HashSet<>(Arrays.asList(entity.getEntityKey())), active)
                 .flatMap(result -> byModelId(result.iterator().next().modelId));
     }
 

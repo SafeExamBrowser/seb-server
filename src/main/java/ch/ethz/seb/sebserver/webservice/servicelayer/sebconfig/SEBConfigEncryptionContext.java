@@ -36,4 +36,6 @@ public interface SEBConfigEncryptionContext {
      * @throws UnsupportedOperationException if not supported */
     Certificate getCertificate();
 
+    String getCertificateAlias();
+
 }

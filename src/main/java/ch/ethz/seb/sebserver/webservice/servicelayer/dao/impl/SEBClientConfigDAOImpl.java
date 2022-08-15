@@ -24,6 +24,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,10 +52,13 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttribut
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.SebClientConfigRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOUserServcie;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.RevokeTokenEndpoint.RevokeExamTokenEvent;
 
 @Lazy
 @Component
@@ -63,15 +68,24 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     private final SebClientConfigRecordMapper sebClientConfigRecordMapper;
     private final ClientCredentialService clientCredentialService;
     private final AdditionalAttributesDAOImpl additionalAttributesDAO;
+    private final DAOUserServcie daoUserServcie;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final CacheManager cacheManager;
 
     protected SEBClientConfigDAOImpl(
             final SebClientConfigRecordMapper sebClientConfigRecordMapper,
             final ClientCredentialService clientCredentialService,
-            final AdditionalAttributesDAOImpl additionalAttributesDAO) {
+            final AdditionalAttributesDAOImpl additionalAttributesDAO,
+            final DAOUserServcie daoUserServcie,
+            final ApplicationEventPublisher applicationEventPublisher,
+            final CacheManager cacheManager) {
 
         this.sebClientConfigRecordMapper = sebClientConfigRecordMapper;
         this.clientCredentialService = clientCredentialService;
         this.additionalAttributesDAO = additionalAttributesDAO;
+        this.daoUserServcie = daoUserServcie;
+        this.applicationEventPublisher = applicationEventPublisher;
+        this.cacheManager = cacheManager;
     }
 
     @Override
@@ -140,6 +154,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<SEBClientConfig> byClientName(final String clientName) {
         return Result.tryCatch(() -> this.sebClientConfigRecordMapper
                 .selectByExample()
@@ -200,9 +215,14 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 return Collections.emptyList();
             }
 
+            // clear caches and revoke tokens first
+            ids.stream().forEach(this::disposeSEBClientConfig);
+
             final SebClientConfigRecord record = new SebClientConfigRecord(
                     null, null, null, null, null, null, null,
-                    BooleanUtils.toIntegerObject(active));
+                    BooleanUtils.toIntegerObject(active),
+                    Utils.getMillisecondsNow(),
+                    this.daoUserServcie.getCurrentUserUUID());
 
             this.sebClientConfigRecordMapper.updateByExampleSelective(record)
                     .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(ids))
@@ -232,7 +252,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                             cc.clientIdAsString(),
                             cc.secretAsString(),
                             getEncryptionPassword(sebClientConfig),
-                            BooleanUtils.toInteger(BooleanUtils.isTrue(sebClientConfig.active)));
+                            BooleanUtils.toInteger(BooleanUtils.isTrue(sebClientConfig.active)),
+                            Utils.getMillisecondsNow(),
+                            this.daoUserServcie.getCurrentUserUUID());
 
                     this.sebClientConfigRecordMapper
                             .insert(newRecord);
@@ -263,7 +285,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                     record.getClientName(),
                     record.getClientSecret(),
                     getEncryptionPassword(sebClientConfig),
-                    record.getActive());
+                    record.getActive(),
+                    Utils.getMillisecondsNow(),
+                    this.daoUserServcie.getCurrentUserUUID());
 
             this.sebClientConfigRecordMapper.updateByPrimaryKey(newRecord);
 
@@ -285,6 +309,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
             if (ids == null || ids.isEmpty()) {
                 return Collections.emptyList();
             }
+
+            // clear caches and revoke tokens first
+            ids.stream().forEach(this::disposeSEBClientConfig);
 
             this.sebClientConfigRecordMapper.deleteByExample()
                     .where(SebClientConfigRecordDynamicSqlSupport.id, isIn(ids))
@@ -447,7 +474,9 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                         ? additionalAttributes.get(SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ALIAS).getValue()
                         : null,
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_ENCRYPT_CERTIFICATE_ASYM),
-                BooleanUtils.toBooleanObject(record.getActive())));
+                BooleanUtils.toBooleanObject(record.getActive()),
+                Utils.toDateTimeUTC(record.getLastUpdateTime()),
+                record.getLastUpdateUser()));
     }
 
     private String getEncryptionPassword(final SEBClientConfig sebClientConfig) {
@@ -645,4 +674,29 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
         }
     }
 
+    private Long disposeSEBClientConfig(final Long pk) {
+
+        try {
+            final SebClientConfigRecord rec = recordById(pk)
+                    .getOrThrow();
+
+            // revoke token
+            try {
+                this.applicationEventPublisher
+                        .publishEvent(new RevokeExamTokenEvent(rec.getClientName()));
+            } catch (final Exception e) {
+                log.error("Failed to revoke token for SEB client connection. Connection Configuration: {}", pk, e);
+            }
+
+            // clear cache
+            this.cacheManager
+                    .getCache(ClientConfigService.EXAM_CLIENT_DETAILS_CACHE)
+                    .evictIfPresent(rec.getClientName());
+
+        } catch (final Exception e) {
+            log.error("Failed to revoke SEB client connection. Connection Configuration: {}", pk, e);
+        }
+
+        return pk;
+    }
 }

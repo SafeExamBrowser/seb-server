@@ -25,7 +25,6 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ActivatableEntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 
 /** Defines overall DAO support for bulk-actions like activate, deactivate, delete...
  *
@@ -71,16 +70,23 @@ public interface BulkActionSupportDAO<T extends Entity> {
                                 .get(error -> handleBulkActionError(error, all))
                         : Collections.emptyList();
             case HARD_DELETE:
-                return (this instanceof EntityDAO)
-                        ? ((EntityDAO<?, ?>) this).delete(all)
-                                .map(BulkActionSupportDAO::transformResult)
-                                .get(error -> handleBulkActionError(error, all))
-                        : Collections.emptyList();
+                return delete(all)
+                        .map(BulkActionSupportDAO::transformResult)
+                        .get(error -> handleBulkActionError(error, all));
         }
 
         // should never happen
         throw new UnsupportedOperationException("Unsupported Bulk Action: " + bulkAction);
     }
+
+    /** Use this to delete all entities defined by a set of EntityKey
+     * NOTE: the Set of EntityKey may contain EntityKey of other entity types like the concrete type of the DAO
+     * use extractPKsFromKeys to get a list of concrete primary keys for entities to delete
+     *
+     * @param all The Collection of EntityKey to delete
+     * @return Result referring a collection of all entities that has been deleted or refer to an error if
+     *         happened */
+    Result<Collection<EntityKey>> delete(Set<EntityKey> all);
 
     /** This creates a collection of Results refer the given entity keys.
      *

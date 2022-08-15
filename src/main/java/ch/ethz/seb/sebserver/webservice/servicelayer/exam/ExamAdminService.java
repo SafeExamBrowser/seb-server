@@ -8,11 +8,19 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
-import org.apache.commons.lang3.BooleanUtils;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.validation.FieldError;
+
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 
@@ -83,19 +91,52 @@ public interface ExamAdminService {
      * @return Result refer to proctoring is enabled flag or to an error when happened. */
     Result<Boolean> isProctoringEnabled(final Long examId);
 
-    /** Get the exam proctoring service implementation of specified type.
-     *
-     * @param type exam proctoring service server type
-     * @return ExamProctoringService instance */
-    Result<ExamProctoringService> getExamProctoringService(final ProctoringServerType type);
-
     /** Get the exam proctoring service implementation for specified exam.
      *
      * @param examId the exam identifier
      * @return ExamProctoringService instance */
-    default Result<ExamProctoringService> getExamProctoringService(final Long examId) {
-        return getProctoringServiceSettings(examId)
-                .flatMap(settings -> getExamProctoringService(settings.serverType));
+    Result<ExamProctoringService> getExamProctoringService(final Long examId);
+
+    /** This archives a finished exam and set it to archived state as well as the assigned
+     * exam configurations that are also set to archived state.
+     *
+     * @param exam The exam to archive
+     * @return Result refer to the archived exam or to an error when happened */
+    Result<Exam> archiveExam(Exam exam);
+
+    /** Used to check threshold consistency for a given list of thresholds.
+     * Checks if all values are present (none null value)
+     * Checks if there are duplicates
+     *
+     * If a check fails, the methods throws a APIMessageException with a FieldError to notify the caller
+     *
+     * @param thresholds List of Threshold */
+    public static void checkThresholdConsistency(final List<Threshold> thresholds) {
+        if (thresholds != null) {
+            final List<Threshold> emptyThresholds = thresholds.stream()
+                    .filter(t -> t.getValue() == null || t.getColor() == null)
+                    .collect(Collectors.toList());
+
+            if (!emptyThresholds.isEmpty()) {
+                throw new APIMessageException(APIMessage.fieldValidationError(
+                        new FieldError(
+                                Domain.EXAM.TYPE_NAME,
+                                Domain.EXAM.ATTR_SUPPORTER,
+                                "indicator:thresholds:thresholdEmpty")));
+            }
+
+            final Set<Double> values = thresholds.stream()
+                    .map(t -> t.getValue())
+                    .collect(Collectors.toSet());
+
+            if (values.size() != thresholds.size()) {
+                throw new APIMessageException(APIMessage.fieldValidationError(
+                        new FieldError(
+                                Domain.EXAM.TYPE_NAME,
+                                Domain.EXAM.ATTR_SUPPORTER,
+                                "indicator:thresholds:thresholdDuplicate")));
+            }
+        }
     }
 
 }

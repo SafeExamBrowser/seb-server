@@ -55,13 +55,13 @@ public interface ClientCredentialService {
         return encryptClientCredentials(clientIdPlaintext, secretPlaintext, null);
     }
 
-    /** Use this to get a decrypted plain text secret form given ClientCredentials
+    /** Use this to get a decrypted plain text secret from given ClientCredentials
      *
      * @param credentials ClientCredentials containing the secret to decrypt
      * @return decrypted plain text secret */
     Result<CharSequence> getPlainClientSecret(ClientCredentials credentials);
 
-    /** Use this to get a decrypted plain text accessToken form given ClientCredentials
+    /** Use this to get a decrypted plain text accessToken from given ClientCredentials
      *
      * @param credentials ClientCredentials containing the accessToken to decrypt
      * @return decrypted plain text accessToken */

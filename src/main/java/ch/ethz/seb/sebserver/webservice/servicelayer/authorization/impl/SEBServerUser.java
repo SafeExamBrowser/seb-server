@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,7 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
  *
  * This implements Spring's UserDetails and CredentialsContainer to act as a principal
  * within internal authentication and authorization processes. */
-public final class SEBServerUser implements UserDetails, CredentialsContainer {
+public final class SEBServerUser implements UserDetails, CredentialsContainer, Authentication {
 
     private static final long serialVersionUID = 5726250141482925769L;
 
@@ -158,6 +159,36 @@ public final class SEBServerUser implements UserDetails, CredentialsContainer {
      * @return return copied SEBServerUser instance */
     public static SEBServerUser of(final SEBServerUser user) {
         return new SEBServerUser(user.id, UserInfo.of(user.userInfo), user.password);
+    }
+
+    @Override
+    public String getName() {
+        return this.userInfo.username;
+    }
+
+    @Override
+    public Object getCredentials() {
+        return this;
+    }
+
+    @Override
+    public Object getDetails() {
+        return this;
+    }
+
+    @Override
+    public Object getPrincipal() {
+        return this;
+    }
+
+    @Override
+    public boolean isAuthenticated() {
+        return isEnabled();
+    }
+
+    @Override
+    public void setAuthenticated(final boolean isAuthenticated) throws IllegalArgumentException {
+
     }
 
 }

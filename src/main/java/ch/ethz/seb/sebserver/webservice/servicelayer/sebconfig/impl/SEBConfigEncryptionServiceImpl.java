@@ -194,17 +194,20 @@ public final class SEBConfigEncryptionServiceImpl implements SEBConfigEncryption
         public final Strategy strategy;
         public final CharSequence password;
         public final Certificate certificate;
+        public final String certificateAlias;
 
         private EncryptionContext(
                 final Long institutionId,
                 final Strategy strategy,
                 final CharSequence password,
-                final Certificate certificate) {
+                final Certificate certificate,
+                final String certificateAlias) {
 
             this.institutionId = institutionId;
             this.strategy = strategy;
             this.password = password;
             this.certificate = certificate;
+            this.certificateAlias = certificateAlias;
         }
 
         @Override
@@ -227,22 +230,28 @@ public final class SEBConfigEncryptionServiceImpl implements SEBConfigEncryption
             return this.certificate;
         }
 
+        @Override
+        public String getCertificateAlias() {
+            return this.certificateAlias;
+        }
+
         static SEBConfigEncryptionContext contextOf(
                 final Long institutionId,
                 final Strategy strategy,
                 final CharSequence password) {
 
             checkPasswordBased(strategy);
-            return new EncryptionContext(institutionId, strategy, password, null);
+            return new EncryptionContext(institutionId, strategy, password, null, null);
         }
 
         static SEBConfigEncryptionContext contextOf(
                 final Long institutionId,
                 final Strategy strategy,
-                final Certificate certificate) {
+                final Certificate certificate,
+                final String certificateAlias) {
 
             checkCertificateBased(strategy);
-            return new EncryptionContext(institutionId, strategy, null, certificate);
+            return new EncryptionContext(institutionId, strategy, null, certificate, certificateAlias);
         }
 
         static void checkPasswordBased(final Strategy strategy) {
@@ -259,14 +268,14 @@ public final class SEBConfigEncryptionServiceImpl implements SEBConfigEncryption
 
         public static SEBConfigEncryptionContext contextOfPlainText(final Long institutionId) {
 
-            return new EncryptionContext(institutionId, Strategy.PLAIN_TEXT, null, null);
+            return new EncryptionContext(institutionId, Strategy.PLAIN_TEXT, null, null, null);
         }
 
         public static SEBConfigEncryptionContext contextOf(
                 final Long institutionId,
                 final CharSequence password) {
 
-            return new EncryptionContext(institutionId, null, password, null);
+            return new EncryptionContext(institutionId, null, password, null, null);
         }
 
     }

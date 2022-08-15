@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 
 /** An EntityKey uniquely identifies a domain entity within the SEB Server's domain model.
@@ -128,7 +129,11 @@ public class EntityKey implements ModelIdAware, Serializable, Comparable<EntityK
             return -1;
         }
 
-        final int compareTo = this.entityType.name().compareTo(other.entityType.name());
+        final int compareTo = Constants.DEFAULT_ENGLISH_COLLATOR.compare(
+                this.entityType.name(),
+                other.entityType.name());
+        //this.entityType.name().compareTo(other.entityType.name());
+
         if (compareTo == 0) {
             return this.modelId.compareTo(other.modelId);
         } else {

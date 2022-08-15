@@ -81,7 +81,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetIn
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.GetLmsSetupNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.cert.GetCertificateNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodeNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodes;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
@@ -119,6 +118,7 @@ public class ResourceService {
     public static final EnumSet<EventType> CLIENT_EVENT_TYPE_EXCLUDE_MAP = EnumSet.of(
             EventType.UNKNOWN);
 
+    public static final String EXAM_STATUS_PREFIX = "sebserver.exam.status.";
     public static final String EXAMCONFIG_STATUS_PREFIX = "sebserver.examconfig.status.";
     public static final String EXAM_TYPE_PREFIX = "sebserver.exam.type.";
     public static final String USERACCOUNT_ROLE_PREFIX = "sebserver.useraccount.role.";
@@ -471,7 +471,20 @@ public class ResourceService {
                 .collect(Collectors.toList());
     }
 
-    public List<Tuple<String>> examConfigStatusResources(final boolean isAttachedToExam) {
+    public List<Tuple<String>> examConfigStatusResourcesAll() {
+        return Arrays.stream(ConfigurationStatus.values())
+                .map(type -> new Tuple3<>(
+                        type.name(),
+                        this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name())
+                                        + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> examConfigStatusResources(final boolean isAttachedToExam, final boolean hasRunningExam) {
         return Arrays.stream(ConfigurationStatus.values())
                 .filter(status -> {
                     if (isAttachedToExam) {
@@ -480,6 +493,7 @@ public class ResourceService {
                         return status != ConfigurationStatus.IN_USE;
                     }
                 })
+                .filter(status -> !hasRunningExam || status != ConfigurationStatus.ARCHIVED)
                 .map(type -> new Tuple3<>(
                         type.name(),
                         this.i18nSupport.getText(EXAMCONFIG_STATUS_PREFIX + type.name()),
@@ -533,6 +547,32 @@ public class ResourceService {
     public String localizedExamConfigInstitutionName(final ConfigurationNode config) {
         return getInstitutionNameFunction()
                 .apply(String.valueOf(config.institutionId));
+    }
+
+    public List<Tuple<String>> localizedExamStatusSelection() {
+        return Arrays.stream(ExamStatus.values())
+                .map(type -> new Tuple<>(type.name(),
+                        this.i18nSupport.getText(EXAM_STATUS_PREFIX + type.name())))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> localizedFinishedExamStatusSelection() {
+        return Arrays.stream(ExamStatus.values())
+                .filter(st -> st == ExamStatus.ARCHIVED || st == ExamStatus.FINISHED)
+                .map(type -> new Tuple<>(type.name(),
+                        this.i18nSupport.getText(EXAM_STATUS_PREFIX + type.name())))
+                .sorted(RESOURCE_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    public String localizedExamStatusName(final Exam exam) {
+        if (exam.status == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.i18nSupport
+                .getText(ResourceService.EXAM_STATUS_PREFIX + exam.status.name());
     }
 
     public String localizedExamConfigStatusName(final ConfigurationNode config) {
@@ -629,9 +669,13 @@ public class ResourceService {
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
-                .filter(exam -> exam != null
-                        && (exam.getStatus() == ExamStatus.RUNNING || exam.getStatus() == ExamStatus.FINISHED))
-                .map(exam -> new Tuple<>(exam.getModelId(), exam.name))
+                .filter(exam -> exam != null &&
+                        (exam.getStatus() == ExamStatus.RUNNING ||
+                                exam.getStatus() == ExamStatus.FINISHED ||
+                                exam.getStatus() == ExamStatus.ARCHIVED))
+                .map(exam -> new Tuple<>(
+                        exam.getModelId(),
+                        StringUtils.isBlank(exam.name) ? exam.externalId : exam.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
@@ -644,7 +688,10 @@ public class ResourceService {
                 .call()
                 .getOr(Collections.emptyList())
                 .stream()
-                .map(entityName -> new Tuple<>(entityName.modelId, entityName.name))
+                .filter(entityName -> StringUtils.isNotBlank(entityName.modelId))
+                .map(entityName -> new Tuple<>(
+                        entityName.modelId,
+                        StringUtils.isBlank(entityName.name) ? entityName.modelId : entityName.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
     }
@@ -660,7 +707,7 @@ public class ResourceService {
                 .filter(k -> StringUtils.isNotBlank(k.modelId))
                 .collect(Collectors.toMap(
                         k -> Long.valueOf(k.modelId),
-                        k -> k.name));
+                        k -> StringUtils.isBlank(k.name) ? k.modelId : k.name));
     }
 
     public List<Tuple<String>> getViewResources() {
@@ -725,8 +772,16 @@ public class ResourceService {
     }
 
     public List<Tuple<String>> getExamConfigTemplateResources() {
+        return getExamConfigTemplateResourcesSelection(true);
+    }
+
+    public List<Tuple<String>> getExamConfigTemplateResourcesSelection() {
+        return getExamConfigTemplateResourcesSelection(false);
+    }
+
+    public List<Tuple<String>> getExamConfigTemplateResourcesSelection(final boolean withEmpty) {
         final UserInfo userInfo = this.currentUser.get();
-        final List<Tuple<String>> collect = this.restService.getBuilder(GetExamConfigNodes.class)
+        final List<Tuple<String>> collect = this.restService.getBuilder(GetExamConfigNodeNames.class)
                 .withQueryParam(Entity.FILTER_ATTR_INSTITUTION, String.valueOf(userInfo.getInstitutionId()))
                 .withQueryParam(ConfigurationNode.FILTER_ATTR_TYPE, ConfigurationType.TEMPLATE.name())
                 .call()
@@ -735,8 +790,25 @@ public class ResourceService {
                 .map(node -> new Tuple<>(node.getModelId(), node.name))
                 .sorted(RESOURCE_COMPARATOR)
                 .collect(Collectors.toList());
-        collect.add(0, new Tuple<>(null, StringUtils.EMPTY));
+        if (withEmpty) {
+            collect.add(0, new Tuple<>(null, StringUtils.EMPTY));
+        }
         return collect;
+    }
+
+    public final Function<ConfigurationNode, String> examConfigTemplateNameFunction() {
+        final List<Tuple<String>> examTemplateResources = getExamConfigTemplateResourcesSelection();
+        return node -> {
+            if (node.templateId == null) {
+                return Constants.EMPTY_NOTE;
+            }
+            return examTemplateResources
+                    .stream()
+                    .filter(tuple -> node.templateId.toString().equals(tuple._1))
+                    .map(tuple -> tuple._2)
+                    .findAny()
+                    .orElse(Constants.EMPTY_NOTE);
+        };
     }
 
     public List<Tuple<String>> sebRestrictionWhiteListResources() {

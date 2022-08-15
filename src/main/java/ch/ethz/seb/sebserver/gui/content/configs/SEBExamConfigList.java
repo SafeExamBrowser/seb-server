@@ -57,6 +57,8 @@ public class SEBExamConfigList implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.list.column.description");
     private static final LocTextKey STATUS_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.list.column.status");
+    private static final LocTextKey TEMPLATE_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.list.column.template");
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.info.pleaseSelect");
 
@@ -66,10 +68,13 @@ public class SEBExamConfigList implements TemplateComposer {
     private final TableFilterAttribute descFilter =
             new TableFilterAttribute(CriteriaType.TEXT, ConfigurationNode.FILTER_ATTR_DESCRIPTION);
     private final TableFilterAttribute statusFilter;
+    private final TableFilterAttribute templateFilter;
 
     private final PageService pageService;
     private final SEBExamConfigImportPopup sebExamConfigImportPopup;
     private final SEBExamConfigCreationPopup sebExamConfigCreationPopup;
+    private final SEBExamConfigBatchStateChangePopup sebExamConfigBatchStateChangePopup;
+    private final SEBExamConfigBatchResetToTemplatePopup sebExamConfigBatchResetToTemplatePopup;
     private final CurrentUser currentUser;
     private final ResourceService resourceService;
     private final int pageSize;
@@ -78,11 +83,15 @@ public class SEBExamConfigList implements TemplateComposer {
             final PageService pageService,
             final SEBExamConfigImportPopup sebExamConfigImportPopup,
             final SEBExamConfigCreationPopup sebExamConfigCreationPopup,
+            final SEBExamConfigBatchStateChangePopup sebExamConfigBatchStateChangePopup,
+            final SEBExamConfigBatchResetToTemplatePopup sebExamConfigBatchResetToTemplatePopup,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.sebExamConfigImportPopup = sebExamConfigImportPopup;
         this.sebExamConfigCreationPopup = sebExamConfigCreationPopup;
+        this.sebExamConfigBatchStateChangePopup = sebExamConfigBatchStateChangePopup;
+        this.sebExamConfigBatchResetToTemplatePopup = sebExamConfigBatchResetToTemplatePopup;
         this.currentUser = pageService.getCurrentUser();
         this.resourceService = pageService.getResourceService();
         this.pageSize = pageSize;
@@ -96,6 +105,11 @@ public class SEBExamConfigList implements TemplateComposer {
                 CriteriaType.SINGLE_SELECTION,
                 ConfigurationNode.FILTER_ATTR_STATUS,
                 this.resourceService::examConfigStatusFilterResources);
+
+        this.templateFilter = new TableFilterAttribute(
+                CriteriaType.SINGLE_SELECTION,
+                ConfigurationNode.FILTER_ATTR_TEMPLATE_ID,
+                this.resourceService::getExamConfigTemplateResourcesSelection);
     }
 
     @Override
@@ -112,6 +126,7 @@ public class SEBExamConfigList implements TemplateComposer {
         // exam configuration table
         final EntityTable<ConfigurationNode> configTable =
                 this.pageService.entityTableBuilder(GetExamConfigNodePage.class)
+                        .withMultiSelection()
                         .withStaticFilter(
                                 Domain.CONFIGURATION_NODE.ATTR_TYPE,
                                 ConfigurationType.EXAM_CONFIG.name())
@@ -146,6 +161,13 @@ public class SEBExamConfigList implements TemplateComposer {
                                 this.resourceService::localizedExamConfigStatusName)
                                         .withFilter(this.statusFilter)
                                         .sortable())
+
+                        .withColumn(new ColumnDefinition<>(
+                                Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
+                                TEMPLATE_TEXT_KEY,
+                                this.resourceService.examConfigTemplateNameFunction())
+                                        .withFilter(this.templateFilter))
+
                         .withDefaultAction(pageActionBuilder
                                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
                                 .create())
@@ -154,7 +176,9 @@ public class SEBExamConfigList implements TemplateComposer {
                                 pageContext,
                                 ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST,
                                 ActionDefinition.SEB_EXAM_CONFIG_MODIFY_PROP_FROM_LIST,
-                                ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_FROM_LIST))
+                                ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_FROM_LIST,
+                                ActionDefinition.SEB_EXAM_CONFIG_BULK_STATE_CHANGE,
+                                ActionDefinition.SEB_EXAM_CONFIG_BULK_RESET_TO_TEMPLATE))
 
                         .compose(pageContext.copyOf(content));
 
@@ -166,7 +190,7 @@ public class SEBExamConfigList implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_VIEW_PROP_FROM_LIST)
                 .withSelect(
-                        configTable::getSelection,
+                        configTable::getMultiSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
                 .publish(false)
@@ -179,7 +203,6 @@ public class SEBExamConfigList implements TemplateComposer {
                 .publishIf(() -> examConfigGrant.im(), false)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG_FROM_LIST)
-                //.withEntityKey(entityKey)
                 .withSelect(
                         configTable.getGrantedSelection(this.currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         pageAction -> {
@@ -195,6 +218,22 @@ public class SEBExamConfigList implements TemplateComposer {
                                     .apply(pageAction);
                             return pageAction;
                         },
+                        EMPTY_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(() -> examConfigGrant.im(), false)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_BULK_STATE_CHANGE)
+                .withSelect(
+                        configTable::getMultiSelection,
+                        this.sebExamConfigBatchStateChangePopup.popupCreationFunction(pageContext),
+                        EMPTY_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(() -> examConfigGrant.im(), false)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_BULK_RESET_TO_TEMPLATE)
+                .withSelect(
+                        configTable::getMultiSelection,
+                        this.sebExamConfigBatchResetToTemplatePopup.popupCreationFunction(pageContext),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
                 .publishIf(() -> examConfigGrant.im(), false)

@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -21,7 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionContext;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;
 
 public abstract class AbstractCertificateCryptor {
 
@@ -32,25 +37,38 @@ public abstract class AbstractCertificateCryptor {
     protected static final int KEY_LENGTH_SIZE = 4;
 
     protected final CertificateService certificateService;
+    protected final Cryptor cryptor;
 
-    public AbstractCertificateCryptor(final CertificateService certificateService) {
+    public AbstractCertificateCryptor(
+            final CertificateService certificateService,
+            final Cryptor cryptor) {
+
         this.certificateService = certificateService;
+        this.cryptor = cryptor;
     }
 
-    protected Certificate getCertificateByPublicKeyHash(final Long institutionId, final byte[] publicKeyHash) {
+    protected SEBConfigEncryptionContext getCertificateByPublicKeyHash(
+            final SEBConfigEncryptionContext sebConfigEncryptionContext,
+            final byte[] publicKeyHash) {
+
         try {
 
             final Certificates certs = this.certificateService
-                    .getCertificates(institutionId)
+                    .getCertificates(sebConfigEncryptionContext.institutionId())
                     .getOrThrow();
 
             @SuppressWarnings("unchecked")
             final Enumeration<String> engineAliases = certs.keyStore.engineAliases();
             while (engineAliases.hasMoreElements()) {
-                final Certificate certificate = certs.keyStore.engineGetCertificate(engineAliases.nextElement());
+                final String alias = engineAliases.nextElement();
+                final Certificate certificate = certs.keyStore.engineGetCertificate(alias);
                 final byte[] otherPublicKeyHash = generatePublicKeyHash(certificate);
                 if (Arrays.equals(otherPublicKeyHash, publicKeyHash)) {
-                    return certificate;
+                    return EncryptionContext.contextOf(
+                            sebConfigEncryptionContext.institutionId(),
+                            getStrategy(),
+                            certificate,
+                            alias);
                 }
             }
 
@@ -61,6 +79,8 @@ public abstract class AbstractCertificateCryptor {
             return null;
         }
     }
+
+    protected abstract SEBConfigEncryptionService.Strategy getStrategy();
 
     protected byte[] generatePublicKeyHash(final Certificate cert) {
 
@@ -85,21 +105,33 @@ public abstract class AbstractCertificateCryptor {
 
         final String algorithm = cert.getPublicKey().getAlgorithm();
         final Cipher encryptCipher = Cipher.getInstance(algorithm);
-        encryptCipher.init(Cipher.ENCRYPT_MODE, cert.getPublicKey());
+        encryptCipher.init(Cipher.ENCRYPT_MODE, cert);
         return encryptCipher.doFinal(data, 0, length);
     }
 
-    protected byte[] decryptWithCert(final Certificate cert, final byte[] encryptedData) throws Exception {
-        return decryptWithCert(cert, encryptedData, encryptedData.length);
+    protected byte[] decryptWithCert(
+            final SEBConfigEncryptionContext sebConfigEncryptionContext,
+            final byte[] encryptedData) throws Exception {
+
+        return decryptWithCert(sebConfigEncryptionContext, encryptedData, encryptedData.length);
     }
 
     protected byte[] decryptWithCert(
-            final Certificate cert,
-            final byte[] encryptedData, final int length) throws Exception {
+            final SEBConfigEncryptionContext sebConfigEncryptionContext,
+            final byte[] encryptedData,
+            final int length) throws Exception {
 
-        final String algorithm = cert.getPublicKey().getAlgorithm();
+        final Certificate certificate = sebConfigEncryptionContext.getCertificate();
+        final String certificateAlias = sebConfigEncryptionContext.getCertificateAlias();
+        final String algorithm = certificate.getPublicKey().getAlgorithm();
         final Cipher encryptCipher = Cipher.getInstance(algorithm);
-        encryptCipher.init(Cipher.DECRYPT_MODE, cert.getPublicKey());
+        final Certificates certificates = this.certificateService
+                .getCertificates(sebConfigEncryptionContext.institutionId())
+                .getOrThrow();
+        final PrivateKey privateKey = this.cryptor
+                .getPrivateKey(certificates.keyStore, certificateAlias)
+                .getOrThrow();
+        encryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
         return encryptCipher.doFinal(encryptedData, 0, length);
     }
 

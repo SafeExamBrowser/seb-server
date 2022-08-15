@@ -50,9 +50,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 
 public final class Utils {
 
@@ -246,6 +248,9 @@ public final class Utils {
     }
 
     public static String formatDate(final DateTime dateTime) {
+        if (dateTime == null) {
+            return Constants.EMPTY_NOTE;
+        }
         return dateTime.toString(Constants.STANDARD_DATE_TIME_MILLIS_FORMATTER);
     }
 
@@ -576,6 +581,9 @@ public final class Utils {
      * @param rgb foreground or text color
      * @return true of the background color for given foreground color shall be dark or false if it shall be light */
     public static boolean darkColorContrast(final RGB rgb) {
+        if (rgb == null) {
+            return true;
+        }
         return rgb.red + rgb.green + rgb.blue > DARK_COLOR_THRESHOLD;
     }
 
@@ -590,15 +598,16 @@ public final class Utils {
     }
 
     public static RGB parseRGB(final String colorString) {
-        if (StringUtils.isBlank(colorString)) {
+        try {
+
+            final int r = Integer.parseInt(colorString.substring(0, 2), 16);
+            final int g = Integer.parseInt(colorString.substring(2, 4), 16);
+            final int b = Integer.parseInt(colorString.substring(4, 6), 16);
+
+            return new RGB(r, g, b);
+        } catch (final Exception e) {
             return null;
         }
-
-        final int r = Integer.parseInt(colorString.substring(0, 2), 16);
-        final int g = Integer.parseInt(colorString.substring(2, 4), 16);
-        final int b = Integer.parseInt(colorString.substring(4, 6), 16);
-
-        return new RGB(r, g, b);
     }
 
     public static String toColorFractionString(final int fraction) {
@@ -733,6 +742,19 @@ public final class Utils {
             }
         }
         return builder;
+    }
+
+    public static Map<String, String> jsonToMap(final String attribute, final JSONMapper mapper) {
+        if (StringUtils.isBlank(attribute)) {
+            return Collections.emptyMap();
+        }
+        try {
+            return mapper.readValue(attribute, new TypeReference<Map<String, String>>() {
+            });
+        } catch (final Exception e) {
+            log.error("Failed to parse json to map: ", e);
+            return Collections.emptyMap();
+        }
     }
 
 }

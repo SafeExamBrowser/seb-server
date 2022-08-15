@@ -141,7 +141,10 @@ public class MonitoringRunningExamList implements TemplateComposer {
         actionBuilder
 
                 .newAction(ActionDefinition.MONITOR_EXAM_FROM_LIST)
-                .withSelect(table::getSelection, PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
+                .withSelect(
+                        table::getMultiSelection,
+                        PageAction::applySingleSelectionAsEntityKey,
+                        EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> currentUser.get().hasRole(UserRole.EXAM_SUPPORTER), false);
 
     }

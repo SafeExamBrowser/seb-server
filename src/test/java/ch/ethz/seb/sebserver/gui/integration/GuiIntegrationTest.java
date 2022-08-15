@@ -41,7 +41,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
-        properties = "file.encoding=UTF-8",
+        properties = { "file.encoding=UTF-8" },
         classes = SEBServer.class,
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
@@ -62,15 +62,15 @@ public abstract class GuiIntegrationTest {
     @Autowired
     protected FilterChainProxy springSecurityFilterChain;
     @Autowired
-    private WebserviceInfoDAO webserviceInfoDAO;
+    protected WebserviceInfoDAO webserviceInfoDAO;
     @Autowired
-    private WebserviceInfo webserviceInfo;
+    protected WebserviceInfo webserviceInfo;
 
     protected MockMvc mockMvc;
 
     @Before
     public void setup() {
-        this.webserviceInfoDAO.unregister(this.webserviceInfo.getWebserviceUUID());
+        //this.webserviceInfoDAO.unregister(this.webserviceInfo.getWebserviceUUID());
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac)
                 .addFilter(this.springSecurityFilterChain).build();
 

@@ -19,7 +19,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
-/** A service to apply pagination functionality within collection results form data access layer.
+/** A service to apply pagination functionality within collection results from data access layer.
  * The default implementation uses Mybatis-PageHelper to apply the pagination on SQL level where possible:
  * https://github.com/pagehelper/Mybatis-PageHelper */
 
@@ -108,24 +108,33 @@ public interface PaginationService {
      * @param pageSize the size of a page
      * @param sort the page sort flag
      * @param all list of all entities, unsorted
-     * @param sorter a sorter function that sorts the list for specific type of entries
+     * @param pageFunction a function that filter and sorts the list for specific type of entries
      * @return current page of objects from the sorted list of entities */
     default <T> Page<T> buildPageFromList(
             final Integer pageNumber,
             final Integer pageSize,
             final String sort,
             final Collection<T> all,
-            final Function<Collection<T>, List<T>> sorter) {
+            final Function<Collection<T>, List<T>> pageFunction) {
 
-        final List<T> sorted = sorter.apply(all);
-        final int _pageNumber = getPageNumber(pageNumber);
+        final List<T> sorted = pageFunction.apply(all);
+
+        int _pageNumber = getPageNumber(pageNumber);
         final int _pageSize = getPageSize(pageSize);
-        final int start = (_pageNumber - 1) * _pageSize;
+
+        int start = (_pageNumber - 1) * _pageSize;
+        if (start >= sorted.size()) {
+            start = 0;
+            _pageNumber = 1;
+        }
         int end = start + _pageSize;
         if (sorted.size() < end) {
             end = sorted.size();
         }
-        final int numberOfPages = sorted.size() / _pageSize;
+        int numberOfPages = sorted.size() / _pageSize;
+        if (sorted.size() % _pageSize > 0) {
+            numberOfPages++;
+        }
 
         return new Page<>(
                 (numberOfPages > 0) ? numberOfPages : 1,

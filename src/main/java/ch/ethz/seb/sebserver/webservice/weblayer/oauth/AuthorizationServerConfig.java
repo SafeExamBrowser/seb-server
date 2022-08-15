@@ -8,11 +8,16 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.oauth;
 
+import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -26,6 +31,7 @@ import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 
 import ch.ethz.seb.sebserver.WebSecurityConfig;
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceSecurityConfig;
 import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceUserDetails;
@@ -41,6 +47,8 @@ import ch.ethz.seb.sebserver.webservice.weblayer.WebServiceUserDetails;
 @EnableAuthorizationServer
 @Order(100)
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthorizationServerConfig.class);
 
     @Autowired
     private AccessTokenConverter accessTokenConverter;
@@ -66,7 +74,15 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         oauthServer
                 .tokenKeyAccess("permitAll()")
                 .checkTokenAccess("isAuthenticated()")
-                .passwordEncoder(this.clientPasswordEncoder);
+                .passwordEncoder(this.clientPasswordEncoder)
+                .authenticationEntryPoint((request, response, exception) -> {
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    log.warn(
+                            "Unauthorized Request: {}",
+                            exception != null ? exception.getMessage() : Constants.EMPTY_NOTE);
+                    response.getOutputStream().println("{ \"error\": \"" + exception.getMessage() + "\" }");
+                });
     }
 
     @Override
@@ -87,6 +103,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         defaultTokenServices.setTokenEnhancer(jwtAccessTokenConverter);
         defaultTokenServices.setAccessTokenValiditySeconds(this.adminAccessTokenValSec);
         defaultTokenServices.setRefreshTokenValiditySeconds(this.adminRefreshTokenValSec);
+        defaultTokenServices.setClientDetailsService(this.webServiceClientDetails);
 
         endpoints
                 .tokenStore(this.tokenStore)

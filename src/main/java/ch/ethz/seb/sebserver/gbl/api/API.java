@@ -20,7 +20,7 @@ public final class API {
 
     public enum BatchActionType {
         EXAM_CONFIG_STATE_CHANGE(EntityType.CONFIGURATION_NODE),
-        EXAM_CONFIG_APPLY_TEMPLATE_VALUES(EntityType.CONFIGURATION_NODE);
+        EXAM_CONFIG_REST_TEMPLATE_SETTINGS(EntityType.CONFIGURATION_NODE);
 
         public final EntityType entityType;
 
@@ -75,7 +75,7 @@ public final class API {
     public static final String LIST_PATH_SEGMENT = "/list";
 
     public static final String ACTIVE_PATH_SEGMENT = "/active";
-
+    public static final String TOGGLE_ACTIVITY_PATH_SEGMENT = "/toggle-activity";
     public static final String INACTIVE_PATH_SEGMENT = "/inactive";
 
     public static final String DEPENDENCY_PATH_SEGMENT = "/dependency";
@@ -145,6 +145,7 @@ public final class API {
 
     public static final String EXAM_ADMINISTRATION_ENDPOINT = "/exam";
     //public static final String EXAM_ADMINISTRATION_DOWNLOAD_CONFIG_PATH_SEGMENT = "/download-config";
+    public static final String EXAM_ADMINISTRATION_ARCHIVE_PATH_SEGMENT = "/archive";
     public static final String EXAM_ADMINISTRATION_CONSISTENCY_CHECK_PATH_SEGMENT = "/check-consistency";
     public static final String EXAM_ADMINISTRATION_CONSISTENCY_CHECK_INCLUDE_RESTRICTION = "include-restriction";
     public static final String EXAM_ADMINISTRATION_SEB_RESTRICTION_PATH_SEGMENT = "/seb-restriction";
@@ -156,6 +157,7 @@ public final class API {
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
 
     public static final String SEB_CLIENT_CONFIG_ENDPOINT = "/client_configuration";
+    public static final String SEB_CLIENT_CONFIG_CREDENTIALS_PATH_SEGMENT = "/credentials";
     public static final String SEB_CLIENT_CONFIG_DOWNLOAD_PATH_SEGMENT = "/download";
 
     public static final String CONFIGURATION_NODE_ENDPOINT = "/configuration-node";
@@ -167,6 +169,7 @@ public final class API {
     public static final String CONFIGURATION_UNDO_PATH_SEGMENT = "/undo";
     public static final String CONFIGURATION_COPY_PATH_SEGMENT = "/copy";
     public static final String CONFIGURATION_RESTORE_FROM_HISTORY_PATH_SEGMENT = "/restore";
+    public static final String CONFIGURATION_RESET_TO_TEMPLATE_PATH_SEGMENT = "/reset-to-template";
     public static final String CONFIGURATION_VALUE_ENDPOINT = "/configuration_value";
     public static final String CONFIGURATION_TABLE_VALUE_PATH_SEGMENT = "/table";
     public static final String CONFIGURATION_ATTRIBUTE_ENDPOINT = "/configuration_attribute";
@@ -193,6 +196,7 @@ public final class API {
     public static final String EXAM_MONITORING_NOTIFICATION_ENDPOINT = "/notification";
     public static final String EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT = "/disable-connection";
     public static final String EXAM_MONITORING_STATE_FILTER = "hidden-states";
+    public static final String EXAM_MONITORING_FINISHED_ENDPOINT = "/finishedexams";
     public static final String EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT =
             "/{" + EXAM_API_SEB_CONNECTION_TOKEN + "}";
 
@@ -212,6 +216,7 @@ public final class API {
     public static final String EXAM_PROCTORING_ATTR_ALLOW_CHAT = "allow_chat";
 
     public static final String SEB_CLIENT_CONNECTION_ENDPOINT = "/seb-client-connection";
+    public static final String SEB_CLIENT_CONNECTION_DATA_ENDPOINT = "/data";
 
     public static final String SEB_CLIENT_EVENT_ENDPOINT = "/seb-client-event";
     public static final String SEB_CLIENT_EVENT_SEARCH_PATH_SEGMENT = "/search";
@@ -229,5 +234,7 @@ public final class API {
     public static final String EXAM_TEMPLATE_ENDPOINT = "/exam-template";
     public static final String EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT = "/indicator";
     public static final String EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT = "/default";
+
+    public static final String BATCH_ACTION_ENDPOINT = "/batch-action";
 
 }

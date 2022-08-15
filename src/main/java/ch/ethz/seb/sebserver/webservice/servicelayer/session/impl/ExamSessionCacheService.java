@@ -75,7 +75,7 @@ public class ExamSessionCacheService {
             log.debug("Verify running exam for id: {}", examId);
         }
 
-        final Result<Exam> byPK = this.examDAO.loadWithAdditionalAttributes(examId);
+        final Result<Exam> byPK = this.examDAO.byPK(examId);
         if (byPK.hasError()) {
             log.error("Failed to find/load Exam with id {}", examId, byPK.getError());
             return null;

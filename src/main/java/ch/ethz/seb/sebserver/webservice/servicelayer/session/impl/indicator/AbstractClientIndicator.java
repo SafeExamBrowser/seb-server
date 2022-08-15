@@ -21,7 +21,7 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractClientIndicator.class);
 
-    protected final DistributedIndicatorValueService distributedPingCache;
+    protected final DistributedIndicatorValueService distributedIndicatorValueService;
 
     protected Long indicatorId = -1L;
     protected Long examId = -1L;
@@ -38,9 +38,9 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
 
     protected long lastUpdate = 0;
 
-    public AbstractClientIndicator(final DistributedIndicatorValueService distributedPingCache) {
+    public AbstractClientIndicator(final DistributedIndicatorValueService distributedIndicatorValueService) {
         super();
-        this.distributedPingCache = distributedPingCache;
+        this.distributedIndicatorValueService = distributedIndicatorValueService;
     }
 
     @Override
@@ -69,19 +69,10 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
         this.cachingEnabled = cachingEnabled;
 
         if (!this.cachingEnabled && this.active) {
-            this.ditributedIndicatorValueRecordId = this.distributedPingCache
+
+            this.ditributedIndicatorValueRecordId = this.distributedIndicatorValueService
                     .getIndicatorForConnection(connectionId, getType());
-//            if (this.ditributedIndicatorValueRecordId == null) {
-//                tryRecoverIndicatorRecord();
-//            }
-//            try {
-//                this.ditributedIndicatorValueRecordId = this.distributedPingCache.initIndicatorForConnection(
-//                        connectionId,
-//                        getType(),
-//                        initValue());
-//            } catch (final Exception e) {
-//                tryRecoverIndicatorRecord();
-//            }
+
         }
 
         this.currentValue = computeValueAt(Utils.getMillisecondsNow());
@@ -89,12 +80,12 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
     }
 
     protected void tryRecoverIndicatorRecord() {
-        this.ditributedIndicatorValueRecordId = this.distributedPingCache.getIndicatorForConnection(
+        this.ditributedIndicatorValueRecordId = this.distributedIndicatorValueService.getIndicatorForConnection(
                 this.connectionId,
                 getType());
 
-        if (this.ditributedIndicatorValueRecordId == null) {
-            log.warn("Failed to recover from missing indicator value cache record: {} type: {}",
+        if (this.ditributedIndicatorValueRecordId == null && log.isDebugEnabled()) {
+            log.debug("Failed to recover from missing indicator value cache record: {} type: {}",
                     this.connectionId,
                     getType());
         }
@@ -123,18 +114,18 @@ public abstract class AbstractClientIndicator implements ClientIndicator {
     public double getValue() {
 
         if (this.initialized && !this.cachingEnabled && this.active
-                && this.lastUpdate != this.distributedPingCache.lastUpdate()) {
+                && this.lastUpdate != this.distributedIndicatorValueService.lastUpdate()) {
 
             if (this.ditributedIndicatorValueRecordId == null) {
                 this.tryRecoverIndicatorRecord();
             }
 
-            final Long indicatorValue = this.distributedPingCache
+            final Long indicatorValue = this.distributedIndicatorValueService
                     .getIndicatorValue(this.ditributedIndicatorValueRecordId);
             if (indicatorValue != null) {
                 this.currentValue = indicatorValue.doubleValue();
             }
-            this.lastUpdate = this.distributedPingCache.lastUpdate();
+            this.lastUpdate = this.distributedIndicatorValueService.lastUpdate();
         }
 
         return this.currentValue;

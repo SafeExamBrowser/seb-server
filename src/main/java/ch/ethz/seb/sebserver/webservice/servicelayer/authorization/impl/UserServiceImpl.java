@@ -94,6 +94,13 @@ public class UserServiceImpl implements UserService {
         binder.registerCustomEditor(Long.class, usersInstitutionDefaultEditor);
     }
 
+    @Override
+    public void setAuthenticationIfAbsent(final Authentication authentication) {
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+    }
+
     // 1. OAuth2Authentication strategy
     @Lazy
     @Component
@@ -109,6 +116,21 @@ public class UserServiceImpl implements UserService {
                         return (SEBServerUser) userPrincipal;
                     }
                 }
+            }
+
+            return null;
+        }
+    }
+
+    // 2. Separated thread strategy
+    @Lazy
+    @Component
+    public static class OtherThreadUserExtractStrategy implements ExtractUserFromAuthenticationStrategy {
+
+        @Override
+        public SEBServerUser extract(final Principal principal) {
+            if (principal instanceof SEBServerUser) {
+                return (SEBServerUser) principal;
             }
 
             return null;

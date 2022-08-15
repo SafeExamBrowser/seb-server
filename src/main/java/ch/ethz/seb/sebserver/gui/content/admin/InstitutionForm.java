@@ -56,12 +56,16 @@ public class InstitutionForm implements TemplateComposer {
     private final PageService pageService;
     private final RestService restService;
     private final CurrentUser currentUser;
+    private final InstitutionDeletePopup institutionDeletePopup;
 
-    protected InstitutionForm(final PageService pageService) {
+    protected InstitutionForm(
+            final PageService pageService,
+            final InstitutionDeletePopup institutionDeletePopup) {
 
         this.pageService = pageService;
         this.restService = pageService.getRestService();
         this.currentUser = pageService.getCurrentUser();
+        this.institutionDeletePopup = institutionDeletePopup;
     }
 
     @Override
@@ -131,6 +135,11 @@ public class InstitutionForm implements TemplateComposer {
                 .newAction(ActionDefinition.INSTITUTION_MODIFY)
                 .withEntityKey(entityKey)
                 .publishIf(() -> modifyGrant && isReadonly)
+
+                .newAction(ActionDefinition.INSTITUTION_DELETE)
+                .withEntityKey(entityKey)
+                .withExec(this.institutionDeletePopup.deleteWizardFunction(pageContext))
+                .publishIf(() -> writeGrant && isReadonly)
 
                 .newAction(ActionDefinition.INSTITUTION_DEACTIVATE)
                 .withEntityKey(entityKey)

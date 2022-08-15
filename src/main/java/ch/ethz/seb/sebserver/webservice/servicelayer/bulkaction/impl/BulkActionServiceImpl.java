@@ -255,13 +255,16 @@ public class BulkActionServiceImpl implements BulkActionService {
             case INSTITUTION:
                 return Arrays.asList(
                         this.supporter.get(EntityType.LMS_SETUP),
+                        this.supporter.get(EntityType.CERTIFICATE),
+                        this.supporter.get(EntityType.BATCH_ACTION),
                         this.supporter.get(EntityType.USER),
                         this.supporter.get(EntityType.EXAM),
                         this.supporter.get(EntityType.INDICATOR),
                         this.supporter.get(EntityType.SEB_CLIENT_CONFIGURATION),
-                        this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP),
                         this.supporter.get(EntityType.CLIENT_CONNECTION),
-                        this.supporter.get(EntityType.CONFIGURATION_NODE));
+                        this.supporter.get(EntityType.CONFIGURATION_NODE),
+                        this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP),
+                        this.supporter.get(EntityType.EXAM_TEMPLATE));
             case USER:
                 return Arrays.asList(
                         this.supporter.get(EntityType.EXAM),

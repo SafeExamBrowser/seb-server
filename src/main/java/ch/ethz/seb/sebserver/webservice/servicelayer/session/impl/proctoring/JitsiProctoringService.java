@@ -60,6 +60,7 @@ import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
@@ -107,19 +108,22 @@ public class JitsiProctoringService implements ExamProctoringService {
     private final Cryptor cryptor;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final JSONMapper jsonMapper;
+    private final WebserviceInfo webserviceInfo;
 
     protected JitsiProctoringService(
             final AuthorizationService authorizationService,
             final ExamSessionService examSessionService,
             final Cryptor cryptor,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
-            final JSONMapper jsonMapper) {
+            final JSONMapper jsonMapper,
+            final WebserviceInfo webserviceInfo) {
 
         this.authorizationService = authorizationService;
         this.examSessionService = examSessionService;
         this.cryptor = cryptor;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.jsonMapper = jsonMapper;
+        this.webserviceInfo = webserviceInfo;
     }
 
     @Override
@@ -139,6 +143,11 @@ public class JitsiProctoringService implements ExamProctoringService {
                 throw new FieldValidationException(
                         "serverURL",
                         "proctoringSettings:serverURL:invalidURL");
+            }
+
+            // In testing we do not check the JITSI service on URL to be able to test without service
+            if (this.webserviceInfo != null && this.webserviceInfo.hasProfile("test")) {
+                return true;
             }
 
             final ClientHttpRequestFactory clientHttpRequestFactory = this.clientHttpRequestFactoryService

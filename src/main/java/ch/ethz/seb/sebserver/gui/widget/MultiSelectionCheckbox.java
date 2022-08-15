@@ -33,6 +33,7 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
 
     private Listener listener = null;
     private final Map<String, Button> checkboxes;
+    private final String testKey;
 
     MultiSelectionCheckbox(final Composite parent, final String testKey) {
         super(parent, SWT.NONE);
@@ -42,6 +43,7 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
         gridLayout.marginHeight = 0;
         gridLayout.marginWidth = 0;
         setLayout(gridLayout);
+        this.testKey = testKey;
         if (testKey != null) {
             WidgetFactory.setTestId(this, testKey);
         }
@@ -69,7 +71,7 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
             final Button button = new Button(this, SWT.CHECK);
             button.setText(tuple._2);
             WidgetFactory.setARIALabel(button, tuple._2);
-            WidgetFactory.setTestId(button, tuple._1);
+            WidgetFactory.setTestId(button, (this.testKey != null) ? this.testKey + "_" + tuple._1 : tuple._1);
             final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
             button.setLayoutData(gridData);
             button.setData(OPTION_VALUE, tuple._1);
@@ -78,8 +80,6 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
                     this.listener.handleEvent(event);
                 }
             });
-            WidgetFactory.setTestId(button, tuple._1);
-            WidgetFactory.setARIALabel(button, tuple._2);
             this.checkboxes.put(tuple._1, button);
 
             try {

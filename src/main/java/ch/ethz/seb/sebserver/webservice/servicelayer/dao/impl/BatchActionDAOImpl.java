@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -28,16 +29,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.BatchActionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.BatchActionRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.BatchActionRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.BatchActionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -49,10 +57,20 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 @WebServiceProfile
 public class BatchActionDAOImpl implements BatchActionDAO {
 
-    private final BatchActionRecordMapper batchActionRecordMapper;
+    private static final long ABANDONED_BATCH_TIME = Constants.MINUTE_IN_MILLIS * 10;
 
-    public BatchActionDAOImpl(final BatchActionRecordMapper batchActionRecordMapper) {
+    private final BatchActionRecordMapper batchActionRecordMapper;
+    private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final JSONMapper jsonMapper;
+
+    public BatchActionDAOImpl(
+            final BatchActionRecordMapper batchActionRecordMapper,
+            final AdditionalAttributesDAO additionalAttributesDAO,
+            final JSONMapper jsonMapper) {
+
         this.batchActionRecordMapper = batchActionRecordMapper;
+        this.additionalAttributesDAO = additionalAttributesDAO;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
@@ -65,25 +83,23 @@ public class BatchActionDAOImpl implements BatchActionDAO {
     public Result<BatchAction> getAndReserveNext(final String processId) {
         return Result.tryCatch(() -> {
 
-            final Long oldTherhold = Utils.getMillisecondsNow() - Constants.HOUR_IN_MILLIS;
-            final List<BatchActionRecord> next = this.batchActionRecordMapper.selectByExample()
+            final Long oldThreshold = Utils.getMillisecondsNow() - ABANDONED_BATCH_TIME;
+            final BatchActionRecord nextRec = this.batchActionRecordMapper.selectByExample()
                     .where(BatchActionRecordDynamicSqlSupport.lastUpdate, isNull())
-                    .and(BatchActionRecordDynamicSqlSupport.processorId, isNull())
-                    .or(BatchActionRecordDynamicSqlSupport.lastUpdate, isLessThan(oldTherhold))
+                    .or(BatchActionRecordDynamicSqlSupport.processorId, isNotLike("%" + BatchAction.FINISHED_FLAG))
                     .build()
-                    .execute();
-
-            if (next == null || next.isEmpty()) {
-
-                throw new ResourceNotFoundException(
-                        EntityType.BATCH_ACTION,
-                        processId);
-            }
-
-            final BatchActionRecord nextRec = next.get(0);
+                    .execute()
+                    .stream()
+                    .filter(rec -> rec.getLastUpdate() == null || rec.getLastUpdate() < oldThreshold)
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            EntityType.BATCH_ACTION,
+                            processId));
 
             final BatchActionRecord newRecord = new BatchActionRecord(
                     nextRec.getId(),
+                    null,
+                    null,
                     null,
                     null,
                     null,
@@ -100,42 +116,6 @@ public class BatchActionDAOImpl implements BatchActionDAO {
 
     @Override
     @Transactional
-    public Result<BatchAction> updateProgress(
-            final Long actionId,
-            final String processId,
-            final Collection<String> modelIds) {
-
-        return Result.tryCatch(() -> {
-
-            final BatchActionRecord rec = this.batchActionRecordMapper.selectByPrimaryKey(actionId);
-
-            if (!processId.equals(rec.getProcessorId())) {
-                throw new RuntimeException("Batch action processor id mismatch: " + processId + " " + rec);
-            }
-
-            final Set<String> ids = new HashSet<>(Arrays.asList(StringUtils.split(
-                    rec.getSuccessful(),
-                    Constants.LIST_SEPARATOR)));
-            ids.addAll(modelIds);
-
-            final BatchActionRecord newRecord = new BatchActionRecord(
-                    actionId,
-                    null,
-                    null,
-                    null,
-                    StringUtils.join(ids, Constants.LIST_SEPARATOR),
-                    Utils.getMillisecondsNow(),
-                    processId);
-
-            this.batchActionRecordMapper.updateByPrimaryKeySelective(newRecord);
-            return this.batchActionRecordMapper.selectByPrimaryKey(actionId);
-        })
-                .flatMap(this::toDomainModel)
-                .onError(TransactionHandler::rollback);
-    }
-
-    @Override
-    @Transactional
     public void setSuccessfull(final Long actionId, final String processId, final String modelId) {
         try {
 
@@ -145,18 +125,54 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                 throw new RuntimeException("Batch action processor id mismatch: " + processId + " " + rec);
             }
 
+            String successful = rec.getSuccessful();
+            if (StringUtils.isBlank(successful)) {
+                successful = modelId;
+            } else {
+                final Set<String> ids = new HashSet<>(Arrays.asList(StringUtils.split(
+                        successful,
+                        Constants.LIST_SEPARATOR)));
+                ids.add(modelId);
+                successful = StringUtils.join(ids, Constants.LIST_SEPARATOR);
+            }
+
             final BatchActionRecord newRecord = new BatchActionRecord(
                     actionId,
                     null,
                     null,
                     null,
-                    rec.getSuccessful() + Constants.LIST_SEPARATOR + modelId,
+                    null,
+                    null,
+                    successful,
                     Utils.getMillisecondsNow(),
                     processId);
             this.batchActionRecordMapper.updateByPrimaryKeySelective(newRecord);
 
         } catch (final Exception e) {
-            log.error("Failed to mark entity sucessfuly processed: modelId: {}, processId");
+            log.error("Failed to mark entity successfully processed: modelId: {}, processId", modelId, e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void setFailure(final Long actionId, final String processId, final String modelId, final Exception error) {
+        try {
+            String apiMessage = null;
+            if (error instanceof APIMessageException) {
+                apiMessage = this.jsonMapper.writeValueAsString(((APIMessageException) error).getMainMessage());
+            } else {
+                apiMessage = this.jsonMapper.writeValueAsString(APIMessage.ErrorMessage.UNEXPECTED.of(error));
+            }
+
+            this.additionalAttributesDAO
+                    .saveAdditionalAttribute(EntityType.BATCH_ACTION, actionId, modelId, apiMessage)
+                    .onError(err -> log.error("Failed to store batch action failure: actionId: {}, modelId: {}",
+                            actionId,
+                            modelId,
+                            err));
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to persist batch action error: ", e);
         }
     }
 
@@ -177,13 +193,22 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                         rec.getSourceIds(),
                         Constants.LIST_SEPARATOR)));
 
-                final Set<String> success = new HashSet<>(Arrays.asList(StringUtils.split(
-                        rec.getSourceIds(),
-                        Constants.LIST_SEPARATOR)));
+                // get all succeeded
+                final String successful = rec.getSuccessful();
+                final Set<String> success = StringUtils.isNotBlank(successful)
+                        ? new HashSet<>(Arrays.asList(StringUtils.split(
+                                successful,
+                                Constants.LIST_SEPARATOR)))
+                        : Collections.emptySet();
 
-                if (ids.size() != success.size()) {
+                // get all failed
+                final Collection<AdditionalAttributeRecord> failed = this.additionalAttributesDAO
+                        .getAdditionalAttributes(EntityType.BATCH_ACTION, actionId)
+                        .getOrThrow();
+
+                if (ids.size() != success.size() + failed.size()) {
                     throw new IllegalStateException(
-                            "Processing ids mismatch source: " + ids + " success: " + success);
+                            "Processing ids mismatch source: " + ids + " success: " + success + " failed: " + failed);
                 }
             }
 
@@ -193,8 +218,10 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                     null,
                     null,
                     null,
+                    null,
+                    null,
                     Utils.getMillisecondsNow(),
-                    processId + FLAG_FINISHED);
+                    processId + BatchAction.FINISHED_FLAG);
 
             this.batchActionRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.batchActionRecordMapper.selectByPrimaryKey(actionId);
@@ -207,7 +234,7 @@ public class BatchActionDAOImpl implements BatchActionDAO {
     @Transactional(readOnly = true)
     public Result<BatchAction> byPK(final Long id) {
         return recordById(id)
-                .flatMap(this::toDomainModel);
+                .flatMap(this::toDomainModelWithFailures);
     }
 
     @Override
@@ -261,7 +288,9 @@ public class BatchActionDAOImpl implements BatchActionDAO {
             final BatchActionRecord newRecord = new BatchActionRecord(
                     null,
                     data.institutionId,
+                    data.ownerId,
                     data.actionType.toString(),
+                    data.attributes != null ? this.jsonMapper.writeValueAsString(data.attributes) : null,
                     StringUtils.join(data.sourceIds, Constants.LIST_SEPARATOR),
                     null, null, null);
 
@@ -282,6 +311,8 @@ public class BatchActionDAOImpl implements BatchActionDAO {
                     null,
                     null,
                     null,
+                    null,
+                    null,
                     StringUtils.join(data.successful, Constants.LIST_SEPARATOR),
                     data.getLastUpdate(),
                     data.processorId);
@@ -294,6 +325,17 @@ public class BatchActionDAOImpl implements BatchActionDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Set<EntityDependency> getDependencies(final BulkAction bulkAction) {
+        // all of institution
+        if (bulkAction.sourceType == EntityType.INSTITUTION) {
+            return getDependencies(bulkAction, this::allIdsOfInstitution);
+        }
+
+        return Collections.emptySet();
+    }
+
+    @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
@@ -303,6 +345,15 @@ public class BatchActionDAOImpl implements BatchActionDAO {
             if (ids.isEmpty()) {
                 return Collections.emptyList();
             }
+
+            // try delete all additional attributes first
+            ids.stream().forEach(id -> {
+                try {
+                    this.additionalAttributesDAO.deleteAll(EntityType.BATCH_ACTION, id);
+                } catch (final Exception e) {
+                    log.error("Failed to delete additional attributes for batch action: {}", id, e);
+                }
+            });
 
             this.batchActionRecordMapper.deleteByExample()
                     .where(BatchActionRecordDynamicSqlSupport.id, isIn(ids))
@@ -327,15 +378,73 @@ public class BatchActionDAOImpl implements BatchActionDAO {
         });
     }
 
+    private Result<BatchAction> toDomainModelWithFailures(final BatchActionRecord record) {
+        return toDomainModel(record, true);
+    }
+
     private Result<BatchAction> toDomainModel(final BatchActionRecord record) {
+        return toDomainModel(record, false);
+    }
+
+    private Result<BatchAction> toDomainModel(final BatchActionRecord record, final boolean withFailures) {
+        final String successful = record.getSuccessful();
+
+        Map<String, APIMessage> failures = Collections.emptyMap();
+        try {
+            failures = this.additionalAttributesDAO
+                    .getAdditionalAttributes(EntityType.BATCH_ACTION, record.getId())
+                    .getOrThrow()
+                    .stream()
+                    .collect(Collectors.toMap(this::toEntityKey, this::toFailureMessage));
+        } catch (final Exception e) {
+            log.error("Failed to get batch action failure messages", e);
+        }
+
+        final Map<String, APIMessage> failuresMap = failures;
         return Result.tryCatch(() -> new BatchAction(
                 record.getId(),
                 record.getInstitutionId(),
+                record.getOwner(),
                 BatchActionType.valueOf(record.getActionType()),
+                Utils.jsonToMap(record.getAttributes(), this.jsonMapper),
                 Arrays.asList(record.getSourceIds().split(Constants.LIST_SEPARATOR)),
-                Arrays.asList(record.getSuccessful().split(Constants.LIST_SEPARATOR)),
+                StringUtils.isNoneBlank(successful) ? Arrays.asList(successful.split(Constants.LIST_SEPARATOR)) : null,
                 record.getLastUpdate(),
-                record.getProcessorId()));
+                record.getProcessorId(),
+                failuresMap));
+    }
+
+    private String toEntityKey(final AdditionalAttributeRecord rec) {
+        try {
+            return rec.getName();
+        } catch (final Exception e) {
+            log.error("Failed to parse entity key for batch action failure: {}", e.getMessage());
+            return "-1";
+        }
+    }
+
+    private APIMessage toFailureMessage(final AdditionalAttributeRecord rec) {
+        try {
+            return this.jsonMapper.readValue(rec.getValue(), APIMessage.class);
+        } catch (final Exception e) {
+            log.error("Failed to parse APIMessage for batch action failure: {}", e.getMessage());
+            return APIMessage.ErrorMessage.UNEXPECTED.of(e);
+        }
+    }
+
+    private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
+        return Result.tryCatch(() -> this.batchActionRecordMapper.selectByExample()
+                .where(BatchActionRecordDynamicSqlSupport.institutionId,
+                        isEqualTo(Long.valueOf(institutionKey.modelId)))
+                .build()
+                .execute()
+                .stream()
+                .map(rec -> new EntityDependency(
+                        institutionKey,
+                        new EntityKey(rec.getId(), EntityType.BATCH_ACTION),
+                        rec.getActionType(),
+                        rec.getOwner()))
+                .collect(Collectors.toList()));
     }
 
 }

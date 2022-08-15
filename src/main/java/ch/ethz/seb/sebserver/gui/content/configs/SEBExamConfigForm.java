@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigKey;
@@ -58,6 +59,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.De
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ExportConfigKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNode;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.NewExamConfig;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ResetToTemplateSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
@@ -71,12 +73,19 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 @GuiProfile
 public class SEBExamConfigForm implements TemplateComposer {
 
+    private static final LocTextKey MESSAGE_RESET_TO_TEMPL_SUCCESS =
+            new LocTextKey("sebserver.examconfig.action.restore.template.settings.success");
     static final LocTextKey FORM_TITLE_NEW =
             new LocTextKey("sebserver.examconfig.form.title.new");
     static final LocTextKey FORM_TITLE =
             new LocTextKey("sebserver.examconfig.form.title");
     static final LocTextKey FORM_NAME_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.name");
+    static final LocTextKey FORM_UPDATE_TIME_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.form.update.time");
+    static final LocTextKey FORM_UPDATE_USER_TEXT_KEY =
+            new LocTextKey("sebserver.examconfig.form.update.user");
+
     static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.description");
     static final LocTextKey FORM_HISTORY_TEXT_KEY =
@@ -101,6 +110,8 @@ public class SEBExamConfigForm implements TemplateComposer {
             new LocTextKey("sebserver.examconfig.form.attached-to");
     static final LocTextKey FORM_ATTACHED_EXAMS_TITLE_TOOLTIP_TEXT_KEY =
             new LocTextKey("sebserver.examconfig.form.attached-to" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
+    static final LocTextKey FORM_RESET_CONFIRM =
+            new LocTextKey("sebserver.examconfig.action.restore.template.settings.confirm");
 
     static final LocTextKey SAVE_CONFIRM_STATE_CHANGE_WHILE_ATTACHED =
             new LocTextKey("sebserver.examconfig.action.state-change.confirm");
@@ -168,6 +179,16 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .call()
                 .map(names -> names != null && !names.isEmpty())
                 .getOr(Boolean.FALSE);
+        final boolean hasRunningExam = isAttachedToExam && this.restService
+                .getBuilder(GetExamConfigMappingsPage.class)
+                .withQueryParam(ExamConfigurationMap.FILTER_ATTR_CONFIG_ID, examConfig.getModelId())
+                .call()
+                .map(res -> res.content
+                        .stream()
+                        .filter(map -> map.examStatus == ExamStatus.RUNNING)
+                        .findAny()
+                        .isPresent())
+                .getOr(false);
 
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(examConfig.getEntityKey());
@@ -203,6 +224,28 @@ public class SEBExamConfigForm implements TemplateComposer {
                                         : String.valueOf(examConfig.templateId),
                                 resourceService::getExamConfigTemplateResources)
                                 .readonly(!isNew))
+
+                .addFieldIf(() -> isReadonly,
+                        () -> FormBuilder.text(
+                                Domain.CONFIGURATION_NODE.ATTR_LAST_UPDATE_TIME,
+                                FORM_UPDATE_TIME_TEXT_KEY,
+                                this.pageService.getI18nSupport()
+                                        .formatDisplayDateWithTimeZone(examConfig.lastUpdateTime))
+                                .readonly(true)
+                                .withInputSpan(2)
+                                .withEmptyCellSeparation(false))
+
+                .addFieldIf(() -> isReadonly,
+                        () -> FormBuilder.singleSelection(
+                                Domain.SEB_CLIENT_CONFIGURATION.ATTR_LAST_UPDATE_USER,
+                                FORM_UPDATE_USER_TEXT_KEY,
+                                examConfig.lastUpdateUser,
+                                () -> this.pageService.getResourceService().userResources())
+                                .readonly(true)
+                                .withLabelSpan(1)
+                                .withInputSpan(2)
+                                .withEmptyCellSeparation(false))
+
                 .addField(FormBuilder.text(
                         Domain.CONFIGURATION_NODE.ATTR_NAME,
                         FORM_NAME_TEXT_KEY,
@@ -218,7 +261,7 @@ public class SEBExamConfigForm implements TemplateComposer {
                         Domain.CONFIGURATION_NODE.ATTR_STATUS,
                         FORM_STATUS_TEXT_KEY,
                         examConfig.status.name(),
-                        () -> resourceService.examConfigStatusResources(isAttachedToExam))
+                        () -> resourceService.examConfigStatusResources(isAttachedToExam, hasRunningExam))
                         .withEmptyCellSeparation(!isReadonly))
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewExamConfig.class)
@@ -247,6 +290,17 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withAttribute(PageContext.AttributeKeys.READ_ONLY, String.valueOf(!modifyGrant))
                 .publishIf(() -> isReadonly)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_RESET_TO_TEMPLATE_SETTINGS)
+                .withConfirm(() -> FORM_RESET_CONFIRM)
+                .withEntityKey(entityKey)
+                .withExec(this::restoreToTemplateSettings)
+                .noEventPropagation()
+                .publishIf(() -> modifyGrant
+                        && isReadonly
+                        && examConfig.status != ConfigurationStatus.IN_USE
+                        && examConfig.templateId != null
+                        && examConfig.templateId.longValue() > 0)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG)
                 .withEntityKey(entityKey)
@@ -281,7 +335,7 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(formHandle::processFormSave)
                 .ignoreMoveAwayFromEdit()
-                .withConfirm(() -> stateChangeConfirm(isAttachedToExam, formHandle))
+                .withConfirm(() -> stateChangeConfirm(hasRunningExam, formHandle))
                 .publishIf(() -> !isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_PROP_CANCEL_MODIFY)
@@ -339,6 +393,18 @@ public class SEBExamConfigForm implements TemplateComposer {
                     })
                     .publish(false);
         }
+    }
+
+    private PageAction restoreToTemplateSettings(final PageAction action) {
+        this.restService.getBuilder(ResetToTemplateSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .call()
+                .getOrThrow();
+
+        action.pageContext().publishInfo(MESSAGE_RESET_TO_TEMPL_SUCCESS);
+
+        return action;
+
     }
 
     private PageAction deleteConfiguration(final PageAction action) {
@@ -408,17 +474,17 @@ public class SEBExamConfigForm implements TemplateComposer {
     }
 
     private LocTextKey stateChangeConfirm(
-            final boolean isAttachedToExam,
+            final boolean hasRunningExam,
             final FormHandle<ConfigurationNode> formHandle) {
 
-        if (isAttachedToExam) {
+        if (hasRunningExam) {
             final String fieldValue = formHandle
                     .getForm()
                     .getFieldValue(Domain.CONFIGURATION_NODE.ATTR_STATUS);
 
             if (fieldValue != null) {
                 final ConfigurationStatus state = ConfigurationStatus.valueOf(fieldValue);
-                if (state != ConfigurationStatus.IN_USE) {
+                if (state != ConfigurationStatus.IN_USE && state != ConfigurationStatus.ARCHIVED) {
                     return SAVE_CONFIRM_STATE_CHANGE_WHILE_ATTACHED;
                 }
             }

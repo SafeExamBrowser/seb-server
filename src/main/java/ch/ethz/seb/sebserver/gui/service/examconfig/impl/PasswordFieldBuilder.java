@@ -80,6 +80,7 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
         final PasswordInput passwordInput = new PasswordInput(
                 innerGrid,
                 this.widgetFactory,
+                attributeNameLocKey,
                 attributeNameLocKey);
         final GridData passwordInputLD = new GridData(SWT.FILL, SWT.FILL, true, true);
         passwordInput.setLayoutData(passwordInputLD);
@@ -91,6 +92,7 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
         final PasswordInput confirmInput = new PasswordInput(
                 innerGrid,
                 this.widgetFactory,
+                confirmNameLocKey,
                 confirmNameLocKey);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         gridData.verticalIndent = 14;
