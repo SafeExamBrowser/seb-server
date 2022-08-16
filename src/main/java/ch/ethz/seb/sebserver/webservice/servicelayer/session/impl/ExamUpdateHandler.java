@@ -94,9 +94,7 @@ class ExamUpdateHandler {
                         .getLmsAPITemplate(lmsSetupId)
                         .getOrThrow()
                         .checkCourseAPIAccess();
-                log.info("LMS access OK: {}", lmsSetupId);
             } catch (final Exception e) {
-                log.info("LMS access NOT OK: {}", lmsSetupId);
                 log.warn("No LMS access, mark all exams of the LMS as not connected to LMS");
                 if (!failedOrMissing.isEmpty()) {
                     failedOrMissing
