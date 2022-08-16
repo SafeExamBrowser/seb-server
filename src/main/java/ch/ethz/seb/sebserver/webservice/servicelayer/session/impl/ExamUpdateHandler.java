@@ -88,6 +88,31 @@ class ExamUpdateHandler {
             final Set<String> failedOrMissing = new HashSet<>(exams.keySet());
             final String updateId = this.createUpdateId();
 
+            // test overall LMS access
+            try {
+                this.lmsAPIService
+                        .getLmsAPITemplate(lmsSetupId)
+                        .getOrThrow()
+                        .checkCourseAPIAccess();
+            } catch (final Exception e) {
+                log.warn("No LMS access, mark all exams of the LMS as not connected to LMS");
+                if (!failedOrMissing.isEmpty()) {
+                    failedOrMissing
+                            .stream()
+                            .forEach(quizId -> {
+                                try {
+                                    final Exam exam = exams.get(quizId);
+                                    if (exam.lmsAvailable == null || exam.isLmsAvailable()) {
+                                        this.examDAO.markLMSAvailability(quizId, false, updateId);
+                                    }
+                                } catch (final Exception ee) {
+                                    log.error("Failed to mark exam: {} as not connected to LMS", quizId, ee);
+                                }
+                            });
+                }
+                return failedOrMissing;
+            }
+
             this.lmsAPIService
                     .getLmsAPITemplate(lmsSetupId)
                     .map(template -> {

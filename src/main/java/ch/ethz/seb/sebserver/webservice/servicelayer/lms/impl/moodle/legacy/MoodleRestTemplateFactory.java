@@ -137,7 +137,7 @@ public class MoodleRestTemplateFactory {
                         log.warn("Failed to get access token for LMS: {}({})",
                                 lmsSetup.name,
                                 lmsSetup.id,
-                                result.getError());
+                                result.getError().getMessage());
                     }
                     return result;
                 })
