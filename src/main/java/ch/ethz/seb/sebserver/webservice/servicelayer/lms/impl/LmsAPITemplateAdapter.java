@@ -202,7 +202,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                         throw new RuntimeException("No course API Access: " + testCourseAccessAPI);
                     }
                     return testCourseAccessAPI;
-                });
+                }).getOrThrow();
     }
 
     @Override
