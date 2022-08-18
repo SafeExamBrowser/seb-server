@@ -90,10 +90,11 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(ATTR_INFO)
     public final String info;
 
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI)
+    @JsonIgnore // not used yet on GUI side
+    //@JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI)
     public final Boolean vdi;
-
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN)
+    @JsonIgnore // not used yet on GUI side
+    //@JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN)
     public final String vdiPairToken;
 
     @JsonIgnore
@@ -248,10 +249,12 @@ public final class ClientConnection implements GrantEntity {
         return this.virtualClientId;
     }
 
+    @JsonIgnore // not used yet on GUI side
     public Boolean getVdi() {
         return this.vdi;
     }
 
+    @JsonIgnore // not used yet on GUI side
     public String getVdiPairToken() {
         return this.vdiPairToken;
     }

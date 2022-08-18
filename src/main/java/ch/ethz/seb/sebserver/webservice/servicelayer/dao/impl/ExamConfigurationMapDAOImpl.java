@@ -193,7 +193,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                         ExamConfigurationMapRecordDynamicSqlSupport.examId,
                         SqlBuilder.isEqualTo(examId))
                 .and(
-                        ExamConfigurationMapRecordDynamicSqlSupport.userNames,
+                        ExamConfigurationMapRecordDynamicSqlSupport.clientGroupId,
                         SqlBuilder.isNull())
                 .build()
                 .execute()
@@ -204,15 +204,15 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Long> getUserConfigurationNodeId(final Long examId, final String userId) {
+    public Result<Long> getConfigurationNodeIdForClientGroup(final Long examId, final Long clientGroupId) {
         return Result.tryCatch(() -> this.examConfigurationMapRecordMapper
                 .selectByExample()
                 .where(
                         ExamConfigurationMapRecordDynamicSqlSupport.examId,
                         SqlBuilder.isEqualTo(examId))
                 .and(
-                        ExamConfigurationMapRecordDynamicSqlSupport.userNames,
-                        SqlBuilder.isLike(Utils.toSQLWildcard(userId)))
+                        ExamConfigurationMapRecordDynamicSqlSupport.clientGroupId,
+                        SqlBuilder.isEqualTo(clientGroupId))
                 .build()
                 .execute()
                 .stream()
@@ -245,8 +245,8 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                             data.institutionId,
                             data.examId,
                             data.configurationNodeId,
-                            data.userNames,
-                            getEncryptionPassword(data));
+                            getEncryptionPassword(data),
+                            data.clientGroupId);
 
                     this.examConfigurationMapRecordMapper.insert(newRecord);
                     return newRecord;
@@ -265,8 +265,8 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     null,
                     null,
                     null,
-                    data.userNames,
-                    getEncryptionPassword(data));
+                    getEncryptionPassword(data),
+                    data.clientGroupId);
 
             this.examConfigurationMapRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.examConfigurationMapRecordMapper.selectByPrimaryKey(data.id);
@@ -450,7 +450,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                     (exam != null) ? exam.type : ExamType.UNDEFINED,
                     (exam != null) ? exam.status : null,
                     record.getConfigurationNodeId(),
-                    record.getUserNames(),
+                    record.getClientGroupId(),
                     record.getEncryptSecret(),
                     null,
                     config.getName(),

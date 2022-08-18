@@ -374,8 +374,8 @@ CREATE TABLE IF NOT EXISTS `exam_configuration_map` (
   `institution_id` BIGINT UNSIGNED NOT NULL,
   `exam_id` BIGINT UNSIGNED NOT NULL,
   `configuration_node_id` BIGINT UNSIGNED NOT NULL,
-  `user_names` VARCHAR(4000) NULL,
   `encrypt_secret` VARCHAR(255) NULL,
+  `client_group_id` BIGINT NULL,
   PRIMARY KEY (`id`),
   INDEX `exam_ref_idx` (`exam_id` ASC),
   INDEX `configuration_map_ref_idx` (`configuration_node_id` ASC),
@@ -710,4 +710,23 @@ CREATE TABLE IF NOT EXISTS `client_notification` (
     ON UPDATE NO ACTION)
 ;
 
+-- -----------------------------------------------------
+-- Table `client_group`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `client_group` ;
 
+CREATE TABLE IF NOT EXISTS `client_group` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `exam_id` BIGINT UNSIGNED NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `type` VARCHAR(45) NOT NULL,
+  `color` VARCHAR(45) NULL,
+  `data` VARCHAR(4000) NULL,
+  PRIMARY KEY (`id`),
+  INDEX `clientGroupExamRef_idx` (`exam_id` ASC),
+  CONSTRAINT `clientGroupExamRef`
+    FOREIGN KEY (`exam_id`)
+    REFERENCES `exam` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+;

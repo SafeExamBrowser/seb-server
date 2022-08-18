@@ -44,10 +44,10 @@ public interface ExamConfigurationMapDAO extends
      * the Exam for a specified user identifier.
      *
      * @param examId The Exam identifier
-     * @param userId the user identifier
+     * @param clientGroupId the client group identifier
      * @return ConfigurationNode identifier of the Exam Configuration of
-     *         the Exam for a specified user identifier */
-    Result<Long> getUserConfigurationNodeId(final Long examId, final String userId);
+     *         the Exam for a specified client group identifier */
+    Result<Long> getConfigurationNodeIdForClientGroup(final Long examId, final Long clientGroupId);
 
     /** Get a list of all ConfigurationNode identifiers of configurations that currently are attached to a given Exam
      *

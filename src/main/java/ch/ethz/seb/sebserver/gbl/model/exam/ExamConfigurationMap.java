@@ -79,8 +79,8 @@ public final class ExamConfigurationMap implements GrantEntity {
     @JsonProperty(CONFIGURATION_NODE.ATTR_STATUS)
     public final ConfigurationStatus configStatus;
 
-    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_USER_NAMES)
-    public final String userNames;
+    @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_CLIENT_GROUP_ID)
+    public final Long clientGroupId;
 
     @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_ENCRYPT_SECRET)
     public final CharSequence encryptSecret;
@@ -99,7 +99,7 @@ public final class ExamConfigurationMap implements GrantEntity {
             @JsonProperty(EXAM.ATTR_TYPE) final ExamType examType,
             @JsonProperty(ARR_EXAM_STATUS) final ExamStatus examStatus,
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID) final Long configurationNodeId,
-            @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_USER_NAMES) final String userNames,
+            @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_CLIENT_GROUP_ID) final Long clientGroupId,
             @JsonProperty(EXAM_CONFIGURATION_MAP.ATTR_ENCRYPT_SECRET) final CharSequence encryptSecret,
             @JsonProperty(ATTR_CONFIRM_ENCRYPT_SECRET) final CharSequence confirmEncryptSecret,
             @JsonProperty(CONFIGURATION_NODE.ATTR_NAME) final String configName,
@@ -115,7 +115,7 @@ public final class ExamConfigurationMap implements GrantEntity {
         this.examType = examType;
         this.examStatus = examStatus;
         this.configurationNodeId = configurationNodeId;
-        this.userNames = userNames;
+        this.clientGroupId = clientGroupId;
         this.encryptSecret = encryptSecret;
         this.confirmEncryptSecret = confirmEncryptSecret;
 
@@ -136,7 +136,7 @@ public final class ExamConfigurationMap implements GrantEntity {
         this.examStatus = postParams.getEnum(ARR_EXAM_STATUS, ExamStatus.class);
 
         this.configurationNodeId = postParams.getLong(Domain.EXAM_CONFIGURATION_MAP.ATTR_CONFIGURATION_NODE_ID);
-        this.userNames = postParams.getString(Domain.EXAM_CONFIGURATION_MAP.ATTR_USER_NAMES);
+        this.clientGroupId = postParams.getLong(Domain.EXAM_CONFIGURATION_MAP.ATTR_CLIENT_GROUP_ID);
         this.encryptSecret = postParams.getCharSequence(Domain.EXAM_CONFIGURATION_MAP.ATTR_ENCRYPT_SECRET);
         this.confirmEncryptSecret = postParams.getCharSequence(ATTR_CONFIRM_ENCRYPT_SECRET);
 
@@ -149,7 +149,7 @@ public final class ExamConfigurationMap implements GrantEntity {
             final Long institutionId,
             final Long examId,
             final Long configurationNodeId,
-            final String userNames) {
+            final Long clientGroupId) {
 
         this.id = null;
         this.institutionId = institutionId;
@@ -160,7 +160,7 @@ public final class ExamConfigurationMap implements GrantEntity {
         this.examType = null;
         this.examStatus = null;
         this.configurationNodeId = configurationNodeId;
-        this.userNames = userNames;
+        this.clientGroupId = clientGroupId;
         this.encryptSecret = null;
         this.confirmEncryptSecret = null;
 
@@ -223,8 +223,8 @@ public final class ExamConfigurationMap implements GrantEntity {
         return this.configurationNodeId;
     }
 
-    public String getUserNames() {
-        return this.userNames;
+    public Long getClientGroupId() {
+        return this.clientGroupId;
     }
 
     @JsonIgnore
@@ -266,7 +266,7 @@ public final class ExamConfigurationMap implements GrantEntity {
                 this.examType,
                 this.examStatus,
                 this.configurationNodeId,
-                this.userNames,
+                this.clientGroupId,
                 Constants.EMPTY_NOTE,
                 Constants.EMPTY_NOTE,
                 this.configName,
@@ -299,8 +299,8 @@ public final class ExamConfigurationMap implements GrantEntity {
         builder.append(this.configDescription);
         builder.append(", configStatus=");
         builder.append(this.configStatus);
-        builder.append(", userNames=");
-        builder.append(this.userNames);
+        builder.append(", clientGroupId=");
+        builder.append(this.clientGroupId);
         builder.append(", encryptSecret=");
         builder.append(this.encryptSecret);
         builder.append(", confirmEncryptSecret=");

@@ -163,8 +163,14 @@ public class ExamConfigServiceImpl implements ExamConfigService {
         return this.examConfigurationMapDAO.getDefaultConfigurationNode(examId);
     }
 
-    public Result<Long> getUserConfigurationIdForExam(final Long examId, final String userId) {
-        return this.examConfigurationMapDAO.getUserConfigurationNodeId(examId, userId);
+    public Result<Long> getConfigurationIdForExamAndClientGroup(final Long examId, final String clientGroupId) {
+        return Result.tryCatch(() -> {
+            return this.examConfigurationMapDAO
+                    .getConfigurationNodeIdForClientGroup(
+                            examId,
+                            Long.parseLong(clientGroupId))
+                    .getOrThrow();
+        });
     }
 
     @Override
@@ -172,12 +178,12 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             final OutputStream out,
             final Long institutionId,
             final Long examId,
-            final String userId) {
+            final String clientGroupId) {
 
-        final Long configurationNodeId = (StringUtils.isBlank(userId))
+        final Long configurationNodeId = (StringUtils.isBlank(clientGroupId))
                 ? getDefaultConfigurationIdForExam(examId)
                         .getOrThrow()
-                : getUserConfigurationIdForExam(examId, userId)
+                : getConfigurationIdForExamAndClientGroup(examId, clientGroupId)
                         .getOrThrow();
 
         return exportForExam(out, institutionId, examId, configurationNodeId);

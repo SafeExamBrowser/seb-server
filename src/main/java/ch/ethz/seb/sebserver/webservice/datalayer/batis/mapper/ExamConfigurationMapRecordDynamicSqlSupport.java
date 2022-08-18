@@ -6,28 +6,28 @@ import org.mybatis.dynamic.sql.SqlColumn;
 import org.mybatis.dynamic.sql.SqlTable;
 
 public final class ExamConfigurationMapRecordDynamicSqlSupport {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.354+02:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.072+02:00", comments="Source Table: exam_configuration_map")
     public static final ExamConfigurationMapRecord examConfigurationMapRecord = new ExamConfigurationMapRecord();
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.355+02:00", comments="Source field: exam_configuration_map.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.073+02:00", comments="Source field: exam_configuration_map.id")
     public static final SqlColumn<Long> id = examConfigurationMapRecord.id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.355+02:00", comments="Source field: exam_configuration_map.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.073+02:00", comments="Source field: exam_configuration_map.institution_id")
     public static final SqlColumn<Long> institutionId = examConfigurationMapRecord.institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.355+02:00", comments="Source field: exam_configuration_map.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.073+02:00", comments="Source field: exam_configuration_map.exam_id")
     public static final SqlColumn<Long> examId = examConfigurationMapRecord.examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.355+02:00", comments="Source field: exam_configuration_map.configuration_node_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.073+02:00", comments="Source field: exam_configuration_map.configuration_node_id")
     public static final SqlColumn<Long> configurationNodeId = examConfigurationMapRecord.configurationNodeId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.355+02:00", comments="Source field: exam_configuration_map.user_names")
-    public static final SqlColumn<String> userNames = examConfigurationMapRecord.userNames;
-
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.355+02:00", comments="Source field: exam_configuration_map.encrypt_secret")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.073+02:00", comments="Source field: exam_configuration_map.encrypt_secret")
     public static final SqlColumn<String> encryptSecret = examConfigurationMapRecord.encryptSecret;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-05-16T11:24:18.354+02:00", comments="Source Table: exam_configuration_map")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.073+02:00", comments="Source field: exam_configuration_map.client_group_id")
+    public static final SqlColumn<Long> clientGroupId = examConfigurationMapRecord.clientGroupId;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.073+02:00", comments="Source Table: exam_configuration_map")
     public static final class ExamConfigurationMapRecord extends SqlTable {
         public final SqlColumn<Long> id = column("id", JDBCType.BIGINT);
 
@@ -37,9 +37,9 @@ public final class ExamConfigurationMapRecordDynamicSqlSupport {
 
         public final SqlColumn<Long> configurationNodeId = column("configuration_node_id", JDBCType.BIGINT);
 
-        public final SqlColumn<String> userNames = column("user_names", JDBCType.VARCHAR);
-
         public final SqlColumn<String> encryptSecret = column("encrypt_secret", JDBCType.VARCHAR);
+
+        public final SqlColumn<Long> clientGroupId = column("client_group_id", JDBCType.BIGINT);
 
         public ExamConfigurationMapRecord() {
             super("exam_configuration_map");

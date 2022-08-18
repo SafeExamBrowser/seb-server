@@ -93,7 +93,9 @@ public final class MultiSelectionCheckbox extends Composite implements Selection
                 }
             } catch (final Exception e) {
                 // ignore
-                log.warn("Failed to get Tuple3<String>: {}", e.getMessage());
+                if (log.isDebugEnabled()) {
+                    log.warn("Failed to get Tuple3<String>: {}", e.getMessage());
+                }
             }
         }
 

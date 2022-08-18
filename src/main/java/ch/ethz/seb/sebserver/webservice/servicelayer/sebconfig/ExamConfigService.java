@@ -82,9 +82,9 @@ public interface ExamConfigService {
      * @param out The output stream to write the export data to
      * @param institutionId The identifier of the institution of the requesting user
      * @param examId the exam identifier
-     * @param userId the user identifier if a specific user based configuration shall be exported
+     * @param clientGroupId the client group id if there is a separated exam config for defined group
      * @return The configuration node identifier (PK) */
-    Long exportForExam(OutputStream out, Long institutionId, Long examId, String userId);
+    Long exportForExam(OutputStream out, Long institutionId, Long examId, String clientGroupId);
 
     /** Used to export the default SEB Exam Configuration for a given exam identifier.
      * either with encryption if defined or as plain text within the SEB Configuration format
