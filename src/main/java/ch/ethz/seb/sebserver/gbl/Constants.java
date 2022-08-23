@@ -172,6 +172,7 @@ public final class Constants {
             EntityType.EXAM_TEMPLATE,
             EntityType.EXAM,
             EntityType.INDICATOR,
+            EntityType.CLIENT_GROUP,
             EntityType.EXAM_CONFIGURATION_MAP,
             EntityType.CONFIGURATION_NODE,
             EntityType.CLIENT_CONNECTION,

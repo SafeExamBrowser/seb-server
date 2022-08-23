@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gbl.model.session;
+package ch.ethz.seb.sebserver.gbl.monitoring;
 
 import java.util.Collection;
 
@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MonitoringFullPageData {

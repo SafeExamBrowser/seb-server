@@ -155,6 +155,7 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT = "/proctoring";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
+    public static final String EXAM_CLIENT_GROUP_ENDPOINT = "/client-group";
 
     public static final String SEB_CLIENT_CONFIG_ENDPOINT = "/client_configuration";
     public static final String SEB_CLIENT_CONFIG_CREDENTIALS_PATH_SEGMENT = "/credentials";
@@ -233,6 +234,7 @@ public final class API {
 
     public static final String EXAM_TEMPLATE_ENDPOINT = "/exam-template";
     public static final String EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT = "/indicator";
+    public static final String EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT = "/client-group";
     public static final String EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT = "/default";
 
     public static final String BATCH_ACTION_ENDPOINT = "/batch-action";

@@ -56,7 +56,7 @@ import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
 import ch.ethz.seb.sebserver.gui.service.session.FullPageMonitoringGUIUpdate;

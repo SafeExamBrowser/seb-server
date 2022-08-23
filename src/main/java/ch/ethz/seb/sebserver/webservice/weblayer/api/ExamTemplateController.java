@@ -36,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
@@ -100,7 +101,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
     }
 
     // ****************************************************************************
-    // **** Indicator
+    // **** Indicator Templates
 
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
@@ -135,7 +136,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 pageSize,
                 sort,
                 examTemplate.indicatorTemplates,
-                pageSort(sort));
+                indicatorTemplatePageSort(sort));
     }
 
     @RequestMapping(
@@ -166,7 +167,6 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                         .findFirst()
                         .orElseThrow(() -> new ResourceNotFoundException(EntityType.INDICATOR, parentModelId)))
                 .getOrThrow();
-
     }
 
     @RequestMapping(
@@ -248,7 +248,150 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getOrThrow();
     }
 
-    // **** Indicator
+    // **** Indicator Templates
+    // ****************************************************************************
+    // ****************************************************************************
+    // **** Client Group Templates
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Page<ClientGroupTemplate> getClientGroupTemplatePage(
+            @PathVariable final String modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
+            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
+            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
+
+        checkReadPrivilege(institutionId);
+
+        this.authorization.check(
+                PrivilegeType.READ,
+                EntityType.EXAM_TEMPLATE,
+                institutionId);
+
+        final ExamTemplate examTemplate = super.entityDAO
+                .byModelId(modelId)
+                .getOrThrow();
+
+        return this.paginationService.buildPageFromList(
+                pageNumber,
+                pageSize,
+                sort,
+                examTemplate.clientGroupTemplates,
+                clientGroupTemplatePageSort(sort));
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT
+                    + API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ClientGroupTemplate getClientGroupTemplateBy(
+            @PathVariable final String parentModelId,
+            @PathVariable final String modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        this.authorization.check(
+                PrivilegeType.READ,
+                EntityType.EXAM_TEMPLATE,
+                institutionId);
+
+        return super.entityDAO
+                .byModelId(parentModelId)
+                .map(t -> t.clientGroupTemplates
+                        .stream()
+                        .filter(i -> modelId.equals(i.getModelId()))
+                        .findFirst()
+                        .orElseThrow(() -> new ResourceNotFoundException(EntityType.CLIENT_GROUP, parentModelId)))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ClientGroupTemplate createClientGroupTemplate(
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            final HttpServletRequest request) {
+
+        // check write privilege for requested institution and concrete entityType
+        this.checkWritePrivilege(institutionId);
+        final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
+                .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+
+        return this.beanValidationService
+                .validateBean(new ClientGroupTemplate(
+                        null,
+                        postMap.getLong(ClientGroupTemplate.ATTR_EXAM_TEMPLATE_ID),
+                        postMap))
+                .flatMap(this.examTemplateDAO::createNewClientGroupTemplate)
+                .flatMap(this.userActivityLogDAO::logCreate)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT,
+            method = RequestMethod.PUT,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ClientGroupTemplate saveClientGroupTemplate(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @Valid @RequestBody final ClientGroupTemplate modifyData) {
+
+        // check modify privilege for requested institution and concrete entityType
+        this.checkModifyPrivilege(institutionId);
+        return this.beanValidationService
+                .validateBean(modifyData)
+                .flatMap(this.examTemplateDAO::saveClientGroupTemplate)
+                .flatMap(this.userActivityLogDAO::logModify)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_TEMPLATE_CLIENT_GROUP_PATH_SEGMENT
+                    + API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.DELETE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public EntityKey deleteClientGroupTemplate(
+            @PathVariable final String parentModelId,
+            @PathVariable final String modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        // check write privilege for requested institution and concrete entityType
+        this.checkWritePrivilege(institutionId);
+        return this.examTemplateDAO
+                .deleteClientGroupTemplate(parentModelId, modelId)
+                .flatMap(this.userActivityLogDAO::logDelete)
+                .getOrThrow();
+    }
+
+    // **** Client Group Templates
     // ****************************************************************************
     // ****************************************************************************
     // **** Proctoring
@@ -313,11 +456,33 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         return ExamTemplateRecordDynamicSqlSupport.examTemplateRecord;
     }
 
-    static Function<Collection<IndicatorTemplate>, List<IndicatorTemplate>> pageSort(final String sort) {
+    static Function<Collection<IndicatorTemplate>, List<IndicatorTemplate>> indicatorTemplatePageSort(
+            final String sort) {
 
         final String sortBy = PageSortOrder.decode(sort);
         return indicators -> {
             final List<IndicatorTemplate> list = indicators.stream().collect(Collectors.toList());
+            if (StringUtils.isBlank(sort)) {
+                return list;
+            }
+
+            if (sortBy.equals(Indicator.FILTER_ATTR_NAME)) {
+                list.sort(Comparator.comparing(indicator -> indicator.name));
+            }
+
+            if (PageSortOrder.DESCENDING == PageSortOrder.getSortOrder(sort)) {
+                Collections.reverse(list);
+            }
+            return list;
+        };
+    }
+
+    static Function<Collection<ClientGroupTemplate>, List<ClientGroupTemplate>> clientGroupTemplatePageSort(
+            final String sort) {
+
+        final String sortBy = PageSortOrder.decode(sort);
+        return clientGroups -> {
+            final List<ClientGroupTemplate> list = clientGroups.stream().collect(Collectors.toList());
             if (StringUtils.isBlank(sort)) {
                 return list;
             }

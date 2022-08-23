@@ -16,7 +16,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 /** A client indicator is a indicator value holder for a specific Indicator

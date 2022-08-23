@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -17,24 +17,24 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class SaveIndicator extends RestCall<Indicator> {
+public class DeleteClientGroup extends RestCall<EntityProcessingReport> {
 
-    public SaveIndicator() {
+    public DeleteClientGroup() {
         super(new TypeKey<>(
-                CallType.SAVE,
-                EntityType.INDICATOR,
-                new TypeReference<Indicator>() {
+                CallType.DELETE,
+                EntityType.CLIENT_GROUP,
+                new TypeReference<EntityProcessingReport>() {
                 }),
-                HttpMethod.PUT,
+                HttpMethod.DELETE,
                 MediaType.APPLICATION_JSON,
-                API.EXAM_INDICATOR_ENDPOINT);
+                API.EXAM_CLIENT_GROUP_ENDPOINT + API.MODEL_ID_VAR_PATH_SEGMENT);
     }
 
 }

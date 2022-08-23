@@ -10,11 +10,13 @@ package ch.ethz.seb.sebserver.gbl.util;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
@@ -755,6 +757,26 @@ public final class Utils {
             log.error("Failed to parse json to map: ", e);
             return Collections.emptyMap();
         }
+    }
+
+    public static long ipToLong(final String ipV4Address) {
+        try {
+            return ipToLong(InetAddress.getByName(ipV4Address));
+        } catch (final UnknownHostException e) {
+            log.error("Failed to convert IPv4 address: {}", ipV4Address, e);
+            return -1L;
+        }
+    }
+
+    public static long ipToLong(final InetAddress ipAddress) {
+        long result = 0;
+        final byte[] ipAddressOctets = ipAddress.getAddress();
+
+        for (final byte octet : ipAddressOctets) {
+            result <<= 8;
+            result |= octet & 0xFF;
+        }
+        return result;
     }
 
 }

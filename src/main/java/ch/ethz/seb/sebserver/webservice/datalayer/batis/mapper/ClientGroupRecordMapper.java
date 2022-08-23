@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface ClientGroupRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.810+02:00", comments="Source Table: client_group")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.810+02:00", comments="Source Table: client_group")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.810+02:00", comments="Source Table: client_group")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<ClientGroupRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.810+02:00", comments="Source Table: client_group")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -53,11 +53,12 @@ public interface ClientGroupRecordMapper {
         @Arg(column="name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="type", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="color", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="icon", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="data", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
     ClientGroupRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -65,26 +66,27 @@ public interface ClientGroupRecordMapper {
         @Arg(column="name", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="type", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="color", javaType=String.class, jdbcType=JdbcType.VARCHAR),
+        @Arg(column="icon", javaType=String.class, jdbcType=JdbcType.VARCHAR),
         @Arg(column="data", javaType=String.class, jdbcType=JdbcType.VARCHAR)
     })
     List<ClientGroupRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(clientGroupRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientGroupRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, clientGroupRecord)
                 .where(id, isEqualTo(id_))
@@ -92,7 +94,7 @@ public interface ClientGroupRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default int insert(ClientGroupRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientGroupRecord)
@@ -100,12 +102,13 @@ public interface ClientGroupRecordMapper {
                 .map(name).toProperty("name")
                 .map(type).toProperty("type")
                 .map(color).toProperty("color")
+                .map(icon).toProperty("icon")
                 .map(data).toProperty("data")
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default int insertSelective(ClientGroupRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(clientGroupRecord)
@@ -113,72 +116,77 @@ public interface ClientGroupRecordMapper {
                 .map(name).toPropertyWhenPresent("name", record::getName)
                 .map(type).toPropertyWhenPresent("type", record::getType)
                 .map(color).toPropertyWhenPresent("color", record::getColor)
+                .map(icon).toPropertyWhenPresent("icon", record::getIcon)
                 .map(data).toPropertyWhenPresent("data", record::getData)
                 .build()
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientGroupRecord>>> selectByExample() {
-        return SelectDSL.selectWithMapper(this::selectMany, id, examId, name, type, color, data)
+        return SelectDSL.selectWithMapper(this::selectMany, id, examId, name, type, color, icon, data)
                 .from(clientGroupRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientGroupRecord>>> selectDistinctByExample() {
-        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, examId, name, type, color, data)
+        return SelectDSL.selectDistinctWithMapper(this::selectMany, id, examId, name, type, color, icon, data)
                 .from(clientGroupRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default ClientGroupRecord selectByPrimaryKey(Long id_) {
-        return SelectDSL.selectWithMapper(this::selectOne, id, examId, name, type, color, data)
+        return SelectDSL.selectWithMapper(this::selectOne, id, examId, name, type, color, icon, data)
                 .from(clientGroupRecord)
                 .where(id, isEqualTo(id_))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(ClientGroupRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientGroupRecord)
                 .set(examId).equalTo(record::getExamId)
                 .set(name).equalTo(record::getName)
                 .set(type).equalTo(record::getType)
                 .set(color).equalTo(record::getColor)
+                .set(icon).equalTo(record::getIcon)
                 .set(data).equalTo(record::getData);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(ClientGroupRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientGroupRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)
                 .set(name).equalToWhenPresent(record::getName)
                 .set(type).equalToWhenPresent(record::getType)
                 .set(color).equalToWhenPresent(record::getColor)
+                .set(icon).equalToWhenPresent(record::getIcon)
                 .set(data).equalToWhenPresent(record::getData);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default int updateByPrimaryKey(ClientGroupRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientGroupRecord)
                 .set(examId).equalTo(record::getExamId)
                 .set(name).equalTo(record::getName)
                 .set(type).equalTo(record::getType)
                 .set(color).equalTo(record::getColor)
+                .set(icon).equalTo(record::getIcon)
                 .set(data).equalTo(record::getData)
                 .where(id, isEqualTo(record::getId))
                 .build()
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-17T15:55:00.148+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-08-18T13:41:40.811+02:00", comments="Source Table: client_group")
     default int updateByPrimaryKeySelective(ClientGroupRecord record) {
         return UpdateDSL.updateWithMapper(this::update, clientGroupRecord)
                 .set(examId).equalToWhenPresent(record::getExamId)
                 .set(name).equalToWhenPresent(record::getName)
                 .set(type).equalToWhenPresent(record::getType)
                 .set(color).equalToWhenPresent(record::getColor)
+                .set(icon).equalToWhenPresent(record::getIcon)
                 .set(data).equalToWhenPresent(record::getData)
                 .where(id, isEqualTo(record::getId))
                 .build()

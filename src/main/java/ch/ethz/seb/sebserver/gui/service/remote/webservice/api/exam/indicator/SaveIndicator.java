@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -24,16 +24,16 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class NewIndicator extends RestCall<Indicator> {
+public class SaveIndicator extends RestCall<Indicator> {
 
-    public NewIndicator() {
+    public SaveIndicator() {
         super(new TypeKey<>(
-                CallType.NEW,
+                CallType.SAVE,
                 EntityType.INDICATOR,
                 new TypeReference<Indicator>() {
                 }),
-                HttpMethod.POST,
-                MediaType.APPLICATION_FORM_URLENCODED,
+                HttpMethod.PUT,
+                MediaType.APPLICATION_JSON,
                 API.EXAM_INDICATOR_ENDPOINT);
     }
 

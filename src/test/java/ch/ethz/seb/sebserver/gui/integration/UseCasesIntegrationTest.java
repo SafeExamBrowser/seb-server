@@ -65,6 +65,8 @@ import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup.ClientGroupType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
@@ -108,13 +110,13 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
-import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
-import ch.ethz.seb.sebserver.gbl.model.session.MonitoringFullPageData;
-import ch.ethz.seb.sebserver.gbl.model.session.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -134,7 +136,6 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeactivateSE
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.DeleteIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ExportSEBSettingsConfig;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetCourseChapters;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetDefaultExamTemplate;
@@ -149,23 +150,28 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProct
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplates;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorPage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicatorTemplatePage;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetSEBRestrictionSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamConfigMapping;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplate;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveSEBRestriction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroupPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.NewClientGroup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.SaveClientGroup;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.DeleteIndicatorTemplate;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicator;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorPage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorTemplate;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorTemplatePage;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicators;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.NewIndicator;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.NewIndicatorTemplate;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.SaveIndicator;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.SaveIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.ActivateInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitution;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.institution.GetInstitutionNames;
@@ -806,7 +812,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(7)
+    @Order(6)
     // *************************************
     // Use Case 6: Login as examAdmin2
     // - Check if there are some quizzes from previous LMS Setup
@@ -814,7 +820,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     // - get exam page and check the exam is there
     // - get exam page with none native sort attribute to test this
     // - edit exam property and save again
-    public void testUsecase07_ImportExam() {
+    public void testUsecase06_ImportExam() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -930,14 +936,14 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Test
-    @Order(8)
+    @Order(7)
     // *************************************
     // Use Case 7: Login as examAdmin2
     // - Get imported exam
     // - add new indicator for exam
     // - save exam with new indicator and test
     // - create some thresholds for the new indicator
-    public void testUsecase08_CreateExamIndicator() {
+    public void testUsecase07_CreateExamIndicator() {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
                 "examAdmin2",
@@ -1017,6 +1023,82 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertEquals("000011", t1.color);
         assertTrue(5000d - t2.value < .0001);
         assertEquals("001111", t2.color);
+    }
+
+    @Test
+    @Order(8)
+    // *************************************
+    // Use Case 8: Login as examAdmin2
+    // - Get imported exam
+    // - add new client group for exam
+    // - save exam with new client and test
+    public void testUsecase08_CreateExamClientGroup() {
+        final RestServiceImpl restService = createRestServiceForUser(
+                "examAdmin2",
+                "examAdmin2",
+                new GetExam(),
+                new GetExamNames(),
+                new NewClientGroup(),
+                new SaveClientGroup(),
+                new GetClientGroup(),
+                new GetClientGroupPage());
+
+        final Result<List<EntityName>> examNamesResult = restService
+                .getBuilder(GetExamNames.class)
+                .call();
+
+        assertNotNull(examNamesResult);
+        assertFalse(examNamesResult.hasError());
+        final List<EntityName> exams = examNamesResult.get();
+        assertFalse(exams.isEmpty());
+        final EntityName examName = exams.get(0);
+        assertEquals("Demo Quiz 1 (MOCKUP)", examName.name);
+
+        final Result<Exam> examResult = restService
+                .getBuilder(GetExam.class)
+                .withURIVariable(API.PARAM_MODEL_ID, examName.modelId)
+                .call();
+
+        assertNotNull(examResult);
+        assertFalse(examResult.hasError());
+        final Exam exam = examResult.get();
+
+        final Result<ClientGroup> newClientGroupResult = restService
+                .getBuilder(NewClientGroup.class)
+                .withFormParam(Domain.CLIENT_GROUP.ATTR_EXAM_ID, exam.getModelId())
+                .withFormParam(Domain.CLIENT_GROUP.ATTR_NAME, "Room XY")
+                .withFormParam(Domain.CLIENT_GROUP.ATTR_TYPE, ClientGroupType.IP_V4_RANGE.name())
+                .withFormParam(Domain.CLIENT_GROUP.ATTR_COLOR, "000001")
+                .withFormParam(Domain.CLIENT_GROUP.ATTR_DATA, "10.114.3.10,10.114.3.99")
+                .call();
+
+        assertNotNull(newClientGroupResult);
+        assertFalse(newClientGroupResult.hasError());
+        final ClientGroup newClientGroup = newClientGroupResult.get();
+
+        assertEquals("Room XY", newClientGroup.name);
+        assertEquals("000001", newClientGroup.color);
+
+        final ClientGroup clientGroupToSave = new ClientGroup(
+                newClientGroup.id,
+                newClientGroup.examId,
+                "Room XYZ",
+                newClientGroup.type,
+                "000002",
+                newClientGroup.icon,
+                newClientGroup.data);
+
+        final Result<ClientGroup> savedClientGroupResult = restService
+                .getBuilder(SaveClientGroup.class)
+                .withBody(clientGroupToSave)
+                .call();
+
+        assertNotNull(savedClientGroupResult);
+        assertFalse(savedClientGroupResult.hasError());
+        final ClientGroup savedClientGroup = savedClientGroupResult.get();
+
+        assertEquals("Room XYZ", savedClientGroup.name);
+        assertEquals("000002", savedClientGroup.color);
     }
 
     @Test
@@ -2491,6 +2573,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "[EXAM, "
                         + "INDICATOR, "
                         + "INDICATOR, "
+                        + "CLIENT_GROUP, "
                         + "EXAM_CONFIGURATION_MAP, "
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
@@ -2540,6 +2623,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "[EXAM, "
                         + "INDICATOR, "
                         + "INDICATOR, "
+                        + "CLIENT_GROUP, "
                         + "EXAM_CONFIGURATION_MAP, "
                         + "CLIENT_CONNECTION, "
                         + "CLIENT_CONNECTION, "
@@ -2578,6 +2662,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 "[EXAM, "
                         + "INDICATOR, "
                         + "INDICATOR, "
+                        + "CLIENT_GROUP, "
                         + "EXAM_CONFIGURATION_MAP, "
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
@@ -2655,6 +2740,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         + "CLIENT_CONNECTION, "
                         + "CLIENT_CONNECTION, "
                         + "CLIENT_CONNECTION, "
+                        + "CLIENT_GROUP, "
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
                         + "CONFIGURATION_NODE, "
@@ -3008,6 +3094,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         null,
                         Long.parseLong(configTemplateName.modelId), // assosiate with given config template
                         true,
+                        null,
                         null,
                         null))
                 .call()

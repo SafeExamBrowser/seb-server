@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2021 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2019 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -17,25 +17,25 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
+import ch.ethz.seb.sebserver.gbl.model.Page;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class SaveIndicatorTemplate extends RestCall<IndicatorTemplate> {
+public class GetIndicatorPage extends RestCall<Page<Indicator>> {
 
-    public SaveIndicatorTemplate() {
+    public GetIndicatorPage() {
         super(new TypeKey<>(
-                CallType.SAVE,
+                CallType.GET_PAGE,
                 EntityType.INDICATOR,
-                new TypeReference<IndicatorTemplate>() {
+                new TypeReference<Page<Indicator>>() {
                 }),
-                HttpMethod.PUT,
-                MediaType.APPLICATION_JSON,
-                API.EXAM_TEMPLATE_ENDPOINT
-                        + API.EXAM_TEMPLATE_INDICATOR_PATH_SEGMENT);
+                HttpMethod.GET,
+                MediaType.APPLICATION_FORM_URLENCODED,
+                API.EXAM_INDICATOR_ENDPOINT);
     }
 
 }

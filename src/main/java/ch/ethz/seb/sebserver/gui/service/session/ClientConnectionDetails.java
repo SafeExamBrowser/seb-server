@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
-import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;

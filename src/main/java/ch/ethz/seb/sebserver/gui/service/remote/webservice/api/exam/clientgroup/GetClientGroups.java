@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup;
 
 import java.util.List;
 
@@ -17,21 +17,21 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.PageToListCallAdapter;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetIndicators extends PageToListCallAdapter<Indicator> {
+public class GetClientGroups extends PageToListCallAdapter<ClientGroup> {
 
-    public GetIndicators() {
+    public GetClientGroups() {
         super(
-                GetIndicatorPage.class,
-                EntityType.INDICATOR,
-                new TypeReference<List<Indicator>>() {
+                GetClientGroupPage.class,
+                EntityType.CLIENT_GROUP,
+                new TypeReference<List<ClientGroup>>() {
                 },
-                API.EXAM_INDICATOR_ENDPOINT);
+                API.EXAM_CLIENT_GROUP_ENDPOINT);
     }
 }

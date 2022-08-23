@@ -13,9 +13,9 @@ import java.util.Collections;
 import java.util.EnumSet;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.MonitoringFullPageData;
-import ch.ethz.seb.sebserver.gbl.model.session.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 
 public interface MonitoringStatus {

@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.validation.constraints.NotNull;
@@ -33,6 +34,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 public class ExamTemplate implements GrantEntity {
 
     public static final String FILTER_ATTR_EXAM_TYPE = EXAM_TEMPLATE.ATTR_EXAM_TYPE;
+    public static final String ATTR_CLIENT_GROUP_TEMPLATES = "CLIENT_GROUP_TEMPLATES";
     public static final String ATTR_EXAM_ATTRIBUTES = "EXAM_ATTRIBUTES";
 
     @JsonProperty(EXAM_TEMPLATE.ATTR_ID)
@@ -63,6 +65,9 @@ public class ExamTemplate implements GrantEntity {
     @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES)
     public final Collection<IndicatorTemplate> indicatorTemplates;
 
+    @JsonProperty(ATTR_CLIENT_GROUP_TEMPLATES)
+    public final Collection<ClientGroupTemplate> clientGroupTemplates;
+
     @JsonProperty(ATTR_EXAM_ATTRIBUTES)
     public final Map<String, String> examAttributes;
 
@@ -80,6 +85,7 @@ public class ExamTemplate implements GrantEntity {
             @JsonProperty(EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID) final Long configTemplateId,
             @JsonProperty(EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT) final Boolean institutionalDefault,
             @JsonProperty(EXAM_TEMPLATE.ATTR_INDICATOR_TEMPLATES) final Collection<IndicatorTemplate> indicatorTemplates,
+            @JsonProperty(ATTR_CLIENT_GROUP_TEMPLATES) final Collection<ClientGroupTemplate> clientGroupTemplates,
             @JsonProperty(ATTR_EXAM_ATTRIBUTES) final Map<String, String> examAttributes) {
 
         this.id = id;
@@ -90,8 +96,15 @@ public class ExamTemplate implements GrantEntity {
         this.supporter = supporter;
         this.configTemplateId = configTemplateId;
         this.indicatorTemplates = Utils.immutableCollectionOf(indicatorTemplates);
+        this.clientGroupTemplates = Utils.immutableCollectionOf(clientGroupTemplates);
         this.institutionalDefault = BooleanUtils.toBoolean(institutionalDefault);
-        this.examAttributes = Utils.immutableMapOf(examAttributes);
+        if (examAttributes != null && examAttributes.containsKey(ATTR_CLIENT_GROUP_TEMPLATES)) {
+            final HashMap<String, String> attrs = new HashMap<>(examAttributes);
+            attrs.remove(ATTR_CLIENT_GROUP_TEMPLATES);
+            this.examAttributes = Utils.immutableMapOf(attrs);
+        } else {
+            this.examAttributes = Utils.immutableMapOf(examAttributes);
+        }
     }
 
     public ExamTemplate(
@@ -107,6 +120,7 @@ public class ExamTemplate implements GrantEntity {
         this.configTemplateId = mapper.getLong(Domain.EXAM_TEMPLATE.ATTR_CONFIGURATION_TEMPLATE_ID);
         this.institutionalDefault = mapper.getBooleanObject(Domain.EXAM_TEMPLATE.ATTR_INSTITUTIONAL_DEFAULT);
         this.indicatorTemplates = Collections.emptyList();
+        this.clientGroupTemplates = Collections.emptyList();
         this.examAttributes = Utils.immutableMapOf(null);
     }
 
@@ -150,6 +164,10 @@ public class ExamTemplate implements GrantEntity {
 
     public Collection<IndicatorTemplate> getIndicatorTemplates() {
         return this.indicatorTemplates;
+    }
+
+    public Collection<ClientGroupTemplate> getClientGroupTemplates() {
+        return this.clientGroupTemplates;
     }
 
     public Map<String, String> getExamAttributes() {
@@ -214,6 +232,8 @@ public class ExamTemplate implements GrantEntity {
         builder.append(this.configTemplateId);
         builder.append(", indicatorTemplates=");
         builder.append(this.indicatorTemplates);
+        builder.append(", clientGroupTemplates=");
+        builder.append(this.clientGroupTemplates);
         builder.append(", examAttributes=");
         builder.append(this.examAttributes);
         builder.append(", institutionalDefault=");
@@ -223,7 +243,8 @@ public class ExamTemplate implements GrantEntity {
     }
 
     public static ExamTemplate createNew(final Long institutionId) {
-        return new ExamTemplate(null, institutionId, null, null, ExamType.UNDEFINED, null, null, false, null, null);
+        return new ExamTemplate(null, institutionId, null, null, ExamType.UNDEFINED, null, null, false, null, null,
+                null);
     }
 
 }

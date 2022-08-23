@@ -46,11 +46,11 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
-import ch.ethz.seb.sebserver.gbl.model.session.MonitoringFullPageData;
-import ch.ethz.seb.sebserver.gbl.model.session.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;

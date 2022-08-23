@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;

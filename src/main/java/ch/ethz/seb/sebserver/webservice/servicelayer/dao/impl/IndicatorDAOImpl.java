@@ -349,7 +349,9 @@ public class IndicatorDAOImpl implements IndicatorDAO {
     private Result<IndicatorRecord> recordById(final Long id) {
         return Result.tryCatch(() -> {
 
-            final IndicatorRecord record = this.indicatorRecordMapper.selectByPrimaryKey(id);
+            final IndicatorRecord record = this.indicatorRecordMapper
+                    .selectByPrimaryKey(id);
+
             if (record == null) {
                 throw new ResourceNotFoundException(
                         entityType(),
@@ -384,7 +386,6 @@ public class IndicatorDAOImpl implements IndicatorDAO {
                     record.getTags(),
                     thresholds);
         });
-
     }
 
 }

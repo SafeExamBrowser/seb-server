@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gbl.model.session;
+package ch.ethz.seb.sebserver.gbl.monitoring;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MonitoringSEBConnectionData {

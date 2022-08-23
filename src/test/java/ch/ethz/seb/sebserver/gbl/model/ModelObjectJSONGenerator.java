@@ -63,13 +63,13 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
 import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
-import ch.ethz.seb.sebserver.gbl.model.session.SimpleIndicatorValue;
 import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
+import ch.ethz.seb.sebserver.gbl.monitoring.SimpleIndicatorValue;
 
 public class ModelObjectJSONGenerator {
 

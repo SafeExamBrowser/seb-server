@@ -37,6 +37,12 @@ public interface ExamTemplateService {
      * @return Result refer to the Exam with added default indicator or to an error if happened */
     Result<Exam> addDefinedIndicators(Exam exam);
 
+    /** Adds the client groups that are defined by a exam template
+     *
+     * @param exam The Exam to add the client groups
+     * @return Result refer to the Exam with added client groups or to an error if happened */
+    Result<Exam> addDefinedClientGroups(Exam exam);
+
     /** Initializes additional attributes for a specified Exam on creation.
      *
      * @param exam The Exam to add the default indicator

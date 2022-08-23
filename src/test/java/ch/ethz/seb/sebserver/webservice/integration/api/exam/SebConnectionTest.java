@@ -30,7 +30,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientConnectionRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;

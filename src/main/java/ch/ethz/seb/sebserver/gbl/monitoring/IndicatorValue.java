@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gbl.model.session;
+package ch.ethz.seb.sebserver.gbl.monitoring;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

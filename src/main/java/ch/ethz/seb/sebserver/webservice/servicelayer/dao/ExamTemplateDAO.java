@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -37,8 +38,28 @@ public interface ExamTemplateDAO extends EntityDAO<ExamTemplate, ExamTemplate>, 
 
     /** Deletes an already existing indicator template
      *
-     * @param indicatorTemplate The IndicatorTemplate refer also to the exam template (examTemplateId)
+     * @param examTemplateId the ExamTemplate id where the specified IndicatorTemplate shall be deleted from
+     * @param indicatorTemplateId the id of the IndicatorTemplate to delete
      * @return Result refer to the EntityKey of the deleted IndicatorTemplate or to an error when happened */
     Result<EntityKey> deleteIndicatorTemplate(String examTemplateId, String indicatorTemplateId);
+
+    /** Creates a new client group template
+     *
+     * @param clientGroupTemplate The ClientGroupTemplate refer also to the exam template (examTemplateId)
+     * @return Result refer to the created ClientGroupTemplate or to an error when happened */
+    Result<ClientGroupTemplate> createNewClientGroupTemplate(ClientGroupTemplate clientGroupTemplate);
+
+    /** Saves an already existing client group template
+     *
+     * @param clientGroupTemplate The ClientGroupTemplate refer also to the exam template (examTemplateId)
+     * @return Result refer to the saved ClientGroupTemplate or to an error when happened */
+    Result<ClientGroupTemplate> saveClientGroupTemplate(ClientGroupTemplate clientGroupTemplate);
+
+    /** Deletes an already existing client group template
+     *
+     * @param examTemplateId the ExamTemplate id where the specified ClientGroupTemplate shall be deleted from
+     * @param clientGroupTemplateId the id of the ClientGroupTemplate to delete
+     * @return Result refer to the EntityKey of the deleted ClientGroupTemplate or to an error when happened */
+    Result<EntityKey> deleteClientGroupTemplate(String examTemplateId, String clientGroupTemplateId);
 
 }

@@ -79,6 +79,7 @@ public class BulkActionServiceImpl implements BulkActionService {
         this.directDependancyMap.put(EntityType.EXAM, EnumSet.of(
                 EntityType.EXAM_CONFIGURATION_MAP,
                 EntityType.INDICATOR,
+                EntityType.CLIENT_GROUP,
                 EntityType.CLIENT_CONNECTION));
         this.directDependancyMap.put(EntityType.CONFIGURATION_NODE,
                 EnumSet.of(EntityType.EXAM_CONFIGURATION_MAP));
@@ -260,6 +261,7 @@ public class BulkActionServiceImpl implements BulkActionService {
                         this.supporter.get(EntityType.USER),
                         this.supporter.get(EntityType.EXAM),
                         this.supporter.get(EntityType.INDICATOR),
+                        this.supporter.get(EntityType.CLIENT_GROUP),
                         this.supporter.get(EntityType.SEB_CLIENT_CONFIGURATION),
                         this.supporter.get(EntityType.CLIENT_CONNECTION),
                         this.supporter.get(EntityType.CONFIGURATION_NODE),
@@ -269,6 +271,7 @@ public class BulkActionServiceImpl implements BulkActionService {
                 return Arrays.asList(
                         this.supporter.get(EntityType.EXAM),
                         this.supporter.get(EntityType.INDICATOR),
+                        this.supporter.get(EntityType.CLIENT_GROUP),
                         this.supporter.get(EntityType.CLIENT_CONNECTION),
                         this.supporter.get(EntityType.CONFIGURATION_NODE),
                         this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP));
@@ -276,11 +279,13 @@ public class BulkActionServiceImpl implements BulkActionService {
                 return Arrays.asList(
                         this.supporter.get(EntityType.EXAM),
                         this.supporter.get(EntityType.INDICATOR),
+                        this.supporter.get(EntityType.CLIENT_GROUP),
                         this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP),
                         this.supporter.get(EntityType.CLIENT_CONNECTION));
             case EXAM:
                 return Arrays.asList(
                         this.supporter.get(EntityType.INDICATOR),
+                        this.supporter.get(EntityType.CLIENT_GROUP),
                         this.supporter.get(EntityType.EXAM_CONFIGURATION_MAP),
                         this.supporter.get(EntityType.CLIENT_CONNECTION));
             case CONFIGURATION_NODE:

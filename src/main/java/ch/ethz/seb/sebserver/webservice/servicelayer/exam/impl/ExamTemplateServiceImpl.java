@@ -29,6 +29,8 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
@@ -42,6 +44,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
@@ -63,6 +66,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final IndicatorDAO indicatorDAO;
+    private final ClientGroupDAO clientGroupDAO;
     private final JSONMapper jsonMapper;
 
     private final String defaultIndicatorName;
@@ -79,6 +83,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             final ConfigurationNodeDAO configurationNodeDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final IndicatorDAO indicatorDAO,
+            final ClientGroupDAO clientGroupDAO,
             final JSONMapper jsonMapper,
 
             @Value("${sebserver.webservice.api.exam.indicator.name:}") final String defaultIndicatorName,
@@ -94,6 +99,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.examAdminService = examAdminService;
         this.indicatorDAO = indicatorDAO;
+        this.clientGroupDAO = clientGroupDAO;
         this.jsonMapper = jsonMapper;
 
         this.defaultIndicatorName = defaultIndicatorName;
@@ -116,6 +122,36 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         } else {
             return addDefaultIndicator(exam);
         }
+    }
+
+    @Override
+    public Result<Exam> addDefinedClientGroups(final Exam exam) {
+        return Result.tryCatch(() -> {
+
+            if (exam.examTemplateId != null) {
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Init client groups for exam: {} from template: {}", exam.externalId,
+                            exam.examTemplateId);
+                }
+
+                final ExamTemplate examTemplate = this.examTemplateDAO
+                        .byPK(exam.examTemplateId)
+                        .onError(error -> log.warn("No exam template found for id: {}",
+                                exam.examTemplateId,
+                                error.getMessage()))
+                        .getOr(null);
+
+                if (examTemplate == null) {
+                    return exam;
+                }
+
+                examTemplate.clientGroupTemplates
+                        .forEach(it -> createClientGroupFromTemplate(it, exam));
+            }
+
+            return exam;
+        }).onError(error -> log.error("Failed to create indicators defined by template for exam: ", error));
     }
 
     @Override
@@ -302,26 +338,37 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     }
 
     private void createIndicatorFromTemplate(final IndicatorTemplate template, final Exam exam) {
-        try {
+        this.indicatorDAO
+                .createNew(new Indicator(
+                        null,
+                        exam.id,
+                        template.name,
+                        template.type,
+                        template.defaultColor,
+                        template.defaultIcon,
+                        template.tags,
+                        template.thresholds))
+                .onError(error -> log.error("Failed to automatically create indicator from template: {} for exam: {}",
+                        template,
+                        exam,
+                        error));
+    }
 
-            this.indicatorDAO.createNew(
-                    new Indicator(
-                            null,
-                            exam.id,
-                            template.name,
-                            template.type,
-                            template.defaultColor,
-                            template.defaultIcon,
-                            template.tags,
-                            template.thresholds))
-                    .getOrThrow();
-
-        } catch (final Exception e) {
-            log.error("Failed to automatically create indicator from template: {} for exam: {}",
-                    template,
-                    exam,
-                    e);
-        }
+    private void createClientGroupFromTemplate(final ClientGroupTemplate template, final Exam exam) {
+        this.clientGroupDAO
+                .createNew(new ClientGroup(
+                        null,
+                        exam.id,
+                        template.name,
+                        template.type,
+                        template.color,
+                        template.icon,
+                        template.data))
+                .onError(
+                        error -> log.error("Failed to automatically create client group from template: {} for exam: {}",
+                                template,
+                                exam,
+                                error));
     }
 
     private Result<Exam> addDefaultIndicator(final Exam exam) {

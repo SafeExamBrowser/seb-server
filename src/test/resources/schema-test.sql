@@ -721,6 +721,7 @@ CREATE TABLE IF NOT EXISTS `client_group` (
   `name` VARCHAR(255) NOT NULL,
   `type` VARCHAR(45) NOT NULL,
   `color` VARCHAR(45) NULL,
+  `icon` VARCHAR(45) NULL,
   `data` VARCHAR(4000) NULL,
   PRIMARY KEY (`id`),
   INDEX `clientGroupExamRef_idx` (`exam_id` ASC),

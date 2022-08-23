@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.async.AsyncRunner;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.MonitoringFullPageData;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
-import ch.ethz.seb.sebserver.gbl.model.session.MonitoringFullPageData;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 

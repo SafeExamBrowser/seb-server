@@ -21,6 +21,8 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.monitoring.SimpleIndicatorValue;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -30,7 +30,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
@@ -38,6 +40,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
@@ -262,15 +265,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             }
 
             final Long examTemplatePK = indicatorTemplate.examTemplateId;
-            final ExamTemplateRecord examTemplateRec = this.examTemplateRecordMapper
-                    .selectByPrimaryKey(examTemplatePK);
-            final String indicatorTemplatesJSON = examTemplateRec.getIndicatorTemplates();
-            final Collection<IndicatorTemplate> indicators = (StringUtils.isNotBlank(indicatorTemplatesJSON))
-                    ? this.jsonMapper.readValue(
-                            indicatorTemplatesJSON,
-                            new TypeReference<Collection<IndicatorTemplate>>() {
-                            })
-                    : Collections.emptyList();
+            final Collection<IndicatorTemplate> indicators = extractIndicatorTemplates(examTemplatePK);
 
             checkUniqueIndicatorName(indicatorTemplate, indicators);
 
@@ -281,15 +276,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             final List<IndicatorTemplate> newIndicators = new ArrayList<>(indicators);
             newIndicators.add(newIndicatorTemplate);
 
-            final String newIndicatorTemplatesJSON = newIndicators.isEmpty()
-                    ? StringUtils.EMPTY
-                    : this.jsonMapper.writeValueAsString(newIndicators);
-
-            final ExamTemplateRecord newRecord = new ExamTemplateRecord(
-                    examTemplatePK, null, null, null, null, null, null,
-                    newIndicatorTemplatesJSON, null);
-
-            this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
+            storeIndicatorTemplates(examTemplatePK, newIndicators);
 
             return newIndicatorTemplate;
         })
@@ -306,15 +293,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             }
 
             final Long examTemplatePK = indicatorTemplate.examTemplateId;
-            final ExamTemplateRecord examTemplateRec = this.examTemplateRecordMapper
-                    .selectByPrimaryKey(examTemplatePK);
-            final String indicatorTemplatesJSON = examTemplateRec.getIndicatorTemplates();
-            final Collection<IndicatorTemplate> indicators = (StringUtils.isNotBlank(indicatorTemplatesJSON))
-                    ? this.jsonMapper.readValue(
-                            indicatorTemplatesJSON,
-                            new TypeReference<Collection<IndicatorTemplate>>() {
-                            })
-                    : Collections.emptyList();
+            final Collection<IndicatorTemplate> indicators = extractIndicatorTemplates(examTemplatePK);
 
             checkUniqueIndicatorName(indicatorTemplate, indicators);
 
@@ -323,15 +302,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     .map(i -> indicatorTemplate.id.equals(i.id) ? indicatorTemplate : i)
                     .collect(Collectors.toList());
 
-            final String newIndicatorTemplatesJSON = newIndicators.isEmpty()
-                    ? StringUtils.EMPTY
-                    : this.jsonMapper.writeValueAsString(newIndicators);
-
-            final ExamTemplateRecord newRecord = new ExamTemplateRecord(
-                    examTemplatePK, null, null, null, null, null, null,
-                    newIndicatorTemplatesJSON, null);
-
-            this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
+            storeIndicatorTemplates(examTemplatePK, newIndicators);
 
             return indicatorTemplate;
         })
@@ -354,31 +325,101 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             }
 
             final Long examTemplatePK = Long.valueOf(examTemplateId);
-            final ExamTemplateRecord examTemplateRec = this.examTemplateRecordMapper
-                    .selectByPrimaryKey(examTemplatePK);
-            final String indicatorTemplatesJSON = examTemplateRec.getIndicatorTemplates();
-            final Collection<IndicatorTemplate> indicators = (StringUtils.isNotBlank(indicatorTemplatesJSON))
-                    ? this.jsonMapper.readValue(
-                            indicatorTemplatesJSON,
-                            new TypeReference<Collection<IndicatorTemplate>>() {
-                            })
-                    : Collections.emptyList();
+            final Collection<IndicatorTemplate> indicators = extractIndicatorTemplates(examTemplatePK);
 
             final List<IndicatorTemplate> newIndicators = indicators.stream()
                     .filter(indicatorTemplate -> !indicatorTemplateId.equals(indicatorTemplate.getModelId()))
                     .collect(Collectors.toList());
 
-            final String newIndicatorTemplatesJSON = newIndicators.isEmpty()
-                    ? StringUtils.EMPTY
-                    : this.jsonMapper.writeValueAsString(newIndicators);
-
-            final ExamTemplateRecord newRecord = new ExamTemplateRecord(
-                    examTemplatePK, null, null, null, null, null, null,
-                    newIndicatorTemplatesJSON, null);
-
-            this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
+            storeIndicatorTemplates(examTemplatePK, newIndicators);
 
             return new EntityKey(indicatorTemplateId, EntityType.INDICATOR);
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<ClientGroupTemplate> createNewClientGroupTemplate(final ClientGroupTemplate clientGroupTemplate) {
+        return Result.tryCatch(() -> {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Create new clientGroup template: {}", clientGroupTemplate);
+            }
+
+            final Long examTemplateId = clientGroupTemplate.examTemplateId;
+            final Collection<ClientGroupTemplate> clientGroups =
+                    loadClientGroupTemplates(examTemplateId);
+
+            checkUniqueClientGroupName(clientGroupTemplate, clientGroups);
+
+            final ClientGroupTemplate newClientGroupTemplate = new ClientGroupTemplate(
+                    getNextClientGroupId(clientGroups),
+                    clientGroupTemplate);
+
+            final List<ClientGroupTemplate> newClientGroups = new ArrayList<>(clientGroups);
+            newClientGroups.add(newClientGroupTemplate);
+
+            storeClientGroupTemplates(examTemplateId, newClientGroups);
+
+            return newClientGroupTemplate;
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<ClientGroupTemplate> saveClientGroupTemplate(final ClientGroupTemplate clientGroupTemplate) {
+        return Result.tryCatch(() -> {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Save client group template: {}", clientGroupTemplate);
+            }
+
+            final Long examTemplateId = clientGroupTemplate.examTemplateId;
+            final Collection<ClientGroupTemplate> clientGroups =
+                    loadClientGroupTemplates(examTemplateId);
+
+            checkUniqueClientGroupName(clientGroupTemplate, clientGroups);
+
+            final List<ClientGroupTemplate> newClientGroups = clientGroups
+                    .stream()
+                    .map(i -> clientGroupTemplate.id.equals(i.id) ? clientGroupTemplate : i)
+                    .collect(Collectors.toList());
+
+            storeClientGroupTemplates(examTemplateId, newClientGroups);
+
+            return clientGroupTemplate;
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<EntityKey> deleteClientGroupTemplate(
+            final String examTemplateId,
+            final String clientGroupTemplateId) {
+
+        return Result.tryCatch(() -> {
+
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Delete client group template for exam template: {} indicator template id",
+                        examTemplateId,
+                        clientGroupTemplateId);
+            }
+
+            final Long examTemplatePK = Long.valueOf(examTemplateId);
+            final Collection<ClientGroupTemplate> clientGroups =
+                    loadClientGroupTemplates(examTemplatePK);
+
+            final List<ClientGroupTemplate> newClientGroups = clientGroups.stream()
+                    .filter(clientGroupTemplate -> !clientGroupTemplateId.equals(clientGroupTemplate.getModelId()))
+                    .collect(Collectors.toList());
+
+            storeClientGroupTemplates(examTemplatePK, newClientGroups);
+
+            return new EntityKey(clientGroupTemplateId, EntityType.CLIENT_GROUP);
         })
                 .onError(TransactionHandler::rollback);
     }
@@ -417,6 +458,10 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                             log.info("Deleted template references for exams: {}", deletedReferences);
                         }
                     });
+
+            // delete all additional attributes
+            ids.stream()
+                    .forEach(id -> this.additionalAttributesDAO.deleteAll(EntityType.EXAM_TEMPLATE, id));
 
             this.examTemplateRecordMapper.deleteByExample()
                     .where(ExamTemplateRecordDynamicSqlSupport.id, isIn(ids))
@@ -470,6 +515,8 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     ? ExamType.valueOf(record.getExamType())
                     : ExamType.UNDEFINED;
 
+            final Collection<ClientGroupTemplate> clientGroupTemplates = loadClientGroupTemplates(record.getId());
+
             return new ExamTemplate(
                     record.getId(),
                     record.getInstitutionId(),
@@ -480,6 +527,7 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     record.getConfigurationTemplateId(),
                     BooleanUtils.toBooleanObject(record.getInstitutionalDefault()),
                     indicators,
+                    clientGroupTemplates,
                     examAttributes);
         });
     }
@@ -551,9 +599,32 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                 });
     }
 
+    private void checkUniqueClientGroupName(
+            final ClientGroupTemplate clientGroupTemplate,
+            final Collection<ClientGroupTemplate> clinetGroups) {
+
+        // check unique name
+        clinetGroups.stream()
+                .filter(it -> !Objects.equals(it, clientGroupTemplate)
+                        && Objects.equals(it.name, clientGroupTemplate.name))
+                .findAny()
+                .ifPresent(it -> {
+                    throw new FieldValidationException(
+                            "name",
+                            "clientGroupTemplate:name:exists");
+                });
+    }
+
     private long getNextIndicatorId(final Collection<IndicatorTemplate> indicators) {
         return indicators.stream()
                 .map(IndicatorTemplate::getId)
+                .max(Long::compare)
+                .orElse(-1L) + 1;
+    }
+
+    private long getNextClientGroupId(final Collection<ClientGroupTemplate> clientGroups) {
+        return clientGroups.stream()
+                .map(ClientGroupTemplate::getId)
                 .max(Long::compare)
                 .orElse(-1L) + 1;
     }
@@ -571,6 +642,70 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                         rec.getName(),
                         rec.getDescription()))
                 .collect(Collectors.toList()));
+    }
+
+    private Collection<IndicatorTemplate> extractIndicatorTemplates(final Long examTemplatePK)
+            throws JsonProcessingException, JsonMappingException {
+
+        final ExamTemplateRecord examTemplateRec = this.examTemplateRecordMapper
+                .selectByPrimaryKey(examTemplatePK);
+        final String indicatorTemplatesJSON = examTemplateRec.getIndicatorTemplates();
+        final Collection<IndicatorTemplate> indicators = (StringUtils.isNotBlank(indicatorTemplatesJSON))
+                ? this.jsonMapper.readValue(
+                        indicatorTemplatesJSON,
+                        new TypeReference<Collection<IndicatorTemplate>>() {
+                        })
+                : Collections.emptyList();
+        return indicators;
+    }
+
+    private void storeIndicatorTemplates(final Long examTemplatePK, final List<IndicatorTemplate> newIndicators)
+            throws JsonProcessingException {
+
+        final String newIndicatorTemplatesJSON = newIndicators.isEmpty()
+                ? StringUtils.EMPTY
+                : this.jsonMapper.writeValueAsString(newIndicators);
+
+        final ExamTemplateRecord newRecord = new ExamTemplateRecord(
+                examTemplatePK, null, null, null, null, null, null,
+                newIndicatorTemplatesJSON, null);
+
+        this.examTemplateRecordMapper.updateByPrimaryKeySelective(newRecord);
+    }
+
+    private void storeClientGroupTemplates(final Long examTemplateId, final List<ClientGroupTemplate> newClientGroups)
+            throws JsonProcessingException {
+
+        final String newIndicatorTemplatesJSON = newClientGroups.isEmpty()
+                ? StringUtils.EMPTY
+                : this.jsonMapper.writeValueAsString(newClientGroups);
+
+        this.additionalAttributesDAO.saveAdditionalAttribute(
+                EntityType.EXAM_TEMPLATE,
+                examTemplateId,
+                ExamTemplate.ATTR_CLIENT_GROUP_TEMPLATES,
+                newIndicatorTemplatesJSON)
+                .getOrThrow();
+    }
+
+    private Collection<ClientGroupTemplate> loadClientGroupTemplates(final Long examTemplatePK)
+            throws JsonProcessingException, JsonMappingException {
+
+        final String clientGroupTemplatesJSON = this.additionalAttributesDAO
+                .getAdditionalAttribute(
+                        EntityType.EXAM_TEMPLATE,
+                        examTemplatePK,
+                        ExamTemplate.ATTR_CLIENT_GROUP_TEMPLATES)
+                .map(rec -> rec.getValue())
+                .getOr(StringUtils.EMPTY);
+
+        final Collection<ClientGroupTemplate> clientGroups = (StringUtils.isNotBlank(clientGroupTemplatesJSON))
+                ? this.jsonMapper.readValue(
+                        clientGroupTemplatesJSON,
+                        new TypeReference<Collection<ClientGroupTemplate>>() {
+                        })
+                : Collections.emptyList();
+        return clientGroups;
     }
 
 }

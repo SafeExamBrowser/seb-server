@@ -36,9 +36,9 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetIndicator;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.NewIndicator;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveIndicator;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicator;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.NewIndicator;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.SaveIndicator;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy

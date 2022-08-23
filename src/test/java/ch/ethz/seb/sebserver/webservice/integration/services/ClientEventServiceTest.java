@@ -27,7 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.model.session.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.webservice.integration.api.admin.AdministrationAPIIntegrationTester;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
