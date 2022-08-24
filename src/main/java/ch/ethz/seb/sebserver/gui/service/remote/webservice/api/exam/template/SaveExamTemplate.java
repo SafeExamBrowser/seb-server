@@ -6,9 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
-
-import java.util.List;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -19,24 +17,24 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.EntityName;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetExamTemplateNames extends RestCall<List<EntityName>> {
+public class SaveExamTemplate extends RestCall<ExamTemplate> {
 
-    public GetExamTemplateNames() {
+    public SaveExamTemplate() {
         super(new TypeKey<>(
-                CallType.GET_NAMES,
+                CallType.SAVE,
                 EntityType.EXAM_TEMPLATE,
-                new TypeReference<List<EntityName>>() {
+                new TypeReference<ExamTemplate>() {
                 }),
-                HttpMethod.GET,
-                MediaType.APPLICATION_FORM_URLENCODED,
-                API.EXAM_TEMPLATE_ENDPOINT + API.NAMES_PATH_SEGMENT);
+                HttpMethod.PUT,
+                MediaType.APPLICATION_JSON,
+                API.EXAM_TEMPLATE_ENDPOINT);
     }
 
 }

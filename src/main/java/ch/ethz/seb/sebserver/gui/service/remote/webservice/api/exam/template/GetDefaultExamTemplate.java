@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2020 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2022 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -17,26 +17,24 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 
 @Lazy
 @Component
 @GuiProfile
-public class GetExamTemplateProctoringSettings extends RestCall<ProctoringServiceSettings> {
+public class GetDefaultExamTemplate extends RestCall<ExamTemplate> {
 
-    public GetExamTemplateProctoringSettings() {
+    public GetDefaultExamTemplate() {
         super(new TypeKey<>(
                 CallType.GET_SINGLE,
-                EntityType.EXAM_PROCTOR_DATA,
-                new TypeReference<ProctoringServiceSettings>() {
+                EntityType.EXAM_TEMPLATE,
+                new TypeReference<ExamTemplate>() {
                 }),
                 HttpMethod.GET,
-                MediaType.APPLICATION_JSON,
-                API.EXAM_TEMPLATE_ENDPOINT
-                        + API.MODEL_ID_VAR_PATH_SEGMENT
-                        + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT);
+                MediaType.APPLICATION_FORM_URLENCODED,
+                API.EXAM_TEMPLATE_ENDPOINT + API.EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT);
     }
 
 }

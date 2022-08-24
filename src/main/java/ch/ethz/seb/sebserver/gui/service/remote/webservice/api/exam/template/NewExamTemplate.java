@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2022 ETH Zürich, Educational Development and Technology (LET)
+ * Copyright (c) 2021 ETH Zürich, Educational Development and Technology (LET)
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -24,17 +24,17 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class GetDefaultExamTemplate extends RestCall<ExamTemplate> {
+public class NewExamTemplate extends RestCall<ExamTemplate> {
 
-    public GetDefaultExamTemplate() {
+    public NewExamTemplate() {
         super(new TypeKey<>(
-                CallType.GET_SINGLE,
+                CallType.NEW,
                 EntityType.EXAM_TEMPLATE,
                 new TypeReference<ExamTemplate>() {
                 }),
-                HttpMethod.GET,
+                HttpMethod.POST,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.EXAM_TEMPLATE_ENDPOINT + API.EXAM_TEMPLATE_DEFAULT_PATH_SEGMENT);
+                API.EXAM_TEMPLATE_ENDPOINT);
     }
 
 }

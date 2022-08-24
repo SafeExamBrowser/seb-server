@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -24,15 +24,15 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class SaveExamTemplateProctoringSettings extends RestCall<ProctoringServiceSettings> {
+public class GetExamTemplateProctoringSettings extends RestCall<ProctoringServiceSettings> {
 
-    public SaveExamTemplateProctoringSettings() {
+    public GetExamTemplateProctoringSettings() {
         super(new TypeKey<>(
-                CallType.SAVE,
+                CallType.GET_SINGLE,
                 EntityType.EXAM_PROCTOR_DATA,
                 new TypeReference<ProctoringServiceSettings>() {
                 }),
-                HttpMethod.POST,
+                HttpMethod.GET,
                 MediaType.APPLICATION_JSON,
                 API.EXAM_TEMPLATE_ENDPOINT
                         + API.MODEL_ID_VAR_PATH_SEGMENT

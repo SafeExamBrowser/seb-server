@@ -47,9 +47,9 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamTemplateProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamProctoringSettings;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExamTemplateProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplateProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.SaveExamTemplateProctoringSettings;
 
 @Lazy
 @Component
