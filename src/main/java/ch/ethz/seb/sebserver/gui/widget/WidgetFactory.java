@@ -130,6 +130,7 @@ public class WidgetFactory {
         INSTITUTION("institution.png"),
         LMS_SETUP("lmssetup.png"),
         INDICATOR("indicator.png"),
+        CLIENT_GROUP("indicator.png"),
         TEMPLATE("template.png"),
         DISABLE("disable.png"),
         SEND_QUIT("send-quit.png"),

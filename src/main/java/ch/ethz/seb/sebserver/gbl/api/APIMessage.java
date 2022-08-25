@@ -250,6 +250,10 @@ public class APIMessage implements Serializable {
             this.apiMessages = Arrays.asList(apiMessage);
         }
 
+        public APIMessageException(final APIMessage... apiMessage) {
+            this.apiMessages = Arrays.asList(apiMessage);
+        }
+
         public APIMessageException(final ErrorMessage errorMessage) {
             super(errorMessage.systemMessage);
             this.apiMessages = Arrays.asList(errorMessage.of());

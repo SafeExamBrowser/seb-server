@@ -469,6 +469,32 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
             ActionCategory.FORM),
 
+    CLIENT_GROUP_TEMPLATE_NEW(
+            new LocTextKey("sebserver.examtemplate.clientgroup.action.list.new"),
+            ImageIcon.CLIENT_GROUP,
+            PageStateDefinitionImpl.CLIENT_GROUP_TEMPLATE_EDIT,
+            ActionCategory.CLIENT_GROUP_TEMPLATE_LIST),
+    CLIENT_GROUP_TEMPLATE_MODIFY_FROM_LIST(
+            new LocTextKey("sebserver.examtemplate.clientgroup.action.list.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinitionImpl.CLIENT_GROUP_TEMPLATE_EDIT,
+            ActionCategory.CLIENT_GROUP_TEMPLATE_LIST),
+    CLIENT_GROUP_TEMPLATE_DELETE_FROM_LIST(
+            new LocTextKey("sebserver.examtemplate.clientgroup.action.list.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
+            ActionCategory.CLIENT_GROUP_TEMPLATE_LIST),
+    CLIENT_GROUP_TEMPLATE_SAVE(
+            new LocTextKey("sebserver.examtemplate.clientgroup.action.save"),
+            ImageIcon.SAVE,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
+            ActionCategory.FORM),
+    CLIENT_GROUP_TEMPLATE_CANCEL_MODIFY(
+            new LocTextKey("sebserver.overall.action.modify.cancel"),
+            ImageIcon.CANCEL,
+            PageStateDefinitionImpl.EXAM_TEMPLATE_VIEW,
+            ActionCategory.FORM),
+
     SEB_CLIENT_CONFIG_LIST(
             new LocTextKey("sebserver.clientconfig.list.title"),
             PageStateDefinitionImpl.SEB_CLIENT_CONFIG_LIST),

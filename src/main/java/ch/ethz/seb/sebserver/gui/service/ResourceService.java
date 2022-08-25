@@ -36,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Activatable;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityName;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup.ClientGroupType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
@@ -123,6 +124,7 @@ public class ResourceService {
     public static final String EXAM_TYPE_PREFIX = "sebserver.exam.type.";
     public static final String USERACCOUNT_ROLE_PREFIX = "sebserver.useraccount.role.";
     public static final String EXAM_INDICATOR_TYPE_PREFIX = "sebserver.exam.indicator.type.";
+    public static final String EXAM_CLIENT_GROUP_TYPE_PREFIX = "sebserver.exam.clientgroup.type.";
     public static final String LMSSETUP_TYPE_PREFIX = "sebserver.lmssetup.type.";
     public static final String CONFIG_ATTRIBUTE_TYPE_PREFIX = "sebserver.configtemplate.attr.type.";
     public static final String SEB_RESTRICTION_WHITE_LIST_PREFIX = "sebserver.exam.form.sebrestriction.whiteListPaths.";
@@ -255,6 +257,19 @@ public class ResourceService {
                         this.i18nSupport.getText(EXAM_INDICATOR_TYPE_PREFIX + type.name(), type.name()),
                         Utils.formatLineBreaks(this.i18nSupport.getText(
                                 EXAM_INDICATOR_TYPE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
+                                StringUtils.EMPTY))))
+                .sorted(RESOURCE_COMPARATOR_TUPLE_3)
+                .collect(Collectors.toList());
+    }
+
+    public List<Tuple<String>> clientGroupTypeResources() {
+        return Arrays.stream(ClientGroupType.values())
+                .filter(type -> type != ClientGroupType.NONE)
+                .map(type -> new Tuple3<>(
+                        type.name(),
+                        this.i18nSupport.getText(EXAM_CLIENT_GROUP_TYPE_PREFIX + type.name(), type.name()),
+                        Utils.formatLineBreaks(this.i18nSupport.getText(
+                                EXAM_CLIENT_GROUP_TYPE_PREFIX + type.name() + Constants.TOOLTIP_TEXT_KEY_SUFFIX,
                                 StringUtils.EMPTY))))
                 .sorted(RESOURCE_COMPARATOR_TUPLE_3)
                 .collect(Collectors.toList());

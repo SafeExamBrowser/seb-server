@@ -11,21 +11,28 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CLIENT_GROUP;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ClientGroup implements Entity {
+public class ClientGroup implements ClientGroupData {
 
     public static final String FILTER_ATTR_EXAM_ID = "examId";
+    public static final String ATTR_IP_RANGE_START = "ipRangeStart";
+    public static final String ATTR_IP_RANGE_END = "ipRangeEnd";
+    public static final String ATTR_CLIENT_OS = "clientOS";
 
     public enum ClientGroupType {
+        NONE,
         IP_V4_RANGE,
         CLIENT_OS
     }
@@ -52,8 +59,14 @@ public class ClientGroup implements Entity {
     @JsonProperty(CLIENT_GROUP.ATTR_ICON)
     public final String icon;
 
-    @JsonProperty(CLIENT_GROUP.ATTR_DATA)
-    public final String data;
+    @JsonProperty(ATTR_IP_RANGE_START)
+    public final String ipRangeStart;
+
+    @JsonProperty(ATTR_IP_RANGE_END)
+    public final String ipRangeEnd;
+
+    @JsonProperty(ATTR_CLIENT_OS)
+    public final String clientOS;
 
     @JsonCreator
     public ClientGroup(
@@ -63,7 +76,9 @@ public class ClientGroup implements Entity {
             @JsonProperty(CLIENT_GROUP.ATTR_TYPE) final ClientGroupType type,
             @JsonProperty(CLIENT_GROUP.ATTR_COLOR) final String color,
             @JsonProperty(CLIENT_GROUP.ATTR_ICON) final String icon,
-            @JsonProperty(CLIENT_GROUP.ATTR_DATA) final String data) {
+            @JsonProperty(ATTR_IP_RANGE_START) final String ipRangeStart,
+            @JsonProperty(ATTR_IP_RANGE_END) final String ipRangeEnd,
+            @JsonProperty(ATTR_CLIENT_OS) final String clientOS) {
 
         super();
         this.id = id;
@@ -72,7 +87,48 @@ public class ClientGroup implements Entity {
         this.type = type;
         this.color = color;
         this.icon = icon;
-        this.data = data;
+        this.ipRangeStart = ipRangeStart;
+        this.ipRangeEnd = ipRangeEnd;
+        this.clientOS = clientOS;
+    }
+
+    public ClientGroup(
+            final Long id,
+            final Long examId,
+            final String name,
+            final ClientGroupType type,
+            final String color,
+            final String icon,
+            final String data) {
+
+        super();
+        this.id = id;
+        this.examId = examId;
+        this.name = name;
+        this.type = type;
+        this.color = color;
+        this.icon = icon;
+
+        switch (type) {
+            case IP_V4_RANGE: {
+                final String[] split = StringUtils.split(data, Constants.EMBEDDED_LIST_SEPARATOR);
+                this.ipRangeStart = split[0];
+                this.ipRangeEnd = split[1];
+                this.clientOS = null;
+                break;
+            }
+            case CLIENT_OS: {
+                this.ipRangeStart = null;
+                this.ipRangeEnd = null;
+                this.clientOS = data;
+                break;
+            }
+            default: {
+                this.ipRangeStart = null;
+                this.ipRangeEnd = null;
+                this.clientOS = null;
+            }
+        }
     }
 
     public ClientGroup(final Long examId, final POSTMapper postParams) {
@@ -82,7 +138,9 @@ public class ClientGroup implements Entity {
         this.type = postParams.getEnum(CLIENT_GROUP.ATTR_TYPE, ClientGroupType.class);
         this.color = postParams.getString(CLIENT_GROUP.ATTR_COLOR);
         this.icon = postParams.getString(CLIENT_GROUP.ATTR_ICON);
-        this.data = postParams.getString(CLIENT_GROUP.ATTR_DATA);
+        this.ipRangeStart = postParams.getString(ATTR_IP_RANGE_START);
+        this.ipRangeEnd = postParams.getString(ATTR_IP_RANGE_END);
+        this.clientOS = postParams.getString(ATTR_CLIENT_OS);
     }
 
     @Override
@@ -100,6 +158,7 @@ public class ClientGroup implements Entity {
         return this.name;
     }
 
+    @Override
     public Long getId() {
         return this.id;
     }
@@ -108,20 +167,49 @@ public class ClientGroup implements Entity {
         return this.examId;
     }
 
+    @Override
     public ClientGroupType getType() {
         return this.type;
     }
 
+    @Override
     public String getColor() {
         return this.color;
     }
 
+    @Override
     public String getIcon() {
         return this.icon;
     }
 
+    @Override
+    public String getIpRangeStart() {
+        return this.ipRangeStart;
+    }
+
+    @Override
+    public String getIpRangeEnd() {
+        return this.ipRangeEnd;
+    }
+
+    @Override
+    public String getClientOS() {
+        return this.clientOS;
+    }
+
+    @JsonIgnore
     public String getData() {
-        return this.data;
+        switch (this.type) {
+            case IP_V4_RANGE: {
+                return this.ipRangeStart + Constants.EMBEDDED_LIST_SEPARATOR + this.ipRangeEnd;
+            }
+            case CLIENT_OS: {
+                return this.clientOS;
+            }
+            default: {
+                return StringUtils.EMPTY;
+            }
+        }
     }
 
     @Override
@@ -139,10 +227,42 @@ public class ClientGroup implements Entity {
         builder.append(this.color);
         builder.append(", icon=");
         builder.append(this.icon);
-        builder.append(", data=");
-        builder.append(this.data);
+        builder.append(", ipRangeStart=");
+        builder.append(this.ipRangeStart);
+        builder.append(", ipRangeEnd=");
+        builder.append(this.ipRangeEnd);
+        builder.append(", clientOS=");
+        builder.append(this.clientOS);
         builder.append("]");
         return builder.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final ClientGroup other = (ClientGroup) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!this.id.equals(other.id))
+            return false;
+        if (this.type != other.type)
+            return false;
+        return true;
     }
 
 }

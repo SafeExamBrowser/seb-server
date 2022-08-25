@@ -18,10 +18,14 @@ import org.springframework.validation.FieldError;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup.ClientGroupType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 
 public interface ExamAdminService {
@@ -137,6 +141,78 @@ public interface ExamAdminService {
                                 "indicator:thresholds:thresholdDuplicate")));
             }
         }
+    }
+
+    /** Used to check client group consistency for a given ClientGroup.
+     * Checks if correct entries for specific type
+     *
+     * If a check fails, the methods throws a APIMessageException with a FieldError to notify the caller
+     *
+     * @param clientGroup ClientGroup instance to check */
+    public static void checkClientGroupConsistency(final ClientGroupData clientGroup) {
+        final ClientGroupType type = clientGroup.getType();
+        if (type == null || type == ClientGroupType.NONE) {
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.CLIENT_GROUP.TYPE_NAME,
+                            Domain.CLIENT_GROUP.ATTR_TYPE,
+                            "clientGroup:type:mandatory")));
+        }
+
+        switch (type) {
+            case IP_V4_RANGE: {
+                checkIPRange(clientGroup.getIpRangeStart(), clientGroup.getIpRangeEnd());
+                break;
+            }
+            case CLIENT_OS: {
+                checkClientOS(clientGroup.getClientOS());
+                break;
+            }
+            default: {
+                throw new APIMessageException(APIMessage.fieldValidationError(
+                        new FieldError(
+                                Domain.CLIENT_GROUP.TYPE_NAME,
+                                Domain.CLIENT_GROUP.ATTR_TYPE,
+                                "clientGroup:type:typeInvalid")));
+            }
+        }
+    }
+
+    static void checkIPRange(final String ipRangeStart, final String ipRangeEnd) {
+        final long startIP = Utils.ipToLong(ipRangeStart);
+        if (startIP < 0) {
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.CLIENT_GROUP.TYPE_NAME,
+                            ClientGroup.ATTR_IP_RANGE_START,
+                            "clientGroup:ipRangeStart:invalidIP")));
+        }
+        final long endIP = Utils.ipToLong(ipRangeEnd);
+        if (endIP < 0) {
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.CLIENT_GROUP.TYPE_NAME,
+                            ClientGroup.ATTR_IP_RANGE_END,
+                            "clientGroup:ipRangeEnd:invalidIP")));
+        }
+
+        if (endIP <= startIP) {
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.CLIENT_GROUP.TYPE_NAME,
+                            ClientGroup.ATTR_IP_RANGE_START,
+                            "clientGroup:ipRangeStart:invalidIPRange")),
+                    APIMessage.fieldValidationError(
+                            new FieldError(
+                                    Domain.CLIENT_GROUP.TYPE_NAME,
+                                    ClientGroup.ATTR_IP_RANGE_END,
+                                    "clientGroup:ipRangeEnd:invalidIPRange")));
+        }
+
+    }
+
+    static void checkClientOS(final String clientOS) {
+        // TODO
     }
 
 }

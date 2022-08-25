@@ -129,7 +129,7 @@ public class ClientGroupDAOImpl implements ClientGroupDAO {
                     data.type.name(),
                     data.color,
                     data.icon,
-                    data.data);
+                    data.getData());
 
             this.clientGroupRecordMapper.insert(newRecord);
 
@@ -151,7 +151,7 @@ public class ClientGroupDAOImpl implements ClientGroupDAO {
                     data.type.name(),
                     data.color,
                     data.icon,
-                    data.data);
+                    data.getData());
 
             this.clientGroupRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.clientGroupRecordMapper.selectByPrimaryKey(data.id);

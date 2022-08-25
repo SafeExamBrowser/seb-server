@@ -8,13 +8,11 @@
 
 package ch.ethz.seb.sebserver.gbl.monitoring;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup.ClientGroupType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -34,15 +32,14 @@ public class IPv4RangeClientGroupMatcher implements ClientGroupConnectionMatcher
     @Override
     public boolean isInGroup(final ClientConnection clientConnection, final ClientGroup group) {
         try {
-            final String[] split = StringUtils.split(group.data, Constants.LIST_SEPARATOR);
 
-            final long startIPAddress = Utils.ipToLong(split[0]);
-            final long endIPAddress = Utils.ipToLong(split[1]);
+            final long startIPAddress = Utils.ipToLong(group.ipRangeStart);
+            final long endIPAddress = Utils.ipToLong(group.ipRangeEnd);
             final long inputIPAddress = Utils.ipToLong(clientConnection.clientAddress);
 
             return (inputIPAddress >= startIPAddress && inputIPAddress <= endIPAddress);
         } catch (final Exception e) {
-            log.error("Failed to verify ip range for group: {} connection: {}", group, clientConnection, e);
+            log.error("Failed to verify IP range for group: {} connection: {}", group, clientConnection, e);
             return false;
         }
     }

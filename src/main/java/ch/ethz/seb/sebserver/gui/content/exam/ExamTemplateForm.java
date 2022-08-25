@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
@@ -37,6 +38,8 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.DeleteClientGroupTemplate;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroupTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.DeleteIndicatorTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorTemplatePage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.DeleteExamTemplate;
@@ -87,6 +90,21 @@ public class ExamTemplateForm implements TemplateComposer {
             new LocTextKey("sebserver.examtemplate.indicator.list.pleaseSelect");
     private static final LocTextKey INDICATOR_EMPTY_LIST_MESSAGE =
             new LocTextKey("sebserver.examtemplate.indicator.list.empty");
+
+    private final static LocTextKey CLIENT_GROUP_LIST_TITLE_KEY =
+            new LocTextKey("sebserver.examtemplate.clientgroup.list.title");
+    private final static LocTextKey CLIENT_GROUP_LIST_TITLE_TOOLTIP_KEY =
+            new LocTextKey("sebserver.examtemplate.clientgroup.list.title" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
+    private final static LocTextKey CLIENT_GROUP_TYPE_COLUMN_KEY =
+            new LocTextKey("sebserver.examtemplate.clientgroup.list.column.type");
+    private final static LocTextKey CLIENT_GROUP_NAME_COLUMN_KEY =
+            new LocTextKey("sebserver.examtemplate.clientgroup.list.column.name");
+    private final static LocTextKey CLIENT_GROUP_COLOR_COLUMN_KEY =
+            new LocTextKey("sebserver.examtemplate.clientgroup.list.column.color");
+    private final static LocTextKey CLIENT_GROUP_EMPTY_SELECTION_TEXT_KEY =
+            new LocTextKey("sebserver.examtemplate.clientgroup.list.pleaseSelect");
+    private static final LocTextKey CLIENT_GROUP_EMPTY_LIST_MESSAGE =
+            new LocTextKey("sebserver.examtemplate.clientgroup.list.empty");
 
     private static final LocTextKey EXAM_TEMPLATE_DELETE_CONFIRM =
             new LocTextKey("sebserver.examtemplate.form.action.delete.confirm");
@@ -307,6 +325,74 @@ public class ExamTemplateForm implements TemplateComposer {
                     .newAction(ActionDefinition.INDICATOR_TEMPLATE_NEW)
                     .withParentEntityKey(entityKey)
                     .publishIf(() -> userGrantCheck.m());
+
+            // List of Client Groups
+            this.widgetFactory.addFormSubContextHeader(
+                    content,
+                    CLIENT_GROUP_LIST_TITLE_KEY,
+                    CLIENT_GROUP_LIST_TITLE_TOOLTIP_KEY);
+
+            final EntityTable<ClientGroupTemplate> clientGroupTable =
+                    this.pageService
+                            .entityTableBuilder(this.restService.getRestCall(GetClientGroupTemplatePage.class))
+                            .withRestCallAdapter(builder -> builder.withURIVariable(
+                                    API.PARAM_PARENT_MODEL_ID,
+                                    entityKey.modelId))
+                            .withEmptyMessage(CLIENT_GROUP_EMPTY_LIST_MESSAGE)
+                            .withMarkup()
+                            .withPaging(100)
+                            .hideNavigation()
+                            .withColumn(new ColumnDefinition<>(
+                                    Domain.CLIENT_GROUP.ATTR_NAME,
+                                    CLIENT_GROUP_NAME_COLUMN_KEY,
+                                    ClientGroupTemplate::getName)
+                                            .widthProportion(2))
+                            .withColumn(new ColumnDefinition<>(
+                                    Domain.CLIENT_GROUP.ATTR_TYPE,
+                                    CLIENT_GROUP_TYPE_COLUMN_KEY,
+                                    this::clientGroupTypeName)
+                                            .widthProportion(1))
+                            .withColumn(new ColumnDefinition<>(
+                                    Domain.CLIENT_GROUP.ATTR_COLOR,
+                                    CLIENT_GROUP_COLOR_COLUMN_KEY,
+                                    ClientGroupTemplate::getColor)
+                                            .asMarkup()
+                                            .widthProportion(4))
+                            .withDefaultActionIf(
+                                    () -> userGrantCheck.m(),
+                                    () -> actionBuilder
+                                            .newAction(ActionDefinition.CLIENT_GROUP_TEMPLATE_MODIFY_FROM_LIST)
+                                            .withParentEntityKey(entityKey)
+                                            .create())
+
+                            .withSelectionListener(this.pageService.getSelectionPublisher(
+                                    pageContext,
+                                    ActionDefinition.CLIENT_GROUP_TEMPLATE_MODIFY_FROM_LIST,
+                                    ActionDefinition.CLIENT_GROUP_TEMPLATE_DELETE_FROM_LIST))
+
+                            .compose(pageContext.copyOf(content));
+
+            actionBuilder
+
+                    .newAction(ActionDefinition.CLIENT_GROUP_TEMPLATE_MODIFY_FROM_LIST)
+                    .withParentEntityKey(entityKey)
+                    .withSelect(
+                            indicatorTable::getMultiSelection,
+                            PageAction::applySingleSelectionAsEntityKey,
+                            CLIENT_GROUP_EMPTY_SELECTION_TEXT_KEY)
+                    .publishIf(() -> userGrantCheck.m() && clientGroupTable.hasAnyContent(), false)
+
+                    .newAction(ActionDefinition.CLIENT_GROUP_TEMPLATE_DELETE_FROM_LIST)
+                    .withEntityKey(entityKey)
+                    .withSelect(
+                            indicatorTable::getMultiSelection,
+                            this::deleteSelectedClientGroup,
+                            CLIENT_GROUP_EMPTY_SELECTION_TEXT_KEY)
+                    .publishIf(() -> userGrantCheck.m() && clientGroupTable.hasAnyContent(), false)
+
+                    .newAction(ActionDefinition.CLIENT_GROUP_TEMPLATE_NEW)
+                    .withParentEntityKey(entityKey)
+                    .publishIf(() -> userGrantCheck.m());
         }
     }
 
@@ -329,6 +415,17 @@ public class ExamTemplateForm implements TemplateComposer {
         return action;
     }
 
+    private PageAction deleteSelectedClientGroup(final PageAction action) {
+        final EntityKey entityKey = action.getEntityKey();
+        final EntityKey indicatorKey = action.getSingleSelection();
+        this.resourceService.getRestService()
+                .getBuilder(DeleteClientGroupTemplate.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, entityKey.modelId)
+                .withURIVariable(API.PARAM_MODEL_ID, indicatorKey.modelId)
+                .call();
+        return action;
+    }
+
     private String indicatorTypeName(final IndicatorTemplate indicator) {
         if (indicator.type == null) {
             return Constants.EMPTY_NOTE;
@@ -336,6 +433,15 @@ public class ExamTemplateForm implements TemplateComposer {
 
         return this.resourceService.getI18nSupport()
                 .getText(ResourceService.EXAM_INDICATOR_TYPE_PREFIX + indicator.type.name());
+    }
+
+    private String clientGroupTypeName(final ClientGroupTemplate clientGroup) {
+        if (clientGroup.type == null) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return this.resourceService.getI18nSupport()
+                .getText(ResourceService.EXAM_CLIENT_GROUP_TYPE_PREFIX + clientGroup.type.name());
     }
 
 }
