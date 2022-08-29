@@ -8,6 +8,13 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Objects;
+
+import org.junit.Test;
+
 public class ReplTest {
 
 //    @Test
@@ -47,5 +54,12 @@ public class ReplTest {
 //        assertTrue(Boolean.valueOf(false) == Boolean.valueOf(false));
 //        assertTrue(new Boolean(false) == new Boolean(false));
 //    }
+
+    @Test
+    public void testObjectEquals() {
+        assertTrue(Objects.equals("", ""));
+        assertTrue(Objects.equals(null, null));
+        assertFalse(Objects.equals("", null));
+    }
 
 }

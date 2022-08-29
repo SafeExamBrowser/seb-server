@@ -779,4 +779,18 @@ public final class Utils {
         return result;
     }
 
+    public static boolean isEqualsWithEmptyCheck(final String s1, final String s2) {
+        // checks equal strings and both null
+        if (Objects.equals(s1, s2)) {
+            return true;
+        }
+
+        // check null and empty string
+        if (StringUtils.isBlank(s1) && StringUtils.isBlank(s2)) {
+            return true;
+        }
+
+        return false;
+    }
+
 }

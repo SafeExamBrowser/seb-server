@@ -341,15 +341,26 @@ class ExamUpdateHandler {
         if (!Objects.equals(exam.name, quizData.name) ||
                 !Objects.equals(exam.startTime, quizData.startTime) ||
                 !Objects.equals(exam.endTime, quizData.endTime) ||
-                !Objects.equals(exam.getDescription(), quizData.description) ||
-                !Objects.equals(exam.getStartURL(), quizData.startURL)) {
+                !Utils.isEqualsWithEmptyCheck(exam.getDescription(), quizData.description) ||
+                !Utils.isEqualsWithEmptyCheck(exam.getStartURL(), quizData.startURL)) {
+
+            if (log.isDebugEnabled()) {
+                log.debug("Update difference from LMS. Exam:{}, QuizData: {}", exam, quizData);
+            }
 
             return true;
         }
 
         if (quizData.additionalAttributes != null && !quizData.additionalAttributes.isEmpty()) {
             for (final Map.Entry<String, String> attr : quizData.additionalAttributes.entrySet()) {
-                if (!Objects.equals(exam.getAdditionalAttribute(attr.getKey()), attr.getValue())) {
+                final String currentAttrValue = exam.getAdditionalAttribute(attr.getKey());
+                if (!Utils.isEqualsWithEmptyCheck(currentAttrValue, attr.getValue())) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Update difference from LMS: attribute{}, currentValue: {}, lmsValue: {}",
+                                attr.getKey(),
+                                currentAttrValue,
+                                attr.getValue());
+                    }
                     return true;
                 }
             }
