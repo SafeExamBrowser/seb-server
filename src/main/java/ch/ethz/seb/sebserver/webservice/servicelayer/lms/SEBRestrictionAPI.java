@@ -47,7 +47,10 @@ public interface SEBRestrictionAPI {
             return false;
         }
 
-        final SEBRestriction sebRestriction = sebClientRestriction.get();
+        return hasSEBClientRestriction(sebClientRestriction.get());
+    }
+
+    default boolean hasSEBClientRestriction(final SEBRestriction sebRestriction) {
         return !sebRestriction.configKeys.isEmpty() || !sebRestriction.browserExamKeys.isEmpty();
     }
 

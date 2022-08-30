@@ -404,8 +404,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             return false;
         }
 
-        final SEBRestriction sebRestriction = sebClientRestriction.get();
-        return !sebRestriction.configKeys.isEmpty() || !sebRestriction.browserExamKeys.isEmpty();
+        return this.sebRestrictionAPI.hasSEBClientRestriction(sebClientRestriction.get());
     }
 
     @Override

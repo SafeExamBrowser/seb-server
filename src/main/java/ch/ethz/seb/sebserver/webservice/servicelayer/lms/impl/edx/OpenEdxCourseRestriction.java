@@ -38,6 +38,7 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
 
     private static final Logger log = LoggerFactory.getLogger(OpenEdxCourseRestriction.class);
 
+    private static final SEBRestriction NO_RESTRICTION_MARKER = new SEBRestriction(null, null, null, null);
     private static final String OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_INFO = "/seb-openedx/seb-info";
     private static final String OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_PATH =
             "/seb-openedx/api/v1/course/%s/configuration/";
@@ -104,13 +105,8 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
     }
 
     @Override
-    public boolean hasSEBClientRestriction(final Exam exam) {
-        final Result<SEBRestriction> sebClientRestriction = getSEBClientRestriction(exam);
-        if (sebClientRestriction.hasError()) {
-            return false;
-        }
-
-        return true;
+    public boolean hasSEBClientRestriction(final SEBRestriction sebRestriction) {
+        return NO_RESTRICTION_MARKER != sebRestriction;
     }
 
     @Override
@@ -142,8 +138,8 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
                 return SEBRestriction.from(exam.id, data);
             } catch (final HttpClientErrorException ce) {
                 if (ce.getStatusCode() == HttpStatus.NOT_FOUND) {
-                    // No SEB restriction is set for the specified exam, return an empty one
-                    return new SEBRestriction(exam.id, null, null, null);
+                    // No SEB restriction is set for the specified exam, return NO_RESTRICTION_MARKER
+                    return NO_RESTRICTION_MARKER;
                 }
                 throw ce;
             }
