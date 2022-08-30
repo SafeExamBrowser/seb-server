@@ -104,6 +104,16 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
     }
 
     @Override
+    public boolean hasSEBClientRestriction(final Exam exam) {
+        final Result<SEBRestriction> sebClientRestriction = getSEBClientRestriction(exam);
+        if (sebClientRestriction.hasError()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
 
         if (log.isDebugEnabled()) {
