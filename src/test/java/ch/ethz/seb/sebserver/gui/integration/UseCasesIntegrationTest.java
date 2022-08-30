@@ -1069,7 +1069,8 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withFormParam(Domain.CLIENT_GROUP.ATTR_NAME, "Room XY")
                 .withFormParam(Domain.CLIENT_GROUP.ATTR_TYPE, ClientGroupType.IP_V4_RANGE.name())
                 .withFormParam(Domain.CLIENT_GROUP.ATTR_COLOR, "000001")
-                .withFormParam(Domain.CLIENT_GROUP.ATTR_DATA, "10.114.3.10,10.114.3.99")
+                .withFormParam(ClientGroup.ATTR_IP_RANGE_START, "10.114.3.10")
+                .withFormParam(ClientGroup.ATTR_IP_RANGE_END, "10.114.3.99")
                 .call();
 
         assertNotNull(newClientGroupResult);
