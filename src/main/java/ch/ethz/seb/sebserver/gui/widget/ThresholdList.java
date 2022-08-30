@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
@@ -127,6 +128,37 @@ public final class ThresholdList extends Composite {
                         null /* TODO add icon selection here */))
                 .collect(Collectors.toList());
         return collect;
+    }
+
+    public static String thresholdsToHTML(
+            final List<Threshold> thresholds,
+            final IndicatorType indicatorType) {
+
+        if (thresholds.isEmpty()) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        final StringBuilder builder = thresholds
+                .stream()
+                .reduce(
+                        new StringBuilder(),
+                        (sb, threshold) -> sb
+                                .append("<span style='padding: 2px 5px 2px 5px; background-color: #")
+                                .append(threshold.color)
+                                .append("; ")
+                                .append((Utils.darkColorContrast(Utils.parseRGB(threshold.color)))
+                                        ? "color: #4a4a4a; "
+                                        : "color: #FFFFFF;")
+                                .append("'>&nbsp;&nbsp;&nbsp;")
+                                .append(Indicator.getDisplayValue(indicatorType, threshold.value))
+                                .append("&nbsp;(#")
+                                .append(threshold.color)
+                                .append(")&nbsp;&nbsp;&nbsp;")
+                                .append("</span>")
+                                .append(" | "),
+                        StringBuilder::append);
+        builder.delete(builder.length() - 3, builder.length() - 1);
+        return builder.toString();
     }
 
     private void removeInvalidListEntries() {

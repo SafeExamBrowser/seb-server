@@ -601,11 +601,11 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
     private void checkUniqueClientGroupName(
             final ClientGroupTemplate clientGroupTemplate,
-            final Collection<ClientGroupTemplate> clinetGroups) {
+            final Collection<ClientGroupTemplate> clietnGroups) {
 
         // check unique name
-        clinetGroups.stream()
-                .filter(it -> !Objects.equals(it, clientGroupTemplate)
+        clietnGroups.stream()
+                .filter(it -> !Objects.equals(it.id, clientGroupTemplate.id)
                         && Objects.equals(it.name, clientGroupTemplate.name))
                 .findAny()
                 .ifPresent(it -> {

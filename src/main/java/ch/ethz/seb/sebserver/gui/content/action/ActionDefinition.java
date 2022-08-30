@@ -388,6 +388,33 @@ public enum ActionDefinition {
             ImageIcon.CANCEL,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
+
+    EXAM_CLIENT_GROUP_NEW(
+            new LocTextKey("sebserver.exam.clientgroup.action.list.new"),
+            ImageIcon.ADD_CLIENT_GROUP,
+            PageStateDefinitionImpl.CLIENT_GROUP_EDIT,
+            ActionCategory.CLIENT_GROUP_LIST),
+    EXAM_CLIENT_GROUP_MODIFY_FROM_LIST(
+            new LocTextKey("sebserver.exam.clientgroup.action.list.modify"),
+            ImageIcon.EDIT,
+            PageStateDefinitionImpl.CLIENT_GROUP_EDIT,
+            ActionCategory.CLIENT_GROUP_LIST),
+    EXAM_CLIENT_GROUP_DELETE_FROM_LIST(
+            new LocTextKey("sebserver.exam.clientgroup.action.list.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.CLIENT_GROUP_LIST),
+    EXAM_CLIENT_GROUP_SAVE(
+            new LocTextKey("sebserver.exam.clientgroup.action.save"),
+            ImageIcon.SAVE,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
+    EXAM_CLIENT_GROUP_CANCEL_MODIFY(
+            new LocTextKey("sebserver.overall.action.modify.cancel"),
+            ImageIcon.CANCEL,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
+
     EXAM_SEB_CLIENT_CONFIG_EXPORT(
             new LocTextKey("sebserver.exam.action.createClientToStartExam"),
             ImageIcon.EXPORT,
@@ -471,7 +498,7 @@ public enum ActionDefinition {
 
     CLIENT_GROUP_TEMPLATE_NEW(
             new LocTextKey("sebserver.examtemplate.clientgroup.action.list.new"),
-            ImageIcon.CLIENT_GROUP,
+            ImageIcon.ADD_CLIENT_GROUP,
             PageStateDefinitionImpl.CLIENT_GROUP_TEMPLATE_EDIT,
             ActionCategory.CLIENT_GROUP_TEMPLATE_LIST),
     CLIENT_GROUP_TEMPLATE_MODIFY_FROM_LIST(

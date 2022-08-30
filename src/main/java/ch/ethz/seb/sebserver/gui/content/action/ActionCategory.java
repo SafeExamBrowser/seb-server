@@ -23,6 +23,7 @@ public enum ActionCategory {
     CLIENT_GROUP_TEMPLATE_LIST(new LocTextKey("sebserver.examtemplate.clientgroup.list.actions"), 2),
     EXAM_CONFIG_MAPPING_LIST(new LocTextKey("sebserver.exam.configuration.list.actions"), 1),
     INDICATOR_LIST(new LocTextKey("sebserver.exam.indicator.list.actions"), 2),
+    CLIENT_GROUP_LIST(new LocTextKey("sebserver.exam.clientgroup.list.actions"), 3),
     SEB_CLIENT_CONFIG_LIST(new LocTextKey("sebserver.clientconfig.list.actions"), 1),
     SEB_EXAM_CONFIG_LIST(new LocTextKey("sebserver.examconfig.list.actions"), 1),
     SEB_CONFIG_TEMPLATE_LIST(new LocTextKey("sebserver.configtemplate.list.actions"), 1),

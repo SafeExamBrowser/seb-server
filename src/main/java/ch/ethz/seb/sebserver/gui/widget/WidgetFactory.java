@@ -49,11 +49,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
@@ -130,7 +133,8 @@ public class WidgetFactory {
         INSTITUTION("institution.png"),
         LMS_SETUP("lmssetup.png"),
         INDICATOR("indicator.png"),
-        CLIENT_GROUP("indicator.png"),
+        CLIENT_GROUP("clientgroup.png"),
+        ADD_CLIENT_GROUP("add_clientgroup.png"),
         TEMPLATE("template.png"),
         DISABLE("disable.png"),
         SEND_QUIT("send-quit.png"),
@@ -1027,6 +1031,47 @@ public class WidgetFactory {
         builder.append("}catch(e){}");
         final JavaScriptExecutor executor = RWT.getClient().getService(JavaScriptExecutor.class);
         executor.execute(builder.toString());
+    }
+
+    public String clientGroupDataToHTML(final ClientGroupData data) {
+        switch (data.getType()) {
+            case IP_V4_RANGE: {
+                final String ipRangeStart = StringUtils.isBlank(data.getIpRangeStart())
+                        ? Constants.EMPTY_NOTE
+                        : data.getIpRangeStart();
+                final String ipRangeEnd = StringUtils.isBlank(data.getIpRangeEnd())
+                        ? Constants.EMPTY_NOTE
+                        : data.getIpRangeEnd();
+                return ipRangeStart + "&nbsp;-&nbsp;" + ipRangeEnd;
+            }
+            case CLIENT_OS: {
+                return this.i18nSupport.getText(ResourceService.CLIENT_OS_TYPE_PREFIX + data.getClientOS().name());
+            }
+            default: {
+                return Constants.EMPTY_NOTE;
+            }
+        }
+    }
+
+    public String getColorValueHTML(final ClientGroupData data) {
+        final String color = data.getColor();
+        if (StringUtils.isBlank(color)) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        return new StringBuilder().append("<span style='padding: 2px 5px 2px 5px; background-color: #")
+                .append(color)
+                .append("; ")
+                .append((Utils.darkColorContrast(Utils.parseRGB(color)))
+                        ? "color: #4a4a4a; "
+                        : "color: #FFFFFF;")
+                .append("'>&nbsp;&nbsp;&nbsp;")
+                .append(" (#")
+                .append(color)
+                .append(")&nbsp;&nbsp;&nbsp;")
+                .append("</span>")
+                .toString();
+
     }
 
 }

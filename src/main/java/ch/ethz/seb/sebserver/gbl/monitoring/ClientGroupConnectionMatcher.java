@@ -9,7 +9,7 @@
 package ch.ethz.seb.sebserver.gbl.monitoring;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup.ClientGroupType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientGroupType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 
 /** Defines a client connection to client group matcher for a specific client group type.

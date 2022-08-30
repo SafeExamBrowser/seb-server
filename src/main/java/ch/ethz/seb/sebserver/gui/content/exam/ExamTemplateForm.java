@@ -51,6 +51,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser.EntityGrantCheck;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
+import ch.ethz.seb.sebserver.gui.widget.ThresholdList;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
@@ -101,6 +102,8 @@ public class ExamTemplateForm implements TemplateComposer {
             new LocTextKey("sebserver.examtemplate.clientgroup.list.column.name");
     private final static LocTextKey CLIENT_GROUP_COLOR_COLUMN_KEY =
             new LocTextKey("sebserver.examtemplate.clientgroup.list.column.color");
+    private final static LocTextKey CLIENT_GROUP_DATA_COLUMN_KEY =
+            new LocTextKey("sebserver.examtemplate.clientgroup.list.column.data");
     private final static LocTextKey CLIENT_GROUP_EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.examtemplate.clientgroup.list.pleaseSelect");
     private static final LocTextKey CLIENT_GROUP_EMPTY_LIST_MESSAGE =
@@ -287,7 +290,7 @@ public class ExamTemplateForm implements TemplateComposer {
                             .withColumn(new ColumnDefinition<IndicatorTemplate>(
                                     Domain.THRESHOLD.REFERENCE_NAME,
                                     INDICATOR_THRESHOLD_COLUMN_KEY,
-                                    it -> ExamFormIndicators.thresholdsValue(it.thresholds, it.type))
+                                    it -> ThresholdList.thresholdsToHTML(it.thresholds, it.type))
                                             .asMarkup()
                                             .widthProportion(4))
                             .withDefaultActionIf(
@@ -347,15 +350,21 @@ public class ExamTemplateForm implements TemplateComposer {
                                     CLIENT_GROUP_NAME_COLUMN_KEY,
                                     ClientGroupTemplate::getName)
                                             .widthProportion(2))
-                            .withColumn(new ColumnDefinition<>(
+                            .withColumn(new ColumnDefinition<ClientGroupTemplate>(
                                     Domain.CLIENT_GROUP.ATTR_TYPE,
                                     CLIENT_GROUP_TYPE_COLUMN_KEY,
-                                    this::clientGroupTypeName)
+                                    cgt -> this.resourceService.clientGroupTypeName(cgt))
                                             .widthProportion(1))
-                            .withColumn(new ColumnDefinition<>(
+                            .withColumn(new ColumnDefinition<ClientGroupTemplate>(
                                     Domain.CLIENT_GROUP.ATTR_COLOR,
                                     CLIENT_GROUP_COLOR_COLUMN_KEY,
-                                    ClientGroupTemplate::getColor)
+                                    cgt -> this.widgetFactory.getColorValueHTML(cgt))
+                                            .asMarkup()
+                                            .widthProportion(1))
+                            .withColumn(new ColumnDefinition<ClientGroupTemplate>(
+                                    Domain.CLIENT_GROUP.ATTR_DATA,
+                                    CLIENT_GROUP_DATA_COLUMN_KEY,
+                                    cgt -> this.widgetFactory.clientGroupDataToHTML(cgt))
                                             .asMarkup()
                                             .widthProportion(4))
                             .withDefaultActionIf(
@@ -430,18 +439,8 @@ public class ExamTemplateForm implements TemplateComposer {
         if (indicator.type == null) {
             return Constants.EMPTY_NOTE;
         }
-
         return this.resourceService.getI18nSupport()
                 .getText(ResourceService.EXAM_INDICATOR_TYPE_PREFIX + indicator.type.name());
-    }
-
-    private String clientGroupTypeName(final ClientGroupTemplate clientGroup) {
-        if (clientGroup.type == null) {
-            return Constants.EMPTY_NOTE;
-        }
-
-        return this.resourceService.getI18nSupport()
-                .getText(ResourceService.EXAM_CLIENT_GROUP_TYPE_PREFIX + clientGroup.type.name());
     }
 
 }

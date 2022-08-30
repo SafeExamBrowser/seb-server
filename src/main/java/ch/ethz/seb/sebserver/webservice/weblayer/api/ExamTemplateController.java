@@ -337,7 +337,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                         null,
                         postMap.getLong(ClientGroupTemplate.ATTR_EXAM_TEMPLATE_ID),
                         postMap))
-                .map(this::checkClientGroupConsistency)
+                .map(ExamAdminService::checkClientGroupConsistency)
                 .flatMap(this.examTemplateDAO::createNewClientGroupTemplate)
                 .flatMap(this.userActivityLogDAO::logCreate)
                 .getOrThrow();
@@ -359,7 +359,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         this.checkModifyPrivilege(institutionId);
         return this.beanValidationService
                 .validateBean(modifyData)
-                .map(this::checkClientGroupConsistency)
+                .map(ExamAdminService::checkClientGroupConsistency)
                 .flatMap(this.examTemplateDAO::saveClientGroupTemplate)
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
@@ -492,11 +492,6 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             }
             return list;
         };
-    }
-
-    private ClientGroupTemplate checkClientGroupConsistency(final ClientGroupTemplate clientGroupTemplate) {
-        ExamAdminService.checkClientGroupConsistency(clientGroupTemplate);
-        return clientGroupTemplate;
     }
 
     private IndicatorTemplate checkIndicatorConsistency(final IndicatorTemplate indicatorTemplate) {

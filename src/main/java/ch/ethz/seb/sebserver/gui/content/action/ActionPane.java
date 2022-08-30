@@ -254,14 +254,14 @@ public class ActionPane implements TemplateComposer {
         final Template template = new Template();
         final ImageCell imageCell = new ImageCell(template);
         imageCell.setLeft(0, -8)
-                .setWidth(20)
+                .setWidth(24)
                 .setTop(0)
                 .setBottom(0, 0)
                 .setHorizontalAlignment(SWT.LEFT)
                 .setBackground(null);
         imageCell.setBindingIndex(0);
         final TextCell textCell = new TextCell(template);
-        textCell.setLeft(0, 20)
+        textCell.setLeft(0, 24)
                 .setWidth(SWT.DEFAULT)
                 .setTop(7)
                 .setBottom(0, 0)

@@ -66,7 +66,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport.ErrorEntry;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup.ClientGroupType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientGroupType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;

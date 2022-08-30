@@ -193,6 +193,18 @@ public final class Utils {
                 .collect(Collectors.toList()));
     }
 
+    public static <T extends Enum<T>> T enumFromString(
+            final String string,
+            final Class<T> enumClass,
+            final T defaultValue) {
+
+        try {
+            return Enum.valueOf(enumClass, string);
+        } catch (final Exception e) {
+            return defaultValue;
+        }
+    }
+
     public static Collection<String> getListOfLines(final String list) {
         if (list == null) {
             return Collections.emptyList();

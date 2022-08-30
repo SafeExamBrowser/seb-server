@@ -118,57 +118,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return ExamRecordDynamicSqlSupport.examRecord;
     }
 
-//    @RequestMapping(
-//            method = RequestMethod.GET,
-//            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-//            produces = MediaType.APPLICATION_JSON_VALUE)
-//    @Override
-//    public Page<Exam> getPage(
-//            @RequestParam(
-//                    name = API.PARAM_INSTITUTION_ID,
-//                    required = true,
-//                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-//            @RequestParam(name = Page.ATTR_PAGE_NUMBER, required = false) final Integer pageNumber,
-//            @RequestParam(name = Page.ATTR_PAGE_SIZE, required = false) final Integer pageSize,
-//            @RequestParam(name = Page.ATTR_SORT, required = false) final String sort,
-//            @RequestParam final MultiValueMap<String, String> allRequestParams,
-//            final HttpServletRequest request) {
-//
-//        checkReadPrivilege(institutionId);
-//        this.authorization.check(
-//                PrivilegeType.READ,
-//                EntityType.EXAM,
-//                institutionId);
-//
-//        if (StringUtils.isBlank(sort) ||
-//                (this.paginationService.isNativeSortingSupported(ExamRecordDynamicSqlSupport.examRecord, sort))) {
-//
-//            System.out.println("*********************** sort, filter on DB");
-//
-//            return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
-//
-//        } else {
-//
-//            System.out.println("*********************** sort, filter on List");
-//
-//            return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
-//
-////            final Collection<Exam> exams = this.examDAO
-////                    .allMatching(new FilterMap(
-////                            allRequestParams,
-////                            request.getQueryString()),
-////                            this::hasReadAccess)
-////                    .getOrThrow();
-////
-////            return this.paginationService.buildPageFromList(
-////                    pageNumber,
-////                    pageSize,
-////                    sort,
-////                    exams,
-////                    pageSort(sort));
-//        }
-//    }
-
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT,

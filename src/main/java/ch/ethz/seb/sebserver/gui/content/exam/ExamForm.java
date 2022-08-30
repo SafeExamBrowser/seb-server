@@ -151,7 +151,8 @@ public class ExamForm implements TemplateComposer {
     private final RestService restService;
     private final ExamDeletePopup examDeletePopup;
     private final ExamFormConfigs examFormConfigs;
-    private final ExamFormIndicators examFormIndicators;
+    private final ExamIndicatorsList examIndicatorsList;
+    private final ExamClientGroupList examClientGroupList;
     private final ExamCreateClientConfigPopup examCreateClientConfigPopup;
 
     protected ExamForm(
@@ -162,7 +163,8 @@ public class ExamForm implements TemplateComposer {
             final DownloadService downloadService,
             final ExamDeletePopup examDeletePopup,
             final ExamFormConfigs examFormConfigs,
-            final ExamFormIndicators examFormIndicators,
+            final ExamIndicatorsList examIndicatorsList,
+            final ExamClientGroupList examClientGroupList,
             final ExamCreateClientConfigPopup examCreateClientConfigPopup) {
 
         this.pageService = pageService;
@@ -173,7 +175,8 @@ public class ExamForm implements TemplateComposer {
         this.restService = this.resourceService.getRestService();
         this.examDeletePopup = examDeletePopup;
         this.examFormConfigs = examFormConfigs;
-        this.examFormIndicators = examFormIndicators;
+        this.examIndicatorsList = examIndicatorsList;
+        this.examClientGroupList = examClientGroupList;
         this.examCreateClientConfigPopup = examCreateClientConfigPopup;
 
         this.consistencyMessageMapping = new HashMap<>();
@@ -485,7 +488,15 @@ public class ExamForm implements TemplateComposer {
                             .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
 
             // Indicators
-            this.examFormIndicators.compose(
+            this.examIndicatorsList.compose(
+                    formContext
+                            .copyOf(content)
+                            .withAttribute(ATTR_READ_GRANT, String.valueOf(entityGrantCheck.r()))
+                            .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
+                            .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
+
+            // Client Groups
+            this.examClientGroupList.compose(
                     formContext
                             .copyOf(content)
                             .withAttribute(ATTR_READ_GRANT, String.valueOf(entityGrantCheck.r()))

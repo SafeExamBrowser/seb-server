@@ -13,14 +13,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.FieldError;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup.ClientGroupType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientGroupType;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientOS;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
@@ -149,14 +151,14 @@ public interface ExamAdminService {
      * If a check fails, the methods throws a APIMessageException with a FieldError to notify the caller
      *
      * @param clientGroup ClientGroup instance to check */
-    public static void checkClientGroupConsistency(final ClientGroupData clientGroup) {
+    public static <T extends ClientGroupData> T checkClientGroupConsistency(final T clientGroup) {
         final ClientGroupType type = clientGroup.getType();
         if (type == null || type == ClientGroupType.NONE) {
             throw new APIMessageException(APIMessage.fieldValidationError(
                     new FieldError(
                             Domain.CLIENT_GROUP.TYPE_NAME,
                             Domain.CLIENT_GROUP.ATTR_TYPE,
-                            "clientGroup:type:mandatory")));
+                            "clientGroup:type:notNull")));
         }
 
         switch (type) {
@@ -176,11 +178,13 @@ public interface ExamAdminService {
                                 "clientGroup:type:typeInvalid")));
             }
         }
+
+        return clientGroup;
     }
 
     static void checkIPRange(final String ipRangeStart, final String ipRangeEnd) {
         final long startIP = Utils.ipToLong(ipRangeStart);
-        if (startIP < 0) {
+        if (StringUtils.isBlank(ipRangeStart) || startIP < 0) {
             throw new APIMessageException(APIMessage.fieldValidationError(
                     new FieldError(
                             Domain.CLIENT_GROUP.TYPE_NAME,
@@ -188,7 +192,7 @@ public interface ExamAdminService {
                             "clientGroup:ipRangeStart:invalidIP")));
         }
         final long endIP = Utils.ipToLong(ipRangeEnd);
-        if (endIP < 0) {
+        if (StringUtils.isBlank(ipRangeEnd) || endIP < 0) {
             throw new APIMessageException(APIMessage.fieldValidationError(
                     new FieldError(
                             Domain.CLIENT_GROUP.TYPE_NAME,
@@ -211,8 +215,14 @@ public interface ExamAdminService {
 
     }
 
-    static void checkClientOS(final String clientOS) {
-        // TODO
+    static void checkClientOS(final ClientOS clientOS) {
+        if (clientOS == null) {
+            throw new APIMessageException(APIMessage.fieldValidationError(
+                    new FieldError(
+                            Domain.CLIENT_GROUP.TYPE_NAME,
+                            ClientGroupData.ATTR_CLIENT_OS,
+                            "clientGroup:clientOS:notNull")));
+        }
     }
 
 }

@@ -270,5 +270,4 @@ public class POSTMapper {
         this.params.putIfAbsent(name, Arrays.asList(value));
         return (T) this;
     }
-
 }

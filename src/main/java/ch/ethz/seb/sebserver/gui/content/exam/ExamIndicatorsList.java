@@ -8,8 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
-import java.util.List;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
@@ -20,10 +18,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -38,12 +33,13 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.De
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicatorPage;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
+import ch.ethz.seb.sebserver.gui.widget.ThresholdList;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
 @Component
 @GuiProfile
-public class ExamFormIndicators implements TemplateComposer {
+public class ExamIndicatorsList implements TemplateComposer {
 
     private final static LocTextKey INDICATOR_LIST_TITLE_KEY =
             new LocTextKey("sebserver.exam.indicator.list.title");
@@ -65,7 +61,7 @@ public class ExamFormIndicators implements TemplateComposer {
     private final WidgetFactory widgetFactory;
     private final RestService restService;
 
-    public ExamFormIndicators(final PageService pageService) {
+    public ExamIndicatorsList(final PageService pageService) {
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.widgetFactory = pageService.getWidgetFactory();
@@ -111,7 +107,7 @@ public class ExamFormIndicators implements TemplateComposer {
                         .withColumn(new ColumnDefinition<Indicator>(
                                 Domain.THRESHOLD.REFERENCE_NAME,
                                 INDICATOR_THRESHOLD_COLUMN_KEY,
-                                i -> thresholdsValue(i.thresholds, i.type))
+                                i -> ThresholdList.thresholdsToHTML(i.thresholds, i.type))
                                         .asMarkup()
                                         .widthProportion(4))
                         .withDefaultActionIf(
@@ -170,34 +166,4 @@ public class ExamFormIndicators implements TemplateComposer {
                 .getText(ResourceService.EXAM_INDICATOR_TYPE_PREFIX + indicator.type.name());
     }
 
-    static String thresholdsValue(
-            final List<Threshold> thresholds,
-            final IndicatorType indicatorType) {
-
-        if (thresholds.isEmpty()) {
-            return Constants.EMPTY_NOTE;
-        }
-
-        final StringBuilder builder = thresholds
-                .stream()
-                .reduce(
-                        new StringBuilder(),
-                        (sb, threshold) -> sb
-                                .append("<span style='padding: 2px 5px 2px 5px; background-color: #")
-                                .append(threshold.color)
-                                .append("; ")
-                                .append((Utils.darkColorContrast(Utils.parseRGB(threshold.color)))
-                                        ? "color: #4a4a4a; "
-                                        : "color: #FFFFFF;")
-                                .append("'>")
-                                .append(Indicator.getDisplayValue(indicatorType, threshold.value))
-                                .append(" (")
-                                .append(threshold.color)
-                                .append(")")
-                                .append("</span>")
-                                .append(" | "),
-                        StringBuilder::append);
-        builder.delete(builder.length() - 3, builder.length() - 1);
-        return builder.toString();
-    }
 }

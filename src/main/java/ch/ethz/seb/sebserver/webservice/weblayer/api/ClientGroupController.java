@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -88,15 +89,14 @@ public class ClientGroupController extends EntityController<ClientGroup, ClientG
 
     @Override
     protected Result<ClientGroup> validForCreate(final ClientGroup entity) {
-        // TODO check consistency!?
-        return super.validForCreate(entity);
-
+        return super.validForCreate(entity)
+                .map(ExamAdminService::checkClientGroupConsistency);
     }
 
     @Override
     protected Result<ClientGroup> validForSave(final ClientGroup entity) {
-        // TODO check consistency!?
-        return super.validForSave(entity);
+        return super.validForSave(entity)
+                .map(ExamAdminService::checkClientGroupConsistency);
     }
 
     @Override

@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -22,7 +25,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain.CLIENT_GROUP;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup.ClientGroupType;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientGroupTemplate implements ClientGroupData {
@@ -57,7 +59,7 @@ public class ClientGroupTemplate implements ClientGroupData {
     public final String ipRangeEnd;
 
     @JsonProperty(ClientGroup.ATTR_CLIENT_OS)
-    public final String clientOS;
+    public final ClientOS clientOS;
 
     @JsonCreator
     public ClientGroupTemplate(
@@ -69,7 +71,7 @@ public class ClientGroupTemplate implements ClientGroupData {
             @JsonProperty(CLIENT_GROUP.ATTR_ICON) final String icon,
             @JsonProperty(ClientGroup.ATTR_IP_RANGE_START) final String ipRangeStart,
             @JsonProperty(ClientGroup.ATTR_IP_RANGE_END) final String ipRangeEnd,
-            @JsonProperty(ClientGroup.ATTR_CLIENT_OS) final String clientOS) {
+            @JsonProperty(ClientGroup.ATTR_CLIENT_OS) final ClientOS clientOS) {
 
         super();
         this.id = id;
@@ -93,7 +95,7 @@ public class ClientGroupTemplate implements ClientGroupData {
         this.icon = postParams.getString(CLIENT_GROUP.ATTR_ICON);
         this.ipRangeStart = postParams.getString(ClientGroup.ATTR_IP_RANGE_START);
         this.ipRangeEnd = postParams.getString(ClientGroup.ATTR_IP_RANGE_END);
-        this.clientOS = postParams.getString(ClientGroup.ATTR_CLIENT_OS);
+        this.clientOS = postParams.getEnum(ClientGroup.ATTR_CLIENT_OS, ClientOS.class);
     }
 
     public ClientGroupTemplate(final Long id, final ClientGroupTemplate other) {
@@ -150,16 +152,32 @@ public class ClientGroupTemplate implements ClientGroupData {
 
     @Override
     public String getIpRangeStart() {
-        return this.ipRangeStart;
+        if (StringUtils.isBlank(this.ipRangeStart)) {
+            return null;
+        }
+
+        try {
+            return InetAddress.getByName(this.ipRangeStart).getHostAddress();
+        } catch (final UnknownHostException e) {
+            return null;
+        }
     }
 
     @Override
     public String getIpRangeEnd() {
-        return this.ipRangeEnd;
+        if (StringUtils.isBlank(this.ipRangeEnd)) {
+            return null;
+        }
+
+        try {
+            return InetAddress.getByName(this.ipRangeEnd).getHostAddress();
+        } catch (final UnknownHostException e) {
+            return null;
+        }
     }
 
     @Override
-    public String getClientOS() {
+    public ClientOS getClientOS() {
         return this.clientOS;
     }
 
@@ -170,7 +188,7 @@ public class ClientGroupTemplate implements ClientGroupData {
                 return this.ipRangeStart + Constants.EMBEDDED_LIST_SEPARATOR + this.ipRangeEnd;
             }
             case CLIENT_OS: {
-                return this.clientOS;
+                return this.clientOS.name();
             }
             default: {
                 return StringUtils.EMPTY;

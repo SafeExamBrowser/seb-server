@@ -174,6 +174,15 @@ public final class Form implements FormBinding {
         return this;
     }
 
+    Form removeField(final String name) {
+        if (this.formFields.containsKey(name)) {
+            final List<FormFieldAccessor> list = this.formFields.remove(name);
+            list.forEach(ffa -> ffa.dispose());
+        }
+
+        return this;
+    }
+
     public String getFieldValue(final String attributeName) {
         final FormFieldAccessor fieldAccessor = this.formFields.getFirst(attributeName);
         if (fieldAccessor == null) {
@@ -462,6 +471,11 @@ public final class Form implements FormBinding {
 
         FormFieldAccessor(final Control label, final Control control, final Label errorLabel) {
             this(label, control, null, false, errorLabel);
+        }
+
+        public void dispose() {
+            this.label.dispose();
+            this.input.dispose();
         }
 
         FormFieldAccessor(
