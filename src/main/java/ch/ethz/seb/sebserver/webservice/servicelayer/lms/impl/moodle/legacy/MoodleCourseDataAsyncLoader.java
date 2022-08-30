@@ -255,35 +255,31 @@ public class MoodleCourseDataAsyncLoader {
                 return true;
             }
 
-            if (courseQuizData.quizzes != null) {
-                courseQuizData.quizzes
-                        .stream()
-                        .filter(getQuizFilter())
-                        .forEach(quiz -> {
-                            final CourseDataShort data = courseData.get(quiz.course);
-                            if (data != null) {
-                                data.quizzes.add(quiz);
-                            }
-                        });
+            courseQuizData.quizzes
+                    .stream()
+                    .filter(getQuizFilter())
+                    .forEach(quiz -> {
+                        final CourseDataShort data = courseData.get(quiz.course);
+                        if (data != null) {
+                            data.quizzes.add(quiz);
+                        }
+                    });
 
-                courseData.values().stream()
-                        .filter(c -> !c.quizzes.isEmpty())
-                        .forEach(c -> {
-                            if (this.cachedCourseData.size() >= this.maxSize) {
-                                log.error(
-                                        "LMS Setup: {} Cache is full and has reached its maximal size. Skip data: -> {}",
-                                        this.lmsSetup,
-                                        c);
-                            } else {
-                                this.cachedCourseData.put(c.id, c);
-                                this.newIds.add(c.id);
-                            }
-                        });
+            courseData.values().stream()
+                    .filter(c -> !c.quizzes.isEmpty())
+                    .forEach(c -> {
+                        if (this.cachedCourseData.size() >= this.maxSize) {
+                            log.error(
+                                    "LMS Setup: {} Cache is full and has reached its maximal size. Skip data: -> {}",
+                                    this.lmsSetup,
+                                    c);
+                        } else {
+                            this.cachedCourseData.put(c.id, c);
+                            this.newIds.add(c.id);
+                        }
+                    });
 
-                return true;
-            } else {
-                return false;
-            }
+            return true;
         } catch (final Exception e) {
             log.error("LMS Setup: {} Unexpected exception while trying to get course data: ", this.lmsSetup, e);
             return false;

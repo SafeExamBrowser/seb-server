@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.session.proctoring;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -247,7 +248,8 @@ public class ProctoringGUIService {
         }
     }
 
-    public static class ProctoringWindowData {
+    public static class ProctoringWindowData implements Serializable {
+        private static final long serialVersionUID = -9060185011534956417L;
         public final String windowName;
         public final String examId;
         public final ProctoringRoomConnection connectionData;

@@ -55,7 +55,7 @@ public class RestCallError extends RuntimeException implements APIMessageError {
     public boolean isUnexpectedError() {
         return this.errors
                 .stream()
-                .anyMatch(error -> Integer.valueOf(error.messageCode) < 1200);
+                .anyMatch(error -> Integer.parseInt(error.messageCode) < 1200);
     }
 
     @Override

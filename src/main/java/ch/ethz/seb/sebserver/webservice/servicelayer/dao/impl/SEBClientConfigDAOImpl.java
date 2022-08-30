@@ -429,7 +429,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                         : ConfigPurpose.START_EXAM,
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_PING_INTERVAL)
                         ? Long
-                                .valueOf(additionalAttributes.get(SEBClientConfig.ATTR_PING_INTERVAL).getValue())
+                                .parseLong(additionalAttributes.get(SEBClientConfig.ATTR_PING_INTERVAL).getValue())
                         : 1000L,
                 additionalAttributes.containsKey(SEBClientConfig.ATTR_VDI_TYPE)
                         ? VDIType

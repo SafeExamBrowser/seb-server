@@ -58,7 +58,7 @@ public class ExamConfigStateChange implements BatchActionExec {
     public APIMessage checkConsistency(final Map<String, String> actionAttributes) {
         final ConfigurationStatus targetState = getTargetState(actionAttributes);
         if (targetState == null) {
-            APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT
+            return APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT
                     .of("Missing target state attribute for EXAM_CONFIG_STATE_CHANGE batch action");
         }
         return null;

@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 import java.util.function.Consumer;
@@ -28,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.ExamConfigXMLParser.PListNode.Type;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.converter.KioskModeConverter;
 
@@ -37,7 +37,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
 
     // comma separated list of SEB exam config keys that can be ignored on imports
     // See: https://jira.let.ethz.ch/browse/SEBSERV-100
-    private static final Set<String> SEB_EXAM_CONFIG_KEYS_TO_IGNORE = new HashSet<>(Arrays.asList(
+    private static final Set<String> SEB_EXAM_CONFIG_KEYS_TO_IGNORE = Utils.immutableSetOf(Arrays.asList(
             // SEB Server specific
             "sebMode",
             "sebServerFallback",
@@ -76,17 +76,17 @@ public class ExamConfigXMLParser extends DefaultHandler {
             "whitelistURLFilter",
             "URLFilterIgnoreList"));
 
-    private static final Set<String> VALUE_ELEMENTS = new HashSet<>(Arrays.asList(
+    private static final Set<String> VALUE_ELEMENTS = Utils.immutableSetOf(Arrays.asList(
             Constants.XML_PLIST_BOOLEAN_FALSE,
             Constants.XML_PLIST_BOOLEAN_TRUE,
             Constants.XML_PLIST_STRING,
             Constants.XML_PLIST_DATA,
             Constants.XML_PLIST_INTEGER));
 
-    private static final Set<String> KNOWN_INLINE_TABLES = new HashSet<>(Arrays.asList(
+    private static final Set<String> KNOWN_INLINE_TABLES = Utils.immutableSetOf(Arrays.asList(
             "arguments"));
 
-    public static final Set<String> SECRET_ATTRIBUTES = new HashSet<>(Arrays.asList(
+    public static final Set<String> SECRET_ATTRIBUTES = Utils.immutableSetOf(Arrays.asList(
             "hashedQuitPassword",
             "hashedAdminPassword"));
 
