@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gbl.model.session;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -23,6 +22,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ClientConnection implements GrantEntity {
@@ -48,7 +48,7 @@ public final class ClientConnection implements GrantEntity {
         }
     }
 
-    public final static List<String> ACTIVE_STATES = Arrays.asList(
+    public final static List<String> ACTIVE_STATES = Utils.immutableListOf(
             ConnectionStatus.ACTIVE.name(),
             ConnectionStatus.AUTHENTICATED.name(),
             ConnectionStatus.CONNECTION_REQUESTED.name());

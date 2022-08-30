@@ -37,7 +37,7 @@ public class ViewGridBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(ViewGridBuilder.class);
 
-    public static Pattern EXPAND_BAR_GROUP_PATTERN = Pattern.compile("\\[(.*?)\\]");
+    public static final Pattern EXPAND_BAR_GROUP_PATTERN = Pattern.compile("\\[(.*?)\\]");
 
     final ExamConfigurationService examConfigurationService;
     final Composite parent;

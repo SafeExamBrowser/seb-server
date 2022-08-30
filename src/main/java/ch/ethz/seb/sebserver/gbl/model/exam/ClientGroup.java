@@ -101,11 +101,10 @@ public class ClientGroup implements ClientGroupData {
         this.examId = examId;
         this.name = name;
         this.type = type == null ? ClientGroupType.NONE : type;
-        ;
         this.color = color;
         this.icon = icon;
 
-        switch (type) {
+        switch (this.type) {
             case IP_V4_RANGE: {
                 final String[] split = StringUtils.split(data, Constants.EMBEDDED_LIST_SEPARATOR);
                 this.ipRangeStart = split[0];
@@ -123,6 +122,7 @@ public class ClientGroup implements ClientGroupData {
                 this.ipRangeStart = null;
                 this.ipRangeEnd = null;
                 this.clientOS = ClientOS.NONE;
+                break;
             }
         }
     }

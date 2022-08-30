@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.gbl;
 
 import java.text.Collator;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -25,6 +24,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 /** Global Constants used in SEB Server web-service as well as in web-gui component */
 public final class Constants {
@@ -162,7 +162,7 @@ public final class Constants {
 
     public static final Collator DEFAULT_ENGLISH_COLLATOR = Collator.getInstance(Locale.ENGLISH);
 
-    public static final List<EntityType> ENTITY_TYPE_HIRARCHIE = Arrays.asList(
+    public static final List<EntityType> ENTITY_TYPE_HIRARCHIE = Utils.immutableListOf(
             EntityType.INSTITUTION,
             EntityType.USER,
             EntityType.USER_ACTIVITY_LOG,
