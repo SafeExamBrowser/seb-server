@@ -116,7 +116,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         return Result.tryCatch(() -> {
 
-            final SEBClientConfig clientConfig = this.sebClientConfigDAO
+            final SEBClientConfig clientConfig = principal == null ? null : this.sebClientConfigDAO
                     .byClientName(principal.getName())
                     .getOr(null);
 

@@ -738,7 +738,7 @@ public class ZoomProctoringService implements ExamProctoringService {
             final String ts = Long.toString(System.currentTimeMillis() - 30000);
             final String msg = String.format("%s%s%s%d", apiKey, meetingId, ts, status);
 
-            hasher.init(new SecretKeySpec(decryptedSecret.toString().getBytes(), "HmacSHA256"));
+            hasher.init(new SecretKeySpec(Utils.toByteArray(decryptedSecret), "HmacSHA256"));
 
             final String message = Base64.getEncoder().encodeToString(msg.getBytes());
             final byte[] hash = hasher.doFinal(message.getBytes());

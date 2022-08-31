@@ -323,7 +323,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                     final int result = indicatorValue1.compareTo(indicatorValue2);
                     return (this.clientConnectionComparator.descending) ? -result : result;
                 } catch (final Exception e) {
-                    this.clientConnectionComparator.compare(cc1.clientConnection, cc2.clientConnection);
+                    return this.clientConnectionComparator.compare(cc1.clientConnection, cc2.clientConnection);
                 }
             }
 
