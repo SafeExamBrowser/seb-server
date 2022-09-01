@@ -121,9 +121,12 @@ public class RAPConfiguration implements ApplicationConfiguration {
                     final WebApplicationContext webApplicationContext = getWebApplicationContext(httpSession);
                     final boolean authenticated = isAuthenticated(httpSession, webApplicationContext);
                     if (authenticated) {
+
                         final EntryPointService entryPointService = webApplicationContext
                                 .getBean(EntryPointService.class);
                         entryPointService.loadProctoringView(parent);
+                        final HttpServletResponse response = RWT.getResponse();
+                        setCORS(response);
                     } else {
                         final HttpServletResponse response = RWT.getResponse();
                         response.setStatus(HttpStatus.FORBIDDEN.value());
@@ -131,6 +134,12 @@ public class RAPConfiguration implements ApplicationConfiguration {
                 }
             };
         }
+    }
+
+    public static final void setCORS(final HttpServletResponse resp) {
+        resp.addHeader("Access-Control-Allow-Origin", "*");
+        resp.setHeader("Access-Control-Allow-Methods", "GET");
+        resp.setHeader("Vary", "Origin");
     }
 
     public static final class RAPSpringEntryPointFactory implements EntryPointFactory {
