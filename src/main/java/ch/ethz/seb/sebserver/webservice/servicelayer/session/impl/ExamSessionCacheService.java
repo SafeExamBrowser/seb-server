@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
@@ -45,6 +46,7 @@ public class ExamSessionCacheService {
     private static final Logger log = LoggerFactory.getLogger(ExamSessionCacheService.class);
 
     private final ExamDAO examDAO;
+    private final ClientGroupDAO clientGroupDAO;
     private final ClientConnectionDAO clientConnectionDAO;
     private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
     private final ExamConfigService sebExamConfigService;
@@ -52,6 +54,7 @@ public class ExamSessionCacheService {
 
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
+            final ClientGroupDAO clientGroupDAO,
             final ClientConnectionDAO clientConnectionDAO,
             final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
             final ExamConfigService sebExamConfigService,
@@ -59,6 +62,7 @@ public class ExamSessionCacheService {
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO) {
 
         this.examDAO = examDAO;
+        this.clientGroupDAO = clientGroupDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
         this.sebExamConfigService = sebExamConfigService;
@@ -98,6 +102,7 @@ public class ExamSessionCacheService {
             log.trace("Conditional eviction of running Exam from cache: {}", isRunning(exam));
         }
 
+        this.clientGroupDAO.evictCacheForExam(exam.id);
         return exam;
     }
 
@@ -110,6 +115,7 @@ public class ExamSessionCacheService {
             log.trace("Conditional eviction of running Exam from cache: {}", examId);
         }
 
+        this.clientGroupDAO.evictCacheForExam(examId);
         return examId;
     }
 

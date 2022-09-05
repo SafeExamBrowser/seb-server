@@ -9,8 +9,10 @@
 package ch.ethz.seb.sebserver.gbl.model.session;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -20,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.monitoring.SimpleIndicatorValue;
@@ -40,6 +43,8 @@ public class ClientConnectionData implements GrantEntity {
 
     public final Boolean missingPing;
     public final Boolean pendingNotification;
+
+    private Set<Long> groups = null;
 
     @JsonCreator
     public ClientConnectionData(
@@ -62,6 +67,19 @@ public class ClientConnectionData implements GrantEntity {
         this.pendingNotification = Boolean.FALSE;
         this.clientConnection = clientConnection;
         this.indicatorValues = Utils.immutableListOf(indicatorValues);
+    }
+
+    @JsonIgnore
+    public void addToClientGroup(final ClientGroup group) {
+        if (this.groups == null) {
+            this.groups = new HashSet<>(1);
+        }
+        this.groups.add(group.id);
+    }
+
+    @JsonIgnore
+    public boolean isInClientGroup(final Long clientGroupId) {
+        return this.groups != null && this.groups.contains(clientGroupId);
     }
 
     @Override

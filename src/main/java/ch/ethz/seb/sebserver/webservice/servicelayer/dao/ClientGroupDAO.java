@@ -10,6 +10,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
@@ -17,10 +20,24 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSuppor
 /** Concrete EntityDAO interface of ClientGroup entities */
 public interface ClientGroupDAO extends EntityDAO<ClientGroup, ClientGroup>, BulkActionSupportDAO<ClientGroup> {
 
+    public static final String CACHE_NAME_RUNNING_EXAM_CLIENT_GROUP_CACHE = "RUNNING_EXAM_CLIENT_GROUP_CACHE";
+
     /** Get a collection of all ClientGroup entities for a specified exam.
      *
      * @param examId the Exam identifier to get the ClientGroups for
      * @return Result referring to the collection of ClientGroups of an Exam or to an error if happened */
+    @Cacheable(
+            cacheNames = CACHE_NAME_RUNNING_EXAM_CLIENT_GROUP_CACHE,
+            key = "#examId",
+            condition = "#examId!=null",
+            unless = "#result.hasError()")
     Result<Collection<ClientGroup>> allForExam(Long examId);
+
+    @CacheEvict(
+            cacheNames = CACHE_NAME_RUNNING_EXAM_CLIENT_GROUP_CACHE,
+            key = "#examId")
+    default void evictCacheForExam(final Long examId) {
+        // just evict the cache
+    }
 
 }

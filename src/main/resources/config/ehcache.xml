@@ -15,6 +15,17 @@
             <heap unit="entries">100</heap>
         </resources>
     </cache>
+
+    <cache alias="RUNNING_EXAM_CLIENT_GROUP_CACHE">
+        <key-type>java.lang.Long</key-type>
+        <value-type>ch.ethz.seb.sebserver.gbl.util.Result</value-type>
+        <expiry>
+            <ttl unit="hours">24</ttl>
+        </expiry>
+        <resources>
+            <heap unit="entries">10</heap>
+        </resources>
+    </cache>
     
     <cache alias="ACTIVE_CLIENT_CONNECTION">
         <key-type>java.lang.String</key-type>
