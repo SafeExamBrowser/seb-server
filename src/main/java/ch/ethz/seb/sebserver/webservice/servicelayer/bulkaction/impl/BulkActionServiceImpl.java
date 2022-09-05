@@ -96,7 +96,6 @@ public class BulkActionServiceImpl implements BulkActionService {
     }
 
     @Override
-
     public Result<BulkAction> doBulkAction(final BulkAction action) {
         return Result.tryCatch(() -> {
 

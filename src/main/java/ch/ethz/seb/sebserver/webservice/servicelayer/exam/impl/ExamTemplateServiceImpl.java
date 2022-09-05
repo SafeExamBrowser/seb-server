@@ -384,7 +384,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
             }
 
             if (log.isDebugEnabled()) {
-                log.debug("Init default indicator for exam: {}", exam.externalId);
+                log.debug("Initialized default indicator for exam: {}", exam.externalId);
             }
 
             final Collection<Indicator.Threshold> thresholds = this.jsonMapper.readValue(

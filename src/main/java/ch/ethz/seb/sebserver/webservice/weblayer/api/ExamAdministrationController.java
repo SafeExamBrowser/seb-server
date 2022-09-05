@@ -393,6 +393,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_INDICATOR.of(error));
                     return entity;
                 })
+                .flatMap(this.examTemplateService::addDefinedClientGroups)
+                .onErrorDo(error -> {
+                    errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CLIENT_GROUPS.of(error));
+                    return entity;
+                })
                 .flatMap(this.examTemplateService::initAdditionalAttributes)
                 .onErrorDo(error -> {
                     errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error));

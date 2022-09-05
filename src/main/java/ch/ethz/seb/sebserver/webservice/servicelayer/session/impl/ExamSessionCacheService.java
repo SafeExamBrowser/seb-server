@@ -139,16 +139,21 @@ public class ExamSessionCacheService {
             key = "#connectionToken",
             unless = "#result == null")
     public ClientConnectionDataInternal getClientConnection(final String connectionToken) {
+        try {
+            if (log.isTraceEnabled()) {
+                log.trace("Verify ClientConnection for running exam for caching by connectionToken: {}",
+                        connectionToken);
+            }
 
-        if (log.isTraceEnabled()) {
-            log.trace("Verify ClientConnection for running exam for caching by connectionToken: {}", connectionToken);
-        }
-
-        final ClientConnection clientConnection = getClientConnectionByToken(connectionToken);
-        if (clientConnection == null) {
+            final ClientConnection clientConnection = getClientConnectionByToken(connectionToken);
+            if (clientConnection == null) {
+                return null;
+            } else {
+                return this.internalClientConnectionDataFactory.createClientConnectionData(clientConnection);
+            }
+        } catch (final Exception e) {
+            log.error("Failed to get client connection: ", e);
             return null;
-        } else {
-            return this.internalClientConnectionDataFactory.createClientConnectionData(clientConnection);
         }
     }
 

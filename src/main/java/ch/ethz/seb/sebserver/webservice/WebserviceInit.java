@@ -116,8 +116,6 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         if (this.webserviceInfo.isDistributed()) {
             SEBServerInit.INIT_LOGGER.info("----> ");
             SEBServerInit.INIT_LOGGER.info("----> Distributed Setup: {}", this.webserviceInfo.getWebserviceUUID());
-            SEBServerInit.INIT_LOGGER.info("----> Ping update time: {}",
-                    this.environment.getProperty("sebserver.webservice.distributed.pingUpdate"));
             SEBServerInit.INIT_LOGGER.info("----> Connection update time: {}",
                     this.environment.getProperty("sebserver.webservice.distributed.connectionUpdate", "2000"));
         }

@@ -322,7 +322,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                 activityType.name(),
                 entityType.name(),
                 entityId,
-                message));
+                Utils.truncateText(message, 4000)));
     }
 
     @Override

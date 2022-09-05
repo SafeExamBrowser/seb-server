@@ -38,8 +38,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -408,20 +408,22 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
             updateClientConnections(examId);
 
-            final List<ClientConnectionData> filteredConnections = this.clientConnectionDAO
-                    .getConnectionTokens(examId)
-                    .getOrThrow()
-                    .stream()
-                    .map(token -> getConnectionData(token).getOr(null))
-                    .filter(Objects::nonNull)
-                    .map(c -> {
-                        statusMapping[c.clientConnection.status.code]++;
-                        return c;
-                    })
-                    .filter(filter)
-                    .collect(Collectors.toList());
+            synchronized (this.examSessionCacheService) {
+                final List<ClientConnectionData> filteredConnections = this.clientConnectionDAO
+                        .getConnectionTokens(examId)
+                        .getOrThrow()
+                        .stream()
+                        .map(token -> this.examSessionCacheService.getClientConnection(token))
+                        .filter(Objects::nonNull)
+                        .map(c -> {
+                            statusMapping[c.clientConnection.status.code]++;
+                            return c;
+                        })
+                        .filter(filter)
+                        .collect(Collectors.toList());
 
-            return new MonitoringSEBConnectionData(examId, filteredConnections, statusMapping);
+                return new MonitoringSEBConnectionData(examId, filteredConnections, statusMapping);
+            }
         });
     }
 

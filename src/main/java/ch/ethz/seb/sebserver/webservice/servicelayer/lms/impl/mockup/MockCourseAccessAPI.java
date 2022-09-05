@@ -115,7 +115,10 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
 
     @Override
     public LmsSetupTestResult testCourseAccessAPI() {
-        log.info("Test Lms Binding for Mockup and LmsSetup: {}", this.apiTemplateDataSupplier.getLmsSetup());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Test Lms Binding for Mockup and LmsSetup: {}", this.apiTemplateDataSupplier.getLmsSetup());
+        }
 
         final List<APIMessage> missingAttrs = checkAttributes();
 

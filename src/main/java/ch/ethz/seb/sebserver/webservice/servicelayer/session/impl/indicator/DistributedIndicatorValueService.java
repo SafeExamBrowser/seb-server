@@ -109,6 +109,8 @@ public class DistributedIndicatorValueService implements DisposableBean {
 
             SEBServerInit.INIT_LOGGER.info("------> with distributedUpdateInterval: {}",
                     this.distributedUpdateInterval);
+            SEBServerInit.INIT_LOGGER.info("------> with update tolerance: {}",
+                    this.updateTolerance);
             SEBServerInit.INIT_LOGGER.info("------> with taskScheduler: {}", taskScheduler);
 
             try {
