@@ -91,7 +91,7 @@ public class SEBSendLockPopup {
             }
 
             final String connectionTokens = StringUtils.join(selection, Constants.LIST_SEPARATOR_CHAR);
-            final boolean showList = selection.size() > 1;
+            final boolean showList = true; //selection.size() > 1  SEBSERV-151;
             final PopupComposer popupComposer = new PopupComposer(
                     this.pageService,
                     pageContext,
@@ -103,7 +103,7 @@ public class SEBSendLockPopup {
                             action.pageContext().getParent().getShell(),
                             this.pageService.getWidgetFactory())
                                     .setDialogWidth(800)
-                                    .setDialogHeight(showList ? 500 : 200);
+                                    .setDialogHeight(showList ? 550 : 200);
 
             final Predicate<FormHandle<?>> doLock = formHandle -> propagateLockInstruction(
                     connectionTokens,
@@ -180,12 +180,14 @@ public class SEBSendLockPopup {
                         .withColumn(new ColumnDefinition<>(
                                 Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
                                 TABLE_COLUMN_NAME,
-                                ClientConnection::getUserSessionId))
+                                ClientConnection::getUserSessionId)
+                                        .sortable())
 
                         .withColumn(new ColumnDefinition<>(
                                 ClientConnection.ATTR_INFO,
                                 TABLE_COLUMN_INFO,
-                                ClientConnection::getInfo))
+                                ClientConnection::getInfo)
+                                        .sortable())
 
                         .compose(formContext);
             }
