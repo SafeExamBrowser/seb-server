@@ -31,20 +31,21 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ClientConnectionData implements GrantEntity {
 
-    public static final String ATTR_CLIENT_CONNECTION = "cData";
-    public static final String ATTR_INDICATOR_VALUE = "iValues";
-    public static final String ATTR_MISSING_PING = "missing";
-    public static final String ATTR_PENDING_NOTIFICATION = "notification";
+    public static final String ATTR_CLIENT_CONNECTION = "cdat";
+    public static final String ATTR_INDICATOR_VALUE = "iVal";
+    public static final String ATTR_MISSING_PING = "miss";
+    public static final String ATTR_PENDING_NOTIFICATION = "pnot";
+    public static final String ATTR_CLIENT_GROUPS = "cg";
 
     @JsonProperty(ATTR_CLIENT_CONNECTION)
     public final ClientConnection clientConnection;
     @JsonProperty(ATTR_INDICATOR_VALUE)
     public final List<? extends IndicatorValue> indicatorValues;
+    @JsonProperty(ATTR_CLIENT_GROUPS)
+    public Set<Long> groups = null;
 
     public final Boolean missingPing;
     public final Boolean pendingNotification;
-
-    private Set<Long> groups = null;
 
     @JsonCreator
     public ClientConnectionData(
