@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
@@ -44,12 +45,13 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -60,31 +62,35 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate {
 
-    private static final int[] TABLE_PROPORTIONS = new int[] { 3, 3, 2, 1 };
-
     private static final int BOTTOM_PADDING = 20;
-    private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
+    //private static final int[] TABLE_PROPORTIONS = new int[] { 3, 3, 2, 1 };
+    //private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
 
     private static final String INDICATOR_NAME_TEXT_KEY_PREFIX =
             "sebserver.exam.indicator.type.description.";
     private final static LocTextKey CONNECTION_ID_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.id");
     private final static LocTextKey CONNECTION_ID_TOOLTIP_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.connection.list.column.id" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
+            new LocTextKey(CONNECTION_ID_TEXT_KEY + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
+    private final static LocTextKey CONNECTION_GROUP_TEXT_KEY =
+            new LocTextKey("sebserver.monitoring.connection.list.column.group");
+    private final static LocTextKey CONNECTION_GROUP_TOOLTIP_TEXT_KEY =
+            new LocTextKey(CONNECTION_GROUP_TEXT_KEY + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
     private final static LocTextKey CONNECTION_INFO_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.info");
     private final static LocTextKey CONNECTION_INFO_TOOLTIP_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.connection.list.column.info" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
+            new LocTextKey(CONNECTION_INFO_TEXT_KEY + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
     private final static LocTextKey CONNECTION_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.list.column.status");
     private final static LocTextKey CONNECTION_STATUS_TOOLTIP_TEXT_KEY =
-            new LocTextKey("sebserver.monitoring.connection.list.column.status" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
+            new LocTextKey(CONNECTION_STATUS_TEXT_KEY + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
 
     private final PageService pageService;
     private final Exam exam;
     private final boolean distributedSetup;
 
     private final Map<Long, IndicatorData> indicatorMapping;
+    private final Map<Long, ClientGroup> clientGroupMapping;
     private final Table table;
     private final ColorData colorData;
     private final Function<ClientConnectionData, String> localizedClientConnectionStatusNameFunction;
@@ -99,6 +105,10 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     private final Color darkFontColor;
     private final Color lightFontColor;
 
+    private final boolean hasClientGroups;
+    private final int numberOfNoneIndicatorColumns;
+    private final int[] tableProportions;
+
     private boolean forceUpdateAll = false;
 
     public ClientConnectionTable(
@@ -106,6 +116,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             final Composite tableRoot,
             final Exam exam,
             final Collection<Indicator> indicators,
+            final Collection<ClientGroup> clientGroups,
             final boolean distributedSetup) {
 
         this.pageService = pageService;
@@ -121,11 +132,23 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         this.darkFontColor = new Color(display, Constants.BLACK_RGB);
         this.lightFontColor = new Color(display, Constants.WHITE_RGB);
 
+        this.hasClientGroups = clientGroups != null && !clientGroups.isEmpty();
+        this.numberOfNoneIndicatorColumns = this.hasClientGroups ? 4 : 3;
+        this.tableProportions = this.hasClientGroups
+                ? new int[] { 3, 2, 3, 2, 1 }
+                : new int[] { 3, 3, 2, 1 };
+
         this.indicatorMapping = IndicatorData.createFormIndicators(
                 indicators,
                 display,
                 this.colorData,
-                NUMBER_OF_NONE_INDICATOR_COLUMNS);
+                this.numberOfNoneIndicatorColumns);
+
+        this.clientGroupMapping = clientGroups == null || clientGroups.isEmpty()
+                ? null
+                : clientGroups
+                        .stream()
+                        .collect(Collectors.toMap(cg -> cg.id, Function.identity()));
 
         this.localizedClientConnectionStatusNameFunction =
                 resourceService.localizedClientConnectionStatusNameFunction();
@@ -136,11 +159,11 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         gridLayout.marginWidth = 100;
         gridLayout.marginRight = 100;
         this.table.setLayout(gridLayout);
-        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         this.table.setLayoutData(gridData);
         this.table.setHeaderVisible(true);
         this.table.setLinesVisible(true);
-
+        this.table.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
         this.table.addListener(SWT.Selection, event -> this.notifySelectionChange());
         this.table.addListener(SWT.MouseUp, this::notifyTableInfoClick);
 
@@ -148,6 +171,12 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 this.table,
                 CONNECTION_ID_TEXT_KEY,
                 CONNECTION_ID_TOOLTIP_TEXT_KEY);
+        if (this.clientGroupMapping != null && !this.clientGroupMapping.isEmpty()) {
+            widgetFactory.tableColumnLocalized(
+                    this.table,
+                    CONNECTION_GROUP_TEXT_KEY,
+                    CONNECTION_GROUP_TOOLTIP_TEXT_KEY);
+        }
         widgetFactory.tableColumnLocalized(
                 this.table,
                 CONNECTION_INFO_TEXT_KEY,
@@ -285,10 +314,10 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     @Override
     public void update(final MonitoringStatus monitoringStatus) {
         final Collection<ClientConnectionData> connectionData = monitoringStatus.getConnectionData();
-
+        final boolean sizeChanged = connectionData.size() != this.table.getItemCount();
         final boolean needsSync = monitoringStatus.statusFilterChanged() ||
                 this.forceUpdateAll ||
-                connectionData.size() != this.table.getItemCount() ||
+                sizeChanged ||
                 (this.tableMapping != null &&
                         this.table != null &&
                         this.tableMapping.size() != this.table.getItemCount())
@@ -326,6 +355,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         this.forceUpdateAll = false;
+        this.needsSort = sizeChanged;
         updateGUI();
     }
 
@@ -352,19 +382,21 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         if (this.tableWidth != area.width) {
 
             // proportions size
-            final int pSize = TABLE_PROPORTIONS[0] +
-                    TABLE_PROPORTIONS[1] +
-                    TABLE_PROPORTIONS[2] +
-                    TABLE_PROPORTIONS[3] * this.indicatorMapping.size();
+            final int pSize = this.tableProportions[0] +
+                    this.tableProportions[1] +
+                    this.tableProportions[2] +
+                    this.tableProportions[3] +
+                    (this.hasClientGroups ? this.tableProportions[4] : 0)
+                            * this.indicatorMapping.size();
             final int columnUnitSize = (pSize > 0)
                     ? area.width / pSize
-                    : area.width / TABLE_PROPORTIONS.length - 1 + this.indicatorMapping.size();
+                    : area.width / this.tableProportions.length - 1 + this.indicatorMapping.size();
 
             final TableColumn[] columns = this.table.getColumns();
             for (int i = 0; i < columns.length; i++) {
-                final int proportionFactor = (i < TABLE_PROPORTIONS.length)
-                        ? TABLE_PROPORTIONS[i]
-                        : TABLE_PROPORTIONS[TABLE_PROPORTIONS.length - 1];
+                final int proportionFactor = (i < this.tableProportions.length)
+                        ? this.tableProportions[i]
+                        : this.tableProportions[this.tableProportions.length - 1];
                 columns[i].setWidth(proportionFactor * columnUnitSize);
             }
             this.tableWidth = area.width;
@@ -412,7 +444,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     private final class UpdatableTableItem implements Comparable<UpdatableTableItem> {
 
         final Long connectionId;
-        private boolean changed = false;
+        private boolean dataChanged = false;
+        private boolean indicatorValueChanged = false;
         private ClientConnectionData connectionData;
         private int thresholdsWeight;
         private int[] indicatorWeights = null;
@@ -424,17 +457,34 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         private void update(final TableItem tableItem, final boolean force) {
-            if (force || this.changed) {
-                update(tableItem);
+            if (force || this.dataChanged) {
+                updateData(tableItem);
             }
-            this.changed = false;
+            if (force || this.indicatorValueChanged) {
+                updateIndicatorValues(tableItem);
+            }
+            this.dataChanged = false;
+            this.indicatorValueChanged = false;
         }
 
-        private void update(final TableItem tableItem) {
-            updateData(tableItem);
+        private void updateData(final TableItem tableItem) {
+            tableItem.setText(0, getConnectionIdentifier());
+            if (ClientConnectionTable.this.hasClientGroups) {
+                tableItem.setText(1, getGroupInfo());
+                tableItem.setText(2, getConnectionInfo());
+                tableItem.setText(
+                        3,
+                        ClientConnectionTable.this.localizedClientConnectionStatusNameFunction
+                                .apply(this.connectionData));
+            } else {
+                tableItem.setText(1, getConnectionInfo());
+                tableItem.setText(
+                        2,
+                        ClientConnectionTable.this.localizedClientConnectionStatusNameFunction
+                                .apply(this.connectionData));
+            }
             if (this.connectionData != null) {
                 updateConnectionStatusColor(tableItem);
-                updateIndicatorValues(tableItem);
                 updateDuplicateColor(tableItem);
                 updateNotifications(tableItem);
             }
@@ -451,19 +501,12 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             }
         }
 
-        private void updateData(final TableItem tableItem) {
-            tableItem.setText(0, getConnectionIdentifier());
-            tableItem.setText(1, getConnectionInfo());
-            tableItem.setText(
-                    2,
-                    ClientConnectionTable.this.localizedClientConnectionStatusNameFunction.apply(this.connectionData));
-        }
-
         private void updateConnectionStatusColor(final TableItem tableItem) {
             final Color statusColor = ClientConnectionTable.this.colorData.getStatusColor(this.connectionData);
             final Color statusTextColor = ClientConnectionTable.this.colorData.getStatusTextColor(statusColor);
-            tableItem.setBackground(2, statusColor);
-            tableItem.setForeground(2, statusTextColor);
+            final int index = ClientConnectionTable.this.hasClientGroups ? 3 : 2;
+            tableItem.setBackground(index, statusColor);
+            tableItem.setForeground(index, statusTextColor);
         }
 
         private void updateDuplicateColor(final TableItem tableItem) {
@@ -578,6 +621,22 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             return Constants.EMPTY_NOTE;
         }
 
+        private String getGroupInfo() {
+            final StringBuilder sb = new StringBuilder();
+            ClientConnectionTable.this.clientGroupMapping.keySet().stream().forEach(key -> {
+                if (this.connectionData.groups.contains(key)) {
+                    final ClientGroup clientGroup = ClientConnectionTable.this.clientGroupMapping.get(key);
+                    sb.append(WidgetFactory.getTextWithBackgroundHTML(clientGroup.name, clientGroup.color));
+                }
+            });
+
+            if (sb.length() <= 0) {
+                return Constants.EMPTY_NOTE;
+            } else {
+                return sb.toString();
+            }
+        }
+
         String getConnectionIdentifier() {
             if (this.connectionData != null && this.connectionData.clientConnection.userSessionId != null) {
                 return this.connectionData.clientConnection.userSessionId;
@@ -587,15 +646,16 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         void push(final ClientConnectionData connectionData) {
-            this.changed = this.connectionData == null ||
+            this.dataChanged = this.connectionData == null ||
                     !this.connectionData.dataEquals(connectionData);
-            final boolean statusChanged = this.connectionData == null ||
-                    this.connectionData.clientConnection.status != connectionData.clientConnection.status;
+            this.indicatorValueChanged = this.connectionData == null ||
+                    (this.connectionData.clientConnection.status.clientActiveStatus
+                            && !this.connectionData.indicatorValuesEquals(connectionData));
             final boolean notificationChanged = this.connectionData == null ||
                     BooleanUtils.toBoolean(this.connectionData.pendingNotification) != BooleanUtils
                             .toBoolean(connectionData.pendingNotification);
 
-            if (statusChanged || notificationChanged) {
+            if (this.dataChanged || notificationChanged) {
                 ClientConnectionTable.this.needsSort = true;
             }
 

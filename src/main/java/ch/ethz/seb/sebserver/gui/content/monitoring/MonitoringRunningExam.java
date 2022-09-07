@@ -30,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.async.AsyncRunner;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
@@ -56,6 +57,7 @@ import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
@@ -140,6 +142,11 @@ public class MonitoringRunningExam implements TemplateComposer {
                 .call()
                 .getOrThrow();
 
+        final Collection<ClientGroup> clientGroups = this.restService.getBuilder(GetClientGroups.class)
+                .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, entityKey.modelId)
+                .call()
+                .getOrThrow();
+
         final Composite content = this.pageService.getWidgetFactory().defaultPageLayout(
                 pageContext.getParent(),
                 new LocTextKey("sebserver.monitoring.exam", exam.name));
@@ -166,6 +173,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 tablePane,
                 exam,
                 indicators,
+                clientGroups,
                 this.distributedSetup);
         guiUpdates.add(clientTable);
 

@@ -28,7 +28,7 @@ public interface ClientGroupData extends Entity {
         MAC_OS("TODO"),
         I_OS("TODO");
 
-        final String queryString;
+        public final String queryString;
 
         private ClientOS(final String queryString) {
             this.queryString = queryString;

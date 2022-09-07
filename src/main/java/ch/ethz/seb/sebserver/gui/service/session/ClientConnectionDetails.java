@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.graphics.Color;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -43,6 +45,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.DisposedOAuth2RestTemplateException;
 import ch.ethz.seb.sebserver.gui.service.session.IndicatorData.ThresholdColor;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public class ClientConnectionDetails {
 
@@ -52,6 +55,8 @@ public class ClientConnectionDetails {
             new LocTextKey("sebserver.monitoring.connection.form.exam");
     private final static LocTextKey CONNECTION_ID_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.form.id");
+    private final static LocTextKey CONNECTION_GROUP_TEXT_KEY =
+            new LocTextKey("sebserver.monitoring.connection.form.group");
     private final static LocTextKey CONNECTION_INFO_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.form.info");
     private final static LocTextKey CONNECTION_STATUS_TEXT_KEY =
@@ -62,6 +67,8 @@ public class ClientConnectionDetails {
     private final PageService pageService;
     private final ResourceService resourceService;
     private final Map<Long, IndicatorData> indicatorMapping;
+    private final Map<Long, ClientGroup> clientGroupMapping;
+    private final boolean hasClientGroups;
     private final RestCall<ClientConnectionData>.RestCallBuilder restCallBuilder;
     private final FormHandle<?> formHandle;
     private final ColorData colorData;
@@ -78,10 +85,11 @@ public class ClientConnectionDetails {
             final PageContext pageContext,
             final Exam exam,
             final RestCall<ClientConnectionData>.RestCallBuilder restCallBuilder,
-            final Collection<Indicator> indicators) {
+            final Collection<Indicator> indicators,
+            final Collection<ClientGroup> clientGroups) {
 
         final Display display = pageContext.getRoot().getDisplay();
-
+        this.hasClientGroups = clientGroups != null && !clientGroups.isEmpty();
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.restCallBuilder = restCallBuilder;
@@ -91,6 +99,12 @@ public class ClientConnectionDetails {
                 display,
                 this.colorData,
                 NUMBER_OF_NONE_INDICATOR_ROWS);
+
+        this.clientGroupMapping = clientGroups == null || clientGroups.isEmpty()
+                ? null
+                : clientGroups
+                        .stream()
+                        .collect(Collectors.toMap(cg -> cg.id, Function.identity()));
 
         final FormBuilder formBuilder = pageService.formBuilder(pageContext)
                 .readonly(true)
@@ -102,6 +116,12 @@ public class ClientConnectionDetails {
                         Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID,
                         CONNECTION_ID_TEXT_KEY,
                         Constants.EMPTY_NOTE))
+                .addFieldIf(() -> this.hasClientGroups,
+                        () -> FormBuilder.text(
+                                ClientConnectionData.ATTR_CLIENT_GROUPS,
+                                CONNECTION_GROUP_TEXT_KEY,
+                                Constants.EMPTY_NOTE)
+                                .asMarkup())
                 .addField(FormBuilder.text(
                         ClientConnection.ATTR_INFO,
                         CONNECTION_INFO_TEXT_KEY,
@@ -179,6 +199,13 @@ public class ClientConnectionDetails {
                 ClientConnection.ATTR_INFO,
                 this.connectionData.clientConnection.info);
 
+        if (this.hasClientGroups
+                && Constants.EMPTY_NOTE.equals(form.getFieldValue(ClientConnectionData.ATTR_CLIENT_GROUPS))) {
+            form.setFieldValue(
+                    ClientConnectionData.ATTR_CLIENT_GROUPS,
+                    getGroupInfo());
+        }
+
         if (this.missingChanged) {
             // update status
             form.setFieldValue(
@@ -249,6 +276,22 @@ public class ClientConnectionDetails {
         }
         if (error instanceof DisposedOAuth2RestTemplateException) {
             this.pageService.getRestService().injectCurrentRestTemplate(this.restCallBuilder);
+        }
+    }
+
+    private String getGroupInfo() {
+        final StringBuilder sb = new StringBuilder();
+        this.clientGroupMapping.keySet().stream().forEach(key -> {
+            if (this.connectionData.groups.contains(key)) {
+                final ClientGroup clientGroup = this.clientGroupMapping.get(key);
+                sb.append(WidgetFactory.getTextWithBackgroundHTML(clientGroup.name, clientGroup.color));
+            }
+        });
+
+        if (sb.length() <= 0) {
+            return Constants.EMPTY_NOTE;
+        } else {
+            return sb.toString();
         }
     }
 

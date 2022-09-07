@@ -128,6 +128,11 @@ public final class Form implements FormBinding {
         return this;
     }
 
+    Form putReadonlyField(final String name, final Control label, final Label field) {
+        this.formFields.add(name, createReadonlyAccessor(label, field));
+        return this;
+    }
+
     Form putReadonlyField(final String name, final Control label, final Browser field) {
         this.formFields.add(name, createReadonlyAccessor(label, field));
         return this;
@@ -308,7 +313,13 @@ public final class Form implements FormBinding {
     //@formatter:off
     private FormFieldAccessor createReadonlyAccessor(final Control label, final Text field) {
         return new FormFieldAccessor(label, field, null) {
-            @Override public String getStringValue() { return null; }
+            @Override public String getStringValue() { return field.getText(); }
+            @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }
+        };
+    }
+    private FormFieldAccessor createReadonlyAccessor(final Control label, final Label field) {
+        return new FormFieldAccessor(label, field, null) {
+            @Override public String getStringValue() { return field.getText(); }
             @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }
         };
     }
@@ -320,7 +331,7 @@ public final class Form implements FormBinding {
     }
     private FormFieldAccessor createAccessor(final Control label, final Text text, final Label errorLabel) {
         return new FormFieldAccessor(label, text, errorLabel) {
-            @Override public String getStringValue() {return text.getText();}
+            @Override public String getStringValue() { return text.getText(); }
             @Override public void setStringValue(final String value) {text.setText(value);}
         };
     }

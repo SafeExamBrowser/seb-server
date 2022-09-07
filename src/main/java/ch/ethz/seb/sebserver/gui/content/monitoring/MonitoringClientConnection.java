@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
@@ -55,6 +56,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
@@ -191,6 +193,11 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .call()
                 .getOrThrow();
 
+        final Collection<ClientGroup> clientGroups = restService.getBuilder(GetClientGroups.class)
+                .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, parentEntityKey.modelId)
+                .call()
+                .getOrThrow();
+
         final RestCall<ClientConnectionData>.RestCallBuilder getConnectionData =
                 restService.getBuilder(GetClientConnectionData.class)
                         .withURIVariable(API.PARAM_PARENT_MODEL_ID, exam.getModelId())
@@ -205,7 +212,8 @@ public class MonitoringClientConnection implements TemplateComposer {
                 pageContext.copyOf(content),
                 exam,
                 getConnectionData,
-                indicators);
+                indicators,
+                clientGroups);
 
         // NOTIFICATIONS
         Supplier<EntityTable<ClientNotification>> _notificationTableSupplier = () -> null;

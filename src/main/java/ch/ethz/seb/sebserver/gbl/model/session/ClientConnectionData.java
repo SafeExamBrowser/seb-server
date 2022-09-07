@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -156,6 +157,14 @@ public class ClientConnectionData implements GrantEntity {
             return false;
         }
 
+        if (!Objects.equals(this.groups, other.groups)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean indicatorValuesEquals(final ClientConnectionData other) {
         if (this.indicatorValues.size() != other.indicatorValues.size()) {
             return false;
         }

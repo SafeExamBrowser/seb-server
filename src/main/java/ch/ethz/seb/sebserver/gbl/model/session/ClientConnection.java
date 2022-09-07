@@ -332,8 +332,10 @@ public final class ClientConnection implements GrantEntity {
                 return false;
         } else if (!this.connectionToken.equals(other.connectionToken))
             return false;
+
         if (this.status != other.status)
             return false;
+
         if (this.userSessionId == null) {
             if (other.userSessionId != null)
                 return false;

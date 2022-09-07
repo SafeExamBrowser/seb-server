@@ -1053,25 +1053,27 @@ public class WidgetFactory {
         }
     }
 
-    public String getColorValueHTML(final ClientGroupData data) {
+    public static String getTextWithBackgroundHTML(final String text, final String color) {
+        return new StringBuilder().append("<span style='padding: 5px 5px 5px 5px; background-color: #")
+                .append(color)
+                .append(";")
+                .append((Utils.darkColorContrast(Utils.parseRGB(color)))
+                        ? "color: #4a4a4a; "
+                        : "color: #FFFFFF;")
+                .append("'>")
+                .append(text)
+                // .append("&nbsp;")
+                .append("</span>")
+                .toString();
+    }
+
+    public static String getColorValueHTML(final ClientGroupData data) {
         final String color = data.getColor();
         if (StringUtils.isBlank(color)) {
             return Constants.EMPTY_NOTE;
         }
 
-        return new StringBuilder().append("<span style='padding: 2px 5px 2px 5px; background-color: #")
-                .append(color)
-                .append("; ")
-                .append((Utils.darkColorContrast(Utils.parseRGB(color)))
-                        ? "color: #4a4a4a; "
-                        : "color: #FFFFFF;")
-                .append("'>&nbsp;&nbsp;&nbsp;")
-                .append(" (#")
-                .append(color)
-                .append(")&nbsp;&nbsp;&nbsp;")
-                .append("</span>")
-                .toString();
-
+        return getTextWithBackgroundHTML(color, color);
     }
 
 }

@@ -39,6 +39,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
     int areaMinHeight = WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT;
     boolean isColorBox = false;
     boolean isHTML = false;
+    boolean isMarkup = false;
 
     TextFieldBuilder(final String name, final LocTextKey label, final String value) {
         super(name, label, value);
@@ -73,6 +74,11 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
     public TextFieldBuilder asHTML() {
         this.isHTML = true;
+        return this;
+    }
+
+    public TextFieldBuilder asMarkup() {
+        this.isMarkup = true;
         return this;
     }
 
@@ -115,6 +121,15 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
                 builder.pageService.getPolyglotPageService().injectI18nTooltip(
                         browser, this.tooltip);
             }
+            return;
+        }
+
+        if (readonly && this.isMarkup) {
+            final Label label = new Label(fieldGrid, SWT.NONE);
+            label.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
+            label.setText(this.value);
+            label.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
+            builder.form.putReadonlyField(this.name, titleLabel, label);
             return;
         }
 
