@@ -141,6 +141,26 @@ Label.colorlight {
     padding: 2px 5px 2px 5px;
 }
 
+Label.close {
+    font: bold 14px Arial, Helvetica, sans-serif;
+    height: 20px;
+    padding: 0;
+    color: #1f407a;
+    background-image: url( static/images/close.png );
+    background-position: left;
+    background-repeat: no-repeat; 
+}
+
+Label.open {
+    font: bold 14px Arial, Helvetica, sans-serif;
+    height: 20px;
+    padding: 0;
+    color: #1f407a;
+    background-image: url( static/images/open.png );
+    background-position: left;
+    background-repeat: no-repeat; 
+}
+
 Composite {
     background-color: transparent;
     border: none;

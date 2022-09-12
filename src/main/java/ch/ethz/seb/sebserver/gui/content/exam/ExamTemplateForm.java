@@ -358,7 +358,7 @@ public class ExamTemplateForm implements TemplateComposer {
                             .withColumn(new ColumnDefinition<ClientGroupTemplate>(
                                     Domain.CLIENT_GROUP.ATTR_COLOR,
                                     CLIENT_GROUP_COLOR_COLUMN_KEY,
-                                    cgt -> this.widgetFactory.getColorValueHTML(cgt))
+                                    cgt -> WidgetFactory.getColorValueHTML(cgt))
                                             .asMarkup()
                                             .widthProportion(1))
                             .withColumn(new ColumnDefinition<ClientGroupTemplate>(

@@ -88,7 +88,6 @@ public class ActivitiesPane implements TemplateComposer {
                 pageContext.getParent(),
                 SWT.SINGLE | SWT.FULL_SELECTION);
         final GridData navigationGridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-        //navigationGridData.horizontalIndent = 10;
         navigation.setLayoutData(navigationGridData);
 
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(pageContext);

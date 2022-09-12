@@ -112,7 +112,7 @@ public class ExamClientGroupList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<ClientGroup>(
                                 Domain.CLIENT_GROUP.ATTR_COLOR,
                                 CLIENT_GROUP_COLOR_COLUMN_KEY,
-                                cgt -> this.widgetFactory.getColorValueHTML(cgt))
+                                cgt -> WidgetFactory.getColorValueHTML(cgt))
                                         .asMarkup()
                                         .widthProportion(1))
 
