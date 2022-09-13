@@ -11,7 +11,9 @@ package ch.ethz.seb.sebserver.webservice.weblayer.api;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
@@ -248,31 +250,17 @@ public class ExamMonitoringController {
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates) {
+            @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates,
+            @RequestHeader(
+                    name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER,
+                    required = false) final String hiddenClientGroups) {
 
         checkPrivileges(institutionId, examId);
-
-        final EnumSet<ConnectionStatus> filterStates = EnumSet.noneOf(ConnectionStatus.class);
-        if (StringUtils.isNoneBlank(hiddenStates)) {
-            final String[] split = StringUtils.split(hiddenStates, Constants.LIST_SEPARATOR);
-            for (int i = 0; i < split.length; i++) {
-                filterStates.add(ConnectionStatus.valueOf(split[i]));
-            }
-        }
-
-        final boolean active = filterStates.contains(ConnectionStatus.ACTIVE);
-        if (active) {
-            filterStates.remove(ConnectionStatus.ACTIVE);
-        }
 
         return this.examSessionService
                 .getMonitoringSEBConnectionsData(
                         examId,
-                        filterStates.isEmpty()
-                                ? Objects::nonNull
-                                : active
-                                        ? withActiveFilter(filterStates)
-                                        : noneActiveFilter(filterStates))
+                        createMonitoringFilter(hiddenStates, hiddenClientGroups))
                 .getOrThrow().connections;
     }
 
@@ -288,31 +276,17 @@ public class ExamMonitoringController {
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates) {
+            @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates,
+            @RequestHeader(
+                    name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER,
+                    required = false) final String hiddenClientGroups) {
 
         final Exam runningExam = checkPrivileges(institutionId, examId);
-
-        final EnumSet<ConnectionStatus> filterStates = EnumSet.noneOf(ConnectionStatus.class);
-        if (StringUtils.isNoneBlank(hiddenStates)) {
-            final String[] split = StringUtils.split(hiddenStates, Constants.LIST_SEPARATOR);
-            for (int i = 0; i < split.length; i++) {
-                filterStates.add(ConnectionStatus.valueOf(split[i]));
-            }
-        }
-
-        final boolean active = filterStates.contains(ConnectionStatus.ACTIVE);
-        if (active) {
-            filterStates.remove(ConnectionStatus.ACTIVE);
-        }
 
         final MonitoringSEBConnectionData monitoringSEBConnectionData = this.examSessionService
                 .getMonitoringSEBConnectionsData(
                         examId,
-                        filterStates.isEmpty()
-                                ? Objects::nonNull
-                                : active
-                                        ? withActiveFilter(filterStates)
-                                        : noneActiveFilter(filterStates))
+                        createMonitoringFilter(hiddenStates, hiddenClientGroups))
                 .getOrThrow();
 
         if (this.examAdminService.isProctoringEnabled(runningExam).getOr(false)) {
@@ -507,6 +481,48 @@ public class ExamMonitoringController {
                 return !filterStates.contains(conn.clientConnection.status);
             }
         };
+    }
+
+    private Predicate<ClientConnectionData> createMonitoringFilter(
+            final String hiddenStates,
+            final String hiddenClientGroups) {
+
+        final EnumSet<ConnectionStatus> filterStates = EnumSet.noneOf(ConnectionStatus.class);
+        if (StringUtils.isNotBlank(hiddenStates)) {
+            final String[] split = StringUtils.split(hiddenStates, Constants.LIST_SEPARATOR);
+            for (int i = 0; i < split.length; i++) {
+                filterStates.add(ConnectionStatus.valueOf(split[i]));
+            }
+        }
+
+        final boolean active = filterStates.contains(ConnectionStatus.ACTIVE);
+        if (active) {
+            filterStates.remove(ConnectionStatus.ACTIVE);
+        }
+
+        final Predicate<ClientConnectionData> stateFilter = filterStates.isEmpty()
+                ? Objects::nonNull
+                : active
+                        ? withActiveFilter(filterStates)
+                        : noneActiveFilter(filterStates);
+
+        Set<Long> filterClientGroups = null;
+        if (StringUtils.isNotBlank(hiddenClientGroups)) {
+            filterClientGroups = new HashSet<>();
+            final String[] split = StringUtils.split(hiddenClientGroups, Constants.LIST_SEPARATOR);
+            for (int i = 0; i < split.length; i++) {
+                filterClientGroups.add(Long.parseLong(split[i]));
+            }
+        }
+
+        final Set<Long> _filterClientGroups = filterClientGroups;
+        final Predicate<ClientConnectionData> filter = ccd -> {
+            if (ccd == null) {
+                return false;
+            }
+            return stateFilter.test(ccd) && ccd.filter(_filterClientGroups);
+        };
+        return filter;
     }
 
 }

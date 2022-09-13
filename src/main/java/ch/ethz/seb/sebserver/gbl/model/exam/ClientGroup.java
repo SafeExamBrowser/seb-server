@@ -28,7 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.CLIENT_GROUP;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ClientGroup implements ClientGroupData {
+public class ClientGroup implements ClientGroupData, Comparable<ClientGroup> {
 
     public static final String FILTER_ATTR_EXAM_ID = "examId";
 
@@ -283,6 +283,11 @@ public class ClientGroup implements ClientGroupData {
         if (this.type != other.type)
             return false;
         return true;
+    }
+
+    @Override
+    public int compareTo(final ClientGroup o) {
+        return o == null ? -1 : this.id.compareTo(o.id);
     }
 
 }

@@ -692,8 +692,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
     private void processPing(final String connectionToken, final long timestamp, final int pingNumber) {
 
-        final ClientConnectionDataInternal activeClientConnection =
-                this.examSessionCacheService.getClientConnection(connectionToken);
+        ClientConnectionDataInternal activeClientConnection = null;
+        synchronized (ExamSessionCacheService.CLIENT_CONECTION_CREATION_LOCK) {
+            activeClientConnection = this.examSessionCacheService.getClientConnection(connectionToken);
+        }
 
         if (activeClientConnection != null) {
             activeClientConnection.notifyPing(timestamp, pingNumber);

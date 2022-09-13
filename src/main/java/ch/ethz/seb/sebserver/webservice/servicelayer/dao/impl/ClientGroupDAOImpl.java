@@ -194,6 +194,7 @@ public class ClientGroupDAOImpl implements ClientGroupDAO {
                 .stream()
                 .map(this::toDomainModel)
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                .sorted()
                 .collect(Collectors.toList()));
     }
 

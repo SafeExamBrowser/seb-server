@@ -10,7 +10,10 @@ package ch.ethz.seb.sebserver.gui.service.session;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
@@ -20,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.async.AsyncRunner;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
+import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -29,6 +34,7 @@ import ch.ethz.seb.sebserver.gui.service.push.ServerPushContext;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.push.UpdateErrorHandler;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetMonitoringFullPageData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.DisposedOAuth2RestTemplateException;
 
@@ -36,11 +42,12 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.DisposedOAuth2Re
  * full page monitoring.
  *
  * This handles server push and GUI update and also implements kind of circuit breaker and error handling */
-public class FullPageMonitoringUpdate implements MonitoringStatus {
+public class FullPageMonitoringUpdate implements MonitoringFilter {
 
     static final Logger log = LoggerFactory.getLogger(FullPageMonitoringUpdate.class);
 
-    private static final String USER_SESSION_STATUS_FILTER_ATTRIBUTE = "USER_SESSION_STATUS_FILTER_ATTRIBUTE";
+    private static final String USER_SESSION_STATUS_FILTER_ATTRIBUTE = "USER_SESSION_STATUS_FILTER";
+    private static final String USER_SESSION_GROUP_FILTER_ATTRIBUTE = "USER_SESSION_GROUP_FILTER";
 
     private final ServerPushService serverPushService;
     private final PageService pageService;
@@ -49,9 +56,13 @@ public class FullPageMonitoringUpdate implements MonitoringStatus {
     private final Collection<FullPageMonitoringGUIUpdate> guiUpdates;
 
     private ServerPushContext pushContext;
+
     private final EnumSet<ConnectionStatus> statusFilter;
     private String statusFilterParam = "";
-    private boolean statusFilterChanged = false;
+    private final Set<Long> clientGroupFilter;
+    private String clientGroupFilterParam = "";
+    private boolean filterChanged = false;
+
     private boolean updateInProgress = false;
     private MonitoringFullPageData monitoringFullPageData = null;
 
@@ -72,7 +83,19 @@ public class FullPageMonitoringUpdate implements MonitoringStatus {
         this.guiUpdates = guiUpdates;
 
         this.statusFilter = EnumSet.noneOf(ConnectionStatus.class);
-        loadStatusFilter();
+        loadFilter();
+
+        final Collection<ClientGroup> clientGroups = pageService.getRestService()
+                .getBuilder(GetClientGroups.class)
+                .withQueryParam(Indicator.FILTER_ATTR_EXAM_ID, String.valueOf(examId))
+                .call()
+                .getOr(Collections.emptyList());
+
+        if (clientGroups != null && !clientGroups.isEmpty()) {
+            this.clientGroupFilter = new HashSet<>();
+        } else {
+            this.clientGroupFilter = null;
+        }
     }
 
     public void start(final PageContext pageContext, final Composite anchor, final long pollInterval) {
@@ -105,13 +128,13 @@ public class FullPageMonitoringUpdate implements MonitoringStatus {
     }
 
     @Override
-    public boolean statusFilterChanged() {
-        return this.statusFilterChanged;
+    public boolean filterChanged() {
+        return this.filterChanged;
     }
 
     @Override
-    public void resetStatusFilterChanged() {
-        this.statusFilterChanged = false;
+    public void resetFilterChanged() {
+        this.filterChanged = false;
     }
 
     @Override
@@ -122,13 +145,43 @@ public class FullPageMonitoringUpdate implements MonitoringStatus {
     @Override
     public void hideStatus(final ConnectionStatus status) {
         this.statusFilter.add(status);
-        saveStatusFilter();
+        saveFilter();
     }
 
     @Override
     public void showStatus(final ConnectionStatus status) {
         this.statusFilter.remove(status);
-        saveStatusFilter();
+        saveFilter();
+    }
+
+    @Override
+    public boolean hasClientGroupFilter() {
+        return this.clientGroupFilter != null;
+    }
+
+    @Override
+    public boolean isClientGroupHidden(final Long clientGroupId) {
+        return this.clientGroupFilter != null && this.clientGroupFilter.contains(clientGroupId);
+    }
+
+    @Override
+    public void hideClientGroup(final Long clientGroupId) {
+        if (this.clientGroupFilter == null) {
+            return;
+        }
+
+        this.clientGroupFilter.add(clientGroupId);
+        saveFilter();
+    }
+
+    @Override
+    public void showClientGroup(final Long clientGroupId) {
+        if (this.clientGroupFilter == null) {
+            return;
+        }
+
+        this.clientGroupFilter.remove(clientGroupId);
+        saveFilter();
     }
 
     @Override
@@ -161,8 +214,15 @@ public class FullPageMonitoringUpdate implements MonitoringStatus {
     }
 
     private void updateBusinessData() {
-        this.monitoringFullPageData = this.restCallBuilder
-                .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam)
+
+        RestCall<MonitoringFullPageData>.RestCallBuilder restCallBuilder = this.restCallBuilder
+                .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam);
+        if (hasClientGroupFilter()) {
+            restCallBuilder = restCallBuilder
+                    .withHeader(API.EXAM_MONITORING_CLIENT_GROUP_FILTER, this.clientGroupFilterParam);
+        }
+
+        this.monitoringFullPageData = restCallBuilder
                 .call()
                 .get(error -> {
                     recoverFromDisposedRestTemplate(error);
@@ -182,22 +242,32 @@ public class FullPageMonitoringUpdate implements MonitoringStatus {
         });
     }
 
-    private void saveStatusFilter() {
+    private void saveFilter() {
         try {
             this.pageService
                     .getCurrentUser()
                     .putAttribute(
                             USER_SESSION_STATUS_FILTER_ATTRIBUTE,
                             StringUtils.join(this.statusFilter, Constants.LIST_SEPARATOR));
+            if (hasClientGroupFilter()) {
+                this.pageService
+                        .getCurrentUser()
+                        .putAttribute(
+                                USER_SESSION_GROUP_FILTER_ATTRIBUTE,
+                                StringUtils.join(this.clientGroupFilter, Constants.LIST_SEPARATOR));
+            }
         } catch (final Exception e) {
             log.warn("Failed to save status filter to user session");
         } finally {
             this.statusFilterParam = StringUtils.join(this.statusFilter, Constants.LIST_SEPARATOR);
-            this.statusFilterChanged = true;
+            if (hasClientGroupFilter()) {
+                this.clientGroupFilterParam = StringUtils.join(this.clientGroupFilter, Constants.LIST_SEPARATOR);
+            }
+            this.filterChanged = true;
         }
     }
 
-    private void loadStatusFilter() {
+    private void loadFilter() {
         try {
             final String attribute = this.pageService
                     .getCurrentUser()
@@ -206,17 +276,33 @@ public class FullPageMonitoringUpdate implements MonitoringStatus {
             if (attribute != null) {
                 Arrays.asList(StringUtils.split(attribute, Constants.LIST_SEPARATOR))
                         .forEach(name -> this.statusFilter.add(ConnectionStatus.valueOf(name)));
-
             } else {
                 this.statusFilter.add(ConnectionStatus.DISABLED);
+            }
+
+            if (hasClientGroupFilter()) {
+                final String groups = this.pageService
+                        .getCurrentUser()
+                        .getAttribute(USER_SESSION_GROUP_FILTER_ATTRIBUTE);
+                this.statusFilter.clear();
+                if (groups != null) {
+                    Arrays.asList(StringUtils.split(groups, Constants.LIST_SEPARATOR))
+                            .forEach(id -> this.clientGroupFilter.add(Long.parseLong(id)));
+                }
             }
         } catch (final Exception e) {
             log.warn("Failed to load status filter to user session");
             this.statusFilter.clear();
             this.statusFilter.add(ConnectionStatus.DISABLED);
+            if (hasClientGroupFilter()) {
+                this.clientGroupFilter.clear();
+            }
         } finally {
             this.statusFilterParam = StringUtils.join(this.statusFilter, Constants.LIST_SEPARATOR);
-            this.statusFilterChanged = true;
+            if (hasClientGroupFilter()) {
+                this.clientGroupFilterParam = StringUtils.join(this.clientGroupFilter, Constants.LIST_SEPARATOR);
+            }
+            this.filterChanged = true;
         }
     }
 

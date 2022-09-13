@@ -882,44 +882,54 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.monitoring.exam.connection.action.hide.requested"),
             ImageIcon.TOGGLE_OFF,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.FILTER),
+            ActionCategory.STATE_FILTER),
     MONITOR_EXAM_SHOW_REQUESTED_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.show.requested"),
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.FILTER),
+            ActionCategory.STATE_FILTER),
 
     MONITOR_EXAM_HIDE_ACTIVE_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.hide.active"),
             ImageIcon.TOGGLE_OFF,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.FILTER),
+            ActionCategory.STATE_FILTER),
     MONITOR_EXAM_SHOW_ACTIVE_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.show.active"),
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.FILTER),
-
+            ActionCategory.STATE_FILTER),
     MONITOR_EXAM_HIDE_CLOSED_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.hide.closed"),
             ImageIcon.TOGGLE_OFF,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.FILTER),
+            ActionCategory.STATE_FILTER),
     MONITOR_EXAM_SHOW_CLOSED_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.show.closed"),
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.FILTER),
+            ActionCategory.STATE_FILTER),
     MONITOR_EXAM_HIDE_DISABLED_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.hide.disabled"),
             ImageIcon.TOGGLE_OFF,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.FILTER),
+            ActionCategory.STATE_FILTER),
     MONITOR_EXAM_SHOW_DISABLED_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.show.disabled"),
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.FILTER),
+            ActionCategory.STATE_FILTER),
+
+    MONITOR_EXAM_HIDE_CLIENT_GROUP_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.hide.clientgroup"),
+            ImageIcon.TOGGLE_OFF,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.GROUP_FILTER),
+    MONITOR_EXAM_SHOW_CLIENT_GROUP_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.show.clientgroup"),
+            ImageIcon.TOGGLE_ON,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.GROUP_FILTER),
 
     MONITORING_EXAM_SEARCH_CONNECTIONS(
             new LocTextKey("sebserver.monitoring.search.action"),

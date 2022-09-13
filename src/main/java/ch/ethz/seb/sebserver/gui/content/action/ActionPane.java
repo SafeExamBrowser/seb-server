@@ -247,26 +247,7 @@ public class ActionPane implements TemplateComposer {
                 actionsTitle.setData(RWT.CUSTOM_VARIANT, "close");
                 actionsTitle.setImage(WidgetFactory.ImageIcon.ACTIVE.getImage(parent.getDisplay()));
                 actionsTitle.setText("&nbsp;&nbsp;&nbsp;&nbsp;" + titleText);
-                actionsTitle.addListener(SWT.MouseUp, event -> {
-                    try {
-                        final Control contentControl = composite.getChildren()[1];
-                        if (contentControl.isVisible()) {
-                            actionsTitle.setData(RWT.CUSTOM_VARIANT, "open");
-                            contentControl.setVisible(false);
-                            final GridData l = (GridData) contentControl.getLayoutData();
-                            l.heightHint = 0;
-                            composite.getParent().layout(true, true);
-                        } else {
-                            actionsTitle.setData(RWT.CUSTOM_VARIANT, "close");
-                            contentControl.setVisible(true);
-                            final GridData l = (GridData) contentControl.getLayoutData();
-                            l.heightHint = SWT.DEFAULT;
-                            composite.getParent().layout(true, true);
-                        }
-                    } catch (final Exception e) {
-                        // just ignore
-                    }
-                });
+                actionsTitle.addListener(SWT.MouseUp, event -> actionGroupExpand(composite, actionsTitle));
             }
 
             actionsTitle.setLayoutData(titleLayout);
@@ -317,6 +298,27 @@ public class ActionPane implements TemplateComposer {
         });
 
         return actions;
+    }
+
+    private void actionGroupExpand(final Composite composite, final Label actionsTitle) {
+        try {
+            final Control contentControl = composite.getChildren()[1];
+            if (contentControl.isVisible()) {
+                actionsTitle.setData(RWT.CUSTOM_VARIANT, "open");
+                contentControl.setVisible(false);
+                final GridData l = (GridData) contentControl.getLayoutData();
+                l.heightHint = 0;
+                composite.getParent().layout(true, true);
+            } else {
+                actionsTitle.setData(RWT.CUSTOM_VARIANT, "close");
+                contentControl.setVisible(true);
+                final GridData l = (GridData) contentControl.getLayoutData();
+                l.heightHint = SWT.DEFAULT;
+                composite.getParent().layout(true, true);
+            }
+        } catch (final Exception e) {
+            // just ignore
+        }
     }
 
     private void clearDisposedTrees(final Map<String, Tree> actionTrees) {

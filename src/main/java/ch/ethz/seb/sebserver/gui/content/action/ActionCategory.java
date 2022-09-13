@@ -42,7 +42,8 @@ public enum ActionCategory {
     LOGS_USER_ACTIVITY_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),
     LOGS_SEB_CLIENT_LIST(new LocTextKey("sebserver.userlogs.list.actions"), 1),
     VARIA(new LocTextKey("sebserver.overall.action.category.varia"), 0),
-    FILTER(new LocTextKey("sebserver.exam.monitoring.action.category.filter"), 50),
+    STATE_FILTER(new LocTextKey("sebserver.exam.monitoring.action.category.statefilter"), 40),
+    GROUP_FILTER(new LocTextKey("sebserver.exam.monitoring.action.category.groupfilter"), 50),
     PROCTORING(new LocTextKey("sebserver.exam.overall.action.category.proctoring"), 60),
 
     FINISHED_EXAM_LIST(new LocTextKey("sebserver.finished.exam.list.actions"), 1);

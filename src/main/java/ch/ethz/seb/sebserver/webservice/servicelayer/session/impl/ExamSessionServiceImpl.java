@@ -13,7 +13,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
@@ -34,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -43,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientGroupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -64,6 +68,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     private final IndicatorDAO indicatorDAO;
     private final ExamSessionCacheService examSessionCacheService;
     private final ExamDAO examDAO;
+    private final ClientGroupDAO clientGroupDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final CacheManager cacheManager;
     private final SEBRestrictionService sebRestrictionService;
@@ -76,6 +81,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     protected ExamSessionServiceImpl(
             final ExamSessionCacheService examSessionCacheService,
             final ExamDAO examDAO,
+            final ClientGroupDAO clientGroupDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ClientConnectionDAO clientConnectionDAO,
             final IndicatorDAO indicatorDAO,
@@ -87,6 +93,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
         this.examSessionCacheService = examSessionCacheService;
         this.examDAO = examDAO;
+        this.clientGroupDAO = clientGroupDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.cacheManager = cacheManager;
@@ -350,7 +357,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public ClientConnectionDataInternal getConnectionDataInternal(final String connectionToken) {
-        synchronized (this.examSessionCacheService) {
+        synchronized (ExamSessionCacheService.CLIENT_CONECTION_CREATION_LOCK) {
             return this.examSessionCacheService.getClientConnection(connectionToken);
         }
     }
@@ -405,25 +412,33 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             for (int i = 0; i < statusMapping.length; i++) {
                 statusMapping[i] = 0;
             }
+            // needed to store connection numbers per client group too
+            final Collection<ClientGroup> groups = this.clientGroupDAO.allForExam(examId).getOr(null);
+            final Map<Long, Integer> clientGroupMapping = (groups != null && !groups.isEmpty())
+                    ? new HashMap<>()
+                    : null;
 
             updateClientConnections(examId);
 
-            synchronized (this.examSessionCacheService) {
-                final List<ClientConnectionData> filteredConnections = this.clientConnectionDAO
-                        .getConnectionTokens(examId)
-                        .getOrThrow()
-                        .stream()
-                        .map(token -> this.examSessionCacheService.getClientConnection(token))
-                        .filter(Objects::nonNull)
-                        .map(c -> {
-                            statusMapping[c.clientConnection.status.code]++;
-                            return c;
-                        })
-                        .filter(filter)
-                        .collect(Collectors.toList());
+            final List<ClientConnectionData> filteredConnections = this.clientConnectionDAO
+                    .getConnectionTokens(examId)
+                    .getOrThrow()
+                    .stream()
+                    .map(token -> getConnectionDataInternal(token))
+                    .filter(Objects::nonNull)
+                    .map(c -> {
+                        statusMapping[c.clientConnection.status.code]++;
+                        processClientGroupMapping(c.groups, clientGroupMapping);
+                        return c;
+                    })
+                    .filter(filter)
+                    .collect(Collectors.toList());
 
-                return new MonitoringSEBConnectionData(examId, filteredConnections, statusMapping);
-            }
+            return new MonitoringSEBConnectionData(
+                    examId,
+                    filteredConnections,
+                    statusMapping,
+                    clientGroupMapping);
         });
     }
 
@@ -555,6 +570,20 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 && Objects.equals(exam.startTime, runningExam.startTime)
                 && Objects.equals(exam.endTime, runningExam.endTime)
                 && Objects.equals(exam.name, runningExam.name);
+    }
+
+    private void processClientGroupMapping(final Set<Long> groups, final Map<Long, Integer> clientGroupMapping) {
+        if (groups == null || clientGroupMapping == null) {
+            return;
+        }
+
+        groups.forEach(id -> {
+            if (clientGroupMapping.containsKey(id)) {
+                clientGroupMapping.put(id, clientGroupMapping.get(id) + 1);
+            } else {
+                clientGroupMapping.put(id, 1);
+            }
+        });
     }
 
 }

@@ -11,6 +11,6 @@ package ch.ethz.seb.sebserver.gui.service.session;
 @FunctionalInterface
 public interface FullPageMonitoringGUIUpdate {
 
-    void update(MonitoringStatus monitoringStatus);
+    void update(MonitoringFilter monitoringStatus);
 
 }

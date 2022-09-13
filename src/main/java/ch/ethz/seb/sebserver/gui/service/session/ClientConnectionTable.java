@@ -312,10 +312,10 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     }
 
     @Override
-    public void update(final MonitoringStatus monitoringStatus) {
+    public void update(final MonitoringFilter monitoringStatus) {
         final Collection<ClientConnectionData> connectionData = monitoringStatus.getConnectionData();
         final boolean sizeChanged = connectionData.size() != this.table.getItemCount();
-        final boolean needsSync = monitoringStatus.statusFilterChanged() ||
+        final boolean needsSync = monitoringStatus.filterChanged() ||
                 this.forceUpdateAll ||
                 sizeChanged ||
                 (this.tableMapping != null &&
@@ -350,7 +350,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                     }
                 }
             });
-            monitoringStatus.resetStatusFilterChanged();
+            monitoringStatus.resetFilterChanged();
             this.toDelete.clear();
         }
 
@@ -624,7 +624,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         private String getGroupInfo() {
             final StringBuilder sb = new StringBuilder();
             ClientConnectionTable.this.clientGroupMapping.keySet().stream().forEach(key -> {
-                if (this.connectionData.groups.contains(key)) {
+                if (this.connectionData.groups != null && this.connectionData.groups.contains(key)) {
                     final ClientGroup clientGroup = ClientConnectionTable.this.clientGroupMapping.get(key);
                     sb.append(WidgetFactory.getTextWithBackgroundHTML(clientGroup.name, clientGroup.color));
                 }

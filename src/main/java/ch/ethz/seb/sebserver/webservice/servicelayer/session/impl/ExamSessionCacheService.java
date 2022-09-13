@@ -39,6 +39,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService
 @WebServiceProfile
 public class ExamSessionCacheService {
 
+    public static final Object CLIENT_CONECTION_CREATION_LOCK = new Object();
+
     public static final String CACHE_NAME_RUNNING_EXAM = "RUNNING_EXAM";
     public static final String CACHE_NAME_ACTIVE_CLIENT_CONNECTION = "ACTIVE_CLIENT_CONNECTION";
     public static final String CACHE_NAME_SEB_CONFIG_EXAM = "SEB_CONFIG_EXAM";

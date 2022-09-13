@@ -11,6 +11,8 @@ package ch.ethz.seb.sebserver.gui.content.monitoring;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -64,7 +66,7 @@ import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
 import ch.ethz.seb.sebserver.gui.service.session.FullPageMonitoringGUIUpdate;
 import ch.ethz.seb.sebserver.gui.service.session.FullPageMonitoringUpdate;
 import ch.ethz.seb.sebserver.gui.service.session.InstructionProcessor;
-import ch.ethz.seb.sebserver.gui.service.session.MonitoringStatus;
+import ch.ethz.seb.sebserver.gui.service.session.MonitoringFilter;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.MonitoringProctoringService;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService;
 
@@ -258,6 +260,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         if (isExamSupporter.getAsBoolean()) {
             guiUpdates.add(createFilterActions(
+                    clientGroups,
                     fullPageMonitoringUpdate,
                     actionBuilder,
                     clientTable,
@@ -347,13 +350,14 @@ public class MonitoringRunningExam implements TemplateComposer {
     }
 
     private FullPageMonitoringGUIUpdate createFilterActions(
-            final MonitoringStatus monitoringStatus,
+            final Collection<ClientGroup> clientGroups,
+            final MonitoringFilter monitoringStatus,
             final PageActionBuilder actionBuilder,
             final ClientConnectionTable clientTable,
             final BooleanSupplier isExamSupporter) {
 
-        final StatusFilterGUIUpdate statusFilterGUIUpdate =
-                new StatusFilterGUIUpdate(this.pageService.getPolyglotPageService());
+        final FilterGUIUpdate statusFilterGUIUpdate =
+                new FilterGUIUpdate(this.pageService.getPolyglotPageService());
 
         addFilterAction(
                 monitoringStatus,
@@ -388,61 +392,118 @@ public class MonitoringRunningExam implements TemplateComposer {
                 ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION,
                 ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION);
 
+        if (clientGroups != null && !clientGroups.isEmpty()) {
+            clientGroups.forEach(clientGroup -> {
+
+                addClientGroupFilterAction(
+                        monitoringStatus,
+                        statusFilterGUIUpdate,
+                        actionBuilder,
+                        clientTable,
+                        clientGroup,
+                        ActionDefinition.MONITOR_EXAM_SHOW_CLIENT_GROUP_CONNECTION,
+                        ActionDefinition.MONITOR_EXAM_HIDE_CLIENT_GROUP_CONNECTION);
+
+            });
+        }
+
         return statusFilterGUIUpdate;
     }
 
     private void addFilterAction(
-            final MonitoringStatus monitoringStatus,
-            final StatusFilterGUIUpdate statusFilterGUIUpdate,
+            final MonitoringFilter filter,
+            final FilterGUIUpdate filterGUIUpdate,
             final PageActionBuilder actionBuilder,
             final ClientConnectionTable clientTable,
             final ConnectionStatus status,
             final ActionDefinition showActionDef,
             final ActionDefinition hideActionDef) {
 
-        final int numOfConnections = monitoringStatus.getNumOfConnections(status);
-        if (monitoringStatus.isStatusHidden(status)) {
-            final PageAction showAction = actionBuilder.newAction(showActionDef)
-                    .withExec(showStateViewAction(monitoringStatus, clientTable, status))
+        final int numOfConnections = filter.getNumOfConnections(status);
+        PageAction action;
+        if (filter.isStatusHidden(status)) {
+            action = actionBuilder.newAction(showActionDef)
+                    .withExec(showStateViewAction(filter, clientTable, status))
                     .noEventPropagation()
                     .withSwitchAction(
                             actionBuilder.newAction(hideActionDef)
                                     .withExec(
-                                            hideStateViewAction(monitoringStatus, clientTable, status))
+                                            hideStateViewAction(filter, clientTable, status))
                                     .noEventPropagation()
                                     .withNameAttributes(numOfConnections)
                                     .create())
                     .withNameAttributes(numOfConnections)
                     .create();
-            this.pageService.publishAction(
-                    showAction,
-                    treeItem -> statusFilterGUIUpdate.register(treeItem, status));
         } else {
-            final PageAction hideAction = actionBuilder.newAction(hideActionDef)
-                    .withExec(hideStateViewAction(monitoringStatus, clientTable, status))
+            action = actionBuilder.newAction(hideActionDef)
+                    .withExec(hideStateViewAction(filter, clientTable, status))
                     .noEventPropagation()
                     .withSwitchAction(
                             actionBuilder.newAction(showActionDef)
                                     .withExec(
-                                            showStateViewAction(monitoringStatus, clientTable, status))
+                                            showStateViewAction(filter, clientTable, status))
                                     .noEventPropagation()
                                     .withNameAttributes(numOfConnections)
                                     .create())
                     .withNameAttributes(numOfConnections)
                     .create();
-            this.pageService.publishAction(
-                    hideAction,
-                    treeItem -> statusFilterGUIUpdate.register(treeItem, status));
         }
+        this.pageService.publishAction(
+                action,
+                treeItem -> filterGUIUpdate.register(treeItem, status));
+    }
+
+    private void addClientGroupFilterAction(
+            final MonitoringFilter filter,
+            final FilterGUIUpdate filterGUIUpdate,
+            final PageActionBuilder actionBuilder,
+            final ClientConnectionTable clientTable,
+            final ClientGroup clientGroup,
+            final ActionDefinition showActionDef,
+            final ActionDefinition hideActionDef) {
+
+        final int numOfConnections = filter.getNumOfConnections(clientGroup.id);
+        PageAction action;
+        if (filter.isClientGroupHidden(clientGroup.id)) {
+            action = actionBuilder.newAction(showActionDef)
+                    .withExec(showClientGroupAction(filter, clientTable, clientGroup.id))
+                    .noEventPropagation()
+                    .withSwitchAction(
+                            actionBuilder.newAction(hideActionDef)
+                                    .withExec(
+                                            hideClientGroupViewAction(filter, clientTable, clientGroup.id))
+                                    .noEventPropagation()
+                                    .withNameAttributes(clientGroup.name, numOfConnections)
+                                    .create())
+                    .withNameAttributes(clientGroup.name, numOfConnections)
+                    .create();
+        } else {
+            action = actionBuilder.newAction(hideActionDef)
+                    .withExec(hideClientGroupViewAction(filter, clientTable, clientGroup.id))
+                    .noEventPropagation()
+                    .withSwitchAction(
+                            actionBuilder.newAction(showActionDef)
+                                    .withExec(
+                                            showClientGroupAction(filter, clientTable, clientGroup.id))
+                                    .noEventPropagation()
+                                    .withNameAttributes(clientGroup.name, numOfConnections)
+                                    .create())
+                    .withNameAttributes(clientGroup.name, numOfConnections)
+                    .create();
+        }
+        this.pageService.publishAction(
+                action,
+                treeItem -> filterGUIUpdate.register(treeItem, clientGroup.id));
     }
 
     /** This holds the filter action items and implements the specific GUI update for it */
-    private class StatusFilterGUIUpdate implements FullPageMonitoringGUIUpdate {
+    private class FilterGUIUpdate implements FullPageMonitoringGUIUpdate {
 
         private final PolyglotPageService polyglotPageService;
         private final TreeItem[] actionItemPerStateFilter = new TreeItem[ConnectionStatus.values().length];
+        private final Map<Long, TreeItem> actionItemPerClientGroup = new HashMap<>();
 
-        public StatusFilterGUIUpdate(final PolyglotPageService polyglotPageService) {
+        public FilterGUIUpdate(final PolyglotPageService polyglotPageService) {
             this.polyglotPageService = polyglotPageService;
         }
 
@@ -450,8 +511,12 @@ public class MonitoringRunningExam implements TemplateComposer {
             this.actionItemPerStateFilter[status.code] = item;
         }
 
+        void register(final TreeItem item, final Long clientGroupId) {
+            this.actionItemPerClientGroup.put(clientGroupId, item);
+        }
+
         @Override
-        public void update(final MonitoringStatus monitoringStatus) {
+        public void update(final MonitoringFilter monitoringStatus) {
             final ConnectionStatus[] states = ConnectionStatus.values();
             for (int i = 0; i < states.length; i++) {
                 final ConnectionStatus state = states[i];
@@ -463,6 +528,18 @@ public class MonitoringRunningExam implements TemplateComposer {
                     this.polyglotPageService.injectI18n(treeItem, action.getTitle());
                 }
             }
+
+            if (!this.actionItemPerClientGroup.isEmpty()) {
+                this.actionItemPerClientGroup.entrySet().stream().forEach(entry -> {
+                    final int numOfConnections = monitoringStatus.getNumOfConnections(entry.getKey());
+                    if (numOfConnections >= 0) {
+                        final TreeItem treeItem = entry.getValue();
+                        final PageAction action = (PageAction) treeItem.getData(ActionPane.ACTION_EVENT_CALL_KEY);
+                        action.setTitleArgument(1, numOfConnections);
+                        this.polyglotPageService.injectI18n(treeItem, action.getTitle());
+                    }
+                });
+            }
         }
     }
 
@@ -472,7 +549,7 @@ public class MonitoringRunningExam implements TemplateComposer {
     }
 
     private static Function<PageAction, PageAction> showStateViewAction(
-            final MonitoringStatus monitoringStatus,
+            final MonitoringFilter monitoringStatus,
             final ClientConnectionTable clientTable,
             final ConnectionStatus status) {
 
@@ -484,12 +561,36 @@ public class MonitoringRunningExam implements TemplateComposer {
     }
 
     private static Function<PageAction, PageAction> hideStateViewAction(
-            final MonitoringStatus monitoringStatus,
+            final MonitoringFilter monitoringStatus,
             final ClientConnectionTable clientTable,
             final ConnectionStatus status) {
 
         return action -> {
             monitoringStatus.hideStatus(status);
+            clientTable.removeSelection();
+            return action;
+        };
+    }
+
+    private static Function<PageAction, PageAction> showClientGroupAction(
+            final MonitoringFilter monitoringStatus,
+            final ClientConnectionTable clientTable,
+            final Long clientGroupId) {
+
+        return action -> {
+            monitoringStatus.showClientGroup(clientGroupId);
+            clientTable.removeSelection();
+            return action;
+        };
+    }
+
+    private static Function<PageAction, PageAction> hideClientGroupViewAction(
+            final MonitoringFilter monitoringStatus,
+            final ClientConnectionTable clientTable,
+            final Long clientGroupId) {
+
+        return action -> {
+            monitoringStatus.hideClientGroup(clientGroupId);
             clientTable.removeSelection();
             return action;
         };

@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.monitoring;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -25,6 +26,7 @@ public class MonitoringSEBConnectionData {
 
     public static final String ATTR_CONNECTIONS = "connections";
     public static final String ATTR_STATUS_MAPPING = "statusMapping";
+    public static final String ATTR_CLIENT_GROUP_MAPPING = "clientGroupMapping";
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_ID)
     public final Long examId;
@@ -32,16 +34,20 @@ public class MonitoringSEBConnectionData {
     public final Collection<ClientConnectionData> connections;
     @JsonProperty(ATTR_STATUS_MAPPING)
     public final int[] connectionsPerStatus;
+    @JsonProperty(ATTR_CLIENT_GROUP_MAPPING)
+    public final Map<Long, Integer> connectionsPerClientGroup;
 
     @JsonCreator
     public MonitoringSEBConnectionData(
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_ID) final Long examId,
             @JsonProperty(ATTR_CONNECTIONS) final Collection<ClientConnectionData> connections,
-            @JsonProperty(ATTR_STATUS_MAPPING) final int[] connectionsPerStatus) {
+            @JsonProperty(ATTR_STATUS_MAPPING) final int[] connectionsPerStatus,
+            @JsonProperty(ATTR_CLIENT_GROUP_MAPPING) final Map<Long, Integer> connectionsPerClientGroup) {
 
         this.examId = examId;
         this.connections = connections;
         this.connectionsPerStatus = connectionsPerStatus;
+        this.connectionsPerClientGroup = connectionsPerClientGroup;
     }
 
     public Long getExamId() {
@@ -62,6 +68,14 @@ public class MonitoringSEBConnectionData {
             return -1;
         }
         return this.connectionsPerStatus[status.code];
+    }
+
+    @JsonIgnore
+    public int getNumberOfConnection(final Long clientGroupId) {
+        if (this.connectionsPerClientGroup == null || !this.connectionsPerClientGroup.containsKey(clientGroupId)) {
+            return -1;
+        }
+        return this.connectionsPerClientGroup.get(clientGroupId);
     }
 
     @Override

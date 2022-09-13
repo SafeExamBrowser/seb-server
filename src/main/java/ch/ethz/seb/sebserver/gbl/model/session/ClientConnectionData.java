@@ -84,6 +84,29 @@ public class ClientConnectionData implements GrantEntity {
         return this.groups != null && this.groups.contains(clientGroupId);
     }
 
+    @JsonIgnore
+    public boolean containsAllClientGroup(final Set<Long> clientGroupIds) {
+        if (this.groups == null || clientGroupIds == null || clientGroupIds.isEmpty()) {
+            return false;
+        }
+        return this.groups != null && this.groups.containsAll(clientGroupIds);
+    }
+
+    @JsonIgnore
+    public boolean filter(final Set<Long> clientGroupIdsToHide) {
+        if (this.groups == null || clientGroupIdsToHide == null || clientGroupIdsToHide.isEmpty()) {
+            return true;
+        }
+
+        for (final Long id : this.groups) {
+            if (!clientGroupIdsToHide.contains(id)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     @Override
     public EntityType entityType() {
         return this.clientConnection.entityType();
