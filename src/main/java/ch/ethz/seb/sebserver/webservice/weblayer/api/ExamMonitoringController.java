@@ -270,7 +270,7 @@ public class ExamMonitoringController {
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public MonitoringFullPageData getFullpageData(
+    public MonitoringFullPageData getFullMonitoringPageData(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
