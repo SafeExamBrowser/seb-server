@@ -43,9 +43,9 @@ public class APIMessage implements Serializable {
         RESOURCE_NOT_FOUND("1002", HttpStatus.NOT_FOUND, "resource not found"),
         ILLEGAL_API_ARGUMENT("1010", HttpStatus.BAD_REQUEST, "Illegal API request argument"),
         UNEXPECTED("1100", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal server-side error"),
+        INTEGRITY_VALIDATION("1101", HttpStatus.BAD_REQUEST, "Action would lied to an integrity violation"),
 
         FIELD_VALIDATION("1200", HttpStatus.BAD_REQUEST, "Field validation error"),
-        INTEGRITY_VALIDATION("1201", HttpStatus.BAD_REQUEST, "Action would lied to an integrity violation"),
         PASSWORD_MISMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match confirmed password"),
         MISSING_PASSWORD("1301", HttpStatus.BAD_REQUEST, "Missing Password"),
 

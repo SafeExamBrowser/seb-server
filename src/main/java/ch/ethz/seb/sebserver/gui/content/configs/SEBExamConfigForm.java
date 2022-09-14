@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -179,13 +180,21 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .call()
                 .map(names -> names != null && !names.isEmpty())
                 .getOr(Boolean.FALSE);
-        final boolean hasRunningExam = isAttachedToExam && this.restService
+        final Result<Page<ExamConfigurationMap>> examsPage = this.restService
                 .getBuilder(GetExamConfigMappingsPage.class)
                 .withQueryParam(ExamConfigurationMap.FILTER_ATTR_CONFIG_ID, examConfig.getModelId())
-                .call()
+                .call();
+        final boolean hasRunningExam = isAttachedToExam && examsPage
                 .map(res -> res.content
                         .stream()
                         .filter(map -> map.examStatus == ExamStatus.RUNNING)
+                        .findAny()
+                        .isPresent())
+                .getOr(false);
+        final boolean hasActiveExams = hasRunningExam || examsPage
+                .map(res -> res.content
+                        .stream()
+                        .filter(map -> map.examStatus == ExamStatus.UP_COMING)
                         .findAny()
                         .isPresent())
                 .getOr(false);
@@ -261,7 +270,7 @@ public class SEBExamConfigForm implements TemplateComposer {
                         Domain.CONFIGURATION_NODE.ATTR_STATUS,
                         FORM_STATUS_TEXT_KEY,
                         examConfig.status.name(),
-                        () -> resourceService.examConfigStatusResources(isAttachedToExam, hasRunningExam))
+                        () -> resourceService.examConfigStatusResources(isAttachedToExam, hasActiveExams))
                         .withEmptyCellSeparation(!isReadonly))
                 .buildFor((isNew)
                         ? this.restService.getRestCall(NewExamConfig.class)

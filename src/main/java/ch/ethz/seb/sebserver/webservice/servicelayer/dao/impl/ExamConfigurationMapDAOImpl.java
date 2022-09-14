@@ -66,8 +66,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
     private static final List<String> ACTIVE_EXAM_STATE_NAMES = Arrays.asList(
-            ExamStatus.FINISHED.name(),
-            ExamStatus.ARCHIVED.name());
+            ExamStatus.UP_COMING.name(),
+            ExamStatus.RUNNING.name());
 
     private final ExamRecordMapper examRecordMapper;
     private final ExamConfigurationMapRecordMapper examConfigurationMapRecordMapper;
@@ -382,7 +382,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Boolean> checkNoActiveExamReferences(final Long configurationNodeId) {
-        return Result.tryCatch(() -> !this.examConfigurationMapRecordMapper.selectByExample()
+        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectByExample()
                 .where(
                         ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
                         isEqualTo(configurationNodeId))
@@ -396,11 +396,12 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
 
     private boolean isExamActive(final Long examId) {
         try {
-            return this.examRecordMapper.countByExample()
+            final boolean active = this.examRecordMapper.countByExample()
                     .where(ExamRecordDynamicSqlSupport.id, isEqualTo(examId))
                     .and(ExamRecordDynamicSqlSupport.status, isIn(ACTIVE_EXAM_STATE_NAMES))
                     .build()
                     .execute() >= 1;
+            return active;
         } catch (final Exception e) {
             log.warn("Failed to check exam status for exam: {}", examId, e);
             return false;
