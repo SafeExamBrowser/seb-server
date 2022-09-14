@@ -89,8 +89,8 @@ public class ExamClientGroupList implements TemplateComposer {
         final EntityTable<ClientGroup> clientGroupTable =
                 this.pageService
                         .entityTableBuilder(this.restService.getRestCall(GetClientGroupPage.class))
-                        .withRestCallAdapter(builder -> builder.withURIVariable(
-                                API.PARAM_PARENT_MODEL_ID,
+                        .withRestCallAdapter(builder -> builder.withQueryParam(
+                                ClientGroup.FILTER_ATTR_EXAM_ID,
                                 entityKey.modelId))
                         .withEmptyMessage(CLIENT_GROUP_EMPTY_LIST_MESSAGE)
                         .withMarkup()
