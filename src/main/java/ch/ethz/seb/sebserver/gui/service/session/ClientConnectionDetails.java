@@ -121,7 +121,7 @@ public class ClientConnectionDetails {
                                 ClientConnectionData.ATTR_CLIENT_GROUPS,
                                 CONNECTION_GROUP_TEXT_KEY,
                                 Constants.EMPTY_NOTE)
-                                .asMarkup())
+                                .asMarkupLabel())
                 .addField(FormBuilder.text(
                         ClientConnection.ATTR_INFO,
                         CONNECTION_INFO_TEXT_KEY,

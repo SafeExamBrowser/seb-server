@@ -39,7 +39,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
     int areaMinHeight = WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT;
     boolean isColorBox = false;
     boolean isHTML = false;
-    boolean isMarkup = false;
+    boolean isMarkupLabel = false;
 
     TextFieldBuilder(final String name, final LocTextKey label, final String value) {
         super(name, label, value);
@@ -77,11 +77,6 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         return this;
     }
 
-    public TextFieldBuilder asMarkup() {
-        this.isMarkup = true;
-        return this;
-    }
-
     public TextFieldBuilder asHTML(final int minHeight) {
         this.isHTML = true;
         this.areaMinHeight = minHeight;
@@ -90,6 +85,11 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
     public FieldBuilder<?> asHTML(final boolean html) {
         this.isHTML = html;
+        return this;
+    }
+
+    public TextFieldBuilder asMarkupLabel() {
+        this.isMarkupLabel = true;
         return this;
     }
 
@@ -124,12 +124,12 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
             return;
         }
 
-        if (readonly && this.isMarkup) {
+        if (readonly && this.isMarkupLabel) {
             final Label label = new Label(fieldGrid, SWT.NONE);
             label.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
             label.setText(this.value);
             label.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
-            builder.form.putReadonlyField(this.name, titleLabel, label);
+            builder.form.putLabel(this.name, titleLabel, label);
             return;
         }
 

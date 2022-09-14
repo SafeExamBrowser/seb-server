@@ -123,12 +123,12 @@ public final class Form implements FormBinding {
         return this.formFields.containsKey(fieldName);
     }
 
-    Form putReadonlyField(final String name, final Control label, final Text field) {
-        this.formFields.add(name, createReadonlyAccessor(label, field));
+    Form putLabel(final String name, final Control label, final Label field) {
+        this.formFields.add(name, createLabelAccessor(label, field));
         return this;
     }
 
-    Form putReadonlyField(final String name, final Control label, final Label field) {
+    Form putReadonlyField(final String name, final Control label, final Text field) {
         this.formFields.add(name, createReadonlyAccessor(label, field));
         return this;
     }
@@ -313,13 +313,13 @@ public final class Form implements FormBinding {
     //@formatter:off
     private FormFieldAccessor createReadonlyAccessor(final Control label, final Text field) {
         return new FormFieldAccessor(label, field, null) {
-            @Override public String getStringValue() { return field.getText(); }
+            @Override public String getStringValue() { return null; } // ensures that read-only fields do not send diplay values to the back-end
             @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }
         };
     }
-    private FormFieldAccessor createReadonlyAccessor(final Control label, final Label field) {
+    private FormFieldAccessor createLabelAccessor(final Control label, final Label field) {
         return new FormFieldAccessor(label, field, null) {
-            @Override public String getStringValue() { return field.getText(); }
+            @Override public String getStringValue() { return field.getText(); } // read-only labels a are not API attributes.
             @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }
         };
     }
