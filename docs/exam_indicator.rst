@@ -3,9 +3,9 @@
 Monitoring Indicators
 =====================
 
-For monitoring connected SEB clients, SEB server supports some indicators that can be defined within an exam and that are shown and measured during an
+For monitoring connected SEB clients, SEB Server supports some indicators that can be defined within an exam and that are shown and measured during an
 exam. When you import, the application automatically creates a default ping-indicator for the exam. You are able to modify this default indicator and also
-add some other indicators to the exam to be able to get notified while monitoring a exam session.
+add some other indicators to the exam to be able to get notified while monitoring an exam session.
 
 The type of indicators are pre-defined within the SEB Server and restricts the number of available indicators that can be used. Currently following
 indicators are supported:
@@ -82,5 +82,5 @@ Use Cases
 - Use the filter to find the exam on that you have to change the supporter assignments. 
 - Double click the list entry of the exam to go to the exam details page. Check if you are on the right exam.
 - Scroll down to the indicator section of the exam details page and find the indicator you want to delete.
-- Select the indicator from the list ans use the "Delete Indicator" action from the right action pane to delete the indicator.
+- Select the indicator from the list and use the "Delete Indicator" action from the right action pane to delete the indicator.
 

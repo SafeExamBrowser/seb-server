@@ -10,7 +10,7 @@ Furthermore SEB Server can be setup and run within a cloud infrastructure by gen
 SEB and SEB Server as a service.
 
 SEB Server comes with a built-in multi-tenancy functionality that allows to create and maintain institutions that are separated 
-by each other. This is most convenient for smaller groups of organizations or institutions that want to have one self maintained 
+by each other. This is most convenient for smaller groups of organizations or institutions that want to have one self-maintained 
 SEB Server instance but need internal separation of institutions.
 
 Since SEB Server is generally an administration tool, meaning used to do administration work and tasks to setup and maintain e-assessments, 
@@ -67,7 +67,7 @@ An institutional administrator has overall read access for its institution and i
 create new or maintain existing user-accounts for the belonging institution. Furthermore an institutional administrator is able to create and maintain 
 learning management system (LMS) setups and SEB connection-configurations for the belonging institution.
 
-A typical use-case for a institutional administrator would be to give the appropriate roles and privileges to newly registered users of the institution.
+A typical use-case for an institutional administrator would be to give the appropriate roles and privileges to newly registered users of the institution.
 Or another use-case would be to create and maintain SEB connection configurations for the institutions and setup and maintain learning management systems 
 within the SEB Server and the belonging institution.
 
@@ -91,18 +91,18 @@ This role is to support a running exam within SEB Server. An exam supporter is a
 an assignment and can open them either for monitoring or editing some exam attributes during the exam.
 
 A typical use-case for an exam supporter would be when the time an exam is running, to overview the connecting SEB clients and manage them. 
-While SEB server shows incidences or irregularities, a exam supporter can act on them and take the appropriate actions if needed.
+While SEB Server shows incidences or irregularities, an exam supporter can act on them and take the appropriate actions if needed.
 
 Sign Up / Sign In
 -----------------
 
-What one will see first when applying to a SEB server application is the login-screen
+What one will see first when applying to a SEB Server application is the login-screen
 
 .. image:: images/overview/login.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/overview/login.png
 
-If you are already registered you can use your username and password to log in. Or use the "Register" button to go the the register 
+If you are already registered you can use your username and password to log in. Or use the "Register" button to go the register 
 page to create a new user-account. The newly created user account will only have the Exam Supporter role assigned. If you need another 
 role or more privileges, this must be given and granted by an institutional administrator of the belonging institution.
 
@@ -200,11 +200,12 @@ field label or the input section.
 If a form field is mandatory to either create or save an entity, this is marked with a little red arrow just to the right of the form field label. 
 There may also be more field validation takes place on saving the object. If a input needs a special form that is not given by the current input, the form-field 
 will be marked with a red border around the input field and a thin red explanation text is shown right below the input field. 
-After correcting the missing or wrong input and saveing the form again, the SEB Server will accept and process the changes. 
+After correcting the missing or wrong input and saving the form again, the SEB Server will accept and process the changes. 
 
 .. note::
     If you navigate away from a form in edit mode, the GUI will inform you about possible data loss on this action and will prompt you to 
     proceed or abort the action.
+    
     
 **Actions**
 
