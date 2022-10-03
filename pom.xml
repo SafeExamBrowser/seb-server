@@ -280,7 +280,8 @@
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
     </dependency>
-    <dependency>
+
+<!--    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webflux</artifactId>
       <exclusions>
@@ -289,7 +290,7 @@
           <groupId>org.springframework.boot</groupId>
         </exclusion>
       </exclusions>
-    </dependency>
+    </dependency>-->
     <!-- NOTE since org.springframework.security.oauth is not fully migrated 
       to spring-boot-starter-security we have to declare a separate version here. 
       This refers to the latest version of spring-security-oauth2 and should be 

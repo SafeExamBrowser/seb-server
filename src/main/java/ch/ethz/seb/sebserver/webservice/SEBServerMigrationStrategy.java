@@ -32,7 +32,6 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
     private final WebserviceInfo webserviceInfo;
     private final WebserviceInfoDAO webserviceInfoDAO;
     private Flyway flyway;
-    private final boolean migrationApplied = false;
 
     public SEBServerMigrationStrategy(
             final WebserviceInfo webserviceInfo,
@@ -47,7 +46,6 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
     @Override
     public void migrate(final Flyway flyway) {
         this.flyway = flyway;
-
     }
 
     public void applyMigration() {
@@ -57,11 +55,6 @@ public class SEBServerMigrationStrategy implements FlywayMigrationStrategy {
         }
 
         final String webserviceUUID = this.webserviceInfo.getWebserviceUUID();
-        if (this.migrationApplied) {
-            SEBServerInit.INIT_LOGGER.warn("Migration already applied for this webservice: {}", webserviceUUID);
-            return;
-        }
-
         try {
 
             SEBServerInit.INIT_LOGGER.info("----> ** Migration check START **");
