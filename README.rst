@@ -119,14 +119,32 @@ SEB - SEB Server Compatibility
 The table below shows available and upcoming SEB client versions that has SEB Server integration support and are compatible with particular 
 SEB Server version. There is an entry for each platform with a beta or testing release date and a official release date.
 
-**SEB Server Version 1.0.X**
+**SEB Server Version 1.4.X**
 
 .. csv-table::
    :header: "Platform / OS", "Beta/RC Version", "Release Version"
 
-   "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q2 2021 - Version 2.5/3.0"
-   "SEB Client for Mac", "Q2 2021 - Version 3.1", "Q2 2021 - Version 3.1"
-   "SEB Client for Windows", "Q2 2020 - Version 3.1", "Q4 2020 - Version 3.1"
+   "SEB Client for iOS", "3.1 Beta", "3.1 (Zoom: 3.2) "
+   "SEB Client for Mac", "3.1/3.2 Preview", "3.1 (Zoom: 3.2)"
+   "SEB Client for Windows", "--", "Version 3.3.2"
+   
+**SEB Server Version 1.3.X**
+
+.. csv-table::
+   :header: "Platform / OS", "Beta/RC Version", "Release Version"
+
+   "SEB Client for iOS", "3.1 Beta", "3.1 (Zoom: 3.2) "
+   "SEB Client for Mac", "3.1/3.2 Preview", "3.1 (Zoom: 3.2)"
+   "SEB Client for Windows", "--", "Version 3.3.2"
+
+**SEB Server Version 1.2.X**
+
+.. csv-table::
+   :header: "Platform / OS", "Beta/RC Version", "Release Version"
+
+   "SEB Client for iOS", "--", "Version 3.0.1 "
+   "SEB Client for Mac", "3.1 Preview", "Version 3.1"
+   "SEB Client for Windows", "--", "Version 3.2"
    
 **SEB Server Version 1.1.X**
 
@@ -137,23 +155,14 @@ SEB Server version. There is an entry for each platform with a beta or testing r
    "SEB Client for Mac", "Q2 2021 - Version 3.1", "Q2 2021 - Version 3.1"
    "SEB Client for Windows", "April 2021 - Version 3.2", "May 2021 - Version 3.2"
    
-**SEB Server Version 1.2.X**
+**SEB Server Version 1.0.X**
 
 .. csv-table::
    :header: "Platform / OS", "Beta/RC Version", "Release Version"
 
-   "SEB Client for iOS", "--", "Version 3.0.1 "
-   "SEB Client for Mac", "3.1 Preview", "Version 3.1"
-   "SEB Client for Windows", "--", "Version 3.2"
-   
-**SEB Server Version 1.3.X**
-
-.. csv-table::
-   :header: "Platform / OS", "Beta/RC Version", "Release Version"
-
-   "SEB Client for iOS", "3.1 Beta", "3.1 (Zoom: 3.2) "
-   "SEB Client for Mac", "3.1/3.2 Preview", "3.1 (Zoom: 3.2)"
-   "SEB Client for Windows", "--", "Version 3.3.2"
+   "SEB Client for iOS", "22. April 2020 - Version 2.1.50", "Q2 2021 - Version 2.5/3.0"
+   "SEB Client for Mac", "Q2 2021 - Version 3.1", "Q2 2021 - Version 3.1"
+   "SEB Client for Windows", "Q2 2020 - Version 3.1", "Q4 2020 - Version 3.1"
    
 
 Install SEB Server
