@@ -37,6 +37,10 @@ public class AllowFlashFullscreenRule implements ValueChangeRule {
             final ConfigurationAttribute attribute,
             final ConfigurationValue value) {
 
+        if (context.isReadonly()) {
+            return;
+        }
+
         if (BooleanUtils.toBoolean(value.value)) {
             context.enable(KEY_FULL_SCREEN);
         } else {
