@@ -135,8 +135,6 @@ public class UserDAOImpl implements UserDAO {
                 this.userRecordMapper
                         .selectByExample()
                         .where(UserRecordDynamicSqlSupport.username, isEqualTo(username))
-                        .and(UserRecordDynamicSqlSupport.active,
-                                isEqualTo(BooleanUtils.toInteger(true)))
                         .build()
                         .execute())
                                 .flatMap(this::sebServerUserFromRecord);
