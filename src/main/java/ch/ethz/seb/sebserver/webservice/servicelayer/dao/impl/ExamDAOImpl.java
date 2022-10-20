@@ -742,14 +742,20 @@ public class ExamDAOImpl implements ExamDAO {
 
     private QuizData saveAdditionalQuizAttributes(final Long examId, final QuizData quizData) {
         final Map<String, String> additionalAttributes = new HashMap<>(quizData.getAdditionalAttributes());
-        additionalAttributes.put(QuizData.QUIZ_ATTR_DESCRIPTION, quizData.description);
-        additionalAttributes.put(QuizData.QUIZ_ATTR_START_URL, quizData.startURL);
+        if (StringUtils.isNotBlank(quizData.description)) {
+            additionalAttributes.put(QuizData.QUIZ_ATTR_DESCRIPTION, quizData.description);
+        }
+        if (StringUtils.isNotBlank(quizData.startURL)) {
+            additionalAttributes.put(QuizData.QUIZ_ATTR_START_URL, quizData.startURL);
+        }
 
-        this.additionalAttributesDAO.saveAdditionalAttributes(
-                EntityType.EXAM,
-                examId,
-                additionalAttributes)
-                .getOrThrow();
+        if (!additionalAttributes.isEmpty()) {
+            this.additionalAttributesDAO.saveAdditionalAttributes(
+                    EntityType.EXAM,
+                    examId,
+                    additionalAttributes)
+                    .getOrThrow();
+        }
 
         return quizData;
     }

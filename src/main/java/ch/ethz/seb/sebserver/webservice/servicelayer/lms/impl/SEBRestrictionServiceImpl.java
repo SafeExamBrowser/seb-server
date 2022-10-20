@@ -197,6 +197,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
         log.info("ExamStartedEvent received, process applySEBClientRestriction...");
 
         applySEBClientRestriction(event.exam)
+                .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
                 .onError(error -> log.error(
                         "Failed to apply SEB restrictions for started exam: {}",
                         event.exam,

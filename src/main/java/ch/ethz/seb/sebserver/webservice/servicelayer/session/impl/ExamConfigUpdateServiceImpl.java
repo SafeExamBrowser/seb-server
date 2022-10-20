@@ -129,11 +129,12 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
             // generate the new Config Key and update the Config Key within the LMSSetup API for each exam (delete old Key and add new Key)
             for (final Exam exam : exams) {
-                if (exam.getStatus() == ExamStatus.RUNNING || this.examAdminService.isRestricted(exam).getOr(false)) {
+                if (exam.getStatus() == ExamStatus.RUNNING) {
 
                     this.examUpdateHandler
                             .getSEBRestrictionService()
                             .applySEBClientRestriction(exam)
+                            .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
                             .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t));
                 }
             }
@@ -201,15 +202,14 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                             .getOrThrow();
 
                     // update seb client restriction if the feature is activated for the exam
-                    if (this.examAdminService.isRestricted(exam).getOr(false)) {
-                        this.examUpdateHandler
-                                .getSEBRestrictionService()
-                                .applySEBClientRestriction(exam)
-                                .onError(t -> log.error(
-                                        "Failed to update SEB Client restriction for Exam: {}",
-                                        exam,
-                                        t));
-                    }
+                    this.examUpdateHandler
+                            .getSEBRestrictionService()
+                            .applySEBClientRestriction(exam)
+                            .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
+                            .onError(t -> log.error(
+                                    "Failed to update SEB Client restriction for Exam: {}",
+                                    exam,
+                                    t));
 
                     // flush the exam cache. If there was an error during flush, it is logged but this process goes on
                     // and the saved changes are not rolled back
