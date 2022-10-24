@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -120,6 +121,34 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 .flatMap(DAOLoggingSupport::logAndSkipOnError)
                 .filter(predicate)
                 .collect(Collectors.toList()));
+    }
+
+    @Override
+    public Result<String> getConfigAttributeValue(final Long configId, final Long attrId) {
+        return Result.tryCatch(() -> {
+
+            final List<ConfigurationValueRecord> records = this.configurationValueRecordMapper.selectByExample()
+                    .where(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationId,
+                            isEqualTo(configId))
+
+                    .and(
+                            ConfigurationValueRecordDynamicSqlSupport.configurationAttributeId,
+                            SqlBuilder.isEqualTo(attrId))
+                    .build()
+                    .execute();
+
+            if (records == null) {
+                throw new NoSuchElementException(
+                        "No SEB setting attribute value found for configId: " + configId + " attrId: " + attrId);
+            }
+            if (records.size() > 1) {
+                log.warn("Found more then one attribute value for configId: {}, attrId:{} select first one.", configId,
+                        attrId);
+            }
+
+            return records.get(0).getValue();
+        });
     }
 
     @Override

@@ -237,7 +237,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                         return this.lmsAPIService
                                 .getLmsAPITemplate(exam.lmsSetupId)
                                 .flatMap(lmsTemplate -> lmsTemplate.applySEBClientRestriction(
-                                        exam.externalId,
+                                        exam,
                                         sebRestrictionData))
                                 .map(data -> exam)
                                 .getOrThrow();

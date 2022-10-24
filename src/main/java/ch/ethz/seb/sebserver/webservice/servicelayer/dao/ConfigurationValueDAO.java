@@ -71,4 +71,11 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
             Long configurationId,
             Long attributeId);
 
+    /** Use this to get a specific SEB Settings attribute value.
+     *
+     * @param configId the configuration identifier for the value
+     * @param attrId the attribute identifier
+     * @return the String value of the SEB setting attribute */
+    Result<String> getConfigAttributeValue(Long configId, Long attrId);
+
 }

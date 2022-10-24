@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
@@ -38,6 +39,7 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final ClientCredentialService clientCredentialService;
+    private final ExamConfigurationValueService examConfigurationValueService;
     private final AsyncService asyncService;
     private final Environment environment;
     private final CacheManager cacheManager;
@@ -45,12 +47,14 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
     public OlatLmsAPITemplateFactory(
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final ClientCredentialService clientCredentialService,
+            final ExamConfigurationValueService examConfigurationValueService,
             final AsyncService asyncService,
             final Environment environment,
             final CacheManager cacheManager) {
 
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.clientCredentialService = clientCredentialService;
+        this.examConfigurationValueService = examConfigurationValueService;
         this.asyncService = asyncService;
         this.environment = environment;
         this.cacheManager = cacheManager;
@@ -68,6 +72,7 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     this.clientHttpRequestFactoryService,
                     this.clientCredentialService,
                     apiTemplateDataSupplier,
+                    this.examConfigurationValueService,
                     this.cacheManager);
             return new LmsAPITemplateAdapter(
                     this.asyncService,

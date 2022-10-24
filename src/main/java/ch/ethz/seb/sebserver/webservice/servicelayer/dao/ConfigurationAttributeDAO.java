@@ -28,4 +28,10 @@ public interface ConfigurationAttributeDAO extends EntityDAO<ConfigurationAttrib
      * @return Result refer to a collection of child ConfigurationAttribute or to an error if happened */
     Result<Collection<ConfigurationAttribute>> allChildAttributes(final Long parentId);
 
+    /** Use this to geht an attribute identifier by attribute name
+     *
+     * @param configAttributeName the attribute name
+     * @return Result refer to the attribute identifier or to an error if happened */
+    Result<Long> getAttributeIdByName(String configAttributeName);
+
 }

@@ -56,8 +56,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.SEBServerData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.AssignmentData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.SEBServerData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.UserData;
 
 public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements LmsAPITemplate {
@@ -371,10 +371,10 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
 
     @Override
     public Result<SEBRestriction> applySEBClientRestriction(
-            final String externalExamId,
+            final Exam exam,
             final SEBRestriction sebRestrictionData) {
         return getRestTemplate()
-                .map(t -> this.setRestrictionForAssignmentId(t, externalExamId, sebRestrictionData));
+                .map(t -> this.setRestrictionForAssignmentId(t, exam.externalId, sebRestrictionData));
     }
 
     @Override

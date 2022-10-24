@@ -56,12 +56,12 @@ public interface SEBRestrictionAPI {
 
     /** Applies SEB Client restrictions to the LMS with the given attributes.
      *
-     * @param externalExamId The exam/course identifier from LMS side (Exam.externalId)
+     * @param exam The exam to apply the restriction for
      * @param sebRestrictionData containing all data for SEB Client restriction to apply to the LMS
      * @return Result refer to the given {@link SEBRestrictionData } if restriction was successful or to an error if
      *         not */
     Result<SEBRestriction> applySEBClientRestriction(
-            String externalExamId,
+            Exam exam,
             SEBRestriction sebRestrictionData);
 
     /** Releases an already applied SEB Client restriction within the LMS for a given Exam.

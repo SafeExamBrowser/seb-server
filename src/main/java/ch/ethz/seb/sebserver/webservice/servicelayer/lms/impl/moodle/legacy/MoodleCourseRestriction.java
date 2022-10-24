@@ -126,11 +126,11 @@ public class MoodleCourseRestriction implements SEBRestrictionAPI {
 
     @Override
     public Result<SEBRestriction> applySEBClientRestriction(
-            final String externalExamId,
+            final Exam exam,
             final SEBRestriction sebRestrictionData) {
 
         return this.updateSEBRestriction(
-                externalExamId,
+                exam.externalId,
                 MoodleSEBRestriction.from(sebRestrictionData))
                 .map(result -> sebRestrictionData);
     }

@@ -49,6 +49,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -62,9 +63,16 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     private static final Logger log = LoggerFactory.getLogger(OlatLmsAPITemplate.class);
 
+    private static final String ADDITIONAL_ATTR_QUIT_LINK = "ADDITIONAL_ATTR_QUIT_LINK";
+    private static final String ADDITIONAL_ATTR_QUIT_SECRET = "ADDITIONAL_ATTR_QUIT_SECRET";
+
+    private static final String CONFIG_ATTR_NAME_QUIT_LINK = "quitURL";
+    private static final String CONFIG_ATTR_NAME_QUIT_SECRET = "hashedQuitPassword";
+
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final ClientCredentialService clientCredentialService;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
+    private final ExamConfigurationValueService examConfigurationValueService;
     private final Long lmsSetupId;
 
     private OlatLmsRestTemplate cachedRestTemplate;
@@ -73,6 +81,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final ClientCredentialService clientCredentialService,
             final APITemplateDataSupplier apiTemplateDataSupplier,
+            final ExamConfigurationValueService examConfigurationValueService,
             final CacheManager cacheManager) {
 
         super(cacheManager);
@@ -80,6 +89,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.clientCredentialService = clientCredentialService;
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
+        this.examConfigurationValueService = examConfigurationValueService;
         this.lmsSetupId = apiTemplateDataSupplier.getLmsSetup().id;
     }
 
@@ -310,7 +320,15 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     private SEBRestriction getRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
         final String url = String.format("/restapi/assessment_modes/%s/seb_restriction", id);
         final RestrictionData r = this.apiGet(restTemplate, url, RestrictionData.class);
-        return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());
+        final HashMap<String, String> additionalAttributes = new HashMap<>();
+        if (StringUtils.isNotBlank(r.quitLink)) {
+            additionalAttributes.put(ADDITIONAL_ATTR_QUIT_LINK, r.quitLink);
+        }
+        if (StringUtils.isNotBlank(r.quitSecret)) {
+            additionalAttributes.put(ADDITIONAL_ATTR_QUIT_SECRET, r.quitSecret);
+        }
+
+        return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, additionalAttributes);
     }
 
     private SEBRestriction setRestrictionForAssignmentId(
@@ -322,6 +340,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final RestrictionDataPost post = new RestrictionDataPost();
         post.browserExamKeys = new ArrayList<>(restriction.browserExamKeys);
         post.configKeys = new ArrayList<>(restriction.configKeys);
+        post.quitLink = restriction.getAdditionalProperties().getOrDefault(ADDITIONAL_ATTR_QUIT_LINK, null);
+        post.quitSecret = restriction.getAdditionalProperties().getOrDefault(ADDITIONAL_ATTR_QUIT_SECRET, null);
         final RestrictionData r =
                 this.apiPost(restTemplate, url, post, RestrictionDataPost.class, RestrictionData.class);
         return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());
@@ -343,10 +363,12 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     @Override
     public Result<SEBRestriction> applySEBClientRestriction(
-            final String externalExamId,
+            final Exam exam,
             final SEBRestriction sebRestrictionData) {
+
+        populateWithQuitLinkAndSecret(exam, sebRestrictionData);
         return getRestTemplate()
-                .map(t -> this.setRestrictionForAssignmentId(t, externalExamId, sebRestrictionData));
+                .map(t -> this.setRestrictionForAssignmentId(t, exam.externalId, sebRestrictionData));
     }
 
     @Override
@@ -431,6 +453,30 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             this.cachedRestTemplate = template;
             return this.cachedRestTemplate;
         });
+    }
+
+    private void populateWithQuitLinkAndSecret(final Exam exam, final SEBRestriction sebRestrictionData) {
+        try {
+
+            final String quitLink = this.examConfigurationValueService.getMappedDefaultConfigAttributeValue(
+                    exam.id,
+                    CONFIG_ATTR_NAME_QUIT_LINK);
+
+            final String quitSecret = this.examConfigurationValueService.getMappedDefaultConfigAttributeValue(
+                    exam.id,
+                    CONFIG_ATTR_NAME_QUIT_SECRET);
+
+            if (StringUtils.isNotEmpty(quitLink)) {
+                sebRestrictionData.additionalProperties.put(ADDITIONAL_ATTR_QUIT_LINK, quitLink);
+            }
+
+            if (StringUtils.isNotEmpty(quitSecret)) {
+                sebRestrictionData.additionalProperties.put(ADDITIONAL_ATTR_QUIT_SECRET, quitSecret);
+            }
+
+        } catch (final Exception e) {
+            log.error("Failed to populate SEB restriction with quit link and quit secret: ", e);
+        }
     }
 
 }

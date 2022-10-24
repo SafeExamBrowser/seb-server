@@ -409,7 +409,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
     @Override
     public Result<SEBRestriction> applySEBClientRestriction(
-            final String externalExamId,
+            final Exam exam,
             final SEBRestriction sebRestrictionData) {
 
         if (this.sebRestrictionAPI == null) {
@@ -418,11 +418,11 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Apply course restriction: {} for LMSSetup: {}", externalExamId, lmsSetup());
+            log.debug("Apply course restriction: {} for LMSSetup: {}", exam, lmsSetup());
         }
 
         return this.restrictionRequest.protectedRun(() -> this.sebRestrictionAPI
-                .applySEBClientRestriction(externalExamId, sebRestrictionData)
+                .applySEBClientRestriction(exam, sebRestrictionData)
                 .onError(error -> log.error(
                         "Failed to apply SEB restrictions: {}",
                         error.getMessage()))

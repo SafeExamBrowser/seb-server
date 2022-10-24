@@ -61,12 +61,16 @@ public final class OlatLmsData {
          * {
          * "browserExamKeys": [ "1" ],
          * "configKeys": null,
+         * "quitLink": "<the quit link from Exam Configuration>",
+         * "quitSecret": "<the quit password from Exam Configuration (base64 encoded)>",
          * "key": 8028160
          * }
          */
         public long key;
         public List<String> browserExamKeys;
         public List<String> configKeys;
+        public String quitLink;
+        public String quitSecret;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -76,10 +80,14 @@ public final class OlatLmsData {
          * {
          * "configKeys": ["a", "b"],
          * "browserExamKeys": ["1", "2"]
+         * "quitLink": "<the quit link from Exam Configuration>",
+         * "quitSecret": "<the quit password from Exam Configuration (base64 encoded)>",
          * }
          */
         public List<String> browserExamKeys;
         public List<String> configKeys;
+        public String quitLink;
+        public String quitSecret;
     }
 
 }

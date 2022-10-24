@@ -36,7 +36,7 @@ public class MockSEBRestrictionAPI implements SEBRestrictionAPI {
 
     @Override
     public Result<SEBRestriction> applySEBClientRestriction(
-            final String externalExamId,
+            final Exam exam,
             final SEBRestriction sebRestrictionData) {
 
         log.info("Apply SEB Client restriction: {}", sebRestrictionData);

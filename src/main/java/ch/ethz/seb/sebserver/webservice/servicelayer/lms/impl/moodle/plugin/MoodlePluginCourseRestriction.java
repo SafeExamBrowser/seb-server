@@ -29,8 +29,10 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
     }
 
     @Override
-    public Result<SEBRestriction> applySEBClientRestriction(final String externalExamId,
+    public Result<SEBRestriction> applySEBClientRestriction(
+            final Exam exam,
             final SEBRestriction sebRestrictionData) {
+
         // TODO Auto-generated method stub
         return null;
     }

@@ -148,16 +148,16 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
 
     @Override
     public Result<SEBRestriction> applySEBClientRestriction(
-            final String externalExamId,
+            final Exam exam,
             final SEBRestriction sebRestrictionData) {
 
         if (log.isDebugEnabled()) {
-            log.debug("PUT SEB Client restriction on course: {} : {}", externalExamId, sebRestrictionData);
+            log.debug("PUT SEB Client restriction on course: {} : {}", exam.externalId, sebRestrictionData);
         }
 
         return Result.tryCatch(() -> {
             final LmsSetup lmsSetup = this.openEdxRestTemplateFactory.apiTemplateDataSupplier.getLmsSetup();
-            final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(externalExamId);
+            final String url = lmsSetup.lmsApiUrl + getSEBRestrictionUrl(exam.externalId);
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
             httpHeaders.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
@@ -172,7 +172,7 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
                     .getBody();
 
             if (log.isDebugEnabled()) {
-                log.debug("Successfully PUT SEB Client restriction on course: {} : {}", externalExamId, body);
+                log.debug("Successfully PUT SEB Client restriction on course: {} : {}", exam.externalId, body);
             }
 
             return sebRestrictionData;

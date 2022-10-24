@@ -95,6 +95,19 @@ public class ConfigurationAttributeDAOImpl implements ConfigurationAttributeDAO 
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Long> getAttributeIdByName(final String attributeName) {
+        return Result.tryCatch(() -> this.configurationAttributeRecordMapper
+                .selectByExample()
+                .where(
+                        ConfigurationAttributeRecordDynamicSqlSupport.name,
+                        SqlBuilder.isEqualTo(attributeName))
+                .build()
+                .execute()
+                .get(0).getId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<ConfigurationAttribute>> allMatching(
             final FilterMap filterMap,
             final Predicate<ConfigurationAttribute> predicate) {
