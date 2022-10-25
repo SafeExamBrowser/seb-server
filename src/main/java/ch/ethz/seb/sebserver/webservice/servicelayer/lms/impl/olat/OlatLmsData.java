@@ -55,7 +55,7 @@ public final class OlatLmsData {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class RestrictionData {
+    public static final class RestrictionData {
         /*
          * OLAT API example:
          * {
@@ -74,7 +74,7 @@ public final class OlatLmsData {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class RestrictionDataPost {
+    public static final class RestrictionDataPost {
         /*
          * OLAT API example:
          * {

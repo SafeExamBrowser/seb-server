@@ -79,7 +79,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
 
     private OlatLmsRestTemplate cachedRestTemplate;
 
-    protected OlatLmsAPITemplate(
+    public OlatLmsAPITemplate(
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final ClientCredentialService clientCredentialService,
             final APITemplateDataSupplier apiTemplateDataSupplier,
@@ -344,8 +344,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final RestrictionDataPost post = new RestrictionDataPost();
         post.browserExamKeys = new ArrayList<>(restriction.browserExamKeys);
         post.configKeys = new ArrayList<>(restriction.configKeys);
-        post.quitLink = restriction.getAdditionalProperties().getOrDefault(ADDITIONAL_ATTR_QUIT_LINK, null);
-        post.quitSecret = restriction.getAdditionalProperties().getOrDefault(ADDITIONAL_ATTR_QUIT_SECRET, null);
+        post.quitLink = this.getQuitLink(restriction.examId);
+        post.quitSecret = this.getQuitSecret(restriction.examId);
         final RestrictionData r =
                 this.apiPost(restTemplate, url, post, RestrictionDataPost.class, RestrictionData.class);
         return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());
@@ -370,7 +370,6 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             final Exam exam,
             final SEBRestriction sebRestrictionData) {
 
-        populateWithQuitLinkAndSecret(exam, sebRestrictionData);
         return getRestTemplate()
                 .map(t -> this.setRestrictionForAssignmentId(t, exam.externalId, sebRestrictionData));
     }
@@ -403,8 +402,13 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         return res.getBody();
     }
 
-    private <P, R> R apiPost(final RestTemplate restTemplate, final String url, final P post, final Class<P> postType,
+    private <P, R> R apiPost(
+            final RestTemplate restTemplate,
+            final String url,
+            final P post,
+            final Class<P> postType,
             final Class<R> responseType) {
+
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set("content-type", "application/json");
@@ -459,36 +463,42 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         });
     }
 
-    private void populateWithQuitLinkAndSecret(final Exam exam, final SEBRestriction sebRestrictionData) {
+    private String getQuitSecret(final Long examId) {
         try {
 
-            final String quitLink = this.examConfigurationValueService.getMappedDefaultConfigAttributeValue(
-                    exam.id,
-                    CONFIG_ATTR_NAME_QUIT_LINK);
-
-            final String quitSecret = this.examConfigurationValueService.getMappedDefaultConfigAttributeValue(
-                    exam.id,
+            final String quitSecretEncrypted = this.examConfigurationValueService.getMappedDefaultConfigAttributeValue(
+                    examId,
                     CONFIG_ATTR_NAME_QUIT_SECRET);
 
-            if (StringUtils.isNotEmpty(quitLink)) {
-                sebRestrictionData.additionalProperties.put(ADDITIONAL_ATTR_QUIT_LINK, quitLink);
-            }
-
-            if (StringUtils.isNotEmpty(quitSecret)) {
+            if (StringUtils.isNotEmpty(quitSecretEncrypted)) {
                 try {
-                    final String decryptedSecret = this.cryptor
-                            .encrypt(quitSecret)
+
+                    return this.cryptor
+                            .decrypt(quitSecretEncrypted)
                             .getOrThrow()
                             .toString();
 
-                    sebRestrictionData.additionalProperties.put(ADDITIONAL_ATTR_QUIT_SECRET, decryptedSecret);
                 } catch (final Exception e) {
                     log.error("Failed to decrypt quitSecret: ", e);
                 }
             }
+        } catch (final Exception e) {
+            log.error("Failed to get SEB restriction with quit secret: ", e);
+        }
+
+        return null;
+    }
+
+    private String getQuitLink(final Long examId) {
+        try {
+
+            return this.examConfigurationValueService.getMappedDefaultConfigAttributeValue(
+                    examId,
+                    CONFIG_ATTR_NAME_QUIT_LINK);
 
         } catch (final Exception e) {
-            log.error("Failed to populate SEB restriction with quit link and quit secret: ", e);
+            log.error("Failed to get SEB restriction with quit link: ", e);
+            return null;
         }
     }
 
