@@ -46,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -73,6 +74,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     private final ClientCredentialService clientCredentialService;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
     private final ExamConfigurationValueService examConfigurationValueService;
+    private final Cryptor cryptor;
     private final Long lmsSetupId;
 
     private OlatLmsRestTemplate cachedRestTemplate;
@@ -82,6 +84,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             final ClientCredentialService clientCredentialService,
             final APITemplateDataSupplier apiTemplateDataSupplier,
             final ExamConfigurationValueService examConfigurationValueService,
+            final Cryptor cryptor,
             final CacheManager cacheManager) {
 
         super(cacheManager);
@@ -90,6 +93,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         this.clientCredentialService = clientCredentialService;
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
         this.examConfigurationValueService = examConfigurationValueService;
+        this.cryptor = cryptor;
         this.lmsSetupId = apiTemplateDataSupplier.getLmsSetup().id;
     }
 
@@ -471,7 +475,16 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             }
 
             if (StringUtils.isNotEmpty(quitSecret)) {
-                sebRestrictionData.additionalProperties.put(ADDITIONAL_ATTR_QUIT_SECRET, quitSecret);
+                try {
+                    final String decryptedSecret = this.cryptor
+                            .encrypt(quitSecret)
+                            .getOrThrow()
+                            .toString();
+
+                    sebRestrictionData.additionalProperties.put(ADDITIONAL_ATTR_QUIT_SECRET, decryptedSecret);
+                } catch (final Exception e) {
+                    log.error("Failed to decrypt quitSecret: ", e);
+                }
             }
 
         } catch (final Exception e) {
