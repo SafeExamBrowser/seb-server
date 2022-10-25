@@ -9,9 +9,15 @@
 package ch.ethz.seb.sebserver.gui.content.monitoring;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -25,10 +31,14 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.ExportType;
+import ch.ethz.seb.sebserver.gbl.model.session.ExtendedClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
+import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -36,6 +46,8 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
+import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
+import ch.ethz.seb.sebserver.gui.service.remote.download.SEBClientLogExport;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicators;
@@ -51,6 +63,8 @@ import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 @Component
 @GuiProfile
 public class FinishedExam implements TemplateComposer {
+
+    private static final Logger log = LoggerFactory.getLogger(FinishedExam.class);
 
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.finished.exam.connection.emptySelection");
@@ -73,16 +87,25 @@ public class FinishedExam implements TemplateComposer {
 
     private final PageService pageService;
     private final RestService restService;
+    private final I18nSupport i18nSupport;
+    private final DownloadService downloadService;
+    private final String exportFileName;
     private final int pageSize;
 
     public FinishedExam(
             final ServerPushService serverPushService,
             final PageService pageService,
+            final DownloadService downloadService,
+            @Value("${sebserver.gui.seb.client.logs.export.filename:SEBClientLogs}") final String exportFileName,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.restService = pageService.getRestService();
+        this.downloadService = downloadService;
+        this.exportFileName = exportFileName;
         this.pageSize = pageSize;
+
+        this.i18nSupport = pageService.getI18nSupport();
 
         this.statusFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
@@ -174,7 +197,44 @@ public class FinishedExam implements TemplateComposer {
                         table::getMultiSelection,
                         PageAction::applySingleSelectionAsEntityKey,
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(isExamSupporter, false);
+                .publishIf(isExamSupporter, false)
+
+                .newAction(ActionDefinition.FINISHED_EXAM_EXPORT_CSV)
+                .withEntityKey(examKey)
+                .withExec(this::exportCSV)
+                .ignoreMoveAwayFromEdit()
+                .publish();
+    }
+
+    private PageAction exportCSV(final PageAction action) {
+        try {
+
+            final UrlLauncher urlLauncher = RWT.getClient().getService(UrlLauncher.class);
+            final String fileName = this.exportFileName
+                    + Constants.UNDERLINE
+                    + this.i18nSupport.formatDisplayDate(Utils.getMillisecondsNow())
+                            .replace(" ", "_")
+                            .replace(".", "_")
+                    + Constants.FILE_EXT_CSV;
+
+            final Map<String, String> queryAttrs = new HashMap<>();
+            queryAttrs.put(API.SEB_CLIENT_EVENT_EXPORT_TYPE, ExportType.CSV.name());
+            queryAttrs.put(ExtendedClientEvent.FILTER_ATTRIBUTE_EXAM, action.getEntityKey().modelId);
+            queryAttrs.put(API.SEB_CLIENT_EVENT_EXPORT_INCLUDE_CONNECTIONS, Constants.TRUE_STRING);
+            queryAttrs.put(API.SEB_CLIENT_EVENT_EXPORT_INCLUDE_EXAMS, Constants.TRUE_STRING);
+
+            final String downloadURL = this.downloadService
+                    .createDownloadURL(
+                            SEBClientLogExport.class,
+                            fileName,
+                            queryAttrs);
+
+            urlLauncher.openURL(downloadURL);
+        } catch (final Exception e) {
+            log.error("Failed open export log download: ", e);
+        }
+
+        return action;
     }
 
 }

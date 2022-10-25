@@ -981,6 +981,11 @@ public enum ActionDefinition {
             ImageIcon.SHOW,
             PageStateDefinitionImpl.FINISHED_EXAM,
             ActionCategory.FORM),
+    FINISHED_EXAM_EXPORT_CSV(
+            new LocTextKey("sebserver.finished.exam.action.list.exportCSV"),
+            ImageIcon.EXPORT,
+            PageStateDefinitionImpl.FINISHED_EXAM,
+            ActionCategory.FORM),
 
     LOGS_USER_ACTIVITY_LIST(
             new LocTextKey("sebserver.logs.activity.userlogs"),
