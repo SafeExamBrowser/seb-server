@@ -202,7 +202,7 @@ public class FinishedExam implements TemplateComposer {
                 .newAction(ActionDefinition.FINISHED_EXAM_EXPORT_CSV)
                 .withEntityKey(examKey)
                 .withExec(this::exportCSV)
-                .ignoreMoveAwayFromEdit()
+                .noEventPropagation()
                 .publish();
     }
 

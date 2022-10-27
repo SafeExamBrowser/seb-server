@@ -281,16 +281,15 @@ public class FinishedExamClientConnection implements TemplateComposer {
                 .compose(pageContext.copyOf(content));
 
         actionBuilder
-                .newAction(ActionDefinition.FINISHED_EXAM_BACK_TO_OVERVIEW)
-                .withEntityKey(parentEntityKey)
-                .publishIf(isExamSupporter)
-
                 .newAction(ActionDefinition.FINISHED_EXAM_CLIENT_EXPORT_CSV)
                 .withEntityKey(entityKey)
                 .withExec(this::exportCSV)
-                .ignoreMoveAwayFromEdit()
-                .publish();
-        ;
+                .noEventPropagation()
+                .publishIf(isExamSupporter)
+
+                .newAction(ActionDefinition.FINISHED_EXAM_BACK_TO_OVERVIEW)
+                .withEntityKey(parentEntityKey)
+                .publishIf(isExamSupporter);
     }
 
     private String getClientTime(final ClientEvent event) {
