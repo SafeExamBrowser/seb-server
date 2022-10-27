@@ -136,10 +136,14 @@ public class RAPConfiguration implements ApplicationConfiguration {
         }
     }
 
+    // https://developer.chrome.com/blog/enabling-shared-array-buffer/#cross-origin-isolation
     public static final void setCORS(final HttpServletResponse resp) {
-        resp.addHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Allow-Methods", "GET");
-        resp.setHeader("Vary", "Origin");
+//        resp.addHeader("Access-Control-Allow-Origin", "*");
+//        resp.setHeader("Access-Control-Allow-Methods", "GET");
+//        resp.setHeader("Vary", "Origin");
+
+        resp.addHeader("Cross-Origin-Embedder-Policy", "require-corp");
+        resp.addHeader("Cross-Origin-Opener-Policy", "same-origin");
     }
 
     public static final class RAPSpringEntryPointFactory implements EntryPointFactory {
