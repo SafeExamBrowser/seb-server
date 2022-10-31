@@ -63,6 +63,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
@@ -642,6 +643,28 @@ public class ResourceService {
                 return missing;
             } else {
                 return localizedNames.get(connectionData.clientConnection.status);
+            }
+        };
+    }
+
+    public Function<ClientMonitoringData, String> localizedClientMonitoringStatusNameFunction() {
+
+        // Memoizing
+        final String missing = this.i18nSupport.getText(
+                SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_PING_NAME_KEY,
+                MISSING_CLIENT_PING_NAME_KEY);
+        final EnumMap<ConnectionStatus, String> localizedNames = new EnumMap<>(ConnectionStatus.class);
+        Arrays.asList(ConnectionStatus.values()).stream().forEach(state -> localizedNames.put(state, this.i18nSupport
+                .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + state.name(), state.name())));
+
+        return monitoringData -> {
+            if (monitoringData == null) {
+                localizedNames.get(ConnectionStatus.UNDEFINED);
+            }
+            if (monitoringData.missingPing && monitoringData.status.establishedStatus) {
+                return missing;
+            } else {
+                return localizedNames.get(monitoringData.status);
             }
         };
     }

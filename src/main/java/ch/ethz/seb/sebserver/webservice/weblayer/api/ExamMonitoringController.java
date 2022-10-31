@@ -258,10 +258,8 @@ public class ExamMonitoringController {
         checkPrivileges(institutionId, examId);
 
         return this.examSessionService
-                .getMonitoringSEBConnectionsData(
-                        examId,
-                        createMonitoringFilter(hiddenStates, hiddenClientGroups))
-                .getOrThrow().connections;
+                .getConnectionData(examId, createMonitoringFilter(hiddenStates, hiddenClientGroups))
+                .getOrThrow();
     }
 
     @RequestMapping(

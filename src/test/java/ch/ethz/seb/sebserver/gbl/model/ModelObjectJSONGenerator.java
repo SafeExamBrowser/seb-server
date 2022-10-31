@@ -287,6 +287,10 @@ public class ModelObjectJSONGenerator {
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
+        System.out.println("ClientMonitoringData" + ":");
+        System.out.println(writerWithDefaultPrettyPrinter
+                .writeValueAsString(((ClientConnectionData) domainObject).monitoringDataView));
+
         domainObject = new ClientEvent(1L, 1L, EventType.WARN_LOG,
                 System.currentTimeMillis(), System.currentTimeMillis(), 123.0, "text");
         System.out.println(domainObject.getClass().getSimpleName() + ":");

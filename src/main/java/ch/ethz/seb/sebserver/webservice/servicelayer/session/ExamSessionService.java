@@ -19,7 +19,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.StaticClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -235,7 +234,5 @@ public interface ExamSessionService {
     static boolean isActiveConnection(final ClientConnectionData connection) {
         return connection.clientConnection.status.clientActiveStatus;
     }
-
-    Result<Collection<StaticClientConnectionData>> getStaticClientConnectionInfo(String connecionTokens);
 
 }

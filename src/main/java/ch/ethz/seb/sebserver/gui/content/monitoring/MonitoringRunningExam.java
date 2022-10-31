@@ -598,7 +598,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
     private Set<EntityKey> selectionForInstruction(final ClientConnectionTable clientTable) {
         final Set<String> connectionTokens = clientTable.getConnectionTokens(
-                cc -> cc.status.clientActiveStatus,
+                cc -> cc.getStatus().clientActiveStatus,
                 true);
         if (connectionTokens == null || connectionTokens.isEmpty()) {
             return Collections.emptySet();

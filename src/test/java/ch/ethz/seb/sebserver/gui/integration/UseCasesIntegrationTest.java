@@ -2268,7 +2268,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(fullPageData);
         assertFalse(fullPageData.hasError());
         final MonitoringSEBConnectionData monitoringConnectionData = fullPageData.get().monitoringConnectionData;
-        assertTrue(monitoringConnectionData.connections.isEmpty());
+        assertTrue(monitoringConnectionData.monitoringData.isEmpty());
         assertEquals(
                 "[0, 0, 0, 0, 0, 0]",
                 Arrays.stream(monitoringConnectionData.connectionsPerStatus).boxed().map(String::valueOf)

@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,7 +23,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,7 +42,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.StaticClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -423,7 +421,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
             updateClientConnections(examId);
 
-            final List<ClientConnectionData> filteredConnections = this.clientConnectionDAO
+            final List<? extends ClientMonitoringDataView> filteredConnections = this.clientConnectionDAO
                     .getConnectionTokens(examId)
                     .getOrThrow()
                     .stream()
@@ -435,12 +433,13 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                         return c;
                     })
                     .filter(filter)
+                    .map(ccd -> ccd.monitoringDataView)
                     .collect(Collectors.toList());
 
             return new MonitoringSEBConnectionData(
-                    filteredConnections,
                     statusMapping,
-                    clientGroupMapping);
+                    clientGroupMapping,
+                    filteredConnections);
         });
     }
 
@@ -585,25 +584,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             } else {
                 clientGroupMapping.put(id, 1);
             }
-        });
-    }
-
-    @Override
-    public Result<Collection<StaticClientConnectionData>> getStaticClientConnectionInfo(final String connecionTokens) {
-        return Result.tryCatch(() -> {
-            if (StringUtils.isBlank(connecionTokens)) {
-                return Collections.emptyList();
-            }
-
-            return Arrays.asList(StringUtils.split(connecionTokens, Constants.LIST_SEPARATOR))
-                    .stream()
-                    .map(this.examSessionCacheService::getClientConnection)
-                    .map(cc -> new StaticClientConnectionData(
-                            cc.clientConnection.id,
-                            cc.clientConnection.connectionToken,
-                            cc.clientConnection.info,
-                            cc.groups))
-                    .collect(Collectors.toList());
         });
     }
 

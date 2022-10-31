@@ -132,6 +132,8 @@ public abstract class RestCall<T> {
                     return Result.ofEmpty();
                 }
 
+                System.out.println("************** size = " + responseEntity.getBody().length());
+
                 return Result.of(RestCall.this.jsonMapper.readValue(
                         responseEntity.getBody(),
                         RestCall.this.typeKey.typeRef));

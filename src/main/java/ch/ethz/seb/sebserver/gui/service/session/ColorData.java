@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Display;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringData;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class ColorData {
@@ -47,6 +48,19 @@ public class ColorData {
         }
     }
 
+    Color getStatusColor(final ClientMonitoringData monitoringData) {
+        if (monitoringData == null) {
+            return this.defaultColor;
+        }
+
+        switch (monitoringData.status) {
+            case ACTIVE:
+                return (monitoringData.missingPing) ? this.color2 : this.color1;
+            default:
+                return this.defaultColor;
+        }
+    }
+
     Color getStatusTextColor(final Color statusColor) {
         return Utils.darkColorContrast(statusColor.getRGB()) ? this.darkColor : this.lightColor;
     }
@@ -62,6 +76,24 @@ public class ColorData {
                 return 1;
             case ACTIVE:
                 return (connectionData.missingPing) ? 0 : 2;
+            case CLOSED:
+                return 3;
+            default:
+                return 10;
+        }
+    }
+
+    int statusWeight(final ClientMonitoringData monitoring) {
+        if (monitoring == null) {
+            return 100;
+        }
+
+        switch (monitoring.status) {
+            case CONNECTION_REQUESTED:
+            case AUTHENTICATED:
+                return 1;
+            case ACTIVE:
+                return (monitoring.missingPing) ? 0 : 2;
             case CLOSED:
                 return 3;
             default:

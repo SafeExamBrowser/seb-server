@@ -18,7 +18,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MonitoringSEBConnectionData {
@@ -28,7 +29,7 @@ public class MonitoringSEBConnectionData {
     public static final String ATTR_CLIENT_GROUP_MAPPING = "clientGroupMapping";
 
     @JsonProperty(ATTR_CONNECTIONS)
-    public final Collection<ClientConnectionData> connections;
+    public final Collection<? extends ClientMonitoringDataView> monitoringData;
     @JsonProperty(ATTR_STATUS_MAPPING)
     public final int[] connectionsPerStatus;
     @JsonProperty(ATTR_CLIENT_GROUP_MAPPING)
@@ -36,17 +37,27 @@ public class MonitoringSEBConnectionData {
 
     @JsonCreator
     public MonitoringSEBConnectionData(
-            @JsonProperty(ATTR_CONNECTIONS) final Collection<ClientConnectionData> connections,
+            @JsonProperty(ATTR_CONNECTIONS) final Collection<ClientMonitoringData> connections,
             @JsonProperty(ATTR_STATUS_MAPPING) final int[] connectionsPerStatus,
             @JsonProperty(ATTR_CLIENT_GROUP_MAPPING) final Map<Long, Integer> connectionsPerClientGroup) {
 
-        this.connections = connections;
+        this.monitoringData = connections;
         this.connectionsPerStatus = connectionsPerStatus;
         this.connectionsPerClientGroup = connectionsPerClientGroup;
     }
 
-    public Collection<ClientConnectionData> getConnections() {
-        return this.connections;
+    public MonitoringSEBConnectionData(
+            final int[] connectionsPerStatus,
+            final Map<Long, Integer> connectionsPerClientGroup,
+            final Collection<? extends ClientMonitoringDataView> connections) {
+
+        this.monitoringData = connections;
+        this.connectionsPerStatus = connectionsPerStatus;
+        this.connectionsPerClientGroup = connectionsPerClientGroup;
+    }
+
+    public Collection<? extends ClientMonitoringDataView> getMonitoringData() {
+        return this.monitoringData;
     }
 
     public int[] getConnectionsPerStatus() {
@@ -73,7 +84,7 @@ public class MonitoringSEBConnectionData {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("MonitoringSEBConnectionData [connections=");
-        builder.append(this.connections);
+        builder.append(this.monitoringData);
         builder.append(", connectionsPerStatus=");
         builder.append(Arrays.toString(this.connectionsPerStatus));
         builder.append(", connectionsPerClientGroup=");

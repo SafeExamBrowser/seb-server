@@ -12,8 +12,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.BooleanUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -25,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.monitoring.SimpleIndicatorValue;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -215,5 +220,60 @@ public class ClientConnectionData implements GrantEntity {
         builder.append("]");
         return builder.toString();
     }
+
+    /** This is a wrapper for the live monitoring data view of this client connection data */
+    @JsonIgnore
+    public final ClientMonitoringDataView monitoringDataView = new ClientMonitoringDataView() {
+
+        @Override
+        public Long getId() {
+            return ClientConnectionData.this.clientConnection.id;
+        }
+
+        @Override
+        public ConnectionStatus getStatus() {
+            return ClientConnectionData.this.clientConnection.status;
+        }
+
+        @Override
+        public String getConnectionToken() {
+            // TODO Auto-generated method stub
+            return ClientConnectionData.this.clientConnection.connectionToken;
+        }
+
+        @Override
+        public String getUserSessionId() {
+            return ClientConnectionData.this.clientConnection.userSessionId;
+        }
+
+        @Override
+        public String getInfo() {
+            return ClientConnectionData.this.clientConnection.info;
+        }
+
+        @Override
+        public Map<Long, String> getIndicatorValues() {
+            return ClientConnectionData.this.indicatorValues
+                    .stream()
+                    .collect(Collectors.toMap(
+                            iv -> iv.getIndicatorId(),
+                            iv -> IndicatorValue.getDisplayValue(iv)));
+        }
+
+        @Override
+        public Set<Long> getGroups() {
+            return ClientConnectionData.this.groups;
+        }
+
+        @Override
+        public boolean isMissingPing() {
+            return BooleanUtils.isTrue(ClientConnectionData.this.missingPing);
+        }
+
+        @Override
+        public boolean isPendingNotification() {
+            return BooleanUtils.isTrue(ClientConnectionData.this.pendingNotification);
+        }
+    };
 
 }

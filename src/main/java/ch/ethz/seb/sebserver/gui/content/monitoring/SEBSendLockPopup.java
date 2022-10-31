@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
@@ -74,12 +75,12 @@ public class SEBSendLockPopup {
 
     public PageAction show(
             final PageAction action,
-            final Function<Predicate<ClientConnection>, Set<String>> selectionFunction) {
+            final Function<Predicate<ClientMonitoringDataView>, Set<String>> selectionFunction) {
 
         try {
 
             final PageContext pageContext = action.pageContext();
-            final Set<String> selection = selectionFunction.apply(ClientConnection.getStatusPredicate(
+            final Set<String> selection = selectionFunction.apply(ClientMonitoringDataView.getStatusPredicate(
                     ConnectionStatus.CONNECTION_REQUESTED,
                     ConnectionStatus.ACTIVE));
 

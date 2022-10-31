@@ -48,9 +48,9 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -93,7 +93,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     private final Map<Long, ClientGroup> clientGroupMapping;
     private final Table table;
     private final ColorData colorData;
-    private final Function<ClientConnectionData, String> localizedClientConnectionStatusNameFunction;
+    private final Function<ClientMonitoringData, String> localizedClientConnectionStatusNameFunction;
     private Consumer<ClientConnectionTable> selectionListener;
 
     private int tableWidth;
@@ -151,7 +151,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                         .collect(Collectors.toMap(cg -> cg.id, Function.identity()));
 
         this.localizedClientConnectionStatusNameFunction =
-                resourceService.localizedClientConnectionStatusNameFunction();
+                resourceService.localizedClientMonitoringStatusNameFunction();
 
         this.table = widgetFactory.tableLocalized(tableRoot, SWT.MULTI | SWT.V_SCROLL);
         final GridLayout gridLayout = new GridLayout(3 + indicators.size(), false);
@@ -230,7 +230,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     }
 
     public Set<String> getConnectionTokens(
-            final Predicate<ClientConnection> filter,
+            final Predicate<ClientMonitoringDataView> filter,
             final boolean selected) {
 
         if (selected) {
@@ -244,8 +244,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 final UpdatableTableItem updatableTableItem =
                         new ArrayList<>(this.tableMapping.values())
                                 .get(selectionIndices[i]);
-                if (filter.test(updatableTableItem.connectionData.clientConnection)) {
-                    result.add(updatableTableItem.connectionData.clientConnection.connectionToken);
+                if (filter.test(updatableTableItem.monitoringData)) {
+                    result.add(updatableTableItem.monitoringData.connectionToken);
                 }
             }
             return result;
@@ -253,9 +253,9 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             return this.tableMapping
                     .values()
                     .stream()
-                    .map(item -> item.connectionData.clientConnection)
+                    .map(item -> item.monitoringData)
                     .filter(filter)
-                    .map(ClientConnection::getConnectionToken)
+                    .map(ClientMonitoringData::getConnectionToken)
                     .collect(Collectors.toSet());
         }
     }
@@ -304,7 +304,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 (updatableTableItem.connectionId != null)
                         ? String.valueOf(updatableTableItem.connectionId)
                         : null,
-                updatableTableItem.connectionData.clientConnection.connectionToken);
+                updatableTableItem.monitoringData.connectionToken);
     }
 
     public void forceUpdateAll() {
@@ -313,8 +313,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
     @Override
     public void update(final MonitoringFilter monitoringStatus) {
-        final Collection<ClientConnectionData> connectionData = monitoringStatus.getConnectionData();
-        final boolean sizeChanged = connectionData.size() != this.table.getItemCount();
+        final Collection<ClientMonitoringData> monitoringData = monitoringStatus.getConnectionData();
+        final boolean sizeChanged = monitoringData.size() != this.table.getItemCount();
         final boolean needsSync = monitoringStatus.filterChanged() ||
                 this.forceUpdateAll ||
                 sizeChanged ||
@@ -332,11 +332,11 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         monitoringStatus.getConnectionData()
                 .forEach(data -> {
                     final UpdatableTableItem tableItem = this.tableMapping.computeIfAbsent(
-                            data.getConnectionId(),
+                            data.id,
                             UpdatableTableItem::new);
                     tableItem.push(data);
                     if (needsSync) {
-                        this.toDelete.remove(data.getConnectionId());
+                        this.toDelete.remove(data.id);
                     }
                 });
 
@@ -344,7 +344,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             this.toDelete.forEach(id -> {
                 final UpdatableTableItem item = this.tableMapping.remove(id);
                 if (item != null) {
-                    final List<Long> list = this.sessionIds.get(item.connectionData.clientConnection.userSessionId);
+                    final List<Long> list = this.sessionIds.get(item.monitoringData.userSessionId);
                     if (list != null) {
                         list.remove(id);
                     }
@@ -446,7 +446,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         final Long connectionId;
         private boolean dataChanged = false;
         private boolean indicatorValueChanged = false;
-        private ClientConnectionData connectionData;
+        private ClientMonitoringData monitoringData;
         private int thresholdsWeight;
         private int[] indicatorWeights = null;
         private boolean duplicateChecked = false;
@@ -475,15 +475,15 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 tableItem.setText(
                         3,
                         ClientConnectionTable.this.localizedClientConnectionStatusNameFunction
-                                .apply(this.connectionData));
+                                .apply(this.monitoringData));
             } else {
                 tableItem.setText(1, getConnectionInfo());
                 tableItem.setText(
                         2,
                         ClientConnectionTable.this.localizedClientConnectionStatusNameFunction
-                                .apply(this.connectionData));
+                                .apply(this.monitoringData));
             }
-            if (this.connectionData != null) {
+            if (this.monitoringData != null) {
                 updateConnectionStatusColor(tableItem);
                 updateDuplicateColor(tableItem);
                 updateNotifications(tableItem);
@@ -491,7 +491,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         private void updateNotifications(final TableItem tableItem) {
-            if (BooleanUtils.isTrue(this.connectionData.pendingNotification())) {
+            if (BooleanUtils.isTrue(this.monitoringData.pendingNotification)) {
                 tableItem.setImage(0,
                         WidgetFactory.ImageIcon.NOTIFICATION.getImage(ClientConnectionTable.this.table.getDisplay()));
             } else {
@@ -502,7 +502,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         private void updateConnectionStatusColor(final TableItem tableItem) {
-            final Color statusColor = ClientConnectionTable.this.colorData.getStatusColor(this.connectionData);
+            final Color statusColor = ClientConnectionTable.this.colorData.getStatusColor(this.monitoringData);
             final Color statusTextColor = ClientConnectionTable.this.colorData.getStatusTextColor(statusColor);
             final int index = ClientConnectionTable.this.hasClientGroups ? 3 : 2;
             tableItem.setBackground(index, statusColor);
@@ -518,10 +518,10 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 return;
             }
 
-            if (this.connectionData != null
-                    && StringUtils.isNotBlank(this.connectionData.clientConnection.userSessionId)) {
+            if (this.monitoringData != null
+                    && StringUtils.isNotBlank(this.monitoringData.userSessionId)) {
                 final List<Long> list =
-                        ClientConnectionTable.this.sessionIds.get(this.connectionData.clientConnection.userSessionId);
+                        ClientConnectionTable.this.sessionIds.get(this.monitoringData.userSessionId);
                 if (list != null && list.size() > 1) {
                     tableItem.setBackground(0, ClientConnectionTable.this.colorData.color3);
                     tableItem.setForeground(0, ClientConnectionTable.this.lightFontColor);
@@ -532,31 +532,23 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             }
         }
 
-        private void updateIndicatorValues(final TableItem tableItem) {
-            if (this.connectionData == null || this.indicatorWeights == null) {
-                return;
-            }
-
-            for (int i = 0; i < this.connectionData.indicatorValues.size(); i++) {
-                final IndicatorValue indicatorValue = this.connectionData.indicatorValues.get(i);
-                final IndicatorData indicatorData = ClientConnectionTable.this.indicatorMapping
-                        .get(indicatorValue.getIndicatorId());
-
+        private Consumer<Map.Entry<Long, String>> indicatorUpdate(final TableItem tableItem) {
+            return entry -> {
+                final Long id = entry.getKey();
+                final String displayValue = entry.getValue();
+                final IndicatorData indicatorData = ClientConnectionTable.this.indicatorMapping.get(id);
                 if (indicatorData == null) {
-                    continue;
+                    return;
                 }
 
-                if (!this.connectionData.clientConnection.status.clientActiveStatus) {
-                    final String value = (indicatorData.indicator.type.showOnlyInActiveState)
-                            ? Constants.EMPTY_NOTE
-                            : IndicatorValue.getDisplayValue(indicatorValue, indicatorData.indicator.type);
-                    tableItem.setText(indicatorData.tableIndex, value);
+                updateIndicatorWeight(displayValue, indicatorData);
+
+                if (!this.monitoringData.status.clientActiveStatus) {
+                    tableItem.setText(indicatorData.tableIndex, displayValue);
                     tableItem.setBackground(indicatorData.tableIndex, indicatorData.defaultColor);
                     tableItem.setForeground(indicatorData.tableIndex, indicatorData.defaultTextColor);
                 } else {
-                    tableItem.setText(indicatorData.tableIndex, IndicatorValue.getDisplayValue(
-                            indicatorValue,
-                            indicatorData.indicator.type));
+                    tableItem.setText(indicatorData.tableIndex, displayValue);
                     final int weight = this.indicatorWeights[indicatorData.index];
                     if (weight >= 0 && weight < indicatorData.thresholdColor.length) {
                         final ThresholdColor thresholdColor = indicatorData.thresholdColor[weight];
@@ -567,7 +559,50 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                         tableItem.setForeground(indicatorData.tableIndex, indicatorData.defaultTextColor);
                     }
                 }
+            };
+        }
+
+        private void updateIndicatorValues(final TableItem tableItem) {
+            if (this.monitoringData == null || this.indicatorWeights == null) {
+                return;
             }
+
+            this.monitoringData.indicatorVals
+                    .entrySet()
+                    .stream()
+                    .forEach(indicatorUpdate(tableItem));
+
+//            for (int i = 0; i < this.monitoringData.indicatorVals.size(); i++) {
+//                final IndicatorValue indicatorValue = this.monitoringData.indicatorValues.get(i);
+//                final IndicatorData indicatorData = ClientConnectionTable.this.indicatorMapping
+//                        .get(indicatorValue.getIndicatorId());
+//
+//                if (indicatorData == null) {
+//                    continue;
+//                }
+//
+//                if (!this.connectionData.clientConnection.status.clientActiveStatus) {
+//                    final String value = (indicatorData.indicator.type.showOnlyInActiveState)
+//                            ? Constants.EMPTY_NOTE
+//                            : IndicatorValue.getDisplayValue(indicatorValue, indicatorData.indicator.type);
+//                    tableItem.setText(indicatorData.tableIndex, value);
+//                    tableItem.setBackground(indicatorData.tableIndex, indicatorData.defaultColor);
+//                    tableItem.setForeground(indicatorData.tableIndex, indicatorData.defaultTextColor);
+//                } else {
+//                    tableItem.setText(indicatorData.tableIndex, IndicatorValue.getDisplayValue(
+//                            indicatorValue,
+//                            indicatorData.indicator.type));
+//                    final int weight = this.indicatorWeights[indicatorData.index];
+//                    if (weight >= 0 && weight < indicatorData.thresholdColor.length) {
+//                        final ThresholdColor thresholdColor = indicatorData.thresholdColor[weight];
+//                        tableItem.setBackground(indicatorData.tableIndex, thresholdColor.color);
+//                        tableItem.setForeground(indicatorData.tableIndex, thresholdColor.textColor);
+//                    } else {
+//                        tableItem.setBackground(indicatorData.tableIndex, indicatorData.defaultColor);
+//                        tableItem.setForeground(indicatorData.tableIndex, indicatorData.defaultTextColor);
+//                    }
+//                }
+//            }
         }
 
         @Override
@@ -603,11 +638,11 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         int notificationWeight() {
-            return BooleanUtils.isTrue(this.connectionData.pendingNotification) ? -1 : 0;
+            return BooleanUtils.isTrue(this.monitoringData.pendingNotification) ? -1 : 0;
         }
 
         int statusWeight() {
-            return ClientConnectionTable.this.colorData.statusWeight(this.connectionData);
+            return ClientConnectionTable.this.colorData.statusWeight(this.monitoringData);
         }
 
         int thresholdsWeight() {
@@ -615,8 +650,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         String getConnectionInfo() {
-            if (this.connectionData != null && this.connectionData.clientConnection.info != null) {
-                return this.connectionData.clientConnection.info;
+            if (this.monitoringData != null && this.monitoringData.info != null) {
+                return this.monitoringData.info;
             }
             return Constants.EMPTY_NOTE;
         }
@@ -624,7 +659,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         private String getGroupInfo() {
             final StringBuilder sb = new StringBuilder();
             ClientConnectionTable.this.clientGroupMapping.keySet().stream().forEach(key -> {
-                if (this.connectionData.groups != null && this.connectionData.groups.contains(key)) {
+                if (this.monitoringData.groups != null && this.monitoringData.groups.contains(key)) {
                     final ClientGroup clientGroup = ClientConnectionTable.this.clientGroupMapping.get(key);
                     sb.append(WidgetFactory.getTextWithBackgroundHTML(clientGroup.name, clientGroup.color));
                 }
@@ -638,22 +673,22 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         String getConnectionIdentifier() {
-            if (this.connectionData != null && this.connectionData.clientConnection.userSessionId != null) {
-                return this.connectionData.clientConnection.userSessionId;
+            if (this.monitoringData != null && this.monitoringData.userSessionId != null) {
+                return this.monitoringData.userSessionId;
             }
 
             return "--";
         }
 
-        void push(final ClientConnectionData connectionData) {
-            this.dataChanged = this.connectionData == null ||
-                    !this.connectionData.dataEquals(connectionData);
-            this.indicatorValueChanged = this.connectionData == null ||
-                    (this.connectionData.clientConnection.status.clientActiveStatus
-                            && !this.connectionData.indicatorValuesEquals(connectionData));
-            final boolean notificationChanged = this.connectionData == null ||
-                    BooleanUtils.toBoolean(this.connectionData.pendingNotification) != BooleanUtils
-                            .toBoolean(connectionData.pendingNotification);
+        void push(final ClientMonitoringData monitoringData) {
+            this.dataChanged = this.monitoringData == null ||
+                    !this.monitoringData.dataEquals(monitoringData);
+            this.indicatorValueChanged = this.monitoringData == null ||
+                    (this.monitoringData.status.clientActiveStatus
+                            && !this.monitoringData.indicatorValuesEquals(monitoringData));
+            final boolean notificationChanged = this.monitoringData == null ||
+                    BooleanUtils.toBoolean(this.monitoringData.pendingNotification) != BooleanUtils
+                            .toBoolean(monitoringData.pendingNotification);
 
             if (this.dataChanged || notificationChanged) {
                 ClientConnectionTable.this.needsSort = true;
@@ -663,39 +698,47 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 this.indicatorWeights = new int[ClientConnectionTable.this.indicatorMapping.size()];
             }
 
-            for (int i = 0; i < connectionData.indicatorValues.size(); i++) {
-                final IndicatorValue indicatorValue = connectionData.indicatorValues.get(i);
-                final IndicatorData indicatorData =
-                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getIndicatorId());
+//            for (int i = 0; i < monitoringData.indicatorValues.size(); i++) {
+//                final IndicatorValue indicatorValue = connectionData.indicatorValues.get(i);
+//                final IndicatorData indicatorData =
+//                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getIndicatorId());
+//
+//                if (indicatorData != null) {
+//                    updateIndicatorWeight(indicatorValue, indicatorData);
+//                }
+//            }
 
-                if (indicatorData != null) {
-                    final double value = indicatorValue.getValue();
-                    final int indicatorWeight = IndicatorData.getWeight(indicatorData, value);
-                    if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {
-                        ClientConnectionTable.this.needsSort = true;
-                        this.thresholdsWeight -= (indicatorData.indicator.type.inverse)
-                                ? indicatorData.indicator.thresholds.size()
-                                        - this.indicatorWeights[indicatorData.index]
-                                : this.indicatorWeights[indicatorData.index];
-                        this.indicatorWeights[indicatorData.index] = indicatorWeight;
-                        this.thresholdsWeight += (indicatorData.indicator.type.inverse)
-                                ? indicatorData.indicator.thresholds.size()
-                                        - this.indicatorWeights[indicatorData.index]
-                                : this.indicatorWeights[indicatorData.index];
-                    }
-                }
-            }
-
-            this.connectionData = connectionData;
+            this.monitoringData = monitoringData;
 
             if (!this.duplicateChecked &&
-                    this.connectionData.clientConnection.status != ConnectionStatus.DISABLED &&
-                    StringUtils.isNotBlank(connectionData.clientConnection.userSessionId)) {
+                    this.monitoringData.status != ConnectionStatus.DISABLED &&
+                    StringUtils.isNotBlank(monitoringData.userSessionId)) {
 
                 ClientConnectionTable.this.sessionIds.add(
-                        connectionData.clientConnection.userSessionId,
+                        monitoringData.userSessionId,
                         this.connectionId);
                 this.duplicateChecked = true;
+            }
+        }
+
+        private void updateIndicatorWeight(
+                final String indicatorValue,
+                final IndicatorData indicatorData) {
+
+            final int indicatorWeight = IndicatorData.getWeight(
+                    indicatorData,
+                    IndicatorValue.getFromDisplayValue(indicatorValue));
+            if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {
+                ClientConnectionTable.this.needsSort = true;
+                this.thresholdsWeight -= (indicatorData.indicator.type.inverse)
+                        ? indicatorData.indicator.thresholds.size()
+                                - this.indicatorWeights[indicatorData.index]
+                        : this.indicatorWeights[indicatorData.index];
+                this.indicatorWeights[indicatorData.index] = indicatorWeight;
+                this.thresholdsWeight += (indicatorData.indicator.type.inverse)
+                        ? indicatorData.indicator.thresholds.size()
+                                - this.indicatorWeights[indicatorData.index]
+                        : this.indicatorWeights[indicatorData.index];
             }
         }
 

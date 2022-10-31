@@ -29,10 +29,10 @@ import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
@@ -70,12 +70,12 @@ public class InstructionProcessor {
 
     public void propagateSEBQuitInstruction(
             final String examId,
-            final Function<Predicate<ClientConnection>, Set<String>> selectionFunction,
+            final Function<Predicate<ClientMonitoringDataView>, Set<String>> selectionFunction,
             final PageContext pageContext) {
 
         try {
             final Set<String> connectionTokens = selectionFunction
-                    .apply(ClientConnection.getStatusPredicate(
+                    .apply(ClientMonitoringDataView.getStatusPredicate(
                             ConnectionStatus.CONNECTION_REQUESTED,
                             ConnectionStatus.ACTIVE));
 
@@ -156,11 +156,11 @@ public class InstructionProcessor {
 
     public void disableConnection(
             final Long examId,
-            final Function<Predicate<ClientConnection>, Set<String>> selectionFunction,
+            final Function<Predicate<ClientMonitoringDataView>, Set<String>> selectionFunction,
             final PageContext pageContext) {
 
         final Set<String> connectionTokens = selectionFunction
-                .apply(ClientConnection.getStatusPredicate(
+                .apply(ClientMonitoringDataView.getStatusPredicate(
                         ConnectionStatus.CONNECTION_REQUESTED,
                         ConnectionStatus.UNDEFINED,
                         ConnectionStatus.CLOSED,

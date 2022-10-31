@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 
 public interface IndicatorValue extends IndicatorValueHolder {
 
@@ -36,6 +37,31 @@ public interface IndicatorValue extends IndicatorValueHolder {
         } else {
             return String.valueOf(indicatorValue.getValue());
         }
+    }
+
+    static String getDisplayValue(final IndicatorValue indicatorValue) {
+        if (Double.isNaN(indicatorValue.getValue())) {
+            return Constants.EMPTY_NOTE;
+        }
+
+        if (indicatorValue instanceof ClientIndicator) {
+            return getDisplayValue(indicatorValue, ((ClientIndicator) indicatorValue).getType());
+        } else {
+            return String.valueOf((long) indicatorValue.getValue());
+        }
+    }
+
+    static double getFromDisplayValue(final String displayValue) {
+        try {
+            return Double.parseDouble(displayValue);
+        } catch (final NumberFormatException nfe) {
+            return Double.NaN;
+        }
+
+//        if (displayValue == null || displayValue == Constants.EMPTY_NOTE) {
+//            return Double.NaN;
+//        }
+//        return Double.parseDouble(displayValue);
     }
 
     default boolean dataEquals(final IndicatorValue other) {
