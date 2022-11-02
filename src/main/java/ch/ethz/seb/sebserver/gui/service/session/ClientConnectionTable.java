@@ -454,6 +454,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         private ClientStaticData staticData = ClientStaticData.NULL_DATA;
         private int thresholdsWeight;
         private int[] indicatorWeights = null;
+        private boolean marked = false;
 
         UpdatableTableItem(final Long connectionId) {
             this.connectionId = connectionId;
@@ -496,15 +497,18 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         private void updateDuplicateColor(final TableItem tableItem) {
-            //System.out.println("ClientConnectionTable.this.duplicates : " + ClientConnectionTable.this.duplicates);
             if (ClientConnectionTable.this.duplicates.contains(this.connectionId) &&
                     tableItem.getBackground(0) != ClientConnectionTable.this.colorData.color3) {
                 tableItem.setBackground(0, ClientConnectionTable.this.colorData.color3);
                 tableItem.setForeground(0, ClientConnectionTable.this.lightFontColor);
+                this.marked = true;
+                ClientConnectionTable.this.needsSort = true;
             } else if (!ClientConnectionTable.this.duplicates.contains(this.connectionId) &&
                     tableItem.getBackground(0) == ClientConnectionTable.this.colorData.color3) {
                 tableItem.setBackground(0, null);
                 tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
+                ClientConnectionTable.this.needsSort = true;
+                this.marked = false;
             }
         }
 
@@ -602,7 +606,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         int notificationWeight() {
-            return BooleanUtils.isTrue(this.monitoringData.pendingNotification) ? -1 : 0;
+            return BooleanUtils.isTrue(this.monitoringData.pendingNotification) || this.marked ? -1 : 0;
         }
 
         int statusWeight() {
