@@ -25,7 +25,6 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
@@ -276,20 +275,13 @@ public class ModelObjectJSONGenerator {
                 Arrays.asList(
                         new SimpleIndicatorValue(1L, 1.0),
                         new SimpleIndicatorValue(2L, 2.0),
-                        new SimpleIndicatorValue(3L, 3.0)));
+                        new SimpleIndicatorValue(3L, 3.0)),
+                new HashSet<>(Arrays.asList(1L, 2L)));
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
-        ((ClientConnectionData) domainObject)
-                .addToClientGroup(new ClientGroup(1L, 1L, "group1", null, null, null, null));
-        ((ClientConnectionData) domainObject)
-                .addToClientGroup(new ClientGroup(2L, 1L, "group2", null, null, null, null));
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
-
-        System.out.println("ClientMonitoringData" + ":");
-        System.out.println(writerWithDefaultPrettyPrinter
-                .writeValueAsString(((ClientConnectionData) domainObject).monitoringDataView));
 
         domainObject = new ClientEvent(1L, 1L, EventType.WARN_LOG,
                 System.currentTimeMillis(), System.currentTimeMillis(), 123.0, "text");

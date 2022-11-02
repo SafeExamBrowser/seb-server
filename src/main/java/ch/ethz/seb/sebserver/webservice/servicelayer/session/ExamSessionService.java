@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.springframework.cache.CacheManager;
@@ -20,6 +21,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringStaticClientData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
@@ -183,6 +185,18 @@ public interface ExamSessionService {
     Result<MonitoringSEBConnectionData> getMonitoringSEBConnectionsData(
             final Long examId,
             final Predicate<ClientConnectionData> filter);
+
+    /** Get SEB client connection statically data for the given exam and list of connection ids.
+     * This is useful if you have monitoring real-time data as MonitoringSEBConnectionData for example and you need to
+     * complete this data with the more static client connection data of SEB client, one can reload the static data like
+     * so.
+     *
+     * @param examId the exam identifier
+     * @param connectionIds Set of client connection identifiers (modelIds)
+     * @return Result refer to the MonitoringStaticSEBConnectionData or to an error when happened */
+    Result<MonitoringStaticClientData> getMonitoringSEBConnectionStaticData(
+            final Long examId,
+            final Set<Long> connectionIds);
 
     /** Gets all connection tokens of client connection that are in ACTIVE state and related to a specified exam
      * from persistence storage without caching involved.

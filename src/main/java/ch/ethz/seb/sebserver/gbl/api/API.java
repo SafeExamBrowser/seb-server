@@ -193,6 +193,7 @@ public final class API {
 
     public static final String EXAM_MONITORING_ENDPOINT = "/monitoring";
     public static final String EXAM_MONITORING_FULLPAGE = "/fullpage";
+    public static final String EXAM_MONITORING_STATIC_CLIENT_DATA = "/static-client-data";
     public static final String EXAM_MONITORING_INSTRUCTION_ENDPOINT = "/instruction";
     public static final String EXAM_MONITORING_NOTIFICATION_ENDPOINT = "/notification";
     public static final String EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT = "/disable-connection";

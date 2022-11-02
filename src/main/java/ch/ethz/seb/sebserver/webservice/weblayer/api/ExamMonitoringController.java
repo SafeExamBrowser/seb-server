@@ -16,6 +16,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -53,7 +55,9 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringStaticClientData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDeniedException;
@@ -259,6 +263,32 @@ public class ExamMonitoringController {
 
         return this.examSessionService
                 .getConnectionData(examId, createMonitoringFilter(hiddenStates, hiddenClientGroups))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_STATIC_CLIENT_DATA,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public MonitoringStaticClientData getMonitoringStaticClientData(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @RequestParam(name = API.PARAM_MODEL_ID_LIST, required = true) final String clientConnectionIds) {
+
+        final Exam runningExam = checkPrivileges(institutionId, examId);
+
+        final Set<Long> ids = Stream.of(StringUtils.split(clientConnectionIds, Constants.LIST_SEPARATOR))
+                .map(Utils::toLong)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        return this.examSessionService
+                .getMonitoringSEBConnectionStaticData(runningExam.id, ids)
                 .getOrThrow();
     }
 

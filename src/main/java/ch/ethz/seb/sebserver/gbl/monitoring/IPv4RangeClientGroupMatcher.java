@@ -39,7 +39,11 @@ public class IPv4RangeClientGroupMatcher implements ClientGroupConnectionMatcher
 
             return (inputIPAddress >= startIPAddress && inputIPAddress <= endIPAddress);
         } catch (final Exception e) {
-            log.error("Failed to verify IP range for group: {} connection: {}", group, clientConnection, e);
+            log.error(
+                    "Failed to verify IP range for group: {} connection: {}, error",
+                    group,
+                    clientConnection,
+                    e.getMessage());
             return false;
         }
     }

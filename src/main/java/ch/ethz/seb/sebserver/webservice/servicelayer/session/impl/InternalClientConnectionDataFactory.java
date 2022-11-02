@@ -10,6 +10,8 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,17 +60,24 @@ public class InternalClientConnectionDataFactory {
             result = new ClientConnectionDataInternal(
                     clientConnection,
                     () -> false,
-                    this.clientIndicatorFactory.createFor(clientConnection));
+                    this.clientIndicatorFactory.createFor(clientConnection),
+                    getGroupIds(clientConnection));
         } else {
 
             result = new ClientConnectionDataInternal(
                     clientConnection,
                     () -> this.sebClientNotificationService
                             .hasAnyPendingNotification(clientConnection),
-                    this.clientIndicatorFactory.createFor(clientConnection));
+                    this.clientIndicatorFactory.createFor(clientConnection),
+                    getGroupIds(clientConnection));
         }
 
+        return result;
+    }
+
+    public Set<Long> getGroupIds(final ClientConnection clientConnection) {
         // set client groups for connection
+        final Set<Long> clientGroupIds = new HashSet<>();
         if (clientConnection.examId != null) {
             final Collection<ClientGroup> clientGroups = this.clientGroupDAO
                     .allForExam(clientConnection.examId)
@@ -80,13 +89,12 @@ public class InternalClientConnectionDataFactory {
             if (!clientGroups.isEmpty()) {
                 clientGroups.forEach(clientGroup -> {
                     if (this.clientGroupMatcherService.isInGroup(clientConnection, clientGroup)) {
-                        result.addToClientGroup(clientGroup);
+                        clientGroupIds.add(clientGroup.id);
                     }
                 });
             }
         }
-
-        return result;
+        return clientGroupIds;
     }
 
 }

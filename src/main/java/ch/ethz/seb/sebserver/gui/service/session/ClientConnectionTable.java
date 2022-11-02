@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -38,29 +37,35 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientStaticData;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringStaticClientData;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetMonitoringStaticClientData;
 import ch.ethz.seb.sebserver.gui.service.session.IndicatorData.ThresholdColor;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate {
+
+    private static final Logger log = LoggerFactory.getLogger(ClientConnectionTable.class);
 
     private static final int BOTTOM_PADDING = 20;
     //private static final int[] TABLE_PROPORTIONS = new int[] { 3, 3, 2, 1 };
@@ -100,7 +105,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     private boolean needsSort = false;
     private LinkedHashMap<Long, UpdatableTableItem> tableMapping;
     private final Set<Long> toDelete = new HashSet<>();
-    private final MultiValueMap<String, Long> sessionIds;
+    private final Set<Long> toUpdateStatic = new HashSet<>();
+    private final Set<Long> duplicates = new HashSet<>();
 
     private final Color darkFontColor;
     private final Color lightFontColor;
@@ -194,7 +200,6 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         this.tableMapping = new LinkedHashMap<>();
-        this.sessionIds = new LinkedMultiValueMap<>();
         this.table.layout();
     }
 
@@ -244,8 +249,9 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 final UpdatableTableItem updatableTableItem =
                         new ArrayList<>(this.tableMapping.values())
                                 .get(selectionIndices[i]);
-                if (filter.test(updatableTableItem.monitoringData)) {
-                    result.add(updatableTableItem.monitoringData.connectionToken);
+                if (filter.test(updatableTableItem.monitoringData)
+                        && updatableTableItem.staticData != ClientStaticData.NULL_DATA) {
+                    result.add(updatableTableItem.staticData.connectionToken);
                 }
             }
             return result;
@@ -253,9 +259,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             return this.tableMapping
                     .values()
                     .stream()
-                    .map(item -> item.monitoringData)
-                    .filter(filter)
-                    .map(ClientMonitoringData::getConnectionToken)
+                    .filter(item -> filter.test(item.monitoringData) && item.staticData != ClientStaticData.NULL_DATA)
+                    .map(item -> item.staticData.connectionToken)
                     .collect(Collectors.toSet());
         }
     }
@@ -304,7 +309,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 (updatableTableItem.connectionId != null)
                         ? String.valueOf(updatableTableItem.connectionId)
                         : null,
-                updatableTableItem.monitoringData.connectionToken);
+                updatableTableItem.staticData.connectionToken);
     }
 
     public void forceUpdateAll() {
@@ -329,33 +334,32 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             this.toDelete.addAll(this.tableMapping.keySet());
         }
 
+        this.toUpdateStatic.clear();
         monitoringStatus.getConnectionData()
                 .forEach(data -> {
                     final UpdatableTableItem tableItem = this.tableMapping.computeIfAbsent(
                             data.id,
                             UpdatableTableItem::new);
-                    tableItem.push(data);
+                    if (tableItem.push(data)) {
+                        this.toUpdateStatic.add(data.id);
+                    }
                     if (needsSync) {
                         this.toDelete.remove(data.id);
                     }
                 });
 
+        if (!this.toUpdateStatic.isEmpty()) {
+            fetchStaticClientConnectionData();
+        }
+
         if (!this.toDelete.isEmpty()) {
-            this.toDelete.forEach(id -> {
-                final UpdatableTableItem item = this.tableMapping.remove(id);
-                if (item != null) {
-                    final List<Long> list = this.sessionIds.get(item.monitoringData.userSessionId);
-                    if (list != null) {
-                        list.remove(id);
-                    }
-                }
-            });
+            this.toDelete.forEach(id -> this.tableMapping.remove(id));
             monitoringStatus.resetFilterChanged();
             this.toDelete.clear();
         }
 
         this.forceUpdateAll = false;
-        this.needsSort = sizeChanged;
+        this.needsSort = this.needsSort || sizeChanged;
         updateGUI();
     }
 
@@ -447,9 +451,9 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         private boolean dataChanged = false;
         private boolean indicatorValueChanged = false;
         private ClientMonitoringData monitoringData;
+        private ClientStaticData staticData = ClientStaticData.NULL_DATA;
         private int thresholdsWeight;
         private int[] indicatorWeights = null;
-        private boolean duplicateChecked = false;
 
         UpdatableTableItem(final Long connectionId) {
             this.connectionId = connectionId;
@@ -457,6 +461,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         private void update(final TableItem tableItem, final boolean force) {
+            updateDuplicateColor(tableItem);
             if (force || this.dataChanged) {
                 updateData(tableItem);
             }
@@ -483,10 +488,23 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                         ClientConnectionTable.this.localizedClientConnectionStatusNameFunction
                                 .apply(this.monitoringData));
             }
+
             if (this.monitoringData != null) {
                 updateConnectionStatusColor(tableItem);
-                updateDuplicateColor(tableItem);
                 updateNotifications(tableItem);
+            }
+        }
+
+        private void updateDuplicateColor(final TableItem tableItem) {
+            //System.out.println("ClientConnectionTable.this.duplicates : " + ClientConnectionTable.this.duplicates);
+            if (ClientConnectionTable.this.duplicates.contains(this.connectionId) &&
+                    tableItem.getBackground(0) != ClientConnectionTable.this.colorData.color3) {
+                tableItem.setBackground(0, ClientConnectionTable.this.colorData.color3);
+                tableItem.setForeground(0, ClientConnectionTable.this.lightFontColor);
+            } else if (!ClientConnectionTable.this.duplicates.contains(this.connectionId) &&
+                    tableItem.getBackground(0) == ClientConnectionTable.this.colorData.color3) {
+                tableItem.setBackground(0, null);
+                tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
             }
         }
 
@@ -509,29 +527,6 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             tableItem.setForeground(index, statusTextColor);
         }
 
-        private void updateDuplicateColor(final TableItem tableItem) {
-
-            tableItem.setBackground(0, null);
-            tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
-
-            if (!this.duplicateChecked) {
-                return;
-            }
-
-            if (this.monitoringData != null
-                    && StringUtils.isNotBlank(this.monitoringData.userSessionId)) {
-                final List<Long> list =
-                        ClientConnectionTable.this.sessionIds.get(this.monitoringData.userSessionId);
-                if (list != null && list.size() > 1) {
-                    tableItem.setBackground(0, ClientConnectionTable.this.colorData.color3);
-                    tableItem.setForeground(0, ClientConnectionTable.this.lightFontColor);
-                } else {
-                    tableItem.setBackground(0, null);
-                    tableItem.setForeground(0, ClientConnectionTable.this.darkFontColor);
-                }
-            }
-        }
-
         private Consumer<Map.Entry<Long, String>> indicatorUpdate(final TableItem tableItem) {
             return entry -> {
                 final Long id = entry.getKey();
@@ -541,10 +536,11 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                     return;
                 }
 
-                updateIndicatorWeight(displayValue, indicatorData);
-
                 if (!this.monitoringData.status.clientActiveStatus) {
-                    tableItem.setText(indicatorData.tableIndex, displayValue);
+                    final String value = (indicatorData.indicator.type.showOnlyInActiveState)
+                            ? Constants.EMPTY_NOTE
+                            : displayValue;
+                    tableItem.setText(indicatorData.tableIndex, value);
                     tableItem.setBackground(indicatorData.tableIndex, indicatorData.defaultColor);
                     tableItem.setForeground(indicatorData.tableIndex, indicatorData.defaultTextColor);
                 } else {
@@ -571,38 +567,6 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                     .entrySet()
                     .stream()
                     .forEach(indicatorUpdate(tableItem));
-
-//            for (int i = 0; i < this.monitoringData.indicatorVals.size(); i++) {
-//                final IndicatorValue indicatorValue = this.monitoringData.indicatorValues.get(i);
-//                final IndicatorData indicatorData = ClientConnectionTable.this.indicatorMapping
-//                        .get(indicatorValue.getIndicatorId());
-//
-//                if (indicatorData == null) {
-//                    continue;
-//                }
-//
-//                if (!this.connectionData.clientConnection.status.clientActiveStatus) {
-//                    final String value = (indicatorData.indicator.type.showOnlyInActiveState)
-//                            ? Constants.EMPTY_NOTE
-//                            : IndicatorValue.getDisplayValue(indicatorValue, indicatorData.indicator.type);
-//                    tableItem.setText(indicatorData.tableIndex, value);
-//                    tableItem.setBackground(indicatorData.tableIndex, indicatorData.defaultColor);
-//                    tableItem.setForeground(indicatorData.tableIndex, indicatorData.defaultTextColor);
-//                } else {
-//                    tableItem.setText(indicatorData.tableIndex, IndicatorValue.getDisplayValue(
-//                            indicatorValue,
-//                            indicatorData.indicator.type));
-//                    final int weight = this.indicatorWeights[indicatorData.index];
-//                    if (weight >= 0 && weight < indicatorData.thresholdColor.length) {
-//                        final ThresholdColor thresholdColor = indicatorData.thresholdColor[weight];
-//                        tableItem.setBackground(indicatorData.tableIndex, thresholdColor.color);
-//                        tableItem.setForeground(indicatorData.tableIndex, thresholdColor.textColor);
-//                    } else {
-//                        tableItem.setBackground(indicatorData.tableIndex, indicatorData.defaultColor);
-//                        tableItem.setForeground(indicatorData.tableIndex, indicatorData.defaultTextColor);
-//                    }
-//                }
-//            }
         }
 
         @Override
@@ -650,8 +614,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         String getConnectionInfo() {
-            if (this.monitoringData != null && this.monitoringData.info != null) {
-                return this.monitoringData.info;
+            if (this.staticData != null && this.staticData.info != null) {
+                return this.staticData.info;
             }
             return Constants.EMPTY_NOTE;
         }
@@ -659,7 +623,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         private String getGroupInfo() {
             final StringBuilder sb = new StringBuilder();
             ClientConnectionTable.this.clientGroupMapping.keySet().stream().forEach(key -> {
-                if (this.monitoringData.groups != null && this.monitoringData.groups.contains(key)) {
+                if (this.staticData.groups != null && this.staticData.groups.contains(key)) {
                     final ClientGroup clientGroup = ClientConnectionTable.this.clientGroupMapping.get(key);
                     sb.append(WidgetFactory.getTextWithBackgroundHTML(clientGroup.name, clientGroup.color));
                 }
@@ -673,16 +637,17 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         String getConnectionIdentifier() {
-            if (this.monitoringData != null && this.monitoringData.userSessionId != null) {
-                return this.monitoringData.userSessionId;
+            if (this.staticData != null && this.staticData.userSessionId != null) {
+                return this.staticData.userSessionId;
             }
 
             return "--";
         }
 
-        void push(final ClientMonitoringData monitoringData) {
+        boolean push(final ClientMonitoringData monitoringData) {
             this.dataChanged = this.monitoringData == null ||
-                    !this.monitoringData.dataEquals(monitoringData);
+                    this.monitoringData.status != monitoringData.status ||
+                    this.monitoringData.missingPing != monitoringData.missingPing;
             this.indicatorValueChanged = this.monitoringData == null ||
                     (this.monitoringData.status.clientActiveStatus
                             && !this.monitoringData.indicatorValuesEquals(monitoringData));
@@ -697,55 +662,89 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             if (this.indicatorWeights == null) {
                 this.indicatorWeights = new int[ClientConnectionTable.this.indicatorMapping.size()];
             }
-
-//            for (int i = 0; i < monitoringData.indicatorValues.size(); i++) {
-//                final IndicatorValue indicatorValue = connectionData.indicatorValues.get(i);
-//                final IndicatorData indicatorData =
-//                        ClientConnectionTable.this.indicatorMapping.get(indicatorValue.getIndicatorId());
-//
-//                if (indicatorData != null) {
-//                    updateIndicatorWeight(indicatorValue, indicatorData);
-//                }
-//            }
-
+            if (this.indicatorValueChanged) {
+                updateIndicatorWeight();
+            }
             this.monitoringData = monitoringData;
 
-            if (!this.duplicateChecked &&
-                    this.monitoringData.status != ConnectionStatus.DISABLED &&
-                    StringUtils.isNotBlank(monitoringData.userSessionId)) {
-
-                ClientConnectionTable.this.sessionIds.add(
-                        monitoringData.userSessionId,
-                        this.connectionId);
-                this.duplicateChecked = true;
-            }
+            return this.staticData == null
+                    || this.staticData == ClientStaticData.NULL_DATA
+                    || this.dataChanged
+                    || this.monitoringData.status.connectingStatus
+                    || StringUtils.isBlank(this.staticData.userSessionId);
         }
 
-        private void updateIndicatorWeight(
-                final String indicatorValue,
-                final IndicatorData indicatorData) {
+        void push(final ClientStaticData staticData) {
+            this.staticData = staticData;
+            this.dataChanged = true;
+        }
 
-            final int indicatorWeight = IndicatorData.getWeight(
-                    indicatorData,
-                    IndicatorValue.getFromDisplayValue(indicatorValue));
-            if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {
-                ClientConnectionTable.this.needsSort = true;
-                this.thresholdsWeight -= (indicatorData.indicator.type.inverse)
-                        ? indicatorData.indicator.thresholds.size()
-                                - this.indicatorWeights[indicatorData.index]
-                        : this.indicatorWeights[indicatorData.index];
-                this.indicatorWeights[indicatorData.index] = indicatorWeight;
-                this.thresholdsWeight += (indicatorData.indicator.type.inverse)
-                        ? indicatorData.indicator.thresholds.size()
-                                - this.indicatorWeights[indicatorData.index]
-                        : this.indicatorWeights[indicatorData.index];
+        private void updateIndicatorWeight() {
+            if (this.monitoringData == null) {
+                return;
             }
+
+            this.monitoringData.indicatorVals.entrySet().stream().forEach(entry -> {
+                final Long id = entry.getKey();
+                final String displayValue = entry.getValue();
+                final IndicatorData indicatorData = ClientConnectionTable.this.indicatorMapping.get(id);
+                if (indicatorData == null) {
+                    return;
+                }
+
+                final int indicatorWeight = IndicatorData.getWeight(
+                        indicatorData,
+                        IndicatorValue.getFromDisplayValue(displayValue));
+                if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {
+                    ClientConnectionTable.this.needsSort = true;
+                    this.thresholdsWeight -= (indicatorData.indicator.type.inverse)
+                            ? indicatorData.indicator.thresholds.size()
+                                    - this.indicatorWeights[indicatorData.index]
+                            : this.indicatorWeights[indicatorData.index];
+                    this.indicatorWeights[indicatorData.index] = indicatorWeight;
+                    this.thresholdsWeight += (indicatorData.indicator.type.inverse)
+                            ? indicatorData.indicator.thresholds.size()
+                                    - this.indicatorWeights[indicatorData.index]
+                            : this.indicatorWeights[indicatorData.index];
+                }
+            });
         }
 
         private ClientConnectionTable getOuterType() {
             return ClientConnectionTable.this;
         }
+    }
 
+    private void fetchStaticClientConnectionData() {
+        final String ids = this.toUpdateStatic
+                .stream()
+                .map(String::valueOf)
+                .reduce("", (acc, str) -> acc + str + Constants.LIST_SEPARATOR, (acc1, acc2) -> acc1 + acc2);
+
+        final Result<MonitoringStaticClientData> call = this.pageService
+                .getRestService()
+                .getBuilder(GetMonitoringStaticClientData.class)
+                .withFormParam(API.PARAM_MODEL_ID_LIST, ids)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, this.exam.getModelId())
+                .call();
+
+        if (call.hasError()) {
+            log.error("Failed to get client connection static data for: {}", ids, call.getError());
+        } else {
+            final MonitoringStaticClientData monitoringStaticClientData = call.get();
+            this.duplicates.clear();
+            this.duplicates.addAll(monitoringStaticClientData.duplications);
+            monitoringStaticClientData.staticClientConnectionData
+                    .stream()
+                    .forEach(staticData -> {
+                        final UpdatableTableItem updatableTableItem = this.tableMapping.get(staticData.id);
+                        if (updatableTableItem != null) {
+                            updatableTableItem.push(staticData);
+                        } else {
+                            log.error("Failed to find table entry for static data: {}", staticData);
+                        }
+                    });
+        }
     }
 
 }

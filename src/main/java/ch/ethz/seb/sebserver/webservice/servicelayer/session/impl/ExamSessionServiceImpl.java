@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -44,6 +45,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
+import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringStaticClientData;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
@@ -425,7 +427,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                     .getConnectionTokens(examId)
                     .getOrThrow()
                     .stream()
-                    .map(token -> getConnectionDataInternal(token))
+                    .map(this::getConnectionDataInternal)
                     .filter(Objects::nonNull)
                     .map(c -> {
                         statusMapping[c.clientConnection.status.code]++;
@@ -441,6 +443,23 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                     clientGroupMapping,
                     filteredConnections);
         });
+    }
+
+    @Override
+    public synchronized Result<MonitoringStaticClientData> getMonitoringSEBConnectionStaticData(
+            final Long examId,
+            final Set<Long> connectionIds) {
+
+        this.duplicateCheck.clear();
+        this.duplicates.clear();
+        return this.clientConnectionDAO
+                .getConnectionTokens(examId)
+                .map(tokens -> tokens.stream()
+                        .map(this::getForTokenAndCheckDuplication)
+                        .filter(ccd -> connectionIds.contains(ccd.clientConnection.id))
+                        .map(ccd -> ccd.clientStaticData)
+                        .collect(Collectors.toList()))
+                .map(staticData -> new MonitoringStaticClientData(staticData, this.duplicates));
     }
 
     @Override
@@ -585,6 +604,23 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 clientGroupMapping.put(id, 1);
             }
         });
+    }
+
+    private final Map<String, Long> duplicateCheck = new HashMap<>();
+    private final Set<Long> duplicates = new HashSet<>();
+
+    private ClientConnectionDataInternal getForTokenAndCheckDuplication(final String token) {
+        final ClientConnectionDataInternal cc = this.examSessionCacheService.getClientConnection(token);
+        if (cc.clientConnection.status.establishedStatus) {
+            final Long id = this.duplicateCheck.put(
+                    cc.clientConnection.userSessionId,
+                    cc.getConnectionId());
+            if (id != null) {
+                this.duplicates.add(id);
+                this.duplicates.add(cc.getConnectionId());
+            }
+        }
+        return cc;
     }
 
 }

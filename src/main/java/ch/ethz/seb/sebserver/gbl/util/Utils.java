@@ -775,7 +775,7 @@ public final class Utils {
         try {
             return ipToLong(InetAddress.getByName(ipV4Address));
         } catch (final UnknownHostException e) {
-            log.error("Failed to convert IPv4 address: {}", ipV4Address, e);
+            log.error("Failed to convert IPv4 address: {}, error: ", ipV4Address, e.getMessage());
             return -1L;
         }
     }
@@ -803,6 +803,14 @@ public final class Utils {
         }
 
         return false;
+    }
+
+    public static Long toLong(final String longValue) {
+        try {
+            return Long.valueOf(longValue);
+        } catch (final Exception e) {
+            return null;
+        }
     }
 
 }

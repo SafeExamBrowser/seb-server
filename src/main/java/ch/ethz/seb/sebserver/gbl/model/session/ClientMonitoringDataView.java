@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.gbl.model.session;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -36,20 +35,8 @@ public interface ClientMonitoringDataView {
     @JsonProperty(ATTR_STATUS)
     ConnectionStatus getStatus();
 
-    @JsonProperty(ATTR_CONNECTION_TOKEN)
-    String getConnectionToken();
-
-    @JsonProperty(ATTR_EXAM_USER_SESSION_ID)
-    String getUserSessionId();
-
-    @JsonProperty(ATTR_INFO)
-    String getInfo();
-
     @JsonProperty(ATTR_INDICATOR_VALUES)
     Map<Long, String> getIndicatorValues();
-
-    @JsonProperty(ATTR_CLIENT_GROUPS)
-    Set<Long> getGroups();
 
     @JsonProperty(ATTR_MISSING_PING)
     boolean isMissingPing();

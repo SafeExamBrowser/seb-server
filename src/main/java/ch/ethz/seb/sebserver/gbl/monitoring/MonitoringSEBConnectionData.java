@@ -24,14 +24,16 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MonitoringSEBConnectionData {
 
-    public static final String ATTR_CONNECTIONS = "connections";
-    public static final String ATTR_STATUS_MAPPING = "statusMapping";
-    public static final String ATTR_CLIENT_GROUP_MAPPING = "clientGroupMapping";
+    public static final String ATTR_CONNECTIONS = "cons";
+    public static final String ATTR_STATUS_MAPPING = "sm";
+    public static final String ATTR_CLIENT_GROUP_MAPPING = "cgm";
 
     @JsonProperty(ATTR_CONNECTIONS)
     public final Collection<? extends ClientMonitoringDataView> monitoringData;
+
     @JsonProperty(ATTR_STATUS_MAPPING)
     public final int[] connectionsPerStatus;
+
     @JsonProperty(ATTR_CLIENT_GROUP_MAPPING)
     public final Map<Long, Integer> connectionsPerClientGroup;
 

@@ -13,7 +13,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,8 +25,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientStaticData;
+import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.PendingNotificationIndication;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.PingIntervalClientIndicator;
@@ -39,9 +47,10 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     protected ClientConnectionDataInternal(
             final ClientConnection clientConnection,
             final PendingNotificationIndication pendingNotificationIndication,
-            final List<ClientIndicator> clientIndicators) {
+            final List<ClientIndicator> clientIndicators,
+            final Set<Long> groups) {
 
-        super(clientConnection, clientIndicators);
+        super(clientConnection, clientIndicators, groups);
         this.pendingNotificationIndication = pendingNotificationIndication;
 
         this.indicatorMapping = new EnumMap<>(EventType.class);
@@ -99,5 +108,49 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
                 .findFirst()
                 .isPresent();
     }
+
+    /** This is a wrapper for the live monitoring data view of this client connection data */
+    @JsonIgnore
+    public final ClientMonitoringDataView monitoringDataView = new ClientMonitoringDataView() {
+
+        @Override
+        public Long getId() {
+            return ClientConnectionDataInternal.this.clientConnection.id;
+        }
+
+        @Override
+        public ConnectionStatus getStatus() {
+            return ClientConnectionDataInternal.this.clientConnection.status;
+        }
+
+        @Override
+        public Map<Long, String> getIndicatorValues() {
+            return ClientConnectionDataInternal.this.indicatorValues
+                    .stream()
+                    .collect(Collectors.toMap(
+                            iv -> iv.getIndicatorId(),
+                            iv -> IndicatorValue.getDisplayValue(iv)));
+        }
+
+        @Override
+        public boolean isMissingPing() {
+            return BooleanUtils.isTrue(getMissingPing());
+        }
+
+        @Override
+        public boolean isPendingNotification() {
+            return BooleanUtils.isTrue(pendingNotification());
+        }
+    };
+
+    /** This is a static monitoring connection data wrapper/holder */
+    @JsonIgnore
+    public final ClientStaticData clientStaticData =
+            new ClientStaticData(
+                    ClientConnectionDataInternal.this.clientConnection.id,
+                    ClientConnectionDataInternal.this.clientConnection.connectionToken,
+                    ClientConnectionDataInternal.this.clientConnection.userSessionId,
+                    ClientConnectionDataInternal.this.clientConnection.info,
+                    this.groups);
 
 }

@@ -75,6 +75,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final ExamAdminService examAdminService;
     private final DistributedIndicatorValueService distributedPingCache;
     private final ClientIndicatorFactory clientIndicatorFactory;
+    private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
     private final boolean isDistributedSetup;
 
     protected SEBClientConnectionServiceImpl(
@@ -84,7 +85,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final SEBClientInstructionService sebInstructionService,
             final ExamAdminService examAdminService,
             final DistributedIndicatorValueService distributedPingCache,
-            final ClientIndicatorFactory clientIndicatorFactory) {
+            final ClientIndicatorFactory clientIndicatorFactory,
+            final InternalClientConnectionDataFactory internalClientConnectionDataFactory) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();
@@ -95,6 +97,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.examAdminService = examAdminService;
         this.clientIndicatorFactory = clientIndicatorFactory;
         this.distributedPingCache = distributedPingCache;
+        this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
         this.isDistributedSetup = sebInstructionService.getWebserviceInfo().isDistributed();
     }
 
@@ -740,7 +743,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     public Result<ClientConnectionData> getIndicatorValues(final ClientConnection clientConnection) {
         return Result.tryCatch(() -> new ClientConnectionData(
                 clientConnection,
-                this.clientIndicatorFactory.getIndicatorValues(clientConnection)));
+                this.clientIndicatorFactory.getIndicatorValues(clientConnection),
+                this.internalClientConnectionDataFactory.getGroupIds(clientConnection)));
     }
 
     private void checkExamRunning(final Long examId, final String user, final String address) {
