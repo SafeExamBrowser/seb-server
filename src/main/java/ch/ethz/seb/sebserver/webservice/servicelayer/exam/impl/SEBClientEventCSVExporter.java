@@ -74,8 +74,6 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
                     .append(Constants.COMMA)
                     .append("Exam Name")
                     .append(Constants.COMMA)
-                    .append("Exam Description")
-                    .append(Constants.COMMA)
                     .append("Exam Type")
                     .append(Constants.COMMA)
                     .append("Start Time (LMS)")
@@ -132,8 +130,6 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
         if (examData != null) {
             builder.append(Constants.COMMA);
             builder.append(Utils.toCSVString(examData.getName()));
-            builder.append(Constants.COMMA);
-            builder.append(Utils.toCSVString(examData.getDescription()));
             builder.append(Constants.COMMA);
             builder.append(examData.getType().name());
             builder.append(Constants.COMMA);

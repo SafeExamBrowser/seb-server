@@ -70,7 +70,7 @@ public class SEBClientEventCSVExporterTest {
         final String string = Utils.toString(array);
 
         Assert.assertEquals(
-                "Event Type,Message,Value,Client Time (UTC),Server Time (UTC),Exam Name,Exam Description,Exam Type,Start Time (LMS),End Time (LMS)\n",
+                "Event Type,Message,Value,Client Time (UTC),Server Time (UTC),Exam Name,Exam Type,Start Time (LMS),End Time (LMS)\n",
                 string);
     }
 
@@ -86,7 +86,7 @@ public class SEBClientEventCSVExporterTest {
         final String string = Utils.toString(array);
 
         Assert.assertEquals(
-                "Event Type,Message,Value,Client Time (UTC),Server Time (UTC),User Session-ID,Client Machine,Connection Status,Connection Token,Exam Name,Exam Description,Exam Type,Start Time (LMS),End Time (LMS)\n",
+                "Event Type,Message,Value,Client Time (UTC),Server Time (UTC),User Session-ID,Client Machine,Connection Status,Connection Token,Exam Name,Exam Type,Start Time (LMS),End Time (LMS)\n",
                 string);
     }
 
@@ -131,7 +131,7 @@ public class SEBClientEventCSVExporterTest {
         final String string = Utils.toString(array);
 
         Assert.assertEquals(
-                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"name\",\"description\",BYOD,1970-01-01T00:00:00.001,1970-01-01T00:00:00.001\n",
+                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"name\",BYOD,1970-01-01T00:00:00.001,1970-01-01T00:00:00.001\n",
                 string);
     }
 
@@ -159,7 +159,7 @@ public class SEBClientEventCSVExporterTest {
         final String string = Utils.toString(array);
 
         Assert.assertEquals(
-                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"sessionid\",\"clientaddress\",status,token,\"name\",\"description\",BYOD,1970-01-01T00:00:00.001,1970-01-01T00:00:00.001\n",
+                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"sessionid\",\"clientaddress\",status,token,\"name\",BYOD,1970-01-01T00:00:00.001,1970-01-01T00:00:00.001\n",
                 string);
     }
 }
