@@ -475,7 +475,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final ExamProctoringService examProctoringService) {
 
         // get all connections of the room
-        final List<String> connectionTokens = this.getActiveCollectingRoomConnections(examId, roomName)
+        final List<String> connectionTokens = this
+                .getActiveCollectingRoomConnections(examId, roomName)
                 .getOrThrow()
                 .stream()
                 .map(cc -> cc.connectionToken)
@@ -501,6 +502,12 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     connectionTokens,
                     examProctoringService.getDefaultReconfigInstructionAttributes());
         }
+
+        // Send the rejoin to collecting room instruction to all involved clients
+        sendJoinCollectingRoomInstructions(
+                proctoringSettings,
+                connectionTokens,
+                examProctoringService);
     }
 
     private void cleanupBreakOutRooms(final ClientConnectionRecord cc) {
