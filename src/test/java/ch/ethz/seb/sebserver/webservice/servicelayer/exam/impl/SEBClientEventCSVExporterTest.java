@@ -54,7 +54,7 @@ public class SEBClientEventCSVExporterTest {
         final String string = Utils.toString(array);
 
         Assert.assertEquals(
-                "Event Type,Message,Value,Client Time (UTC),Server Time (UTC),User Session-ID,Client Machine,Connection Status,Connection Token\n",
+                "Event Type,Message,Value,Client Time (UTC),Server Time (UTC),User Session-ID,Client Machine,Connection Token\n",
                 string);
     }
 
@@ -86,7 +86,7 @@ public class SEBClientEventCSVExporterTest {
         final String string = Utils.toString(array);
 
         Assert.assertEquals(
-                "Event Type,Message,Value,Client Time (UTC),Server Time (UTC),User Session-ID,Client Machine,Connection Status,Connection Token,Exam Name,Exam Type,Start Time (LMS),End Time (LMS)\n",
+                "Event Type,Message,Value,Client Time (UTC),Server Time (UTC),User Session-ID,Client Machine,Connection Token,Exam Name,Exam Type,Start Time (LMS),End Time (LMS)\n",
                 string);
     }
 
@@ -107,7 +107,7 @@ public class SEBClientEventCSVExporterTest {
         final String string = Utils.toString(array);
 
         Assert.assertEquals(
-                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"sessionid\",\"clientaddress\",status,token\n",
+                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"sessionid\",\"clientaddress\",token\n",
                 string);
     }
 
@@ -161,7 +161,7 @@ public class SEBClientEventCSVExporterTest {
         final String string = Utils.toString(array);
 
         Assert.assertEquals(
-                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"sessionid\",\"clientaddress\",status,token,\"name\",BYOD,1970-01-01T00:00:00.001,1970-01-01T00:00:00.001\n",
+                "INFO_LOG,\"text\",5,1970-01-01T00:00:00.003,1970-01-01T00:00:00.004,\"sessionid\",\"clientaddress\",token,\"name\",BYOD,1970-01-01T00:00:00.001,1970-01-01T00:00:00.001\n",
                 string);
     }
 }

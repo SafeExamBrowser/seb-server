@@ -64,8 +64,6 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
                     .append(Constants.COMMA)
                     .append("Client Machine")
                     .append(Constants.COMMA)
-                    .append("Connection Status")
-                    .append(Constants.COMMA)
                     .append("Connection Token");
         }
 
@@ -121,8 +119,6 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
             builder.append(Utils.toCSVString(connectionData.getExamUserSessionId()));
             builder.append(Constants.COMMA);
             builder.append(Utils.toCSVString(connectionData.getClientAddress()));
-            builder.append(Constants.COMMA);
-            builder.append(connectionData.getStatus());
             builder.append(Constants.COMMA);
             builder.append(connectionData.getConnectionToken());
         }
