@@ -96,7 +96,8 @@ public class ExamProctoringRoomServiceTest extends AdministrationAPIIntegrationT
                 "",
                 false,
                 "",
-                null));
+                null,
+                "browser_signature_key"));
         assertFalse(createNew.hasError());
     }
 

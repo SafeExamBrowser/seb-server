@@ -102,6 +102,8 @@ public final class API {
 
     public static final String EXAM_API_PARAM_SEB_VERSION = "seb_version";
 
+    public static final String EXAM_API_PARAM_SIGNATURE_KEY = "seb_signature_key";
+
     public static final String EXAM_API_SEB_CONNECTION_TOKEN = "SEBConnectionToken";
 
     public static final String EXAM_API_USER_SESSION_ID = "seb_user_session_id";

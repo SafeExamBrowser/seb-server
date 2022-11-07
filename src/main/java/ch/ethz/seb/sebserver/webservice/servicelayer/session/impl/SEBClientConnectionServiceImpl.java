@@ -175,6 +175,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     null,
+                    null,
                     null))
                     .getOrThrow();
 
@@ -214,7 +215,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final String sebOsName,
             final String sebMachineName,
             final String userSessionId,
-            final String clientId) {
+            final String clientId,
+            final String browserSignatureKey) {
 
         return Result.tryCatch(() -> {
 
@@ -286,7 +288,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             null,
                             null,
                             null,
-                            null))
+                            null,
+                            browserSignatureKey))
                     .getOrThrow();
 
             // initialize distributed indicator value caches if possible and needed
@@ -319,7 +322,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final String sebOsName,
             final String sebMachineName,
             final String userSessionId,
-            final String clientId) {
+            final String clientId,
+            final String browserSignatureKey) {
 
         return Result.tryCatch(() -> {
 
@@ -405,7 +409,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     null,
-                    proctoringEnabled);
+                    proctoringEnabled,
+                    browserSignatureKey);
 
             // ClientConnection integrity check
             // institutionId, connectionToken and clientAddress must be set
@@ -503,14 +508,15 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 null,
                 null,
                 null,
-                establishedClientConnection.remoteProctoringRoomUpdate);
+                establishedClientConnection.remoteProctoringRoomUpdate,
+                null);
 
         // Update other connection with token and exam id
         final ClientConnection connection = this.clientConnectionDAO
                 .save(new ClientConnection(
                         vdiPairCompanion.getId(), null,
                         vdiExamId, null, null, null, null, null, null,
-                        establishedClientConnection.connectionToken, null, null, null, null, null, null, null))
+                        establishedClientConnection.connectionToken, null, null, null, null, null, null, null, null))
                 .getOrThrow();
 
         reloadConnectionCache(vdiPairCompanion.getConnectionToken(), connection.examId);
@@ -839,9 +845,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // create new ClientConnection for update
             final ClientConnection authenticatedClientConnection = new ClientConnection(
-                    clientConnection.id, null, null,
-                    ConnectionStatus.AUTHENTICATED, null,
-                    accountId, null, null, null, null, null, null, null, null, null, null, null);
+                    clientConnection.id, null, null, ConnectionStatus.AUTHENTICATED, null,
+                    accountId, null, null, null, null, null, null, null, null, null, null, null, null);
 
             clientConnection = this.clientConnectionDAO
                     .save(authenticatedClientConnection)
@@ -896,7 +901,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         return this.clientConnectionDAO.save(new ClientConnection(
                 clientConnection.id, null, null, status,
                 null, null, null, null, null, null, null, null, null, null, null, null,
-                proctoringEnabled))
+                proctoringEnabled, null))
                 .getOrThrow();
     }
 

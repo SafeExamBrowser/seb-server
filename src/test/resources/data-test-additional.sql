@@ -877,9 +877,9 @@ INSERT IGNORE INTO exam_configuration_map VALUES
     ;
     
 INSERT IGNORE INTO client_connection VALUES 
-    (1,1,3,'CLOSED','62c4bbdc-e8a5-42bc-8161-c3d187360184','-- (connection_080)','127.0.0.1',NULL,0,NULL,1647960776988,1647960797388,NULL,NULL,'machineName','osName','versionXY'),
-    (2,1,3,'CLOSED','e3abf4e5-ee5c-4cf1-a13a-1ff8fd23718a','-- (connection_063)','127.0.0.1',NULL,0,NULL,1647960776989,1647960797482,NULL,NULL,'machineName','osName','versionXY'),
-    (3,1,3,'DISABLED','3120f91e-76a9-4810-8628-f25f4099c47b','-- (connection_043)','127.0.0.1',NULL,0,NULL,1647960814460,1648130312083,NULL,NULL,'machineName','osName','versionXY'),
-    (4,1,3,'ACTIVE','6b901e7f-65fb-425f-a303-25e9d6fcbdf2','-- (connection_003)','127.0.0.1',NULL,0,NULL,1648134709401,1648542395328,NULL,NULL,'machineName','osName','versionXY'),
-    (5,1,3,'ACTIVE','2a2013a6-1664-4798-8f1d-362e9ec0a4e4','-- (connection_038)','127.0.0.1',NULL,0,NULL,1648135999634,1648542400438,NULL,NULL,'machineName','osName','versionXY');
+    (1,1,3,'CLOSED','62c4bbdc-e8a5-42bc-8161-c3d187360184','-- (connection_080)','127.0.0.1',NULL,0,NULL,1647960776988,1647960797388,NULL,NULL,'machineName','osName','versionXY',NULL),
+    (2,1,3,'CLOSED','e3abf4e5-ee5c-4cf1-a13a-1ff8fd23718a','-- (connection_063)','127.0.0.1',NULL,0,NULL,1647960776989,1647960797482,NULL,NULL,'machineName','osName','versionXY',NULL),
+    (3,1,3,'DISABLED','3120f91e-76a9-4810-8628-f25f4099c47b','-- (connection_043)','127.0.0.1',NULL,0,NULL,1647960814460,1648130312083,NULL,NULL,'machineName','osName','versionXY',NULL),
+    (4,1,3,'ACTIVE','6b901e7f-65fb-425f-a303-25e9d6fcbdf2','-- (connection_003)','127.0.0.1',NULL,0,NULL,1648134709401,1648542395328,NULL,NULL,'machineName','osName','versionXY',NULL),
+    (5,1,3,'ACTIVE','2a2013a6-1664-4798-8f1d-362e9ec0a4e4','-- (connection_038)','127.0.0.1',NULL,0,NULL,1648135999634,1648542400438,NULL,NULL,'machineName','osName','versionXY',NULL);
     

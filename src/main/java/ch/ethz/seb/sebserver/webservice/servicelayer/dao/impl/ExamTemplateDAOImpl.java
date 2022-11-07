@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,17 +68,20 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
 
     private final ExamTemplateRecordMapper examTemplateRecordMapper;
     private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final ExamDAO examDAO;
     private final JSONMapper jsonMapper;
 
     public ExamTemplateDAOImpl(
             final ExamTemplateRecordMapper examTemplateRecordMapper,
             final AdditionalAttributesDAO additionalAttributesDAO,
+            final ApplicationEventPublisher applicationEventPublisher,
             final ExamDAO examDAO,
             final JSONMapper jsonMapper) {
 
         this.examTemplateRecordMapper = examTemplateRecordMapper;
         this.additionalAttributesDAO = additionalAttributesDAO;
+        this.applicationEventPublisher = applicationEventPublisher;
         this.examDAO = examDAO;
         this.jsonMapper = jsonMapper;
     }
@@ -447,6 +451,9 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
             if (ids == null || ids.isEmpty()) {
                 return Collections.emptyList();
             }
+
+            // notify exam deletion listener about following deletion, to cleanup stuff before deletion
+            this.applicationEventPublisher.publishEvent(new ExamTemplateDeletionEvent(ids));
 
             ids.stream()
                     .forEach(id -> {

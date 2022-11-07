@@ -75,6 +75,7 @@ public interface SEBClientConnectionService {
      * @param examId The exam identifier
      * @param userSessionId The user session identifier of the users http-session with the LMS
      * @param clientId The client identifier sent by the SEB client (used to identify VDI client pair)
+     * @param browserSignatureKey the Browser Signature Key of the SEB (optional)
      * @return A Result refer to the updated ClientConnection instance, or refer to an error if happened */
     Result<ClientConnection> updateClientConnection(
             String connectionToken,
@@ -85,7 +86,8 @@ public interface SEBClientConnectionService {
             String sebOsName,
             String sebMachineName,
             String userSessionId,
-            String clientId);
+            String clientId,
+            String browserSignatureKey);
 
     /** This is used to establish a already created ClientConnection and set it to sate: ESTABLISHED
      * The connectionToken identifies the ClientConnection and the given clientAddress must match with
@@ -109,6 +111,7 @@ public interface SEBClientConnectionService {
      * @param sebMachineName the machine/device name where the SEB runs on (optional)
      * @param userSessionId The user session identifier of the users http-session with the LMS
      * @param clientId The client identifier sent by the SEB client (used to identify VDI client pair)
+     * @param browserSignatureKey the Browser Signature Key of the SEB (optional)
      * @return A Result refer to the established ClientConnection instance, or refer to an error if happened */
     Result<ClientConnection> establishClientConnection(
             String connectionToken,
@@ -119,7 +122,8 @@ public interface SEBClientConnectionService {
             String sebOsName,
             String sebMachineName,
             String userSessionId,
-            String clientId);
+            String clientId,
+            String browserSignatureKey);
 
     /** This is used to regular close an established ClientConnection from SEB Client side.
      * <p>

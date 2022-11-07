@@ -59,7 +59,8 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "1.1.1.1", "seb_os_name", "seb_machine_name", "seb_version", "", false,
                                 "", 1L,
                                 1L,
-                                null, false))
+                                null, false,
+                                "browser_signature_key"))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -85,7 +86,8 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "1.1.1.1", "seb_os_name", "seb_machine_name", "seb_version", "", false,
                                 "", 1L,
                                 1L,
-                                null, false))
+                                null, false,
+                                "browser_signature_key"))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -130,7 +132,8 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "1.1.1.1", "seb_os_name", "seb_machine_name", "seb_version", "", false,
                                 "", 1L,
                                 1L,
-                                null, false))
+                                null, false,
+                                "browser_signature_key"))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -203,7 +206,8 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "1.1.1.1", "seb_os_name", "seb_machine_name", "seb_version", "", false,
                                 "", 1L,
                                 1L,
-                                null, false))
+                                null, false,
+                                "browser_signature_key"))
                 .getOrThrow();
 
         assertNotNull(connection.id);

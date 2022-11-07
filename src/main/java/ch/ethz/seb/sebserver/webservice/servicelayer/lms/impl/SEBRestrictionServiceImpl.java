@@ -191,10 +191,12 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                 .flatMap(this.examDAO::byPK);
     }
 
-    @EventListener
+    @EventListener(ExamStartedEvent.class)
     public void notifyExamStarted(final ExamStartedEvent event) {
 
-        log.info("ExamStartedEvent received, process applySEBClientRestriction...");
+        if (log.isDebugEnabled()) {
+            log.debug("ExamStartedEvent received, process applySEBClientRestriction...");
+        }
 
         applySEBClientRestriction(event.exam)
                 .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
@@ -204,10 +206,12 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                         error));
     }
 
-    @EventListener
+    @EventListener(ExamFinishedEvent.class)
     public void notifyExamFinished(final ExamFinishedEvent event) {
 
-        log.info("ExamFinishedEvent received, process releaseSEBClientRestriction...");
+        if (log.isDebugEnabled()) {
+            log.debug("ExamFinishedEvent received, process releaseSEBClientRestriction...");
+        }
 
         releaseSEBClientRestriction(event.exam)
                 .onError(error -> log.error(

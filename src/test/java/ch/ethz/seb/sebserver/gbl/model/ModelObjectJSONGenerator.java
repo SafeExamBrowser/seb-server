@@ -258,7 +258,8 @@ public class ModelObjectJSONGenerator {
                         "seb_os_name", "seb_machine_name", "seb_version",
                         "vdiID", true, "", currentTimeMillis, currentTimeMillis,
                         123L,
-                        true);
+                        true,
+                        "browser_signature_key");
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
@@ -271,7 +272,8 @@ public class ModelObjectJSONGenerator {
                         "seb_os_name", "seb_machine_name", "seb_version",
                         "vdiID", true, "", currentTimeMillis, currentTimeMillis,
                         123L,
-                        true),
+                        true,
+                        "browser_signature_key"),
                 Arrays.asList(
                         new SimpleIndicatorValue(1L, 1.0),
                         new SimpleIndicatorValue(2L, 2.0),
