@@ -443,7 +443,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 .getActiveConnectionTokens(examId)
                 .getOrThrow();
 
-        // Send default settings to clients if fearture is enabled
+        // Send default settings to clients if feature is enabled
         if (this.sendBroadcastReset) {
             this.sendReconfigurationInstructions(
                     examId,
