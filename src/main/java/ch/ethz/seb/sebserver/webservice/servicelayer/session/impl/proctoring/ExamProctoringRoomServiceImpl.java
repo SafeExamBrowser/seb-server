@@ -31,7 +31,9 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.InstructionType;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction.ProctoringRoomType;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -669,7 +671,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                             examId,
                             connectionToken,
                             roomConnection,
-                            examProctoringService);
+                            examProctoringService,
+                            ProctoringRoomType.TOWNHALL);
                 } catch (final Exception e) {
                     log.error("Failed to send join for town-hall room assignment to connection: {}", cc);
                     this.clientConnectionDAO
@@ -725,7 +728,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                                     proctoringSettings.examId,
                                     connectionToken,
                                     proctoringConnection,
-                                    examProctoringService);
+                                    examProctoringService,
+                                    ProctoringRoomType.BREAKOUT_ROOM);
                         }
                     } catch (final Exception e) {
                         log.error("Failed to send join to break-out room: {} connection: {}",
@@ -790,7 +794,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     proctoringSettings.examId,
                     clientConnection.clientConnection.connectionToken,
                     proctoringConnection,
-                    examProctoringService);
+                    examProctoringService,
+                    ProctoringRoomType.COLLECTING_ROOM);
 
         } catch (final Exception e) {
             log.error("Failed to send proctoring room join instruction to client: {}", connectionToken, e);
@@ -802,7 +807,8 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final Long examId,
             final String connectionToken,
             final ProctoringRoomConnection proctoringConnection,
-            final ExamProctoringService examProctoringService) {
+            final ExamProctoringService examProctoringService,
+            final ProctoringRoomType roomType) {
 
         if (log.isDebugEnabled()) {
             log.debug("Register proctoring join instruction for connection: {}, room: {}",
@@ -812,6 +818,12 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
         final Map<String, String> attributes = examProctoringService
                 .createJoinInstructionAttributes(proctoringConnection);
+
+        if (roomType != null) {
+            attributes.put(
+                    ClientInstruction.SEB_INSTRUCTION_ATTRIBUTES.SEB_PROCTORING.PROCTORING_ROOM_TYPE,
+                    roomType.roomTypeName);
+        }
 
         this.sebInstructionService
                 .registerInstruction(

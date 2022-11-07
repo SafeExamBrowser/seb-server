@@ -36,6 +36,18 @@ public final class ClientInstruction {
         LEAVE
     }
 
+    public static enum ProctoringRoomType {
+        COLLECTING_ROOM("proctoring"),
+        TOWNHALL("townhall"),
+        BREAKOUT_ROOM("breakout");
+
+        public final String roomTypeName;
+
+        ProctoringRoomType(final String roomTypeName) {
+            this.roomTypeName = roomTypeName;
+        }
+    }
+
     public interface SEB_INSTRUCTION_ATTRIBUTES {
         public interface SEB_PROCTORING {
             public static final String SERVICE_TYPE = "service-type";
@@ -60,6 +72,8 @@ public final class ClientInstruction {
             public static final String ZOOM_RECEIVE_AUDIO = "zoomReceiveAudio";
             public static final String ZOOM_RECEIVE_VIDEO = "zoomReceiveVideo";
             public static final String ZOOM_ALLOW_CHAT = "zoomFeatureFlagChat";
+
+            public static final String PROCTORING_ROOM_TYPE = "roomType";
         }
 
         public interface SEB_RECONFIGURE_SETTINGS {
