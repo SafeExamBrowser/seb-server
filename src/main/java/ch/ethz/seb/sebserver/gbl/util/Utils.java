@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.graphics.RGB;
@@ -811,6 +812,21 @@ public final class Utils {
         } catch (final Exception e) {
             return null;
         }
+    }
+
+    public static Byte toByte(final Boolean b) {
+        return BooleanUtils.toIntegerObject(b, 1, 0, 0).byteValue();
+    }
+
+    public static Boolean fromByte(final Byte b) {
+        return BooleanUtils.toBooleanObject((b == null) ? 0 : b);
+    }
+
+    public static <T extends Enum<T>> String getEnumName(final T enumInst) {
+        if (enumInst == null) {
+            return null;
+        }
+        return enumInst.name();
     }
 
 }

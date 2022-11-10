@@ -53,6 +53,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
 
 @WebServiceProfile
 @RestController
@@ -64,6 +65,7 @@ public class ExamAPI_V1_Controller {
     private final LmsSetupDAO lmsSetupDAO;
     private final ExamSessionService examSessionService;
     private final SEBClientConnectionService sebClientConnectionService;
+    private final SEBClientSessionService sebClientSessionService;
     private final SEBClientConfigDAO sebClientConfigDAO;
     private final JSONMapper jsonMapper;
     private final Executor executor;
@@ -72,6 +74,7 @@ public class ExamAPI_V1_Controller {
             final LmsSetupDAO lmsSetupDAO,
             final ExamSessionService examSessionService,
             final SEBClientConnectionService sebClientConnectionService,
+            final SEBClientSessionService sebClientSessionService,
             final SEBClientConfigDAO sebClientConfigDAO,
             final JSONMapper jsonMapper,
             @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME) final Executor executor) {
@@ -79,6 +82,7 @@ public class ExamAPI_V1_Controller {
         this.lmsSetupDAO = lmsSetupDAO;
         this.examSessionService = examSessionService;
         this.sebClientConnectionService = sebClientConnectionService;
+        this.sebClientSessionService = sebClientSessionService;
         this.sebClientConfigDAO = sebClientConfigDAO;
         this.jsonMapper = jsonMapper;
         this.executor = executor;
@@ -311,7 +315,7 @@ public class ExamAPI_V1_Controller {
         final String pingNumString = request.getParameter(API.EXAM_API_PING_NUMBER);
         final String instructionConfirm = request.getParameter(API.EXAM_API_PING_INSTRUCTION_CONFIRM);
 
-        final String instruction = this.sebClientConnectionService
+        final String instruction = this.sebClientSessionService
                 .notifyPing(
                         connectionToken,
                         Utils.getMillisecondsNow(),
@@ -339,7 +343,7 @@ public class ExamAPI_V1_Controller {
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestBody(required = true) final ClientEvent event) {
 
-        this.sebClientConnectionService
+        this.sebClientSessionService
                 .notifyClientEvent(connectionToken, event);
     }
 

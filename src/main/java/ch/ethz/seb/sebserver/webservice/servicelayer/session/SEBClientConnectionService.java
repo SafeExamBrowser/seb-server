@@ -13,8 +13,6 @@ import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 /** Service interface defining functionality to handle SEB client connections on running exams. */
@@ -75,7 +73,7 @@ public interface SEBClientConnectionService {
      * @param examId The exam identifier
      * @param userSessionId The user session identifier of the users http-session with the LMS
      * @param clientId The client identifier sent by the SEB client (used to identify VDI client pair)
-     * @param browserSignatureKey the Browser Signature Key of the SEB (optional)
+     * @param appSignatureKey the signature key of the SEB client application (optional)
      * @return A Result refer to the updated ClientConnection instance, or refer to an error if happened */
     Result<ClientConnection> updateClientConnection(
             String connectionToken,
@@ -87,7 +85,7 @@ public interface SEBClientConnectionService {
             String sebMachineName,
             String userSessionId,
             String clientId,
-            String browserSignatureKey);
+            String appSignatureKey);
 
     /** This is used to establish a already created ClientConnection and set it to sate: ESTABLISHED
      * The connectionToken identifies the ClientConnection and the given clientAddress must match with
@@ -111,7 +109,7 @@ public interface SEBClientConnectionService {
      * @param sebMachineName the machine/device name where the SEB runs on (optional)
      * @param userSessionId The user session identifier of the users http-session with the LMS
      * @param clientId The client identifier sent by the SEB client (used to identify VDI client pair)
-     * @param browserSignatureKey the Browser Signature Key of the SEB (optional)
+     * @param appSignatureKey the signature key of the SEB client application (optional)
      * @return A Result refer to the established ClientConnection instance, or refer to an error if happened */
     Result<ClientConnection> establishClientConnection(
             String connectionToken,
@@ -123,7 +121,7 @@ public interface SEBClientConnectionService {
             String sebMachineName,
             String userSessionId,
             String clientId,
-            String browserSignatureKey);
+            String appSignatureKey);
 
     /** This is used to regular close an established ClientConnection from SEB Client side.
      * <p>
@@ -159,41 +157,5 @@ public interface SEBClientConnectionService {
      * @return A Result refer to a list of EntityKey of the closed ClientConnection instances, or refer to an error if
      *         happened */
     Result<Collection<EntityKey>> disableConnections(final String[] connectionTokens, final Long institutionId);
-
-    /** Used to check current cached ping times of all running connections and
-     * if a ping time is overflowing, creating a ping overflow event or if an
-     * overflowed ping is back to normal, a ping back to normal event. */
-    void updatePingEvents();
-
-    /** Used to cleanup old instructions from the persistent storage */
-    void cleanupInstructions();
-
-    /** Notify a ping for a certain client connection.
-     *
-     * @param connectionToken the connection token
-     * @param timestamp the ping time-stamp
-     * @param pingNumber the ping number
-     * @param instructionConfirm instruction confirm sent by the SEB client or null
-     * @return SEB instruction if available */
-    String notifyPing(String connectionToken, long timestamp, int pingNumber, String instructionConfirm);
-
-    /** Notify a SEB client event for live indication and storing to database.
-     *
-     * @param connectionToken the connection token
-     * @param event The SEB client event data */
-    void notifyClientEvent(String connectionToken, final ClientEvent event);
-
-    /** This is used to confirm SEB instructions that must be confirmed by the SEB client.
-     *
-     * @param connectionToken The SEB client connection token
-     * @param instructionConfirm the instruction confirm identifier */
-    void confirmInstructionDone(String connectionToken, String instructionConfirm);
-
-    /** Use this to get the get the specific indicator values for a given client connection.
-     *
-     * @param clientConnection The client connection values
-     * @return Result refer to ClientConnectionData instance containing the given clientConnection plus the indicator
-     *         values or to an error when happened */
-    Result<ClientConnectionData> getIndicatorValues(final ClientConnection clientConnection);
 
 }

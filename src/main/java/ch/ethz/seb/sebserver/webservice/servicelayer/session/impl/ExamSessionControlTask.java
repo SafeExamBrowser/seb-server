@@ -31,7 +31,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
 
 @Service
 @WebServiceProfile
@@ -40,7 +40,7 @@ public class ExamSessionControlTask implements DisposableBean {
     private static final Logger log = LoggerFactory.getLogger(ExamSessionControlTask.class);
 
     private final ExamDAO examDAO;
-    private final SEBClientConnectionService sebClientConnectionService;
+    private final SEBClientSessionService sebClientSessionService;
     private final ExamUpdateHandler examUpdateHandler;
     private final ExamProctoringRoomService examProcotringRoomService;
     private final WebserviceInfo webserviceInfo;
@@ -52,7 +52,7 @@ public class ExamSessionControlTask implements DisposableBean {
 
     protected ExamSessionControlTask(
             final ExamDAO examDAO,
-            final SEBClientConnectionService sebClientConnectionService,
+            final SEBClientSessionService sebClientSessionService,
             final ExamUpdateHandler examUpdateHandler,
             final ExamProctoringRoomService examProcotringRoomService,
             final WebserviceInfo webserviceInfo,
@@ -62,7 +62,7 @@ public class ExamSessionControlTask implements DisposableBean {
             @Value("${sebserver.webservice.api.exam.update-ping:5000}") final Long pingUpdateRate) {
 
         this.examDAO = examDAO;
-        this.sebClientConnectionService = sebClientConnectionService;
+        this.sebClientSessionService = sebClientSessionService;
         this.examUpdateHandler = examUpdateHandler;
         this.webserviceInfo = webserviceInfo;
         this.examTimePrefix = examTimePrefix;
@@ -121,13 +121,12 @@ public class ExamSessionControlTask implements DisposableBean {
             return;
         }
 
-        this.sebClientConnectionService.updatePingEvents();
-
         if (log.isTraceEnabled()) {
             log.trace("Run exam session update task");
         }
 
-        this.sebClientConnectionService.cleanupInstructions();
+        this.sebClientSessionService.updatePingEvents();
+        this.sebClientSessionService.cleanupInstructions();
         this.examProcotringRoomService.updateProctoringCollectingRooms();
     }
 
@@ -144,7 +143,7 @@ public class ExamSessionControlTask implements DisposableBean {
             log.trace("Run exam session cleanup task");
         }
 
-        this.sebClientConnectionService.cleanupInstructions();
+        this.sebClientSessionService.cleanupInstructions();
     }
 
     private void controlExamLMSUpdate() {

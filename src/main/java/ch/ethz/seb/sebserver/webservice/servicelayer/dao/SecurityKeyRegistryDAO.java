@@ -8,19 +8,24 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
+import java.util.Collection;
+
 import org.springframework.context.event.EventListener;
 
-import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKeyRegistry;
+import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
+import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamTemplateDeletionEvent;
 
 /** Concrete EntityDAO interface of SecurityKeyRegistry entities */
-public interface SecurityKeyRegistryDAO extends EntityDAO<SecurityKeyRegistry, SecurityKeyRegistry> {
+public interface SecurityKeyRegistryDAO extends EntityDAO<SecurityKey, SecurityKey> {
 
-    Result<SecurityKeyRegistry> registerCopyForExam(Long keyId, Long examId);
+    Result<SecurityKey> registerCopyForExam(Long keyId, Long examId);
 
-    Result<SecurityKeyRegistry> registerCopyForExamTemplate(Long keyId, Long examTemplateId);
+    Result<SecurityKey> registerCopyForExamTemplate(Long keyId, Long examTemplateId);
+
+    Result<Collection<SecurityKey>> getAll(Long institutionId, Long examId, KeyType type);
 
     @EventListener(ExamDeletionEvent.class)
     void notifyExamDeletion(ExamDeletionEvent event);

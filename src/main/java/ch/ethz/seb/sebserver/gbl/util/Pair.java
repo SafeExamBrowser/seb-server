@@ -22,4 +22,12 @@ public class Pair<A, B> {
         this.b = b;
     }
 
+    public A getA() {
+        return this.a;
+    }
+
+    public B getB() {
+        return this.b;
+    }
+
 }

@@ -17,17 +17,24 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_SECURITY_KEY_REGISTRY;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SecurityKeyRegistry implements GrantEntity {
+public class SecurityKey implements GrantEntity {
+
+    public static final String FILTER_ATTR_KEY_TYPE = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TYPE;
+    public static final String FILTER_ATTR_EXAM_ID = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_ID;
+    public static final String FILTER_ATTR_EXAM_TEMPLATE_ID = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_TEMPLATE_ID;
+    public static final String FILTER_ATTR_TAG = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG;
+    public static final String FILTER_ATTR_ENCRYPTION_TYPE = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_ENCRYPTION_TYPE;
 
     public static enum KeyType {
         UNDEFINED,
         CONFIG_KEY,
         BROWSER_EXAM_KEY,
-        BROWSER_SIGNATURE_KEY;
+        APP_SIGNATURE_KEY;
 
         public static KeyType byString(final String type) {
             try {
@@ -40,7 +47,8 @@ public class SecurityKeyRegistry implements GrantEntity {
 
     public static enum EncryptionType {
         NONE,
-        PASSWORD_SEB_CON_TOKEN;
+        PWD_SEB_CON_TOKEN,
+        PWD_INTERNAL;
 
         public static EncryptionType byString(final String type) {
             try {
@@ -64,7 +72,7 @@ public class SecurityKeyRegistry implements GrantEntity {
 
     @NotNull
     @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY)
-    public final String key;
+    public final CharSequence key;
 
     @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_TAG)
     public final String tag;
@@ -79,11 +87,11 @@ public class SecurityKeyRegistry implements GrantEntity {
     public final EncryptionType encryptionType;
 
     @JsonCreator
-    public SecurityKeyRegistry(
+    public SecurityKey(
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_ID) final Long id,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_TYPE) final KeyType keyType,
-            @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY) final String key,
+            @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY) final CharSequence key,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_TAG) final String tag,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_ID) final Long examId,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId,
@@ -129,7 +137,7 @@ public class SecurityKeyRegistry implements GrantEntity {
         return this.keyType;
     }
 
-    public String getKey() {
+    public CharSequence getKey() {
         return this.key;
     }
 
@@ -162,7 +170,7 @@ public class SecurityKeyRegistry implements GrantEntity {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final SecurityKeyRegistry other = (SecurityKeyRegistry) obj;
+        final SecurityKey other = (SecurityKey) obj;
         return Objects.equals(this.id, other.id);
     }
 

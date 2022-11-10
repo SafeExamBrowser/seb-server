@@ -37,5 +37,5 @@ CREATE TABLE IF NOT EXISTS `seb_security_key_registry` (
 -- Alter Table  `client_connection`
 -- -----------------------------------------------------
 ALTER TABLE `client_connection`
-ADD COLUMN IF NOT EXISTS `signature_key` VARCHAR(255) NULL AFTER `client_version`
+ADD COLUMN IF NOT EXISTS `security_check_granted` TINYINT(1) UNSIGNED NULL AFTER `client_version`
 ;

@@ -133,10 +133,10 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `update_time` BIGINT UNSIGNED NULL,
   `remote_proctoring_room_id` BIGINT UNSIGNED NULL,
   `remote_proctoring_room_update` INT(1) UNSIGNED NULL,
-  `client_machine_name` VARCHAR(255) NULL,
-  `client_os_name` VARCHAR(255) NULL,
-  `client_version` VARCHAR(255) NULL,
-  `signature_key` VARCHAR(255) NULL,
+  `client_machine_name` VARCHAR(45) NULL,
+  `client_os_name` VARCHAR(45) NULL,
+  `client_version` VARCHAR(45) NULL,
+  `security_check_granted` TINYINT(1) UNSIGNED NULL,
   PRIMARY KEY (`id`),
   INDEX `connection_exam_ref_idx` (`exam_id` ASC),
   INDEX `clientConnectionInstitutionRef_idx` (`institution_id` ASC),
@@ -158,6 +158,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;
+
 
 
 -- -----------------------------------------------------

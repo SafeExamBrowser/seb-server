@@ -360,7 +360,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public ClientConnectionDataInternal getConnectionDataInternal(final String connectionToken) {
-        synchronized (ExamSessionCacheService.CLIENT_CONECTION_CREATION_LOCK) {
+        synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
             return this.examSessionCacheService.getClientConnection(connectionToken);
         }
     }
@@ -475,7 +475,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     @EventListener
-    public void notifyExamRest(final ExamResetEvent event) {
+    public void notifyExamReset(final ExamResetEvent event) {
         log.info("ExamResetEvent received, process exam session cleanup...");
 
         try {

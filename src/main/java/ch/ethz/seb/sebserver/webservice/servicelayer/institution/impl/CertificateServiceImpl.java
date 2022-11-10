@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl;
+package ch.ethz.seb.sebserver.webservice.servicelayer.institution.impl;
 
 import java.io.InputStream;
 import java.security.KeyStore;
@@ -40,7 +40,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.CertificateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateService;
 
 @Lazy
 @Service

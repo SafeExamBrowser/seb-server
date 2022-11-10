@@ -34,6 +34,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.AbstractLogIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.AbstractLogLevelCountIndicator;
 
@@ -46,6 +47,8 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
     private ClientEventDAO clientEventDAO;
     @Autowired
     private SEBClientConnectionService sebClientConnectionService;
+    @Autowired
+    private SEBClientSessionService sebClientSessionService;
     @Autowired
     @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME)
     private Executor executor;
@@ -60,7 +63,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "", 1L,
                                 1L,
                                 null, false,
-                                "browser_signature_key"))
+                                false))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -87,7 +90,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "", 1L,
                                 1L,
                                 null, false,
-                                "browser_signature_key"))
+                                false))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -105,13 +108,13 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
         final IndicatorValue clientIndicator = findFirst.get();
         assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.ERROR_COUNT));
 
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token1",
                 new ClientEvent(null, connection.id, EventType.ERROR_LOG, 1L, 1L, 1.0, "some error"));
         waitForExecutor();
         assertEquals("1", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.ERROR_COUNT));
 
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token1",
                 new ClientEvent(null, connection.id, EventType.ERROR_LOG, 1L, 1L, 1.0, "some error"));
         waitForExecutor();
@@ -133,7 +136,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "", 1L,
                                 1L,
                                 null, false,
-                                "browser_signature_key"))
+                                false))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -151,33 +154,33 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
         final IndicatorValue clientIndicator = findFirst.get();
         assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
 
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token2",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "some error"));
         waitForExecutor();
         assertEquals("0", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token2",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "<top> some error"));
         waitForExecutor();
         assertEquals("1", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token2",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "some error"));
         waitForExecutor();
         assertEquals("1", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token2",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "<vip> some error"));
         waitForExecutor();
         assertEquals("2", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token2",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "some error"));
         waitForExecutor();
         assertEquals("2", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.INFO_COUNT));
 
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token2",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "<vip> some error"));
         waitForExecutor();
@@ -207,7 +210,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "", 1L,
                                 1L,
                                 null, false,
-                                "browser_signature_key"))
+                                false))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -226,23 +229,23 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
 
         assertEquals("--", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.BATTERY_STATUS));
 
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token3",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "some info other"));
         waitForExecutor();
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token3",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 1.0, "<vip> some info other"));
         waitForExecutor();
         assertEquals("--", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.BATTERY_STATUS));
 
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token3",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 90.0, "<battery> some info other"));
         waitForExecutor();
         assertEquals("90", IndicatorValue.getDisplayValue(clientIndicator, IndicatorType.BATTERY_STATUS));
 
-        this.sebClientConnectionService.notifyClientEvent(
+        this.sebClientSessionService.notifyClientEvent(
                 "token3",
                 new ClientEvent(null, connection.id, EventType.INFO_LOG, 1L, 1L, 40.0, "<battery> some info other"));
         waitForExecutor();

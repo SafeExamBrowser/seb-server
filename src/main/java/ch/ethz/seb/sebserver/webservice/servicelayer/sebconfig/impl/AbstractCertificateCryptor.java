@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.Certificates;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionContext;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.impl.SEBConfigEncryptionServiceImpl.EncryptionContext;

@@ -53,7 +53,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionServic
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -61,7 +61,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.SEB_CLIENT_CONNECTION_ENDPOINT)
 public class ClientConnectionController extends ReadonlyEntityController<ClientConnection, ClientConnection> {
 
-    private final SEBClientConnectionService sebClientConnectionService;
+    private final SEBClientSessionService sebClientSessionService;
 
     private static final Set<String> EXT_FILTER = new HashSet<>(Arrays.asList(ClientConnection.FILTER_ATTR_INFO));
 
@@ -72,7 +72,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final SEBClientConnectionService sebClientConnectionService) {
+            final SEBClientSessionService sebClientSessionServic) {
 
         super(authorization,
                 bulkActionService,
@@ -81,7 +81,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                 paginationService,
                 beanValidationService);
 
-        this.sebClientConnectionService = sebClientConnectionService;
+        this.sebClientSessionService = sebClientSessionServic;
     }
 
     @Override
@@ -174,7 +174,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ClientConnectionData getClientConnectionDataBy(@PathVariable final String modelId) {
-        return this.sebClientConnectionService
+        return this.sebClientSessionService
                 .getIndicatorValues(super.getBy(modelId))
                 .getOrThrow();
     }
@@ -222,7 +222,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
     private Result<Collection<ClientConnectionData>> getAllData(final FilterMap filterMap) {
         return getAll(filterMap)
                 .map(connections -> connections.stream()
-                        .map(this.sebClientConnectionService::getIndicatorValues)
+                        .map(this.sebClientSessionService::getIndicatorValues)
                         .flatMap(Result::onErrorLogAndSkip)
                         .collect(Collectors.toList()));
     }

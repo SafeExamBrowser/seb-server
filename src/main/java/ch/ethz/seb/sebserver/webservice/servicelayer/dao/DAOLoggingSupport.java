@@ -23,7 +23,7 @@ public final class DAOLoggingSupport {
     /** Use this as a functional method on Result processing to
      * log an error that is referenced by a given Result and skip further processing by
      * using Result.skipOnError.
-     * 
+     *
      * @param result The given Result
      * @return Stream of the results value or empty stream on error case */
     public static <T> Stream<T> logAndSkipOnError(final Result<T> result) {

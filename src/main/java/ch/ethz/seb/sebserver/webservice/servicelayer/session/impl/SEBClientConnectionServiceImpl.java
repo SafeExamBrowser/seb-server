@@ -8,11 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
-import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -34,20 +31,16 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
+import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.DistributedIndicatorValueService;
 import ch.ethz.seb.sebserver.webservice.weblayer.api.APIConstraintViolationException;
 
@@ -68,37 +61,32 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
     private final ExamSessionService examSessionService;
     private final ExamSessionCacheService examSessionCacheService;
-    private final EventHandlingStrategy eventHandlingStrategy;
     private final ClientConnectionDAO clientConnectionDAO;
+    private final ClientIndicatorFactory clientIndicatorFactory;
     private final SEBClientConfigDAO sebClientConfigDAO;
-    private final SEBClientInstructionService sebInstructionService;
     private final ExamAdminService examAdminService;
     private final DistributedIndicatorValueService distributedPingCache;
-    private final ClientIndicatorFactory clientIndicatorFactory;
-    private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
+    private final SecurityKeyService securityKeyService;
     private final boolean isDistributedSetup;
 
     protected SEBClientConnectionServiceImpl(
             final ExamSessionService examSessionService,
-            final EventHandlingStrategyFactory eventHandlingStrategyFactory,
             final SEBClientConfigDAO sebClientConfigDAO,
-            final SEBClientInstructionService sebInstructionService,
             final ExamAdminService examAdminService,
             final DistributedIndicatorValueService distributedPingCache,
             final ClientIndicatorFactory clientIndicatorFactory,
-            final InternalClientConnectionDataFactory internalClientConnectionDataFactory) {
+            final SecurityKeyService securityKeyService,
+            final WebserviceInfo webserviceInfo) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();
         this.clientConnectionDAO = examSessionService.getClientConnectionDAO();
-        this.eventHandlingStrategy = eventHandlingStrategyFactory.get();
         this.sebClientConfigDAO = sebClientConfigDAO;
-        this.sebInstructionService = sebInstructionService;
         this.examAdminService = examAdminService;
         this.clientIndicatorFactory = clientIndicatorFactory;
         this.distributedPingCache = distributedPingCache;
-        this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
-        this.isDistributedSetup = sebInstructionService.getWebserviceInfo().isDistributed();
+        this.securityKeyService = securityKeyService;
+        this.isDistributedSetup = webserviceInfo.isDistributed();
     }
 
     @Override
@@ -216,7 +204,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final String sebMachineName,
             final String userSessionId,
             final String clientId,
-            final String browserSignatureKey) {
+            final String appSignatureKey) {
 
         return Result.tryCatch(() -> {
 
@@ -289,7 +277,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             null,
                             null,
                             null,
-                            browserSignatureKey))
+                            this.securityKeyService.checkAppSignatureKey(clientConnection, appSignatureKey)))
                     .getOrThrow();
 
             // initialize distributed indicator value caches if possible and needed
@@ -323,7 +311,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final String sebMachineName,
             final String userSessionId,
             final String clientId,
-            final String browserSignatureKey) {
+            final String appSignatureKey) {
 
         return Result.tryCatch(() -> {
 
@@ -410,7 +398,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     proctoringEnabled,
-                    browserSignatureKey);
+                    this.securityKeyService.checkAppSignatureKey(clientConnection, appSignatureKey));
 
             // ClientConnection integrity check
             // institutionId, connectionToken and clientAddress must be set
@@ -516,7 +504,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 .save(new ClientConnection(
                         vdiPairCompanion.getId(), null,
                         vdiExamId, null, null, null, null, null, null,
-                        establishedClientConnection.connectionToken, null, null, null, null, null, null, null, null))
+                        establishedClientConnection.connectionToken,
+                        null, null, null, null, null, null, null, null))
                 .getOrThrow();
 
         reloadConnectionCache(vdiPairCompanion.getConnectionToken(), connection.examId);
@@ -653,104 +642,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .map(clientConnection -> clientConnection.getEntityKey())
                     .collect(Collectors.toList());
         });
-    }
-
-    @Override
-    public void updatePingEvents() {
-        try {
-
-            this.examSessionService
-                    .getExamDAO()
-                    .allRunningExamIds()
-                    .getOrThrow()
-                    .stream()
-                    .flatMap(examId -> this.clientConnectionDAO
-                            .getAllActiveConnectionTokens(examId)
-                            .getOr(Collections.emptyList())
-                            .stream())
-                    .map(this.examSessionService::getConnectionDataInternal)
-                    .filter(Objects::nonNull)
-                    .filter(connection -> connection.pingIndicator != null)
-                    .forEach(this::missingPingUpdate);
-
-        } catch (final Exception e) {
-            log.error("Failed to update ping events: ", e);
-        }
-    }
-
-    @Override
-    public void cleanupInstructions() {
-        this.sebInstructionService.cleanupInstructions();
-    }
-
-    @Override
-    public String notifyPing(
-            final String connectionToken,
-            final long timestamp,
-            final int pingNumber,
-            final String instructionConfirm) {
-
-        processPing(connectionToken, timestamp, pingNumber);
-
-        if (instructionConfirm != null) {
-            this.sebInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
-        }
-
-        return this.sebInstructionService.getInstructionJSON(connectionToken);
-    }
-
-    private void processPing(final String connectionToken, final long timestamp, final int pingNumber) {
-
-        ClientConnectionDataInternal activeClientConnection = null;
-        synchronized (ExamSessionCacheService.CLIENT_CONECTION_CREATION_LOCK) {
-            activeClientConnection = this.examSessionCacheService.getClientConnection(connectionToken);
-        }
-
-        if (activeClientConnection != null) {
-            activeClientConnection.notifyPing(timestamp, pingNumber);
-        }
-    }
-
-    @Override
-    public void notifyClientEvent(
-            final String connectionToken,
-            final ClientEvent event) {
-
-        try {
-            final ClientConnectionDataInternal activeClientConnection =
-                    this.examSessionService.getConnectionDataInternal(connectionToken);
-
-            if (activeClientConnection != null) {
-
-                // store event
-                this.eventHandlingStrategy.accept(ClientEvent.toRecord(
-                        event,
-                        activeClientConnection.getConnectionId()));
-
-                // handle indicator update
-                activeClientConnection
-                        .getIndicatorMapping(event.eventType)
-                        .forEach(indicator -> indicator.notifyValueChange(event));
-
-            } else {
-                log.warn("No active ClientConnection found for connectionToken: {}", connectionToken);
-            }
-        } catch (final Exception e) {
-            log.error("Failed to process SEB client event: ", e);
-        }
-    }
-
-    @Override
-    public void confirmInstructionDone(final String connectionToken, final String instructionConfirm) {
-        this.sebInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
-    }
-
-    @Override
-    public Result<ClientConnectionData> getIndicatorValues(final ClientConnection clientConnection) {
-        return Result.tryCatch(() -> new ClientConnectionData(
-                clientConnection,
-                this.clientIndicatorFactory.getIndicatorValues(clientConnection),
-                this.internalClientConnectionDataFactory.getGroupIds(clientConnection)));
     }
 
     private void checkExamRunning(final Long examId, final String user, final String address) {
@@ -918,30 +809,4 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         // and load updated ClientConnection into cache
         return this.examSessionService.getConnectionDataInternal(connectionToken);
     }
-
-    private void missingPingUpdate(final ClientConnectionDataInternal connection) {
-        if (connection.pingIndicator.changeOnIncident()) {
-
-            final boolean missingPing = connection.getMissingPing();
-            final long millisecondsNow = Utils.getMillisecondsNow();
-            final ClientEventRecord clientEventRecord = new ClientEventRecord(
-                    null,
-                    connection.getConnectionId(),
-                    (missingPing) ? EventType.ERROR_LOG.id : EventType.INFO_LOG.id,
-                    millisecondsNow,
-                    millisecondsNow,
-                    new BigDecimal(connection.pingIndicator.getValue()),
-                    (missingPing) ? "Missing Client Ping" : "Client Ping Back To Normal");
-
-            // store event and and flush cache
-            this.eventHandlingStrategy.accept(clientEventRecord);
-
-            // update indicators
-            if (clientEventRecord.getType() != null && EventType.ERROR_LOG.id == clientEventRecord.getType()) {
-                connection.getIndicatorMapping(EventType.ERROR_LOG)
-                        .forEach(indicator -> indicator.notifyValueChange(clientEventRecord));
-            }
-        }
-    }
-
 }

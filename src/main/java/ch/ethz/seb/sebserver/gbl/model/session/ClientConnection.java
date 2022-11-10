@@ -13,6 +13,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -59,7 +61,7 @@ public final class ClientConnection implements GrantEntity {
             null, null, null, null, null, null, null,
             false,
             null, null, null, null,
-            false, null);
+            false, false);
 
     public static final String ATTR_INFO = "seb_info";
     public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
@@ -90,8 +92,8 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(ATTR_INFO)
     public final String info;
 
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_SIGNATURE_KEY)
-    public final String signatureKey;
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_SECURITY_CHECK_GRANTED)
+    public final Boolean securityCheckGranted;
 
     @JsonIgnore // not used yet on GUI side
     //@JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI)
@@ -131,7 +133,7 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI) final Boolean vdi,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN) final String vdiPairToken,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_SIGNATURE_KEY) final String signatureKey) {
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_SECURITY_CHECK_GRANTED) final Boolean securityCheckGranted) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -152,7 +154,7 @@ public final class ClientConnection implements GrantEntity {
         this.sebOSName = Constants.EMPTY_NOTE;
         this.sebMachineName = Constants.EMPTY_NOTE;
         this.sebVersion = Constants.EMPTY_NOTE;
-        this.signatureKey = signatureKey;
+        this.securityCheckGranted = securityCheckGranted;
     }
 
     public ClientConnection(
@@ -173,7 +175,7 @@ public final class ClientConnection implements GrantEntity {
             final Long updateTime,
             final Long remoteProctoringRoomId,
             final Boolean remoteProctoringRoomUpdate,
-            final String signatureKey) {
+            final Boolean securityCheckGranted) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -203,7 +205,7 @@ public final class ClientConnection implements GrantEntity {
                 .append((seb_version != null) ? seb_version : Constants.EMPTY_NOTE)
                 .toString();
 
-        this.signatureKey = signatureKey;
+        this.securityCheckGranted = securityCheckGranted;
     }
 
     @Override
@@ -306,8 +308,13 @@ public final class ClientConnection implements GrantEntity {
         return this.sebVersion;
     }
 
-    public String getSignatureKey() {
-        return this.signatureKey;
+    public Boolean getSecurityCheckGranted() {
+        return this.securityCheckGranted;
+    }
+
+    @JsonIgnore
+    public boolean isSecurityCheckGranted() {
+        return BooleanUtils.isTrue(this.securityCheckGranted);
     }
 
     @Override

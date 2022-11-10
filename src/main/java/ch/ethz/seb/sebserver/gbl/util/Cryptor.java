@@ -99,7 +99,7 @@ public class Cryptor {
         });
     }
 
-    static Result<CharSequence> encrypt(final CharSequence text, final CharSequence secret) {
+    public static Result<CharSequence> encrypt(final CharSequence text, final CharSequence secret) {
         return Result.tryCatch(() -> {
             if (text == null) {
                 throw new IllegalArgumentException("Text has null reference");
@@ -121,7 +121,7 @@ public class Cryptor {
         });
     }
 
-    static Result<CharSequence> decrypt(final CharSequence cipher, final CharSequence secret) {
+    public static Result<CharSequence> decrypt(final CharSequence cipher, final CharSequence secret) {
         return Result.tryCatch(() -> {
             if (cipher == null) {
                 throw new IllegalArgumentException("Cipher has null reference");

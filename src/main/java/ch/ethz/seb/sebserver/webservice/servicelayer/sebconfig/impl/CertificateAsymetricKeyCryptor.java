@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigCryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionContext;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.SEBConfigEncryptionService.Strategy;

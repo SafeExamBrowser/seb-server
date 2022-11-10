@@ -381,7 +381,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     Utils.truncateText(data.sebMachineName, 255),
                     Utils.truncateText(data.sebOSName, 255),
                     Utils.truncateText(data.sebVersion, 255),
-                    data.signatureKey);
+                    Utils.toByte(data.securityCheckGranted));
 
             this.clientConnectionRecordMapper.insert(newRecord);
             return newRecord;
@@ -418,7 +418,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     Utils.truncateText(data.sebMachineName, 255),
                     Utils.truncateText(data.sebOSName, 255),
                     Utils.truncateText(data.sebVersion, 255),
-                    data.signatureKey);
+                    Utils.toByte(data.securityCheckGranted));
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
@@ -479,7 +479,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         record.getClientMachineName(),
                         record.getClientOsName(),
                         record.getClientVersion(),
-                        record.getSignatureKey()));
+                        record.getSecurityCheckGranted()));
             } else {
                 throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, String.valueOf(connectionId));
             }
@@ -762,6 +762,18 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         });
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForExam(final Long examId) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+                .selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .build()
+                .execute());
+    }
+
     private Result<ClientConnectionRecord> recordById(final Long id) {
         return Result.tryCatch(() -> {
 
@@ -800,7 +812,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getUpdateTime(),
                     record.getRemoteProctoringRoomId(),
                     BooleanUtils.toBooleanObject(record.getRemoteProctoringRoomUpdate()),
-                    record.getSignatureKey());
+                    Utils.fromByte(record.getSecurityCheckGranted()));
         });
     }
 

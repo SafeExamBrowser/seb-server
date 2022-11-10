@@ -259,7 +259,7 @@ public class ModelObjectJSONGenerator {
                         "vdiID", true, "", currentTimeMillis, currentTimeMillis,
                         123L,
                         true,
-                        "browser_signature_key");
+                        false);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
@@ -273,7 +273,7 @@ public class ModelObjectJSONGenerator {
                         "vdiID", true, "", currentTimeMillis, currentTimeMillis,
                         123L,
                         true,
-                        "browser_signature_key"),
+                        false),
                 Arrays.asList(
                         new SimpleIndicatorValue(1L, 1.0),
                         new SimpleIndicatorValue(2L, 2.0),

@@ -52,7 +52,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.CertificateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @WebServiceProfile
