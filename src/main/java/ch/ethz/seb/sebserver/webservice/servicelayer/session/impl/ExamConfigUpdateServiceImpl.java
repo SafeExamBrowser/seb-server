@@ -29,7 +29,6 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
@@ -45,22 +44,19 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamSessionService examSessionService;
     private final ExamUpdateHandler examUpdateHandler;
-    private final ExamAdminService examAdminService;
 
     protected ExamConfigUpdateServiceImpl(
             final ExamDAO examDAO,
             final ConfigurationDAO configurationDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ExamSessionService examSessionService,
-            final ExamUpdateHandler examUpdateHandler,
-            final ExamAdminService examAdminService) {
+            final ExamUpdateHandler examUpdateHandler) {
 
         this.examDAO = examDAO;
         this.configurationDAO = configurationDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examSessionService = examSessionService;
         this.examUpdateHandler = examUpdateHandler;
-        this.examAdminService = examAdminService;
     }
 
     // processing:
@@ -129,11 +125,12 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
             // generate the new Config Key and update the Config Key within the LMSSetup API for each exam (delete old Key and add new Key)
             for (final Exam exam : exams) {
-                if (exam.getStatus() == ExamStatus.RUNNING || this.examAdminService.isRestricted(exam).getOr(false)) {
+                if (exam.getStatus() == ExamStatus.RUNNING) {
 
                     this.examUpdateHandler
                             .getSEBRestrictionService()
                             .applySEBClientRestriction(exam)
+                            .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
                             .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t));
                 }
             }
@@ -201,15 +198,14 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                             .getOrThrow();
 
                     // update seb client restriction if the feature is activated for the exam
-                    if (this.examAdminService.isRestricted(exam).getOr(false)) {
-                        this.examUpdateHandler
-                                .getSEBRestrictionService()
-                                .applySEBClientRestriction(exam)
-                                .onError(t -> log.error(
-                                        "Failed to update SEB Client restriction for Exam: {}",
-                                        exam,
-                                        t));
-                    }
+                    this.examUpdateHandler
+                            .getSEBRestrictionService()
+                            .applySEBClientRestriction(exam)
+                            .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
+                            .onError(t -> log.error(
+                                    "Failed to update SEB Client restriction for Exam: {}",
+                                    exam,
+                                    t));
 
                     // flush the exam cache. If there was an error during flush, it is logged but this process goes on
                     // and the saved changes are not rolled back

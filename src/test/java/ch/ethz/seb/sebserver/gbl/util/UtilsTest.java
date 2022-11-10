@@ -243,4 +243,17 @@ public class UtilsTest {
                 .contains("ch.ethz.seb.sebserver.gbl.util.UtilsTest.testFormatStackTracePrint"));
     }
 
+    @Test
+    public void testIsEqualsWithEmptyCheck() {
+        assertTrue(Utils.isEqualsWithEmptyCheck("aa", "aa"));
+        assertTrue(Utils.isEqualsWithEmptyCheck("", ""));
+        assertTrue(Utils.isEqualsWithEmptyCheck(null, null));
+        assertTrue(Utils.isEqualsWithEmptyCheck("", null));
+        assertTrue(Utils.isEqualsWithEmptyCheck(null, ""));
+        assertTrue(Utils.isEqualsWithEmptyCheck("  ", null));
+        assertTrue(Utils.isEqualsWithEmptyCheck("  ", " "));
+
+        assertFalse(Utils.isEqualsWithEmptyCheck("  ", "a"));
+    }
+
 }
