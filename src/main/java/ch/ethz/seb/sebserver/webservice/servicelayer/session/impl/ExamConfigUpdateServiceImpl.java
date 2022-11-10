@@ -29,7 +29,6 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 
@@ -45,22 +44,19 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final ExamSessionService examSessionService;
     private final ExamUpdateHandler examUpdateHandler;
-    private final ExamAdminService examAdminService;
 
     protected ExamConfigUpdateServiceImpl(
             final ExamDAO examDAO,
             final ConfigurationDAO configurationDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ExamSessionService examSessionService,
-            final ExamUpdateHandler examUpdateHandler,
-            final ExamAdminService examAdminService) {
+            final ExamUpdateHandler examUpdateHandler) {
 
         this.examDAO = examDAO;
         this.configurationDAO = configurationDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.examSessionService = examSessionService;
         this.examUpdateHandler = examUpdateHandler;
-        this.examAdminService = examAdminService;
     }
 
     // processing:
