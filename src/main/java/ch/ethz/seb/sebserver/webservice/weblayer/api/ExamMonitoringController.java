@@ -64,6 +64,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.PermissionDen
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
@@ -87,6 +88,7 @@ public class ExamMonitoringController {
     private final SEBClientNotificationService sebClientNotificationService;
     private final ExamProctoringRoomService examProcotringRoomService;
     private final ExamAdminService examAdminService;
+    private final SecurityKeyService securityKeyService;
     private final Executor executor;
 
     public ExamMonitoringController(
@@ -96,6 +98,7 @@ public class ExamMonitoringController {
             final PaginationService paginationService,
             final SEBClientNotificationService sebClientNotificationService,
             final ExamProctoringRoomService examProcotringRoomService,
+            final SecurityKeyService securityKeyService,
             final ExamAdminService examAdminService,
             @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {
 
@@ -107,6 +110,7 @@ public class ExamMonitoringController {
         this.sebClientNotificationService = sebClientNotificationService;
         this.examProcotringRoomService = examProcotringRoomService;
         this.examAdminService = examAdminService;
+        this.securityKeyService = securityKeyService;
         this.executor = executor;
     }
 
@@ -455,6 +459,31 @@ public class ExamMonitoringController {
                     .disableConnection(connectionToken, institutionId)
                     .getOrThrow();
         }
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_GRANT_APP_SIGNATURE_KEY_ENDPOINT +
+                    API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public void grantAppSignatureKey(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.MODEL_ID_VAR_PATH_SEGMENT, required = true) final Long connectionId,
+            @RequestParam(
+                    name = Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
+                    required = false) final String connectionToken) {
+
+        checkPrivileges(institutionId, examId);
+
+        this.securityKeyService
+                .registerExamAppSignatureKey(institutionId, examId, connectionId, null)
+                .onSuccess(key -> this.securityKeyService.updateAppSignatureKeyGrants(examId))
+                .getOrThrow();
     }
 
     private Exam checkPrivileges(final Long institutionId, final Long examId) {

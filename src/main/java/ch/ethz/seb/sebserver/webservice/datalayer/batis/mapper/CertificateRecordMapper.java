@@ -32,20 +32,20 @@ import org.mybatis.dynamic.sql.util.SqlProviderAdapter;
 
 @Mapper
 public interface CertificateRecordMapper {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.671+01:00", comments="Source Table: certificate")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     long count(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.671+01:00", comments="Source Table: certificate")
     @DeleteProvider(type=SqlProviderAdapter.class, method="delete")
     int delete(DeleteStatementProvider deleteStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.671+01:00", comments="Source Table: certificate")
     @InsertProvider(type=SqlProviderAdapter.class, method="insert")
     @SelectKey(statement="SELECT LAST_INSERT_ID()", keyProperty="record.id", before=false, resultType=Long.class)
     int insert(InsertStatementProvider<CertificateRecord> insertStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.671+01:00", comments="Source Table: certificate")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -55,7 +55,7 @@ public interface CertificateRecordMapper {
     })
     CertificateRecord selectOne(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.671+01:00", comments="Source Table: certificate")
     @SelectProvider(type=SqlProviderAdapter.class, method="select")
     @ConstructorArgs({
         @Arg(column="id", javaType=Long.class, jdbcType=JdbcType.BIGINT, id=true),
@@ -65,22 +65,22 @@ public interface CertificateRecordMapper {
     })
     List<CertificateRecord> selectMany(SelectStatementProvider selectStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.671+01:00", comments="Source Table: certificate")
     @UpdateProvider(type=SqlProviderAdapter.class, method="update")
     int update(UpdateStatementProvider updateStatement);
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.671+01:00", comments="Source Table: certificate")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<Long>> countByExample() {
         return SelectDSL.selectWithMapper(this::count, SqlBuilder.count())
                 .from(certificateRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.671+01:00", comments="Source Table: certificate")
     default DeleteDSL<MyBatis3DeleteModelAdapter<Integer>> deleteByExample() {
         return DeleteDSL.deleteFromWithMapper(this::delete, certificateRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.671+01:00", comments="Source Table: certificate")
     default int deleteByPrimaryKey(Long id_) {
         return DeleteDSL.deleteFromWithMapper(this::delete, certificateRecord)
                 .where(id, isEqualTo(id_))
@@ -88,7 +88,7 @@ public interface CertificateRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.672+01:00", comments="Source Table: certificate")
     default int insert(CertificateRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(certificateRecord)
@@ -99,7 +99,7 @@ public interface CertificateRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.672+01:00", comments="Source Table: certificate")
     default int insertSelective(CertificateRecord record) {
         return insert(SqlBuilder.insert(record)
                 .into(certificateRecord)
@@ -110,19 +110,19 @@ public interface CertificateRecordMapper {
                 .render(RenderingStrategy.MYBATIS3));
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.672+01:00", comments="Source Table: certificate")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<CertificateRecord>>> selectByExample() {
         return SelectDSL.selectWithMapper(this::selectMany, id, institutionId, aliases, certStore)
                 .from(certificateRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.672+01:00", comments="Source Table: certificate")
     default QueryExpressionDSL<MyBatis3SelectModelAdapter<List<CertificateRecord>>> selectDistinctByExample() {
         return SelectDSL.selectDistinctWithMapper(this::selectMany, id, institutionId, aliases, certStore)
                 .from(certificateRecord);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.672+01:00", comments="Source Table: certificate")
     default CertificateRecord selectByPrimaryKey(Long id_) {
         return SelectDSL.selectWithMapper(this::selectOne, id, institutionId, aliases, certStore)
                 .from(certificateRecord)
@@ -131,7 +131,7 @@ public interface CertificateRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.672+01:00", comments="Source Table: certificate")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExample(CertificateRecord record) {
         return UpdateDSL.updateWithMapper(this::update, certificateRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
@@ -139,7 +139,7 @@ public interface CertificateRecordMapper {
                 .set(certStore).equalTo(record::getCertStore);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.672+01:00", comments="Source Table: certificate")
     default UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> updateByExampleSelective(CertificateRecord record) {
         return UpdateDSL.updateWithMapper(this::update, certificateRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)
@@ -147,7 +147,7 @@ public interface CertificateRecordMapper {
                 .set(certStore).equalToWhenPresent(record::getCertStore);
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.672+01:00", comments="Source Table: certificate")
     default int updateByPrimaryKey(CertificateRecord record) {
         return UpdateDSL.updateWithMapper(this::update, certificateRecord)
                 .set(institutionId).equalTo(record::getInstitutionId)
@@ -158,7 +158,7 @@ public interface CertificateRecordMapper {
                 .execute();
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-08T16:12:34.708+01:00", comments="Source Table: certificate")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-10T11:31:35.672+01:00", comments="Source Table: certificate")
     default int updateByPrimaryKeySelective(CertificateRecord record) {
         return UpdateDSL.updateWithMapper(this::update, certificateRecord)
                 .set(institutionId).equalToWhenPresent(record::getInstitutionId)

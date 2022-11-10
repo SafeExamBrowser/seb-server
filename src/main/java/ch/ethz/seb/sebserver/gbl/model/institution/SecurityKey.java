@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_SECURITY_KEY_REGISTRY;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;;
@@ -28,7 +29,6 @@ public class SecurityKey implements GrantEntity {
     public static final String FILTER_ATTR_EXAM_ID = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_ID;
     public static final String FILTER_ATTR_EXAM_TEMPLATE_ID = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_TEMPLATE_ID;
     public static final String FILTER_ATTR_TAG = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG;
-    public static final String FILTER_ATTR_ENCRYPTION_TYPE = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_ENCRYPTION_TYPE;
 
     public static enum KeyType {
         UNDEFINED,
@@ -41,20 +41,6 @@ public class SecurityKey implements GrantEntity {
                 return KeyType.valueOf(type);
             } catch (final Exception e) {
                 return UNDEFINED;
-            }
-        }
-    }
-
-    public static enum EncryptionType {
-        NONE,
-        PWD_SEB_CON_TOKEN,
-        PWD_INTERNAL;
-
-        public static EncryptionType byString(final String type) {
-            try {
-                return EncryptionType.valueOf(type);
-            } catch (final Exception e) {
-                return NONE;
             }
         }
     }
@@ -83,9 +69,6 @@ public class SecurityKey implements GrantEntity {
     @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_TEMPLATE_ID)
     public final Long examTemplateId;
 
-    @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_ENCRYPTION_TYPE)
-    public final EncryptionType encryptionType;
-
     @JsonCreator
     public SecurityKey(
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_ID) final Long id,
@@ -94,8 +77,7 @@ public class SecurityKey implements GrantEntity {
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY) final CharSequence key,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_TAG) final String tag,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_ID) final Long examId,
-            @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId,
-            @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_ENCRYPTION_TYPE) final EncryptionType encryptionType) {
+            @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -104,7 +86,16 @@ public class SecurityKey implements GrantEntity {
         this.tag = tag;
         this.examId = examId;
         this.examTemplateId = examTemplateId;
-        this.encryptionType = encryptionType;
+    }
+
+    public SecurityKey(final POSTMapper postMap) {
+        this.id = null;
+        this.institutionId = postMap.getLong(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_INSTITUTION_ID);
+        this.keyType = postMap.getEnum(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TYPE, KeyType.class);
+        this.key = postMap.getString(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_KEY);
+        this.tag = postMap.getString(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG);
+        this.examId = postMap.getLong(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_ID);
+        this.examTemplateId = postMap.getLong(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_TEMPLATE_ID);
     }
 
     @Override
@@ -153,10 +144,6 @@ public class SecurityKey implements GrantEntity {
         return this.examTemplateId;
     }
 
-    public EncryptionType getEncryptionType() {
-        return this.encryptionType;
-    }
-
     @Override
     public int hashCode() {
         return Objects.hash(this.id);
@@ -191,8 +178,6 @@ public class SecurityKey implements GrantEntity {
         builder.append(this.examId);
         builder.append(", examTemplateId=");
         builder.append(this.examTemplateId);
-        builder.append(", encryptionType=");
-        builder.append(this.encryptionType);
         builder.append("]");
         return builder.toString();
     }

@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS `seb_security_key_registry` (
   `tag` VARCHAR(255) NULL,
   `exam_id` BIGINT UNSIGNED NULL,
   `exam_template_id` BIGINT UNSIGNED NULL,
-  `encryption_type` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `segKeyReg_exam_ref_idx` (`exam_id` ASC),
   INDEX `segKeyReg_exam_template_ref_idx` (`exam_template_id` ASC),

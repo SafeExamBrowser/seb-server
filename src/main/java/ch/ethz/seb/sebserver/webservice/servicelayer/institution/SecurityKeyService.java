@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.institution;
 
+import java.util.Collection;
+
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityCheckResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -27,6 +30,12 @@ public interface SecurityKeyService {
     /** This attribute name is used to store the signature check encryption certificate is one is used */
     public static final String ADDITIONAL_ATTR_SIGNATURE_KEY_CERT_ALIAS = "SIGNATURE_KEY_CERT_ALIAS";
 
+    Result<Collection<SecurityKey>> getPlainGrants(Long institutionId, Long examId);
+
+    Result<Collection<SecurityKey>> getPlainAppSignatureKeyGrants(Long institutionId, Long examId);
+
+    Result<SecurityKey> registerSecurityKey(SecurityKey key);
+
     Result<SecurityKey> registerGlobalAppSignatureKey(Long institutionId, Long connectionId, String tag);
 
     Result<SecurityKey> registerExamAppSignatureKey(Long institutionId, Long examId, Long connectionId, String tag);
@@ -40,5 +49,9 @@ public interface SecurityKeyService {
     boolean checkAppSignatureKey(ClientConnection clientConnection, String appSignatureKey);
 
     void updateAppSignatureKeyGrants(Long examId);
+
+    Result<SecurityKey> getDecrypted(SecurityKey key);
+
+    Result<EntityKey> deleteSecurityKeyGrant(String keyModelId);
 
 }

@@ -28,7 +28,6 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
-import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.EncryptionType;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -86,10 +85,6 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                         SecurityKeyRegistryRecordDynamicSqlSupport.type,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getString(SecurityKey.FILTER_ATTR_KEY_TYPE)))
                 .and(
-                        SecurityKeyRegistryRecordDynamicSqlSupport.encryptionType,
-                        SqlBuilder.isEqualToWhenPresent(
-                                filterMap.getString(SecurityKey.FILTER_ATTR_ENCRYPTION_TYPE)))
-                .and(
                         SecurityKeyRegistryRecordDynamicSqlSupport.tag,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getString(SecurityKey.FILTER_ATTR_TAG)))
                 .build()
@@ -137,8 +132,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                     Utils.toString(data.key),
                     data.tag,
                     data.examId,
-                    data.examTemplateId,
-                    Utils.getEnumName(data.encryptionType));
+                    data.examTemplateId);
 
             this.securityKeyRegistryRecordMapper.insert(newRecord);
             return newRecord;
@@ -161,8 +155,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                     Utils.toString(data.key),
                     data.tag,
                     data.examId,
-                    data.examTemplateId,
-                    Utils.getEnumName(data.encryptionType));
+                    data.examTemplateId);
 
             this.securityKeyRegistryRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.securityKeyRegistryRecordMapper.selectByPrimaryKey(data.id);
@@ -218,8 +211,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                             rec.getKey(),
                             rec.getTag(),
                             examId,
-                            null,
-                            rec.getEncryptionType());
+                            null);
 
                     this.securityKeyRegistryRecordMapper.insert(newRecord);
                     return newRecord;
@@ -254,8 +246,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                             rec.getKey(),
                             rec.getTag(),
                             null,
-                            examTemplateId,
-                            rec.getEncryptionType());
+                            examTemplateId);
 
                     this.securityKeyRegistryRecordMapper.insert(newRecord);
                     return newRecord;
@@ -313,6 +304,15 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
     }
 
     @Override
+    @Transactional
+    public Result<EntityKey> delete(final Long keyId) {
+        return Result.tryCatch(() -> {
+            this.securityKeyRegistryRecordMapper.deleteByPrimaryKey(keyId);
+            return new EntityKey(keyId, EntityType.SEB_SECURITY_KEY_REGISTRY);
+        });
+    }
+
+    @Override
     public void notifyExamDeletion(final ExamDeletionEvent event) {
         try {
 
@@ -364,8 +364,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                 rec.getKey(),
                 rec.getTag(),
                 rec.getExamId(),
-                rec.getExamTemplateId(),
-                EncryptionType.byString(rec.getEncryptionType()));
+                rec.getExamTemplateId());
     }
 
     private void checkUniqueTag(final SecurityKey securityKeyRegistry) {

@@ -17,12 +17,14 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.MediaType;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,6 +52,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
+import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -65,6 +68,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
@@ -82,6 +86,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final LmsAPIService lmsAPIService;
     private final ExamSessionService examSessionService;
     private final SEBRestrictionService sebRestrictionService;
+    private final SecurityKeyService securityKeyService;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -95,7 +100,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final ExamAdminService examAdminService,
             final ExamTemplateService examTemplateService,
             final ExamSessionService examSessionService,
-            final SEBRestrictionService sebRestrictionService) {
+            final SEBRestrictionService sebRestrictionService,
+            final SecurityKeyService securityKeyService) {
 
         super(authorization,
                 bulkActionService,
@@ -111,6 +117,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.lmsAPIService = lmsAPIService;
         this.examSessionService = examSessionService;
         this.sebRestrictionService = sebRestrictionService;
+        this.securityKeyService = securityKeyService;
     }
 
     @Override
@@ -178,11 +185,81 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return this.examDAO.byPK(modelId)
                 .flatMap(this::checkWriteAccess)
                 .flatMap(this.examAdminService::archiveExam)
-//                .flatMap(this::checkArchive)
-//                .flatMap(exam -> this.examDAO.updateState(exam.id, ExamStatus.ARCHIVED, null))
                 .flatMap(this::logModify)
                 .getOrThrow();
     }
+
+    // ****************************************************************************
+    // **** SEB Security Key
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<SecurityKey> getSecurityGrants(
+            @PathVariable(name = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT, required = true) final Long examId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        return this.examDAO.byPK(examId)
+                .flatMap(this::checkReadAccess)
+                .flatMap(exam -> this.securityKeyService.getPlainAppSignatureKeyGrants(institutionId, examId))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public SecurityKey newSecurityGrant(
+            @PathVariable(name = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT, required = true) final Long examId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam final MultiValueMap<String, String> allRequestParams,
+            final HttpServletRequest request) {
+
+        this.checkWritePrivilege(institutionId);
+        return this.examDAO.byPK(examId)
+                .flatMap(this::checkReadAccess)
+                .flatMap(exam -> {
+                    final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
+                            .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
+                    return this.securityKeyService.registerSecurityKey(new SecurityKey(postMap));
+                })
+                .flatMap(this.userActivityLogDAO::logCreate)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT
+                    + API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.DELETE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public EntityKey deleteSecurityGrant(
+            @PathVariable(name = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT, required = true) final Long examId,
+            @PathVariable(name = API.MODEL_ID_VAR_PATH_SEGMENT, required = true) final String keyId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        this.checkWritePrivilege(institutionId);
+        return this.examDAO.byPK(examId)
+                .flatMap(this::checkReadAccess)
+                .flatMap(exam -> this.securityKeyService.deleteSecurityKeyGrant(keyId))
+                .flatMap(this.userActivityLogDAO::logDelete)
+                .getOrThrow();
+    }
+
+    // **** SEB Security Key
+    // ****************************************************************************
 
     // ****************************************************************************
     // **** SEB Restriction

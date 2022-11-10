@@ -12,6 +12,7 @@ import java.util.Collection;
 
 import org.springframework.context.event.EventListener;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -26,6 +27,8 @@ public interface SecurityKeyRegistryDAO extends EntityDAO<SecurityKey, SecurityK
     Result<SecurityKey> registerCopyForExamTemplate(Long keyId, Long examTemplateId);
 
     Result<Collection<SecurityKey>> getAll(Long institutionId, Long examId, KeyType type);
+
+    Result<EntityKey> delete(Long keyId);
 
     @EventListener(ExamDeletionEvent.class)
     void notifyExamDeletion(ExamDeletionEvent event);

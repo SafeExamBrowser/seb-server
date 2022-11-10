@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.institution.impl;
 
 import java.security.cert.Certificate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -20,9 +21,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityCheckResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
-import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.EncryptionType;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -35,6 +36,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SecurityKeyRegistryDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 
 @Lazy
@@ -65,10 +67,30 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
     }
 
     @Override
+    public Result<Collection<SecurityKey>> getPlainGrants(final Long institutionId, final Long examId) {
+        return this.securityKeyRegistryDAO
+                .getAll(institutionId, examId, null)
+                .map(this::decryptAll);
+    }
+
+    @Override
+    public Result<Collection<SecurityKey>> getPlainAppSignatureKeyGrants(final Long institutionId, final Long examId) {
+        return this.securityKeyRegistryDAO
+                .getAll(institutionId, examId, KeyType.APP_SIGNATURE_KEY)
+                .map(this::decryptAll);
+    }
+
+    @Override
     public Result<SecurityKey> registerGlobalAppSignatureKey(
             final Long institutionId,
             final Long connectionId,
             final String tag) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Register app-signature-key global grant. ConnectionId: {} tag: {}",
+                    connectionId,
+                    tag);
+        }
 
         return this.clientConnectionDAO.byPK(connectionId)
                 .map(this::decryptStoredSignatureForConnection)
@@ -77,7 +99,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                         institutionId,
                         KeyType.APP_SIGNATURE_KEY,
                         this.cryptor.encrypt(appSignatureKey).getOrThrow(),
-                        tag, null, null, EncryptionType.PWD_INTERNAL)).getOrThrow());
+                        tag, null, null)).getOrThrow());
     }
 
     @Override
@@ -87,6 +109,13 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
             final Long connectionId,
             final String tag) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Register app-signature-key exam grant. Exam: {} connectionId: {} tag: {}",
+                    examId,
+                    connectionId,
+                    tag);
+        }
+
         return this.clientConnectionDAO.byPK(connectionId)
                 .map(this::decryptStoredSignatureForConnection)
                 .map(appSignatureKey -> this.securityKeyRegistryDAO.createNew(new SecurityKey(
@@ -94,7 +123,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                         institutionId,
                         KeyType.APP_SIGNATURE_KEY,
                         this.cryptor.encrypt(appSignatureKey).getOrThrow(),
-                        tag, examId, null, EncryptionType.PWD_INTERNAL)).getOrThrow());
+                        tag, examId, null)).getOrThrow());
     }
 
     @Override
@@ -104,12 +133,16 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
             final String connectionToken,
             final String appSignatureKey) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Apply app-signature-key check for connection: {}", connectionToken);
+        }
+
         return this.securityKeyRegistryDAO
                 .getAll(institutionId, examId, KeyType.APP_SIGNATURE_KEY)
                 .map(all -> {
                     final String decryptedSignature = decryptSignature(examId, connectionToken, appSignatureKey);
                     final List<SecurityKey> matches = all.stream()
-                            .map(this::decryptKey)
+                            .map(this::decryptGrantedKey)
                             .filter(pair -> pair != null && Objects.equals(decryptedSignature, pair.a))
                             .map(Pair::getB)
                             .collect(Collectors.toList());
@@ -171,12 +204,71 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
         }
     }
 
-    private Pair<String, SecurityKey> decryptKey(final SecurityKey key) {
-        if (key.encryptionType != EncryptionType.PWD_INTERNAL) {
-            log.warn("Only internal encrypted keys can be decrypted here. Skip key: {}", key);
-            return null;
+    @Override
+    public Result<SecurityKey> getDecrypted(final SecurityKey key) {
+        return this.cryptor.decrypt(key.key)
+                .map(dKey -> new SecurityKey(
+                        key.id,
+                        key.institutionId,
+                        key.keyType,
+                        dKey,
+                        key.tag,
+                        key.examId,
+                        key.examTemplateId));
+    }
+
+    @Override
+    public void updateAppSignatureKeyGrants(final Long examId) {
+        if (examId == null) {
+            return;
         }
 
+        try {
+
+            this.clientConnectionDAO
+                    .getConnectionTokens(examId)
+                    .getOrThrow()
+                    .stream()
+                    .forEach(token -> {
+                        final ClientConnectionDataInternal clientConnection =
+                                this.examSessionCacheService.getClientConnection(token);
+                        if (!clientConnection.clientConnection.isSecurityCheckGranted()) {
+                            if (this.checkAppSignatureKey(clientConnection.clientConnection, null)) {
+                                // now granted, update ClientConnection on DB level
+
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Update app-signature-key grant for client connection: {}", token);
+                                }
+
+                                this.clientConnectionDAO
+                                        .save(new ClientConnection(
+                                                clientConnection.clientConnection.id, null,
+                                                null, null, null, null, null, null, null, null,
+                                                null, null, null, null, null, null, null, true))
+                                        .onError(error -> log.error("Failed to save ClientConnection grant: ", error))
+                                        .onSuccess(c -> this.examSessionCacheService.evictClientConnection(token));
+                            }
+                        }
+                    });
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to update app-signature-key grants: ", e);
+        }
+    }
+
+    @Override
+    public Result<SecurityKey> registerSecurityKey(final SecurityKey key) {
+        return this.encryptInternal(key)
+                .flatMap(this.securityKeyRegistryDAO::createNew);
+    }
+
+    @Override
+    public Result<EntityKey> deleteSecurityKeyGrant(final String keyModelId) {
+        return Result.tryCatch(() -> Long.parseLong(keyModelId))
+                .flatMap(this.securityKeyRegistryDAO::delete);
+    }
+
+    private Pair<String, SecurityKey> decryptGrantedKey(final SecurityKey key) {
         final Result<CharSequence> decrypt = this.cryptor.decrypt(key.key);
         if (decrypt.hasError()) {
             log.error("Failed to decrypt security key with internal secret: ", decrypt.getError());
@@ -318,14 +410,25 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                         ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD)
                 .map(attr -> Integer.valueOf(attr.getValue()))
                 .getOr(1);
-
     }
 
-    @Override
-    public void updateAppSignatureKeyGrants(final Long examId) {
-        // TODO Go through all client connections of the exam and update those that has no grant yet
-        //      for all client connections that do not have a grant, make a check again and store if new granted.
+    private Collection<SecurityKey> decryptAll(final Collection<SecurityKey> all) {
+        return all.stream()
+                .map(this::getDecrypted)
+                .filter(Result::hasValue)
+                .map(Result::get)
+                .collect(Collectors.toList());
+    }
 
+    private Result<SecurityKey> encryptInternal(final SecurityKey key) {
+        return Result.tryCatch(() -> new SecurityKey(
+                key.id,
+                key.institutionId,
+                key.keyType,
+                Utils.toString(this.cryptor.encrypt(key.key).getOrThrow()),
+                key.tag,
+                key.examId,
+                key.examTemplateId));
     }
 
 }
