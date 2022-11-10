@@ -338,7 +338,7 @@ class ExamUpdateHandler {
     }
 
     private boolean hasChanges(final Exam exam, final QuizData quizData) {
-        if (Utils.isEqualsWithEmptyCheck(exam.name, quizData.name) ||
+        if (!Utils.isEqualsWithEmptyCheck(exam.name, quizData.name) ||
                 !Objects.equals(exam.startTime, quizData.startTime) ||
                 !Objects.equals(exam.endTime, quizData.endTime) ||
                 !Utils.isEqualsWithEmptyCheck(exam.getDescription(), quizData.description) ||
