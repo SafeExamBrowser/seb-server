@@ -95,7 +95,7 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
 
             if (value == null) {
                 throw new IllegalArgumentException(
-                        "value cannot be null. Use delete to delete an additional attribute");
+                        "value cannot be null. Use delete to delete an additional attribute: " + String.valueOf(name));
             }
 
             if (log.isDebugEnabled()) {
