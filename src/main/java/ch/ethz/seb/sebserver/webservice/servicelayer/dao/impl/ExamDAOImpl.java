@@ -749,13 +749,24 @@ public class ExamDAOImpl implements ExamDAO {
             additionalAttributes.put(QuizData.QUIZ_ATTR_START_URL, quizData.startURL);
         }
 
-        if (!additionalAttributes.isEmpty()) {
-            this.additionalAttributesDAO.saveAdditionalAttributes(
-                    EntityType.EXAM,
-                    examId,
-                    additionalAttributes)
-                    .getOrThrow();
-        }
+        additionalAttributes.entrySet().forEach(entry -> {
+            final String value = entry.getValue();
+            if (value == null) {
+                this.additionalAttributesDAO.delete(
+                        EntityType.EXAM,
+                        examId,
+                        entry.getKey());
+            } else {
+                this.additionalAttributesDAO.saveAdditionalAttribute(
+                        EntityType.EXAM,
+                        examId,
+                        entry.getKey(),
+                        value)
+                        .onError(error -> log.error("Failed to save additional quiz attribute: {}",
+                                entry.getKey(),
+                                error));
+            }
+        });
 
         return quizData;
     }
