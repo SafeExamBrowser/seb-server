@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -183,8 +184,19 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                 saveSignatureKeyForConnection(clientConnection, appSignatureKey);
             }
 
-            // no signature, no check, no grant
-            if (StringUtils.isBlank(signature)) {
+            // check can only be applied if exam is known, no signature, no check, no grant
+            if (clientConnection.examId == null || StringUtils.isBlank(signature)) {
+                return false;
+            }
+
+            // if signature check is not enabled, skip
+            if (!this.additionalAttributesDAO.getAdditionalAttribute(
+                    EntityType.EXAM,
+                    clientConnection.examId,
+                    ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED)
+                    .map(attr -> BooleanUtils.toBoolean(attr.getValue()))
+                    .getOr(false).booleanValue()) {
+
                 return false;
             }
 
