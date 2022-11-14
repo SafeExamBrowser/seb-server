@@ -12,6 +12,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -22,6 +25,8 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttribut
  * Additional attributes are name/value pairs associated with a specified entity but stored
  * in a separated data-base table. */
 public interface AdditionalAttributesDAO {
+
+    Logger log = LoggerFactory.getLogger(AdditionalAttributesDAO.class);
 
     /** Use this to get all additional attribute records for a specific entity.
      *
@@ -85,8 +90,9 @@ public interface AdditionalAttributesDAO {
 
         return Result.tryCatch(() -> attributes.entrySet()
                 .stream()
-                .map(attr -> saveAdditionalAttribute(type, entityId, attr.getKey(), attr.getValue()))
-                .flatMap(Result::onErrorLogAndSkip)
+                .map(attr -> saveAdditionalAttribute(type, entityId, attr.getKey(), attr.getValue())
+                        .onError(error -> log.warn("Failed to save additional attribute: {}", error.getMessage())))
+                .flatMap(Result::skipOnError)
                 .collect(Collectors.toList()));
     }
 
