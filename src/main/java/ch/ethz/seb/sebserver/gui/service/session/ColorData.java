@@ -13,9 +13,10 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringData;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable.MonitoringEntry;
 
 public class ColorData {
 
@@ -48,14 +49,19 @@ public class ColorData {
         }
     }
 
-    Color getStatusColor(final ClientMonitoringData monitoringData) {
-        if (monitoringData == null) {
+    Color getStatusColor(final MonitoringEntry entry) {
+        final ConnectionStatus status = entry.getStatus();
+        if (status == null) {
             return this.defaultColor;
         }
 
-        switch (monitoringData.status) {
+        switch (status) {
             case ACTIVE:
-                return (monitoringData.missingPing) ? this.color2 : this.color1;
+                return (entry.hasMissingGrant())
+                        ? this.color3
+                        : (entry.hasMissingPing())
+                                ? this.color2
+                                : this.color1;
             default:
                 return this.defaultColor;
         }
@@ -83,21 +89,21 @@ public class ColorData {
         }
     }
 
-    int statusWeight(final ClientMonitoringData monitoring) {
-        if (monitoring == null) {
+    int statusWeight(final MonitoringEntry entry) {
+        if (entry == null) {
             return 100;
         }
 
-        switch (monitoring.status) {
+        switch (entry.getStatus()) {
             case CONNECTION_REQUESTED:
             case AUTHENTICATED:
                 return 1;
             case ACTIVE:
-                return (monitoring.missingPing) ? 0 : 2;
+                return (entry.hasMissingGrant()) ? 3 : (entry.hasMissingPing()) ? 0 : 2;
             case CLOSED:
-                return 3;
+                return 4;
             default:
-                return 10;
+                return 5;
         }
     }
 

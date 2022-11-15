@@ -48,6 +48,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientStaticData;
@@ -92,13 +93,14 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
     private final PageService pageService;
     private final Exam exam;
+    private final boolean checkSecurityGrant;
     private final boolean distributedSetup;
 
     private final Map<Long, IndicatorData> indicatorMapping;
     private final Map<Long, ClientGroup> clientGroupMapping;
     private final Table table;
     private final ColorData colorData;
-    private final Function<ClientMonitoringData, String> localizedClientConnectionStatusNameFunction;
+    private final Function<MonitoringEntry, String> localizedClientConnectionStatusNameFunction;
     private Consumer<ClientConnectionTable> selectionListener;
 
     private int tableWidth;
@@ -127,6 +129,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
         this.pageService = pageService;
         this.exam = exam;
+        this.checkSecurityGrant = BooleanUtils.toBoolean(
+                exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
         this.distributedSetup = distributedSetup;
 
         final WidgetFactory widgetFactory = pageService.getWidgetFactory();
@@ -445,7 +449,15 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         // TODO if right click get selected item and show additional information (notification)
     }
 
-    private final class UpdatableTableItem implements Comparable<UpdatableTableItem> {
+    public interface MonitoringEntry {
+        ConnectionStatus getStatus();
+
+        boolean hasMissingPing();
+
+        boolean hasMissingGrant();
+    }
+
+    private final class UpdatableTableItem implements Comparable<UpdatableTableItem>, MonitoringEntry {
 
         final Long connectionId;
         private boolean dataChanged = false;
@@ -459,6 +471,25 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         UpdatableTableItem(final Long connectionId) {
             this.connectionId = connectionId;
             ClientConnectionTable.this.needsSort = true;
+        }
+
+        @Override
+        public ConnectionStatus getStatus() {
+            if (this.monitoringData == null) {
+                return ConnectionStatus.UNDEFINED;
+            }
+            return this.monitoringData.status;
+        }
+
+        @Override
+        public boolean hasMissingPing() {
+            return (this.monitoringData != null) ? this.monitoringData.missingPing : false;
+        }
+
+        @Override
+        public boolean hasMissingGrant() {
+            return (this.staticData != null)
+                    ? ClientConnectionTable.this.checkSecurityGrant && !this.staticData.securityGrant : false;
         }
 
         private void update(final TableItem tableItem, final boolean force) {
@@ -480,14 +511,12 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 tableItem.setText(2, getConnectionInfo());
                 tableItem.setText(
                         3,
-                        ClientConnectionTable.this.localizedClientConnectionStatusNameFunction
-                                .apply(this.monitoringData));
+                        ClientConnectionTable.this.localizedClientConnectionStatusNameFunction.apply(this));
             } else {
                 tableItem.setText(1, getConnectionInfo());
                 tableItem.setText(
                         2,
-                        ClientConnectionTable.this.localizedClientConnectionStatusNameFunction
-                                .apply(this.monitoringData));
+                        ClientConnectionTable.this.localizedClientConnectionStatusNameFunction.apply(this));
             }
 
             if (this.monitoringData != null) {
@@ -524,7 +553,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         private void updateConnectionStatusColor(final TableItem tableItem) {
-            final Color statusColor = ClientConnectionTable.this.colorData.getStatusColor(this.monitoringData);
+            final Color statusColor = ClientConnectionTable.this.colorData.getStatusColor(this);
             final Color statusTextColor = ClientConnectionTable.this.colorData.getStatusTextColor(statusColor);
             final int index = ClientConnectionTable.this.hasClientGroups ? 3 : 2;
             tableItem.setBackground(index, statusColor);
@@ -610,7 +639,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         int statusWeight() {
-            return ClientConnectionTable.this.colorData.statusWeight(this.monitoringData);
+            return ClientConnectionTable.this.colorData.statusWeight(this);
         }
 
         int thresholdsWeight() {
@@ -717,6 +746,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         private ClientConnectionTable getOuterType() {
             return ClientConnectionTable.this;
         }
+
     }
 
     private void fetchStaticClientConnectionData() {

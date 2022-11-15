@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityCheckResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
@@ -193,7 +194,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
             if (!this.additionalAttributesDAO.getAdditionalAttribute(
                     EntityType.EXAM,
                     clientConnection.examId,
-                    ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED)
+                    Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED)
                     .map(attr -> BooleanUtils.toBoolean(attr.getValue()))
                     .getOr(false).booleanValue()) {
 
@@ -201,14 +202,16 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
             }
 
             // apply check
-            return applyAppSignatureCheck(
+            final Boolean grant = applyAppSignatureCheck(
                     clientConnection.institutionId,
                     clientConnection.examId,
                     clientConnection.connectionToken,
-                    appSignatureKey)
+                    signature)
                             .map(SecurityCheckResult::hasAnyGrant)
                             .onError(error -> log.error("Failed to applyAppSignatureCheck: ", error))
                             .getOr(false);
+
+            return grant;
 
         } catch (final Exception e) {
             log.error("Failed to apply App-Signature-Key check for clientConnection: {}", clientConnection, e);
@@ -299,10 +302,15 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
             return this.additionalAttributesDAO.getAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
-                    ADDITIONAL_ATTR_SIGNATURE_KEY_CERT_ALIAS)
+                    Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CERT_ALIAS)
                     .map(rec -> decryptSignatureWithCertificate(rec.getValue(), appSignatureKey))
                     .onErrorDo(error -> {
-                        log.warn("Failed to decrypt with cert. Try with token: ", error);
+                        if (log.isDebugEnabled()) {
+                            log.debug(
+                                    "No Cert for encryption found for exam: {} cause: {}",
+                                    examId,
+                                    error.getMessage());
+                        }
                         return decryptSignatureWithConnectionToken(connectionToken, appSignatureKey);
                     })
                     .getOrThrow();
@@ -315,6 +323,8 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
             final Long examId,
             final String decryptedSignature) {
 
+        System.out.println("****************** statisticalCheck: " + decryptedSignature);
+
         // if there is no exam known yet, no statistical check can be applied
         if (examId == null) {
             return SecurityCheckResult.NO_GRANT;
@@ -325,7 +335,8 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
             // TODO if cert encryption is available check if exam has defined cert for decryption
             final Certificate cert = null;
 
-            final int matches = this.clientConnectionDAO.getAllActiveConnectionTokens(examId)
+            final int matches = this.clientConnectionDAO
+                    .getAllActiveConnectionTokens(examId)
                     .map(tokens -> tokens.stream()
                             .map(this.examSessionCacheService::getClientConnection)
                             .filter(cc -> matchOtherClientConnection(cc.clientConnection, decryptedSignature, cert))
@@ -419,7 +430,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                 .getAdditionalAttribute(
                         EntityType.EXAM,
                         examId,
-                        ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD)
+                        Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD)
                 .map(attr -> Integer.valueOf(attr.getValue()))
                 .getOr(1);
     }

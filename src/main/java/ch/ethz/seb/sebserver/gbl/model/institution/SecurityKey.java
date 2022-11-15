@@ -25,7 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.GrantEntity;;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SecurityKey implements GrantEntity {
 
-    public static final String FILTER_ATTR_KEY_TYPE = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TYPE;
+    public static final String FILTER_ATTR_KEY_TYPE = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_TYPE;
     public static final String FILTER_ATTR_EXAM_ID = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_ID;
     public static final String FILTER_ATTR_EXAM_TEMPLATE_ID = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_TEMPLATE_ID;
     public static final String FILTER_ATTR_TAG = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG;
@@ -53,11 +53,11 @@ public class SecurityKey implements GrantEntity {
     public final Long institutionId;
 
     @NotNull
-    @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_TYPE)
+    @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_TYPE)
     public final KeyType keyType;
 
     @NotNull
-    @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY)
+    @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_VALUE)
     public final CharSequence key;
 
     @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_TAG)
@@ -73,8 +73,8 @@ public class SecurityKey implements GrantEntity {
     public SecurityKey(
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_ID) final Long id,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_INSTITUTION_ID) final Long institutionId,
-            @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_TYPE) final KeyType keyType,
-            @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY) final CharSequence key,
+            @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_TYPE) final KeyType keyType,
+            @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_VALUE) final CharSequence key,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_TAG) final String tag,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_ID) final Long examId,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId) {
@@ -91,8 +91,8 @@ public class SecurityKey implements GrantEntity {
     public SecurityKey(final POSTMapper postMap) {
         this.id = null;
         this.institutionId = postMap.getLong(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_INSTITUTION_ID);
-        this.keyType = postMap.getEnum(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TYPE, KeyType.class);
-        this.key = postMap.getString(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_KEY);
+        this.keyType = postMap.getEnum(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_TYPE, KeyType.class);
+        this.key = postMap.getString(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_VALUE);
         this.tag = postMap.getString(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG);
         this.examId = postMap.getLong(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_ID);
         this.examTemplateId = postMap.getLong(Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_TEMPLATE_ID);

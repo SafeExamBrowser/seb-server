@@ -6,8 +6,8 @@ DROP TABLE IF EXISTS `seb_security_key_registry` ;
 CREATE TABLE IF NOT EXISTS `seb_security_key_registry` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
-  `type` VARCHAR(45) NOT NULL,
-  `key` VARCHAR(4000) NOT NULL,
+  `key_type` VARCHAR(45) NOT NULL,
+  `key_value` VARCHAR(4000) NOT NULL,
   `tag` VARCHAR(255) NULL,
   `exam_id` BIGINT UNSIGNED NULL,
   `exam_template_id` BIGINT UNSIGNED NULL,

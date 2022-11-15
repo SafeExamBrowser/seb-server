@@ -63,7 +63,6 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification.NotificationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserActivityLog;
@@ -88,6 +87,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Ge
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
+import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable.MonitoringEntry;
 
 @Lazy
 @Service
@@ -98,7 +98,8 @@ public class ResourceService {
 
     private static final Logger log = LoggerFactory.getLogger(ResourceService.class);
 
-    private static final String MISSING_CLIENT_PING_NAME_KEY = "MISSING";
+    private static final String MISSING_CLIENT_PING_NAME_KEY = "MISSING_PING";
+    private static final String MISSING_CLIENT_SEC_GRANT_NAME_KEY = "MISSING_GRANT";
 
     public static final Comparator<Tuple<String>> RESOURCE_COMPARATOR = Comparator.comparing(t -> t._2);
     public static final Comparator<Tuple3<String>> RESOURCE_COMPARATOR_TUPLE_3 = Comparator.comparing(t -> t._2);
@@ -647,25 +648,31 @@ public class ResourceService {
         };
     }
 
-    public Function<ClientMonitoringData, String> localizedClientMonitoringStatusNameFunction() {
+    public Function<MonitoringEntry, String> localizedClientMonitoringStatusNameFunction() {
 
         // Memoizing
-        final String missing = this.i18nSupport.getText(
+        final String missingPing = this.i18nSupport.getText(
                 SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_PING_NAME_KEY,
                 MISSING_CLIENT_PING_NAME_KEY);
+        final String missingGrant = this.i18nSupport.getText(
+                SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_SEC_GRANT_NAME_KEY,
+                MISSING_CLIENT_SEC_GRANT_NAME_KEY);
         final EnumMap<ConnectionStatus, String> localizedNames = new EnumMap<>(ConnectionStatus.class);
         Arrays.asList(ConnectionStatus.values()).stream().forEach(state -> localizedNames.put(state, this.i18nSupport
                 .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + state.name(), state.name())));
 
-        return monitoringData -> {
-            if (monitoringData == null) {
-                localizedNames.get(ConnectionStatus.UNDEFINED);
+        return monitoringEntry -> {
+            final ConnectionStatus status = monitoringEntry.getStatus();
+            if (status.establishedStatus) {
+                if (monitoringEntry.hasMissingGrant()) {
+                    return missingGrant;
+                }
+                if (monitoringEntry.hasMissingPing()) {
+                    return missingPing;
+                }
             }
-            if (monitoringData.missingPing && monitoringData.status.establishedStatus) {
-                return missing;
-            } else {
-                return localizedNames.get(monitoringData.status);
-            }
+
+            return localizedNames.get(status);
         };
     }
 

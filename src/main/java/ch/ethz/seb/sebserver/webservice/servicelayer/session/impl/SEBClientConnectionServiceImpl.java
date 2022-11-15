@@ -258,6 +258,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // userSessionId integrity check
             clientConnection = updateUserSessionId(userSessionId, clientConnection, examId);
+            final boolean securityGrant = this.securityKeyService.checkAppSignatureKey(
+                    clientConnection,
+                    appSignatureKey);
             final ClientConnection updatedClientConnection = this.clientConnectionDAO
                     .save(new ClientConnection(
                             clientConnection.id,
@@ -277,7 +280,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             null,
                             null,
                             null,
-                            this.securityKeyService.checkAppSignatureKey(clientConnection, appSignatureKey)))
+                            securityGrant))
                     .getOrThrow();
 
             // initialize distributed indicator value caches if possible and needed
@@ -380,6 +383,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     : clientConnection.virtualClientId;
 
             // create new ClientConnection for update
+            final boolean securityGrant = this.securityKeyService.checkAppSignatureKey(
+                    clientConnection,
+                    appSignatureKey);
             final ClientConnection establishedClientConnection = new ClientConnection(
                     clientConnection.id,
                     null,
@@ -398,7 +404,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     proctoringEnabled,
-                    this.securityKeyService.checkAppSignatureKey(clientConnection, appSignatureKey));
+                    securityGrant);
 
             // ClientConnection integrity check
             // institutionId, connectionToken and clientAddress must be set

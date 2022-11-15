@@ -150,6 +150,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
                     ClientConnectionDataInternal.this.clientConnection.id,
                     ClientConnectionDataInternal.this.clientConnection.connectionToken,
                     ClientConnectionDataInternal.this.clientConnection.userSessionId,
+                    ClientConnectionDataInternal.this.clientConnection.getSecurityCheckGranted(),
                     ClientConnectionDataInternal.this.clientConnection.info,
                     this.groups);
 

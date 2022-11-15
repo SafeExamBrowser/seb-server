@@ -82,7 +82,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                         SqlBuilder.isEqualToWhenPresent(
                                 filterMap.getLong(SecurityKey.FILTER_ATTR_EXAM_TEMPLATE_ID)))
                 .and(
-                        SecurityKeyRegistryRecordDynamicSqlSupport.type,
+                        SecurityKeyRegistryRecordDynamicSqlSupport.keyType,
                         SqlBuilder.isEqualToWhenPresent(filterMap.getString(SecurityKey.FILTER_ATTR_KEY_TYPE)))
                 .and(
                         SecurityKeyRegistryRecordDynamicSqlSupport.tag,
@@ -195,7 +195,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                     final Long execute = this.securityKeyRegistryRecordMapper
                             .countByExample()
                             .where(SecurityKeyRegistryRecordDynamicSqlSupport.examId, isEqualTo(examId))
-                            .and(SecurityKeyRegistryRecordDynamicSqlSupport.key, isEqualTo(rec.getKey()))
+                            .and(SecurityKeyRegistryRecordDynamicSqlSupport.keyValue, isEqualTo(rec.getKeyValue()))
                             .build()
                             .execute();
 
@@ -207,8 +207,8 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                     final SecurityKeyRegistryRecord newRecord = new SecurityKeyRegistryRecord(
                             null,
                             rec.getInstitutionId(),
-                            rec.getType(),
-                            rec.getKey(),
+                            rec.getKeyType(),
+                            rec.getKeyValue(),
                             rec.getTag(),
                             examId,
                             null);
@@ -230,7 +230,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                     final Long execute = this.securityKeyRegistryRecordMapper
                             .countByExample()
                             .where(SecurityKeyRegistryRecordDynamicSqlSupport.examTemplateId, isEqualTo(examTemplateId))
-                            .and(SecurityKeyRegistryRecordDynamicSqlSupport.key, isEqualTo(rec.getKey()))
+                            .and(SecurityKeyRegistryRecordDynamicSqlSupport.keyValue, isEqualTo(rec.getKeyValue()))
                             .build()
                             .execute();
 
@@ -242,8 +242,8 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                     final SecurityKeyRegistryRecord newRecord = new SecurityKeyRegistryRecord(
                             null,
                             rec.getInstitutionId(),
-                            rec.getType(),
-                            rec.getKey(),
+                            rec.getKeyType(),
+                            rec.getKeyValue(),
                             rec.getTag(),
                             null,
                             examTemplateId);
@@ -266,7 +266,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                             SecurityKeyRegistryRecordDynamicSqlSupport.institutionId,
                             SqlBuilder.isEqualTo(institutionId))
                     .and(
-                            SecurityKeyRegistryRecordDynamicSqlSupport.type,
+                            SecurityKeyRegistryRecordDynamicSqlSupport.keyType,
                             isEqualToWhenPresent((type == null) ? null : type.name()))
                     .build()
                     .execute()
@@ -285,7 +285,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                                 SecurityKeyRegistryRecordDynamicSqlSupport.examId,
                                 isEqualTo(examId))
                         .and(
-                                SecurityKeyRegistryRecordDynamicSqlSupport.type,
+                                SecurityKeyRegistryRecordDynamicSqlSupport.keyType,
                                 isEqualToWhenPresent((type == null) ? null : type.name()))
                         .build()
                         .execute()
@@ -360,8 +360,8 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
         return new SecurityKey(
                 rec.getId(),
                 rec.getInstitutionId(),
-                KeyType.byString(rec.getType()),
-                rec.getKey(),
+                KeyType.byString(rec.getKeyType()),
+                rec.getKeyValue(),
                 rec.getTag(),
                 rec.getExamId(),
                 rec.getExamTemplateId());

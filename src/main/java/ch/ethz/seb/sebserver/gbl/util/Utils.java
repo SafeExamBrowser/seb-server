@@ -815,6 +815,9 @@ public final class Utils {
     }
 
     public static Byte toByte(final Boolean b) {
+        if (b == null) {
+            return null;
+        }
         return BooleanUtils.toIntegerObject(b, 1, 0, 0).byteValue();
     }
 

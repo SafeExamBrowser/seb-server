@@ -21,15 +21,6 @@ public interface SecurityKeyService {
     /** This attribute name is used to store the App-Signature-Key given by a SEB Client */
     public static final String ADDITIONAL_ATTR_APP_SIGNATURE_KEY = "APP_SIGNATURE_KEY";
 
-    /** This attribute name is used on exams to store the flag for indicating the signature key check */
-    public static final String ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED = "SIGNATURE_KEY_CHECK_ENABLED";
-
-    /** This attribute name is used to store the signature check grant threshold for statistical checks */
-    public static final String ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD = "STATISTICAL_GRANT_COUNT_THRESHOLD";
-
-    /** This attribute name is used to store the signature check encryption certificate is one is used */
-    public static final String ADDITIONAL_ATTR_SIGNATURE_KEY_CERT_ALIAS = "SIGNATURE_KEY_CERT_ALIAS";
-
     Result<Collection<SecurityKey>> getPlainGrants(Long institutionId, Long examId);
 
     Result<Collection<SecurityKey>> getPlainAppSignatureKeyGrants(Long institutionId, Long examId);

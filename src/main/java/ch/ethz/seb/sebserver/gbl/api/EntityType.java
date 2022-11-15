@@ -2,7 +2,7 @@ package ch.ethz.seb.sebserver.gbl.api;
 
 import javax.annotation.Generated;
 
-@Generated(value="org.mybatis.generator.api.MyBatisGenerator",comments="ch.ethz.seb.sebserver.gen.DomainModelNameReferencePlugin",date="2022-11-10T11:31:35.524+01:00")
+@Generated(value="org.mybatis.generator.api.MyBatisGenerator",comments="ch.ethz.seb.sebserver.gen.DomainModelNameReferencePlugin",date="2022-11-15T09:31:51.367+01:00")
 public enum EntityType {
     CONFIGURATION_ATTRIBUTE,
     CONFIGURATION_VALUE,
