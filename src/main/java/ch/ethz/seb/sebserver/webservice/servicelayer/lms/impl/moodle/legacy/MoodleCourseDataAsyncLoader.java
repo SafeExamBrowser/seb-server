@@ -235,7 +235,8 @@ public class MoodleCourseDataAsyncLoader {
                     CourseQuizData.class);
 
             if (courseQuizData == null) {
-                return false;
+                // return false;  SEBSERV-361
+                return true;
             }
 
             if (courseQuizData.warnings != null && !courseQuizData.warnings.isEmpty()) {
