@@ -3530,18 +3530,18 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
                 .call();
 
-        assertTrue(applyCall.hasError());
-        assertTrue(applyCall.getError() instanceof RestCallError);
-        assertTrue(applyCall.getError().toString().contains("SEB Restriction feature not available"));
+        assertFalse(applyCall.hasError());
+        Exam exam2 = applyCall.get();
+        assertTrue(exam2.sebRestriction);
 
         final Result<Exam> deleteCall = restService
                 .getBuilder(DeactivateSEBRestriction.class)
                 .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
                 .call();
 
-        assertTrue(deleteCall.hasError());
-        assertTrue(deleteCall.getError() instanceof RestCallError);
-        assertTrue(deleteCall.getError().toString().contains("SEB Restriction feature not available"));
+        assertFalse(deleteCall.hasError());
+        exam2 = deleteCall.get();
+        assertFalse(exam2.sebRestriction);
 
         final Result<Chapters> chaptersCall = restService
                 .getBuilder(GetCourseChapters.class)
