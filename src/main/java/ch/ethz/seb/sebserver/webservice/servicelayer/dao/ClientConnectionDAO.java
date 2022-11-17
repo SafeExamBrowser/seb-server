@@ -167,6 +167,12 @@ public interface ClientConnectionDAO extends
      *
      * @param examId the exam identifier
      * @return Result refer to a collection of client connection records or to an error when happened */
-    Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForExam(Long examId);
+    Result<Collection<ClientConnectionRecord>> getAllConnectionRecordsForExam(Long examId);
+
+    /** Get all client connection identifiers for an exam.
+     *
+     * @param examId the exam identifier
+     * @return Result refer to a collection of client connection identifiers or to an error when happened */
+    Result<Collection<Long>> getAllConnectionIdsForExam(Long examId);
 
 }

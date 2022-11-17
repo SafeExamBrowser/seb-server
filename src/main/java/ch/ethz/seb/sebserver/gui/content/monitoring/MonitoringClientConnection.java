@@ -31,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
+import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -61,6 +62,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.Ge
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionSecurityKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetPendingClientNotifications;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionDetails;
@@ -124,6 +126,7 @@ public class MonitoringClientConnection implements TemplateComposer {
     private final InstructionProcessor instructionProcessor;
     private final SEBClientEventDetailsPopup sebClientLogDetailsPopup;
     private final SEBSendLockPopup sebSendLockPopup;
+    private final SignatureKeyGrantPopup signatureKeyGrantPopup;
     private final MonitoringProctoringService monitoringProctoringService;
     private final long pollInterval;
     private final int pageSize;
@@ -139,6 +142,7 @@ public class MonitoringClientConnection implements TemplateComposer {
             final SEBClientEventDetailsPopup sebClientLogDetailsPopup,
             final MonitoringProctoringService monitoringProctoringService,
             final SEBSendLockPopup sebSendLockPopup,
+            final SignatureKeyGrantPopup signatureKeyGrantPopup,
             @Value("${sebserver.gui.webservice.poll-interval:500}") final long pollInterval,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
@@ -151,6 +155,7 @@ public class MonitoringClientConnection implements TemplateComposer {
         this.pollInterval = pollInterval;
         this.sebClientLogDetailsPopup = sebClientLogDetailsPopup;
         this.sebSendLockPopup = sebSendLockPopup;
+        this.signatureKeyGrantPopup = signatureKeyGrantPopup;
         this.pageSize = pageSize;
 
         this.typeFilter = new TableFilterAttribute(
@@ -394,6 +399,26 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(() -> isExamSupporter.getAsBoolean() &&
                         connectionData.clientConnection.status.clientActiveStatus);
+
+        if (clientConnectionDetails.checkSecurityGrant) {
+            final SecurityKey securityKey = this.pageService
+                    .getRestService()
+                    .getBuilder(GetClientConnectionSecurityKey.class)
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, parentEntityKey.modelId)
+                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                    .call()
+                    .getOrThrow();
+
+            if (securityKey.id < 0) {
+                actionBuilder
+                        .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_GRANT_SIGNATURE_KEY)
+                        .withParentEntityKey(parentEntityKey)
+                        .withEntityKey(entityKey)
+                        .withExec(action -> this.signatureKeyGrantPopup.showGrantPopup(action, securityKey))
+                        .noEventPropagation()
+                        .publishIf(isExamSupporter);
+            }
+        }
 
         if (connectionData.clientConnection.status == ConnectionStatus.ACTIVE) {
             final ProctoringServiceSettings proctoringSettings = restService

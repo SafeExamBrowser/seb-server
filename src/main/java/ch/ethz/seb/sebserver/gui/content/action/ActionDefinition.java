@@ -415,6 +415,17 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
 
+    EXAM_SECURITY_KEY_ENABLED(
+            new LocTextKey("sebserver.exam.signaturekey.action.edit"),
+            ImageIcon.SHIELD,
+            PageStateDefinitionImpl.SECURITY_KEY_EDIT,
+            ActionCategory.FORM),
+    EXAM_SECURITY_KEY_DISABLED(
+            new LocTextKey("sebserver.exam.signaturekey.action.edit"),
+            ImageIcon.NO_SHIELD,
+            PageStateDefinitionImpl.SECURITY_KEY_EDIT,
+            ActionCategory.FORM),
+
     EXAM_SEB_CLIENT_CONFIG_EXPORT(
             new LocTextKey("sebserver.exam.action.createClientToStartExam"),
             ImageIcon.EXPORT,
@@ -849,6 +860,11 @@ public enum ActionDefinition {
             ImageIcon.YES,
             PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
             ActionCategory.EXAM_MONITORING_NOTIFICATION_LIST),
+    MONITOR_EXAM_CLIENT_CONNECTION_GRANT_SIGNATURE_KEY(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.grant.signaturekey"),
+            ImageIcon.VERIFY,
+            PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
+            ActionCategory.FORM),
 
     MONITOR_EXAM_QUIT_SELECTED(
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.selected"),

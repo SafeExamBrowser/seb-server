@@ -252,6 +252,8 @@ public class ExamForm implements TemplateComposer {
         final ExamStatus examStatus = exam.getStatus();
         final boolean editable = modifyGrant &&
                 (examStatus == ExamStatus.UP_COMING || examStatus == ExamStatus.RUNNING);
+        final boolean signatureKeyCheckEnabled = BooleanUtils.toBoolean(
+                exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
 
         final boolean sebRestrictionAvailable = testSEBRestrictionAPI(exam);
         final boolean isRestricted = readonly && sebRestrictionAvailable && this.restService
@@ -464,6 +466,14 @@ public class ExamForm implements TemplateComposer {
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
                 .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
                         && BooleanUtils.isTrue(isRestricted))
+
+                .newAction(ActionDefinition.EXAM_SECURITY_KEY_ENABLED)
+                .withEntityKey(entityKey)
+                .publishIf(() -> signatureKeyCheckEnabled && readonly)
+
+                .newAction(ActionDefinition.EXAM_SECURITY_KEY_DISABLED)
+                .withEntityKey(entityKey)
+                .publishIf(() -> !signatureKeyCheckEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_ON)
                 .withEntityKey(entityKey)

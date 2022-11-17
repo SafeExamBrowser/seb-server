@@ -60,7 +60,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig.VDIType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.TemplateAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.View;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
@@ -87,7 +86,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.Ge
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetViews;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.GetUserAccountNames;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
-import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable.MonitoringEntry;
+import ch.ethz.seb.sebserver.gui.service.session.MonitoringEntry;
 
 @Lazy
 @Service
@@ -626,27 +625,38 @@ public class ResourceService {
                 .getText(ResourceService.EXAMCONFIG_STATUS_PREFIX + config.configStatus.name());
     }
 
-    public Function<ClientConnectionData, String> localizedClientConnectionStatusNameFunction() {
-
-        // Memoizing
-        final String missing = this.i18nSupport.getText(
-                SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_PING_NAME_KEY,
-                MISSING_CLIENT_PING_NAME_KEY);
-        final EnumMap<ConnectionStatus, String> localizedNames = new EnumMap<>(ConnectionStatus.class);
-        Arrays.asList(ConnectionStatus.values()).stream().forEach(state -> localizedNames.put(state, this.i18nSupport
-                .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + state.name(), state.name())));
-
-        return connectionData -> {
-            if (connectionData == null) {
-                localizedNames.get(ConnectionStatus.UNDEFINED);
-            }
-            if (connectionData.missingPing && connectionData.clientConnection.status.establishedStatus) {
-                return missing;
-            } else {
-                return localizedNames.get(connectionData.clientConnection.status);
-            }
-        };
-    }
+//    public Function<ClientConnectionData, String> localizedClientConnectionStatusNameFunction() {
+//
+//        // Memoizing
+//        final String missing = this.i18nSupport.getText(
+//                SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_PING_NAME_KEY,
+//                MISSING_CLIENT_PING_NAME_KEY);
+//        final String missingGrant = this.i18nSupport.getText(
+//                SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_SEC_GRANT_NAME_KEY,
+//                MISSING_CLIENT_SEC_GRANT_NAME_KEY);
+//        final EnumMap<ConnectionStatus, String> localizedNames = new EnumMap<>(ConnectionStatus.class);
+//        Arrays.asList(ConnectionStatus.values()).stream().forEach(state -> localizedNames.put(state, this.i18nSupport
+//                .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + state.name(), state.name())));
+//
+//        return connectionData -> {
+//            if (connectionData == null) {
+//                localizedNames.get(ConnectionStatus.UNDEFINED);
+//            }
+//            if (connectionData.clientConnection.status.establishedStatus) {
+//                if (connectionData.c !connectionData.clientConnection.securityCheckGranted) {
+//                    return missingGrant;
+//                }
+//                if (connectionData.missingPing) {
+//                    return missing;
+//                }
+//            }
+//            if (connectionData.missingPing && connectionData.clientConnection.status.establishedStatus) {
+//                return missing;
+//            } else {
+//                return localizedNames.get(connectionData.clientConnection.status);
+//            }
+//        };
+//    }
 
     public Function<MonitoringEntry, String> localizedClientMonitoringStatusNameFunction() {
 

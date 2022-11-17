@@ -50,6 +50,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
+import ch.ethz.seb.sebserver.gbl.model.institution.AppSignatureKeyInfo;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
@@ -190,7 +191,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     }
 
     // ****************************************************************************
-    // **** SEB Security Key
+    // **** SEB Security Key and App Signature Key
 
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
@@ -255,6 +256,24 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .flatMap(this::checkReadAccess)
                 .flatMap(exam -> this.securityKeyService.deleteSecurityKeyGrant(keyId))
                 .flatMap(this.userActivityLogDAO::logDelete)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SEB_SECURITY_AS_KEYS_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public AppSignatureKeyInfo getAppSignatureKeyInfo(
+            @PathVariable(name = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT, required = true) final Long examId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        return this.examDAO.byPK(examId)
+                .flatMap(this::checkReadAccess)
+                .flatMap(exam -> this.securityKeyService.getAppSignaturesInfo(institutionId, examId))
                 .getOrThrow();
     }
 

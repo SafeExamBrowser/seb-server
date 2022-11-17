@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gui.content.exam.ClientGroupForm;
 import ch.ethz.seb.sebserver.gui.content.exam.ClientGroupTemplateForm;
 import ch.ethz.seb.sebserver.gui.content.exam.ExamForm;
 import ch.ethz.seb.sebserver.gui.content.exam.ExamList;
+import ch.ethz.seb.sebserver.gui.content.exam.ExamSignatureKeyForm;
 import ch.ethz.seb.sebserver.gui.content.exam.ExamTemplateForm;
 import ch.ethz.seb.sebserver.gui.content.exam.ExamTemplateList;
 import ch.ethz.seb.sebserver.gui.content.exam.IndicatorForm;
@@ -68,6 +69,7 @@ public enum PageStateDefinitionImpl implements PageStateDefinition {
     EXAM_EDIT(Type.FORM_EDIT, ExamForm.class, ActivityDefinition.EXAM),
     INDICATOR_EDIT(Type.FORM_EDIT, IndicatorForm.class, ActivityDefinition.EXAM),
     CLIENT_GROUP_EDIT(Type.FORM_EDIT, ClientGroupForm.class, ActivityDefinition.EXAM),
+    SECURITY_KEY_EDIT(Type.FORM_EDIT, ExamSignatureKeyForm.class, ActivityDefinition.EXAM),
 
     EXAM_TEMPLATE_LIST(Type.LIST_VIEW, ExamTemplateList.class, ActivityDefinition.EXAM_TEMPLATE),
     EXAM_TEMPLATE_VIEW(Type.LIST_VIEW, ExamTemplateForm.class, ActivityDefinition.EXAM_TEMPLATE),

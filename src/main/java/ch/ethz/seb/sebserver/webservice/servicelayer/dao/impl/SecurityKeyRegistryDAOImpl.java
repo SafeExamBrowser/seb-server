@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.SecurityKeyRegistryRecordDynamicSqlSupport;
@@ -46,9 +48,14 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
 
     private final SecurityKeyRegistryRecordMapper securityKeyRegistryRecordMapper;
+    private final Cryptor cryptor;
 
-    public SecurityKeyRegistryDAOImpl(final SecurityKeyRegistryRecordMapper securityKeyRegistryRecordMapper) {
+    public SecurityKeyRegistryDAOImpl(
+            final SecurityKeyRegistryRecordMapper securityKeyRegistryRecordMapper,
+            final Cryptor cryptor) {
+
         this.securityKeyRegistryRecordMapper = securityKeyRegistryRecordMapper;
+        this.cryptor = cryptor;
     }
 
     @Override
@@ -123,7 +130,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
     public Result<SecurityKey> createNew(final SecurityKey data) {
         return Result.tryCatch(() -> {
 
-            checkUniqueTag(data);
+            checkUniqueKey(data);
 
             final SecurityKeyRegistryRecord newRecord = new SecurityKeyRegistryRecord(
                     null,
@@ -145,8 +152,6 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
     @Transactional
     public Result<SecurityKey> save(final SecurityKey data) {
         return Result.tryCatch(() -> {
-
-            checkUniqueTag(data);
 
             final SecurityKeyRegistryRecord newRecord = new SecurityKeyRegistryRecord(
                     null,
@@ -313,6 +318,32 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Result<SecurityKey> getGrantOr(final SecurityKey key) {
+        return Result.tryCatch(() -> {
+            final CharSequence signature = this.cryptor.decrypt(key.key).get();
+            return this.securityKeyRegistryRecordMapper
+                    .selectByExample()
+                    .where(
+                            SecurityKeyRegistryRecordDynamicSqlSupport.institutionId,
+                            SqlBuilder.isEqualTo(key.institutionId))
+                    .and(
+                            SecurityKeyRegistryRecordDynamicSqlSupport.examId,
+                            isEqualToWhenPresent(key.examId))
+                    .and(
+                            SecurityKeyRegistryRecordDynamicSqlSupport.keyType,
+                            isEqualToWhenPresent((key.keyType == null) ? null : key.keyType.name()))
+                    .build()
+                    .execute()
+                    .stream()
+                    .filter(other -> Objects.equals(signature, this.cryptor.decrypt(other.getKeyValue()).getOr(null)))
+                    .findFirst()
+                    .map(this::toDomainModel)
+                    .orElse(key);
+        });
+    }
+
+    @Override
     public void notifyExamDeletion(final ExamDeletionEvent event) {
         try {
 
@@ -367,18 +398,11 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                 rec.getExamTemplateId());
     }
 
-    private void checkUniqueTag(final SecurityKey securityKeyRegistry) {
-        final Long count = this.securityKeyRegistryRecordMapper
-                .countByExample()
-                .where(SecurityKeyRegistryRecordDynamicSqlSupport.tag, isEqualTo(securityKeyRegistry.tag))
-                .and(SecurityKeyRegistryRecordDynamicSqlSupport.id, isNotEqualToWhenPresent(securityKeyRegistry.id))
-                .build()
-                .execute();
-
-        if (count != null && count > 0) {
+    private void checkUniqueKey(final SecurityKey key) {
+        if (getGrantOr(key).getOr(key) != key) {
             throw new FieldValidationException(
                     Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG,
-                    "institution:name:tag.notunique");
+                    "securityKey:keyValue:alreadyGranted");
         }
     }
 

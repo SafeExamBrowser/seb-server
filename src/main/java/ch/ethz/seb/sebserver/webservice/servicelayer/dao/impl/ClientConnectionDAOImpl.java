@@ -764,9 +764,21 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForExam(final Long examId) {
+    public Result<Collection<ClientConnectionRecord>> getAllConnectionRecordsForExam(final Long examId) {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper
                 .selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .build()
+                .execute());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Long>> getAllConnectionIdsForExam(final Long examId) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+                .selectIdsByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.examId,
                         SqlBuilder.isEqualTo(examId))

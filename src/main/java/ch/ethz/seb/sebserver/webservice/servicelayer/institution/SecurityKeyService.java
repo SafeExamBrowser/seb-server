@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.institution;
 import java.util.Collection;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.institution.AppSignatureKeyInfo;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityCheckResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
@@ -21,7 +22,9 @@ public interface SecurityKeyService {
     /** This attribute name is used to store the App-Signature-Key given by a SEB Client */
     public static final String ADDITIONAL_ATTR_APP_SIGNATURE_KEY = "APP_SIGNATURE_KEY";
 
-    Result<Collection<SecurityKey>> getPlainGrants(Long institutionId, Long examId);
+    Result<SecurityKey> getSecurityKeyOfConnection(Long institutionId, Long connectionId);
+
+    Result<AppSignatureKeyInfo> getAppSignaturesInfo(Long institutionId, Long examId);
 
     Result<Collection<SecurityKey>> getPlainAppSignatureKeyGrants(Long institutionId, Long examId);
 

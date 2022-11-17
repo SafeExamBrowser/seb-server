@@ -10,8 +10,12 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.institution.impl;
 
 import java.security.cert.Certificate;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -24,6 +28,7 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.institution.AppSignatureKeyInfo;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityCheckResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
@@ -69,10 +74,35 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
     }
 
     @Override
-    public Result<Collection<SecurityKey>> getPlainGrants(final Long institutionId, final Long examId) {
-        return this.securityKeyRegistryDAO
-                .getAll(institutionId, examId, null)
-                .map(this::decryptAll);
+    public Result<SecurityKey> getSecurityKeyOfConnection(final Long institutionId, final Long connectionId) {
+        return this.clientConnectionDAO.byPK(connectionId)
+                .map(connection -> new SecurityKey(
+                        null,
+                        institutionId,
+                        KeyType.APP_SIGNATURE_KEY,
+                        decryptStoredSignatureForConnection(connection),
+                        connection.sebVersion,
+                        null, null))
+                .flatMap(this.securityKeyRegistryDAO::getGrantOr);
+    }
+
+    @Override
+    public Result<AppSignatureKeyInfo> getAppSignaturesInfo(final Long institutionId, final Long examId) {
+        return Result.tryCatch(() -> {
+            final Map<String, Set<Long>> keyMapping = new HashMap<>();
+
+            this.clientConnectionDAO
+                    .getAllConnectionRecordsForExam(examId)
+                    .getOrThrow()
+                    .stream()
+                    .forEach(rec -> keyMapping.computeIfAbsent(
+                            this.decryptStoredSignatureForConnection(
+                                    rec.getId(),
+                                    rec.getConnectionToken()),
+                            s -> new HashSet<>()).add(rec.getId()));
+
+            return new AppSignatureKeyInfo(institutionId, examId, keyMapping);
+        });
     }
 
     @Override
@@ -384,6 +414,15 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
         }
 
         return decryptSignatureWithConnectionToken(cc.connectionToken, signatureKey);
+    }
+
+    private String decryptStoredSignatureForConnection(final Long cId, final String cToken) {
+        final String signatureKey = getSignatureKeyForConnection(cId);
+        if (StringUtils.isBlank(signatureKey)) {
+            return null;
+        }
+
+        return decryptSignatureWithConnectionToken(cToken, signatureKey);
     }
 
     private void saveSignatureKeyForConnection(final ClientConnection clientConnection, final String appSignatureKey) {

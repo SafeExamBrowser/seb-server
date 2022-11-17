@@ -144,7 +144,10 @@ public class WidgetFactory {
         RESTRICTION("restriction.png"),
         VISIBILITY("visibility.png"),
         VISIBILITY_OFF("visibility_off.png"),
-        NOTIFICATION("notification.png");
+        NOTIFICATION("notification.png"),
+        VERIFY("verify.png"),
+        SHIELD("shield.png"),
+        NO_SHIELD("no_shield.png");
 
         public String fileName;
         private ImageData image = null;
@@ -466,6 +469,7 @@ public class WidgetFactory {
             final LocTextKey locToolTextKey) {
 
         final Label label = new Label(parent, SWT.NONE);
+        label.setData(RWT.MARKUP_ENABLED, true);
         this.polyglotPageService.injectI18n(label, locTextKey, locToolTextKey);
         return label;
     }
@@ -477,6 +481,7 @@ public class WidgetFactory {
             final LocTextKey locToolTextKey) {
 
         final Label label = new Label(parent, SWT.NONE);
+        label.setData(RWT.MARKUP_ENABLED, true);
         this.polyglotPageService.injectI18n(label, locTextKey, locToolTextKey);
         label.setData(RWT.CUSTOM_VARIANT, variant.key);
         return label;
@@ -484,6 +489,7 @@ public class WidgetFactory {
 
     public Label labelLocalizedTitle(final Composite content, final LocTextKey locTextKey) {
         final Label labelLocalized = labelLocalized(content, CustomVariant.TEXT_H1, locTextKey);
+        labelLocalized.setData(RWT.MARKUP_ENABLED, true);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         labelLocalized.setLayoutData(gridData);
         return labelLocalized;

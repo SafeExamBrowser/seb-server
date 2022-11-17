@@ -155,7 +155,8 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT = "/check-imported";
     public static final String EXAM_ADMINISTRATION_SEB_RESTRICTION_CHAPTERS_PATH_SEGMENT = "/chapters";
     public static final String EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT = "/proctoring";
-    public static final String EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT = "/seb-grants";
+    public static final String EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT = "/grant";
+    public static final String EXAM_ADMINISTRATION_SEB_SECURITY_AS_KEYS_PATH_SEGMENT = "/signature-key";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
     public static final String EXAM_CLIENT_GROUP_ENDPOINT = "/client-group";
@@ -200,7 +201,7 @@ public final class API {
     public static final String EXAM_MONITORING_INSTRUCTION_ENDPOINT = "/instruction";
     public static final String EXAM_MONITORING_NOTIFICATION_ENDPOINT = "/notification";
     public static final String EXAM_MONITORING_DISABLE_CONNECTION_ENDPOINT = "/disable-connection";
-    public static final String EXAM_MONITORING_GRANT_APP_SIGNATURE_KEY_ENDPOINT = "/apply-grant";
+    public static final String EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT = "/signature";
     public static final String EXAM_MONITORING_STATE_FILTER = "hidden-states";
     public static final String EXAM_MONITORING_CLIENT_GROUP_FILTER = "hidden-client-group";
     public static final String EXAM_MONITORING_FINISHED_ENDPOINT = "/finishedexams";

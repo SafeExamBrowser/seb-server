@@ -46,6 +46,7 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
@@ -463,27 +464,48 @@ public class ExamMonitoringController {
 
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
-                    API.EXAM_MONITORING_GRANT_APP_SIGNATURE_KEY_ENDPOINT +
+                    API.EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT +
                     API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public void grantAppSignatureKey(
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public SecurityKey grantAppSignatureKey(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @PathVariable(name = API.MODEL_ID_VAR_PATH_SEGMENT, required = true) final Long connectionId,
-            @RequestParam(
-                    name = Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
-                    required = false) final String connectionToken) {
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long connectionId,
+            @RequestParam(name = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG, required = true) final String tagName) {
 
         checkPrivileges(institutionId, examId);
 
-        this.securityKeyService
-                .registerExamAppSignatureKey(institutionId, examId, connectionId, null)
+        return this.securityKeyService
+                .registerExamAppSignatureKey(institutionId, examId, connectionId, tagName)
                 .onSuccess(key -> this.securityKeyService.updateAppSignatureKeyGrants(examId))
                 .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT +
+                    API.MODEL_ID_VAR_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public SecurityKey getAppSignatureKey(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long connectionId) {
+
+        checkPrivileges(institutionId, examId);
+        return this.securityKeyService
+                .getSecurityKeyOfConnection(institutionId, connectionId)
+                .getOrThrow();
+
     }
 
     private Exam checkPrivileges(final Long institutionId, final Long examId) {

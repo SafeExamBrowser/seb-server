@@ -25,7 +25,7 @@ public class MockSEBRestrictionAPI implements SEBRestrictionAPI {
 
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
-        return LmsSetupTestResult.ofQuizRestrictionAPIError(LmsType.MOCKUP, "unsupported");
+        return LmsSetupTestResult.ofOkay(LmsType.MOCKUP);
     }
 
     @Override

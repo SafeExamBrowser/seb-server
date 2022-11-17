@@ -16,7 +16,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable.MonitoringEntry;
 
 public class ColorData {
 
@@ -34,19 +33,6 @@ public class ColorData {
         this.color3 = new Color(display, new RGB(237, 28, 36), 255);
         this.darkColor = new Color(display, Constants.BLACK_RGB);
         this.lightColor = new Color(display, Constants.WHITE_RGB);
-    }
-
-    Color getStatusColor(final ClientConnectionData connectionData) {
-        if (connectionData == null || connectionData.clientConnection == null) {
-            return this.defaultColor;
-        }
-
-        switch (connectionData.clientConnection.status) {
-            case ACTIVE:
-                return (connectionData.missingPing) ? this.color2 : this.color1;
-            default:
-                return this.defaultColor;
-        }
     }
 
     Color getStatusColor(final MonitoringEntry entry) {

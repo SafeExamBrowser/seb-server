@@ -449,14 +449,6 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         // TODO if right click get selected item and show additional information (notification)
     }
 
-    public interface MonitoringEntry {
-        ConnectionStatus getStatus();
-
-        boolean hasMissingPing();
-
-        boolean hasMissingGrant();
-    }
-
     private final class UpdatableTableItem implements Comparable<UpdatableTableItem>, MonitoringEntry {
 
         final Long connectionId;

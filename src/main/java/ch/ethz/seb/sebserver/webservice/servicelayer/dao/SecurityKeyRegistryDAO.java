@@ -36,4 +36,11 @@ public interface SecurityKeyRegistryDAO extends EntityDAO<SecurityKey, SecurityK
     @EventListener(ExamTemplateDeletionEvent.class)
     void notifyExamTemplateDeletion(ExamTemplateDeletionEvent event);
 
+    /** This checks if there is already a grant for the given key and return it if available
+     * or the given key otherwise.
+     *
+     * @param key SecurityKey data to check if there is a grant registered
+     * @return Result refer to the grant if available or the the given key if not or to an error when happened */
+    Result<SecurityKey> getGrantOr(final SecurityKey key);
+
 }

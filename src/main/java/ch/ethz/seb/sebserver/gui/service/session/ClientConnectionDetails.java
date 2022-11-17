@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
@@ -47,7 +48,7 @@ import ch.ethz.seb.sebserver.gui.service.session.IndicatorData.ThresholdColor;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
-public class ClientConnectionDetails {
+public class ClientConnectionDetails implements MonitoringEntry {
 
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionDetails.class);
 
@@ -72,7 +73,8 @@ public class ClientConnectionDetails {
     private final RestCall<ClientConnectionData>.RestCallBuilder restCallBuilder;
     private final FormHandle<?> formHandle;
     private final ColorData colorData;
-    private final Function<ClientConnectionData, String> localizedClientConnectionStatusNameFunction;
+    private final Function<MonitoringEntry, String> localizedClientConnectionStatusNameFunction;
+    public final boolean checkSecurityGrant;
 
     private ClientConnectionData connectionData = null;
     private boolean statusChanged = true;
@@ -94,6 +96,8 @@ public class ClientConnectionDetails {
         this.resourceService = pageService.getResourceService();
         this.restCallBuilder = restCallBuilder;
         this.colorData = new ColorData(display);
+        this.checkSecurityGrant = BooleanUtils.toBoolean(
+                exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
         this.indicatorMapping = IndicatorData.createFormIndicators(
                 indicators,
                 display,
@@ -146,7 +150,26 @@ public class ClientConnectionDetails {
 
         this.formHandle = formBuilder.build();
         this.localizedClientConnectionStatusNameFunction =
-                this.resourceService.localizedClientConnectionStatusNameFunction();
+                this.resourceService.localizedClientMonitoringStatusNameFunction();
+    }
+
+    @Override
+    public ConnectionStatus getStatus() {
+        if (this.connectionData == null) {
+            return ConnectionStatus.UNDEFINED;
+        }
+        return this.connectionData.clientConnection.status;
+    }
+
+    @Override
+    public boolean hasMissingPing() {
+        return (this.connectionData != null) ? this.connectionData.missingPing : false;
+    }
+
+    @Override
+    public boolean hasMissingGrant() {
+        return (this.connectionData != null)
+                ? this.checkSecurityGrant && !this.connectionData.clientConnection.securityCheckGranted : false;
     }
 
     public void setStatusChangeListener(final Consumer<ClientConnectionData> statusChangeListener) {
@@ -210,8 +233,8 @@ public class ClientConnectionDetails {
             // update status
             form.setFieldValue(
                     Domain.CLIENT_CONNECTION.ATTR_STATUS,
-                    this.localizedClientConnectionStatusNameFunction.apply(this.connectionData));
-            final Color statusColor = this.colorData.getStatusColor(this.connectionData);
+                    this.localizedClientConnectionStatusNameFunction.apply(this));
+            final Color statusColor = this.colorData.getStatusColor(this);
             final Color statusTextColor = this.colorData.getStatusTextColor(statusColor);
             form.setFieldColor(Domain.CLIENT_CONNECTION.ATTR_STATUS, statusColor);
             form.setFieldTextColor(Domain.CLIENT_CONNECTION.ATTR_STATUS, statusTextColor);

@@ -55,7 +55,7 @@ public final class LmsSetup implements GrantEntity, Activatable {
      * Also defines the supports feature(s) for each type of LMS binding. */
     public enum LmsType {
         /** Mockup LMS type used to create test setups */
-        MOCKUP(Features.COURSE_API),
+        MOCKUP(Features.COURSE_API, Features.SEB_RESTRICTION),
         /** The Open edX LMS binding features both APIs, course access as well as SEB restriction */
         OPEN_EDX(Features.COURSE_API, Features.SEB_RESTRICTION),
         /** The Moodle binding features only the course access API so far */
