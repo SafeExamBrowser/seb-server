@@ -54,6 +54,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.AppSignatureKeyInfo;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
+import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -195,11 +196,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT,
+                    + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_INFO_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<SecurityKey> getSecurityGrants(
-            @PathVariable(name = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT, required = true) final Long examId,
+    public Collection<AppSignatureKeyInfo> getAppSignatureKeyInfo(
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -207,7 +208,52 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
         return this.examDAO.byPK(examId)
                 .flatMap(this::checkReadAccess)
-                .flatMap(exam -> this.securityKeyService.getPlainAppSignatureKeyGrants(institutionId, examId))
+                .flatMap(exam -> this.securityKeyService.getAppSignatureKeyInfo(institutionId, examId))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_INFO_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public void saveAppSignatureKeySettings(
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED) final Boolean enableKeyCheck,
+            @RequestParam(Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD) final Integer threshold) {
+
+        this.examDAO.byPK(examId)
+                .flatMap(this::checkReadAccess)
+                .flatMap(exam -> this.examAdminService.saveSecurityKeySettings(
+                        institutionId,
+                        examId,
+                        enableKeyCheck,
+                        threshold))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<SecurityKey> getSecurityKeyEntries(
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+
+        return this.examDAO.byPK(examId)
+                .flatMap(this::checkReadAccess)
+                .flatMap(exam -> this.securityKeyService.getSecurityKeyEntries(
+                        institutionId,
+                        examId,
+                        KeyType.APP_SIGNATURE_KEY))
                 .getOrThrow();
     }
 
@@ -217,7 +263,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public SecurityKey newSecurityGrant(
-            @PathVariable(name = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT, required = true) final Long examId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -238,14 +284,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     }
 
     @RequestMapping(
-            path = API.MODEL_ID_VAR_PATH_SEGMENT
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT
                     + API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public EntityKey deleteSecurityGrant(
-            @PathVariable(name = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT, required = true) final Long examId,
-            @PathVariable(name = API.MODEL_ID_VAR_PATH_SEGMENT, required = true) final String keyId,
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long keyId,
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -256,24 +302,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .flatMap(this::checkReadAccess)
                 .flatMap(exam -> this.securityKeyService.deleteSecurityKeyGrant(keyId))
                 .flatMap(this.userActivityLogDAO::logDelete)
-                .getOrThrow();
-    }
-
-    @RequestMapping(
-            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_ADMINISTRATION_SEB_SECURITY_AS_KEYS_PATH_SEGMENT,
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public AppSignatureKeyInfo getAppSignatureKeyInfo(
-            @PathVariable(name = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT, required = true) final Long examId,
-            @RequestParam(
-                    name = API.PARAM_INSTITUTION_ID,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
-
-        return this.examDAO.byPK(examId)
-                .flatMap(this::checkReadAccess)
-                .flatMap(exam -> this.securityKeyService.getAppSignaturesInfo(institutionId, examId))
                 .getOrThrow();
     }
 

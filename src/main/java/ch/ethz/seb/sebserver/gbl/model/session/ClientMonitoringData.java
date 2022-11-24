@@ -25,6 +25,7 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
     public final ConnectionStatus status;
     public final Map<Long, String> indicatorVals;
     public final boolean missingPing;
+    public final boolean missingGrant;
     public final boolean pendingNotification;
 
     @JsonCreator
@@ -33,12 +34,14 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
             @JsonProperty(ATTR_STATUS) final ConnectionStatus status,
             @JsonProperty(ATTR_INDICATOR_VALUES) final Map<Long, String> indicatorVals,
             @JsonProperty(ATTR_MISSING_PING) final boolean missingPing,
+            @JsonProperty(ATTR_MISSING_GRANT) final boolean missingGrant,
             @JsonProperty(ATTR_PENDING_NOTIFICATION) final boolean pendingNotification) {
 
         this.id = id;
         this.status = status;
         this.indicatorVals = indicatorVals;
         this.missingPing = missingPing;
+        this.missingGrant = missingGrant;
         this.pendingNotification = pendingNotification;
     }
 
@@ -60,6 +63,12 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
     @Override
     public boolean isMissingPing() {
         return this.missingPing;
+    }
+
+    @Override
+    public boolean isMissingGrant() {
+        // TODO Auto-generated method stub
+        return false;
     }
 
     @Override

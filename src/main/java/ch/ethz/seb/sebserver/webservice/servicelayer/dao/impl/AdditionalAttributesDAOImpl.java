@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttribu
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.AdditionalAttributeRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
 
 @Lazy
 @Component
@@ -80,7 +81,9 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
                 .execute()
                 .stream()
                 .findAny()
-                .orElse(null));
+                .orElseThrow(() -> new NoResourceFoundException(
+                        EntityType.ADDITIONAL_ATTRIBUTES,
+                        attributeName)));
     }
 
     @Override

@@ -29,6 +29,9 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ClientConnection implements GrantEntity {
 
+    /** This attribute name is used to store the App-Signature-Key given by a SEB Client */
+    public static final String ADDITIONAL_ATTR_APP_SIGNATURE_KEY = "APP_SIGNATURE_KEY";
+
     public enum ConnectionStatus {
         UNDEFINED(0, false, false),
         CONNECTION_REQUESTED(1, true, false),
@@ -54,6 +57,11 @@ public final class ClientConnection implements GrantEntity {
             ConnectionStatus.ACTIVE.name(),
             ConnectionStatus.AUTHENTICATED.name(),
             ConnectionStatus.CONNECTION_REQUESTED.name());
+
+    public final static List<String> SECURE_STATES = Utils.immutableListOf(
+            ConnectionStatus.ACTIVE.name(),
+            ConnectionStatus.AUTHENTICATED.name(),
+            ConnectionStatus.CLOSED.name());
 
     public static final ClientConnection EMPTY_CLIENT_CONNECTION = new ClientConnection(
             -1L, -1L, -1L,

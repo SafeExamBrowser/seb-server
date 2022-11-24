@@ -154,7 +154,7 @@ public abstract class FieldBuilder<T> {
                     WidgetFactory.ImageIcon.MANDATORY,
                     infoGrid,
                     MANDATORY_TEXT_KEY);
-            mandatory.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
+            mandatory.setLayoutData(new GridData(SWT.CENTER, SWT.TOP, false, false));
         }
 
         return infoGrid;

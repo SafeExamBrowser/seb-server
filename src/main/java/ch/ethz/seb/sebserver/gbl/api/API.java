@@ -106,6 +106,8 @@ public final class API {
 
     public static final String EXAM_API_SEB_CONNECTION_TOKEN = "SEBConnectionToken";
 
+    public static final String EXAM_API_EXAM_SIGNATURE_SALT_HEADER = "SEBExamSalt";
+
     public static final String EXAM_API_USER_SESSION_ID = "seb_user_session_id";
 
     public static final String EXAM_API_HANDSHAKE_ENDPOINT = "/handshake";
@@ -146,7 +148,6 @@ public final class API {
     public static final String QUIZ_DISCOVERY_ENDPOINT = "/quiz";
 
     public static final String EXAM_ADMINISTRATION_ENDPOINT = "/exam";
-    //public static final String EXAM_ADMINISTRATION_DOWNLOAD_CONFIG_PATH_SEGMENT = "/download-config";
     public static final String EXAM_ADMINISTRATION_ARCHIVE_PATH_SEGMENT = "/archive";
     public static final String EXAM_ADMINISTRATION_CONSISTENCY_CHECK_PATH_SEGMENT = "/check-consistency";
     public static final String EXAM_ADMINISTRATION_CONSISTENCY_CHECK_INCLUDE_RESTRICTION = "include-restriction";
@@ -156,7 +157,7 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_SEB_RESTRICTION_CHAPTERS_PATH_SEGMENT = "/chapters";
     public static final String EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT = "/proctoring";
     public static final String EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT = "/grant";
-    public static final String EXAM_ADMINISTRATION_SEB_SECURITY_AS_KEYS_PATH_SEGMENT = "/signature-key";
+    public static final String EXAM_ADMINISTRATION_SEB_SECURITY_KEY_INFO_PATH_SEGMENT = "/sebkeyinfo";
 
     public static final String EXAM_INDICATOR_ENDPOINT = "/indicator";
     public static final String EXAM_CLIENT_GROUP_ENDPOINT = "/client-group";

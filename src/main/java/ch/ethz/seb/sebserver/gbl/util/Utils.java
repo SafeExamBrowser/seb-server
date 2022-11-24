@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -68,6 +69,19 @@ public final class Utils {
     };
 
     private static final Logger log = LoggerFactory.getLogger(Utils.class);
+
+    /** Use this it merge two maps into a new one. Let the given maps unmodified.
+     *
+     * @param <K> Key type
+     * @param <T> Value type
+     * @param m1 First Map
+     * @param m2 Second Map
+     * @return new Map with merged entries from m1 and m2 */
+    public static <K, T> Map<K, T> mergeMap(final Map<K, T> m1, final Map<K, T> m2) {
+        final HashMap<K, T> hashMap = new HashMap<>(m1);
+        hashMap.putAll(m2);
+        return hashMap;
+    }
 
     /** This Collector can be used within stream collect to get one expected singleton element from
      * the given Stream.

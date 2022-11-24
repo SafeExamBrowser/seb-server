@@ -22,17 +22,46 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamTemplateDeleti
 /** Concrete EntityDAO interface of SecurityKeyRegistry entities */
 public interface SecurityKeyRegistryDAO extends EntityDAO<SecurityKey, SecurityKey> {
 
+    /** Use this to make a copy of an existing security key registry entry for the given exam.
+     * The existing registry entry must be a global or one or one of an exam template.
+     *
+     * @param keyId The security key registry id.
+     * @param examId The exam identifier for the security key copy
+     * @return Result refer to the newly created SecurityKey or to an error when happened. */
     Result<SecurityKey> registerCopyForExam(Long keyId, Long examId);
 
+    /** Use this to make a copy of r an existing security key registry entry for a given exam template.
+     * The existing registry entry must be a global one or one of an exam.
+     *
+     * @param keyId The security key registry id.
+     * @param examTemplateId The exam template identifier for the new security key copy
+     * @return Result refer to the newly created SecurityKey or the an error when happened */
     Result<SecurityKey> registerCopyForExamTemplate(Long keyId, Long examTemplateId);
 
+    /** Used to get all security key registry entries of given institution, exam and type.
+     *
+     * @param institutionId The institution identifier
+     * @param examId The exam identifier
+     * @param type The type of the security key
+     * @return Result refer to collection of all matching security key registry entries or to an error when happened */
     Result<Collection<SecurityKey>> getAll(Long institutionId, Long examId, KeyType type);
 
+    /** Used to delete a given security key registry entry.
+     *
+     * @param keyId The security key registry entry identifier
+     * @return Result refer to the EntityKey of the deleted registry entry or to an error when happened */
     Result<EntityKey> delete(Long keyId);
 
+    /** Internally used to notify exam deletion to delete all registry entries regarded to the deleted exam.
+     *
+     * @param event The ExamDeletionEvent fired on exam deletion */
     @EventListener(ExamDeletionEvent.class)
     void notifyExamDeletion(ExamDeletionEvent event);
 
+    /** Internally used to notify exam template deletion to delete all registry entries regarded to the deleted exam
+     * template
+     *
+     * @param event ExamTemplateDeletionEvent fired on exam template deletion */
     @EventListener(ExamTemplateDeletionEvent.class)
     void notifyExamTemplateDeletion(ExamTemplateDeletionEvent event);
 

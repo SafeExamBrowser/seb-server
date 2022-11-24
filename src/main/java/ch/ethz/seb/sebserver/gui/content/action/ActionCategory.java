@@ -21,6 +21,8 @@ public enum ActionCategory {
     EXAM_TEMPLATE_LIST(new LocTextKey("sebserver.examtemplate.list.actions"), 1),
     INDICATOR_TEMPLATE_LIST(new LocTextKey("sebserver.examtemplate.indicator.list.actions"), 1),
     CLIENT_GROUP_TEMPLATE_LIST(new LocTextKey("sebserver.examtemplate.clientgroup.list.actions"), 2),
+    APP_SIGNATURE_KEY_LIST(new LocTextKey("sebserver.exam.signaturekey.keylist.actions"), 1),
+    SECURITY_KEY_GRANT_LIST(new LocTextKey("sebserver.exam.signaturekey.grantlist.actions"), 2),
     EXAM_CONFIG_MAPPING_LIST(new LocTextKey("sebserver.exam.configuration.list.actions"), 1),
     INDICATOR_LIST(new LocTextKey("sebserver.exam.indicator.list.actions"), 2),
     CLIENT_GROUP_LIST(new LocTextKey("sebserver.exam.clientgroup.list.actions"), 3),

@@ -426,6 +426,32 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.SECURITY_KEY_EDIT,
             ActionCategory.FORM),
 
+    EXAM_SECURITY_KEY_SAVE_SETTINGS(
+            new LocTextKey("sebserver.exam.signaturekey.action.save"),
+            ImageIcon.SAVE,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
+    EXAM_SECURITY_KEY_CANCEL_MODIFY(
+            new LocTextKey("sebserver.exam.signaturekey.action.cancel"),
+            ImageIcon.CANCEL,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
+    EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP(
+            new LocTextKey("sebserver.exam.signaturekey.action.addGrant"),
+            ImageIcon.ADD,
+            PageStateDefinitionImpl.SECURITY_KEY_EDIT,
+            ActionCategory.APP_SIGNATURE_KEY_LIST),
+    EXAM_SECURITY_KEY_SHOW_GRANT_POPUP(
+            new LocTextKey("sebserver.exam.signaturekey.action.showGrant"),
+            ImageIcon.SHOW,
+            PageStateDefinitionImpl.SECURITY_KEY_EDIT,
+            ActionCategory.SECURITY_KEY_GRANT_LIST),
+    EXAM_SECURITY_KEY_DELETE_GRANT(
+            new LocTextKey("sebserver.exam.signaturekey.action.deleteGrant"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.SECURITY_KEY_EDIT,
+            ActionCategory.SECURITY_KEY_GRANT_LIST),
+
     EXAM_SEB_CLIENT_CONFIG_EXPORT(
             new LocTextKey("sebserver.exam.action.createClientToStartExam"),
             ImageIcon.EXPORT,

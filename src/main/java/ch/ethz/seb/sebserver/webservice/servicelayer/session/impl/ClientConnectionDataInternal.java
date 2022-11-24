@@ -141,6 +141,11 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         public boolean isPendingNotification() {
             return BooleanUtils.isTrue(pendingNotification());
         }
+
+        @Override
+        public boolean isMissingGrant() {
+            return BooleanUtils.isFalse(ClientConnectionDataInternal.this.clientConnection.securityCheckGranted);
+        }
     };
 
     /** This is a static monitoring connection data wrapper/holder */

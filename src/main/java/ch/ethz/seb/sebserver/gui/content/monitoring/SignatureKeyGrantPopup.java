@@ -61,7 +61,7 @@ public class SignatureKeyGrantPopup {
                     new ModalInputDialog<>(
                             action.pageContext().getParent().getShell(),
                             this.pageService.getWidgetFactory());
-            dialog.setDialogWidth(700);
+            dialog.setDialogWidth(800);
 
             final Predicate<FormHandle<?>> applyGrant = formHandle -> applyGrant(
                     pageContext,
@@ -104,15 +104,18 @@ public class SignatureKeyGrantPopup {
             final PageContext formContext = this.pageContext.copyOf(parent);
 
             final FormHandle<?> form = this.pageService.formBuilder(formContext)
-                    .addField(FormBuilder.text(
-                            Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG,
-                            TITLE_TEXT_FORM_TAG,
-                            this.securityKey.tag))
+
                     .addField(FormBuilder.text(
                             Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_VALUE,
                             TITLE_TEXT_FORM_SIGNATURE,
                             String.valueOf(this.securityKey.key))
                             .readonly(true))
+
+                    .addField(FormBuilder.text(
+                            Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG,
+                            TITLE_TEXT_FORM_TAG,
+                            this.securityKey.tag))
+
                     .build();
 
             return () -> form;
@@ -133,7 +136,13 @@ public class SignatureKeyGrantPopup {
                 .withURIVariable(API.PARAM_MODEL_ID, connectionKey.modelId)
                 .withFormBinding(formHandle.getFormBinding())
                 .call()
-                .onError(formHandle::handleError)
+                .onError(error -> {
+                    if (error.getMessage().contains("\"messageCode\":\"1010\"")) {
+                        pageContext.publishInfo(new LocTextKey("sebserver.monitoring.signaturegrant.message.granted"));
+                    } else {
+                        formHandle.handleError(error);
+                    }
+                })
                 .hasValue();
     }
 

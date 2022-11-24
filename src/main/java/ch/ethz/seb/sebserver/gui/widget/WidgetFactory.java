@@ -302,8 +302,11 @@ public class WidgetFactory {
         return defaultPageLayout;
     }
 
-    public void addFormSubContextHeader(final Composite parent, final LocTextKey titleTextKey,
+    public void addFormSubContextHeader(
+            final Composite parent,
+            final LocTextKey titleTextKey,
             final LocTextKey tooltipTextKey) {
+
         final GridData gridData = new GridData(SWT.FILL, SWT.BOTTOM, true, false);
         gridData.horizontalIndent = 8;
         gridData.verticalIndent = 10;

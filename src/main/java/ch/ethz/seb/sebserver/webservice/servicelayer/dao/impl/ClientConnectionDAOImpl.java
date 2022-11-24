@@ -764,12 +764,15 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<ClientConnectionRecord>> getAllConnectionRecordsForExam(final Long examId) {
+    public Result<Collection<ClientConnectionRecord>> getsecurityKeyConnectionRecords(final Long examId) {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper
                 .selectByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.examId,
                         SqlBuilder.isEqualTo(examId))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        SqlBuilder.isIn(ClientConnection.SECURE_STATES))
                 .build()
                 .execute());
     }

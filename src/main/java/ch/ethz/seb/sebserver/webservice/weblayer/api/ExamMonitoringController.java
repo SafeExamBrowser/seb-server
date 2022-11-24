@@ -503,7 +503,7 @@ public class ExamMonitoringController {
 
         checkPrivileges(institutionId, examId);
         return this.securityKeyService
-                .getSecurityKeyOfConnection(institutionId, connectionId)
+                .getAppSignatureKey(institutionId, connectionId)
                 .getOrThrow();
 
     }

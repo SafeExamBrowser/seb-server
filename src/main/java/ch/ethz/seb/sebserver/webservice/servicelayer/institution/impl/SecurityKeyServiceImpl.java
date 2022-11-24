@@ -8,18 +8,19 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.institution.impl;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -33,17 +34,18 @@ import ch.ethz.seb.sebserver.gbl.model.institution.SecurityCheckResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SecurityKeyRegistryDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 
 @Lazy
@@ -74,42 +76,43 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
     }
 
     @Override
-    public Result<SecurityKey> getSecurityKeyOfConnection(final Long institutionId, final Long connectionId) {
+    public Result<SecurityKey> getAppSignatureKey(final Long institutionId, final Long connectionId) {
         return this.clientConnectionDAO.byPK(connectionId)
                 .map(connection -> new SecurityKey(
                         null,
                         institutionId,
                         KeyType.APP_SIGNATURE_KEY,
-                        decryptStoredSignatureForConnection(connection),
+                        getHashedSignature(connection),
                         connection.sebVersion,
                         null, null))
                 .flatMap(this.securityKeyRegistryDAO::getGrantOr);
     }
 
     @Override
-    public Result<AppSignatureKeyInfo> getAppSignaturesInfo(final Long institutionId, final Long examId) {
+    public Result<Collection<AppSignatureKeyInfo>> getAppSignatureKeyInfo(final Long institutionId, final Long examId) {
         return Result.tryCatch(() -> {
-            final Map<String, Set<Long>> keyMapping = new HashMap<>();
 
-            this.clientConnectionDAO
-                    .getAllConnectionRecordsForExam(examId)
+            return this.clientConnectionDAO
+                    .getsecurityKeyConnectionRecords(examId)
                     .getOrThrow()
                     .stream()
-                    .forEach(rec -> keyMapping.computeIfAbsent(
-                            this.decryptStoredSignatureForConnection(
-                                    rec.getId(),
-                                    rec.getConnectionToken()),
-                            s -> new HashSet<>()).add(rec.getId()));
-
-            return new AppSignatureKeyInfo(institutionId, examId, keyMapping);
+                    .reduce(
+                            new HashMap<String, Map<Long, String>>(),
+                            this::reduceAppSecKey,
+                            Utils::<String, Map<Long, String>> mergeMap)
+                    .entrySet()
+                    .stream()
+                    .map(m -> new AppSignatureKeyInfo(institutionId, examId, m.getKey(), m.getValue()))
+                    .collect(Collectors.toList());
         });
     }
 
     @Override
-    public Result<Collection<SecurityKey>> getPlainAppSignatureKeyGrants(final Long institutionId, final Long examId) {
+    public Result<Collection<SecurityKey>> getSecurityKeyEntries(final Long institutionId, final Long examId,
+            final KeyType type) {
         return this.securityKeyRegistryDAO
-                .getAll(institutionId, examId, KeyType.APP_SIGNATURE_KEY)
-                .map(this::decryptAll);
+                .getAll(institutionId, examId, type)
+                .map(this::getKeysForRead);
     }
 
     @Override
@@ -159,44 +162,6 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
     }
 
     @Override
-    public Result<SecurityCheckResult> applyAppSignatureCheck(
-            final Long institutionId,
-            final Long examId,
-            final String connectionToken,
-            final String appSignatureKey) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Apply app-signature-key check for connection: {}", connectionToken);
-        }
-
-        return this.securityKeyRegistryDAO
-                .getAll(institutionId, examId, KeyType.APP_SIGNATURE_KEY)
-                .map(all -> {
-                    final String decryptedSignature = decryptSignature(examId, connectionToken, appSignatureKey);
-                    final List<SecurityKey> matches = all.stream()
-                            .map(this::decryptGrantedKey)
-                            .filter(pair -> pair != null && Objects.equals(decryptedSignature, pair.a))
-                            .map(Pair::getB)
-                            .collect(Collectors.toList());
-
-                    if (matches == null || matches.isEmpty()) {
-                        return statisticalCheck(examId, decryptedSignature);
-                    } else {
-                        return new SecurityCheckResult(
-                                matches.stream()
-                                        .filter(key -> key.examId != null)
-                                        .findFirst()
-                                        .isPresent(),
-                                matches.stream()
-                                        .filter(key -> key.examId == null)
-                                        .findFirst()
-                                        .isPresent(),
-                                false);
-                    }
-                });
-    }
-
-    @Override
     public boolean checkAppSignatureKey(
             final ClientConnection clientConnection,
             final String appSignatureKey) {
@@ -237,7 +202,12 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                     clientConnection.examId,
                     clientConnection.connectionToken,
                     signature)
-                            .map(SecurityCheckResult::hasAnyGrant)
+                            .map(result -> {
+                                if (result.statisticallyGranted) {
+                                    this.updateAppSignatureKeyGrants(clientConnection.examId);
+                                }
+                                return result.hasAnyGrant();
+                            })
                             .onError(error -> log.error("Failed to applyAppSignatureCheck: ", error))
                             .getOr(false);
 
@@ -250,19 +220,6 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
     }
 
     @Override
-    public Result<SecurityKey> getDecrypted(final SecurityKey key) {
-        return this.cryptor.decrypt(key.key)
-                .map(dKey -> new SecurityKey(
-                        key.id,
-                        key.institutionId,
-                        key.keyType,
-                        dKey,
-                        key.tag,
-                        key.examId,
-                        key.examTemplateId));
-    }
-
-    @Override
     public void updateAppSignatureKeyGrants(final Long examId) {
         if (examId == null) {
             return;
@@ -271,30 +228,11 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
         try {
 
             this.clientConnectionDAO
-                    .getConnectionTokens(examId)
+                    .getsecurityKeyConnectionRecords(examId)
                     .getOrThrow()
                     .stream()
-                    .forEach(token -> {
-                        final ClientConnectionDataInternal clientConnection =
-                                this.examSessionCacheService.getClientConnection(token);
-                        if (!clientConnection.clientConnection.isSecurityCheckGranted()) {
-                            if (this.checkAppSignatureKey(clientConnection.clientConnection, null)) {
-                                // now granted, update ClientConnection on DB level
-
-                                if (log.isDebugEnabled()) {
-                                    log.debug("Update app-signature-key grant for client connection: {}", token);
-                                }
-
-                                this.clientConnectionDAO
-                                        .save(new ClientConnection(
-                                                clientConnection.clientConnection.id, null,
-                                                null, null, null, null, null, null, null, null,
-                                                null, null, null, null, null, null, null, true))
-                                        .onError(error -> log.error("Failed to save ClientConnection grant: ", error))
-                                        .onSuccess(c -> this.examSessionCacheService.evictClientConnection(token));
-                            }
-                        }
-                    });
+                    .filter(rec -> ConnectionStatus.ACTIVE.name().equals(rec.getStatus()))
+                    .forEach(this::updateUngrantedConnections);
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to update app-signature-key grants: ", e);
@@ -308,9 +246,84 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
     }
 
     @Override
-    public Result<EntityKey> deleteSecurityKeyGrant(final String keyModelId) {
-        return Result.tryCatch(() -> Long.parseLong(keyModelId))
-                .flatMap(this.securityKeyRegistryDAO::delete);
+    public Result<EntityKey> deleteSecurityKeyGrant(final Long keyId) {
+        return Result.tryCatch(() -> {
+            final SecurityKey key = this.securityKeyRegistryDAO.byPK(keyId).getOrThrow();
+
+            final String grantedKey = decryptGrantedKey(key).a;
+            this.securityKeyRegistryDAO.delete(keyId).getOrThrow();
+            this.clientConnectionDAO.getsecurityKeyConnectionRecords(key.examId)
+                    .getOrThrow()
+                    .stream()
+                    .filter(rec -> ConnectionStatus.ACTIVE.name().equals(rec.getStatus()))
+                    .forEach(rec -> {
+                        try {
+                            final String connectionkey = this.decryptStoredSignatureForConnection(
+                                    rec.getId(),
+                                    rec.getConnectionToken());
+                            if (grantedKey.equals(connectionkey)) {
+                                // we have to re-check here
+                                final boolean granted = this.applyAppSignatureCheck(
+                                        rec.getInstitutionId(),
+                                        rec.getExamId(),
+                                        rec.getConnectionToken(),
+                                        connectionkey).getOrThrow().hasAnyGrant();
+                                final Boolean grantedBefore = Utils.fromByte(rec.getSecurityCheckGranted());
+                                if (granted != grantedBefore) {
+                                    // update grant
+                                    this.clientConnectionDAO
+                                            .save(new ClientConnection(
+                                                    rec.getId(), null,
+                                                    null, null, null, null, null, null, null, null,
+                                                    null, null, null, null, null, null, null, granted));
+                                    this.examSessionCacheService.evictClientConnection(rec.getConnectionToken());
+                                }
+                            }
+                        } catch (final Exception e) {
+                            log.error("Failed to update security key grant for connection on deletion -> {}", rec, e);
+                        }
+                    });
+
+            return key.getEntityKey();
+        });
+
+    }
+
+    private Result<SecurityCheckResult> applyAppSignatureCheck(
+            final Long institutionId,
+            final Long examId,
+            final String connectionToken,
+            final String appSignatureKey) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Apply app-signature-key check for connection: {}", connectionToken);
+        }
+
+        return this.securityKeyRegistryDAO
+                .getAll(institutionId, examId, KeyType.APP_SIGNATURE_KEY)
+                .map(all -> {
+                    final String decryptedSignature = decryptSignature(examId, connectionToken, appSignatureKey);
+                    final List<SecurityKey> matches = all.stream()
+                            .map(this::decryptGrantedKey)
+                            .filter(pair -> pair != null && Objects.equals(decryptedSignature, pair.a))
+                            .map(Pair::getB)
+                            .collect(Collectors.toList());
+
+                    if (matches == null || matches.isEmpty()) {
+                        return statisticalCheck(examId, decryptedSignature);
+                    } else {
+                        return new SecurityCheckResult(
+                                matches.stream()
+                                        .filter(key -> key.examId != null)
+                                        .findFirst()
+                                        .isPresent(),
+                                matches.stream()
+                                        .filter(key -> key.examId == null)
+                                        .findFirst()
+                                        .isPresent(),
+                                false);
+                    }
+                });
     }
 
     private Pair<String, SecurityKey> decryptGrantedKey(final SecurityKey key) {
@@ -408,12 +421,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
     }
 
     private String decryptStoredSignatureForConnection(final ClientConnection cc) {
-        final String signatureKey = getSignatureKeyForConnection(cc);
-        if (StringUtils.isBlank(signatureKey)) {
-            return null;
-        }
-
-        return decryptSignatureWithConnectionToken(cc.connectionToken, signatureKey);
+        return decryptStoredSignatureForConnection(cc.id, cc.connectionToken);
     }
 
     private String decryptStoredSignatureForConnection(final Long cId, final String cToken) {
@@ -425,12 +433,31 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
         return decryptSignatureWithConnectionToken(cToken, signatureKey);
     }
 
+    private String getHashedSignature(final ClientConnection connection) {
+        return getHashedSignature(connection.id, connection.connectionToken);
+    }
+
+    private String getHashedSignature(final Long cId, final String cToken) {
+
+        final String signatureKey = getSignatureKeyForConnection(cId);
+        if (StringUtils.isBlank(signatureKey)) {
+            return null;
+        }
+
+        try {
+            return getSignatureHash(decryptSignatureWithConnectionToken(cToken, signatureKey));
+        } catch (final Exception e) {
+            log.error("Failed to get hashed signature key for read: ", e);
+            return signatureKey;
+        }
+    }
+
     private void saveSignatureKeyForConnection(final ClientConnection clientConnection, final String appSignatureKey) {
         this.additionalAttributesDAO
                 .saveAdditionalAttribute(
                         EntityType.CLIENT_CONNECTION,
                         clientConnection.id,
-                        ADDITIONAL_ATTR_APP_SIGNATURE_KEY,
+                        ClientConnection.ADDITIONAL_ATTR_APP_SIGNATURE_KEY,
                         appSignatureKey)
                 .onError(error -> log.error(
                         "Failed to store App-Signature-Key for clientConnection: {}",
@@ -442,7 +469,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                 .getAdditionalAttribute(
                         EntityType.CLIENT_CONNECTION,
                         connectionId,
-                        ADDITIONAL_ATTR_APP_SIGNATURE_KEY)
+                        ClientConnection.ADDITIONAL_ATTR_APP_SIGNATURE_KEY)
                 .map(AdditionalAttributeRecord::getValue)
                 .getOr(null);
     }
@@ -474,14 +501,6 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                 .getOr(1);
     }
 
-    private Collection<SecurityKey> decryptAll(final Collection<SecurityKey> all) {
-        return all.stream()
-                .map(this::getDecrypted)
-                .filter(Result::hasValue)
-                .map(Result::get)
-                .collect(Collectors.toList());
-    }
-
     private Result<SecurityKey> encryptInternal(final SecurityKey key) {
         return Result.tryCatch(() -> new SecurityKey(
                 key.id,
@@ -491,6 +510,78 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                 key.tag,
                 key.examId,
                 key.examTemplateId));
+    }
+
+    private Collection<SecurityKey> getKeysForRead(final Collection<SecurityKey> keys) {
+        return keys.stream()
+                .map(this::getInternalKeyForRead)
+                .collect(Collectors.toList());
+    }
+
+    private SecurityKey getInternalKeyForRead(final SecurityKey key) {
+        try {
+            return new SecurityKey(
+                    key.id,
+                    key.institutionId,
+                    key.keyType,
+                    getSignatureHash(this.cryptor.decrypt(key.key).getOrThrow()),
+                    key.tag,
+                    key.examId,
+                    key.examTemplateId);
+        } catch (final Exception e) {
+            log.error("Failed to internally decrypt security key value: ", e);
+            return key;
+        }
+    }
+
+    private String getSignatureHash(final CharSequence signature) throws NoSuchAlgorithmException {
+        final MessageDigest hasher = MessageDigest.getInstance("SHA-256");
+        hasher.update(Utils.toByteArray(signature));
+        final String signatureHash = Hex.toHexString(hasher.digest());
+        return signatureHash;
+    }
+
+    private Map<String, Map<Long, String>> reduceAppSecKey(
+            final Map<String, Map<Long, String>> m,
+            final ClientConnectionRecord rec) {
+
+        final Map<Long, String> mapping = m.computeIfAbsent(
+                this.getHashedSignature(rec.getId(), rec.getConnectionToken()),
+                s -> new HashMap<>());
+
+        mapping.put(rec.getId(), rec.getExamUserSessionId());
+        return m;
+    }
+
+    private void updateUngrantedConnections(final ClientConnectionRecord rec) {
+        try {
+            if (!Utils.fromByte(rec.getSecurityCheckGranted())) {
+                final String token = rec.getConnectionToken();
+                if (applyAppSignatureCheck(
+                        rec.getInstitutionId(),
+                        rec.getExamId(),
+                        token,
+                        getSignatureKeyForConnection(rec.getId()))
+                                .getOrThrow()
+                                .hasAnyGrant()) {
+                    // now granted, update ClientConnection on DB level
+                    if (log.isDebugEnabled()) {
+                        log.debug("Update app-signature-key grant for client connection: {}", token);
+                    }
+
+                    this.clientConnectionDAO
+                            .save(new ClientConnection(
+                                    rec.getId(), null,
+                                    null, null, null, null, null, null, null, null,
+                                    null, null, null, null, null, null, null, true))
+                            .onError(error -> log.error("Failed to save ClientConnection grant: ",
+                                    error))
+                            .onSuccess(c -> this.examSessionCacheService.evictClientConnection(token));
+                }
+            }
+        } catch (final Exception e) {
+            log.error("Failed to updateAppSignatureKeyGrants for connection: {}", rec, e);
+        }
     }
 
 }

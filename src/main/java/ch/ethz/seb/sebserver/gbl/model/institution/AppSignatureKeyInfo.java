@@ -10,21 +10,26 @@ package ch.ethz.seb.sebserver.gbl.model.institution;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.tomcat.util.buf.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain.SEB_SECURITY_KEY_REGISTRY;
+import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AppSignatureKeyInfo {
+public class AppSignatureKeyInfo implements ModelIdAware {
 
-    public static final String ATTR_KEY_CONNECTION_MAPPING = "kcMapping";
+    public static final String ATTR_NUMBER_OF_CONNECTIONS = "numConnections";
+    public static final String ATTR_CONNECTION_IDS = "connectionIds";
 
     @NotNull
     @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_INSTITUTION_ID)
@@ -34,18 +39,23 @@ public class AppSignatureKeyInfo {
     @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_ID)
     public final Long examId;
 
-    @JsonProperty(ATTR_KEY_CONNECTION_MAPPING)
-    public final Map<String, Set<Long>> keyConnectionMapping;
+    @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_VALUE)
+    public final String key;
+
+    @JsonProperty(ATTR_CONNECTION_IDS)
+    public final Map<Long, String> connectionIds;
 
     @JsonCreator
     public AppSignatureKeyInfo(
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_INSTITUTION_ID) final Long institutionId,
             @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_EXAM_ID) final Long examId,
-            @JsonProperty(ATTR_KEY_CONNECTION_MAPPING) final Map<String, Set<Long>> keyConnectionMapping) {
+            @JsonProperty(SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_VALUE) final String key,
+            @JsonProperty(ATTR_CONNECTION_IDS) final Map<Long, String> connectionIds) {
 
         this.institutionId = institutionId;
         this.examId = examId;
-        this.keyConnectionMapping = Utils.immutableMapOf(keyConnectionMapping);
+        this.key = key;
+        this.connectionIds = Utils.immutableMapOf(connectionIds);
     }
 
     public Long getInstitutionId() {
@@ -56,8 +66,27 @@ public class AppSignatureKeyInfo {
         return this.examId;
     }
 
-    public Map<String, Set<Long>> getKeyConnectionMapping() {
-        return this.keyConnectionMapping;
+    @Override
+    public String getModelId() {
+        return this.key;
+    }
+
+    public String getKey() {
+        return this.key;
+    }
+
+    public Map<Long, String> getConnectionIds() {
+        return this.connectionIds;
+    }
+
+    @JsonIgnore
+    public String getConnectionNames() {
+        return StringUtils.join(this.connectionIds.values(), Constants.LIST_SEPARATOR_CHAR);
+    }
+
+    @JsonIgnore
+    public int getNumberOfConnections() {
+        return this.connectionIds.size();
     }
 
     @Override
@@ -84,8 +113,10 @@ public class AppSignatureKeyInfo {
         builder.append(this.institutionId);
         builder.append(", examId=");
         builder.append(this.examId);
-        builder.append(", keyConnectionMapping=");
-        builder.append(this.keyConnectionMapping);
+        builder.append(", key=");
+        builder.append(this.key);
+        builder.append(", connectionIds=");
+        builder.append(this.connectionIds);
         builder.append("]");
         return builder.toString();
     }

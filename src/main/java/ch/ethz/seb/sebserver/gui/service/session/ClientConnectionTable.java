@@ -672,7 +672,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         boolean push(final ClientMonitoringData monitoringData) {
             this.dataChanged = this.monitoringData == null ||
                     this.monitoringData.status != monitoringData.status ||
-                    this.monitoringData.missingPing != monitoringData.missingPing;
+                    this.monitoringData.missingPing != monitoringData.missingPing ||
+                    this.monitoringData.missingGrant != monitoringData.missingGrant;
             this.indicatorValueChanged = this.monitoringData == null ||
                     (this.monitoringData.status.clientActiveStatus
                             && !this.monitoringData.indicatorValuesEquals(monitoringData));

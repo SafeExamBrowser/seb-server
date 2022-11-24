@@ -234,12 +234,13 @@ public class MonitoringClientConnection implements TemplateComposer {
                     NOTIFICATION_LIST_TITLE_KEY,
                     NOTIFICATION_LIST_TITLE_TOOLTIP_KEY);
 
-            final EntityTable<ClientNotification> notificationTable = this.pageService.remoteListTableBuilder(
-                    restService.getRestCall(GetPendingClientNotifications.class),
-                    EntityType.CLIENT_EVENT)
-                    .withRestCallAdapter(builder -> builder.withURIVariable(
-                            API.PARAM_PARENT_MODEL_ID,
-                            parentEntityKey.modelId)
+            final EntityTable<ClientNotification> notificationTable = this.pageService
+                    .remoteListTableBuilder(
+                            restService.getRestCall(GetPendingClientNotifications.class), EntityType.CLIENT_EVENT)
+                    .withRestCallAdapter(builder -> builder
+                            .withURIVariable(
+                                    API.PARAM_PARENT_MODEL_ID,
+                                    parentEntityKey.modelId)
                             .withURIVariable(
                                     API.EXAM_API_SEB_CONNECTION_TOKEN,
                                     connectionToken))
@@ -409,7 +410,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                     .call()
                     .getOrThrow();
 
-            if (securityKey.id < 0) {
+            if (securityKey.id == null || securityKey.id < 0) {
                 actionBuilder
                         .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_GRANT_SIGNATURE_KEY)
                         .withParentEntityKey(parentEntityKey)

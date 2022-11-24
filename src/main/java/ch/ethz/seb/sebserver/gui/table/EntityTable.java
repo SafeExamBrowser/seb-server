@@ -205,6 +205,8 @@ public class EntityTable<ROW extends ModelIdAware> {
                     if (selection != null) {
                         this.pageService.executePageAction(
                                 defaultAction.withEntityKey(selection));
+                    } else {
+                        this.pageService.executePageAction(defaultAction);
                     }
                 });
             }
@@ -217,8 +219,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         });
 
         this.table.addListener(SWT.Selection, event -> this.notifySelectionChange());
-
-        this.navigator = (pageSize > 0) ? new TableNavigator(this) : new TableNavigator();
+        this.navigator = new TableNavigator(this);
 
         createTableColumns();
         this.pageNumber = initCurrentPageFromUserAttr();

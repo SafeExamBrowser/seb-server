@@ -24,9 +24,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
@@ -273,6 +273,9 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                     .and(
                             SecurityKeyRegistryRecordDynamicSqlSupport.keyType,
                             isEqualToWhenPresent((type == null) ? null : type.name()))
+                    .and(
+                            SecurityKeyRegistryRecordDynamicSqlSupport.examId,
+                            isNull())
                     .build()
                     .execute()
                     .stream()
@@ -400,9 +403,10 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
 
     private void checkUniqueKey(final SecurityKey key) {
         if (getGrantOr(key).getOr(key) != key) {
-            throw new FieldValidationException(
-                    Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG,
-                    "securityKey:keyValue:alreadyGranted");
+            throw new APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Already granted"));
+//            throw new FieldValidationException(
+//                    Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG,
+//                    "securityKey:keyValue:alreadyGranted");
         }
     }
 

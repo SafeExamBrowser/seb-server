@@ -341,7 +341,8 @@ public interface PageService {
 
     <T extends ModelIdAware> TableBuilder<T> staticListTableBuilder(final List<T> staticList, EntityType entityType);
 
-    <T extends ModelIdAware> TableBuilder<T> remoteListTableBuilder(RestCall<Collection<T>> apiCall,
+    <T extends ModelIdAware> TableBuilder<T> remoteListTableBuilder(
+            RestCall<Collection<T>> apiCall,
             EntityType entityType);
 
     /** Get a new PageActionBuilder for a given PageContext.
