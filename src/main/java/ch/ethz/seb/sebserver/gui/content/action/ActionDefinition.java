@@ -425,6 +425,11 @@ public enum ActionDefinition {
             ImageIcon.NO_SHIELD,
             PageStateDefinitionImpl.SECURITY_KEY_EDIT,
             ActionCategory.FORM),
+    EXAM_RELOAD_SECURITY_KEY_VIEW(
+            new LocTextKey("sebserver.exam.signaturekey.action.edit"),
+            ImageIcon.SHIELD,
+            PageStateDefinitionImpl.SECURITY_KEY_EDIT,
+            ActionCategory.FORM),
 
     EXAM_SECURITY_KEY_SAVE_SETTINGS(
             new LocTextKey("sebserver.exam.signaturekey.action.save"),

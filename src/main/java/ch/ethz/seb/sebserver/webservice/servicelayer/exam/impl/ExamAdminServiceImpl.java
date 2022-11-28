@@ -111,6 +111,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                                 .error("Failed to store ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD: ", error));
             }
 
+            this.examDAO.setModified(examId);
+
         }).flatMap(v -> this.examDAO.byPK(examId));
     }
 

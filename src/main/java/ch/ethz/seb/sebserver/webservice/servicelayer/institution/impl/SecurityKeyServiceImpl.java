@@ -26,7 +26,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.institution.AppSignatureKeyInfo;
@@ -121,6 +123,12 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
             final Long connectionId,
             final String tag) {
 
+        if (StringUtils.isEmpty(tag)) {
+            throw new FieldValidationException(
+                    Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG,
+                    "securityKeyGrant:tag:mandatory");
+        }
+
         if (log.isDebugEnabled()) {
             log.debug("Register app-signature-key global grant. ConnectionId: {} tag: {}",
                     connectionId,
@@ -138,11 +146,17 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
     }
 
     @Override
-    public Result<SecurityKey> registerExamAppSignatureKey(
+    public Result<SecurityKey> grantAppSignatureKey(
             final Long institutionId,
             final Long examId,
             final Long connectionId,
             final String tag) {
+
+        if (StringUtils.isEmpty(tag)) {
+            throw new FieldValidationException(
+                    Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG,
+                    "securityKeyGrant:tag:notNull");
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("Register app-signature-key exam grant. Exam: {} connectionId: {} tag: {}",
@@ -239,11 +253,11 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
         }
     }
 
-    @Override
-    public Result<SecurityKey> registerSecurityKey(final SecurityKey key) {
-        return this.encryptInternal(key)
-                .flatMap(this.securityKeyRegistryDAO::createNew);
-    }
+//    @Override
+//    public Result<SecurityKey> registerSecurityKey(final SecurityKey key) {
+//        return this.encryptInternal(key)
+//                .flatMap(this.securityKeyRegistryDAO::createNew);
+//    }
 
     @Override
     public Result<EntityKey> deleteSecurityKeyGrant(final Long keyId) {
@@ -366,7 +380,9 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
             final Long examId,
             final String decryptedSignature) {
 
-        System.out.println("****************** statisticalCheck: " + decryptedSignature);
+        if (log.isDebugEnabled()) {
+            log.debug("Apply statistical security check update for exam {}", examId);
+        }
 
         // if there is no exam known yet, no statistical check can be applied
         if (examId == null) {
@@ -378,8 +394,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
             // TODO if cert encryption is available check if exam has defined cert for decryption
             final Certificate cert = null;
 
-            final int matches = this.clientConnectionDAO
-                    .getAllActiveConnectionTokens(examId)
+            final int matches = this.clientConnectionDAO.getConnectionTokens(examId)
                     .map(tokens -> tokens.stream()
                             .map(this.examSessionCacheService::getClientConnection)
                             .filter(cc -> matchOtherClientConnection(cc.clientConnection, decryptedSignature, cert))
@@ -410,12 +425,20 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                 return false; // NOTE: not supported yet
             }
 
+            if (cc.status != ConnectionStatus.ACTIVE && cc.status != ConnectionStatus.CLOSED) {
+                return false;
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Apply statistical security check update for client connection {}", cc);
+            }
+
             return Objects.equals(
                     decryptedSignature,
                     decryptStoredSignatureForConnection(cc));
 
         } catch (final Exception e) {
-            log.warn("Failed to get and decrypt app signature key for client connection: {}", cc, e);
+            log.warn("Failed to apply statistical security check update for client connection: {}", cc, e);
             return false;
         }
     }
@@ -501,16 +524,16 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                 .getOr(1);
     }
 
-    private Result<SecurityKey> encryptInternal(final SecurityKey key) {
-        return Result.tryCatch(() -> new SecurityKey(
-                key.id,
-                key.institutionId,
-                key.keyType,
-                Utils.toString(this.cryptor.encrypt(key.key).getOrThrow()),
-                key.tag,
-                key.examId,
-                key.examTemplateId));
-    }
+//    private Result<SecurityKey> encryptInternal(final SecurityKey key) {
+//        return Result.tryCatch(() -> new SecurityKey(
+//                key.id,
+//                key.institutionId,
+//                key.keyType,
+//                Utils.toString(this.cryptor.encrypt(key.key).getOrThrow()),
+//                key.tag,
+//                key.examId,
+//                key.examTemplateId));
+//    }
 
     private Collection<SecurityKey> getKeysForRead(final Collection<SecurityKey> keys) {
         return keys.stream()

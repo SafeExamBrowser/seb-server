@@ -68,8 +68,6 @@ public class ExamSignatureKeyForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.signaturekey.keylist.key");
     private static final LocTextKey APP_SIG_KEY_LIST_NUM_CLIENTS =
             new LocTextKey("sebserver.exam.signaturekey.keylist.clients");
-    private static final LocTextKey APP_SIG_KEY_LIST_CLIENT_IDS =
-            new LocTextKey("sebserver.exam.signaturekey.keylist.clientids");
     private static final LocTextKey APP_SIG_KEY_LIST_EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.exam.signaturekey.keylist.pleaseSelect");
 
@@ -78,7 +76,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
     private static final LocTextKey GRANT_LIST_TITLE_TOOLTIP =
             new LocTextKey("sebserver.exam.signaturekey.grantlist.title" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
     private static final LocTextKey GRANT_LIST_EMPTY_LIST_TEXT_KEY =
-            new LocTextKey("sebserver.exam.signaturekey.grantlist..empty");
+            new LocTextKey("sebserver.exam.signaturekey.grantlist.empty");
     private static final LocTextKey GRANT_LIST_KEY =
             new LocTextKey("sebserver.exam.signaturekey.grantlist.key");
     private static final LocTextKey GRANT_LIST_TAG =

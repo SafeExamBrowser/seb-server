@@ -33,7 +33,7 @@ public class SaveAppSignatureKeySettings extends RestCall<Exam> {
                 new TypeReference<Exam>() {
                 }),
                 HttpMethod.POST,
-                MediaType.APPLICATION_JSON,
+                MediaType.APPLICATION_FORM_URLENCODED,
                 API.EXAM_ADMINISTRATION_ENDPOINT
                         + API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                         + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_INFO_PATH_SEGMENT);

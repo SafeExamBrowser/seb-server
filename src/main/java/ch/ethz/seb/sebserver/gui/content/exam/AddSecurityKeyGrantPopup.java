@@ -27,16 +27,18 @@ import ch.ethz.seb.sebserver.gbl.model.institution.AppSignatureKeyInfo;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialogComposer;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetClientConnections;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GrantClientConnectionSecurityKey;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.seckey.GrantAppSignatureKey;
 import ch.ethz.seb.sebserver.gui.table.ColumnDefinition;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -54,6 +56,11 @@ public class AddSecurityKeyGrantPopup {
             new LocTextKey("sebserver.exam.signaturekey.seb.add.signature");
     private static final LocTextKey TITLE_TEXT_FORM_TAG =
             new LocTextKey("sebserver.exam.signaturekey.seb.add.tag");
+
+    private static final LocTextKey TABLE_TITLE =
+            new LocTextKey("sebserver.exam.signaturekey.list.title");
+    private static final LocTextKey TABLE_TITLE_TOOLTIP =
+            new LocTextKey("sebserver.exam.signaturekey.list.title" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
 
     private static final LocTextKey TABLE_COLUMN_NAME =
             new LocTextKey("sebserver.exam.signaturekey.list.name");
@@ -77,6 +84,7 @@ public class AddSecurityKeyGrantPopup {
                             action.pageContext().getParent().getShell(),
                             this.pageService.getWidgetFactory());
             dialog.setDialogWidth(800);
+            //dialog.setDialogHeight(600);
 
             final Predicate<FormHandle<?>> applyGrant = formHandle -> applyGrant(
                     pageContext,
@@ -144,7 +152,17 @@ public class AddSecurityKeyGrantPopup {
                     .withQueryParam(API.PARAM_MODEL_ID_LIST, clientConnectionIds)
                     .call()
                     .onSuccess(connections -> {
-                        final List<ClientConnection> list = new ArrayList<>();
+
+                        widgetFactory.addFormSubContextHeader(
+                                formContext.getParent(),
+                                TABLE_TITLE,
+                                TABLE_TITLE_TOOLTIP);
+
+                        final List<ClientConnection> list = new ArrayList<>(this.pageService
+                                .getRestService()
+                                .getBuilder(GetClientConnections.class)
+                                .withQueryParam(API.PARAM_MODEL_ID_LIST, clientConnectionIds)
+                                .call().getOrThrow());
                         this.pageService.staticListTableBuilder(list, EntityType.CLIENT_CONNECTION)
                                 .withPaging(10)
 
@@ -165,7 +183,8 @@ public class AddSecurityKeyGrantPopup {
                                         TABLE_COLUMN_STATUS,
                                         row -> this.pageService.getResourceService()
                                                 .localizedClientConnectionStatusName(row.getStatus()))
-                                                        .widthProportion(1));
+                                                        .widthProportion(1))
+                                .compose(formContext);
 
                     });
 
@@ -184,15 +203,35 @@ public class AddSecurityKeyGrantPopup {
 
         final Long connectioId = appSignatureKeyInfo.connectionIds.keySet().iterator().next();
 
-        return this.pageService
+        final boolean hasValue = this.pageService
                 .getRestService()
-                .getBuilder(GrantClientConnectionSecurityKey.class)
+                .getBuilder(GrantAppSignatureKey.class)
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(appSignatureKeyInfo.examId))
                 .withURIVariable(API.PARAM_MODEL_ID, String.valueOf(connectioId))
                 .withFormBinding(formHandle.getFormBinding())
                 .call()
-                .onError(formHandle::handleError)
+                .onError(error -> {
+                    if (error.getMessage().contains("\"messageCode\":\"1010\"")) {
+                        pageContext.publishInfo(new LocTextKey("sebserver.monitoring.signaturegrant.message.granted"));
+                    } else {
+                        formHandle.handleError(error);
+                    }
+                })
                 .hasValue();
+
+        if (hasValue) {
+
+            final PageContext reloadContext = pageContext.withEntityKey(pageContext.getParentEntityKey());
+            final PageAction action = this.pageService.pageActionBuilder(reloadContext)
+                    .newAction(ActionDefinition.EXAM_RELOAD_SECURITY_KEY_VIEW)
+                    .create();
+            this.pageService.firePageEvent(
+                    new ActionEvent(action),
+                    action.pageContext());
+
+        }
+
+        return hasValue;
     }
 
 }

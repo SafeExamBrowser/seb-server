@@ -466,30 +466,6 @@ public class ExamMonitoringController {
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
                     API.EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT +
                     API.MODEL_ID_VAR_PATH_SEGMENT,
-            method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public SecurityKey grantAppSignatureKey(
-            @RequestParam(
-                    name = API.PARAM_INSTITUTION_ID,
-                    required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
-            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long connectionId,
-            @RequestParam(name = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG, required = true) final String tagName) {
-
-        checkPrivileges(institutionId, examId);
-
-        return this.securityKeyService
-                .registerExamAppSignatureKey(institutionId, examId, connectionId, tagName)
-                .onSuccess(key -> this.securityKeyService.updateAppSignatureKeyGrants(examId))
-                .getOrThrow();
-    }
-
-    @RequestMapping(
-            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
-                    API.EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT +
-                    API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.GET,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)

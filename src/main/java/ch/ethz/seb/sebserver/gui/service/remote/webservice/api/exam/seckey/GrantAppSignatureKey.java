@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session;
+package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.seckey;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
@@ -24,9 +24,9 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 @Lazy
 @Component
 @GuiProfile
-public class GrantClientConnectionSecurityKey extends RestCall<SecurityKey> {
+public class GrantAppSignatureKey extends RestCall<SecurityKey> {
 
-    public GrantClientConnectionSecurityKey() {
+    public GrantAppSignatureKey() {
         super(new TypeKey<>(
                 CallType.GET_SINGLE,
                 EntityType.SEB_SECURITY_KEY_REGISTRY,
@@ -34,9 +34,9 @@ public class GrantClientConnectionSecurityKey extends RestCall<SecurityKey> {
                 }),
                 HttpMethod.POST,
                 MediaType.APPLICATION_FORM_URLENCODED,
-                API.EXAM_MONITORING_ENDPOINT +
+                API.EXAM_ADMINISTRATION_ENDPOINT +
                         API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
-                        API.EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT +
+                        API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT +
                         API.MODEL_ID_VAR_PATH_SEGMENT);
     }
 

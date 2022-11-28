@@ -17,14 +17,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.http.MediaType;
-import org.springframework.util.MultiValueMap;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -216,7 +214,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_INFO_PATH_SEGMENT,
             method = RequestMethod.POST,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public void saveAppSignatureKeySettings(
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @RequestParam(
@@ -258,28 +256,32 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     }
 
     @RequestMapping(
-            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT
-                    + API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT,
+            path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT +
+                    API.EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT +
+                    API.MODEL_ID_VAR_PATH_SEGMENT,
             method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public SecurityKey newSecurityGrant(
-            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+    public SecurityKey grantAppSignatureKey(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
-            @RequestParam final MultiValueMap<String, String> allRequestParams,
-            final HttpServletRequest request) {
+            @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
+            @PathVariable(name = API.PARAM_MODEL_ID, required = true) final Long connectionId,
+            @RequestParam(name = Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG, required = false) final String tagName) {
 
         this.checkWritePrivilege(institutionId);
+
         return this.examDAO.byPK(examId)
                 .flatMap(this::checkReadAccess)
-                .flatMap(exam -> {
-                    final POSTMapper postMap = new POSTMapper(allRequestParams, request.getQueryString())
-                            .putIfAbsent(API.PARAM_INSTITUTION_ID, String.valueOf(institutionId));
-                    return this.securityKeyService.registerSecurityKey(new SecurityKey(postMap));
-                })
+                .flatMap(exam -> this.securityKeyService.grantAppSignatureKey(
+                        institutionId,
+                        examId,
+                        connectionId,
+                        tagName))
                 .flatMap(this.userActivityLogDAO::logCreate)
+                .onSuccess(key -> this.securityKeyService.updateAppSignatureKeyGrants(examId))
                 .getOrThrow();
     }
 

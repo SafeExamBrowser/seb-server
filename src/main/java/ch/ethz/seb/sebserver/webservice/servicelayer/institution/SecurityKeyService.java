@@ -42,12 +42,6 @@ public interface SecurityKeyService {
      * @return Result refer to the list of security key registry entries or to an error when happened */
     Result<Collection<SecurityKey>> getSecurityKeyEntries(Long institutionId, Long examId, KeyType type);
 
-    /** Register a new security key entry in the registry.
-     *
-     * @param key The security key data
-     * @return Result refer to the newly created and stored security key entry or to an error when happened */
-    Result<SecurityKey> registerSecurityKey(SecurityKey key);
-
     /** Register SEB client connection App-Signature-Key as a new global security key registry entry
      * This is equivalent to make a global grant for specified App-Signature-Key of given SEB client connection.
      *
@@ -57,15 +51,14 @@ public interface SecurityKeyService {
      * @return Result refer to the newly created security key entry or to an error when happened */
     Result<SecurityKey> registerGlobalAppSignatureKey(Long institutionId, Long connectionId, String tag);
 
-    /** Register SEB client connection App-Signature-Key as a new exam based security key registry entry
-     * This is equivalent to make a exam specific grant for specified App-Signature-Key of given SEB client connection.
+    /** Grants an App-Signature-Key sent by a SEB client and register it within the granted key registry
      *
      * @param institutionId The institution identifier
      * @param examId The exam identifier for the exam based grant
      * @param connectionId The client connection identifier
      * @param tag A Tag for user identification of the grant within the registry
      * @return Result refer to the newly created security key entry or to an error when happened */
-    Result<SecurityKey> registerExamAppSignatureKey(Long institutionId, Long examId, Long connectionId, String tag);
+    Result<SecurityKey> grantAppSignatureKey(Long institutionId, Long examId, Long connectionId, String tag);
 
     /** Used to apply a SEB client App-signature-Key check for a given App-Signature-Key sent by the SEB.
      * Note: This also stores the given App-Signature-Key sent by SEB if not already stored for the SEB connection.

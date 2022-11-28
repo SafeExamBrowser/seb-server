@@ -29,7 +29,7 @@ import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GrantClientConnectionSecurityKey;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.seckey.GrantAppSignatureKey;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
 @Lazy
@@ -131,7 +131,7 @@ public class SignatureKeyGrantPopup {
 
         return this.pageService
                 .getRestService()
-                .getBuilder(GrantClientConnectionSecurityKey.class)
+                .getBuilder(GrantAppSignatureKey.class)
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, examKey.modelId)
                 .withURIVariable(API.PARAM_MODEL_ID, connectionKey.modelId)
                 .withFormBinding(formHandle.getFormBinding())
