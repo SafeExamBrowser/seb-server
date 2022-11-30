@@ -51,7 +51,6 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
@@ -64,7 +63,6 @@ public class ExamAPI_V1_Controller {
     private static final Logger log = LoggerFactory.getLogger(ExamAPI_V1_Controller.class);
 
     private final LmsSetupDAO lmsSetupDAO;
-    private final ExamAdminService examAdminService;
     private final ExamSessionService examSessionService;
     private final SEBClientConnectionService sebClientConnectionService;
     private final SEBClientSessionService sebClientSessionService;
@@ -74,7 +72,6 @@ public class ExamAPI_V1_Controller {
 
     protected ExamAPI_V1_Controller(
             final LmsSetupDAO lmsSetupDAO,
-            final ExamAdminService examAdminService,
             final ExamSessionService examSessionService,
             final SEBClientConnectionService sebClientConnectionService,
             final SEBClientSessionService sebClientSessionService,
@@ -83,7 +80,6 @@ public class ExamAPI_V1_Controller {
             @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME) final Executor executor) {
 
         this.lmsSetupDAO = lmsSetupDAO;
-        this.examAdminService = examAdminService;
         this.examSessionService = examSessionService;
         this.sebClientConnectionService = sebClientConnectionService;
         this.sebClientSessionService = sebClientSessionService;
@@ -139,16 +135,6 @@ public class ExamAPI_V1_Controller {
                             API.EXAM_API_SEB_CONNECTION_TOKEN,
                             clientConnection.connectionToken);
 
-                    if (clientConnection.examId != null) {
-                        this.examAdminService
-                                .getAppSignatureKeySalt(institutionId, clientConnection.examId)
-                                .onSuccess(salt -> response.setHeader(API.EXAM_API_EXAM_SIGNATURE_SALT_HEADER, salt))
-                                .onError(error -> log.error(
-                                        "Failed to get security key salt for connection: {}",
-                                        clientConnection,
-                                        error));
-                    }
-
                     // Crate list of running exams
                     List<RunningExamInfo> result;
                     if (examId == null) {
@@ -159,18 +145,26 @@ public class ExamAPI_V1_Controller {
                                 .filter(this::checkConsistency)
                                 .collect(Collectors.toList());
                     } else {
-                        final Exam exam = this.examSessionService.getExamDAO()
+                        final Exam exam = this.examSessionService
+                                .getExamDAO()
                                 .byPK(examId)
                                 .getOrThrow();
 
                         result = Arrays.asList(createRunningExamInfo(exam));
+
+                        this.examSessionService
+                                .getAppSignatureKeySalt(clientConnection.examId)
+                                .onSuccess(salt -> response.setHeader(API.EXAM_API_EXAM_SIGNATURE_SALT_HEADER, salt))
+                                .onError(error -> log.error(
+                                        "Failed to get security key salt for connection: {}",
+                                        clientConnection,
+                                        error));
                     }
 
                     if (result.isEmpty()) {
                         log.warn(
                                 "There are no currently running exams for institution: {}. SEB connection creation denied",
                                 institutionId);
-                        throw new IllegalStateException("There are no currently running exams");
                     }
 
                     return result;
@@ -229,8 +223,8 @@ public class ExamAPI_V1_Controller {
                             .getOrThrow();
 
                     if (clientConnection.examId != null) {
-                        this.examAdminService
-                                .getAppSignatureKeySalt(institutionId, clientConnection.examId)
+                        this.examSessionService
+                                .getAppSignatureKeySalt(clientConnection.examId)
                                 .onSuccess(salt -> response.setHeader(API.EXAM_API_EXAM_SIGNATURE_SALT_HEADER, salt))
                                 .onError(error -> log.error(
                                         "Failed to get security key salt for connection: {}",

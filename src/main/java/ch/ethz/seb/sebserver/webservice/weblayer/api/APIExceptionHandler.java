@@ -124,7 +124,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final OAuth2Exception ex,
             final WebRequest request) {
 
-        log.error("OAuth2Exception: ", ex);
+        log.warn("OAuth2Exception: ", ex);
         final APIMessage message = APIMessage.ErrorMessage.UNAUTHORIZED.of(ex.getMessage());
         return new ResponseEntity<>(
                 message,
@@ -172,7 +172,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final PermissionDeniedException ex,
             final WebRequest request) {
 
-        log.warn("Permission Denied Exception: ", ex);
+        log.info("Permission Denied Exception: ", ex);
         return APIMessage.ErrorMessage.FORBIDDEN
                 .createErrorResponse(ex.getMessage());
     }
@@ -182,7 +182,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final ExamNotRunningException ex,
             final WebRequest request) {
 
-        log.warn("{}", ex.getMessage());
+        log.info("{}", ex.getMessage());
         return APIMessage.ErrorMessage.INTEGRITY_VALIDATION
                 .createErrorResponse(ex.getMessage());
     }
@@ -192,7 +192,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final APIConstraintViolationException ex,
             final WebRequest request) {
 
-        log.warn("Illegal API Argument Exception: {}", ex.getMessage());
+        log.info("Illegal API Argument Exception: {}", ex.getMessage());
 
         return APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT
                 .createErrorResponse(ex.getMessage());
@@ -203,7 +203,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final AccessDeniedException ex,
             final WebRequest request) {
 
-        log.warn("Access denied: ", ex);
+        log.info("Access denied: ", ex);
         return APIMessage.ErrorMessage.FORBIDDEN
                 .createErrorResponse(ex.getMessage());
     }

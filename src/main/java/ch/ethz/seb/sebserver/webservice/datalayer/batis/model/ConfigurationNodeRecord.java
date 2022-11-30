@@ -3,37 +3,37 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ConfigurationNodeRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.436+01:00", comments="Source field: configuration_node.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.925+01:00", comments="Source field: configuration_node.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.436+01:00", comments="Source field: configuration_node.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.925+01:00", comments="Source field: configuration_node.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.438+01:00", comments="Source field: configuration_node.template_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.926+01:00", comments="Source field: configuration_node.template_id")
     private Long templateId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.438+01:00", comments="Source field: configuration_node.owner")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.926+01:00", comments="Source field: configuration_node.owner")
     private String owner;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.438+01:00", comments="Source field: configuration_node.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.926+01:00", comments="Source field: configuration_node.name")
     private String name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.438+01:00", comments="Source field: configuration_node.description")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.926+01:00", comments="Source field: configuration_node.description")
     private String description;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.439+01:00", comments="Source field: configuration_node.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.926+01:00", comments="Source field: configuration_node.type")
     private String type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.440+01:00", comments="Source field: configuration_node.status")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.926+01:00", comments="Source field: configuration_node.status")
     private String status;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.440+01:00", comments="Source field: configuration_node.last_update_time")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.927+01:00", comments="Source field: configuration_node.last_update_time")
     private Long lastUpdateTime;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.440+01:00", comments="Source field: configuration_node.last_update_user")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.927+01:00", comments="Source field: configuration_node.last_update_user")
     private String lastUpdateUser;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.435+01:00", comments="Source Table: configuration_node")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.925+01:00", comments="Source Table: configuration_node")
     public ConfigurationNodeRecord(Long id, Long institutionId, Long templateId, String owner, String name, String description, String type, String status, Long lastUpdateTime, String lastUpdateUser) {
         this.id = id;
         this.institutionId = institutionId;
@@ -47,52 +47,52 @@ public class ConfigurationNodeRecord {
         this.lastUpdateUser = lastUpdateUser;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.436+01:00", comments="Source field: configuration_node.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.925+01:00", comments="Source field: configuration_node.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.436+01:00", comments="Source field: configuration_node.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.925+01:00", comments="Source field: configuration_node.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.438+01:00", comments="Source field: configuration_node.template_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.926+01:00", comments="Source field: configuration_node.template_id")
     public Long getTemplateId() {
         return templateId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.438+01:00", comments="Source field: configuration_node.owner")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.926+01:00", comments="Source field: configuration_node.owner")
     public String getOwner() {
         return owner;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.438+01:00", comments="Source field: configuration_node.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.926+01:00", comments="Source field: configuration_node.name")
     public String getName() {
         return name;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.438+01:00", comments="Source field: configuration_node.description")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.926+01:00", comments="Source field: configuration_node.description")
     public String getDescription() {
         return description;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.439+01:00", comments="Source field: configuration_node.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.926+01:00", comments="Source field: configuration_node.type")
     public String getType() {
         return type;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.440+01:00", comments="Source field: configuration_node.status")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.927+01:00", comments="Source field: configuration_node.status")
     public String getStatus() {
         return status;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.440+01:00", comments="Source field: configuration_node.last_update_time")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.927+01:00", comments="Source field: configuration_node.last_update_time")
     public Long getLastUpdateTime() {
         return lastUpdateTime;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-15T09:31:51.440+01:00", comments="Source field: configuration_node.last_update_user")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2022-11-29T10:28:49.927+01:00", comments="Source field: configuration_node.last_update_user")
     public String getLastUpdateUser() {
         return lastUpdateUser;
     }
@@ -101,7 +101,7 @@ public class ConfigurationNodeRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration_node
      *
-     * @mbg.generated Tue Nov 15 09:31:51 CET 2022
+     * @mbg.generated Tue Nov 29 10:28:49 CET 2022
      */
     @Override
     public String toString() {
@@ -127,7 +127,7 @@ public class ConfigurationNodeRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration_node
      *
-     * @mbg.generated Tue Nov 15 09:31:51 CET 2022
+     * @mbg.generated Tue Nov 29 10:28:49 CET 2022
      */
     @Override
     public boolean equals(Object that) {
@@ -157,7 +157,7 @@ public class ConfigurationNodeRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration_node
      *
-     * @mbg.generated Tue Nov 15 09:31:51 CET 2022
+     * @mbg.generated Tue Nov 29 10:28:49 CET 2022
      */
     @Override
     public int hashCode() {

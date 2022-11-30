@@ -281,7 +281,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                         connectionId,
                         tagName))
                 .flatMap(this.userActivityLogDAO::logCreate)
-                .onSuccess(key -> this.securityKeyService.updateAppSignatureKeyGrants(examId))
                 .getOrThrow();
     }
 

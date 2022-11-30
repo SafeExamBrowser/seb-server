@@ -29,9 +29,6 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ClientConnection implements GrantEntity {
 
-    /** This attribute name is used to store the App-Signature-Key given by a SEB Client */
-    public static final String ADDITIONAL_ATTR_APP_SIGNATURE_KEY = "APP_SIGNATURE_KEY";
-
     public enum ConnectionStatus {
         UNDEFINED(0, false, false),
         CONNECTION_REQUESTED(1, true, false),
@@ -63,13 +60,18 @@ public final class ClientConnection implements GrantEntity {
             ConnectionStatus.AUTHENTICATED.name(),
             ConnectionStatus.CLOSED.name());
 
+    public final static List<String> SECURE_CHECK_STATES = Utils.immutableListOf(
+            ConnectionStatus.CONNECTION_REQUESTED.name(),
+            ConnectionStatus.ACTIVE.name(),
+            ConnectionStatus.AUTHENTICATED.name());
+
     public static final ClientConnection EMPTY_CLIENT_CONNECTION = new ClientConnection(
             -1L, -1L, -1L,
             ConnectionStatus.UNDEFINED,
             null, null, null, null, null, null, null,
             false,
             null, null, null, null,
-            false, false);
+            false, false, null);
 
     public static final String ATTR_INFO = "seb_info";
     public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
@@ -128,6 +130,8 @@ public final class ClientConnection implements GrantEntity {
     public final String sebMachineName;
     @JsonIgnore
     public final String sebVersion;
+    @JsonIgnore
+    public final String ask;
 
     @JsonCreator
     public ClientConnection(
@@ -163,6 +167,7 @@ public final class ClientConnection implements GrantEntity {
         this.sebMachineName = Constants.EMPTY_NOTE;
         this.sebVersion = Constants.EMPTY_NOTE;
         this.securityCheckGranted = securityCheckGranted;
+        this.ask = null;
     }
 
     public ClientConnection(
@@ -183,7 +188,8 @@ public final class ClientConnection implements GrantEntity {
             final Long updateTime,
             final Long remoteProctoringRoomId,
             final Boolean remoteProctoringRoomUpdate,
-            final Boolean securityCheckGranted) {
+            final Boolean securityCheckGranted,
+            final String ask) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -214,6 +220,7 @@ public final class ClientConnection implements GrantEntity {
                 .toString();
 
         this.securityCheckGranted = securityCheckGranted;
+        this.ask = ask;
     }
 
     @Override

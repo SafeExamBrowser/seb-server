@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
@@ -261,7 +262,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 null, null, null, null, null, null,
                 null, null, null, null, null, null, null,
                 remoteProctoringRoomUpdate,
-                null, null, null, null);
+                null, null, null, null, null);
         return updateRecord;
     }
 
@@ -381,7 +382,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     Utils.truncateText(data.sebMachineName, 255),
                     Utils.truncateText(data.sebOSName, 255),
                     Utils.truncateText(data.sebVersion, 255),
-                    Utils.toByte(data.securityCheckGranted));
+                    Utils.toByte(data.securityCheckGranted),
+                    data.ask);
 
             this.clientConnectionRecordMapper.insert(newRecord);
             return newRecord;
@@ -418,7 +420,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     Utils.truncateText(data.sebMachineName, 255),
                     Utils.truncateText(data.sebOSName, 255),
                     Utils.truncateText(data.sebVersion, 255),
-                    Utils.toByte(data.securityCheckGranted));
+                    Utils.toByte(data.securityCheckGranted),
+                    data.ask);
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
@@ -438,7 +441,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
                     connectionId,
                     null, null, null, null, null, null, null, null, null, null, null,
-                    roomId, 0, null, null, null, null));
+                    roomId, 0, null, null, null, null, null));
         })
                 .onError(TransactionHandler::rollback);
     }
@@ -450,7 +453,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
                     id,
                     null, null, null, null, null, null, null, null, null, null, null, null,
-                    1, null, null, null, null));
+                    1, null, null, null, null, null));
         })
                 .onError(TransactionHandler::rollback);
     }
@@ -479,7 +482,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         record.getClientMachineName(),
                         record.getClientOsName(),
                         record.getClientVersion(),
-                        record.getSecurityCheckGranted()));
+                        record.getSecurityCheckGranted(),
+                        record.getAsk()));
             } else {
                 throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, String.valueOf(connectionId));
             }
@@ -779,6 +783,39 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional(readOnly = true)
+    public Result<Collection<ClientConnectionRecord>> getAllActiveNotGranted() {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+                .selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        SqlBuilder.isIn(ClientConnection.SECURE_CHECK_STATES))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.securityCheckGranted,
+                        SqlBuilder.isEqualTo(Constants.BYTE_FALSE))
+                .build()
+                .execute());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Long> countSignatureHashes(final Long examId, final String signatureHash) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+                .countByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        SqlBuilder.isIn(ClientConnection.SECURE_STATES))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.ask,
+                        SqlBuilder.isEqualTo(signatureHash))
+                .build()
+                .execute());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Result<Collection<Long>> getAllConnectionIdsForExam(final Long examId) {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper
                 .selectIdsByExample()
@@ -827,7 +864,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getUpdateTime(),
                     record.getRemoteProctoringRoomId(),
                     BooleanUtils.toBooleanObject(record.getRemoteProctoringRoomUpdate()),
-                    Utils.fromByte(record.getSecurityCheckGranted()));
+                    Utils.fromByte(record.getSecurityCheckGranted()),
+                    record.getAsk());
         });
     }
 

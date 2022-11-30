@@ -57,8 +57,6 @@ public interface ExamAdminService {
             Boolean enabled,
             Integer statThreshold);
 
-    Result<String> getAppSignatureKeySalt(Long institutionId, Long examId);
-
     /** Applies all additional SEB restriction attributes that are defined by the
      * type of the LMS of a given Exam to this given Exam.
      *

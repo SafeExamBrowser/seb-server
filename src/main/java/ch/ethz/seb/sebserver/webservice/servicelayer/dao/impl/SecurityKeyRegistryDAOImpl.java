@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -48,14 +47,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
 
     private final SecurityKeyRegistryRecordMapper securityKeyRegistryRecordMapper;
-    private final Cryptor cryptor;
 
     public SecurityKeyRegistryDAOImpl(
             final SecurityKeyRegistryRecordMapper securityKeyRegistryRecordMapper,
             final Cryptor cryptor) {
 
         this.securityKeyRegistryRecordMapper = securityKeyRegistryRecordMapper;
-        this.cryptor = cryptor;
     }
 
     @Override
@@ -324,7 +321,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
     @Transactional(readOnly = true)
     public Result<SecurityKey> getGrantOr(final SecurityKey key) {
         return Result.tryCatch(() -> {
-            final CharSequence signature = this.cryptor.decrypt(key.key).get();
+            final String signature = String.valueOf(key.key);
             return this.securityKeyRegistryRecordMapper
                     .selectByExample()
                     .where(
@@ -339,7 +336,7 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
                     .build()
                     .execute()
                     .stream()
-                    .filter(other -> Objects.equals(signature, this.cryptor.decrypt(other.getKeyValue()).getOr(null)))
+                    .filter(other -> Utils.isEqualsWithEmptyCheck(signature, other.getKeyValue()))
                     .findFirst()
                     .map(this::toDomainModel)
                     .orElse(key);
@@ -404,9 +401,6 @@ public class SecurityKeyRegistryDAOImpl implements SecurityKeyRegistryDAO {
     private void checkUniqueKey(final SecurityKey key) {
         if (getGrantOr(key).getOr(key) != key) {
             throw new APIMessageException(APIMessage.ErrorMessage.ILLEGAL_API_ARGUMENT.of("Already granted"));
-//            throw new FieldValidationException(
-//                    Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG,
-//                    "securityKey:keyValue:alreadyGranted");
         }
     }
 

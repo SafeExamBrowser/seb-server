@@ -63,7 +63,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "", 1L,
                                 1L,
                                 null, false,
-                                false))
+                                false, null))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -90,7 +90,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "", 1L,
                                 1L,
                                 null, false,
-                                false))
+                                false, null))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -136,7 +136,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "", 1L,
                                 1L,
                                 null, false,
-                                false))
+                                false, null))
                 .getOrThrow();
 
         assertNotNull(connection.id);
@@ -210,7 +210,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
                                 "", 1L,
                                 1L,
                                 null, false,
-                                false))
+                                false, null))
                 .getOrThrow();
 
         assertNotNull(connection.id);

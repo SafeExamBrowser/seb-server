@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrategy;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
@@ -45,6 +46,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
     private final SEBClientInstructionService sebInstructionService;
     private final ClientIndicatorFactory clientIndicatorFactory;
     private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
+    private final SecurityKeyService securityKeyService;
 
     public SEBClientSessionServiceImpl(
             final ClientConnectionDAO clientConnectionDAO,
@@ -52,7 +54,8 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
             final EventHandlingStrategyFactory eventHandlingStrategyFactory,
             final SEBClientInstructionService sebInstructionService,
             final ClientIndicatorFactory clientIndicatorFactory,
-            final InternalClientConnectionDataFactory internalClientConnectionDataFactory) {
+            final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
+            final SecurityKeyService securityKeyService) {
 
         this.clientConnectionDAO = clientConnectionDAO;
         this.examSessionService = examSessionService;
@@ -61,6 +64,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
         this.sebInstructionService = sebInstructionService;
         this.clientIndicatorFactory = clientIndicatorFactory;
         this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
+        this.securityKeyService = securityKeyService;
     }
 
     @Override
@@ -84,6 +88,15 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
         } catch (final Exception e) {
             log.error("Failed to update ping events: ", e);
         }
+    }
+
+    @Override
+    public void updateASKGrants() {
+        this.clientConnectionDAO
+                .getAllActiveNotGranted()
+                .onError(error -> log.error("Failed to get none granted active client connections: ", error))
+                .getOr(Collections.emptyList())
+                .forEach(this.securityKeyService::updateAppSignatureKeyGrant);
     }
 
     @Override

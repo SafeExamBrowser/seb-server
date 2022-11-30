@@ -21,12 +21,14 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.ModalInputDialogComposer;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
+import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.seckey.GrantAppSignatureKey;
@@ -129,7 +131,7 @@ public class SignatureKeyGrantPopup {
         final EntityKey examKey = pageContext.getParentEntityKey();
         final EntityKey connectionKey = pageContext.getEntityKey();
 
-        return this.pageService
+        final boolean granted = this.pageService
                 .getRestService()
                 .getBuilder(GrantAppSignatureKey.class)
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, examKey.modelId)
@@ -144,6 +146,17 @@ public class SignatureKeyGrantPopup {
                     }
                 })
                 .hasValue();
+
+        if (granted) {
+            final PageAction action = this.pageService.pageActionBuilder(pageContext)
+                    .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION)
+                    .create();
+            this.pageService.firePageEvent(
+                    new ActionEvent(action),
+                    action.pageContext());
+        }
+
+        return granted;
     }
 
 }

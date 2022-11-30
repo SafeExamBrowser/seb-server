@@ -49,6 +49,9 @@ public final class Constants {
 
     public static final int DAY_IN_MIN = 60 * 24;
 
+    public static final Byte BYTE_FALSE = Byte.valueOf((byte) 0);
+    public static final Byte BYTE_TRUE = Byte.valueOf((byte) 1);
+
     public static final Character ENTER = '\r';
     public static final Character CARRIAGE_RETURN = '\n';
     public static final Character CURLY_BRACE_OPEN = '{';

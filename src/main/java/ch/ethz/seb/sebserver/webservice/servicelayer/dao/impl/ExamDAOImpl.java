@@ -26,8 +26,10 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.update.UpdateDSL;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -65,17 +67,23 @@ public class ExamDAOImpl implements ExamDAO {
     private final ExamRecordDAO examRecordDAO;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final AdditionalAttributesDAO additionalAttributesDAO;
+    private final boolean appSignatureKeyEnabled;
+    private final int appSignatureKeyThreshold;
 
     public ExamDAOImpl(
             final ExamRecordMapper examRecordMapper,
             final ExamRecordDAO examRecordDAO,
             final ApplicationEventPublisher applicationEventPublisher,
-            final AdditionalAttributesDAO additionalAttributesDAO) {
+            final AdditionalAttributesDAO additionalAttributesDAO,
+            final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.enabled:false}") boolean appSignatureKeyEnabled,
+            final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.threshold:2}") int appSignatureKeyThreshold) {
 
         this.examRecordMapper = examRecordMapper;
         this.examRecordDAO = examRecordDAO;
         this.applicationEventPublisher = applicationEventPublisher;
         this.additionalAttributesDAO = additionalAttributesDAO;
+        this.appSignatureKeyEnabled = appSignatureKeyEnabled;
+        this.appSignatureKeyThreshold = appSignatureKeyThreshold;
     }
 
     @Override
@@ -181,6 +189,7 @@ public class ExamDAOImpl implements ExamDAO {
     public Result<Exam> createNew(final Exam exam) {
         return this.examRecordDAO
                 .createNew(exam)
+                .map(this::initAdditionalAttributes)
                 .flatMap(rec -> saveAdditionalAttributes(exam, rec))
                 .flatMap(this::toDomainModel);
     }
@@ -472,6 +481,22 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    public String getAppSigantureKeySalt(final Long examId) {
+        final CharSequence salt = KeyGenerators.string().generateKey();
+        this.additionalAttributesDAO.initAdditionalAttribute(
+                EntityType.EXAM,
+                examId,
+                Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_SALT, salt.toString());
+
+        return this.additionalAttributesDAO.getAdditionalAttribute(
+                EntityType.EXAM,
+                examId,
+                Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_SALT)
+                .getOrThrow()
+                .getValue();
+    }
+
+    @Override
     @Transactional
     public Result<Collection<EntityKey>> delete(final Set<EntityKey> all) {
         return Result.tryCatch(() -> {
@@ -727,6 +752,7 @@ public class ExamDAOImpl implements ExamDAO {
 
     private Result<ExamRecord> saveAdditionalAttributes(final Exam exam, final ExamRecord rec) {
         return Result.tryCatch(() -> {
+
             if (exam.additionalAttributesIncluded()) {
                 this.additionalAttributesDAO.saveAdditionalAttributes(
                         EntityType.EXAM,
@@ -736,8 +762,31 @@ public class ExamDAOImpl implements ExamDAO {
             }
 
             return rec;
-
         });
+    }
+
+    private ExamRecord initAdditionalAttributes(final ExamRecord rec) {
+        try {
+            final Long examId = rec.getId();
+            this.additionalAttributesDAO.initAdditionalAttribute(
+                    EntityType.EXAM,
+                    examId,
+                    Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED,
+                    String.valueOf(this.appSignatureKeyEnabled));
+            this.additionalAttributesDAO.initAdditionalAttribute(
+                    EntityType.EXAM,
+                    examId,
+                    Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD,
+                    String.valueOf(this.appSignatureKeyThreshold));
+            final CharSequence salt = KeyGenerators.string().generateKey();
+            this.additionalAttributesDAO.initAdditionalAttribute(
+                    EntityType.EXAM,
+                    examId,
+                    Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_SALT, salt.toString());
+        } catch (final Exception e) {
+            log.error("Failed to init additional attributes: ", e);
+        }
+        return rec;
     }
 
     private QuizData saveAdditionalQuizAttributes(final Long examId, final QuizData quizData) {

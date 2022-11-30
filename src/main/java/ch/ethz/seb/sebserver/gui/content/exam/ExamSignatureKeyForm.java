@@ -125,11 +125,14 @@ public class ExamSignatureKeyForm implements TemplateComposer {
 
         final FormHandle<Entity> form = this.pageService
                 .formBuilder(pageContext.copyOf(content))
+                .withDefaultSpanLabel(3)
+                .withDefaultSpanEmptyCell(2)
 
                 .addField(FormBuilder.checkbox(
                         Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED,
                         FORM_ENABLED,
-                        String.valueOf(signatureKeyCheckEnabled)))
+                        String.valueOf(signatureKeyCheckEnabled))
+                        .withInputSpan(1))
 
                 .addField(FormBuilder.text(
                         Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD,

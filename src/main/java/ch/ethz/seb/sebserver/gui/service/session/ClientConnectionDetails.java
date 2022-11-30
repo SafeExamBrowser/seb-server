@@ -188,7 +188,8 @@ public class ClientConnectionDetails implements MonitoringEntry {
 
         if (this.connectionData != null && connectionData != null) {
             this.statusChanged =
-                    this.connectionData.clientConnection.status != connectionData.clientConnection.status;
+                    this.connectionData.clientConnection.status != connectionData.clientConnection.status ||
+                            this.connectionData.clientConnection.securityCheckGranted != connectionData.clientConnection.securityCheckGranted;
             this.missingChanged = BooleanUtils.toBoolean(this.connectionData.missingPing) != BooleanUtils
                     .toBoolean(connectionData.missingPing);
         }

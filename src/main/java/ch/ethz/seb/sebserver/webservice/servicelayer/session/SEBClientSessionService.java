@@ -20,6 +20,9 @@ public interface SEBClientSessionService {
      * overflowed ping is back to normal, a ping back to normal event. */
     void updatePingEvents();
 
+    /** Used to update the app signature key grants of all active SEB connections that miss a grant */
+    void updateASKGrants();
+
     /** Used to cleanup old instructions from the persistent storage */
     void cleanupInstructions();
 

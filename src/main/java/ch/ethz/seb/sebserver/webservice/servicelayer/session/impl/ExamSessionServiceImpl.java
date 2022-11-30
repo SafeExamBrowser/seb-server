@@ -27,6 +27,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
@@ -130,6 +132,19 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     @Override
     public LmsAPIService getLmsAPIService() {
         return this.sebRestrictionService.getLmsAPIService();
+    }
+
+    @Override
+    public Result<String> getAppSignatureKeySalt(final Long examId) {
+        return this.getRunningExam(examId)
+                .map(exam -> {
+                    final String salt = exam.getAdditionalAttribute(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_SALT);
+                    if (salt != null) {
+                        return salt;
+                    }
+
+                    return this.examDAO.getAppSigantureKeySalt(examId);
+                });
     }
 
     @Override
@@ -513,6 +528,16 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public Result<Exam> updateExamCache(final Long examId) {
+
+        try {
+            final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM);
+            final ValueWrapper valueWrapper = cache.get(examId);
+            if (valueWrapper == null || valueWrapper.get() == null) {
+                return Result.ofEmpty();
+            }
+        } catch (final Exception e) {
+            log.error("Failed to check exam cache: {}", e.getMessage());
+        }
 
         final Exam exam = this.examSessionCacheService.getRunningExam(examId);
         if (exam == null) {

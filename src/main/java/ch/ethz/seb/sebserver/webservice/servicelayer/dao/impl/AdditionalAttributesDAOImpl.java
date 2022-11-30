@@ -151,6 +151,48 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
     }
 
     @Override
+    public boolean initAdditionalAttribute(
+            final EntityType type,
+            final Long entityId,
+            final String name,
+            final String value) {
+
+        try {
+
+            final boolean exists = this.additionalAttributeRecordMapper
+                    .countByExample()
+                    .where(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityType,
+                            SqlBuilder.isEqualTo(type.name()))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityId,
+                            SqlBuilder.isEqualTo(entityId))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.name,
+                            SqlBuilder.isEqualTo(name))
+                    .build()
+                    .execute().longValue() > 0;
+
+            if (!exists) {
+                final AdditionalAttributeRecord rec = new AdditionalAttributeRecord(
+                        null,
+                        type.name(),
+                        entityId,
+                        name,
+                        Utils.truncateText(value, 4000));
+                this.additionalAttributeRecordMapper
+                        .insert(rec);
+            }
+
+            return !exists;
+        } catch (final Exception e) {
+            log.error("Failed to initialize additional attribute: type {}, id {}, name {}, value {}",
+                    type, entityId, name, value, e);
+            return false;
+        }
+    }
+
+    @Override
     @Transactional
     public void delete(final Long id) {
         this.additionalAttributeRecordMapper

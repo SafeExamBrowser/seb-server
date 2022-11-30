@@ -415,6 +415,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                         .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_GRANT_SIGNATURE_KEY)
                         .withParentEntityKey(parentEntityKey)
                         .withEntityKey(entityKey)
+                        .withAttribute(Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN, connectionToken)
                         .withExec(action -> this.signatureKeyGrantPopup.showGrantPopup(action, securityKey))
                         .noEventPropagation()
                         .publishIf(isExamSupporter);

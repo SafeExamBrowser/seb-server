@@ -63,6 +63,8 @@ public interface ExamSessionService {
      * @return the underling LmsAPIService */
     LmsAPIService getLmsAPIService();
 
+    Result<String> getAppSignatureKeySalt(Long examId);
+
     /** Use this to check the consistency of a running Exam.
      * Current consistency checks are:
      * - Check if there is at least one Exam supporter attached to the Exam

@@ -165,7 +165,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
             }
 
             if (log.isDebugEnabled()) {
-                log.info("Missing distributed indicator value cache. Create for: {}, {}", connectionId, type);
+                log.debug("Create distributed indicator value cache for: {}, {}", connectionId, type);
             }
 
             // if not, create new one and return PK

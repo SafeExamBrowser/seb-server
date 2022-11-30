@@ -72,6 +72,11 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
             key = "#examId")
     Result<Exam> updateState(Long examId, ExamStatus status, String updateId);
 
+    @CacheEvict(
+            cacheNames = ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM,
+            key = "#examId")
+    String getAppSigantureKeySalt(Long examId);
+
     /** Saves the Exam and updates the running exam cache. */
     @Override
     @CacheEvict(

@@ -14,8 +14,8 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.AppSignatureKeyInfo;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientConnectionRecord;
 
 public interface SecurityKeyService {
 
@@ -60,19 +60,21 @@ public interface SecurityKeyService {
      * @return Result refer to the newly created security key entry or to an error when happened */
     Result<SecurityKey> grantAppSignatureKey(Long institutionId, Long examId, Long connectionId, String tag);
 
-    /** Used to apply a SEB client App-signature-Key check for a given App-Signature-Key sent by the SEB.
-     * Note: This also stores the given App-Signature-Key sent by SEB if not already stored for the SEB connection.
+    /** Get the hashed App Signature Key value from a encrypted App Signature Key sent by a SEB client.
+     * The App Signature Key hash is used for security checks. The plain App Signature Key will never be used nor stored
      *
-     * @param clientConnection The SEB client connection token
-     * @param appSignatureKey The App-Signature-Key sent by the SEB client
-     * @return true if the check was successful and the SEB has a grant, false otherwise */
-    boolean checkAppSignatureKey(ClientConnection clientConnection, String appSignatureKey);
+     * @param appSignatureKey The encrypted App Signature Key sent by a SEB client
+     * @param connectionToken The connection token of the SEB client connection
+     * @return Result refer to the App Signature Key hash for given App Signature Key or to an error when happened */
+    Result<String> getAppSignatureKeyHash(String appSignatureKey, String connectionToken);
 
-    /** Used to process an update of the App-Signature-Key grant for all SEB connection within given
-     * exam that has not been already granted.
+    /** Use this to update an App Signature Key grant for a particular SEB connection. This will
+     * apply the security check again and mark the connection regarding to the security check.
      *
-     * @param examId The exam identifier */
-    void updateAppSignatureKeyGrants(Long examId);
+     * This is used by the internal monitoring update task
+     *
+     * @param record The ClientConnectionRecord of the specific SEB client connection */
+    void updateAppSignatureKeyGrant(ClientConnectionRecord record);
 
     /** Delete a given security key form the registry.
      *

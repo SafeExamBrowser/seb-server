@@ -75,6 +75,20 @@ public interface AdditionalAttributesDAO {
             String name,
             String value);
 
+    /** Use this to initialize an additional attribute for a specific entity.
+     * If the additional attribute with specified name already exists for the specified entity
+     * this this is just ignored and nothing changes.
+     *
+     * @param type the entity type
+     * @param entityId the entity identifier (primary key)
+     * @param name the name of the attribute
+     * @param value the value of the attribute */
+    boolean initAdditionalAttribute(
+            EntityType type,
+            Long entityId,
+            String name,
+            String value);
+
     /** Use this to save an additional attributes for a specific entity.
      * If an additional attribute with specified name already exists for the specified entity
      * this updates just the value for this additional attribute. Otherwise create a new instance

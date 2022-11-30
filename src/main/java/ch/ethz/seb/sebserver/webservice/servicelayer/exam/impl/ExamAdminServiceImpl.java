@@ -16,7 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,12 +35,10 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
@@ -114,27 +111,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             this.examDAO.setModified(examId);
 
         }).flatMap(v -> this.examDAO.byPK(examId));
-    }
-
-    @Override
-    public Result<String> getAppSignatureKeySalt(final Long institutionId, final Long examId) {
-        return this.additionalAttributesDAO.getAdditionalAttribute(
-                EntityType.EXAM,
-                examId,
-                Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_SALT)
-                .onErrorDo(error -> {
-                    if (error instanceof NoResourceFoundException) {
-                        final CharSequence salt = KeyGenerators.string().generateKey();
-                        return this.additionalAttributesDAO.saveAdditionalAttribute(
-                                EntityType.EXAM,
-                                examId,
-                                Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_SALT, salt.toString()).getOrThrow();
-                    } else {
-                        throw new RuntimeException(
-                                "Unexpected error while trying to get AppSigKey Salt for Exam: " + examId, error);
-                    }
-                })
-                .map(AdditionalAttributeRecord::getValue);
     }
 
     @Override

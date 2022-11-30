@@ -67,7 +67,8 @@ public class ColorData {
             case AUTHENTICATED:
                 return 1;
             case ACTIVE:
-                return (connectionData.missingPing) ? 0 : 2;
+                return (connectionData.clientConnection.securityCheckGranted) ? -1
+                        : (connectionData.missingPing) ? 0 : 2;
             case CLOSED:
                 return 3;
             default:
@@ -85,7 +86,7 @@ public class ColorData {
             case AUTHENTICATED:
                 return 1;
             case ACTIVE:
-                return (entry.hasMissingGrant()) ? 3 : (entry.hasMissingPing()) ? 0 : 2;
+                return (entry.hasMissingGrant()) ? -1 : (entry.hasMissingPing()) ? 0 : 2;
             case CLOSED:
                 return 4;
             default:
