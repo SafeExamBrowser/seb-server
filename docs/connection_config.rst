@@ -35,12 +35,12 @@ of the "Configuration" section on the menu on the left hand side.
 .. image:: images/connection_config/list.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/connection_config/list.png
-    
+
 The list shows the name, the date of creation and the status of the connection configurations in a column. With SEB Server administrator role
 also an institution column is shown because a SEB Server administrator is able to see all connection configurations of all institutions.
 As usual, to filter the list use the filter inputs above and click on the lens symbol on the right to apply the filter and to clear the 
 filter use the clear symbol right to the lens symbol. See :ref:`gui-label` for more information about the list navigation. 
-    
+
 The image below shows the Connection Configuration form in the edit mode. To view the fallback related attributes, check the "With Fallback" attribute
 or remove selection to hide all fallback related attributes.
 
@@ -60,7 +60,7 @@ Short description of all attributes of a connection configuration:
 - **Fallback URL**: Defines a start URL that is loaded by the SEB client in a fallback case.
 - **Connection Attempts**: Defines the number of attempts a SEB client will try to unsuccessfully connect to the SEB Server service until it switches to the fallback case.
 - **Interval**: Time interval (in milliseconds) a SEB client will wait after a unsuccessful connection attempt before starting a next connection attempt.
-- **Connection Timeout**: A overall timeout for SEB Server service connection. After this timeout runs out, starting from fist connection attempt, SEB client will switch to the fallback case no matter if number of attempts has exceeded or not.
+- **Connection Timeout**: A overall timeout for SEB Server service connection. After this timeout runs out, starting from first connection attempt, SEB client will switch to the fallback case no matter if the number of attempts has exceeded or not.
 - **Fallback Password**: If set, a SEB client will prompt for this password before switching into the fallback case.
 - **Quit Password**: If set, a SEB client will prompt for this password when a user wants to exit SEB before in fallback case or before the SEB client has loaded an exam.
 
@@ -71,7 +71,7 @@ a SEB client tries to connect to the SEB Server.
     A fallback case only takes place when SEB client is within the connection process (handshake) with the SEB Server and the SEB Server service is unavailable.
     If a SEB client is already connected to the SEB Server and the user has started an exam, the SEB will just proceed with the exam even 
     when the SEB Server connection is (temporarily) unavailable.
-    
+
 The fallback strategy contains some connection attributes that define until when a SEB client considering SEB Server service as unavailable as
 well as attributes that defines how a SEB client has to proceed in the fallback case. How a SEB client reacts to a fallback case differs on the 
 configuration settings in the following ways:
@@ -90,7 +90,7 @@ configuration settings in the following ways:
 
 - Connection configuration with "Starting an Exam" setting and fallback strategy:
     Show warning with options "retry", "fallback" (load Fallback URL) and "quit".
-    
+
 
 Use Cases
 ---------
@@ -108,9 +108,8 @@ strategy where SEB clients use a given start URL in fallback case.
 - Give a password to ensure security and to encrypt the connection configuration on export. A SEB client will prompt for the password while loading this configuration.
 - Check "With Fallback" to show all the fallback related attributes.
 - Define a fallback URL that will be used by a SEB client as start URL in the fallback case.
-- Define also fallback case, how many connection attempts on what interval a SEB client shall try before going into fallback mode. You can also define an overall "Connection Timeout" if lapsed a SEB client will also go into 
-the 
-fallback mode. A SEB client will fall back on either the attempt or the timeout trigger. 
+- Define also fallback case, how many connection attempts on what interval a SEB client shall try before going into fallback mode. You can also define an overall "Connection Timeout" if lapsed a SEB client
+will also go into the fallback mode. A SEB client will fall back on either the attempt or the timeout trigger. 
 - When a SEB client goes to fallback mode it will prompt the user as described in the case list above. To prevent further fallback options with a password prompt, give a "Fallback Password" and / or a "Quit Password" that a SEB client will prompt on either the fallback- or the quit-option.
 - After all details have correctly been entered, use the "Save Connection Configuration" action on the right action pane to save the new connection configuration.
 - Now the new connection configuration is created but not active for now and therefore cannot be exported yet. 
@@ -155,4 +154,3 @@ a SEB client must know the same certificate that is been used for encryption whi
 .. image:: images/connection_config/encrypt.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/connection_config/encrypt.png
-
