@@ -98,6 +98,7 @@ public class ResourceService {
     private static final Logger log = LoggerFactory.getLogger(ResourceService.class);
 
     private static final String MISSING_CLIENT_PING_NAME_KEY = "MISSING_PING";
+    private static final String DENIED_CLIENT_SEC_GRANT_NAME_KEY = "GRANT_DENIED";
     private static final String MISSING_CLIENT_SEC_GRANT_NAME_KEY = "MISSING_GRANT";
 
     public static final Comparator<Tuple<String>> RESOURCE_COMPARATOR = Comparator.comparing(t -> t._2);
@@ -625,46 +626,16 @@ public class ResourceService {
                 .getText(ResourceService.EXAMCONFIG_STATUS_PREFIX + config.configStatus.name());
     }
 
-//    public Function<ClientConnectionData, String> localizedClientConnectionStatusNameFunction() {
-//
-//        // Memoizing
-//        final String missing = this.i18nSupport.getText(
-//                SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_PING_NAME_KEY,
-//                MISSING_CLIENT_PING_NAME_KEY);
-//        final String missingGrant = this.i18nSupport.getText(
-//                SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_SEC_GRANT_NAME_KEY,
-//                MISSING_CLIENT_SEC_GRANT_NAME_KEY);
-//        final EnumMap<ConnectionStatus, String> localizedNames = new EnumMap<>(ConnectionStatus.class);
-//        Arrays.asList(ConnectionStatus.values()).stream().forEach(state -> localizedNames.put(state, this.i18nSupport
-//                .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + state.name(), state.name())));
-//
-//        return connectionData -> {
-//            if (connectionData == null) {
-//                localizedNames.get(ConnectionStatus.UNDEFINED);
-//            }
-//            if (connectionData.clientConnection.status.establishedStatus) {
-//                if (connectionData.c !connectionData.clientConnection.securityCheckGranted) {
-//                    return missingGrant;
-//                }
-//                if (connectionData.missingPing) {
-//                    return missing;
-//                }
-//            }
-//            if (connectionData.missingPing && connectionData.clientConnection.status.establishedStatus) {
-//                return missing;
-//            } else {
-//                return localizedNames.get(connectionData.clientConnection.status);
-//            }
-//        };
-//    }
-
     public Function<MonitoringEntry, String> localizedClientMonitoringStatusNameFunction() {
 
         // Memoizing
         final String missingPing = this.i18nSupport.getText(
                 SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_PING_NAME_KEY,
                 MISSING_CLIENT_PING_NAME_KEY);
-        final String missingGrant = this.i18nSupport.getText(
+        final String grantDeniedText = this.i18nSupport.getText(
+                SEB_CONNECTION_STATUS_KEY_PREFIX + DENIED_CLIENT_SEC_GRANT_NAME_KEY,
+                DENIED_CLIENT_SEC_GRANT_NAME_KEY);
+        final String grantMissingText = this.i18nSupport.getText(
                 SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_SEC_GRANT_NAME_KEY,
                 MISSING_CLIENT_SEC_GRANT_NAME_KEY);
         final EnumMap<ConnectionStatus, String> localizedNames = new EnumMap<>(ConnectionStatus.class);
@@ -674,12 +645,18 @@ public class ResourceService {
         return monitoringEntry -> {
             final ConnectionStatus status = monitoringEntry.getStatus();
             if (status.establishedStatus) {
-                if (monitoringEntry.hasMissingGrant()) {
-                    return missingGrant;
-                }
                 if (monitoringEntry.hasMissingPing()) {
                     return missingPing;
                 }
+                final Boolean grantDenied = monitoringEntry.grantDenied();
+                if (grantDenied != null) {
+                    if (grantDenied) {
+                        return grantDeniedText;
+                    }
+                } else if (monitoringEntry.showNoGrantCheckApplied()) {
+                    return localizedNames.get(status) + grantMissingText;
+                }
+
             }
 
             return localizedNames.get(status);

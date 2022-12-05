@@ -41,13 +41,12 @@ public class ColorData {
             return this.defaultColor;
         }
 
+        final Boolean grantDenied = entry.grantDenied();
         switch (status) {
             case ACTIVE:
-                return (entry.hasMissingGrant())
-                        ? this.color3
-                        : (entry.hasMissingPing())
-                                ? this.color2
-                                : this.color1;
+                return (grantDenied != null && grantDenied)
+                        ? this.color3 : (entry.hasMissingPing())
+                                ? this.color2 : this.color1;
             default:
                 return this.defaultColor;
         }
@@ -67,8 +66,9 @@ public class ColorData {
             case AUTHENTICATED:
                 return 1;
             case ACTIVE:
-                return (connectionData.clientConnection.securityCheckGranted) ? -1
-                        : (connectionData.missingPing) ? 0 : 2;
+                return (connectionData.clientConnection.securityCheckGranted)
+                        ? -1 : (connectionData.missingPing)
+                                ? 0 : 2;
             case CLOSED:
                 return 3;
             default:
@@ -81,12 +81,16 @@ public class ColorData {
             return 100;
         }
 
+        final Boolean grantDenied = entry.grantDenied();
         switch (entry.getStatus()) {
             case CONNECTION_REQUESTED:
             case AUTHENTICATED:
                 return 1;
             case ACTIVE:
-                return (entry.hasMissingGrant()) ? -1 : (entry.hasMissingPing()) ? 0 : 2;
+                return (grantDenied == null)
+                        ? -1 : (grantDenied)
+                                ? -2 : (entry.hasMissingPing())
+                                        ? 0 : 2;
             case CLOSED:
                 return 4;
             default:

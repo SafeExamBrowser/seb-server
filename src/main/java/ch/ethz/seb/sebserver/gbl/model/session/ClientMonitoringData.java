@@ -25,7 +25,7 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
     public final ConnectionStatus status;
     public final Map<Long, String> indicatorVals;
     public final boolean missingPing;
-    public final boolean missingGrant;
+    public final Boolean grantDenied;
     public final boolean pendingNotification;
 
     @JsonCreator
@@ -34,14 +34,14 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
             @JsonProperty(ATTR_STATUS) final ConnectionStatus status,
             @JsonProperty(ATTR_INDICATOR_VALUES) final Map<Long, String> indicatorVals,
             @JsonProperty(ATTR_MISSING_PING) final boolean missingPing,
-            @JsonProperty(ATTR_MISSING_GRANT) final boolean missingGrant,
+            @JsonProperty(ATTR_GRANT_DENIED) final Boolean grantDenied,
             @JsonProperty(ATTR_PENDING_NOTIFICATION) final boolean pendingNotification) {
 
         this.id = id;
         this.status = status;
         this.indicatorVals = indicatorVals;
         this.missingPing = missingPing;
-        this.missingGrant = missingGrant;
+        this.grantDenied = grantDenied;
         this.pendingNotification = pendingNotification;
     }
 
@@ -66,14 +66,19 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
     }
 
     @Override
-    public boolean isMissingGrant() {
-        // TODO Auto-generated method stub
-        return false;
+    public Boolean isGrantDenied() {
+        return this.grantDenied;
     }
 
     @Override
     public boolean isPendingNotification() {
         return this.pendingNotification;
+    }
+
+    public boolean hasChanged(final ClientMonitoringData other) {
+        return this.status != other.status ||
+                this.missingPing != other.missingPing ||
+                !Objects.equals(this.grantDenied, other.grantDenied);
     }
 
     public boolean indicatorValuesEquals(final ClientMonitoringData other) {

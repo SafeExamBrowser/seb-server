@@ -410,7 +410,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                     .call()
                     .getOrThrow();
 
-            if (securityKey.id == null || securityKey.id < 0) {
+            if (securityKey.key != null && (securityKey.id == null || securityKey.id < 0)) {
                 actionBuilder
                         .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION_GRANT_SIGNATURE_KEY)
                         .withParentEntityKey(parentEntityKey)

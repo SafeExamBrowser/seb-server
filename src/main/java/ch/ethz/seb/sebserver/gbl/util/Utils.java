@@ -835,6 +835,13 @@ public final class Utils {
         return BooleanUtils.toIntegerObject(b, 1, 0, 0).byteValue();
     }
 
+    public static Boolean fromByteOrNull(final Byte b) {
+        if (b == null) {
+            return null;
+        }
+        return BooleanUtils.toBooleanObject(b);
+    }
+
     public static Boolean fromByte(final Byte b) {
         return BooleanUtils.toBooleanObject((b == null) ? 0 : b);
     }

@@ -44,6 +44,8 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     PingIntervalClientIndicator pingIndicator = null;
     private final PendingNotificationIndication pendingNotificationIndication;
 
+    private final Boolean grantDenied;
+
     protected ClientConnectionDataInternal(
             final ClientConnection clientConnection,
             final PendingNotificationIndication pendingNotificationIndication,
@@ -67,6 +69,12 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
                         .computeIfAbsent(eventType, key -> new ArrayList<>())
                         .add(clientIndicator);
             }
+        }
+
+        if (clientConnection.securityCheckGranted == null) {
+            this.grantDenied = null;
+        } else {
+            this.grantDenied = !clientConnection.securityCheckGranted;
         }
     }
 
@@ -143,9 +151,10 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         }
 
         @Override
-        public boolean isMissingGrant() {
-            return BooleanUtils.isFalse(ClientConnectionDataInternal.this.clientConnection.securityCheckGranted);
+        public Boolean isGrantDenied() {
+            return ClientConnectionDataInternal.this.grantDenied;
         }
+
     };
 
     /** This is a static monitoring connection data wrapper/holder */
@@ -155,7 +164,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
                     ClientConnectionDataInternal.this.clientConnection.id,
                     ClientConnectionDataInternal.this.clientConnection.connectionToken,
                     ClientConnectionDataInternal.this.clientConnection.userSessionId,
-                    ClientConnectionDataInternal.this.clientConnection.getSecurityCheckGranted(),
+                    ClientConnectionDataInternal.this.clientConnection.ask,
                     ClientConnectionDataInternal.this.clientConnection.info,
                     this.groups);
 

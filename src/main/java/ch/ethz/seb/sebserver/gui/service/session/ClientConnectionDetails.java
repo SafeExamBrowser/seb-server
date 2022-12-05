@@ -77,6 +77,7 @@ public class ClientConnectionDetails implements MonitoringEntry {
     public final boolean checkSecurityGrant;
 
     private ClientConnectionData connectionData = null;
+    public Boolean grantDenied = null;
     private boolean statusChanged = true;
     private boolean missingChanged = true;
     private long startTime = -1;
@@ -98,6 +99,7 @@ public class ClientConnectionDetails implements MonitoringEntry {
         this.colorData = new ColorData(display);
         this.checkSecurityGrant = BooleanUtils.toBoolean(
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
+
         this.indicatorMapping = IndicatorData.createFormIndicators(
                 indicators,
                 display,
@@ -167,9 +169,13 @@ public class ClientConnectionDetails implements MonitoringEntry {
     }
 
     @Override
-    public boolean hasMissingGrant() {
-        return (this.connectionData != null)
-                ? this.checkSecurityGrant && !this.connectionData.clientConnection.securityCheckGranted : false;
+    public Boolean grantDenied() {
+        return this.grantDenied;
+    }
+
+    @Override
+    public boolean showNoGrantCheckApplied() {
+        return this.checkSecurityGrant;
     }
 
     public void setStatusChangeListener(final Consumer<ClientConnectionData> statusChangeListener) {
@@ -194,6 +200,11 @@ public class ClientConnectionDetails implements MonitoringEntry {
                     .toBoolean(connectionData.missingPing);
         }
         this.connectionData = connectionData;
+        if (this.connectionData == null || this.connectionData.clientConnection.securityCheckGranted == null) {
+            this.grantDenied = null;
+        } else {
+            this.grantDenied = !this.connectionData.clientConnection.securityCheckGranted;
+        }
         if (this.startTime < 0) {
             this.startTime = System.currentTimeMillis();
         }
@@ -230,11 +241,13 @@ public class ClientConnectionDetails implements MonitoringEntry {
                     getGroupInfo());
         }
 
-        if (this.missingChanged) {
+        if (this.missingChanged || this.statusChanged) {
             // update status
-            form.setFieldValue(
-                    Domain.CLIENT_CONNECTION.ATTR_STATUS,
-                    this.localizedClientConnectionStatusNameFunction.apply(this));
+            String stateName = this.localizedClientConnectionStatusNameFunction.apply(this);
+            if (stateName != null) {
+                stateName = stateName.replace("&nbsp;", " ");
+            }
+            form.setFieldValue(Domain.CLIENT_CONNECTION.ATTR_STATUS, stateName);
             final Color statusColor = this.colorData.getStatusColor(this);
             final Color statusTextColor = this.colorData.getStatusTextColor(statusColor);
             form.setFieldColor(Domain.CLIENT_CONNECTION.ATTR_STATUS, statusColor);

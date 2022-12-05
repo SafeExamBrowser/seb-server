@@ -27,7 +27,7 @@ public interface ClientMonitoringDataView {
     public static final String ATTR_INDICATOR_VALUES = "iv";
     public static final String ATTR_CLIENT_GROUPS = "cg";
     public static final String ATTR_MISSING_PING = "mp";
-    public static final String ATTR_MISSING_GRANT = "mg";
+    public static final String ATTR_GRANT_DENIED = "gd";
     public static final String ATTR_PENDING_NOTIFICATION = "pn";
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID)
@@ -42,8 +42,8 @@ public interface ClientMonitoringDataView {
     @JsonProperty(ATTR_MISSING_PING)
     boolean isMissingPing();
 
-    @JsonProperty(ATTR_MISSING_GRANT)
-    boolean isMissingGrant();
+    @JsonProperty(ATTR_GRANT_DENIED)
+    Boolean isGrantDenied();
 
     @JsonProperty(ATTR_PENDING_NOTIFICATION)
     boolean isPendingNotification();

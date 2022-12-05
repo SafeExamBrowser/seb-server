@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 public class ClientStaticData {
 
     public static final ClientStaticData NULL_DATA =
-            new ClientStaticData(-1L, null, null, false, null, Collections.emptySet());
+            new ClientStaticData(-1L, null, null, null, null, Collections.emptySet());
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID)
     public final Long id;
@@ -33,8 +33,8 @@ public class ClientStaticData {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID)
     public final String userSessionId;
 
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_SECURITY_CHECK_GRANTED)
-    public final boolean securityGrant;
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ASK)
+    public final String ask;
 
     @JsonProperty(ClientConnection.ATTR_INFO)
     public final String info;
@@ -47,14 +47,14 @@ public class ClientStaticData {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID) final Long id,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN) final String connectionToken,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID) final String userSessionId,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_SECURITY_CHECK_GRANTED) final boolean securityGrant,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ASK) final String ask,
             @JsonProperty(ClientConnection.ATTR_INFO) final String info,
             @JsonProperty(ClientConnectionData.ATTR_CLIENT_GROUPS) final Set<Long> groups) {
 
         this.id = id;
         this.connectionToken = connectionToken;
         this.userSessionId = userSessionId;
-        this.securityGrant = securityGrant;
+        this.ask = ask;
         this.info = info;
         this.groups = groups;
     }
@@ -71,8 +71,8 @@ public class ClientStaticData {
         return this.userSessionId;
     }
 
-    public boolean isSecurityGrant() {
-        return this.securityGrant;
+    public String getAsk() {
+        return this.ask;
     }
 
     public String getInfo() {

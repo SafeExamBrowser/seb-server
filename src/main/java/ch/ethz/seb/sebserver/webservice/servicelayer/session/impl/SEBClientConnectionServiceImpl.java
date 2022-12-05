@@ -278,7 +278,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             null,
                             null,
                             null,
-                            false,
+                            null,
                             getSignatureHash(appSignatureKey, connectionToken)))
                     .getOrThrow();
 
@@ -400,7 +400,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     proctoringEnabled,
-                    false,
+                    null,
                     getSignatureHash(appSignatureKey, connectionToken));
 
             // ClientConnection integrity check

@@ -479,9 +479,13 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         @Override
-        public boolean hasMissingGrant() {
-            return (this.staticData != null)
-                    ? ClientConnectionTable.this.checkSecurityGrant && !this.staticData.securityGrant : false;
+        public Boolean grantDenied() {
+            return this.monitoringData.grantDenied;
+        }
+
+        @Override
+        public boolean showNoGrantCheckApplied() {
+            return ClientConnectionTable.this.checkSecurityGrant;
         }
 
         private void update(final TableItem tableItem, final boolean force) {
@@ -670,10 +674,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         boolean push(final ClientMonitoringData monitoringData) {
-            this.dataChanged = this.monitoringData == null ||
-                    this.monitoringData.status != monitoringData.status ||
-                    this.monitoringData.missingPing != monitoringData.missingPing ||
-                    this.monitoringData.missingGrant != monitoringData.missingGrant;
+            this.dataChanged = this.monitoringData == null || this.monitoringData.hasChanged(monitoringData);
             this.indicatorValueChanged = this.monitoringData == null ||
                     (this.monitoringData.status.clientActiveStatus
                             && !this.monitoringData.indicatorValuesEquals(monitoringData));
@@ -739,7 +740,6 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         private ClientConnectionTable getOuterType() {
             return ClientConnectionTable.this;
         }
-
     }
 
     private void fetchStaticClientConnectionData() {

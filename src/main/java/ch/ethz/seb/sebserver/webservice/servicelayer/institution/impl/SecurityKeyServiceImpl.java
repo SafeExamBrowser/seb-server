@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.FieldValidationException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
@@ -181,7 +182,8 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
     @Override
     public void updateAppSignatureKeyGrant(final ClientConnectionRecord record) {
         try {
-            if (!Utils.fromByte(record.getSecurityCheckGranted())) {
+            final Byte securityCheckGranted = record.getSecurityCheckGranted();
+            if (securityCheckGranted == null || securityCheckGranted == Constants.BYTE_FALSE) {
                 final String token = record.getConnectionToken();
                 if (applyAppSignatureCheck(
                         record.getInstitutionId(),
@@ -195,14 +197,9 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                         log.debug("Update app-signature-key grant for client connection: {}", token);
                     }
 
-                    this.clientConnectionDAO
-                            .save(new ClientConnection(
-                                    record.getId(), null,
-                                    null, null, null, null, null, null, null, null,
-                                    null, null, null, null, null, null, null, true, null))
-                            .onError(error -> log.error("Failed to save ClientConnection grant: ",
-                                    error))
-                            .onSuccess(c -> this.examSessionCacheService.evictClientConnection(token));
+                    saveSecurityCheckState(record, true);
+                } else if (securityCheckGranted == null) {
+                    saveSecurityCheckState(record, false);
                 }
             }
         } catch (final Exception e) {
@@ -363,6 +360,17 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
 
         mapping.put(rec.getId(), rec.getExamUserSessionId());
         return m;
+    }
+
+    private void saveSecurityCheckState(final ClientConnectionRecord record, final Boolean checkStatus) {
+        this.clientConnectionDAO
+                .save(new ClientConnection(
+                        record.getId(), null,
+                        null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, checkStatus, null))
+                .onError(error -> log.error("Failed to save ClientConnection grant: ",
+                        error))
+                .onSuccess(c -> this.examSessionCacheService.evictClientConnection(record.getConnectionToken()));
     }
 
 }

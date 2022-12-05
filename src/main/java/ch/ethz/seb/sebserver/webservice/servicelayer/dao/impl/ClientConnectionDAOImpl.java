@@ -791,7 +791,10 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         SqlBuilder.isIn(ClientConnection.SECURE_CHECK_STATES))
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.securityCheckGranted,
-                        SqlBuilder.isEqualTo(Constants.BYTE_FALSE))
+                        SqlBuilder.isEqualTo(Constants.BYTE_FALSE), SqlBuilder.or(
+                                ClientConnectionRecordDynamicSqlSupport.securityCheckGranted,
+                                SqlBuilder.isNull()))
+                .and(ClientConnectionRecordDynamicSqlSupport.ask, SqlBuilder.isNotNull())
                 .build()
                 .execute());
     }
@@ -864,7 +867,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getUpdateTime(),
                     record.getRemoteProctoringRoomId(),
                     BooleanUtils.toBooleanObject(record.getRemoteProctoringRoomUpdate()),
-                    Utils.fromByte(record.getSecurityCheckGranted()),
+                    Utils.fromByteOrNull(record.getSecurityCheckGranted()),
                     record.getAsk());
         });
     }

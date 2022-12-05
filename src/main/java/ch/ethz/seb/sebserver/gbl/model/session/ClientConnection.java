@@ -13,8 +13,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.apache.commons.lang3.BooleanUtils;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -325,11 +323,6 @@ public final class ClientConnection implements GrantEntity {
 
     public Boolean getSecurityCheckGranted() {
         return this.securityCheckGranted;
-    }
-
-    @JsonIgnore
-    public boolean isSecurityCheckGranted() {
-        return BooleanUtils.isTrue(this.securityCheckGranted);
     }
 
     @Override
