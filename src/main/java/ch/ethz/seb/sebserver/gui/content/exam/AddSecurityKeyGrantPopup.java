@@ -84,18 +84,23 @@ public class AddSecurityKeyGrantPopup {
                             action.pageContext().getParent().getShell(),
                             this.pageService.getWidgetFactory());
             dialog.setDialogWidth(800);
-            //dialog.setDialogHeight(600);
 
             final Predicate<FormHandle<?>> applyGrant = formHandle -> applyGrant(
                     pageContext,
                     formHandle,
                     appSignatureKeyInfo);
 
-            dialog.open(
-                    TITLE_TEXT_KEY,
-                    applyGrant,
-                    Utils.EMPTY_EXECUTION,
-                    popupComposer);
+            if (appSignatureKeyInfo.key == null) {
+                dialog.open(
+                        TITLE_TEXT_KEY,
+                        popupComposer);
+            } else {
+                dialog.open(
+                        TITLE_TEXT_KEY,
+                        applyGrant,
+                        Utils.EMPTY_EXECUTION,
+                        popupComposer);
+            }
 
         } catch (final Exception e) {
             action.pageContext().notifyUnexpectedError(e);
@@ -123,20 +128,23 @@ public class AddSecurityKeyGrantPopup {
         public Supplier<FormHandle<?>> compose(final Composite parent) {
             final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
             widgetFactory.addFormSubContextHeader(parent, TITLE_TEXT_INFO, null);
-
+            final boolean hasASK = this.appSignatureKeyInfo.key != null;
             final PageContext formContext = this.pageContext.copyOf(parent);
             final FormHandle<?> form = this.pageService.formBuilder(formContext)
 
                     .addField(FormBuilder.text(
                             Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_KEY_VALUE,
                             TITLE_TEXT_FORM_SIGNATURE,
-                            String.valueOf(this.appSignatureKeyInfo.key))
+                            (hasASK)
+                                    ? String.valueOf(this.appSignatureKeyInfo.key)
+                                    : Constants.EMPTY_NOTE)
                             .readonly(true))
 
-                    .addField(FormBuilder.text(
-                            Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG,
-                            TITLE_TEXT_FORM_TAG)
-                            .mandatory())
+                    .addFieldIf(() -> hasASK,
+                            () -> FormBuilder.text(
+                                    Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG,
+                                    TITLE_TEXT_FORM_TAG)
+                                    .mandatory())
 
                     .build();
 
