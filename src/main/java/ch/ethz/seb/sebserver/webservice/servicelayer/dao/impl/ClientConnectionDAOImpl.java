@@ -636,10 +636,10 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         SqlBuilder.isEqualTo(examId))
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.status,
-                        SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()))
-                .or(
-                        ClientConnectionRecordDynamicSqlSupport.status,
-                        SqlBuilder.isEqualTo(ConnectionStatus.CONNECTION_REQUESTED.name()))
+                        SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()),
+                        SqlBuilder.or(
+                                ClientConnectionRecordDynamicSqlSupport.status,
+                                SqlBuilder.isEqualTo(ConnectionStatus.CONNECTION_REQUESTED.name())))
                 .build()
                 .execute()
                 .stream()
@@ -702,10 +702,10 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         SqlBuilder.isEqualTo(examId))
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.status,
-                        SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()))
-                .or(
-                        ClientConnectionRecordDynamicSqlSupport.status,
-                        SqlBuilder.isEqualTo(ConnectionStatus.CONNECTION_REQUESTED.name()))
+                        SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()),
+                        SqlBuilder.or(
+                                ClientConnectionRecordDynamicSqlSupport.status,
+                                SqlBuilder.isEqualTo(ConnectionStatus.CONNECTION_REQUESTED.name())))
                 .build()
                 .execute()
                 .stream()
@@ -791,7 +791,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         SqlBuilder.isIn(ClientConnection.SECURE_CHECK_STATES))
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.securityCheckGranted,
-                        SqlBuilder.isEqualTo(Constants.BYTE_FALSE), SqlBuilder.or(
+                        SqlBuilder.isEqualTo(Constants.BYTE_FALSE),
+                        SqlBuilder.or(
                                 ClientConnectionRecordDynamicSqlSupport.securityCheckGranted,
                                 SqlBuilder.isNull()))
                 .and(ClientConnectionRecordDynamicSqlSupport.ask, SqlBuilder.isNotNull())
