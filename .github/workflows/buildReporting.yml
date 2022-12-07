@@ -146,6 +146,14 @@ jobs:
       with:
           name: Package
     -
+      name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v3
+      with:
+         images: anhefti/seb-server
+         tags: |
+            anhefti/seb-server:${{ env.TAG_NAME }}
+    -
       name: Build and push
       id: docker_build
       uses: docker/build-push-action@v2
