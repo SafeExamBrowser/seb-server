@@ -102,6 +102,13 @@ jobs:
     # Run only on tagging
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    needs: pytest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
     steps:
     -
       name: Set env
@@ -126,6 +133,13 @@ jobs:
     -
       name: Checkout repository
       uses: actions/checkout@v2
+      
+      # Install the cosign tool except on PR
+      # https://github.com/sigstore/cosign-installer
+    -
+      name: Install cosign
+      if: github.event_name != 'pull_request'
+      uses: sigstore/cosign-installer@main
     -
       name: Download a single artifact
       uses: actions/download-artifact@v2
@@ -141,3 +155,16 @@ jobs:
         push: true
         tags: |
           anhefti/seb-server:${{ env.TAG_NAME }}
+      # Sign the resulting Docker image digest except on PRs.
+      # This will only write to the public Rekor transparency log when the Docker
+      # repository is public to avoid leaking data.  If you would like to publish
+      # transparency data even for private images, pass --force to cosign below.
+      # https://github.com/sigstore/cosign
+    - name: Sign the published Docker image
+      if: ${{ github.event_name != 'pull_request' }}
+      # This step uses the identity token to provision an ephemeral certificate
+      # against the sigstore community Fulcio instance.
+      run: cosign sign ${TAGS}
+      env:
+        COSIGN_EXPERIMENTAL: true
+        TAGS: ${{ env.TAG_NAME }}
