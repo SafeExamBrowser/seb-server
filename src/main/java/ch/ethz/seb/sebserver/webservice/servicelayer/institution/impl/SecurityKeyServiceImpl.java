@@ -267,7 +267,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                             .collect(Collectors.toList());
 
                     if (matches == null || matches.isEmpty()) {
-                        return statisticalCheck(examId, hashedSignatureKey);
+                        return numericalCheck(examId, hashedSignatureKey);
                     } else {
                         return new SecurityCheckResult(
                                 matches.stream()
@@ -283,22 +283,22 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                 });
     }
 
-    private SecurityCheckResult statisticalCheck(
+    private SecurityCheckResult numericalCheck(
             final Long examId,
             final String hashedSignature) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Apply statistical security check update for exam {}", examId);
+            log.debug("Apply numerical security check update for exam {}", examId);
         }
 
-        // if there is no exam known yet, no statistical check can be applied
+        // if there is no exam known yet, no numerical check can be applied
         if (examId == null) {
             return SecurityCheckResult.NO_GRANT;
         }
 
         try {
 
-            final int statisticalGrantThreshold = getStatisticalGrantThreshold(examId);
+            final int numericalTrustThreshold = getNumericalTrustThreshold(examId);
             final Long matches = this.clientConnectionDAO
                     .countSignatureHashes(examId, hashedSignature)
                     .getOr(0L);
@@ -306,27 +306,27 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
             if (matches <= 0) {
                 return SecurityCheckResult.NO_GRANT;
             } else {
-                return new SecurityCheckResult(false, false, matches > statisticalGrantThreshold);
+                return new SecurityCheckResult(false, false, matches > numericalTrustThreshold);
             }
 
         } catch (final Exception e) {
-            log.error("Unexpected error while trying to apply statistical app signature key check: ", e);
+            log.error("Unexpected error while trying to apply numerical app signature key check: ", e);
             return SecurityCheckResult.NO_GRANT;
         }
     }
 
-    private int getStatisticalGrantThreshold(final Long examId) {
+    private int getNumericalTrustThreshold(final Long examId) {
         // try to ger from running exam.
         final Exam runningExam = this.examSessionCacheService.getRunningExam(examId);
         if (runningExam != null) {
             final String threshold = runningExam.getAdditionalAttribute(
-                    Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD);
+                    Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD);
 
             if (StringUtils.isNotBlank(threshold)) {
                 try {
                     return Integer.parseInt(threshold);
                 } catch (final Exception e) {
-                    log.warn("Failed to parse STATISTICAL_GRANT_COUNT_THRESHOLD");
+                    log.warn("Failed to parse numerical trust threshold");
                 }
             }
         }
@@ -336,7 +336,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                 .getAdditionalAttribute(
                         EntityType.EXAM,
                         examId,
-                        Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD)
+                        Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD)
                 .map(attr -> Integer.valueOf(attr.getValue()))
                 .getOr(1);
     }

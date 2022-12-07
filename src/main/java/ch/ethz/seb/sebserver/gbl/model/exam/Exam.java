@@ -65,8 +65,8 @@ public final class Exam implements GrantEntity {
 
     /** This attribute name is used on exams to store the flag for indicating the signature key check */
     public static final String ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED = "SIGNATURE_KEY_CHECK_ENABLED";
-    /** This attribute name is used to store the signature check grant threshold for statistical checks */
-    public static final String ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD = "STATISTICAL_GRANT_COUNT_THRESHOLD";
+    /** This attribute name is used to store the signature check grant threshold for numerical trust checks */
+    public static final String ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD = "NUMERICAL_TRUST_THRESHOLD";
     /** This attribute name is used to store the signature check encryption certificate is one is used */
     public static final String ADDITIONAL_ATTR_SIGNATURE_KEY_CERT_ALIAS = "SIGNATURE_KEY_CERT_ALIAS";
 

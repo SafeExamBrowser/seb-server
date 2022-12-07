@@ -222,7 +222,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     required = true,
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @RequestParam(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED) final Boolean enableKeyCheck,
-            @RequestParam(Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD) final Integer threshold) {
+            @RequestParam(Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD) final Integer threshold) {
 
         this.examDAO.byPK(examId)
                 .flatMap(this::checkReadAccess)

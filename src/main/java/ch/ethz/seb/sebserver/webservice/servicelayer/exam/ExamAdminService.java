@@ -49,13 +49,13 @@ public interface ExamAdminService {
      * @param institutionId The institution identifier
      * @param examId The exam identifier
      * @param enabled The enabled setting that indicates if the security key check is enabled or not
-     * @param statThreshold the statistical SEB client connection number grant threshold
+     * @param numThreshold the numerical SEB client connection number grant threshold
      * @return Result refer to the exam with the new settings (additional attributes) or to an error when happened */
     Result<Exam> saveSecurityKeySettings(
             Long institutionId,
             Long examId,
             Boolean enabled,
-            Integer statThreshold);
+            Integer numThreshold);
 
     /** Applies all additional SEB restriction attributes that are defined by the
      * type of the LMS of a given Exam to this given Exam.

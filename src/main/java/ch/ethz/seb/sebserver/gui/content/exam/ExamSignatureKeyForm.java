@@ -115,7 +115,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                 .getOrThrow();
         final boolean signatureKeyCheckEnabled = BooleanUtils.toBoolean(
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
-        final String ct = exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD);
+        final String ct = exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD);
 
         final Composite content = widgetFactory
                 .defaultPageLayout(pageContext.getParent(), TILE);
@@ -135,7 +135,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                         .withInputSpan(1))
 
                 .addField(FormBuilder.text(
-                        Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD,
+                        Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD,
                         FORM_STAT_GRANT_THRESHOLD,
                         (ct != null) ? ct : "2")
                         .asNumber(number -> {
@@ -279,7 +279,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
 
     private PageAction saveSettings(final PageAction action, final Form form) {
         final String enable = form.getFieldValue(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED);
-        final String threshold = form.getFieldValue(Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD);
+        final String threshold = form.getFieldValue(Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD);
         final EntityKey entityKey = action.getEntityKey();
 
         this.pageService
@@ -287,7 +287,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                 .getBuilder(SaveAppSignatureKeySettings.class)
                 .withURIVariable(API.PARAM_PARENT_MODEL_ID, entityKey.modelId)
                 .withFormParam(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED, enable)
-                .withFormParam(Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD, threshold)
+                .withFormParam(Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD, threshold)
                 .call()
                 .onError(error -> action.pageContext().notifySaveError(EntityType.EXAM, error));
         return action;

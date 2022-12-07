@@ -68,7 +68,7 @@ public class ExamDAOImpl implements ExamDAO {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final boolean appSignatureKeyEnabled;
-    private final int appSignatureKeyThreshold;
+    private final int defaultNumericalTrustThreshold;
 
     public ExamDAOImpl(
             final ExamRecordMapper examRecordMapper,
@@ -76,14 +76,14 @@ public class ExamDAOImpl implements ExamDAO {
             final ApplicationEventPublisher applicationEventPublisher,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.enabled:false}") boolean appSignatureKeyEnabled,
-            final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.threshold:2}") int appSignatureKeyThreshold) {
+            final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.numerical.threshold:2}") int defaultNumericalTrustThreshold) {
 
         this.examRecordMapper = examRecordMapper;
         this.examRecordDAO = examRecordDAO;
         this.applicationEventPublisher = applicationEventPublisher;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.appSignatureKeyEnabled = appSignatureKeyEnabled;
-        this.appSignatureKeyThreshold = appSignatureKeyThreshold;
+        this.defaultNumericalTrustThreshold = defaultNumericalTrustThreshold;
     }
 
     @Override
@@ -776,8 +776,8 @@ public class ExamDAOImpl implements ExamDAO {
             this.additionalAttributesDAO.initAdditionalAttribute(
                     EntityType.EXAM,
                     examId,
-                    Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD,
-                    String.valueOf(this.appSignatureKeyThreshold));
+                    Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD,
+                    String.valueOf(this.defaultNumericalTrustThreshold));
             final CharSequence salt = KeyGenerators.string().generateKey();
             this.additionalAttributesDAO.initAdditionalAttribute(
                     EntityType.EXAM,

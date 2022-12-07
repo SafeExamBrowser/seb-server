@@ -18,17 +18,17 @@ public class SecurityCheckResult {
 
     public final boolean globalGranted;
     public final boolean examGranted;
-    public final boolean statisticallyGranted;
+    public final boolean numericallyGranted;
 
     @JsonCreator
     public SecurityCheckResult(
             final boolean globalGranted,
             final boolean examGranted,
-            final boolean statisticallyGranted) {
+            final boolean numericallyGranted) {
 
         this.globalGranted = globalGranted;
         this.examGranted = examGranted;
-        this.statisticallyGranted = statisticallyGranted;
+        this.numericallyGranted = numericallyGranted;
     }
 
     public boolean isGlobalGranted() {
@@ -39,12 +39,12 @@ public class SecurityCheckResult {
         return this.examGranted;
     }
 
-    public boolean isStatisticallyGranted() {
-        return this.statisticallyGranted;
+    public boolean isNumericallyGranted() {
+        return this.numericallyGranted;
     }
 
     public boolean hasAnyGrant() {
-        return this.globalGranted | this.examGranted | this.statisticallyGranted;
+        return this.globalGranted | this.examGranted | this.numericallyGranted;
     }
 
 }

@@ -102,10 +102,10 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                 this.additionalAttributesDAO.saveAdditionalAttribute(
                         EntityType.EXAM,
                         examId,
-                        Exam.ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD,
+                        Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD,
                         String.valueOf(statThreshold))
                         .onError(error -> log
-                                .error("Failed to store ADDITIONAL_ATTR_STATISTICAL_GRANT_COUNT_THRESHOLD: ", error));
+                                .error("Failed to store ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD: ", error));
             }
 
             this.examDAO.setModified(examId);
