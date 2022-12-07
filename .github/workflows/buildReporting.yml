@@ -102,13 +102,13 @@ jobs:
     # Run only on tagging
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-    needs: pytest
     permissions:
       contents: read
       packages: write
       # This is used to complete the identity challenge
       # with sigstore/fulcio when running outside of PRs.
       id-token: write
+      
     steps:
     -
       name: Set env
