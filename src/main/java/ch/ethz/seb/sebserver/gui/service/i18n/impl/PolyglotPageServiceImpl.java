@@ -17,6 +17,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
@@ -26,6 +27,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.springframework.context.annotation.Lazy;
@@ -39,6 +41,7 @@ import ch.ethz.seb.sebserver.gui.service.i18n.PolyglotPageService;
 import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
+import ch.ethz.seb.sebserver.gui.widget.Selection;
 
 /** Service that supports page language change on the fly */
 @Lazy
@@ -121,8 +124,10 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
 
     @Override
     public void injectI18n(final ExpandItem expandItem, final LocTextKey locTextKey) {
-        expandItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
-        expandItem.setText(this.i18nSupport.getText(locTextKey));
+        if (locTextKey != null) {
+            expandItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
+            expandItem.setText(this.i18nSupport.getText(locTextKey));
+        }
     }
 
     @Override
@@ -153,8 +158,10 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
 
     @Override
     public void injectI18n(final TreeItem treeItem, final LocTextKey locTextKey) {
-        treeItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
-        treeItem.setText(this.i18nSupport.getText(locTextKey));
+        if (locTextKey != null) {
+            treeItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
+            treeItem.setText(this.i18nSupport.getText(locTextKey));
+        }
     }
 
     @Override
@@ -176,8 +183,10 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
 
     @Override
     public void injectI18n(final TableColumn tableColumn, final LocTextKey locTextKey, final LocTextKey locTooltipKey) {
-        tableColumn.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
-        tableColumn.setText(this.i18nSupport.getText(locTextKey));
+        if (locTextKey != null) {
+            tableColumn.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
+            tableColumn.setText(this.i18nSupport.getText(locTextKey));
+        }
 
         if (this.i18nSupport.hasText(locTooltipKey)) {
             tableColumn.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
@@ -186,9 +195,38 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
     }
 
     @Override
+    public void injectTooltip(final DateTime selector, final LocTextKey locTooltipKey) {
+        if (this.i18nSupport.hasText(locTooltipKey)) {
+            selector.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
+            selector.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(locTooltipKey)));
+        }
+    }
+
+    @Override
+    public void injectTooltip(final Selection selection, final LocTextKey locTooltipKey) {
+        if (this.i18nSupport.hasText(locTooltipKey)) {
+            selection.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(locTooltipKey)));
+        }
+    }
+
+    @Override
+    public void injectI18n(final Text textInput, final LocTextKey locTextKey, final LocTextKey locTooltipKey) {
+        if (locTextKey != null) {
+            textInput.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
+            textInput.setText(this.i18nSupport.getText(locTextKey));
+        }
+        if (this.i18nSupport.hasText(locTooltipKey)) {
+            textInput.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);
+            textInput.setToolTipText(Utils.formatLineBreaks(this.i18nSupport.getText(locTooltipKey)));
+        }
+    }
+
+    @Override
     public void injectI18n(final TabItem tabItem, final LocTextKey locTextKey, final LocTextKey locTooltipKey) {
-        tabItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
-        tabItem.setText(this.i18nSupport.getText(locTextKey));
+        if (locTextKey != null) {
+            tabItem.setData(POLYGLOT_ITEM_TEXT_DATA_KEY, locTextKey);
+            tabItem.setText(this.i18nSupport.getText(locTextKey));
+        }
 
         if (this.i18nSupport.hasText(locTooltipKey)) {
             tabItem.setData(POLYGLOT_ITEM_TOOLTIP_DATA_KEY, locTooltipKey);

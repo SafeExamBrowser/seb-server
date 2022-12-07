@@ -109,10 +109,14 @@ public class ConfigTemplateForm implements TemplateComposer {
     private final ResourceService resourceService;
     private final ExamConfigurationService examConfigurationService;
 
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, TemplateAttribute.FILTER_ATTR_NAME);
-    private final TableFilterAttribute groupFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, TemplateAttribute.FILTER_ATTR_GROUP);
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            TemplateAttribute.FILTER_ATTR_NAME,
+            Utils.createFilterTooltipKey(ATTRIBUTES_LIST_NAME_TEXT_KEY));
+    private final TableFilterAttribute groupFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            TemplateAttribute.FILTER_ATTR_GROUP,
+            Utils.createFilterTooltipKey(ATTRIBUTES_LIST_GROUP_TEXT_KEY));
 
     protected ConfigTemplateForm(
             final PageService pageService,
@@ -210,11 +214,13 @@ public class ConfigTemplateForm implements TemplateComposer {
             final TableFilterAttribute viewFilter = new TableFilterAttribute(
                     CriteriaType.SINGLE_SELECTION,
                     TemplateAttribute.FILTER_ATTR_VIEW,
-                    () -> this.resourceService.getViewResources(entityKey.modelId));
+                    () -> this.resourceService.getViewResources(entityKey.modelId),
+                    Utils.createFilterTooltipKey(ATTRIBUTES_LIST_VIEW_TEXT_KEY));
             final TableFilterAttribute typeFilter = new TableFilterAttribute(
                     CriteriaType.SINGLE_SELECTION,
                     TemplateAttribute.FILTER_ATTR_TYPE,
-                    this.resourceService::getAttributeTypeResources);
+                    this.resourceService::getAttributeTypeResources,
+                    Utils.createFilterTooltipKey(ATTRIBUTES_LIST_TYPE_TEXT_KEY));
 
             // TODO move this to an supplier that also can be updated
             // the follow-up configuration

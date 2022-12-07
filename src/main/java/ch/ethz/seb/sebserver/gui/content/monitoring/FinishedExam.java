@@ -79,10 +79,14 @@ public class FinishedExam implements TemplateComposer {
     private static final LocTextKey TABLE_COLUMN_STATUS =
             new LocTextKey("sebserver.finished.exam.connections.status");
 
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, ClientConnection.FILTER_ATTR_SESSION_ID);
-    private final TableFilterAttribute infoFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, ClientConnection.ATTR_INFO);
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            ClientConnection.FILTER_ATTR_SESSION_ID,
+            Utils.createFilterTooltipKey(TABLE_COLUMN_NAME));
+    private final TableFilterAttribute infoFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            ClientConnection.ATTR_INFO,
+            Utils.createFilterTooltipKey(TABLE_COLUMN_INFO));
     private final TableFilterAttribute statusFilter;
 
     private final PageService pageService;
@@ -110,7 +114,8 @@ public class FinishedExam implements TemplateComposer {
         this.statusFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 ClientConnection.FILTER_ATTR_STATUS,
-                pageService.getResourceService()::localizedClientConnectionStatusResources);
+                pageService.getResourceService()::localizedClientConnectionStatusResources,
+                Utils.createFilterTooltipKey(TABLE_COLUMN_STATUS));
     }
 
     @Override

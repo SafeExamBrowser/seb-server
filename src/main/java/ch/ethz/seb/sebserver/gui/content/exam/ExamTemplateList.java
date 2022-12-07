@@ -22,6 +22,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
@@ -74,8 +75,10 @@ public class ExamTemplateList implements TemplateComposer {
     private final int pageSize;
 
     private final TableFilterAttribute institutionFilter;
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, ExamTemplate.FILTER_ATTR_NAME);
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            ExamTemplate.FILTER_ATTR_NAME,
+            Utils.createFilterTooltipKey(COLUMN_TITLE_NAME_KEY));
     private final TableFilterAttribute typeFilter;
 
     protected ExamTemplateList(
@@ -89,12 +92,14 @@ public class ExamTemplateList implements TemplateComposer {
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Entity.FILTER_ATTR_INSTITUTION,
-                this.resourceService::institutionResource);
+                this.resourceService::institutionResource,
+                Utils.createFilterTooltipKey(COLUMN_TITLE_INSTITUTION_KEY));
 
         this.typeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 ExamTemplate.FILTER_ATTR_EXAM_TYPE,
-                this.resourceService::examTypeResources);
+                this.resourceService::examTypeResources,
+                Utils.createFilterTooltipKey(COLUMN_TITLE_EXAM_TYPE_KEY));
     }
 
     @Override

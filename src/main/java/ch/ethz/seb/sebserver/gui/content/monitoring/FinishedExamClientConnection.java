@@ -109,8 +109,10 @@ public class FinishedExamClientConnection implements TemplateComposer {
     private final int pageSize;
 
     private final TableFilterAttribute typeFilter;
-    private final TableFilterAttribute textFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, ClientEvent.FILTER_ATTR_TEXT);
+    private final TableFilterAttribute textFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            ClientEvent.FILTER_ATTR_TEXT,
+            Utils.createFilterTooltipKey(LIST_COLUMN_TEXT_KEY));
 
     protected FinishedExamClientConnection(
             final PageService pageService,
@@ -130,7 +132,8 @@ public class FinishedExamClientConnection implements TemplateComposer {
         this.typeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Domain.CLIENT_EVENT.ATTR_TYPE,
-                this.resourceService::clientEventTypeResources);
+                this.resourceService::clientEventTypeResources,
+                Utils.createFilterTooltipKey(LIST_COLUMN_TYPE_KEY));
     }
 
     @Override

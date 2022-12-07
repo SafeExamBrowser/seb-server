@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -64,8 +65,10 @@ public class LmsSetupList implements TemplateComposer {
             new LocTextKey("sebserver.lmssetup.list.title");
 
     private final TableFilterAttribute institutionFilter;
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            Entity.FILTER_ATTR_NAME,
+            Utils.createFilterTooltipKey(NAME_TEXT_KEY));
     private final TableFilterAttribute typeFilter;
     private final TableFilterAttribute activityFilter;
 
@@ -84,17 +87,20 @@ public class LmsSetupList implements TemplateComposer {
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Entity.FILTER_ATTR_INSTITUTION,
-                this.resourceService::institutionResource);
+                this.resourceService::institutionResource,
+                Utils.createFilterTooltipKey(INSTITUTION_TEXT_KEY));
 
         this.typeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 LmsSetup.FILTER_ATTR_LMS_TYPE,
-                this.resourceService::lmsTypeResources);
+                this.resourceService::lmsTypeResources,
+                Utils.createFilterTooltipKey(TYPE_TEXT_KEY));
 
         this.activityFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 UserInfo.FILTER_ATTR_ACTIVE,
-                this.resourceService::activityResources);
+                this.resourceService::activityResources,
+                Utils.createFilterTooltipKey(ACTIVITY_TEXT_KEY));
     }
 
     @Override

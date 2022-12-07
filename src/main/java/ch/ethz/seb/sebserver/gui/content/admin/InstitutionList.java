@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.institution.Institution;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -53,10 +54,14 @@ public class InstitutionList implements TemplateComposer {
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.institution.info.pleaseSelect");
 
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
-    private final TableFilterAttribute urlSuffixFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, Institution.FILTER_ATTR_URL_SUFFIX);
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            Entity.FILTER_ATTR_NAME,
+            Utils.createFilterTooltipKey(NAME_TEXT_KEY));
+    private final TableFilterAttribute urlSuffixFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            Institution.FILTER_ATTR_URL_SUFFIX,
+            Utils.createFilterTooltipKey(URL_TEXT_KEY));
     private final TableFilterAttribute activityFilter;
 
     private final PageService pageService;
@@ -77,7 +82,8 @@ public class InstitutionList implements TemplateComposer {
                 CriteriaType.SINGLE_SELECTION,
                 Institution.FILTER_ATTR_ACTIVE,
                 StringUtils.EMPTY,
-                this.pageService.getResourceService()::activityResources);
+                this.pageService.getResourceService()::activityResources,
+                Utils.createFilterTooltipKey(ACTIVE_TEXT_KEY));
     }
 
     @Override

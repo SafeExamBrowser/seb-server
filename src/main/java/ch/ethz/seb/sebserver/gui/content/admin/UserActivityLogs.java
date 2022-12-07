@@ -97,7 +97,10 @@ public class UserActivityLogs implements TemplateComposer {
 
     private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute userNameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, UserActivityLog.FILTER_ATTR_USER_NAME);
+            new TableFilterAttribute(
+                    CriteriaType.TEXT,
+                    UserActivityLog.FILTER_ATTR_USER_NAME,
+                    Utils.createFilterTooltipKey(USER_TEXT_KEY));
     private final TableFilterAttribute activityFilter;
     private final TableFilterAttribute entityFilter;
 
@@ -123,17 +126,20 @@ public class UserActivityLogs implements TemplateComposer {
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Entity.FILTER_ATTR_INSTITUTION,
-                this.resourceService::institutionResource);
+                this.resourceService::institutionResource,
+                Utils.createFilterTooltipKey(INSTITUTION_TEXT_KEY));
 
         this.activityFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 UserActivityLog.FILTER_ATTR_ACTIVITY_TYPES,
-                this.resourceService::userActivityTypeResources);
+                this.resourceService::userActivityTypeResources,
+                Utils.createFilterTooltipKey(ACTIVITY_TEXT_KEY));
 
         this.entityFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 UserActivityLog.FILTER_ATTR_ENTITY_TYPES,
-                this.resourceService::entityTypeResources);
+                this.resourceService::entityTypeResources,
+                Utils.createFilterTooltipKey(ENTITY_TYPE_TEXT_KEY));
     }
 
     @Override
@@ -223,9 +229,8 @@ public class UserActivityLogs implements TemplateComposer {
                                 .withFilter(new TableFilterAttribute(
                                         CriteriaType.DATE_RANGE,
                                         UserActivityLog.FILTER_ATTR_FROM_TO,
-                                        Utils.toDateTimeUTC(Utils.getMillisecondsNow())
-                                                .minusYears(1)
-                                                .toString()))
+                                        Utils.toDateTimeUTC(Utils.getMillisecondsNow()).minusYears(1).toString(),
+                                        Utils.createFilterTooltipKey(DATE_TEXT_KEY)))
                                 .sortable())
 
                 .withDefaultAction(t -> actionBuilder

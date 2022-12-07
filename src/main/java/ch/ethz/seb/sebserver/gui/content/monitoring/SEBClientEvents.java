@@ -119,16 +119,19 @@ public class SEBClientEvents implements TemplateComposer {
         this.examFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 ExtendedClientEvent.FILTER_ATTRIBUTE_EXAM,
-                this.resourceService::getExamLogSelectionResources);
+                this.resourceService::getExamLogSelectionResources,
+                Utils.createFilterTooltipKey(EXAM_TEXT_KEY));
 
         this.clientSessionFilter = new TableFilterAttribute(
                 CriteriaType.TEXT,
-                ClientConnection.FILTER_ATTR_SESSION_ID);
+                ClientConnection.FILTER_ATTR_SESSION_ID,
+                Utils.createFilterTooltipKey(CLIENT_SESSION_TEXT_KEY));
 
         this.eventTypeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 ClientEvent.FILTER_ATTR_TYPE,
-                this.resourceService::clientEventTypeResources);
+                this.resourceService::clientEventTypeResources,
+                Utils.createFilterTooltipKey(TYPE_TEXT_KEY));
     }
 
     @Override
@@ -199,7 +202,8 @@ public class SEBClientEvents implements TemplateComposer {
                                         ClientEvent.FILTER_ATTR_SERVER_TIME_FROM_TO,
                                         Utils.toDateTimeUTC(Utils.getMillisecondsNow())
                                                 .minusYears(1)
-                                                .toString()))
+                                                .toString(),
+                                        Utils.createFilterTooltipKey(TIME_TEXT_KEY)))
                                 .sortable()
                                 .widthProportion(2))
 

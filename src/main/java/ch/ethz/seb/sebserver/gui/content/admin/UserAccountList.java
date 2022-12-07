@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -77,14 +78,22 @@ public class UserAccountList implements TemplateComposer {
 
     // filter attribute models
     private final TableFilterAttribute institutionFilter;
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
-    private final TableFilterAttribute surnameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_SURNAME);
-    private final TableFilterAttribute usernameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_USER_NAME);
-    private final TableFilterAttribute mailFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, UserInfo.FILTER_ATTR_EMAIL);
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            Entity.FILTER_ATTR_NAME,
+            Utils.createFilterTooltipKey(NAME_TEXT_KEY));
+    private final TableFilterAttribute surnameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            UserInfo.FILTER_ATTR_SURNAME,
+            Utils.createFilterTooltipKey(SURNAME_TEXT_KEY));
+    private final TableFilterAttribute usernameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            UserInfo.FILTER_ATTR_USER_NAME,
+            Utils.createFilterTooltipKey(USER_NAME_TEXT_KEY));
+    private final TableFilterAttribute mailFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            UserInfo.FILTER_ATTR_EMAIL,
+            Utils.createFilterTooltipKey(MAIL_TEXT_KEY));
     private final TableFilterAttribute languageFilter;
     private final TableFilterAttribute activityFilter;
 
@@ -107,17 +116,20 @@ public class UserAccountList implements TemplateComposer {
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Entity.FILTER_ATTR_INSTITUTION,
-                this.resourceService::institutionResource);
+                this.resourceService::institutionResource,
+                Utils.createFilterTooltipKey(INSTITUTION_TEXT_KEY));
 
         this.languageFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 UserInfo.FILTER_ATTR_LANGUAGE,
-                this.resourceService::languageResources);
+                this.resourceService::languageResources,
+                Utils.createFilterTooltipKey(LANG_TEXT_KEY));
 
         this.activityFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 UserInfo.FILTER_ATTR_ACTIVE,
-                this.resourceService::activityResources);
+                this.resourceService::activityResources,
+                Utils.createFilterTooltipKey(ACTIVE_TEXT_KEY));
     }
 
     @Override

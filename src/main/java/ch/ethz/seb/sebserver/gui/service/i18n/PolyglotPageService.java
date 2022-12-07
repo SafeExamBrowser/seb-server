@@ -13,6 +13,7 @@ import java.util.Locale;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Group;
@@ -21,11 +22,13 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
 import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
+import ch.ethz.seb.sebserver.gui.widget.Selection;
 
 public interface PolyglotPageService {
 
@@ -150,6 +153,12 @@ public interface PolyglotPageService {
      * @param locTextKey the localized text key to inject
      * @param locTooltipKey the localized text key for the tool-tip to inject */
     void injectI18n(TabItem tabItem, LocTextKey locTextKey, LocTextKey locTooltipKey);
+
+    void injectI18n(Text textInput, LocTextKey locTextKey, LocTextKey tooltip);
+
+    void injectTooltip(DateTime selector, LocTextKey tooltip);
+
+    void injectTooltip(Selection selector, LocTextKey tooltip);
 
     /** Used to inject a localized tool-tip text within the given Control (Widget) that automatically gets changed on
      * language change.

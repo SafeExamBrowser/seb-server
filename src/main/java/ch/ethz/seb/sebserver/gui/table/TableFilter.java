@@ -332,6 +332,13 @@ public class TableFilter<ROW extends ModelIdAware> {
                     TableFilter.this.entityTable.getName() + "_" + this.attribute.columnName,
                     getAriaLabel());
 
+            if (this.attribute.tooltip != null) {
+                TableFilter.this.entityTable.pageService.getPolyglotPageService().injectI18n(
+                        this.textInput,
+                        null,
+                        this.attribute.tooltip);
+            }
+
             this.textInput.setLayoutData(gridData);
             this.textInput.addListener(SWT.KeyUp, event -> {
                 if (event.keyCode == Constants.ENTER.hashCode()) {
@@ -395,6 +402,12 @@ public class TableFilter<ROW extends ModelIdAware> {
                             TableFilter.this.entityTable.getName() + "_" + this.attribute.columnName,
                             TableFilter.this.entityTable.widgetFactory.getI18nSupport().getText(getAriaLabel()));
 
+            if (this.attribute.tooltip != null) {
+                TableFilter.this.entityTable.pageService.getPolyglotPageService().injectTooltip(
+                        this.selector,
+                        this.attribute.tooltip);
+            }
+
             this.selector
                     .adaptToControl()
                     .setLayoutData(gridData);
@@ -454,6 +467,11 @@ public class TableFilter<ROW extends ModelIdAware> {
                     innerComposite,
                     getAriaLabel(),
                     TableFilter.this.entityTable.getName() + "_" + this.attribute.columnName);
+            if (this.attribute.tooltip != null) {
+                TableFilter.this.entityTable.pageService.getPolyglotPageService().injectTooltip(
+                        this.selector,
+                        this.attribute.tooltip);
+            }
             this.selector.addListener(SWT.Selection, event -> {
                 TableFilter.this.entityTable.applyFilter();
             });
@@ -551,6 +569,11 @@ public class TableFilter<ROW extends ModelIdAware> {
             final WidgetFactory wf = TableFilter.this.entityTable.widgetFactory;
             wf.labelLocalized(this.innerComposite, DATE_FROM_TEXT);
             this.fromDateSelector = wf.dateSelector(this.innerComposite, getAriaLabel(), testKey);
+            if (this.attribute.tooltip != null) {
+                TableFilter.this.entityTable.pageService.getPolyglotPageService().injectTooltip(
+                        this.fromDateSelector,
+                        this.attribute.tooltip);
+            }
             this.fromDateSelector.addListener(SWT.Selection, event -> {
                 TableFilter.this.entityTable.applyFilter();
             });
@@ -563,6 +586,11 @@ public class TableFilter<ROW extends ModelIdAware> {
 
             wf.labelLocalized(this.innerComposite, DATE_TO_TEXT);
             this.toDateSelector = wf.dateSelector(this.innerComposite, getAriaLabel(), testKey);
+            if (this.attribute.tooltip != null) {
+                TableFilter.this.entityTable.pageService.getPolyglotPageService().injectTooltip(
+                        this.toDateSelector,
+                        this.attribute.tooltip);
+            }
             this.toDateSelector.addListener(SWT.Selection, event -> {
                 TableFilter.this.entityTable.applyFilter();
             });

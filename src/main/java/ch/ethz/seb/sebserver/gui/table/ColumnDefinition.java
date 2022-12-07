@@ -134,51 +134,61 @@ public final class ColumnDefinition<ROW> {
         public final String initValue;
         public final Supplier<List<Tuple<String>>> resourceSupplier;
         public final Function<EntityTable<?>, List<Tuple<String>>> resourceFunction;
+        public final LocTextKey tooltip;
 
-        public TableFilterAttribute(final CriteriaType type, final String columnName) {
-            this(type, columnName, "", (Supplier<List<Tuple<String>>>) null);
+        public TableFilterAttribute(
+                final CriteriaType type,
+                final String columnName,
+                final LocTextKey tooltip) {
+            this(type, columnName, "", (Supplier<List<Tuple<String>>>) null, tooltip);
         }
 
         public TableFilterAttribute(
                 final CriteriaType type,
                 final String columnName,
-                final Supplier<List<Tuple<String>>> resourceSupplier) {
+                final Supplier<List<Tuple<String>>> resourceSupplier,
+                final LocTextKey tooltip) {
 
-            this(type, columnName, "", resourceSupplier);
-        }
-
-        public TableFilterAttribute(
-                final CriteriaType type,
-                final String columnName,
-                final String initValue) {
-
-            this(type, columnName, initValue, (Supplier<List<Tuple<String>>>) null);
+            this(type, columnName, "", resourceSupplier, tooltip);
         }
 
         public TableFilterAttribute(
                 final CriteriaType type,
                 final String columnName,
                 final String initValue,
-                final Supplier<List<Tuple<String>>> resourceSupplier) {
+                final LocTextKey tooltip) {
+
+            this(type, columnName, initValue, (Supplier<List<Tuple<String>>>) null, tooltip);
+        }
+
+        public TableFilterAttribute(
+                final CriteriaType type,
+                final String columnName,
+                final String initValue,
+                final Supplier<List<Tuple<String>>> resourceSupplier,
+                final LocTextKey tooltip) {
 
             this.type = type;
             this.columnName = columnName;
             this.initValue = initValue;
             this.resourceSupplier = resourceSupplier;
             this.resourceFunction = null;
+            this.tooltip = tooltip;
         }
 
         public TableFilterAttribute(
                 final CriteriaType type,
                 final String columnName,
                 final String initValue,
-                final Function<EntityTable<?>, List<Tuple<String>>> resourceFunction) {
+                final Function<EntityTable<?>, List<Tuple<String>>> resourceFunction,
+                final LocTextKey tooltip) {
 
             this.type = type;
             this.columnName = columnName;
             this.initValue = initValue;
             this.resourceSupplier = null;
             this.resourceFunction = resourceFunction;
+            this.tooltip = tooltip;
         }
 
     }

@@ -110,8 +110,10 @@ public class QuizLookupList implements TemplateComposer {
     // filter attribute models
     private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute lmsFilter;
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            QuizData.FILTER_ATTR_NAME,
+            Utils.createFilterTooltipKey(NAME_TEXT_KEY));
 
     // dependencies
     private final WidgetFactory widgetFactory;
@@ -137,12 +139,14 @@ public class QuizLookupList implements TemplateComposer {
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Entity.FILTER_ATTR_INSTITUTION,
-                this.resourceService::institutionResource);
+                this.resourceService::institutionResource,
+                Utils.createFilterTooltipKey(INSTITUTION_TEXT_KEY));
 
         this.lmsFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 LmsSetup.FILTER_ATTR_LMS_SETUP,
-                this.resourceService::lmsSetupResource);
+                this.resourceService::lmsSetupResource,
+                Utils.createFilterTooltipKey(LMS_TEXT_KEY));
     }
 
     @Override
@@ -204,7 +208,8 @@ public class QuizLookupList implements TemplateComposer {
                                         .withFilter(new TableFilterAttribute(
                                                 CriteriaType.DATE,
                                                 QuizData.FILTER_ATTR_START_TIME,
-                                                this.filterStartDate.toString()))
+                                                this.filterStartDate.toString(),
+                                                Utils.createFilterTooltipKey(START_TIME_TEXT_KEY)))
                                         .sortable())
 
                         .withColumn(new ColumnDefinition<>(

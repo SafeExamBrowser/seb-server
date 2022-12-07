@@ -23,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.CertificateInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -80,7 +81,8 @@ public class CertificateList implements TemplateComposer {
 
     private final TableFilterAttribute aliasFilter = new TableFilterAttribute(
             CriteriaType.TEXT,
-            CertificateInfo.FILTER_ATTR_ALIAS);
+            CertificateInfo.FILTER_ATTR_ALIAS,
+            Utils.createFilterTooltipKey(ALIAS_TEXT_KEY));
 
     private final PageService pageService;
     private final RestService restService;

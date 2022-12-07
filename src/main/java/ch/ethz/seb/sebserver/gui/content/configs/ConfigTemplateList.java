@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -65,10 +66,14 @@ public class ConfigTemplateList implements TemplateComposer {
     private final int pageSize;
 
     private final TableFilterAttribute institutionFilter;
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
-    private final TableFilterAttribute descFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, ConfigurationNode.FILTER_ATTR_DESCRIPTION);
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            Entity.FILTER_ATTR_NAME,
+            Utils.createFilterTooltipKey(NAME_TEXT_KEY));
+    private final TableFilterAttribute descFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            ConfigurationNode.FILTER_ATTR_DESCRIPTION,
+            Utils.createFilterTooltipKey(DESCRIPTION_TEXT_KEY));
 
     protected ConfigTemplateList(
             final PageService pageService,
@@ -83,7 +88,8 @@ public class ConfigTemplateList implements TemplateComposer {
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Entity.FILTER_ATTR_INSTITUTION,
-                this.resourceService::institutionResource);
+                this.resourceService::institutionResource,
+                Utils.createFilterTooltipKey(INSTITUTION_TEXT_KEY));
     }
 
     @Override

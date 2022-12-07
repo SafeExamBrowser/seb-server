@@ -18,6 +18,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.content.exam.ExamList;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -53,8 +54,10 @@ public class MonitoringRunningExamList implements TemplateComposer {
     private final static LocTextKey EMPTY_LIST_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.list.empty");
 
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, QuizData.FILTER_ATTR_NAME);
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            QuizData.FILTER_ATTR_NAME,
+            Utils.createFilterTooltipKey(COLUMN_TITLE_NAME_KEY));
     private final TableFilterAttribute typeFilter;
 
     private final PageService pageService;
@@ -72,7 +75,8 @@ public class MonitoringRunningExamList implements TemplateComposer {
         this.typeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Exam.FILTER_ATTR_TYPE,
-                this.resourceService::examTypeResources);
+                this.resourceService::examTypeResources,
+                Utils.createFilterTooltipKey(COLUMN_TITLE_TYPE_KEY));
     }
 
     @Override

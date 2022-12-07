@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -49,10 +50,14 @@ public class MonitoringExamSearchPopup {
 
     private final PageService pageService;
 
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, ClientConnection.FILTER_ATTR_SESSION_ID);
-    private final TableFilterAttribute infoFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, ClientConnection.ATTR_INFO);
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            ClientConnection.FILTER_ATTR_SESSION_ID,
+            Utils.createFilterTooltipKey(TABLE_COLUMN_NAME));
+    private final TableFilterAttribute infoFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            ClientConnection.ATTR_INFO,
+            Utils.createFilterTooltipKey(TABLE_COLUMN_INFO));
     private final TableFilterAttribute statusFilter;
 
     protected MonitoringExamSearchPopup(final PageService pageService) {
@@ -62,7 +67,8 @@ public class MonitoringExamSearchPopup {
                 CriteriaType.SINGLE_SELECTION,
                 ClientConnection.FILTER_ATTR_STATUS,
                 ConnectionStatus.ACTIVE.name(),
-                pageService.getResourceService()::localizedClientConnectionStatusResources);
+                pageService.getResourceService()::localizedClientConnectionStatusResources,
+                Utils.createFilterTooltipKey(TABLE_COLUMN_STATUS));
     }
 
     public void show(final PageContext pageContext) {

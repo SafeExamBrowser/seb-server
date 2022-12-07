@@ -25,6 +25,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.SEBClientConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
@@ -64,15 +65,17 @@ public class SEBClientConfigList implements TemplateComposer {
             new LocTextKey("sebserver.clientconfig.info.pleaseSelect");
 
     private final TableFilterAttribute institutionFilter;
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, Entity.FILTER_ATTR_NAME);
-    private final TableFilterAttribute dateFilter =
-            new TableFilterAttribute(
-                    CriteriaType.DATE,
-                    SEBClientConfig.FILTER_ATTR_CREATION_DATE,
-                    DateTime.now(DateTimeZone.UTC)
-                            .minusYears(1)
-                            .toString(Constants.DEFAULT_DATE_TIME_FORMAT));
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            Entity.FILTER_ATTR_NAME,
+            Utils.createFilterTooltipKey(NAME_TEXT_KEY));
+    private final TableFilterAttribute dateFilter = new TableFilterAttribute(
+            CriteriaType.DATE,
+            SEBClientConfig.FILTER_ATTR_CREATION_DATE,
+            DateTime.now(DateTimeZone.UTC)
+                    .minusYears(1)
+                    .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
+            new LocTextKey("sebserver.clientconfig.list.column.date.filter.tooltip"));
     private final TableFilterAttribute activityFilter;
 
     private final PageService pageService;
@@ -94,12 +97,14 @@ public class SEBClientConfigList implements TemplateComposer {
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Entity.FILTER_ATTR_INSTITUTION,
-                this.resourceService::institutionResource);
+                this.resourceService::institutionResource,
+                Utils.createFilterTooltipKey(INSTITUTION_TEXT_KEY));
 
         this.activityFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 UserInfo.FILTER_ATTR_ACTIVE,
-                this.resourceService::activityResources);
+                this.resourceService::activityResources,
+                Utils.createFilterTooltipKey(ACTIVE_TEXT_KEY));
     }
 
     @Override

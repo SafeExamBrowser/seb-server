@@ -87,8 +87,10 @@ public class ExamList implements TemplateComposer {
 
     private final TableFilterAttribute institutionFilter;
     private final TableFilterAttribute lmsFilter;
-    private final TableFilterAttribute nameFilter =
-            new TableFilterAttribute(CriteriaType.TEXT, Domain.EXAM.ATTR_QUIZ_NAME);
+    private final TableFilterAttribute nameFilter = new TableFilterAttribute(
+            CriteriaType.TEXT,
+            Domain.EXAM.ATTR_QUIZ_NAME,
+            Utils.createFilterTooltipKey(COLUMN_TITLE_NAME_KEY));
     private final TableFilterAttribute stateFilter;
     private final TableFilterAttribute typeFilter;
 
@@ -107,22 +109,26 @@ public class ExamList implements TemplateComposer {
         this.institutionFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Entity.FILTER_ATTR_INSTITUTION,
-                this.resourceService::institutionResource);
+                this.resourceService::institutionResource,
+                Utils.createFilterTooltipKey(COLUMN_TITLE_INSTITUTION_KEY));
 
         this.lmsFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 LmsSetup.FILTER_ATTR_LMS_SETUP,
-                this.resourceService::lmsSetupResource);
+                this.resourceService::lmsSetupResource,
+                Utils.createFilterTooltipKey(COLUMN_TITLE_LMS_KEY));
 
         this.stateFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Exam.FILTER_ATTR_STATUS,
-                this.resourceService::localizedExamStatusSelection);
+                this.resourceService::localizedExamStatusSelection,
+                Utils.createFilterTooltipKey(COLUMN_TITLE_STATE_KEY));
 
         this.typeFilter = new TableFilterAttribute(
                 CriteriaType.SINGLE_SELECTION,
                 Exam.FILTER_ATTR_TYPE,
-                this.resourceService::examTypeResources);
+                this.resourceService::examTypeResources,
+                Utils.createFilterTooltipKey(COLUMN_TITLE_TYPE_KEY));
     }
 
     @Override
@@ -193,7 +199,8 @@ public class ExamList implements TemplateComposer {
                                                 Domain.EXAM.ATTR_QUIZ_START_TIME,
                                                 Utils.toDateTimeUTC(Utils.getMillisecondsNow())
                                                         .minusYears(1)
-                                                        .toString()))
+                                                        .toString(),
+                                                new LocTextKey("sebserver.exam.list.column.starttime.filter.tooltip")))
                                         .sortable())
 
                         .withColumn(new ColumnDefinition<>(
