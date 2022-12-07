@@ -33,7 +33,10 @@ import ch.ethz.seb.sebserver.webservice.DBIntegrityCheck;
 @WebServiceProfile
 public class TableCharsetCheck implements DBIntegrityCheck {
 
+    private static final String SCHEMA_NAME_PROPERTY = "sebserver.init.database.integrity.check.schema";
     private static final String UTF8MB4_GENERAL_CI = "utf8mb4_general_ci";
+    private static final String TABLE_NAME = "TABLE_NAME";
+    private static final String TABLE_COLLATION = "TABLE_COLLATION";
 
     private static final Logger log = LoggerFactory.getLogger(TableCharsetCheck.class);
 
@@ -45,7 +48,7 @@ public class TableCharsetCheck implements DBIntegrityCheck {
             final Environment environment) {
         super();
         this.dataSource = dataSource;
-        this.schemaName = environment.getProperty("sebserver.init.database.integrity.check.schema", (String) null);
+        this.schemaName = environment.getProperty(SCHEMA_NAME_PROPERTY, (String) null);
     }
 
     @Override
@@ -76,9 +79,9 @@ public class TableCharsetCheck implements DBIntegrityCheck {
             final ResultSet resultSet = prepareStatement.getResultSet();
             final Map<String, String> tablesWithWrongCollation = new HashMap<>();
             while (resultSet.next()) {
-                final String collation = resultSet.getString("TABLE_COLLATION");
+                final String collation = resultSet.getString(TABLE_COLLATION);
                 if (!UTF8MB4_GENERAL_CI.equals(collation)) {
-                    tablesWithWrongCollation.put(resultSet.getString("TABLE_NAME"), collation);
+                    tablesWithWrongCollation.put(resultSet.getString(TABLE_NAME), collation);
                 }
             }
 
