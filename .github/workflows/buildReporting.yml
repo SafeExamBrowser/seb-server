@@ -152,7 +152,13 @@ jobs:
       with:
          images: anhefti/seb-server
          tags: |
-            anhefti/seb-server:${{ env.TAG_NAME }}
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
     -
       name: Build and push
       id: docker_build
@@ -175,4 +181,4 @@ jobs:
       run: cosign sign ${TAGS}
       env:
         COSIGN_EXPERIMENTAL: true
-        TAGS: ${{ env.TAG_NAME }}
+        TAGS: ${{ steps.meta.outputs.tags }}
