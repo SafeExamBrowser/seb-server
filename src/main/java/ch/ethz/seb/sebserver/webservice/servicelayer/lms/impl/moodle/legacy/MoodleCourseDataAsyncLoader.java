@@ -47,8 +47,8 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseAccess.Warning;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleRestTemplateFactory.MoodleAPIRestTemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRestTemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRestTemplate.Warning;
 
 @Lazy
 @Component

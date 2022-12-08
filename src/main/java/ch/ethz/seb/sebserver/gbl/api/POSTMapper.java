@@ -270,4 +270,14 @@ public class POSTMapper {
         this.params.putIfAbsent(name, Arrays.asList(value));
         return (T) this;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("POSTMapper [params=");
+        builder.append(this.params);
+        builder.append("]");
+        return builder.toString();
+    }
+
 }

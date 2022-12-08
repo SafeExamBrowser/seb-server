@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy;
+package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,11 +57,11 @@ public class MoodleRestTemplateFactory {
 
     private static final Logger log = LoggerFactory.getLogger(MoodleRestTemplateFactory.class);
 
-    final JSONMapper jsonMapper;
-    final APITemplateDataSupplier apiTemplateDataSupplier;
-    final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
-    final ClientCredentialService clientCredentialService;
-    final Set<String> knownTokenAccessPaths;
+    public final JSONMapper jsonMapper;
+    public final APITemplateDataSupplier apiTemplateDataSupplier;
+    public final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
+    public final ClientCredentialService clientCredentialService;
+    public final Set<String> knownTokenAccessPaths;
 
     public MoodleRestTemplateFactory(
             final JSONMapper jsonMapper,
@@ -75,11 +75,12 @@ public class MoodleRestTemplateFactory {
         this.clientCredentialService = clientCredentialService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
 
-        this.knownTokenAccessPaths = new HashSet<>();
-        this.knownTokenAccessPaths.add(MoodleAPIRestTemplate.MOODLE_DEFAULT_TOKEN_REQUEST_PATH);
+        final Set<String> paths = new HashSet<>();
+        paths.add(MoodleAPIRestTemplate.MOODLE_DEFAULT_TOKEN_REQUEST_PATH);
         if (alternativeTokenRequestPaths != null) {
-            this.knownTokenAccessPaths.addAll(Arrays.asList(alternativeTokenRequestPaths));
+            paths.addAll(Arrays.asList(alternativeTokenRequestPaths));
         }
+        this.knownTokenAccessPaths = Utils.immutableSetOf(paths);
     }
 
     APITemplateDataSupplier getApiTemplateDataSupplier() {
@@ -125,7 +126,7 @@ public class MoodleRestTemplateFactory {
         return LmsSetupTestResult.ofOkay(LmsType.MOODLE);
     }
 
-    Result<MoodleAPIRestTemplate> createRestTemplate() {
+    public Result<MoodleAPIRestTemplate> createRestTemplate() {
 
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
 
@@ -149,7 +150,7 @@ public class MoodleRestTemplateFactory {
                                 ") on paths: " + this.knownTokenAccessPaths));
     }
 
-    Result<MoodleAPIRestTemplate> createRestTemplate(final String accessTokenPath) {
+    public Result<MoodleAPIRestTemplate> createRestTemplate(final String accessTokenPath) {
 
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
 
@@ -162,8 +163,9 @@ public class MoodleRestTemplateFactory {
                     .getPlainClientSecret(credentials)
                     .getOrThrow();
 
-            final MoodleAPIRestTemplate restTemplate = new MoodleAPIRestTemplate(
+            final MoodleAPIRestTemplateImpl restTemplate = new MoodleAPIRestTemplateImpl(
                     this.jsonMapper,
+                    this.apiTemplateDataSupplier,
                     lmsSetup.lmsApiUrl,
                     accessTokenPath,
                     lmsSetup.lmsRestApiToken,
@@ -187,21 +189,12 @@ public class MoodleRestTemplateFactory {
         });
     }
 
-    public class MoodleAPIRestTemplate extends RestTemplate {
+    public static class MoodleAPIRestTemplateImpl extends RestTemplate implements MoodleAPIRestTemplate {
 
-        public static final String URI_VAR_USER_NAME = "username";
-        public static final String URI_VAR_PASSWORD = "pwd";
-        public static final String URI_VAR_SERVICE = "service";
-
-        private static final String MOODLE_DEFAULT_TOKEN_REQUEST_PATH =
-                "/login/token.php?username={" + URI_VAR_USER_NAME +
-                        "}&password={" + URI_VAR_PASSWORD + "}&service={" + URI_VAR_SERVICE + "}";
-
-        private static final String MOODLE_DEFAULT_REST_API_PATH = "/webservice/rest/server.php";
-        private static final String REST_REQUEST_TOKEN_NAME = "wstoken";
-        private static final String REST_REQUEST_FUNCTION_NAME = "wsfunction";
-        private static final String REST_REQUEST_FORMAT_NAME = "moodlewsrestformat";
         private static final String REST_API_TEST_FUNCTION = "core_webservice_get_site_info";
+
+        final JSONMapper jsonMapper;
+        final APITemplateDataSupplier apiTemplateDataSupplier;
 
         private final String serverURL;
         private final String tokenPath;
@@ -211,13 +204,17 @@ public class MoodleRestTemplateFactory {
         private final Map<String, String> tokenReqURIVars;
         private final HttpEntity<?> tokenReqEntity = new HttpEntity<>(new LinkedMultiValueMap<>());
 
-        protected MoodleAPIRestTemplate(
+        protected MoodleAPIRestTemplateImpl(
                 final JSONMapper jsonMapper,
+                final APITemplateDataSupplier apiTemplateDataSupplier,
                 final String serverURL,
                 final String tokenPath,
                 final CharSequence accessToken,
                 final CharSequence username,
                 final CharSequence password) {
+
+            this.jsonMapper = jsonMapper;
+            this.apiTemplateDataSupplier = apiTemplateDataSupplier;
 
             this.serverURL = serverURL;
             this.tokenPath = tokenPath;
@@ -230,14 +227,17 @@ public class MoodleRestTemplateFactory {
 
         }
 
+        @Override
         public String getService() {
             return this.tokenReqURIVars.get(URI_VAR_SERVICE);
         }
 
+        @Override
         public void setService(final String service) {
             this.tokenReqURIVars.put(URI_VAR_SERVICE, service);
         }
 
+        @Override
         public CharSequence getAccessToken() {
             if (this.accessToken == null) {
                 requestAccessToken();
@@ -246,22 +246,27 @@ public class MoodleRestTemplateFactory {
             return this.accessToken;
         }
 
+        @Override
         public void testAPIConnection(final String... functions) {
             try {
                 final String apiInfo = this.callMoodleAPIFunction(REST_API_TEST_FUNCTION);
-                final WebserviceInfo webserviceInfo =
-                        MoodleRestTemplateFactory.this.jsonMapper.readValue(apiInfo, WebserviceInfo.class);
+                final WebserviceInfo webserviceInfo = this.jsonMapper.readValue(
+                        apiInfo,
+                        WebserviceInfo.class);
 
                 if (StringUtils.isBlank(webserviceInfo.username) || StringUtils.isBlank(webserviceInfo.userid)) {
                     throw new RuntimeException("Invalid WebserviceInfo: " + webserviceInfo);
                 }
 
-                final List<String> missingAPIFunctions = Arrays.stream(functions)
-                        .filter(f -> !webserviceInfo.functions.containsKey(f))
-                        .collect(Collectors.toList());
+                if (functions != null) {
 
-                if (!missingAPIFunctions.isEmpty()) {
-                    throw new RuntimeException("Missing Moodle Webservice API functions: " + missingAPIFunctions);
+                    final List<String> missingAPIFunctions = Arrays.stream(functions)
+                            .filter(f -> !webserviceInfo.functions.containsKey(f))
+                            .collect(Collectors.toList());
+
+                    if (!missingAPIFunctions.isEmpty()) {
+                        throw new RuntimeException("Missing Moodle Webservice API functions: " + missingAPIFunctions);
+                    }
                 }
 
             } catch (final RuntimeException re) {
@@ -271,16 +276,19 @@ public class MoodleRestTemplateFactory {
             }
         }
 
+        @Override
         public String callMoodleAPIFunction(final String functionName) {
             return callMoodleAPIFunction(functionName, null, null);
         }
 
+        @Override
         public String callMoodleAPIFunction(
                 final String functionName,
                 final MultiValueMap<String, String> queryAttributes) {
             return callMoodleAPIFunction(functionName, null, queryAttributes);
         }
 
+        @Override
         public String callMoodleAPIFunction(
                 final String functionName,
                 final MultiValueMap<String, String> queryParams,
@@ -319,9 +327,7 @@ public class MoodleRestTemplateFactory {
                     functionReqEntity,
                     String.class);
 
-            final LmsSetup lmsSetup = MoodleRestTemplateFactory.this.apiTemplateDataSupplier
-                    .getLmsSetup();
-
+            final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
             if (response.getStatusCode() != HttpStatus.OK) {
                 throw new RuntimeException(
                         "Failed to call Moodle webservice API function: " + functionName + " lms setup: " +
@@ -347,9 +353,7 @@ public class MoodleRestTemplateFactory {
 
         private void requestAccessToken() {
 
-            final LmsSetup lmsSetup = MoodleRestTemplateFactory.this.apiTemplateDataSupplier
-                    .getLmsSetup();
-
+            final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
             try {
 
                 final ResponseEntity<String> response = super.exchange(
@@ -369,7 +373,7 @@ public class MoodleRestTemplateFactory {
                 }
 
                 try {
-                    final MoodleToken moodleToken = MoodleRestTemplateFactory.this.jsonMapper.readValue(
+                    final MoodleToken moodleToken = this.jsonMapper.readValue(
                             response.getBody(),
                             MoodleToken.class);
 

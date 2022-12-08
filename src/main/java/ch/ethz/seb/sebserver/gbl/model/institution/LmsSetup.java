@@ -60,6 +60,8 @@ public final class LmsSetup implements GrantEntity, Activatable {
         OPEN_EDX(Features.COURSE_API, Features.SEB_RESTRICTION),
         /** The Moodle binding features only the course access API so far */
         MOODLE(Features.COURSE_API /* , Features.SEB_RESTRICTION */),
+        /** The Moodle binding features with SEB Server integration plugin for fully featured */
+        MOODLE_PLUGIN(Features.COURSE_API, Features.SEB_RESTRICTION),
         /** The Ans Delft binding is on the way */
         ANS_DELFT(Features.COURSE_API, Features.SEB_RESTRICTION),
         /** The OpenOLAT binding is on the way */

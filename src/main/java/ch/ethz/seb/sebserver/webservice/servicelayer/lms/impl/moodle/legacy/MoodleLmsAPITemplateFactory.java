@@ -6,10 +6,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
+package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
@@ -28,10 +29,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsAPITemplateAdapter;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseAccess;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseDataAsyncLoader;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseRestriction;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleRestTemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCheck;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseRestriction;
@@ -43,6 +41,7 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
     private final MoodlePluginCheck moodlePluginCheck;
     private final JSONMapper jsonMapper;
+    private final CacheManager cacheManager;
     private final AsyncService asyncService;
     private final Environment environment;
     private final ClientCredentialService clientCredentialService;
@@ -53,6 +52,7 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
     protected MoodleLmsAPITemplateFactory(
             final MoodlePluginCheck moodlePluginCheck,
             final JSONMapper jsonMapper,
+            final CacheManager cacheManager,
             final AsyncService asyncService,
             final Environment environment,
             final ClientCredentialService clientCredentialService,
@@ -62,6 +62,7 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
         this.moodlePluginCheck = moodlePluginCheck;
         this.jsonMapper = jsonMapper;
+        this.cacheManager = cacheManager;
         this.asyncService = asyncService;
         this.environment = environment;
         this.clientCredentialService = clientCredentialService;
@@ -87,9 +88,19 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     .getBean(MoodleCourseDataAsyncLoader.class);
             asyncLoaderPrototype.init(lmsSetup.getModelId());
 
+            final MoodleRestTemplateFactory moodleRestTemplateFactory = new MoodleRestTemplateFactory(
+                    this.jsonMapper,
+                    apiTemplateDataSupplier,
+                    this.clientCredentialService,
+                    this.clientHttpRequestFactoryService,
+                    this.alternativeTokenRequestPaths);
+
             if (this.moodlePluginCheck.checkPluginAvailable(lmsSetup)) {
 
-                final MoodlePluginCourseAccess moodlePluginCourseAccess = new MoodlePluginCourseAccess();
+                final MoodlePluginCourseAccess moodlePluginCourseAccess = new MoodlePluginCourseAccess(
+                        this.jsonMapper,
+                        moodleRestTemplateFactory,
+                        this.cacheManager);
                 final MoodlePluginCourseRestriction moodlePluginCourseRestriction = new MoodlePluginCourseRestriction();
 
                 return new LmsAPITemplateAdapter(
@@ -100,13 +111,6 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
                         moodlePluginCourseRestriction);
 
             } else {
-
-                final MoodleRestTemplateFactory moodleRestTemplateFactory = new MoodleRestTemplateFactory(
-                        this.jsonMapper,
-                        apiTemplateDataSupplier,
-                        this.clientCredentialService,
-                        this.clientHttpRequestFactoryService,
-                        this.alternativeTokenRequestPaths);
 
                 final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                         this.jsonMapper,
