@@ -152,13 +152,13 @@ jobs:
       with:
          images: anhefti/seb-server
          tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=shaa
+           type=schedule
+           type=ref,event=branch
+           type=ref,event=pr
+           type=semver,pattern={{version}}
+           type=semver,pattern={{major}}.{{minor}}
+           type=semver,pattern={{major}}
+           type=shaa
     -
       name: Build and push
       id: docker_build
