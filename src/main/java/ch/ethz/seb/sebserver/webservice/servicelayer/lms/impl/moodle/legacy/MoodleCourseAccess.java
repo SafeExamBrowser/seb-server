@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,6 +25,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -32,10 +35,14 @@ import org.springframework.util.MultiValueMap;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.async.AsyncService;
+import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
@@ -94,11 +101,15 @@ public class MoodleCourseAccess implements CourseAccessAPI {
     private final MoodleRestTemplateFactory moodleRestTemplateFactory;
     private final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader;
     private final boolean prependShortCourseName;
+    private final CircuitBreaker<String> protectedMoodlePageCall;
+    private final int pageSize;
+    private final int maxSize;
 
     private MoodleAPIRestTemplate restTemplate;
 
     public MoodleCourseAccess(
             final JSONMapper jsonMapper,
+            final AsyncService asyncService,
             final MoodleRestTemplateFactory moodleRestTemplateFactory,
             final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader,
             final Environment environment) {
@@ -110,6 +121,24 @@ public class MoodleCourseAccess implements CourseAccessAPI {
         this.prependShortCourseName = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.lms.moodle.prependShortCourseName",
                 Constants.TRUE_STRING));
+
+        this.protectedMoodlePageCall = asyncService.createCircuitBreaker(
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.moodleRestCall.attempts",
+                        Integer.class,
+                        2),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.moodleRestCall.blockingTime",
+                        Long.class,
+                        Constants.SECOND_IN_MILLIS * 20),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.moodleRestCall.timeToRecover",
+                        Long.class,
+                        Constants.MINUTE_IN_MILLIS));
+        this.maxSize =
+                environment.getProperty("sebserver.webservice.cache.moodle.course.maxSize", Integer.class, 10000);
+        this.pageSize =
+                environment.getProperty("sebserver.webservice.cache.moodle.course.pageSize", Integer.class, 500);
     }
 
     APITemplateDataSupplier getApiTemplateDataSupplier() {
@@ -153,6 +182,102 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                         .filter(LmsAPIService.quizFilterPredicate(filterMap))
                         .collect(Collectors.toList()))
                 .getOr(Collections.emptyList()));
+    }
+
+    @Override
+    public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
+        try {
+            int page = 0;
+            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+            final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
+                    ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
+                    : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
+
+            while (!asyncQuizFetchBuffer.finished && !asyncQuizFetchBuffer.canceled) {
+                final MoodleAPIRestTemplate restTemplate = getRestTemplate().getOrThrow();
+                // first get courses from Moodle for page
+                final Map<String, CourseData> courseData = new HashMap<>();
+                final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, page, this.pageSize);
+
+                if (coursesPage == null || coursesPage.isEmpty()) {
+                    asyncQuizFetchBuffer.finish();
+                    continue;
+                }
+
+                courseData.putAll(coursesPage
+                        .stream()
+                        .collect(Collectors.toMap(cd -> cd.id, Function.identity())));
+
+                // then get all quizzes of courses and filter
+                final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+                final List<String> courseIds = new ArrayList<>(courseData.keySet());
+                if (courseIds.size() == 1) {
+                    // NOTE: This is a workaround because the Moodle API do not support lists with only one element.
+                    courseIds.add("0");
+                }
+                attributes.put(
+                        MoodleCourseAccess.MOODLE_COURSE_API_COURSE_IDS,
+                        courseIds);
+
+                final String quizzesJSON = this.protectedMoodlePageCall
+                        .protectedRun(() -> restTemplate.callMoodleAPIFunction(
+                                MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME,
+                                attributes))
+                        .getOrThrow();
+
+                final CourseQuizData courseQuizData = this.jsonMapper.readValue(
+                        quizzesJSON,
+                        CourseQuizData.class);
+
+                if (courseQuizData == null) {
+                    // return false;  SEBSERV-361
+                    page++;
+                    continue;
+                }
+
+                if (courseQuizData.warnings != null && !courseQuizData.warnings.isEmpty()) {
+                    log.warn(
+                            "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
+                            lmsSetup.name,
+                            MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME,
+                            courseQuizData.warnings.size(),
+                            courseQuizData.warnings.iterator().next().toString());
+                    if (log.isTraceEnabled()) {
+                        log.trace("All warnings from Moodle: {}", courseQuizData.warnings.toString());
+                    }
+                }
+
+                if (courseQuizData.quizzes == null || courseQuizData.quizzes.isEmpty()) {
+                    // no quizzes on this page
+                    page++;
+                    continue;
+                }
+
+                courseQuizData.quizzes
+                        .stream()
+                        .filter(getQuizFilter())
+                        .forEach(quiz -> {
+                            final CourseData data = courseData.get(quiz.course);
+                            if (data != null) {
+                                data.quizzes.add(quiz);
+                            }
+                        });
+
+                courseData.values().stream()
+                        .filter(c -> !c.quizzes.isEmpty())
+                        .forEach(c -> asyncQuizFetchBuffer.buffer.addAll(
+                                quizDataOf(lmsSetup, c, urlPrefix).stream()
+                                        .filter(LmsAPIService.quizFilterPredicate(filterMap))
+                                        .collect(Collectors.toList())));
+
+                page++;
+            }
+
+            asyncQuizFetchBuffer.finish();
+
+        } catch (final Exception e) {
+            asyncQuizFetchBuffer.finish(e);
+        }
     }
 
     @Override
@@ -209,7 +334,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
 
     @Override
     public void clearCourseCache() {
-        // TODO Auto-generated method stub
 
     }
 
@@ -283,16 +407,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
         return Result.ofError(new UnsupportedOperationException("not available yet"));
     }
 
-    @Override
-    public FetchStatus getFetchStatus() {
-
-        if (this.moodleCourseDataAsyncLoader.isRunning()) {
-            return FetchStatus.ASYNC_FETCH_RUNNING;
-        }
-
-        return FetchStatus.ALL_FETCHED;
-    }
-
     public void clearCache() {
         this.moodleCourseDataAsyncLoader.clearCache();
     }
@@ -353,29 +467,10 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             return Collections.emptyList();
         }
 
-        return reduceCoursesToQuizzes(urlPrefix, courseQuizData);
-    }
-
-    private ArrayList<QuizData> reduceCoursesToQuizzes(
-            final String urlPrefix,
-            final Collection<CourseDataShort> courseQuizData) {
-
-        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
         return courseQuizData
                 .stream()
-                .reduce(
-                        new ArrayList<>(),
-                        (list, courseData) -> {
-                            list.addAll(quizDataOf(
-                                    lmsSetup,
-                                    courseData,
-                                    urlPrefix));
-                            return list;
-                        },
-                        (list1, list2) -> {
-                            list1.addAll(list2);
-                            return list1;
-                        });
+                .flatMap(courseData -> quizDataOf(lmsSetup, courseData, urlPrefix).stream())
+                .collect(Collectors.toList());
     }
 
     private List<QuizData> getQuizzesForIds(
@@ -442,19 +537,8 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             return courseData.values()
                     .stream()
                     .filter(c -> !c.quizzes.isEmpty())
-                    .reduce(
-                            new ArrayList<>(),
-                            (list, cd) -> {
-                                list.addAll(quizDataOf(
-                                        lmsSetup,
-                                        cd,
-                                        urlPrefix));
-                                return list;
-                            },
-                            (list1, list2) -> {
-                                list1.addAll(list2);
-                                return list1;
-                            });
+                    .flatMap(cd -> quizDataOf(lmsSetup, cd, urlPrefix).stream())
+                    .collect(Collectors.toList());
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get quizzes for ids", e);
@@ -723,6 +807,120 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                         .find();
     }
 
+    private Collection<CourseData> getCoursesPage(
+            final MoodleAPIRestTemplate restTemplate,
+            final int page,
+            final int size) throws JsonParseException, JsonMappingException, IOException {
+
+        final String lmsName = getApiTemplateDataSupplier().getLmsSetup().name;
+        try {
+            // get course ids per page
+            final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+            attributes.add(MoodleCourseAccess.MOODLE_COURSE_API_SEARCH_CRITERIA_NAME, "search");
+            attributes.add(MoodleCourseAccess.MOODLE_COURSE_API_SEARCH_CRITERIA_VALUE, "");
+            attributes.add(MoodleCourseAccess.MOODLE_COURSE_API_SEARCH_PAGE, String.valueOf(page));
+            attributes.add(MoodleCourseAccess.MOODLE_COURSE_API_SEARCH_PAGE_SIZE, String.valueOf(size));
+
+            final String courseKeyPageJSON = this.protectedMoodlePageCall
+                    .protectedRun(() -> restTemplate.callMoodleAPIFunction(
+                            MoodleCourseAccess.MOODLE_COURSE_SEARCH_API_FUNCTION_NAME,
+                            attributes))
+                    .getOrThrow();
+
+            final CoursePage keysPage = this.jsonMapper.readValue(
+                    courseKeyPageJSON,
+                    CoursePage.class);
+
+            if (keysPage == null) {
+                log.error("No CoursePage Response");
+                return Collections.emptyList();
+            }
+
+            if (keysPage.warnings != null && !keysPage.warnings.isEmpty()) {
+                log.warn(
+                        "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
+                        lmsName,
+                        MoodleCourseAccess.MOODLE_COURSE_SEARCH_API_FUNCTION_NAME,
+                        keysPage.warnings.size(),
+                        keysPage.warnings.iterator().next().toString());
+                if (log.isTraceEnabled()) {
+                    log.trace("All warnings from Moodle: {}", keysPage.warnings.toString());
+                }
+            }
+
+            if (keysPage.courseKeys == null || keysPage.courseKeys.isEmpty()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("LMS Setup: {} No courses found on page: {}", lmsName, page);
+                    if (log.isTraceEnabled()) {
+                        log.trace("Moodle response: {}", courseKeyPageJSON);
+                    }
+                }
+                return Collections.emptyList();
+            }
+
+            // get courses
+            final Set<String> ids = keysPage.courseKeys
+                    .stream()
+                    .map(key -> key.id)
+                    .collect(Collectors.toSet());
+
+            final Collection<CourseData> result = getCoursesForIds(restTemplate, ids)
+                    .stream()
+                    .filter(getCourseFilter())
+                    .collect(Collectors.toList());
+
+            if (log.isDebugEnabled()) {
+                log.debug("course page with {} courses, after filtering {} left",
+                        keysPage.courseKeys.size(),
+                        result.size());
+            }
+
+            return result;
+        } catch (final Exception e) {
+            log.error("LMS Setup: {} Unexpected error while trying to get courses page: ", lmsName, e);
+            return Collections.emptyList();
+        }
+    }
+
+    private Predicate<CourseData> getCourseFilter() {
+        final long now = Utils.getSecondsNow();
+        return course -> {
+            if (course.start_date != null
+                    && course.start_date < Utils.toUnixTimeInSeconds(DateTime.now(DateTimeZone.UTC).minusYears(3))) {
+                return false;
+            }
+
+            if (course.end_date == null || course.end_date == 0 || course.end_date > now) {
+                return true;
+            }
+
+            if (log.isDebugEnabled()) {
+                log.info("remove course {} end_time {} now {}",
+                        course.short_name,
+                        course.end_date,
+                        now);
+            }
+            return false;
+        };
+    }
+
+    private Predicate<CourseQuiz> getQuizFilter() {
+        final long now = Utils.getSecondsNow();
+        return quiz -> {
+            if (quiz.time_close == null || quiz.time_close == 0 || quiz.time_close > now) {
+                return true;
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("remove quiz {} end_time {} now {}",
+                        quiz.name,
+                        quiz.time_close,
+                        now);
+            }
+            return false;
+        };
+    }
+
     // ---- Mapping Classes ---
 
     /** Maps the Moodle course API course data */
@@ -885,6 +1083,57 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             this.mailformat = mailformat;
             this.descriptionformat = descriptionformat;
         }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class CoursePage {
+        final Collection<CourseKey> courseKeys;
+        final Collection<Warning> warnings;
+
+        public CoursePage(
+                @JsonProperty(value = "courses") final Collection<CourseKey> courseKeys,
+                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
+
+            this.courseKeys = courseKeys;
+            this.warnings = warnings;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    static final class CourseKey {
+        final String id;
+        final String short_name;
+        final String category_name;
+        final String sort_order;
+
+        @JsonCreator
+        protected CourseKey(
+                @JsonProperty(value = "id") final String id,
+                @JsonProperty(value = "shortname") final String short_name,
+                @JsonProperty(value = "categoryname") final String category_name,
+                @JsonProperty(value = "sortorder") final String sort_order) {
+
+            this.id = id;
+            this.short_name = short_name;
+            this.category_name = category_name;
+            this.sort_order = sort_order;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("CourseKey [id=");
+            builder.append(this.id);
+            builder.append(", short_name=");
+            builder.append(this.short_name);
+            builder.append(", category_name=");
+            builder.append(this.category_name);
+            builder.append(", sort_order=");
+            builder.append(this.sort_order);
+            builder.append("]");
+            return builder.toString();
+        }
+
     }
 
 }

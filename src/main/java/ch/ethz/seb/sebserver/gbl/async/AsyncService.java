@@ -24,6 +24,10 @@ public class AsyncService {
         this.asyncRunner = asyncRunner;
     }
 
+    public AsyncRunner getAsyncRunner() {
+        return this.asyncRunner;
+    }
+
     /** Create a CircuitBreaker of specified type with the default parameter defined in the CircuitBreaker class
      *
      * @param <T> the type of the CircuitBreaker

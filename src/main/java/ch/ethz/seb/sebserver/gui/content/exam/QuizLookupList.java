@@ -14,7 +14,11 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.eclipse.rap.rwt.RWT;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Value;
@@ -103,6 +107,8 @@ public class QuizLookupList implements TemplateComposer {
             new LocTextKey("sebserver.quizdiscovery.quiz.import.existing.confirm");
     private final static LocTextKey TEXT_KEY_EXISTING =
             new LocTextKey("sebserver.quizdiscovery.quiz.import.existing");
+    private final static LocTextKey TEXT_FETCH_NOTE =
+            new LocTextKey("sebserver.quizdiscovery.list.fetchnote");
 
     private final static String TEXT_KEY_ADDITIONAL_ATTR_PREFIX =
             "sebserver.quizdiscovery.quiz.details.additional.";
@@ -156,6 +162,10 @@ public class QuizLookupList implements TemplateComposer {
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
         final Long institutionId = currentUser.get().institutionId;
 
+        final Composite notePanel = this.widgetFactory.voidComposite(pageContext.getParent());
+        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        notePanel.setLayoutData(gridData);
+
         // content page layout with title
         final Composite content = this.widgetFactory.defaultPageLayout(
                 pageContext.getParent(),
@@ -173,6 +183,7 @@ public class QuizLookupList implements TemplateComposer {
         // table
         final EntityTable<QuizData> table =
                 this.pageService.entityTableBuilder(restService.getRestCall(GetQuizPage.class))
+                        .withPageReloadListener(t -> this.handelPageReload(notePanel, t))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
 
@@ -435,6 +446,41 @@ public class QuizLookupList implements TemplateComposer {
         } else {
             return value;
         }
+    }
+
+    private boolean showingFetchNote = false;
+
+    private void handelPageReload(
+            final Composite notePanel,
+            final EntityTable<QuizData> table) {
+
+        if (table.isComplete()) {
+            PageService.clearComposite(notePanel);
+            this.showingFetchNote = false;
+        } else {
+            if (!this.showingFetchNote) {
+                final Composite warningPanel = this.widgetFactory.createWarningPanel(notePanel, 15, true);
+                GridData gridData = new GridData(SWT.CENTER, SWT.CENTER, false, true);
+                gridData.heightHint = 28;
+                gridData.widthHint = 25;
+                gridData.verticalIndent = 5;
+                final Label action = new Label(warningPanel, SWT.NONE);
+                action.setImage(WidgetFactory.ImageIcon.SWITCH.getImage(notePanel.getDisplay()));
+                action.setLayoutData(gridData);
+                action.addListener(SWT.MouseDown, event -> {
+                    table.applyFilter();
+                });
+
+                final Label text = new Label(warningPanel, SWT.NONE);
+                text.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
+                text.setText(this.pageService.getI18nSupport().getText(TEXT_FETCH_NOTE));
+                gridData = new GridData(SWT.LEFT, SWT.FILL, true, true);
+                gridData.heightHint = 16;
+                text.setLayoutData(gridData);
+                this.showingFetchNote = true;
+            }
+        }
+        notePanel.getParent().layout(true, true);
     }
 
 }

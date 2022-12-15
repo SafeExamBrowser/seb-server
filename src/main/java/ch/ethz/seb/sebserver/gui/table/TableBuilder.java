@@ -52,6 +52,7 @@ public class TableBuilder<ROW extends ModelIdAware> {
     private boolean markupEnabled = false;
     private String defaultSortColumn = null;
     private PageSortOrder defaultSortOrder = PageSortOrder.ASCENDING;
+    private Consumer<EntityTable<ROW>> pageReloadListener;
 
     public TableBuilder(
             final String name,
@@ -203,6 +204,11 @@ public class TableBuilder<ROW extends ModelIdAware> {
         return this;
     }
 
+    public TableBuilder<ROW> withPageReloadListener(final Consumer<EntityTable<ROW>> pageReloadListener) {
+        this.pageReloadListener = pageReloadListener;
+        return this;
+    }
+
     public EntityTable<ROW> compose(final PageContext pageContext) {
         return new EntityTable<>(
                 this.name,
@@ -224,7 +230,8 @@ public class TableBuilder<ROW extends ModelIdAware> {
                 this.selectionListener,
                 this.contentChangeListener,
                 this.defaultSortColumn,
-                this.defaultSortOrder);
+                this.defaultSortOrder,
+                this.pageReloadListener);
     }
 
 }

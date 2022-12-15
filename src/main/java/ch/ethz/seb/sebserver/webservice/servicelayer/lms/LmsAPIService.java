@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -115,6 +114,8 @@ public interface LmsAPIService {
                     from == null || (q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from)));
             final DateTime endTime = now.isAfter(from) ? now : from;
             final boolean fromTimeFilter = (endTime == null || q.endTime == null || endTime.isBefore(q.endTime));
+            System.out
+                    .println("************ name: " + name + " " + (nameFilter && (startTimeFilter || fromTimeFilter)));
             return nameFilter && (startTimeFilter || fromTimeFilter);
         };
     }
@@ -129,69 +130,6 @@ public interface LmsAPIService {
                 .stream()
                 .filter(quizFilterPredicate(filterMap))
                 .collect(Collectors.toList());
-    }
-
-    /** Closure that gives a Function to create a Page of QuizData from a given List of QuizData with the
-     * attributes, pageNumber, pageSize and sort.
-     *
-     * NOTE: this is not sorting the QuizData list but uses the sortAttribute for the page creation
-     *
-     * @param sortAttribute the sort attribute for the new Page
-     * @param pageNumber the number of the Page to build
-     * @param pageSize the size of the Page to build
-     * @return A Page of QuizData extracted from a given list of QuizData */
-    static Function<List<QuizData>, Page<QuizData>> quizzesToPageFunction(
-            final String sortAttribute,
-            final int pageNumber,
-            final int pageSize) {
-
-        return quizzes -> {
-            if (quizzes.isEmpty()) {
-                return new Page<>(0, 1, sortAttribute, Collections.emptyList());
-            }
-
-            int start = (pageNumber - 1) * pageSize;
-            int end = start + pageSize;
-            if (end > quizzes.size()) {
-                end = quizzes.size();
-            }
-            if (start >= end) {
-                start = end - pageSize;
-                if (start < 0) {
-                    start = 0;
-                }
-
-                return new Page<>(
-                        (quizzes.size() <= pageSize) ? 1 : quizzes.size() / pageSize + 1,
-                        start / pageSize + 1,
-                        sortAttribute,
-                        quizzes.subList(start, end));
-            }
-
-            final int mod = quizzes.size() % pageSize;
-            return new Page<>(
-                    (quizzes.size() <= pageSize)
-                            ? 1
-                            : (mod > 0)
-                                    ? quizzes.size() / pageSize + 1
-                                    : quizzes.size() / pageSize,
-                    pageNumber,
-                    sortAttribute,
-                    quizzes.subList(start, end));
-        };
-    }
-
-    /** Closure that gives a Function to sort a List of QuizData by a certain sort criteria.
-     * The sort criteria is the name of the QuizData attribute plus a leading '-' sign for
-     * descending sort order indication.
-     *
-     * @param sort the sort criteria ( ['-']{attributeName} )
-     * @return A Function to sort a List of QuizData by a certain sort criteria */
-    static Function<List<QuizData>, List<QuizData>> quizzesSortFunction(final String sort) {
-        return quizzes -> {
-            quizzes.sort(QuizData.getComparator(sort));
-            return quizzes;
-        };
     }
 
 }

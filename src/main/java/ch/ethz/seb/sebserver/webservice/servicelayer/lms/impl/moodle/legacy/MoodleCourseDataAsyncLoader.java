@@ -49,6 +49,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRestTemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRestTemplate.Warning;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseAccess.CoursePage;
 
 @Lazy
 @Component
@@ -56,6 +57,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRe
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 /** This implements the (temporary) asynchronous fetch strategy to fetch
  * course and quiz data within a background task and fill up a shared cache. */
+@Deprecated
 public class MoodleCourseDataAsyncLoader {
 
     private static final Logger log = LoggerFactory.getLogger(MoodleCourseDataAsyncLoader.class);
@@ -482,57 +484,6 @@ public class MoodleCourseDataAsyncLoader {
             }
         }
         this.newIds.clear();
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class CoursePage {
-        final Collection<CourseKey> courseKeys;
-        final Collection<Warning> warnings;
-
-        public CoursePage(
-                @JsonProperty(value = "courses") final Collection<CourseKey> courseKeys,
-                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
-
-            this.courseKeys = courseKeys;
-            this.warnings = warnings;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class CourseKey {
-        final String id;
-        final String short_name;
-        final String category_name;
-        final String sort_order;
-
-        @JsonCreator
-        protected CourseKey(
-                @JsonProperty(value = "id") final String id,
-                @JsonProperty(value = "shortname") final String short_name,
-                @JsonProperty(value = "categoryname") final String category_name,
-                @JsonProperty(value = "sortorder") final String sort_order) {
-
-            this.id = id;
-            this.short_name = short_name;
-            this.category_name = category_name;
-            this.sort_order = sort_order;
-        }
-
-        @Override
-        public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("CourseKey [id=");
-            builder.append(this.id);
-            builder.append(", short_name=");
-            builder.append(this.short_name);
-            builder.append(", category_name=");
-            builder.append(this.category_name);
-            builder.append(", sort_order=");
-            builder.append(this.sort_order);
-            builder.append("]");
-            return builder.toString();
-        }
-
     }
 
     /** Maps the Moodle course API course data */

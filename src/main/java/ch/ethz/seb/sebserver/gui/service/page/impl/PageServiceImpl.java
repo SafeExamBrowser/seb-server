@@ -54,6 +54,7 @@ import ch.ethz.seb.sebserver.gui.service.page.event.ActionEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionPublishEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEventListener;
+import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall.CallType;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
@@ -86,6 +87,7 @@ public class PageServiceImpl implements PageService {
     private final PolyglotPageService polyglotPageService;
     private final ResourceService resourceService;
     private final CurrentUser currentUser;
+    private final ServerPushService serverPushService;
 
     public PageServiceImpl(
             final Cryptor cryptor,
@@ -93,7 +95,8 @@ public class PageServiceImpl implements PageService {
             final WidgetFactory widgetFactory,
             final PolyglotPageService polyglotPageService,
             final ResourceService resourceService,
-            final CurrentUser currentUser) {
+            final CurrentUser currentUser,
+            final ServerPushService serverPushService) {
 
         this.cryptor = cryptor;
         this.jsonMapper = jsonMapper;
@@ -101,6 +104,7 @@ public class PageServiceImpl implements PageService {
         this.polyglotPageService = polyglotPageService;
         this.resourceService = resourceService;
         this.currentUser = currentUser;
+        this.serverPushService = serverPushService;
     }
 
     @Override
@@ -126,6 +130,11 @@ public class PageServiceImpl implements PageService {
     @Override
     public ResourceService getResourceService() {
         return this.resourceService;
+    }
+
+    @Override
+    public ServerPushService getServerPushService() {
+        return this.serverPushService;
     }
 
     @Override

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -55,6 +56,7 @@ import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.CourseAccessAPI;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
@@ -140,6 +142,42 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
     @Override
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
         return getRestTemplate().map(this::collectAllQuizzes);
+    }
+
+    @Override
+    public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
+        try {
+            final OAuth2RestTemplate restTemplate = getRestTemplate().getOrThrow();
+            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+            final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
+            final String edxAPI = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT;
+
+            EdXPage page = getEdxPage(edxAPI, restTemplate).getBody();
+            if (page != null) {
+                asyncQuizFetchBuffer.buffer.addAll(
+                        coursesToQuizzes(lmsSetup, externalStartURI, page.results)
+                                .filter(LmsAPIService.quizFilterPredicate(filterMap))
+                                .collect(Collectors.toList()));
+                while (!asyncQuizFetchBuffer.canceled && page != null && StringUtils.isNotBlank(page.next)) {
+                    if (asyncQuizFetchBuffer.canceled) {
+                        asyncQuizFetchBuffer.finish();
+                        return;
+                    }
+
+                    page = getEdxPage(page.next, restTemplate).getBody();
+                    if (page != null) {
+                        asyncQuizFetchBuffer.buffer.addAll(
+                                coursesToQuizzes(lmsSetup, externalStartURI, page.results)
+                                        .filter(LmsAPIService.quizFilterPredicate(filterMap))
+                                        .collect(Collectors.toList()));
+                    }
+                }
+            }
+
+            asyncQuizFetchBuffer.finish();
+        } catch (final Exception e) {
+            asyncQuizFetchBuffer.finish(e);
+        }
     }
 
     @Override
@@ -595,6 +633,20 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
         }
 
         return Result.of(this.restTemplate);
+    }
+
+    private Stream<QuizData> coursesToQuizzes(
+            final LmsSetup lmsSetup,
+            final String externalStartURI,
+            final Collection<CourseData> courses) {
+
+        if (courses == null) {
+            return Stream.empty();
+        }
+
+        return courses
+                .stream()
+                .map(cd -> quizDataOf(lmsSetup, cd, externalStartURI));
     }
 
 }

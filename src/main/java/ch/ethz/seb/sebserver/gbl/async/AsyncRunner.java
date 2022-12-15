@@ -22,7 +22,8 @@ import org.springframework.stereotype.Component;
 public class AsyncRunner {
 
     /** Calls a given Supplier asynchronously in a new thread and returns a CompletableFuture
-     * to get and handle the result later
+     * to get and handle the result later.
+     *
      *
      * @param supplier The Supplier that gets called asynchronously
      * @return CompletableFuture of the result of the Supplier */
@@ -32,8 +33,8 @@ public class AsyncRunner {
     }
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
-    public void runAsync(final Runnable block) {
-        block.run();
+    public void runAsync(final Runnable runnable) {
+        runnable.run();
     }
 
 }

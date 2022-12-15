@@ -77,6 +77,7 @@ public class EntityTable<ROW extends ModelIdAware> {
     private final String sortOrderAttrName;
     private final String currentPageAttrName;
     private final boolean markupEnabled;
+    private final Consumer<EntityTable<ROW>> pageReloadListener;
 
     final PageService pageService;
     final WidgetFactory widgetFactory;
@@ -109,6 +110,7 @@ public class EntityTable<ROW extends ModelIdAware> {
     PageSortOrder sortOrder = PageSortOrder.ASCENDING;
     boolean columnsWithSameWidth = true;
     boolean hideNavigation;
+    boolean isComplete = true;
 
     EntityTable(
             final String name,
@@ -128,7 +130,8 @@ public class EntityTable<ROW extends ModelIdAware> {
             final Consumer<EntityTable<ROW>> selectionListener,
             final Consumer<Integer> contentChangeListener,
             final String defaultSortColumn,
-            final PageSortOrder defaultSortOrder) {
+            final PageSortOrder defaultSortOrder,
+            final Consumer<EntityTable<ROW>> pageReloadListener) {
 
         this.name = name;
         this.filterAttrName = name + "_filter";
@@ -139,6 +142,7 @@ public class EntityTable<ROW extends ModelIdAware> {
 
         this.defaultSortColumn = defaultSortColumn;
         this.defaultSortOrder = defaultSortOrder;
+        this.pageReloadListener = pageReloadListener;
 
         this.composite = new Composite(pageContext.getParent(), SWT.NONE);
         this.pageService = pageService;
@@ -164,12 +168,14 @@ public class EntityTable<ROW extends ModelIdAware> {
         this.selectionListener = selectionListener;
         this.contentChangeListener = contentChangeListener;
         this.pageSize = pageSize;
+
         this.filter = columns
                 .stream()
                 .map(ColumnDefinition::getFilterAttribute)
                 .anyMatch(Objects::nonNull) ? new TableFilter<>(this) : null;
 
         this.table = this.widgetFactory.tableLocalized(this.composite, type);
+
         final GridLayout gridLayout = new GridLayout(columns.size(), true);
         this.table.setLayout(gridLayout);
         gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
@@ -234,6 +240,10 @@ public class EntityTable<ROW extends ModelIdAware> {
 
     public String getName() {
         return this.name;
+    }
+
+    public boolean isComplete() {
+        return this.isComplete;
     }
 
     public String getSortColumn() {
@@ -510,7 +520,7 @@ public class EntityTable<ROW extends ModelIdAware> {
         this.table.removeAll();
 
         // get page data and create rows
-        this.pageSupplier.newBuilder()
+        final Page<ROW> page = this.pageSupplier.newBuilder()
                 .withPaging(pageNumber, pageSize)
                 .withSorting(sortColumn, sortOrder)
                 .withQueryParams((this.filter != null) ? this.filter.getFilterParameter() : null)
@@ -519,12 +529,18 @@ public class EntityTable<ROW extends ModelIdAware> {
                 .getPage()
                 .map(this::createTableRowsFromPage)
                 .map(this.navigator::update)
-                .onError(this.pageContext::notifyUnexpectedError);
+                .onError(this.pageContext::notifyUnexpectedError)
+                .getOr(null);
 
+        this.isComplete = page.complete;
         this.composite.getParent().layout(true, true);
         PageService.updateScrolledComposite(this.composite);
         this.notifyContentChange();
         this.notifySelectionChange();
+
+        if (page != null && this.pageReloadListener != null) {
+            this.pageReloadListener.accept(this);
+        }
     }
 
     private Page<ROW> createTableRowsFromPage(final Page<ROW> page) {

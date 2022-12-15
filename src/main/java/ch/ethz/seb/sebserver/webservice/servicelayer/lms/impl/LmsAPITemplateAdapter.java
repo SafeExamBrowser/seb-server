@@ -19,7 +19,6 @@ import org.springframework.core.env.Environment;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
-import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker.State;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
@@ -45,8 +44,6 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
     /** CircuitBreaker for protected lmsTestRequest */
     private final CircuitBreaker<LmsSetupTestResult> lmsTestRequest;
-    /** CircuitBreaker for protected quiz and course data requests */
-    private final CircuitBreaker<List<QuizData>> allQuizzesRequest;
     /** CircuitBreaker for protected quiz and course data requests */
     private final CircuitBreaker<Collection<QuizData>> quizzesRequest;
     /** CircuitBreaker for protected quiz and course data requests */
@@ -81,20 +78,6 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                         Constants.SECOND_IN_MILLIS * 20),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.lmsTestRequest.timeToRecover",
-                        Long.class,
-                        0L));
-
-        this.allQuizzesRequest = asyncService.createCircuitBreaker(
-                environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
-                        Integer.class,
-                        1),
-                environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.quizzesRequest.blockingTime",
-                        Long.class,
-                        Constants.SECOND_IN_MILLIS * 20),
-                environment.getProperty(
-                        "sebserver.webservice.circuitbreaker.quizzesRequest.timeToRecover",
                         Long.class,
                         0L));
 
@@ -223,19 +206,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     }
 
     @Override
-    public FetchStatus getFetchStatus() {
-        if (this.courseAccessAPI == null) {
-            return FetchStatus.FETCH_ERROR;
-        }
-
-        if (this.allQuizzesRequest.getState() != State.CLOSED) {
-            return FetchStatus.FETCH_ERROR;
-        }
-
-        return this.courseAccessAPI.getFetchStatus();
-    }
-
-    @Override
+    @Deprecated
     public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
 
         if (this.courseAccessAPI == null) {
@@ -247,12 +218,27 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Get quizzes for LMSSetup: {}", lmsSetup());
         }
 
-        return this.allQuizzesRequest.protectedRun(() -> this.courseAccessAPI
+        return this.courseAccessAPI
                 .getQuizzes(filterMap)
                 .onError(error -> log.error(
                         "Failed to run protectedQuizzesRequest: {}",
-                        error.getMessage()))
-                .getOrThrow());
+                        error.getMessage()));
+    }
+
+    @Override
+    public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
+        if (this.courseAccessAPI == null) {
+            asyncQuizFetchBuffer.finish(new UnsupportedOperationException(
+                    "Course API Not Supported For: " + getType().name()));
+            return;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Get quizzes for LMSSetup: {}", lmsSetup());
+        }
+
+        this.courseAccessAPI.fetchQuizzes(filterMap, asyncQuizFetchBuffer);
+        asyncQuizFetchBuffer.finish();
     }
 
     @Override

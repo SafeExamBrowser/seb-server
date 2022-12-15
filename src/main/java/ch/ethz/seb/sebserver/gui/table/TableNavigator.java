@@ -15,6 +15,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import ch.ethz.seb.sebserver.gbl.model.ModelIdAware;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
@@ -37,13 +38,13 @@ public class TableNavigator {
         this.composite = new Composite(entityTable.composite, SWT.NONE);
         final GridData gridData = new GridData(SWT.LEFT, SWT.CENTER, true, true);
         this.composite.setLayoutData(gridData);
-        final GridLayout layout = new GridLayout(3, false);
+        final GridLayout layout = new GridLayout(4, false);
         this.composite.setLayout(layout);
 
         this.entityTable = entityTable;
     }
 
-    public Page<?> update(final Page<?> pageData) {
+    public <ROW extends ModelIdAware> Page<ROW> update(final Page<ROW> pageData) {
         if (this.composite == null) {
             return pageData;
         }
@@ -108,7 +109,8 @@ public class TableNavigator {
         gridData.minimumWidth = 100;
         gridData.heightHint = 16;
         pageHeader.setLayoutData(gridData);
-        pageHeader.setText("Page " + page + " / " + of);
+        final String headerText = "Page " + page + " / " + of;
+        pageHeader.setText(headerText);
     }
 
     private void createPageNumberLabel(

@@ -27,6 +27,7 @@ public final class Page<T> {
     public static final String ATTR_PAGE_NUMBER = "page_number";
     public static final String ATTR_PAGE_SIZE = "page_size";
     public static final String ATTR_SORT = "sort";
+    public static final String ATTR_COMPLETE = "complete";
     public static final String ATTR_CONTENT = "content";
 
     @JsonProperty(ATTR_NUMBER_OF_PAGES)
@@ -37,6 +38,8 @@ public final class Page<T> {
     public final Integer pageSize;
     @JsonProperty(ATTR_SORT)
     public final String sort;
+    @JsonProperty(ATTR_COMPLETE)
+    public final boolean complete;
 
     @JsonProperty(ATTR_CONTENT)
     public final List<T> content;
@@ -46,13 +49,29 @@ public final class Page<T> {
             @JsonProperty(ATTR_NUMBER_OF_PAGES) final Integer numberOfPages,
             @JsonProperty(ATTR_PAGE_NUMBER) final Integer pageNumber,
             @JsonProperty(ATTR_SORT) final String sort,
-            @JsonProperty(ATTR_CONTENT) final Collection<T> content) {
+            @JsonProperty(ATTR_CONTENT) final Collection<T> content,
+            @JsonProperty(ATTR_COMPLETE) final boolean complet) {
 
         this.numberOfPages = numberOfPages;
         this.pageNumber = pageNumber;
         this.content = Utils.immutableListOf(content);
         this.pageSize = content.size();
         this.sort = sort;
+        this.complete = complet;
+    }
+
+    public Page(
+            final Integer numberOfPages,
+            final Integer pageNumber,
+            final String sort,
+            final Collection<T> content) {
+
+        this.numberOfPages = numberOfPages;
+        this.pageNumber = pageNumber;
+        this.content = Utils.immutableListOf(content);
+        this.pageSize = content.size();
+        this.sort = sort;
+        this.complete = true;
     }
 
     public int getNumberOfPages() {
@@ -65,6 +84,10 @@ public final class Page<T> {
 
     public int getPageSize() {
         return (this.pageSize != null) ? this.pageSize : -1;
+    }
+
+    public boolean isComplete() {
+        return this.complete;
     }
 
     public Collection<T> getContent() {

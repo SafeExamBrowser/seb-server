@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDateTime;
@@ -235,62 +236,20 @@ public final class QuizData implements GrantEntity {
         return builder.toString();
     }
 
-    public static Comparator<QuizData> getIdComparator(final boolean descending) {
-        return (qd1, qd2) -> ((qd1 == qd2)
-                ? 0
-                : (qd1 == null || qd1.id == null)
-                        ? 1
-                        : (qd2 == null || qd2.id == null)
-                                ? -1
-                                : qd1.id.compareTo(qd2.id))
-                * ((descending) ? -1 : 1);
-    }
-
-    public static Comparator<QuizData> getNameComparator(final boolean descending) {
-        return (qd1, qd2) -> ((qd1 == qd2)
-                ? 0
-                : (qd1 == null || qd1.name == null)
-                        ? 1
-                        : (qd2 == null || qd2.name == null)
-                                ? -1
-                                : qd1.name.compareTo(qd2.name))
-                * ((descending) ? -1 : 1);
-    }
-
-    public static Comparator<QuizData> getStartTimeComparator(final boolean descending) {
-        return (qd1, qd2) -> ((qd1 == qd2)
-                ? 0
-                : (qd1 == null || qd1.startTime == null)
-                        ? 1
-                        : (qd2 == null || qd2.startTime == null)
-                                ? -1
-                                : qd1.startTime.compareTo(qd2.startTime))
-                * ((descending) ? -1 : 1);
-    }
-
-    public static Comparator<QuizData> getEndTimeComparator(final boolean descending) {
-        return (qd1, qd2) -> ((qd1 == qd2)
-                ? 0
-                : (qd1 == null || qd1.endTime == null)
-                        ? 1
-                        : (qd2 == null || qd2.endTime == null)
-                                ? -1
-                                : qd1.endTime.compareTo(qd2.endTime))
-                * ((descending) ? -1 : 1);
-    }
-
     public static Comparator<QuizData> getComparator(final String sort) {
         final boolean descending = PageSortOrder.getSortOrder(sort) == PageSortOrder.DESCENDING;
         final String sortParam = PageSortOrder.decode(sort);
         if (QUIZ_ATTR_NAME.equals(sortParam)) {
-            return getNameComparator(descending);
+            return (qd1, qd2) -> StringUtils.compare(qd1.name, qd2.name) * ((descending) ? -1 : 1);
         } else if (QUIZ_ATTR_START_TIME.equals(sortParam)) {
-            return getStartTimeComparator(descending);
+            return (qd1, qd2) -> Utils.compareDateTime(qd1.startTime, qd2.startTime, descending);
         } else if (QUIZ_ATTR_END_TIME.equals(sortParam)) {
-            return getEndTimeComparator(descending);
+            return (qd1, qd2) -> Utils.compareDateTime(qd1.endTime, qd2.endTime, descending);
+        } else if (QUIZ_ATTR_LMS_SETUP_ID.equals(sortParam)) {
+            return (qd1, qd2) -> Utils.compareIds(qd1.lmsSetupId, qd2.lmsSetupId, descending);
         }
 
-        return getIdComparator(descending);
+        return (qd1, qd2) -> StringUtils.compare(qd1.id, qd2.id) * ((descending) ? -1 : 1);
     }
 
 }

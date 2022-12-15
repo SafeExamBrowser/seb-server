@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -180,6 +181,18 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                 .map(quizzes -> quizzes.stream()
                         .filter(LmsAPIService.quizFilterPredicate(filterMap))
                         .collect(Collectors.toList()));
+    }
+
+    @Override
+    public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
+        this.allQuizzesRequest(filterMap)
+                .onError(error -> asyncQuizFetchBuffer.finish(error))
+                .getOr(Collections.emptyList())
+                .stream()
+                .filter(LmsAPIService.quizFilterPredicate(filterMap))
+                .forEach(qd -> asyncQuizFetchBuffer.buffer.add(qd));
+
+        asyncQuizFetchBuffer.finish();
     }
 
     @Override

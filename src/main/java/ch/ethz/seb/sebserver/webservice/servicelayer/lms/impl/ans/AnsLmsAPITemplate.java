@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -169,6 +170,18 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
                 .map(quizzes -> quizzes.stream()
                         .filter(LmsAPIService.quizFilterPredicate(filterMap))
                         .collect(Collectors.toList()));
+    }
+
+    @Override
+    public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
+        this.allQuizzesRequest(filterMap)
+                .onError(error -> asyncQuizFetchBuffer.finish(error))
+                .getOr(Collections.emptyList())
+                .stream()
+                .filter(LmsAPIService.quizFilterPredicate(filterMap))
+                .forEach(qd -> asyncQuizFetchBuffer.buffer.add(qd));
+
+        asyncQuizFetchBuffer.finish();
     }
 
     @Override

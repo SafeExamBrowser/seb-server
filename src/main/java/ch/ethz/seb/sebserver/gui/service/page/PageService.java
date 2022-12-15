@@ -47,6 +47,7 @@ import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.event.PageEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageState;
+import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
@@ -89,6 +90,8 @@ public interface PageService {
      *
      * @return the I18nSupport (internationalization support) service */
     I18nSupport getI18nSupport();
+
+    ServerPushService getServerPushService();
 
     /** Get the ResourceService
      *

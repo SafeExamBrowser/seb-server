@@ -10,9 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -45,6 +43,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.QuizLookupService;
 
 @Lazy
 @Service
@@ -56,20 +55,22 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     private final WebserviceInfo webserviceInfo;
     private final LmsSetupDAO lmsSetupDAO;
     private final ClientCredentialService clientCredentialService;
+    private final QuizLookupService quizLookupService;
     private final EnumMap<LmsType, LmsAPITemplateFactory> templateFactories;
 
-    // TODO use also EHCache here
     private final Map<CacheKey, LmsAPITemplate> cache = new ConcurrentHashMap<>();
 
     public LmsAPIServiceImpl(
             final WebserviceInfo webserviceInfo,
             final LmsSetupDAO lmsSetupDAO,
             final ClientCredentialService clientCredentialService,
+            final QuizLookupService quizLookupService,
             final Collection<LmsAPITemplateFactory> lmsAPITemplateFactories) {
 
         this.webserviceInfo = webserviceInfo;
         this.lmsSetupDAO = lmsSetupDAO;
         this.clientCredentialService = clientCredentialService;
+        this.quizLookupService = quizLookupService;
 
         final Map<LmsType, LmsAPITemplateFactory> factories = lmsAPITemplateFactories
                 .stream()
@@ -99,6 +100,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         if (removedTemplate != null) {
             removedTemplate.clearCourseCache();
         }
+        this.quizLookupService.clear(lmsSetup.institutionId);
     }
 
     @Override
@@ -119,9 +121,12 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             final String sort,
             final FilterMap filterMap) {
 
-        return getAllQuizzesFromLMSSetups(filterMap)
-                .map(LmsAPIService.quizzesSortFunction(sort))
-                .map(LmsAPIService.quizzesToPageFunction(sort, pageNumber, pageSize));
+        return this.quizLookupService.requestQuizDataPage(
+                pageNumber,
+                pageSize,
+                sort,
+                filterMap,
+                this::getLmsAPITemplate);
     }
 
     @Override
@@ -178,51 +183,39 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         return LmsSetupTestResult.ofOkay(lmsSetupTemplate.lmsSetup().getLmsType());
     }
 
-    /** Collect all QuizData from all affecting LmsSetup.
-     * If filterMap contains a LmsSetup identifier, only the QuizData from that LmsSetup is collected.
-     * Otherwise QuizData from all active LmsSetup of the current institution are collected.
-     *
-     * @param filterMap the FilterMap containing either an LmsSetup identifier or an institution identifier
-     * @return list of QuizData from all affecting LmsSetup */
-    private Result<List<QuizData>> getAllQuizzesFromLMSSetups(final FilterMap filterMap) {
-
-        return Result.tryCatch(() -> {
-            // case 1. if lmsSetupId is available only get quizzes from specified LmsSetup
-            final Long lmsSetupId = filterMap.getLmsSetupId();
-            if (lmsSetupId != null) {
-                try {
-                    final Long institutionId = filterMap.getInstitutionId();
-
-                    final LmsAPITemplate template = getLmsAPITemplate(lmsSetupId)
-                            .getOrThrow();
-
-                    if (institutionId != null && !institutionId.equals(template.lmsSetup().institutionId)) {
-                        return Collections.emptyList();
-                    }
-                    return template
-                            .getQuizzes(filterMap)
-                            .getOrThrow();
-                } catch (final Exception e) {
-                    log.error("Failed to get quizzes from LMS Setup: {}", lmsSetupId, e);
-                    return Collections.emptyList();
-                }
-            }
-
-            // case 2. get quizzes from all LmsSetups of specified institution
-            final Long institutionId = filterMap.getInstitutionId();
-            return this.lmsSetupDAO.all(institutionId, true)
-                    .getOrThrow()
-                    .parallelStream()
-                    .map(LmsSetup::getModelId)
-                    .map(this::getLmsAPITemplate)
-                    .flatMap(Result::onErrorLogAndSkip)
-                    .map(template -> template.getQuizzes(filterMap))
-                    .flatMap(Result::onErrorLogAndSkip)
-                    .flatMap(List::stream)
-                    .distinct()
-                    .collect(Collectors.toList());
-        });
-    }
+//    /** Collect all QuizData from all affecting LmsSetup.
+//     * If filterMap contains a LmsSetup identifier, only the QuizData from that LmsSetup is collected.
+//     * Otherwise QuizData from all active LmsSetup of the current institution are collected.
+//     *
+//     * @param filterMap the FilterMap containing either an LmsSetup identifier or an institution identifier
+//     * @return list of QuizData from all affecting LmsSetup */
+//    private Result<List<QuizData>> getAllQuizzesFromLMSSetups(final FilterMap filterMap) {
+//
+//        // case 1. if lmsSetupId is available only get quizzes from specified LmsSetup
+//        final Long lmsSetupId = filterMap.getLmsSetupId();
+//        if (lmsSetupId != null) {
+//            return getQuizzesForSingleLMS(filterMap, lmsSetupId);
+//        }
+//
+//        // case 2. get quizzes from all LmsSetups of specified institution
+//        return this.quizLookupService.getAllQuizzesFromLMSSetups(
+//                filterMap,
+//                this::getLmsAPITemplate);
+//
+////            final Long institutionId = filterMap.getInstitutionId();
+////            return this.lmsSetupDAO.all(institutionId, true)
+////                    .getOrThrow()
+////                    .parallelStream()
+////                    .map(LmsSetup::getModelId)
+////                    .map(this::getLmsAPITemplate)
+////                    .flatMap(Result::onErrorLogAndSkip)
+////                    .map(template -> template.getQuizzes(filterMap))
+////                    .flatMap(Result::onErrorLogAndSkip)
+////                    .flatMap(List::stream)
+////                    .distinct()
+////                    .collect(Collectors.toList());
+//
+//    }
 
     private LmsAPITemplate getFromCache(final String lmsSetupId) {
         // first cleanup the cache by removing old instances
@@ -244,6 +237,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
             final LmsSetup lmsSetup = lmsAPITemplate.lmsSetup();
             if (!this.lmsSetupDAO.isUpToDate(lmsSetup)) {
                 this.cache.remove(cacheKey);
+                this.quizLookupService.clear(lmsSetup.institutionId);
                 return null;
             }
         }

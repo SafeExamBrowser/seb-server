@@ -724,6 +724,15 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertNotNull(quizPageCall);
         assertFalse(quizPageCall.hasError());
         quizPage = quizPageCall.get();
+        while (!quizPage.complete) {
+            // get again to complete
+            quizPageCall = restService
+                    .getBuilder(GetQuizPage.class)
+                    .call();
+            assertNotNull(quizPageCall);
+            assertFalse(quizPageCall.hasError());
+            quizPage = quizPageCall.get();
+        }
         assertFalse(quizPage.isEmpty());
 
         // change the name of LMS Setup and check modification update

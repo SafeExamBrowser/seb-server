@@ -858,4 +858,34 @@ public final class Utils {
         return new LocTextKey(key.name + ".filter" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
     }
 
+    public static void sleep(final int i) {
+        try {
+            Thread.sleep(i);
+        } catch (final Exception e) {
+            // silently
+        }
+    }
+
+    public static int compareDateTime(final DateTime dt1, final DateTime dt2, final boolean descending) {
+        return ((dt1 == dt2)
+                ? 0
+                : (dt1 == null || dt1 == null)
+                        ? 1
+                        : (dt2 == null || dt2 == null)
+                                ? -1
+                                : dt1.compareTo(dt2))
+                * ((descending) ? -1 : 1);
+    }
+
+    public static int compareIds(final Long id1, final Long id2, final boolean descending) {
+        return ((id1 == id2)
+                ? 0
+                : (id1 == null || id1 == null)
+                        ? 1
+                        : (id2 == null || id2 == null)
+                                ? -1
+                                : id1.compareTo(id2))
+                * ((descending) ? -1 : 1);
+    }
+
 }

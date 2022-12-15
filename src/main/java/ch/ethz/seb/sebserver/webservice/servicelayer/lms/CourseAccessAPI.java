@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -61,7 +62,10 @@ public interface CourseAccessAPI {
      *
      * @return Result of an unsorted List of filtered {@link QuizData } from the LMS course/quiz API
      *         or refer to an error when happened */
+    @Deprecated
     Result<List<QuizData>> getQuizzes(FilterMap filterMap);
+
+    void fetchQuizzes(FilterMap filterMap, AsyncQuizFetchBuffer asyncQuizFetchBuffer);
 
     /** Get all {@link QuizData } for the set of {@link QuizData } identifiers from LMS API in a collection
      * of Result. If particular quizzes cannot be loaded because of errors or deletion,
@@ -109,8 +113,25 @@ public interface CourseAccessAPI {
      * @return Result referencing to the Chapters model for the given course or to an error when happened. */
     Result<Chapters> getCourseChapters(String courseId);
 
-    default FetchStatus getFetchStatus() {
-        return FetchStatus.ALL_FETCHED;
+    static class AsyncQuizFetchBuffer {
+        public List<QuizData> buffer = new ArrayList<>();
+        public boolean finished = false;
+        public boolean canceled = false;
+        public Exception error = null;
+
+        public void finish() {
+            this.finished = true;
+        }
+
+        public void finish(final Exception error) {
+            this.error = error;
+            finish();
+        }
+
+        public void cancel() {
+            this.canceled = true;
+        }
+
     }
 
 }

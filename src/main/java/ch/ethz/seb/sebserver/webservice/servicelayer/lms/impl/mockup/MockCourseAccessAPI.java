@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,7 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
@@ -40,6 +42,8 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
     private final Collection<QuizData> mockups;
     private final WebserviceInfo webserviceInfo;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
+    private final Random random = new Random();
+    private final boolean simulateLatency = false;
 
     public MockCourseAccessAPI(
             final APITemplateDataSupplier apiTemplateDataSupplier,
@@ -162,12 +166,46 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
                 throw new IllegalArgumentException("Wrong clientId or secret");
             }
 
+            if (this.simulateLatency) {
+                final int seconds = this.random.nextInt(20);
+                System.out.println("************ Mockup LMS wait for " + seconds + " seconds before respond");
+                Thread.sleep(seconds * 1000);
+            }
+
             return this.mockups
                     .stream()
                     .map(this::getExternalAddressAlias)
                     .filter(LmsAPIService.quizFilterPredicate(filterMap))
                     .collect(Collectors.toList());
         });
+    }
+
+    @Override
+    public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
+        if (!authenticate()) {
+            asyncQuizFetchBuffer.finish(new IllegalArgumentException("Wrong clientId or secret"));
+            return;
+        }
+
+        final List<QuizData> collect = this.mockups
+                .stream()
+                .map(this::getExternalAddressAlias)
+                .filter(LmsAPIService.quizFilterPredicate(filterMap))
+                .collect(Collectors.toList());
+
+        for (final QuizData quizData : collect) {
+            if (asyncQuizFetchBuffer.canceled) {
+                return;
+            }
+            if (this.simulateLatency) {
+                final int seconds = this.random.nextInt(5);
+                System.out.println("************ Mockup LMS wait for " + seconds + " seconds before respond");
+                Utils.sleep(seconds * 1000);
+            }
+            asyncQuizFetchBuffer.buffer.add(quizData);
+        }
+
+        asyncQuizFetchBuffer.finish();
     }
 
     @Override

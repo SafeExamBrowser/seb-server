@@ -58,6 +58,10 @@ public final class ServerPushContext {
         return this.anchor;
     }
 
+    public void stop() {
+        this.internalStop = true;
+    }
+
     public void layout() {
         this.anchor.pack();
         this.anchor.layout();

@@ -114,6 +114,7 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
                 final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                         this.jsonMapper,
+                        this.asyncService,
                         moodleRestTemplateFactory,
                         asyncLoaderPrototype,
                         this.environment);

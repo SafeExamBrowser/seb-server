@@ -22,6 +22,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
+import ch.ethz.seb.sebserver.gbl.async.AsyncRunner;
+import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
@@ -34,6 +36,8 @@ public class MoodleCourseAccessTest {
 
     @Mock
     Environment env = new MockEnvironment();
+    @Mock
+    AsyncService asyncService = new AsyncService(new AsyncRunner());
 
     @Test
     public void testGetExamineeAccountDetails() {
@@ -72,6 +76,7 @@ public class MoodleCourseAccessTest {
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                 new JSONMapper(),
+                this.asyncService,
                 moodleRestTemplateFactory,
                 null,
                 this.env);
@@ -119,6 +124,7 @@ public class MoodleCourseAccessTest {
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                 new JSONMapper(),
+                this.asyncService,
                 moodleRestTemplateFactory,
                 null,
                 this.env);
@@ -140,6 +146,7 @@ public class MoodleCourseAccessTest {
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                 new JSONMapper(),
+                this.asyncService,
                 moodleRestTemplateFactory,
                 null,
                 this.env);
@@ -160,6 +167,7 @@ public class MoodleCourseAccessTest {
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
                 new JSONMapper(),
+                this.asyncService,
                 moodleRestTemplateFactory,
                 null,
                 this.env);

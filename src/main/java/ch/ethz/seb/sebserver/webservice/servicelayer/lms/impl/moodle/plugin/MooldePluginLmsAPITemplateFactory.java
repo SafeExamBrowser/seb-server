@@ -21,7 +21,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -30,7 +29,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsAPITemplateAdapter;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseDataAsyncLoader;
 
 @Lazy
 @Service
@@ -79,11 +77,6 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
     @Override
     public Result<LmsAPITemplate> create(final APITemplateDataSupplier apiTemplateDataSupplier) {
         return Result.tryCatch(() -> {
-
-            final LmsSetup lmsSetup = apiTemplateDataSupplier.getLmsSetup();
-            final MoodleCourseDataAsyncLoader asyncLoaderPrototype = this.applicationContext
-                    .getBean(MoodleCourseDataAsyncLoader.class);
-            asyncLoaderPrototype.init(lmsSetup.getModelId());
 
             final MoodleRestTemplateFactory moodleRestTemplateFactory = new MoodleRestTemplateFactory(
                     this.jsonMapper,

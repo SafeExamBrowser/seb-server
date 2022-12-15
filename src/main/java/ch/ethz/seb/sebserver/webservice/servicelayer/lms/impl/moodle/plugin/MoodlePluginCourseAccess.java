@@ -107,6 +107,12 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     }
 
     @Override
+    public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
     public Result<QuizData> getQuiz(final String id) {
         // TODO Auto-generated method stub
         return null;
