@@ -114,8 +114,6 @@ public interface LmsAPIService {
                     from == null || (q.startTime != null && (q.startTime.isEqual(from) || q.startTime.isAfter(from)));
             final DateTime endTime = now.isAfter(from) ? now : from;
             final boolean fromTimeFilter = (endTime == null || q.endTime == null || endTime.isBefore(q.endTime));
-            System.out
-                    .println("************ name: " + name + " " + (nameFilter && (startTimeFilter || fromTimeFilter)));
             return nameFilter && (startTimeFilter || fromTimeFilter);
         };
     }
