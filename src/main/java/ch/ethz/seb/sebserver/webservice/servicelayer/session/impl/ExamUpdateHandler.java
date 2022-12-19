@@ -56,6 +56,7 @@ class ExamUpdateHandler {
     private final LmsAPIService lmsAPIService;
     private final String updatePrefix;
     private final Long examTimeSuffix;
+    private final boolean tryRecoverExam;
 
     public ExamUpdateHandler(
             final ExamDAO examDAO,
@@ -63,7 +64,8 @@ class ExamUpdateHandler {
             final SEBRestrictionService sebRestrictionService,
             final LmsAPIService lmsAPIService,
             final WebserviceInfo webserviceInfo,
-            @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix) {
+            @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,
+            @Value("${sebserver.webservice.api.exam.tryrecover:false}") final boolean tryRecoverExam) {
 
         this.examDAO = examDAO;
         this.applicationEventPublisher = applicationEventPublisher;
@@ -72,6 +74,7 @@ class ExamUpdateHandler {
         this.updatePrefix = webserviceInfo.getLocalHostAddress()
                 + "_" + webserviceInfo.getServerPort() + "_";
         this.examTimeSuffix = examTimeSuffix;
+        this.tryRecoverExam = tryRecoverExam;
     }
 
     public SEBRestrictionService getSEBRestrictionService() {
@@ -158,7 +161,7 @@ class ExamUpdateHandler {
                         }
                     });
 
-            if (!failedOrMissing.isEmpty()) {
+            if (!failedOrMissing.isEmpty() && this.tryRecoverExam) {
                 new HashSet<>(failedOrMissing).stream()
                         .forEach(quizId -> tryRecoverQuizData(quizId, lmsSetupId, exams, updateId)
                                 .onSuccess(quizData -> failedOrMissing.remove(quizId)));
