@@ -145,20 +145,15 @@ public class ExamAPI_V1_Controller {
                                 .filter(this::checkConsistency)
                                 .collect(Collectors.toList());
                     } else {
+
                         final Exam exam = this.examSessionService
                                 .getExamDAO()
                                 .byPK(examId)
                                 .getOrThrow();
 
                         result = Arrays.asList(createRunningExamInfo(exam));
-
-                        this.examSessionService
-                                .getAppSignatureKeySalt(clientConnection.examId)
-                                .onSuccess(salt -> response.setHeader(API.EXAM_API_EXAM_SIGNATURE_SALT_HEADER, salt))
-                                .onError(error -> log.error(
-                                        "Failed to get security key salt for connection: {}",
-                                        clientConnection,
-                                        error));
+                        processASKSalt(response, clientConnection);
+                        processAlternativeBEK(response, clientConnection.examId);
                     }
 
                     if (result.isEmpty()) {
@@ -209,27 +204,23 @@ public class ExamAPI_V1_Controller {
                     final String remoteAddr = this.getClientAddress(request);
                     final Long institutionId = getInstitutionId(principal);
 
-                    final ClientConnection clientConnection = this.sebClientConnectionService.updateClientConnection(
-                            connectionToken,
-                            institutionId,
-                            examId,
-                            remoteAddr,
-                            sebVersion,
-                            sebOSName,
-                            sebMachinName,
-                            userSessionId,
-                            clientId,
-                            browserSignatureKey)
+                    final ClientConnection clientConnection = this.sebClientConnectionService
+                            .updateClientConnection(
+                                    connectionToken,
+                                    institutionId,
+                                    examId,
+                                    remoteAddr,
+                                    sebVersion,
+                                    sebOSName,
+                                    sebMachinName,
+                                    userSessionId,
+                                    clientId,
+                                    browserSignatureKey)
                             .getOrThrow();
 
                     if (clientConnection.examId != null) {
-                        this.examSessionService
-                                .getAppSignatureKeySalt(clientConnection.examId)
-                                .onSuccess(salt -> response.setHeader(API.EXAM_API_EXAM_SIGNATURE_SALT_HEADER, salt))
-                                .onError(error -> log.error(
-                                        "Failed to get security key salt for connection: {}",
-                                        clientConnection,
-                                        error));
+                        processASKSalt(response, clientConnection);
+                        processAlternativeBEK(response, clientConnection.examId);
                     }
                 },
                 this.executor);
@@ -251,7 +242,8 @@ public class ExamAPI_V1_Controller {
                     required = false) final String browserSignatureKey,
             @RequestParam(name = API.EXAM_API_PARAM_CLIENT_ID, required = false) final String clientId,
             final Principal principal,
-            final HttpServletRequest request) {
+            final HttpServletRequest request,
+            final HttpServletResponse response) {
 
         return CompletableFuture.runAsync(
                 () -> {
@@ -259,18 +251,23 @@ public class ExamAPI_V1_Controller {
                     final String remoteAddr = this.getClientAddress(request);
                     final Long institutionId = getInstitutionId(principal);
 
-                    this.sebClientConnectionService.establishClientConnection(
-                            connectionToken,
-                            institutionId,
-                            examId,
-                            remoteAddr,
-                            sebVersion,
-                            sebOSName,
-                            sebMachinName,
-                            userSessionId,
-                            clientId,
-                            browserSignatureKey)
+                    final ClientConnection clientConnection = this.sebClientConnectionService
+                            .establishClientConnection(
+                                    connectionToken,
+                                    institutionId,
+                                    examId,
+                                    remoteAddr,
+                                    sebVersion,
+                                    sebOSName,
+                                    sebMachinName,
+                                    userSessionId,
+                                    clientId,
+                                    browserSignatureKey)
                             .getOrThrow();
+
+                    if (clientConnection.examId != null) {
+                        processAlternativeBEK(response, clientConnection.examId);
+                    }
                 },
                 this.executor);
     }
@@ -465,6 +462,25 @@ public class ExamAPI_V1_Controller {
             log.warn("Failed to verify client IP address: {}", e.getMessage());
             return request.getHeader("X-FORWARDED-FOR");
         }
+    }
+
+    private void processASKSalt(final HttpServletResponse response, final ClientConnection clientConnection) {
+        this.examSessionService
+                .getAppSignatureKeySalt(clientConnection.examId)
+                .onSuccess(salt -> response.setHeader(API.EXAM_API_EXAM_SIGNATURE_SALT_HEADER, salt))
+                .onError(error -> log.error(
+                        "Failed to get security key salt for connection: {}",
+                        clientConnection,
+                        error));
+    }
+
+    private void processAlternativeBEK(final HttpServletResponse response, final Long examId) {
+        if (examId == null) {
+            return;
+        }
+        this.examSessionService.getRunningExam(examId)
+                .map(exam -> exam.getAdditionalAttribute(Exam.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK))
+                .onSuccess(bek -> response.setHeader(API.EXAM_API_EXAM_ALT_BEK, bek));
     }
 
 }

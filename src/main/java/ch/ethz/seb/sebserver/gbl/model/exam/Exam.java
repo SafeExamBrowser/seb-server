@@ -69,8 +69,10 @@ public final class Exam implements GrantEntity {
     public static final String ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD = "NUMERICAL_TRUST_THRESHOLD";
     /** This attribute name is used to store the signature check encryption certificate is one is used */
     public static final String ADDITIONAL_ATTR_SIGNATURE_KEY_CERT_ALIAS = "SIGNATURE_KEY_CERT_ALIAS";
-
+    /** This attribute name is used to store the per exam generated app-signature-key encryption salt */
     public static final String ADDITIONAL_ATTR_SIGNATURE_KEY_SALT = "SIGNATURE_KEY_SALT";
+    /** This attribute name is used to store the per Moolde(plugin) exam generated alternative BEK */
+    public static final String ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK = "ALTERNATIVE_SEB_BEK";
 
     public enum ExamStatus {
         UP_COMING,

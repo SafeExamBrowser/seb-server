@@ -343,7 +343,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
 
     private String createSignatureHash(final CharSequence signature) {
         try {
-            final MessageDigest hasher = MessageDigest.getInstance("SHA-256");
+            final MessageDigest hasher = MessageDigest.getInstance(Constants.SHA_256);
             hasher.update(Utils.toByteArray(signature));
             final String signatureHash = Hex.toHexString(hasher.digest());
             return signatureHash;

@@ -512,8 +512,13 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     protected Result<Exam> notifyCreated(final Exam entity) {
         final List<APIMessage> errors = new ArrayList<>();
 
-        this.examTemplateService
-                .addDefinedIndicators(entity)
+        this.examAdminService
+                .initAdditionalAttributes(entity)
+                .onErrorDo(error -> {
+                    errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error));
+                    return entity;
+                })
+                .flatMap(this.examTemplateService::addDefinedIndicators)
                 .onErrorDo(error -> {
                     errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_INDICATOR.of(error));
                     return entity;
@@ -549,7 +554,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     API.PARAM_MODEL_ID + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + entity.getModelId()));
             throw new APIMessageException(errors);
         } else {
-            return Result.of(entity);
+            return this.examDAO.byPK(entity.id);
         }
     }
 

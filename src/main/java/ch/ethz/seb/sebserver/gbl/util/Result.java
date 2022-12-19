@@ -209,6 +209,9 @@ public final class Result<T> {
                 if (result instanceof Result) {
                     throw new IllegalArgumentException("Use flatMap instead!");
                 }
+                if (result == null) {
+                    return Result.ofError(new RuntimeException("Map to null value."));
+                }
                 return Result.of(result);
             } catch (final Exception e) {
                 return Result.ofError(e);

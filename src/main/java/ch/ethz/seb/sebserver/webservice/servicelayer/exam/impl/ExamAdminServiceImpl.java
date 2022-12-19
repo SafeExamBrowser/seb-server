@@ -8,14 +8,19 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.util.encoders.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +40,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
@@ -59,6 +65,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final LmsAPIService lmsAPIService;
+    private final boolean appSignatureKeyEnabled;
+    private final int defaultNumericalTrustThreshold;
 
     protected ExamAdminServiceImpl(
             final ExamDAO examDAO,
@@ -66,7 +74,9 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final AdditionalAttributesDAO additionalAttributesDAO,
             final ConfigurationNodeDAO configurationNodeDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
-            final LmsAPIService lmsAPIService) {
+            final LmsAPIService lmsAPIService,
+            final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.enabled:false}") boolean appSignatureKeyEnabled,
+            final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.numerical.threshold:2}") int defaultNumericalTrustThreshold) {
 
         this.examDAO = examDAO;
         this.proctoringServiceSettingsService = proctoringServiceSettingsService;
@@ -74,11 +84,41 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         this.configurationNodeDAO = configurationNodeDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.lmsAPIService = lmsAPIService;
+        this.appSignatureKeyEnabled = appSignatureKeyEnabled;
+        this.defaultNumericalTrustThreshold = defaultNumericalTrustThreshold;
     }
 
     @Override
     public Result<Exam> examForPK(final Long examId) {
         return this.examDAO.byPK(examId);
+    }
+
+    @Override
+    public Result<Exam> initAdditionalAttributes(final Exam exam) {
+        return Result.tryCatch(() -> {
+            final Long examId = exam.getId();
+
+            // initialize App-Signature-Key feature attributes
+            this.additionalAttributesDAO.initAdditionalAttribute(
+                    EntityType.EXAM,
+                    examId,
+                    Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED,
+                    String.valueOf(this.appSignatureKeyEnabled));
+
+            this.additionalAttributesDAO.initAdditionalAttribute(
+                    EntityType.EXAM,
+                    examId,
+                    Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD,
+                    String.valueOf(this.defaultNumericalTrustThreshold));
+
+            this.additionalAttributesDAO.initAdditionalAttribute(
+                    EntityType.EXAM,
+                    examId,
+                    Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_SALT,
+                    KeyGenerators.string().generateKey().toString());
+
+            return exam;
+        });
     }
 
     @Override
@@ -148,7 +188,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     public Result<Exam> saveLMSAttributes(final Exam exam) {
-        return saveAdditionalAttributesForMoodleExams(exam);
+        return initAdditionalAttributesForMoodleExams(exam);
     }
 
     @Override
@@ -208,7 +248,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                         .getExamProctoringService(settings.serverType));
     }
 
-    private Result<Exam> saveAdditionalAttributesForMoodleExams(final Exam exam) {
+    private Result<Exam> initAdditionalAttributesForMoodleExams(final Exam exam) {
         return Result.tryCatch(() -> {
             final LmsAPITemplate lmsTemplate = this.lmsAPIService
                     .getLmsAPITemplate(exam.lmsSetupId)
@@ -221,7 +261,26 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                                 exam.id,
                                 QuizData.QUIZ_ATTR_NAME,
                                 quizData.name))
-                        .getOrThrow();
+                        .onError(error -> log.error("Failed to create additional moodle quiz name attribute: ", error));
+            }
+
+            if (lmsTemplate.lmsSetup().lmsType == LmsType.MOODLE_PLUGIN) {
+                // Save additional Browser Exam Key for Moodle plugin integration SEBSERV-372
+                try {
+
+                    final String moodleBEKUUID = UUID.randomUUID().toString();
+                    final MessageDigest hasher = MessageDigest.getInstance(Constants.SHA_256);
+                    hasher.update(Utils.toByteArray(moodleBEKUUID));
+                    final String moodleBEK = Hex.toHexString(hasher.digest());
+
+                    this.additionalAttributesDAO.saveAdditionalAttribute(
+                            EntityType.EXAM,
+                            exam.id,
+                            Exam.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK,
+                            moodleBEK).getOrThrow();
+                } catch (final Exception e) {
+                    log.error("Failed to create additional moodle SEB BEK attribute: ", e);
+                }
             }
 
             return exam;

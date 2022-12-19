@@ -108,6 +108,8 @@ public final class API {
 
     public static final String EXAM_API_EXAM_SIGNATURE_SALT_HEADER = "SEBExamSalt";
 
+    public static final String EXAM_API_EXAM_ALT_BEK = "SEBServerBEK";
+
     public static final String EXAM_API_USER_SESSION_ID = "seb_user_session_id";
 
     public static final String EXAM_API_HANDSHAKE_ENDPOINT = "/handshake";

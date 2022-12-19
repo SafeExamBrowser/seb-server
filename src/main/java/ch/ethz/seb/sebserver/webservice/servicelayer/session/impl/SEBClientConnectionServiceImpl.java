@@ -173,7 +173,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 this.clientIndicatorFactory.initializeDistributedCaches(clientConnection);
             }
 
-            // flash connection token cache for exam if available
             if (examId != null) {
                 this.clientConnectionDAO.evictConnectionTokenCache(examId);
             }

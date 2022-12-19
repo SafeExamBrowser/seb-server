@@ -38,6 +38,12 @@ public interface ExamAdminService {
      * @return Result refer to the domain object or to an error when happened */
     Result<Exam> examForPK(Long examId);
 
+    /** Initializes initial additional attributes for a yet created exam.
+     *
+     * @param exam The exam that has been created
+     * @return The exam with the initial additional attributes */
+    Result<Exam> initAdditionalAttributes(final Exam exam);
+
     /** Saves additional attributes for the exam that are specific to a type of LMS
      *
      * @param exam The Exam to add the LMS specific attributes

@@ -63,6 +63,11 @@ public interface ExamSessionService {
      * @return the underling LmsAPIService */
     LmsAPIService getLmsAPIService();
 
+    /** Get the app-signature-key for the given exam.
+     * Ensures that if no app-signature-key exists already for the exam, a new on is created and stored
+     *
+     * @param examId The exam identifier
+     * @return App-Signature-Key value for the exam */
     Result<String> getAppSignatureKeySalt(Long examId);
 
     /** Use this to check the consistency of a running Exam.
