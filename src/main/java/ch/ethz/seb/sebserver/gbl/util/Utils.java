@@ -888,4 +888,23 @@ public final class Utils {
                 * ((descending) ? -1 : 1);
     }
 
+    public static String toFileName(final String name) {
+        if (name == null) {
+            return null;
+        }
+
+        return name
+                .replace("ä", "ae")
+                .replace("ö", "oe")
+                .replace("ü", "ue")
+                .replace("Ä", "Ae")
+                .replace("Ö", "Oe")
+                .replace("Ü", "Ue")
+                .replace("è", "e")
+                .replace("é", "e")
+                .replace("à", "a")
+                .replace(" ", "_")
+                .replaceAll("[^A-Za-z0-9_]", "");
+    }
+
 }

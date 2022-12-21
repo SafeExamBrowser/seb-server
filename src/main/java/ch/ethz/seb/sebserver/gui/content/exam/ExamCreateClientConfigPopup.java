@@ -14,7 +14,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.widgets.Composite;
@@ -74,8 +73,9 @@ public class ExamCreateClientConfigPopup {
         return action -> {
 
             final DateTime now = DateTime.now(DateTimeZone.UTC);
-            final String downloadFileName = StringUtils.remove(examName, " ") + "_" + now.getYear() + "-"
-                    + now.getMonthOfYear() + "-" + now.getDayOfMonth() + ".seb";
+            final String downloadFileName =
+                    Utils.toFileName(examName) + "_" + now.getYear() + "-"
+                            + now.getMonthOfYear() + "-" + now.getDayOfMonth() + ".seb";
 
             final ModalInputDialog<FormHandle<?>> dialog =
                     new ModalInputDialog<FormHandle<?>>(
