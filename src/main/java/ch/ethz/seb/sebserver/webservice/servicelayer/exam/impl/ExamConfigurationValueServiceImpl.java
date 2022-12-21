@@ -8,17 +8,23 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 
+@Lazy
 @Service
+@WebServiceProfile
 public class ExamConfigurationValueServiceImpl implements ExamConfigurationValueService {
 
     private static final Logger log = LoggerFactory.getLogger(ExamConfigurationValueServiceImpl.class);
@@ -27,17 +33,20 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
     private final ConfigurationDAO configurationDAO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
     private final ConfigurationValueDAO configurationValueDAO;
+    private final Cryptor cryptor;
 
     public ExamConfigurationValueServiceImpl(
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ConfigurationDAO configurationDAO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
-            final ConfigurationValueDAO configurationValueDAO) {
+            final ConfigurationValueDAO configurationValueDAO,
+            final Cryptor cryptor) {
 
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.configurationDAO = configurationDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
         this.configurationValueDAO = configurationValueDAO;
+        this.cryptor = cryptor;
     }
 
     @Override
@@ -62,6 +71,47 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to extract SEB settings attribute value:", e);
+            return null;
+        }
+    }
+
+    @Override
+    public String getQuitSecret(final Long examId) {
+        try {
+
+            final String quitSecretEncrypted = getMappedDefaultConfigAttributeValue(
+                    examId,
+                    CONFIG_ATTR_NAME_QUIT_SECRET);
+
+            if (StringUtils.isNotEmpty(quitSecretEncrypted)) {
+                try {
+
+                    return this.cryptor
+                            .decrypt(quitSecretEncrypted)
+                            .getOrThrow()
+                            .toString();
+
+                } catch (final Exception e) {
+                    log.error("Failed to decrypt quitSecret: ", e);
+                }
+            }
+        } catch (final Exception e) {
+            log.error("Failed to get SEB restriction with quit secret: ", e);
+        }
+
+        return null;
+    }
+
+    @Override
+    public String getQuitLink(final Long examId) {
+        try {
+
+            return getMappedDefaultConfigAttributeValue(
+                    examId,
+                    CONFIG_ATTR_NAME_QUIT_LINK);
+
+        } catch (final Exception e) {
+            log.error("Failed to get SEB restriction with quit link: ", e);
             return null;
         }
     }

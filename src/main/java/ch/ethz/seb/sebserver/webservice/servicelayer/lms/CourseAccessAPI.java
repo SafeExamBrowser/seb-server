@@ -8,8 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -113,10 +113,20 @@ public interface CourseAccessAPI {
      * @return Result referencing to the Chapters model for the given course or to an error when happened. */
     Result<Chapters> getCourseChapters(String courseId);
 
+    /** This is used to buffer fetch results of asynchronous LMS quiz data fetch processes.
+     * An asynchronous LMS quiz data fetch processes will buffer its fetch results within this buffer
+     * during processing and a request can get already buffered results on a none-blocking manner.
+     *
+     * Use it like a Future but with the ability to get already fetched data. */
     static class AsyncQuizFetchBuffer {
-        public List<QuizData> buffer = new ArrayList<>();
+
+        /** The buffer set where already fetched data is stored and can be get */
+        public Set<QuizData> buffer = new HashSet<>();
+        /** Indicates whether the asynchronous fetch is still running or has finished */
         public boolean finished = false;
+        /** Indicates if the fetch is been canceled. Set this to true to cancel the asynchronous process */
         public boolean canceled = false;
+        /** Reference to an error when the asynchronous fetch stopped with an error */
         public Exception error = null;
 
         public void finish() {

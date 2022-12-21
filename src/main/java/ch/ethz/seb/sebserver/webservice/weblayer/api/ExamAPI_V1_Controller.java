@@ -51,6 +51,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
@@ -479,7 +480,7 @@ public class ExamAPI_V1_Controller {
             return;
         }
         this.examSessionService.getRunningExam(examId)
-                .map(exam -> exam.getAdditionalAttribute(Exam.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK))
+                .map(exam -> exam.getAdditionalAttribute(SEBRestrictionService.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK))
                 .onSuccess(bek -> response.setHeader(API.EXAM_API_EXAM_ALT_BEK, bek));
     }
 

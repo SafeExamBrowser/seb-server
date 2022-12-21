@@ -38,7 +38,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamResetEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamStartedEvent;
@@ -402,7 +402,7 @@ class ExamUpdateHandler {
                     log.debug("Found formerName quiz name: {}", exam.name);
 
                     // get the course name identifier
-                    final String shortname = MoodleCourseAccess.getShortname(quizId);
+                    final String shortname = MoodleUtils.getShortname(quizId);
                     if (StringUtils.isNotBlank(shortname)) {
 
                         log.debug("Using short-name: {} for recovering", shortname);
@@ -412,7 +412,7 @@ class ExamUpdateHandler {
                                 .getOrThrow()
                                 .stream()
                                 .filter(quiz -> {
-                                    final String qShortName = MoodleCourseAccess.getShortname(quiz.id);
+                                    final String qShortName = MoodleUtils.getShortname(quiz.id);
                                     return qShortName != null && qShortName.equals(shortname);
                                 })
                                 .filter(quiz -> exam.name.equals(quiz.name))

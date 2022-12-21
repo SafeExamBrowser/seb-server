@@ -47,7 +47,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
@@ -68,14 +67,10 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     private static final String ADDITIONAL_ATTR_QUIT_LINK = "ADDITIONAL_ATTR_QUIT_LINK";
     private static final String ADDITIONAL_ATTR_QUIT_SECRET = "ADDITIONAL_ATTR_QUIT_SECRET";
 
-    private static final String CONFIG_ATTR_NAME_QUIT_LINK = "quitURL";
-    private static final String CONFIG_ATTR_NAME_QUIT_SECRET = "hashedQuitPassword";
-
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final ClientCredentialService clientCredentialService;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
     private final ExamConfigurationValueService examConfigurationValueService;
-    private final Cryptor cryptor;
     private final Long lmsSetupId;
 
     private OlatLmsRestTemplate cachedRestTemplate;
@@ -85,7 +80,6 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             final ClientCredentialService clientCredentialService,
             final APITemplateDataSupplier apiTemplateDataSupplier,
             final ExamConfigurationValueService examConfigurationValueService,
-            final Cryptor cryptor,
             final CacheManager cacheManager) {
 
         super(cacheManager);
@@ -94,7 +88,6 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         this.clientCredentialService = clientCredentialService;
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
         this.examConfigurationValueService = examConfigurationValueService;
-        this.cryptor = cryptor;
         this.lmsSetupId = apiTemplateDataSupplier.getLmsSetup().id;
     }
 
@@ -357,8 +350,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final RestrictionDataPost post = new RestrictionDataPost();
         post.browserExamKeys = new ArrayList<>(restriction.browserExamKeys);
         post.configKeys = new ArrayList<>(restriction.configKeys);
-        post.quitLink = this.getQuitLink(restriction.examId);
-        post.quitSecret = this.getQuitSecret(restriction.examId);
+        post.quitLink = this.examConfigurationValueService.getQuitLink(restriction.examId);
+        post.quitSecret = this.examConfigurationValueService.getQuitSecret(restriction.examId);
         final RestrictionData r =
                 this.apiPost(restTemplate, url, post, RestrictionDataPost.class, RestrictionData.class);
         return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());
@@ -474,45 +467,6 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             this.cachedRestTemplate = template;
             return this.cachedRestTemplate;
         });
-    }
-
-    private String getQuitSecret(final Long examId) {
-        try {
-
-            final String quitSecretEncrypted = this.examConfigurationValueService.getMappedDefaultConfigAttributeValue(
-                    examId,
-                    CONFIG_ATTR_NAME_QUIT_SECRET);
-
-            if (StringUtils.isNotEmpty(quitSecretEncrypted)) {
-                try {
-
-                    return this.cryptor
-                            .decrypt(quitSecretEncrypted)
-                            .getOrThrow()
-                            .toString();
-
-                } catch (final Exception e) {
-                    log.error("Failed to decrypt quitSecret: ", e);
-                }
-            }
-        } catch (final Exception e) {
-            log.error("Failed to get SEB restriction with quit secret: ", e);
-        }
-
-        return null;
-    }
-
-    private String getQuitLink(final Long examId) {
-        try {
-
-            return this.examConfigurationValueService.getMappedDefaultConfigAttributeValue(
-                    examId,
-                    CONFIG_ATTR_NAME_QUIT_LINK);
-
-        } catch (final Exception e) {
-            log.error("Failed to get SEB restriction with quit link: ", e);
-            return null;
-        }
     }
 
 }

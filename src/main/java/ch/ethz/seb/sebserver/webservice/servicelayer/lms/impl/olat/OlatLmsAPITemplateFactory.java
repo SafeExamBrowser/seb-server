@@ -18,7 +18,6 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
@@ -44,7 +43,6 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
     private final AsyncService asyncService;
     private final Environment environment;
     private final CacheManager cacheManager;
-    private final Cryptor cryptor;
 
     public OlatLmsAPITemplateFactory(
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
@@ -52,8 +50,7 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
             final ExamConfigurationValueService examConfigurationValueService,
             final AsyncService asyncService,
             final Environment environment,
-            final CacheManager cacheManager,
-            final Cryptor cryptor) {
+            final CacheManager cacheManager) {
 
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.clientCredentialService = clientCredentialService;
@@ -61,7 +58,6 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
         this.asyncService = asyncService;
         this.environment = environment;
         this.cacheManager = cacheManager;
-        this.cryptor = cryptor;
     }
 
     @Override
@@ -72,13 +68,14 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
     @Override
     public Result<LmsAPITemplate> create(final APITemplateDataSupplier apiTemplateDataSupplier) {
         return Result.tryCatch(() -> {
+
             final OlatLmsAPITemplate olatLmsAPITemplate = new OlatLmsAPITemplate(
                     this.clientHttpRequestFactoryService,
                     this.clientCredentialService,
                     apiTemplateDataSupplier,
                     this.examConfigurationValueService,
-                    this.cryptor,
                     this.cacheManager);
+
             return new LmsAPITemplateAdapter(
                     this.asyncService,
                     this.environment,

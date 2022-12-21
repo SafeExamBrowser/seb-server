@@ -17,24 +17,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -56,8 +50,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.CourseAccessAPI;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRestTemplate;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRestTemplate.Warning;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CoursePage;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseQuizData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.Courses;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseDataAsyncLoader.CourseDataShort;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseDataAsyncLoader.CourseQuizShort;
 
@@ -98,7 +97,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
     static final String MOODLE_COURSE_API_SEARCH_PAGE_SIZE = "perpage";
 
     private final JSONMapper jsonMapper;
-    private final MoodleRestTemplateFactory moodleRestTemplateFactory;
+    private final MoodleRestTemplateFactory restTemplateFactory;
     private final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader;
     private final boolean prependShortCourseName;
     private final CircuitBreaker<String> protectedMoodlePageCall;
@@ -110,13 +109,13 @@ public class MoodleCourseAccess implements CourseAccessAPI {
     public MoodleCourseAccess(
             final JSONMapper jsonMapper,
             final AsyncService asyncService,
-            final MoodleRestTemplateFactory moodleRestTemplateFactory,
+            final MoodleRestTemplateFactory restTemplateFactory,
             final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader,
             final Environment environment) {
 
         this.jsonMapper = jsonMapper;
         this.moodleCourseDataAsyncLoader = moodleCourseDataAsyncLoader;
-        this.moodleRestTemplateFactory = moodleRestTemplateFactory;
+        this.restTemplateFactory = restTemplateFactory;
 
         this.prependShortCourseName = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.lms.moodle.prependShortCourseName",
@@ -142,12 +141,12 @@ public class MoodleCourseAccess implements CourseAccessAPI {
     }
 
     APITemplateDataSupplier getApiTemplateDataSupplier() {
-        return this.moodleRestTemplateFactory.apiTemplateDataSupplier;
+        return this.restTemplateFactory.getApiTemplateDataSupplier();
     }
 
     @Override
     public LmsSetupTestResult testCourseAccessAPI() {
-        final LmsSetupTestResult attributesCheck = this.moodleRestTemplateFactory.test();
+        final LmsSetupTestResult attributesCheck = this.restTemplateFactory.test();
         if (!attributesCheck.isOk()) {
             return attributesCheck;
         }
@@ -155,7 +154,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
         final Result<MoodleAPIRestTemplate> restTemplateRequest = getRestTemplate();
         if (restTemplateRequest.hasError()) {
             final String message = "Failed to gain access token from Moodle Rest API:\n tried token endpoints: " +
-                    this.moodleRestTemplateFactory.knownTokenAccessPaths;
+                    this.restTemplateFactory.getKnownTokenAccessPaths();
             log.error(message + " cause: {}", restTemplateRequest.getError().getMessage());
             return LmsSetupTestResult.ofTokenRequestError(LmsType.MOODLE, message);
         }
@@ -189,12 +188,12 @@ public class MoodleCourseAccess implements CourseAccessAPI {
         try {
             int page = 0;
             final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+            final MoodleAPIRestTemplate restTemplate = getRestTemplate().getOrThrow();
             final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
                     ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
                     : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
 
             while (!asyncQuizFetchBuffer.finished && !asyncQuizFetchBuffer.canceled) {
-                final MoodleAPIRestTemplate restTemplate = getRestTemplate().getOrThrow();
                 // first get courses from Moodle for page
                 final Map<String, CourseData> courseData = new HashMap<>();
                 final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, page, this.pageSize);
@@ -236,15 +235,10 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                 }
 
                 if (courseQuizData.warnings != null && !courseQuizData.warnings.isEmpty()) {
-                    log.warn(
-                            "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
+                    MoodleUtils.logMoodleWarning(
+                            courseQuizData.warnings,
                             lmsSetup.name,
-                            MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME,
-                            courseQuizData.warnings.size(),
-                            courseQuizData.warnings.iterator().next().toString());
-                    if (log.isTraceEnabled()) {
-                        log.trace("All warnings from Moodle: {}", courseQuizData.warnings.toString());
-                    }
+                            MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME);
                 }
 
                 if (courseQuizData.quizzes == null || courseQuizData.quizzes.isEmpty()) {
@@ -255,7 +249,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
 
                 courseQuizData.quizzes
                         .stream()
-                        .filter(getQuizFilter())
+                        .filter(MoodleUtils.getQuizFilter())
                         .forEach(quiz -> {
                             final CourseData data = courseData.get(quiz.course);
                             if (data != null) {
@@ -266,9 +260,15 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                 courseData.values().stream()
                         .filter(c -> !c.quizzes.isEmpty())
                         .forEach(c -> asyncQuizFetchBuffer.buffer.addAll(
-                                quizDataOf(lmsSetup, c, urlPrefix).stream()
+                                MoodleUtils.quizDataOf(lmsSetup, c, urlPrefix, this.prependShortCourseName)
+                                        .stream()
                                         .filter(LmsAPIService.quizFilterPredicate(filterMap))
                                         .collect(Collectors.toList())));
+
+                if (asyncQuizFetchBuffer.buffer.size() > this.maxSize) {
+                    log.warn("Maximal moodle quiz fetch size of {} reached. Cancel fetch at this point.", this.maxSize);
+                    asyncQuizFetchBuffer.finish();
+                }
 
                 page++;
             }
@@ -298,8 +298,8 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             final Map<String, CourseDataShort> cachedCourseData = this.moodleCourseDataAsyncLoader
                     .getCachedCourseData();
 
-            final String courseId = getCourseId(id);
-            final String quizId = getQuizId(id);
+            final String courseId = MoodleUtils.getCourseId(id);
+            final String quizId = MoodleUtils.getQuizId(id);
             if (cachedCourseData.containsKey(courseId)) {
                 final CourseDataShort courseData = cachedCourseData.get(courseId);
                 final CourseQuizShort quiz = courseData.quizzes
@@ -352,7 +352,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                     MOODLE_USER_PROFILE_API_FUNCTION_NAME,
                     queryAttributes);
 
-            if (checkAccessDeniedError(userDetailsJSON)) {
+            if (MoodleUtils.checkAccessDeniedError(userDetailsJSON)) {
                 final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
                 log.error("Get access denied error from Moodle: {} for API call: {}, response: {}",
                         lmsSetup,
@@ -486,7 +486,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             final Map<String, CourseData> courseData = getCoursesForIds(
                     restTemplate,
                     quizIds.stream()
-                            .map(MoodleCourseAccess::getCourseId)
+                            .map(MoodleUtils::getCourseId)
                             .collect(Collectors.toSet()))
                                     .stream()
                                     .collect(Collectors.toMap(cd -> cd.id, Function.identity()));
@@ -518,7 +518,12 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                 return Collections.emptyList();
             }
 
-            logMoodleWarnings(courseQuizData.warnings);
+            if (courseQuizData.warnings != null && !courseQuizData.warnings.isEmpty()) {
+                MoodleUtils.logMoodleWarning(
+                        courseQuizData.warnings,
+                        lmsSetup.name,
+                        MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME);
+            }
 
             if (courseQuizData.quizzes == null || courseQuizData.quizzes.isEmpty()) {
                 log.error("No quizzes found for  ids: {} on LMS; {}", quizIds, lmsSetup.name);
@@ -528,7 +533,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             final Map<String, CourseData> finalCourseDataRef = courseData;
             courseQuizData.quizzes
                     .stream()
-                    .forEach(quiz -> fillSelectedQuizzes(quizIds, finalCourseDataRef, quiz));
+                    .forEach(quiz -> MoodleUtils.fillSelectedQuizzes(quizIds, finalCourseDataRef, quiz));
 
             final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
                     ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
@@ -537,33 +542,16 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             return courseData.values()
                     .stream()
                     .filter(c -> !c.quizzes.isEmpty())
-                    .flatMap(cd -> quizDataOf(lmsSetup, cd, urlPrefix).stream())
+                    .flatMap(cd -> MoodleUtils.quizDataOf(
+                            lmsSetup,
+                            cd,
+                            urlPrefix,
+                            this.prependShortCourseName).stream())
                     .collect(Collectors.toList());
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get quizzes for ids", e);
             return Collections.emptyList();
-        }
-    }
-
-    private void fillSelectedQuizzes(
-            final Set<String> quizIds,
-            final Map<String, CourseData> finalCourseDataRef,
-            final CourseQuiz quiz) {
-        try {
-            final CourseData course = finalCourseDataRef.get(quiz.course);
-            if (course != null) {
-                final String internalQuizId = getInternalQuizId(
-                        quiz.course_module,
-                        course.id,
-                        course.short_name,
-                        course.idnumber);
-                if (quizIds.contains(internalQuizId)) {
-                    course.quizzes.add(quiz);
-                }
-            }
-        } catch (final Exception e) {
-            log.error("Failed to verify selected quiz for course: {}", e.getMessage());
         }
     }
 
@@ -596,7 +584,12 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                 return Collections.emptyList();
             }
 
-            logMoodleWarnings(courses.warnings);
+            if (courses.warnings != null && !courses.warnings.isEmpty()) {
+                MoodleUtils.logMoodleWarning(
+                        courses.warnings,
+                        lmsSetup.name,
+                        MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME);
+            }
 
             if (courses.courses == null || courses.courses.isEmpty()) {
                 log.error("No courses found for ids: {} on LMS: {}", ids, lmsSetup.name);
@@ -608,51 +601,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             log.error("Unexpected error while trying to get courses for ids", e);
             return Collections.emptyList();
         }
-    }
-
-    private List<QuizData> quizDataOf(
-            final LmsSetup lmsSetup,
-            final CourseData courseData,
-            final String uriPrefix) {
-
-        final Map<String, String> additionalAttrs = new HashMap<>();
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_CREATION_TIME, String.valueOf(courseData.time_created));
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SHORT_NAME, courseData.short_name);
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_ID_NUMBER, courseData.idnumber);
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_FULL_NAME, courseData.full_name);
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_DISPLAY_NAME, courseData.display_name);
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SUMMARY, courseData.summary);
-
-        final List<QuizData> courseAndQuiz = courseData.quizzes
-                .stream()
-                .map(courseQuizData -> {
-                    final String startURI = uriPrefix + courseQuizData.course_module;
-                    additionalAttrs.put(QuizData.ATTR_ADDITIONAL_TIME_LIMIT, String.valueOf(courseQuizData.time_limit));
-                    return new QuizData(
-                            getInternalQuizId(
-                                    courseQuizData.course_module,
-                                    courseData.id,
-                                    courseData.short_name,
-                                    courseData.idnumber),
-                            lmsSetup.getInstitutionId(),
-                            lmsSetup.id,
-                            lmsSetup.getLmsType(),
-                            (this.prependShortCourseName)
-                                    ? courseData.short_name + " : " + courseQuizData.name
-                                    : courseQuizData.name,
-                            courseQuizData.intro,
-                            (courseQuizData.time_open != null && courseQuizData.time_open > 0)
-                                    ? Utils.toDateTimeUTCUnix(courseQuizData.time_open)
-                                    : Utils.toDateTimeUTCUnix(courseData.start_date),
-                            (courseQuizData.time_close != null && courseQuizData.time_close > 0)
-                                    ? Utils.toDateTimeUTCUnix(courseQuizData.time_close)
-                                    : Utils.toDateTimeUTCUnix(courseData.end_date),
-                            startURI,
-                            additionalAttrs);
-                })
-                .collect(Collectors.toList());
-
-        return courseAndQuiz;
     }
 
     private List<QuizData> quizDataOf(
@@ -682,7 +630,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
 
         final String startURI = uriPrefix + courseQuizData.course_module;
         return new QuizData(
-                getInternalQuizId(
+                MoodleUtils.getInternalQuizId(
                         courseQuizData.course_module,
                         courseData.id,
                         courseData.short_name,
@@ -706,7 +654,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
 
     private Result<MoodleAPIRestTemplate> getRestTemplate() {
         if (this.restTemplate == null) {
-            final Result<MoodleAPIRestTemplate> templateRequest = this.moodleRestTemplateFactory
+            final Result<MoodleAPIRestTemplate> templateRequest = this.restTemplateFactory
                     .createRestTemplate();
             if (templateRequest.hasError()) {
                 return templateRequest;
@@ -716,95 +664,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
         }
 
         return Result.of(this.restTemplate);
-    }
-
-    public static final String getInternalQuizId(
-            final String quizId,
-            final String courseId,
-            final String shortname,
-            final String idnumber) {
-
-        return StringUtils.join(
-                new String[] {
-                        quizId,
-                        courseId,
-                        StringUtils.isNotBlank(shortname) ? shortname : Constants.EMPTY_NOTE,
-                        StringUtils.isNotBlank(idnumber) ? idnumber : Constants.EMPTY_NOTE
-                },
-                Constants.COLON);
-    }
-
-    public static final String getQuizId(final String internalQuizId) {
-        if (StringUtils.isBlank(internalQuizId)) {
-            return null;
-        }
-
-        return StringUtils.split(internalQuizId, Constants.COLON)[0];
-    }
-
-    public static final String getCourseId(final String internalQuizId) {
-        if (StringUtils.isBlank(internalQuizId)) {
-            return null;
-        }
-
-        return StringUtils.split(internalQuizId, Constants.COLON)[1];
-    }
-
-    public static final String getShortname(final String internalQuizId) {
-        if (StringUtils.isBlank(internalQuizId)) {
-            return null;
-        }
-
-        final String[] split = StringUtils.split(internalQuizId, Constants.COLON);
-        if (split.length < 3) {
-            return null;
-        }
-
-        final String shortName = split[2];
-        return shortName.equals(Constants.EMPTY_NOTE) ? null : shortName;
-    }
-
-    public static final String getIdnumber(final String internalQuizId) {
-        if (StringUtils.isBlank(internalQuizId)) {
-            return null;
-        }
-        final String[] split = StringUtils.split(internalQuizId, Constants.COLON);
-        if (split.length < 4) {
-            return null;
-        }
-
-        final String idNumber = split[3];
-        return idNumber.equals(Constants.EMPTY_NOTE) ? null : idNumber;
-    }
-
-    private void logMoodleWarnings(final Collection<Warning> warnings) {
-        if (warnings != null && !warnings.isEmpty()) {
-            if (log.isDebugEnabled()) {
-                final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-                log.debug(
-                        "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
-                        lmsSetup,
-                        MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME,
-                        warnings.size(),
-                        warnings.iterator().next().toString());
-            } else if (log.isTraceEnabled()) {
-                log.trace("All warnings from Moodle: {}", warnings.toString());
-            }
-        }
-    }
-
-    private static final Pattern ACCESS_DENIED_PATTERN_1 =
-            Pattern.compile(Pattern.quote("No access rights"), Pattern.CASE_INSENSITIVE);
-    private static final Pattern ACCESS_DENIED_PATTERN_2 =
-            Pattern.compile(Pattern.quote("access denied"), Pattern.CASE_INSENSITIVE);
-
-    public static final boolean checkAccessDeniedError(final String courseKeyPageJSON) {
-        return ACCESS_DENIED_PATTERN_1
-                .matcher(courseKeyPageJSON)
-                .find() ||
-                ACCESS_DENIED_PATTERN_2
-                        .matcher(courseKeyPageJSON)
-                        .find();
     }
 
     private Collection<CourseData> getCoursesPage(
@@ -866,7 +725,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
 
             final Collection<CourseData> result = getCoursesForIds(restTemplate, ids)
                     .stream()
-                    .filter(getCourseFilter())
+                    .filter(MoodleUtils.getCourseFilter())
                     .collect(Collectors.toList());
 
             if (log.isDebugEnabled()) {
@@ -880,260 +739,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             log.error("LMS Setup: {} Unexpected error while trying to get courses page: ", lmsName, e);
             return Collections.emptyList();
         }
-    }
-
-    private Predicate<CourseData> getCourseFilter() {
-        final long now = Utils.getSecondsNow();
-        return course -> {
-            if (course.start_date != null
-                    && course.start_date < Utils.toUnixTimeInSeconds(DateTime.now(DateTimeZone.UTC).minusYears(3))) {
-                return false;
-            }
-
-            if (course.end_date == null || course.end_date == 0 || course.end_date > now) {
-                return true;
-            }
-
-            if (log.isDebugEnabled()) {
-                log.info("remove course {} end_time {} now {}",
-                        course.short_name,
-                        course.end_date,
-                        now);
-            }
-            return false;
-        };
-    }
-
-    private Predicate<CourseQuiz> getQuizFilter() {
-        final long now = Utils.getSecondsNow();
-        return quiz -> {
-            if (quiz.time_close == null || quiz.time_close == 0 || quiz.time_close > now) {
-                return true;
-            }
-
-            if (log.isDebugEnabled()) {
-                log.debug("remove quiz {} end_time {} now {}",
-                        quiz.name,
-                        quiz.time_close,
-                        now);
-            }
-            return false;
-        };
-    }
-
-    // ---- Mapping Classes ---
-
-    /** Maps the Moodle course API course data */
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class CourseData {
-        final String id;
-        final String short_name;
-        final String idnumber;
-        final String full_name;
-        final String display_name;
-        final String summary;
-        final Long start_date; // unix-time seconds UTC
-        final Long end_date; // unix-time seconds UTC
-        final Long time_created; // unix-time seconds UTC
-        final Collection<CourseQuiz> quizzes = new ArrayList<>();
-
-        @JsonCreator
-        protected CourseData(
-                @JsonProperty(value = "id") final String id,
-                @JsonProperty(value = "shortname") final String short_name,
-                @JsonProperty(value = "idnumber") final String idnumber,
-                @JsonProperty(value = "fullname") final String full_name,
-                @JsonProperty(value = "displayname") final String display_name,
-                @JsonProperty(value = "summary") final String summary,
-                @JsonProperty(value = "startdate") final Long start_date,
-                @JsonProperty(value = "enddate") final Long end_date,
-                @JsonProperty(value = "timecreated") final Long time_created) {
-
-            this.id = id;
-            this.short_name = short_name;
-            this.idnumber = idnumber;
-            this.full_name = full_name;
-            this.display_name = display_name;
-            this.summary = summary;
-            this.start_date = start_date;
-            this.end_date = end_date;
-            this.time_created = time_created;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class Courses {
-        final Collection<CourseData> courses;
-        final Collection<Warning> warnings;
-
-        @JsonCreator
-        protected Courses(
-                @JsonProperty(value = "courses") final Collection<CourseData> courses,
-                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
-            this.courses = courses;
-            this.warnings = warnings;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static final class CourseQuizData {
-        final Collection<CourseQuiz> quizzes;
-        final Collection<Warning> warnings;
-
-        @JsonCreator
-        protected CourseQuizData(
-                @JsonProperty(value = "quizzes") final Collection<CourseQuiz> quizzes,
-                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
-            this.quizzes = quizzes;
-            this.warnings = warnings;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class CourseQuiz {
-        final String id;
-        final String course;
-        final String course_module;
-        final String name;
-        final String intro; // HTML
-        final Long time_open; // unix-time seconds UTC
-        final Long time_close; // unix-time seconds UTC
-        final Long time_limit; // unix-time seconds UTC
-
-        @JsonCreator
-        protected CourseQuiz(
-                @JsonProperty(value = "id") final String id,
-                @JsonProperty(value = "course") final String course,
-                @JsonProperty(value = "coursemodule") final String course_module,
-                @JsonProperty(value = "name") final String name,
-                @JsonProperty(value = "intro") final String intro,
-                @JsonProperty(value = "timeopen") final Long time_open,
-                @JsonProperty(value = "timeclose") final Long time_close,
-                @JsonProperty(value = "timelimit") final Long time_limit) {
-
-            this.id = id;
-            this.course = course;
-            this.course_module = course_module;
-            this.name = name;
-            this.intro = intro;
-            this.time_open = time_open;
-            this.time_close = time_close;
-            this.time_limit = time_limit;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class MoodleUserDetails {
-        final String id;
-        final String username;
-        final String firstname;
-        final String lastname;
-        final String fullname;
-        final String email;
-        final String department;
-        final Long firstaccess;
-        final Long lastaccess;
-        final String auth;
-        final Boolean suspended;
-        final Boolean confirmed;
-        final String lang;
-        final String theme;
-        final String timezone;
-        final String description;
-        final Integer mailformat;
-        final Integer descriptionformat;
-
-        @JsonCreator
-        protected MoodleUserDetails(
-                @JsonProperty(value = "id") final String id,
-                @JsonProperty(value = "username") final String username,
-                @JsonProperty(value = "firstname") final String firstname,
-                @JsonProperty(value = "lastname") final String lastname,
-                @JsonProperty(value = "fullname") final String fullname,
-                @JsonProperty(value = "email") final String email,
-                @JsonProperty(value = "department") final String department,
-                @JsonProperty(value = "firstaccess") final Long firstaccess,
-                @JsonProperty(value = "lastaccess") final Long lastaccess,
-                @JsonProperty(value = "auth") final String auth,
-                @JsonProperty(value = "suspended") final Boolean suspended,
-                @JsonProperty(value = "confirmed") final Boolean confirmed,
-                @JsonProperty(value = "lang") final String lang,
-                @JsonProperty(value = "theme") final String theme,
-                @JsonProperty(value = "timezone") final String timezone,
-                @JsonProperty(value = "description") final String description,
-                @JsonProperty(value = "mailformat") final Integer mailformat,
-                @JsonProperty(value = "descriptionformat") final Integer descriptionformat) {
-
-            this.id = id;
-            this.username = username;
-            this.firstname = firstname;
-            this.lastname = lastname;
-            this.fullname = fullname;
-            this.email = email;
-            this.department = department;
-            this.firstaccess = firstaccess;
-            this.lastaccess = lastaccess;
-            this.auth = auth;
-            this.suspended = suspended;
-            this.confirmed = confirmed;
-            this.lang = lang;
-            this.theme = theme;
-            this.timezone = timezone;
-            this.description = description;
-            this.mailformat = mailformat;
-            this.descriptionformat = descriptionformat;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class CoursePage {
-        final Collection<CourseKey> courseKeys;
-        final Collection<Warning> warnings;
-
-        public CoursePage(
-                @JsonProperty(value = "courses") final Collection<CourseKey> courseKeys,
-                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
-
-            this.courseKeys = courseKeys;
-            this.warnings = warnings;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static final class CourseKey {
-        final String id;
-        final String short_name;
-        final String category_name;
-        final String sort_order;
-
-        @JsonCreator
-        protected CourseKey(
-                @JsonProperty(value = "id") final String id,
-                @JsonProperty(value = "shortname") final String short_name,
-                @JsonProperty(value = "categoryname") final String category_name,
-                @JsonProperty(value = "sortorder") final String sort_order) {
-
-            this.id = id;
-            this.short_name = short_name;
-            this.category_name = category_name;
-            this.sort_order = sort_order;
-        }
-
-        @Override
-        public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("CourseKey [id=");
-            builder.append(this.id);
-            builder.append(", short_name=");
-            builder.append(this.short_name);
-            builder.append(", category_name=");
-            builder.append(this.category_name);
-            builder.append(", sort_order=");
-            builder.append(this.sort_order);
-            builder.append("]");
-            return builder.toString();
-        }
-
     }
 
 }

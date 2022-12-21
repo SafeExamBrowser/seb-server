@@ -98,9 +98,14 @@ public abstract class AbstractCachedCourseAccess {
 
     /** Put all QuizData to short time cache.
      *
-     * @param quizData Collection of QuizData */
-    protected void putToCache(final Collection<QuizData> quizData) {
+     * @param quizData Collection of QuizData
+     * @return the given collection of QuizData */
+    protected final Collection<QuizData> putToCache(final Collection<QuizData> quizData) {
+        if (quizData == null || quizData.isEmpty()) {
+            return quizData;
+        }
         quizData.stream().forEach(q -> this.cache.put(createCacheKey(q.id), q));
+        return quizData;
     }
 
     protected void evict(final String id) {

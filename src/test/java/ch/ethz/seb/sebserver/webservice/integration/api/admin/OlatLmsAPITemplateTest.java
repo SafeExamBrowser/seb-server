@@ -29,7 +29,6 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat.OlatLmsAPITemplate;
@@ -41,8 +40,6 @@ public class OlatLmsAPITemplateTest extends AdministrationAPIIntegrationTester {
 
     @Autowired
     private ExamConfigurationValueService examConfigurationValueService;
-    @Autowired
-    private Cryptor cryptor;
     @Autowired
     private CacheManager cacheManager;
 
@@ -59,7 +56,6 @@ public class OlatLmsAPITemplateTest extends AdministrationAPIIntegrationTester {
                 null,
                 apiTemplateDataSupplier,
                 this.examConfigurationValueService,
-                this.cryptor,
                 this.cacheManager);
 
         Mockito.when(restTemplateMock.exchange(Mockito.any(), Mockito.any(), Mockito.any(),

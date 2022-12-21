@@ -29,8 +29,8 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
 import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory.MoodleAPIRestTemplateImpl;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactoryImpl;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactoryImpl.MoodleAPIRestTemplateImpl;
 
 public class MoodleCourseAccessTest {
 
@@ -42,7 +42,7 @@ public class MoodleCourseAccessTest {
     @Test
     public void testGetExamineeAccountDetails() {
 
-        final MoodleRestTemplateFactory moodleRestTemplateFactory = mock(MoodleRestTemplateFactory.class);
+        final MoodleRestTemplateFactoryImpl moodleRestTemplateFactory = mock(MoodleRestTemplateFactoryImpl.class);
         final MoodleAPIRestTemplateImpl moodleAPIRestTemplate = mock(MoodleAPIRestTemplateImpl.class);
         when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.of(moodleAPIRestTemplate));
         when(moodleAPIRestTemplate.callMoodleAPIFunction(
@@ -118,7 +118,7 @@ public class MoodleCourseAccessTest {
 
     @Test
     public void testInitAPIAccessError1() {
-        final MoodleRestTemplateFactory moodleRestTemplateFactory = mock(MoodleRestTemplateFactory.class);
+        final MoodleRestTemplateFactoryImpl moodleRestTemplateFactory = mock(MoodleRestTemplateFactoryImpl.class);
         when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.ofRuntimeError("Error1"));
         when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay(LmsType.MOODLE));
 
@@ -138,7 +138,7 @@ public class MoodleCourseAccessTest {
 
     @Test
     public void testInitAPIAccessError2() {
-        final MoodleRestTemplateFactory moodleRestTemplateFactory = mock(MoodleRestTemplateFactory.class);
+        final MoodleRestTemplateFactoryImpl moodleRestTemplateFactory = mock(MoodleRestTemplateFactoryImpl.class);
         final MoodleAPIRestTemplateImpl moodleAPIRestTemplate = mock(MoodleAPIRestTemplateImpl.class);
         when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.of(moodleAPIRestTemplate));
         doThrow(RuntimeException.class).when(moodleAPIRestTemplate).testAPIConnection(any());
@@ -160,7 +160,7 @@ public class MoodleCourseAccessTest {
 
     @Test
     public void testInitAPIAccessOK() {
-        final MoodleRestTemplateFactory moodleRestTemplateFactory = mock(MoodleRestTemplateFactory.class);
+        final MoodleRestTemplateFactoryImpl moodleRestTemplateFactory = mock(MoodleRestTemplateFactoryImpl.class);
         final MoodleAPIRestTemplateImpl moodleAPIRestTemplate = mock(MoodleAPIRestTemplateImpl.class);
         when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.of(moodleAPIRestTemplate));
         when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay(LmsType.MOODLE));

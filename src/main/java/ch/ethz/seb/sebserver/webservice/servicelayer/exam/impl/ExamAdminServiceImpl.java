@@ -276,7 +276,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     this.additionalAttributesDAO.saveAdditionalAttribute(
                             EntityType.EXAM,
                             exam.id,
-                            Exam.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK,
+                            SEBRestrictionService.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK,
                             moodleBEK).getOrThrow();
                 } catch (final Exception e) {
                     log.error("Failed to create additional moodle SEB BEK attribute: ", e);

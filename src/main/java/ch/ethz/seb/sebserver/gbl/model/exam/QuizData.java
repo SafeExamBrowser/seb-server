@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -209,6 +210,23 @@ public final class QuizData implements GrantEntity {
 
     public Map<String, String> getAdditionalAttributes() {
         return this.additionalAttributes;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.id, this.lmsSetupId);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final QuizData other = (QuizData) obj;
+        return Objects.equals(this.id, other.id) && Objects.equals(this.lmsSetupId, other.lmsSetupId);
     }
 
     @Override

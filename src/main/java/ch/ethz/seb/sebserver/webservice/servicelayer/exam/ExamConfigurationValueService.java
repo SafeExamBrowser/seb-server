@@ -10,6 +10,9 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
 public interface ExamConfigurationValueService {
 
+    public static final String CONFIG_ATTR_NAME_QUIT_LINK = "quitURL";
+    public static final String CONFIG_ATTR_NAME_QUIT_SECRET = "hashedQuitPassword";
+
     /** Get the actual SEB settings attribute value for the exam configuration mapped as default configuration
      * to the given exam
      *
@@ -17,5 +20,9 @@ public interface ExamConfigurationValueService {
      * @param configAttributeName The name of the SEB settings attribute
      * @return The current value of the above SEB settings attribute and given exam. */
     String getMappedDefaultConfigAttributeValue(Long examId, String configAttributeName);
+
+    String getQuitSecret(Long examId);
+
+    String getQuitLink(Long examId);
 
 }
