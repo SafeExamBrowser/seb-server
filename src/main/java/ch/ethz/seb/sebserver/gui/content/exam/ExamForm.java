@@ -136,6 +136,8 @@ public class ExamForm implements TemplateComposer {
             new LocTextKey("sebserver.exam.consistency.no-lms-connection");
     private final static LocTextKey CONSISTENCY_MESSAGEINVALID_ID_REFERENCE =
             new LocTextKey("sebserver.exam.consistency.invalid-lms-id");
+    private final static LocTextKey CONSISTENCY_MESSAGE_SEB_RESTRICTION_MISMATCH =
+            new LocTextKey("sebserver.exam.consistencyseb-restriction-mismatch");
 
     private final static LocTextKey AUTO_GEN_CONFIG_ERROR_TITLE =
             new LocTextKey("sebserver.exam.autogen.error.config.title");
@@ -220,30 +222,6 @@ public class ExamForm implements TemplateComposer {
         // new PageContext with actual EntityKey
         final PageContext formContext = pageContext.withEntityKey(exam.getEntityKey());
 
-        // check exam consistency and inform the user if needed
-        Collection<APIMessage> warnings = null;
-        if (readonly) {
-            warnings = this.restService.getBuilder(CheckExamConsistency.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                    .call()
-                    .getOr(Collections.emptyList());
-            if (warnings != null && !warnings.isEmpty()) {
-                showConsistencyChecks(warnings, formContext.getParent());
-            }
-        }
-
-        // the default page layout with title
-        final LocTextKey titleKey = importFromQuizData
-                ? EXAM_FORM_TITLE_IMPORT_KEY
-                : EXAM_FORM_TITLE_KEY;
-        final Composite content = this.widgetFactory.defaultPageLayout(
-                formContext.getParent(),
-                titleKey);
-        if (warnings != null && !warnings.isEmpty()) {
-            final GridData gridData = (GridData) content.getLayoutData();
-            gridData.verticalIndent = 10;
-        }
-
         final BooleanSupplier isNew = () -> importFromQuizData;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
         final EntityGrantCheck entityGrantCheck = currentUser.entityGrantCheck(exam);
@@ -262,6 +240,32 @@ public class ExamForm implements TemplateComposer {
                 .call()
                 .onError(e -> log.error("Unexpected error while trying to verify seb restriction settings: ", e))
                 .getOr(false);
+        final boolean sebRestrictionMismatch = isRestricted != exam.sebRestriction;
+
+        // check exam consistency and inform the user if needed
+        Collection<APIMessage> warnings = null;
+        if (readonly) {
+            warnings = this.restService.getBuilder(CheckExamConsistency.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                    .call()
+                    .getOr(Collections.emptyList());
+            if (sebRestrictionMismatch || (warnings != null && !warnings.isEmpty())) {
+                showConsistencyChecks(warnings, sebRestrictionMismatch, formContext.getParent());
+
+            }
+        }
+
+        // the default page layout with title
+        final LocTextKey titleKey = importFromQuizData
+                ? EXAM_FORM_TITLE_IMPORT_KEY
+                : EXAM_FORM_TITLE_KEY;
+        final Composite content = this.widgetFactory.defaultPageLayout(
+                formContext.getParent(),
+                titleKey);
+        if ((warnings != null && !warnings.isEmpty()) || sebRestrictionMismatch) {
+            final GridData gridData = (GridData) content.getLayoutData();
+            gridData.verticalIndent = 10;
+        }
 
         // The Exam form
         final FormHandle<Exam> formHandle = this.pageService.formBuilder(
@@ -637,10 +641,10 @@ public class ExamForm implements TemplateComposer {
         return !lmsSetupTestResult.hasError(ErrorType.QUIZ_RESTRICTION_API_REQUEST);
     }
 
-    private void showConsistencyChecks(final Collection<APIMessage> result, final Composite parent) {
-        if (result == null || result.isEmpty()) {
-            return;
-        }
+    private void showConsistencyChecks(
+            final Collection<APIMessage> result,
+            final boolean sebRestrictionMismatch,
+            final Composite parent) {
 
         final Composite warningPanel = this.widgetFactory.createWarningPanel(parent);
         this.widgetFactory.labelLocalized(
@@ -656,6 +660,21 @@ public class ExamForm implements TemplateComposer {
                         warningPanel,
                         CustomVariant.MESSAGE,
                         message));
+
+        if (sebRestrictionMismatch) {
+            this.widgetFactory.labelLocalized(
+                    warningPanel,
+                    CustomVariant.MESSAGE,
+                    CONSISTENCY_MESSAGE_SEB_RESTRICTION_MISMATCH);
+        }
+    }
+
+    private void showSEBRestrictionMismatchMessage(final Composite parent) {
+        final Composite warningPanel = this.widgetFactory.createWarningPanel(parent);
+        this.widgetFactory.labelLocalized(
+                warningPanel,
+                CustomVariant.MESSAGE,
+                CONSISTENCY_MESSAGE_SEB_RESTRICTION_MISMATCH);
     }
 
     private Result<Exam> getExistingExam(final PageContext pageContext) {

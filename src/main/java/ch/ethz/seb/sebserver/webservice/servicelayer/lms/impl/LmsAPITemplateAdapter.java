@@ -372,14 +372,11 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Get course restriction: {} for LMSSetup: {}", exam.externalId, lmsSetup());
         }
 
+        System.out.println("******************* getSEBClientRestriction");
+
         return this.restrictionRequest.protectedRun(() -> this.sebRestrictionAPI
                 .getSEBClientRestriction(exam)
-                .onError(error -> {
-                    if (error instanceof NoSEBRestrictionException) {
-                        return;
-                    }
-                    log.error("Failed to get SEB restrictions: {}", error.getMessage());
-                })
+                .onError(error -> log.error("Failed to get SEB restrictions: {}", error.getMessage()))
                 .getOrThrow());
     }
 

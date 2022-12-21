@@ -244,6 +244,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                                         exam,
                                         sebRestrictionData))
                                 .map(data -> exam)
+                                .onError(error -> this.examDAO.setSEBRestriction(exam.id, false))
                                 .getOrThrow();
                     })
                     .getOrThrow();

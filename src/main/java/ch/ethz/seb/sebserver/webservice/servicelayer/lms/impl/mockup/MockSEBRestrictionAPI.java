@@ -30,7 +30,16 @@ public class MockSEBRestrictionAPI implements SEBRestrictionAPI {
 
     @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
-        log.info("Apply SEB Client restriction for Exam: {}", exam);
+        log.info("Get SEB Client restriction for Exam: {}", exam);
+//        if (BooleanUtils.toBoolean(exam.sebRestriction)) {
+//            return Result.of(new SEBRestriction(
+//                    exam.id,
+//                    Stream.of("configKey").collect(Collectors.toList()),
+//                    Collections.emptyList(),
+//                    Collections.emptyMap()));
+//        } else {
+//            return Result.ofError(new NoSEBRestrictionException());
+//        }
         return Result.ofError(new NoSEBRestrictionException());
     }
 
@@ -40,6 +49,7 @@ public class MockSEBRestrictionAPI implements SEBRestrictionAPI {
             final SEBRestriction sebRestrictionData) {
 
         log.info("Apply SEB Client restriction: {}", sebRestrictionData);
+        //return Result.ofError(new NoSEBRestrictionException());
         return Result.of(sebRestrictionData);
     }
 
