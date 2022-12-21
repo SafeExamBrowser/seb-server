@@ -197,7 +197,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final Set<String> missingIds = new HashSet<>(ids);
             final Collection<QuizData> result = new ArrayList<>();
             final Set<String> fromCache = ids.stream()
-                    .map(super::getFromCache).filter(Objects::nonNull)
+                    .map(id -> super.getFromCache(id))
+                    .filter(Objects::nonNull)
                     .map(qd -> {
                         result.add(qd);
                         return qd.id;
@@ -208,7 +209,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
                 result.addAll(getRestTemplate()
                         .map(template -> getQuizzesForIds(template, ids))
-                        .map(super::putToCache)
+                        .map(qd -> super.putToCache(qd))
                         .onError(error -> log.error("Failed to get courses for: {}", ids, error))
                         .getOrElse(() -> Collections.emptyList()));
             }
@@ -229,7 +230,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final Set<String> ids = Stream.of(id).collect(Collectors.toSet());
             final Iterator<QuizData> iterator = getRestTemplate()
                     .map(template -> getQuizzesForIds(template, ids))
-                    .map(super::putToCache)
+                    .map(qd -> super.putToCache(qd))
                     .getOr(Collections.emptyList())
                     .iterator();
 
