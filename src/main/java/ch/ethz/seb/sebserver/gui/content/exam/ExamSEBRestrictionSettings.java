@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
+import ch.ethz.seb.sebserver.gbl.model.exam.MoodleSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
@@ -73,6 +74,8 @@ public class ExamSEBRestrictionSettings {
             new LocTextKey("sebserver.exam.form.sebrestriction.configKeys");
     private final static LocTextKey SEB_RESTRICTION_FORM_BROWSER_KEYS =
             new LocTextKey("sebserver.exam.form.sebrestriction.browserExamKeys");
+    private final static LocTextKey SEB_RESTRICTION_FORM_MOODLE_ALT_BEK_KEY =
+            new LocTextKey("sebserver.exam.form.sebrestriction.ALT_BEK_KEY");
     private final static LocTextKey SEB_RESTRICTION_FORM_EDX_WHITE_LIST_PATHS =
             new LocTextKey("sebserver.exam.form.sebrestriction.WHITELIST_PATHS");
     private final static LocTextKey SEB_RESTRICTION_FORM_EDX_PERMISSIONS =
@@ -243,6 +246,16 @@ public class ExamSEBRestrictionSettings {
                             StringUtils.join(sebRestriction.getConfigKeys(), Constants.CARRIAGE_RETURN))
                             .asArea(50)
                             .readonly(true))
+
+                    .addFieldIf(
+                            () -> lmsType == LmsType.MOODLE_PLUGIN,
+                            () -> FormBuilder.text(
+                                    MoodleSEBRestriction.ATTR_ALT_BEK,
+                                    SEB_RESTRICTION_FORM_MOODLE_ALT_BEK_KEY,
+                                    sebRestriction
+                                            .getAdditionalProperties()
+                                            .get(MoodleSEBRestriction.ATTR_ALT_BEK))
+                                    .readonly(true))
 
                     .addField(FormBuilder.text(
                             SEBRestriction.ATTR_BROWSER_KEYS,

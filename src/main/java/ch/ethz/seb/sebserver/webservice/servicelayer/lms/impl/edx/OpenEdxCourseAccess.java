@@ -45,6 +45,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
@@ -202,6 +203,11 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
             }
             return quizData;
         });
+    }
+
+    @Override
+    public Result<QuizData> tryRecoverQuizForExam(final Exam exam) {
+        return Result.ofError(new UnsupportedOperationException("Recovering not supported"));
     }
 
     @Override

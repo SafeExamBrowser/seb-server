@@ -105,7 +105,10 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             final LinkedMultiValueMap<String, String> addQuery = new LinkedMultiValueMap<>();
             addQuery.add(ATTRIBUTE_QUIZ_ID, quizId);
 
-            final String srJSON = restTemplate.callMoodleAPIFunction(RESTRICTION_GET_FUNCTION_NAME, addQuery);
+            final String srJSON = restTemplate.callMoodleAPIFunction(
+                    RESTRICTION_GET_FUNCTION_NAME,
+                    addQuery,
+                    new LinkedMultiValueMap<>());
 
             try {
 
@@ -139,9 +142,10 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             final ArrayList<String> configKeys = new ArrayList<>(sebRestrictionData.configKeys);
             final String quitLink = this.examConfigurationValueService.getQuitLink(exam.id);
             final String quitSecret = this.examConfigurationValueService.getQuitSecret(exam.id);
-            final String additionalBEK = sebRestrictionData.additionalProperties.get(
+            final String additionalBEK = exam.getAdditionalAttribute(
                     SEBRestrictionService.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK);
-            if (additionalBEK != null) {
+
+            if (additionalBEK != null && !beks.contains(additionalBEK)) {
                 beks.add(additionalBEK);
             }
 
@@ -200,18 +204,12 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
         final List<String> configKeys = Arrays.asList(StringUtils.split(
                 moodleRestriction.config_keys,
                 Constants.LIST_SEPARATOR));
-        final List<String> browserExamKeys = Arrays.asList(StringUtils.split(
+        final List<String> browserExamKeys = new ArrayList<>(Arrays.asList(StringUtils.split(
                 moodleRestriction.browser_exam_keys,
-                Constants.LIST_SEPARATOR));
+                Constants.LIST_SEPARATOR)));
         final Map<String, String> additionalProperties = new HashMap<>();
         additionalProperties.put(ATTRIBUTE_QUIT_URL, moodleRestriction.quit_link);
-
-        final String additionalBEK = exam.getAdditionalAttribute(
-                SEBRestrictionService.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK);
-
-        if (additionalBEK != null) {
-            browserExamKeys.remove(additionalBEK);
-        }
+        additionalProperties.put(ATTRIBUTE_QUIT_SECRET, moodleRestriction.quit_secret);
 
         return new SEBRestriction(
                 exam.id,

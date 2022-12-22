@@ -47,7 +47,6 @@ public class MoodlePluginCheck {
             try {
                 restTemplate.testAPIConnection(
                         MoodlePluginCourseAccess.COURSES_API_FUNCTION_NAME,
-                        MoodlePluginCourseAccess.QUIZZES_BY_COURSES_API_FUNCTION_NAME,
                         MoodlePluginCourseAccess.USERS_API_FUNCTION_NAME);
             } catch (final Exception e) {
                 log.info("Moodle SEB Server Plugin not available: {}", e.getMessage());

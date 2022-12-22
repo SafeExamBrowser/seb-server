@@ -19,8 +19,7 @@ public interface SEBRestrictionService {
 
     String SEB_RESTRICTION_ADDITIONAL_PROPERTY_CONFIG_KEY = "config_key";
     /** This attribute name is used to store the per Moolde(plugin) exam generated alternative BEK */
-    String ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK =
-            SEB_RESTRICTION_ADDITIONAL_PROPERTY_NAME_PREFIX + "ALTERNATIVE_SEB_BEK";
+    String ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK = "ALTERNATIVE_SEB_BEK";
 
     /** Get the LmsAPIService that is used by the SEBRestrictionService */
     LmsAPIService getLmsAPIService();

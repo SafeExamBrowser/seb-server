@@ -43,11 +43,11 @@ public interface ExamTemplateService {
      * @return Result refer to the Exam with added client groups or to an error if happened */
     Result<Exam> addDefinedClientGroups(Exam exam);
 
-    /** Initializes additional attributes for a specified Exam on creation.
+    /** Initializes additional exam template attributes for a specified Exam on creation.
      *
      * @param exam The Exam to add the default indicator
      * @return Result refer to the created exam or to an error when happened */
-    Result<Exam> initAdditionalAttributes(Exam exam);
+    Result<Exam> initAdditionalTemplateAttributes(Exam exam);
 
     /** Initializes a pre defined exam configuration. The configuration template to create a exam configuration
      * is defined by a given linked exam template. This is used to create the exam configuration and automatically

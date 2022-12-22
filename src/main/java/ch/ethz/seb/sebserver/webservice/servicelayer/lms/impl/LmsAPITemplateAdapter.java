@@ -282,6 +282,26 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     }
 
     @Override
+    public Result<QuizData> tryRecoverQuizForExam(final Exam exam) {
+
+        if (this.courseAccessAPI == null) {
+            return Result
+                    .ofError(new UnsupportedOperationException("Course API Not Supported For: " + getType().name()));
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Try to recover quiz for exam {} for LMSSetup: {}", exam, lmsSetup());
+        }
+
+        return this.quizRequest.protectedRun(() -> this.courseAccessAPI
+                .tryRecoverQuizForExam(exam)
+                .onError(error -> log.error(
+                        "Failed to run protectedQuizRecoverRequest: {}",
+                        error.getMessage()))
+                .getOrThrow());
+    }
+
+    @Override
     public void clearCourseCache() {
         if (this.courseAccessAPI != null) {
 
@@ -371,8 +391,6 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
         if (log.isDebugEnabled()) {
             log.debug("Get course restriction: {} for LMSSetup: {}", exam.externalId, lmsSetup());
         }
-
-        System.out.println("******************* getSEBClientRestriction");
 
         return this.restrictionRequest.protectedRun(() -> this.sebRestrictionAPI
                 .getSEBClientRestriction(exam)

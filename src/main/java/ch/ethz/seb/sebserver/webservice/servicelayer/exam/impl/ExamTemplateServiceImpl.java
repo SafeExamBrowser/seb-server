@@ -50,7 +50,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamTemplateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.IndicatorDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 
 @Lazy
@@ -61,7 +60,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     private static final Logger log = LoggerFactory.getLogger(ExamTemplateServiceImpl.class);
 
     private final AdditionalAttributesDAO additionalAttributesDAO;
-    private final ExamAdminService examAdminService;
+
     private final ExamTemplateDAO examTemplateDAO;
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
@@ -78,7 +77,6 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
     public ExamTemplateServiceImpl(
             final AdditionalAttributesDAO additionalAttributesDAO,
-            final ExamAdminService examAdminService,
             final ExamTemplateDAO examTemplateDAO,
             final ConfigurationNodeDAO configurationNodeDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
@@ -97,7 +95,6 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
         this.configurationNodeDAO = configurationNodeDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.additionalAttributesDAO = additionalAttributesDAO;
-        this.examAdminService = examAdminService;
         this.indicatorDAO = indicatorDAO;
         this.clientGroupDAO = clientGroupDAO;
         this.jsonMapper = jsonMapper;
@@ -155,41 +152,40 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
     }
 
     @Override
-    public Result<Exam> initAdditionalAttributes(final Exam exam) {
-        return this.examAdminService
-                .saveLMSAttributes(exam)
-                .map(_exam -> {
+    public Result<Exam> initAdditionalTemplateAttributes(final Exam exam) {
+        return Result.tryCatch(() -> {
 
-                    if (exam.examTemplateId != null) {
+            if (exam.examTemplateId != null) {
 
-                        if (log.isDebugEnabled()) {
-                            log.debug("Init exam: {} with additional attributes from exam template: {}",
-                                    exam.externalId,
-                                    exam.examTemplateId);
-                        }
+                if (log.isDebugEnabled()) {
+                    log.debug("Init exam: {} with additional attributes from exam template: {}",
+                            exam.externalId,
+                            exam.examTemplateId);
+                }
 
-                        final ExamTemplate examTemplate = this.examTemplateDAO
-                                .byPK(exam.examTemplateId)
-                                .onError(error -> log.warn("No exam template found for id: {}",
-                                        exam.examTemplateId,
-                                        error.getMessage()))
-                                .getOr(null);
+                final ExamTemplate examTemplate = this.examTemplateDAO
+                        .byPK(exam.examTemplateId)
+                        .onError(error -> log.warn("No exam template found for id: {}",
+                                exam.examTemplateId,
+                                error.getMessage()))
+                        .getOr(null);
 
-                        if (examTemplate == null) {
-                            return exam;
-                        }
+                if (examTemplate == null) {
+                    return exam;
+                }
 
-                        if (examTemplate.examAttributes != null && !examTemplate.examAttributes.isEmpty()) {
-                            this.additionalAttributesDAO.saveAdditionalAttributes(
-                                    EntityType.EXAM,
-                                    exam.getId(),
-                                    examTemplate.examAttributes);
-                        }
-                    }
-                    return _exam;
-                }).onError(error -> log.error(
-                        "Failed to create additional attributes defined by template for exam: ",
-                        error));
+                if (examTemplate.examAttributes != null && !examTemplate.examAttributes.isEmpty()) {
+                    this.additionalAttributesDAO.saveAdditionalAttributes(
+                            EntityType.EXAM,
+                            exam.getId(),
+                            examTemplate.examAttributes);
+                }
+            }
+
+            return exam;
+        }).onError(error -> log.error(
+                "Failed to create additional attributes defined by template for exam: ",
+                error));
     }
 
     @Override

@@ -29,9 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.MoodleSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
@@ -134,6 +136,16 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                         exam,
                         e);
             }
+
+            // special Moodle plugin case for ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK
+            this.lmsAPIService.getLmsSetup(exam.lmsSetupId).map(lms -> {
+                if (lms.lmsType == LmsType.MOODLE_PLUGIN) {
+                    additionalAttributes.put(
+                            MoodleSEBRestriction.ATTR_ALT_BEK,
+                            exam.getAdditionalAttribute(ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK));
+                }
+                return lms;
+            });
 
             return new SEBRestriction(
                     exam.id,

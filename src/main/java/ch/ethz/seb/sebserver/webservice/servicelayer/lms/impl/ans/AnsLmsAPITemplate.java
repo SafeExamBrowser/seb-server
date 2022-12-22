@@ -216,6 +216,11 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
         return quizRequest(id);
     }
 
+    @Override
+    public Result<QuizData> tryRecoverQuizForExam(final Exam exam) {
+        return Result.ofError(new UnsupportedOperationException("Recovering not supported"));
+    }
+
     private List<QuizData> collectAllQuizzes(final AnsPersonalRestTemplate restTemplate) {
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
         final List<QuizData> quizDatas = getAssignments(restTemplate)

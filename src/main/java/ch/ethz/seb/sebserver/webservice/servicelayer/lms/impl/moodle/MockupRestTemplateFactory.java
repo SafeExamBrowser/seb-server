@@ -9,7 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,13 +28,16 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleQuizRestriction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseRestriction;
 
 public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
 
@@ -144,18 +148,27 @@ public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
 
             System.out.println("***** callMoodleAPIFunction HttpEntity: " + functionReqEntity);
 
-            // TODO return json
             if (MoodlePluginCourseAccess.COURSES_API_FUNCTION_NAME.equals(functionName)) {
                 return respondCourses(queryAttributes);
-            } else if (MoodlePluginCourseAccess.QUIZZES_BY_COURSES_API_FUNCTION_NAME.equals(functionName)) {
-                return respondQuizzes(queryAttributes);
             } else if (MoodlePluginCourseAccess.USERS_API_FUNCTION_NAME.equals(functionName)) {
                 return respondUsers(queryAttributes);
-            } else {
+            } else if (MoodlePluginCourseRestriction.RESTRICTION_GET_FUNCTION_NAME.equals(functionName)) {
+
+                return respondGetRestriction(
+                        queryParams.getFirst(MoodlePluginCourseRestriction.ATTRIBUTE_QUIZ_ID),
+                        queryAttributes);
+            } else if (MoodlePluginCourseRestriction.RESTRICTION_SET_FUNCTION_NAME.equals(functionName)) {
+                return respondSetRestriction(
+                        queryParams.getFirst(MoodlePluginCourseRestriction.ATTRIBUTE_QUIZ_ID),
+                        queryAttributes);
+            }
+
+            else {
                 throw new RuntimeException("Unknown function: " + functionName);
             }
         }
 
+        @SuppressWarnings("unused")
         private static final class MockCD {
             public final String id;
             public final String shortname;
@@ -167,8 +180,9 @@ public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
             public final Long enddate; // unix-time seconds UTC
             public final Long timecreated; // unix-time seconds UTC
             public final boolean visible;
+            public final Collection<MockQ> quizzes;
 
-            public MockCD(final String num) {
+            public MockCD(final String num, final Collection<MockQ> quizzes) {
                 this.id = num;
                 this.shortname = "c" + num;
                 this.categoryid = "mock";
@@ -179,9 +193,11 @@ public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
                 this.enddate = null;
                 this.timecreated = Long.valueOf(num);
                 this.visible = true;
+                this.quizzes = quizzes;
             }
         }
 
+        @SuppressWarnings("unused")
         private static final class MockQ {
             public final String id;
             public final String coursemodule;
@@ -209,12 +225,17 @@ public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
                 System.out.println("************* from: " + from);
                 final List<MockCD> courses;
                 if (ids != null && !ids.isEmpty()) {
-                    courses = ids.stream().map(id -> new MockCD(id)).collect(Collectors.toList());
+                    courses = ids
+                            .stream()
+                            .map(id -> new MockCD(
+                                    id,
+                                    getQuizzesForCourse(Integer.parseInt(id))))
+                            .collect(Collectors.toList());
                 } else if (from != null && Integer.valueOf(from) < 11) {
                     courses = new ArrayList<>();
                     final int num = (Integer.valueOf(from) > 0) ? 10 : 1;
                     for (int i = 0; i < 10; i++) {
-                        courses.add(new MockCD(String.valueOf(num + i)));
+                        courses.add(new MockCD(String.valueOf(num + i), getQuizzesForCourse(num + i)));
                     }
                 } else {
                     courses = new ArrayList<>();
@@ -232,26 +253,54 @@ public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
             }
         }
 
-        private String respondQuizzes(final MultiValueMap<String, String> queryAttributes) {
-            try {
-                final List<String> ids = queryAttributes.get(MoodlePluginCourseAccess.CRITERIA_COURSE_IDS);
-                final List<MockQ> quizzes;
-                if (ids != null && !ids.isEmpty()) {
-                    quizzes = ids.stream().map(id -> new MockQ(id, "10" + id)).collect(Collectors.toList());
-                } else {
-                    quizzes = Collections.emptyList();
-                }
+        private final Map<String, MoodleQuizRestriction> restrcitions = new HashMap<>();
 
-                final Map<String, Object> response = new HashMap<>();
-                response.put("quizzes", quizzes);
-                final JSONMapper jsonMapper = new JSONMapper();
-                final String result = jsonMapper.writeValueAsString(response);
-                System.out.println("******** quizzes response: " + result);
-                return result;
+        private String respondSetRestriction(final String quizId, final MultiValueMap<String, String> queryAttributes) {
+            final List<String> configKeys = queryAttributes.get(MoodlePluginCourseRestriction.ATTRIBUTE_CONFIG_KEYS);
+            final List<String> beks = queryAttributes.get(MoodlePluginCourseRestriction.ATTRIBUTE_BROWSER_EXAM_KEYS);
+            final String quitURL = queryAttributes.getFirst(MoodlePluginCourseRestriction.ATTRIBUTE_QUIT_URL);
+            final String quitSecret = queryAttributes.getFirst(MoodlePluginCourseRestriction.ATTRIBUTE_QUIT_SECRET);
+
+            final MoodleQuizRestriction moodleQuizRestriction = new MoodleQuizRestriction(
+                    quizId,
+                    StringUtils.join(configKeys, Constants.LIST_SEPARATOR),
+                    StringUtils.join(beks, Constants.LIST_SEPARATOR),
+                    quitURL,
+                    quitSecret);
+            this.restrcitions.put(quizId, moodleQuizRestriction);
+
+            final JSONMapper jsonMapper = new JSONMapper();
+            try {
+                return jsonMapper.writeValueAsString(moodleQuizRestriction);
             } catch (final JsonProcessingException e) {
                 e.printStackTrace();
                 return "";
             }
+        }
+
+        private String respondGetRestriction(final String quizId, final MultiValueMap<String, String> queryAttributes) {
+            final MoodleQuizRestriction moodleQuizRestriction = this.restrcitions.get(quizId);
+            if (moodleQuizRestriction != null) {
+                final JSONMapper jsonMapper = new JSONMapper();
+                try {
+                    return jsonMapper.writeValueAsString(moodleQuizRestriction);
+                } catch (final JsonProcessingException e) {
+                    e.printStackTrace();
+                    return "";
+                }
+            }
+            return "";
+        }
+
+        private Collection<MockQ> getQuizzesForCourse(final int courseId) {
+            final String id = String.valueOf(courseId);
+            final Collection<MockQ> result = new ArrayList<>();
+            result.add(new MockQ(id, "10" + id));
+            if (courseId % 2 > 0) {
+                result.add(new MockQ(id, "11" + id));
+            }
+
+            return result;
         }
 
         private String respondUsers(final MultiValueMap<String, String> queryAttributes) {

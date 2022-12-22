@@ -118,7 +118,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     KeyGenerators.string().generateKey().toString());
 
             return exam;
-        });
+        }).flatMap(this::initAdditionalAttributesForMoodleExams);
     }
 
     @Override
@@ -187,11 +187,6 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
-    public Result<Exam> saveLMSAttributes(final Exam exam) {
-        return initAdditionalAttributesForMoodleExams(exam);
-    }
-
-    @Override
     public Result<Boolean> isRestricted(final Exam exam) {
         if (exam == null) {
             return Result.of(false);
@@ -254,6 +249,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     .getLmsAPITemplate(exam.lmsSetupId)
                     .getOrThrow();
 
+            // TODO check if this is still needed
             if (lmsTemplate.lmsSetup().lmsType == LmsType.MOODLE) {
                 lmsTemplate.getQuiz(exam.externalId)
                         .flatMap(quizData -> this.additionalAttributesDAO.saveAdditionalAttribute(
@@ -277,7 +273,8 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                             EntityType.EXAM,
                             exam.id,
                             SEBRestrictionService.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK,
-                            moodleBEK).getOrThrow();
+                            moodleBEK)
+                            .getOrThrow();
                 } catch (final Exception e) {
                     log.error("Failed to create additional moodle SEB BEK attribute: ", e);
                 }

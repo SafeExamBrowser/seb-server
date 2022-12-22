@@ -221,6 +221,11 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     }
 
     @Override
+    public Result<QuizData> tryRecoverQuizForExam(final Exam exam) {
+        return Result.ofError(new UnsupportedOperationException("Recovering not supported"));
+    }
+
+    @Override
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeUserId) {
         return getRestTemplate().map(t -> this.getExamineeById(t, examineeUserId));
     }

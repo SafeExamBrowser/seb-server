@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -249,22 +248,21 @@ public abstract class MoodleUtils {
         public final Long end_date; // unix-time seconds UTC
         public final Long time_created; // unix-time seconds UTC
         public final String category_id;
-
-        @JsonIgnore
-        public final Collection<CourseQuiz> quizzes = new ArrayList<>();
+        public final Collection<CourseQuiz> quizzes;
 
         @JsonCreator
         public CourseData(
-                @JsonProperty(value = "id") final String id,
-                @JsonProperty(value = "shortname") final String short_name,
-                @JsonProperty(value = "idnumber") final String idnumber,
-                @JsonProperty(value = "fullname") final String full_name,
-                @JsonProperty(value = "displayname") final String display_name,
-                @JsonProperty(value = "summary") final String summary,
-                @JsonProperty(value = "startdate") final Long start_date,
-                @JsonProperty(value = "enddate") final Long end_date,
-                @JsonProperty(value = "timecreated") final Long time_created,
-                @JsonProperty(value = "categoryid") final String category_id) {
+                @JsonProperty("id") final String id,
+                @JsonProperty("shortname") final String short_name,
+                @JsonProperty("idnumber") final String idnumber,
+                @JsonProperty("fullname") final String full_name,
+                @JsonProperty("displayname") final String display_name,
+                @JsonProperty("summary") final String summary,
+                @JsonProperty("startdate") final Long start_date,
+                @JsonProperty("enddate") final Long end_date,
+                @JsonProperty("timecreated") final Long time_created,
+                @JsonProperty("categoryid") final String category_id,
+                @JsonProperty("quizzes") final Collection<CourseQuiz> quizzes) {
 
             this.id = id;
             this.short_name = short_name;
@@ -276,6 +274,7 @@ public abstract class MoodleUtils {
             this.end_date = end_date;
             this.time_created = time_created;
             this.category_id = category_id;
+            this.quizzes = (quizzes == null) ? new ArrayList<>() : quizzes;
         }
     }
 
@@ -286,8 +285,8 @@ public abstract class MoodleUtils {
 
         @JsonCreator
         public Courses(
-                @JsonProperty(value = "courses") final Collection<CourseData> courses,
-                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
+                @JsonProperty("courses") final Collection<CourseData> courses,
+                @JsonProperty("warnings") final Collection<Warning> warnings) {
             this.courses = courses;
             this.warnings = warnings;
         }
@@ -300,8 +299,8 @@ public abstract class MoodleUtils {
 
         @JsonCreator
         public CourseQuizData(
-                @JsonProperty(value = "quizzes") final Collection<CourseQuiz> quizzes,
-                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
+                @JsonProperty("quizzes") final Collection<CourseQuiz> quizzes,
+                @JsonProperty("warnings") final Collection<Warning> warnings) {
             this.quizzes = quizzes;
             this.warnings = warnings;
         }
@@ -320,14 +319,14 @@ public abstract class MoodleUtils {
 
         @JsonCreator
         public CourseQuiz(
-                @JsonProperty(value = "id") final String id,
-                @JsonProperty(value = "course") final String course,
-                @JsonProperty(value = "coursemodule") final String course_module,
-                @JsonProperty(value = "name") final String name,
-                @JsonProperty(value = "intro") final String intro,
-                @JsonProperty(value = "timeopen") final Long time_open,
-                @JsonProperty(value = "timeclose") final Long time_close,
-                @JsonProperty(value = "timelimit") final Long time_limit) {
+                @JsonProperty("id") final String id,
+                @JsonProperty("course") final String course,
+                @JsonProperty("coursemodule") final String course_module,
+                @JsonProperty("name") final String name,
+                @JsonProperty("intro") final String intro,
+                @JsonProperty("timeopen") final Long time_open,
+                @JsonProperty("timeclose") final Long time_close,
+                @JsonProperty("timelimit") final Long time_limit) {
 
             this.id = id;
             this.course = course;
@@ -363,24 +362,24 @@ public abstract class MoodleUtils {
 
         @JsonCreator
         public MoodleUserDetails(
-                @JsonProperty(value = "id") final String id,
-                @JsonProperty(value = "username") final String username,
-                @JsonProperty(value = "firstname") final String firstname,
-                @JsonProperty(value = "lastname") final String lastname,
-                @JsonProperty(value = "fullname") final String fullname,
-                @JsonProperty(value = "email") final String email,
-                @JsonProperty(value = "department") final String department,
-                @JsonProperty(value = "firstaccess") final Long firstaccess,
-                @JsonProperty(value = "lastaccess") final Long lastaccess,
-                @JsonProperty(value = "auth") final String auth,
-                @JsonProperty(value = "suspended") final Boolean suspended,
-                @JsonProperty(value = "confirmed") final Boolean confirmed,
-                @JsonProperty(value = "lang") final String lang,
-                @JsonProperty(value = "theme") final String theme,
-                @JsonProperty(value = "timezone") final String timezone,
-                @JsonProperty(value = "description") final String description,
-                @JsonProperty(value = "mailformat") final Integer mailformat,
-                @JsonProperty(value = "descriptionformat") final Integer descriptionformat) {
+                @JsonProperty("id") final String id,
+                @JsonProperty("username") final String username,
+                @JsonProperty("firstname") final String firstname,
+                @JsonProperty("lastname") final String lastname,
+                @JsonProperty("fullname") final String fullname,
+                @JsonProperty("email") final String email,
+                @JsonProperty("department") final String department,
+                @JsonProperty("firstaccess") final Long firstaccess,
+                @JsonProperty("lastaccess") final Long lastaccess,
+                @JsonProperty("auth") final String auth,
+                @JsonProperty("suspended") final Boolean suspended,
+                @JsonProperty("confirmed") final Boolean confirmed,
+                @JsonProperty("lang") final String lang,
+                @JsonProperty("theme") final String theme,
+                @JsonProperty("timezone") final String timezone,
+                @JsonProperty("description") final String description,
+                @JsonProperty("mailformat") final Integer mailformat,
+                @JsonProperty("descriptionformat") final Integer descriptionformat) {
 
             this.id = id;
             this.username = username;
@@ -404,51 +403,14 @@ public abstract class MoodleUtils {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static final class MoodlePluginUserDetails {
-        public final String id;
-        public final String fullname;
-        public final String username;
-        public final String firstname;
-        public final String lastname;
-        public final String idnumber;
-        public final String email;
-        public final Map<String, String> customfields;
-
-        @JsonCreator
-        public MoodlePluginUserDetails(
-                final String id,
-                final String username,
-                final String firstname,
-                final String lastname,
-                final String idnumber,
-                final String email,
-                final Map<String, String> customfields) {
-
-            this.id = id;
-            if (firstname != null && lastname != null) {
-                this.fullname = firstname + Constants.SPACE + lastname;
-            } else if (firstname != null) {
-                this.fullname = firstname;
-            } else {
-                this.fullname = lastname;
-            }
-            this.username = username;
-            this.firstname = firstname;
-            this.lastname = lastname;
-            this.idnumber = idnumber;
-            this.email = email;
-            this.customfields = Utils.immutableMapOf(customfields);
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class CoursePage {
         public final Collection<CourseKey> courseKeys;
         public final Collection<Warning> warnings;
 
+        @JsonCreator
         public CoursePage(
-                @JsonProperty(value = "courses") final Collection<CourseKey> courseKeys,
-                @JsonProperty(value = "warnings") final Collection<Warning> warnings) {
+                @JsonProperty("courses") final Collection<CourseKey> courseKeys,
+                @JsonProperty("warnings") final Collection<Warning> warnings) {
 
             this.courseKeys = courseKeys;
             this.warnings = warnings;
@@ -464,10 +426,10 @@ public abstract class MoodleUtils {
 
         @JsonCreator
         public CourseKey(
-                @JsonProperty(value = "id") final String id,
-                @JsonProperty(value = "shortname") final String short_name,
-                @JsonProperty(value = "categoryname") final String category_name,
-                @JsonProperty(value = "sortorder") final String sort_order) {
+                @JsonProperty("id") final String id,
+                @JsonProperty("shortname") final String short_name,
+                @JsonProperty("categoryname") final String category_name,
+                @JsonProperty("sortorder") final String sort_order) {
 
             this.id = id;
             this.short_name = short_name;
@@ -501,11 +463,11 @@ public abstract class MoodleUtils {
 
         @JsonCreator
         public MoodleQuizRestriction(
-                final String quiz_id,
-                final String config_keys,
-                final String browser_exam_keys,
-                final String quit_link,
-                final String quit_secret) {
+                @JsonProperty("quiz_id") final String quiz_id,
+                @JsonProperty("config_keys") final String config_keys,
+                @JsonProperty("browser_exam_keys") final String browser_exam_keys,
+                @JsonProperty("quit_link") final String quit_link,
+                @JsonProperty("quit_secret") final String quit_secret) {
 
             this.quiz_id = quiz_id;
             this.config_keys = config_keys;

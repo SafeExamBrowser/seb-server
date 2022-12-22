@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,6 +42,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
@@ -58,9 +58,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRe
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseData;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseQuizData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.Courses;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodlePluginUserDetails;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
 
 public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess implements CourseAccessAPI {
 
@@ -68,10 +67,12 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
     public static final String MOODLE_QUIZ_START_URL_PATH = "mod/quiz/view.php?id=";
     public static final String COURSES_API_FUNCTION_NAME = "quizaccess_sebserver_get_courses";
-    public static final String QUIZZES_BY_COURSES_API_FUNCTION_NAME = "quizaccess_sebserver_get_quizzes_by_courses";
-    public static final String USERS_API_FUNCTION_NAME = "quizaccess_sebserver_get_users";
+    public static final String USERS_API_FUNCTION_NAME = "core_user_get_users_by_field";
 
     public static final String ATTR_FIELD = "field";
+    public static final String ATTR_VALUE = "value";
+    public static final String ATTR_ID = "id";
+    public static final String ATTR_SHORTNAME = "shortname";
     public static final String CRITERIA_COURSE_IDS = "ids";
     public static final String CRITERIA_FROM_DATE = "from_date";
     public static final String CRITERIA_TO_DATE = "to_date";
@@ -147,7 +148,6 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             restTemplate.testAPIConnection(
                     COURSES_API_FUNCTION_NAME,
-                    QUIZZES_BY_COURSES_API_FUNCTION_NAME,
                     USERS_API_FUNCTION_NAME);
 
         } catch (final RuntimeException e) {
@@ -243,15 +243,50 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     }
 
     @Override
-    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeUserId) {
+    public Result<QuizData> tryRecoverQuizForExam(final Exam exam) {
+        return Result.tryCatch(() -> {
+
+            final LmsSetup lmsSetup = this.restTemplateFactory.getApiTemplateDataSupplier().getLmsSetup();
+            final MoodleAPIRestTemplate restTemplate = getRestTemplate().getOrThrow();
+            final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
+                    ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
+                    : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
+
+            // get the course name identifier for recovering
+            final String shortname = MoodleUtils.getShortname(exam.externalId);
+
+            final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+            attributes.add(ATTR_FIELD, ATTR_SHORTNAME);
+            attributes.add(ATTR_VALUE, shortname);
+            final String courseJSON = restTemplate.callMoodleAPIFunction(
+                    COURSES_API_FUNCTION_NAME,
+                    attributes);
+
+            return this.jsonMapper.readValue(
+                    courseJSON,
+                    Courses.class).courses
+                            .stream()
+                            .flatMap(c -> MoodleUtils.quizDataOf(
+                                    lmsSetup,
+                                    c,
+                                    urlPrefix,
+                                    this.prependShortCourseName).stream())
+                            .filter(q -> exam.name.contains(q.name))
+                            .findFirst()
+                            .get();
+        });
+    }
+
+    @Override
+    public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeSessionId) {
         return Result.tryCatch(() -> {
 
             final MoodleAPIRestTemplate template = getRestTemplate()
                     .getOrThrow();
 
             final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
-            queryAttributes.add(ATTR_FIELD, "id");
-            queryAttributes.add("values[0]", examineeUserId);
+            queryAttributes.add(ATTR_FIELD, ATTR_ID);
+            queryAttributes.add(ATTR_VALUE, examineeSessionId);
 
             final String userDetailsJSON = template.callMoodleAPIFunction(
                     USERS_API_FUNCTION_NAME,
@@ -266,21 +301,36 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                 throw new RuntimeException("No user details on Moodle API request (access-denied)");
             }
 
-            final MoodlePluginUserDetails[] userDetails = this.jsonMapper.<MoodlePluginUserDetails[]> readValue(
+            final MoodleUserDetails[] userDetails = this.jsonMapper.<MoodleUserDetails[]> readValue(
                     userDetailsJSON,
-                    new TypeReference<MoodlePluginUserDetails[]>() {
+                    new TypeReference<MoodleUserDetails[]>() {
                     });
 
             if (userDetails == null || userDetails.length <= 0) {
                 throw new RuntimeException("No user details on Moodle API request");
             }
 
+            final Map<String, String> additionalAttributes = new HashMap<>();
+            additionalAttributes.put("firstname", userDetails[0].firstname);
+            additionalAttributes.put("lastname", userDetails[0].lastname);
+            additionalAttributes.put("department", userDetails[0].department);
+            additionalAttributes.put("firstaccess", String.valueOf(userDetails[0].firstaccess));
+            additionalAttributes.put("lastaccess", String.valueOf(userDetails[0].lastaccess));
+            additionalAttributes.put("auth", userDetails[0].auth);
+            additionalAttributes.put("suspended", String.valueOf(userDetails[0].suspended));
+            additionalAttributes.put("confirmed", String.valueOf(userDetails[0].confirmed));
+            additionalAttributes.put("lang", userDetails[0].lang);
+            additionalAttributes.put("theme", userDetails[0].theme);
+            additionalAttributes.put("timezone", userDetails[0].timezone);
+            additionalAttributes.put("description", userDetails[0].description);
+            additionalAttributes.put("mailformat", String.valueOf(userDetails[0].mailformat));
+            additionalAttributes.put("descriptionformat", String.valueOf(userDetails[0].descriptionformat));
             return new ExamineeAccountDetails(
                     userDetails[0].id,
                     userDetails[0].fullname,
                     userDetails[0].username,
                     userDetails[0].email,
-                    userDetails[0].customfields);
+                    additionalAttributes);
         });
     }
 
@@ -314,63 +364,16 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                 ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
                 : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
 
-        // first get courses page from moodle
-        final Map<String, CourseData> courseData = new HashMap<>();
-        final Collection<CourseData> coursesPage = getCoursesPage(restTemplate, quizFromTime, page, this.pageSize);
-
-        // no courses for page --> finish
-        if (coursesPage == null || coursesPage.isEmpty()) {
+        final Collection<CourseData> fetchCoursesPage =
+                fetchCoursesPage(restTemplate, quizFromTime, page, this.pageSize);
+        // finish if page is empty (no courses left
+        if (fetchCoursesPage.isEmpty()) {
             asyncQuizFetchBuffer.finish();
             return;
         }
 
-        courseData.putAll(coursesPage
-                .stream()
-                .collect(Collectors.toMap(
-                        cd -> cd.id,
-                        Function.identity())));
-
-        // then get all quizzes of courses and filter
-        final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-        final List<String> courseIds = new ArrayList<>(courseData.keySet());
-        attributes.put(CRITERIA_COURSE_IDS, courseIds);
-
-        final String quizzesJSON = this.protectedMoodlePageCall
-                .protectedRun(() -> restTemplate.callMoodleAPIFunction(
-                        QUIZZES_BY_COURSES_API_FUNCTION_NAME,
-                        attributes))
-                .getOrThrow();
-
-        final CourseQuizData courseQuizData = this.jsonMapper.readValue(
-                quizzesJSON,
-                CourseQuizData.class);
-
-        if (courseQuizData == null) {
-            return; // SEBSERV-361
-        }
-
-        if (courseQuizData.warnings != null && !courseQuizData.warnings.isEmpty()) {
-            MoodleUtils.logMoodleWarning(
-                    courseQuizData.warnings,
-                    lmsSetup.name,
-                    QUIZZES_BY_COURSES_API_FUNCTION_NAME);
-        }
-
-        if (courseQuizData.quizzes == null || courseQuizData.quizzes.isEmpty()) {
-            return; // no quizzes on this page
-        }
-
-        courseQuizData.quizzes
-                .stream()
-                .filter(MoodleUtils.getQuizFilter())
-                .forEach(quiz -> {
-                    final CourseData data = courseData.get(quiz.course);
-                    if (data != null) {
-                        data.quizzes.add(quiz);
-                    }
-                });
-
-        courseData.values().stream()
+        // fetch and buffer quizzes
+        fetchCoursesPage.stream()
                 .filter(c -> !c.quizzes.isEmpty())
                 .forEach(c -> asyncQuizFetchBuffer.buffer.addAll(
                         MoodleUtils.quizDataOf(lmsSetup, c, urlPrefix, this.prependShortCourseName)
@@ -378,17 +381,22 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                                 .filter(quizFilter)
                                 .collect(Collectors.toList())));
 
+        // check thresholds
         if (asyncQuizFetchBuffer.buffer.size() > this.maxSize) {
             log.warn("Maximal moodle quiz fetch size of {} reached. Cancel fetch at this point.", this.maxSize);
             asyncQuizFetchBuffer.finish();
         }
     }
 
-    private Collection<CourseData> getCoursesPage(
+    private Collection<CourseData> fetchCoursesPage(
             final MoodleAPIRestTemplate restTemplate,
             final DateTime quizFromTime,
             final int page,
             final int size) throws JsonParseException, JsonMappingException, IOException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Fetch course page: {}, size: {} quizFromTime: {}", page, size, quizFromTime);
+        }
 
         final String lmsName = getLmsSetupName();
         try {
@@ -442,59 +450,31 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
     private List<QuizData> getQuizzesForIds(
             final MoodleAPIRestTemplate restTemplate,
-            final Set<String> quizIds) {
+            final Set<String> internalIds) {
 
         try {
 
             final LmsSetup lmsSetup = this.restTemplateFactory.getApiTemplateDataSupplier().getLmsSetup();
-
-            if (log.isDebugEnabled()) {
-                log.debug("Get quizzes for ids: {} and LMSSetup: {}", quizIds, lmsSetup);
-            }
-
-            // get involved courses and map by course id
-            final Map<String, CourseData> courseData = getCoursesForIds(
-                    restTemplate,
-                    quizIds.stream()
-                            .map(MoodleUtils::getCourseId)
-                            .collect(Collectors.toSet()))
-                                    .stream()
-                                    .collect(Collectors.toMap(cd -> cd.id, Function.identity()));
-
-            // then get all quizzes of courses and filter
-            final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-            attributes.put(CRITERIA_COURSE_IDS, new ArrayList<>(courseData.keySet()));
-
-            final String quizzesJSON = restTemplate.callMoodleAPIFunction(
-                    QUIZZES_BY_COURSES_API_FUNCTION_NAME,
-                    attributes);
-
-            final CourseQuizData courseQuizData = this.jsonMapper.readValue(
-                    quizzesJSON,
-                    CourseQuizData.class);
-
-            if (courseQuizData.warnings != null && !courseQuizData.warnings.isEmpty()) {
-                MoodleUtils.logMoodleWarning(
-                        courseQuizData.warnings,
-                        lmsSetup.name,
-                        QUIZZES_BY_COURSES_API_FUNCTION_NAME);
-            }
-
-            final Map<String, CourseData> finalCourseDataRef = courseData;
-            courseQuizData.quizzes
-                    .stream()
-                    .forEach(quiz -> MoodleUtils.fillSelectedQuizzes(quizIds, finalCourseDataRef, quiz));
-
             final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
                     ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
                     : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
+            final Set<String> moodleCourseIds = internalIds.stream()
+                    .map(MoodleUtils::getCourseId)
+                    .collect(Collectors.toSet());
 
-            return courseData.values()
+            if (log.isDebugEnabled()) {
+                log.debug("Get quizzes for internal ids: {}, Moodle courseI ids: {} and LMSSetup: {}",
+                        internalIds,
+                        moodleCourseIds,
+                        lmsSetup);
+            }
+
+            return getCoursesForIds(restTemplate, moodleCourseIds)
                     .stream()
-                    .filter(c -> !c.quizzes.isEmpty())
-                    .flatMap(cd -> MoodleUtils.quizDataOf(
+                    .filter(courseData -> !courseData.quizzes.isEmpty())
+                    .flatMap(courseData -> MoodleUtils.quizDataOf(
                             lmsSetup,
-                            cd,
+                            courseData,
                             urlPrefix,
                             this.prependShortCourseName).stream())
                     .collect(Collectors.toList());

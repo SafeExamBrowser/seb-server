@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -80,6 +81,12 @@ public interface CourseAccessAPI {
      * @param id the quiz data identifier
      * @return Result refer to the quiz data or to an error when happened */
     Result<QuizData> getQuiz(final String id);
+
+    /** Tries to recover dangling exam that has lost its quiz data with the id mapping.
+     *
+     * @param exam The dangling exam to try to recover
+     * @return Result referring to the recovered QuizData or to an error when happened */
+    Result<QuizData> tryRecoverQuizForExam(Exam exam);
 
     /** Clears the underling caches if there are some for a particular implementation. */
     void clearCourseCache();

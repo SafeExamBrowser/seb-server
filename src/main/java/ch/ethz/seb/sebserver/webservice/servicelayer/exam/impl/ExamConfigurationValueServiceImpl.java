@@ -57,7 +57,13 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
                     .getDefaultConfigurationNode(examId)
                     .flatMap(nodeId -> this.configurationDAO.getConfigurationLastStableVersion(nodeId))
                     .map(config -> config.id)
-                    .getOrThrow();
+                    .onError(error -> log.warn("Failed to get default Exam Config for exam: {} cause: {}",
+                            examId, error.getMessage()))
+                    .getOr(null);
+
+            if (configId == null) {
+                return null;
+            }
 
             final Long attrId = this.configurationAttributeDAO
                     .getAttributeIdByName(configAttributeName)
@@ -99,20 +105,22 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
             log.error("Failed to get SEB restriction with quit secret: ", e);
         }
 
-        return null;
+        return StringUtils.EMPTY;
     }
 
     @Override
     public String getQuitLink(final Long examId) {
         try {
 
-            return getMappedDefaultConfigAttributeValue(
+            final String quitLink = getMappedDefaultConfigAttributeValue(
                     examId,
                     CONFIG_ATTR_NAME_QUIT_LINK);
 
+            return (quitLink != null) ? quitLink : StringUtils.EMPTY;
+
         } catch (final Exception e) {
             log.error("Failed to get SEB restriction with quit link: ", e);
-            return null;
+            return StringUtils.EMPTY;
         }
     }
 

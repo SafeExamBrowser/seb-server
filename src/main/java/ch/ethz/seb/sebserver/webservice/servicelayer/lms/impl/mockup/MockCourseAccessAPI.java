@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.model.Domain.LMS_SETUP;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
@@ -231,6 +232,11 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
                 .filter(q -> id.equals(q.id))
                 .findFirst()
                 .get());
+    }
+
+    @Override
+    public Result<QuizData> tryRecoverQuizForExam(final Exam exam) {
+        return Result.ofError(new UnsupportedOperationException("Recovering not supported"));
     }
 
     @Override

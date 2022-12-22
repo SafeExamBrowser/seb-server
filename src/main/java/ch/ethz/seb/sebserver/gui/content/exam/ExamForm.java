@@ -240,7 +240,9 @@ public class ExamForm implements TemplateComposer {
                 .call()
                 .onError(e -> log.error("Unexpected error while trying to verify seb restriction settings: ", e))
                 .getOr(false);
-        final boolean sebRestrictionMismatch = isRestricted != exam.sebRestriction;
+        final boolean sebRestrictionMismatch = readonly &&
+                sebRestrictionAvailable &&
+                isRestricted != exam.sebRestriction;
 
         // check exam consistency and inform the user if needed
         Collection<APIMessage> warnings = null;
@@ -667,14 +669,6 @@ public class ExamForm implements TemplateComposer {
                     CustomVariant.MESSAGE,
                     CONSISTENCY_MESSAGE_SEB_RESTRICTION_MISMATCH);
         }
-    }
-
-    private void showSEBRestrictionMismatchMessage(final Composite parent) {
-        final Composite warningPanel = this.widgetFactory.createWarningPanel(parent);
-        this.widgetFactory.labelLocalized(
-                warningPanel,
-                CustomVariant.MESSAGE,
-                CONSISTENCY_MESSAGE_SEB_RESTRICTION_MISMATCH);
     }
 
     private Result<Exam> getExistingExam(final PageContext pageContext) {

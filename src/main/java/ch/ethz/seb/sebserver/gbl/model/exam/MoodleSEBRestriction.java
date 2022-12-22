@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MoodleSEBRestriction {
 
+    public static final String ATTR_ALT_BEK = "ALTERNATIVE_SEB_BEK";
     public static final String ATTR_BROWSER_KEYS = "BROWSER_KEYS";
     public static final String ATTR_CONFIG_KEYS = "CONFIG_KEYS";
 

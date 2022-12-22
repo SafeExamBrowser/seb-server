@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -24,21 +23,19 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamResetEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamStartedEvent;
@@ -51,23 +48,28 @@ class ExamUpdateHandler {
     private static final Logger log = LoggerFactory.getLogger(ExamUpdateHandler.class);
 
     private final ExamDAO examDAO;
+    private final AdditionalAttributesDAO additionalAttributesDAO;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final SEBRestrictionService sebRestrictionService;
     private final LmsAPIService lmsAPIService;
     private final String updatePrefix;
     private final Long examTimeSuffix;
     private final boolean tryRecoverExam;
+    private final int recoverAttempts;
 
     public ExamUpdateHandler(
             final ExamDAO examDAO,
+            final AdditionalAttributesDAO additionalAttributesDAO,
             final ApplicationEventPublisher applicationEventPublisher,
             final SEBRestrictionService sebRestrictionService,
             final LmsAPIService lmsAPIService,
             final WebserviceInfo webserviceInfo,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,
-            @Value("${sebserver.webservice.api.exam.tryrecover:false}") final boolean tryRecoverExam) {
+            @Value("${sebserver.webservice.api.exam.tryrecover:true}") final boolean tryRecoverExam,
+            @Value("${sebserver.webservice.api.exam.recoverattempts:3}") final int recoverAttempts) {
 
         this.examDAO = examDAO;
+        this.additionalAttributesDAO = additionalAttributesDAO;
         this.applicationEventPublisher = applicationEventPublisher;
         this.sebRestrictionService = sebRestrictionService;
         this.lmsAPIService = lmsAPIService;
@@ -75,6 +77,7 @@ class ExamUpdateHandler {
                 + "_" + webserviceInfo.getServerPort() + "_";
         this.examTimeSuffix = examTimeSuffix;
         this.tryRecoverExam = tryRecoverExam;
+        this.recoverAttempts = recoverAttempts;
     }
 
     public SEBRestrictionService getSEBRestrictionService() {
@@ -379,67 +382,124 @@ class ExamUpdateHandler {
             final String updateId) {
 
         return Result.tryCatch(() -> {
+
             final Exam exam = exams.get(quizId);
-            final LmsAPITemplate lmsTemplate = this.lmsAPIService
-                    .getLmsAPITemplate(lmsSetupId)
-                    .getOrThrow();
+            final int attempts = Integer.parseInt(this.additionalAttributesDAO.getAdditionalAttribute(
+                    EntityType.EXAM,
+                    exam.id,
+                    Exam.ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS)
+                    .map(AdditionalAttributeRecord::getValue)
+                    .getOr("0"));
 
-            // If this is a Moodle quiz, try to recover from eventually restore of the quiz on the LMS side
-            // NOTE: This is a workaround for Moodle quizzes that had have a recovery within the sandbox tool
-            //       Where potentially quiz identifiers get changed during such a recovery and the SEB Server
-            //       internal mapping is not working properly anymore. In this case we try to recover from such
-            //       a case by using the short name of the quiz and search for the quiz within the course with this
-            //       short name. If one quiz has been found that matches all criteria, we adapt the internal id
-            //       mapping to this quiz.
-            //       If recovering fails, this returns null and the calling side must handle the lack of quiz data
-            if (lmsTemplate.getType() == LmsType.MOODLE) {
-
-                log.info("Try to recover quiz data for Moodle quiz with internal identifier: {}", quizId);
-
-                if (exam != null && exam.name != null
-                        && !exam.name.startsWith(Constants.SQUARE_BRACE_OPEN.toString())) {
-
-                    log.debug("Found formerName quiz name: {}", exam.name);
-
-                    // get the course name identifier
-                    final String shortname = MoodleUtils.getShortname(quizId);
-                    if (StringUtils.isNotBlank(shortname)) {
-
-                        log.debug("Using short-name: {} for recovering", shortname);
-
-                        final QuizData recoveredQuizData = lmsTemplate
-                                .getQuizzes(new FilterMap())
-                                .getOrThrow()
-                                .stream()
-                                .filter(quiz -> {
-                                    final String qShortName = MoodleUtils.getShortname(quiz.id);
-                                    return qShortName != null && qShortName.equals(shortname);
-                                })
-                                .filter(quiz -> exam.name.equals(quiz.name))
-                                .findAny()
-                                .get();
-
-                        if (recoveredQuizData != null) {
-
-                            log.debug("Found quiz data for recovering: {}", recoveredQuizData);
-
-                            // save exam with new external id and quit data
-                            this.examDAO
-                                    .updateQuizData(exam.id, recoveredQuizData, updateId)
-                                    .getOrThrow();
-
-                            log.debug("Successfully recovered exam quiz data to new externalId {}",
-                                    recoveredQuizData.id);
-                        }
-                        return recoveredQuizData;
-                    }
+            if (attempts >= this.recoverAttempts) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Skip recovering quiz due to too many attempts: {}", exam.getModelId());
+                    throw new RuntimeException("Recover attempts reached");
                 }
             }
 
-            if (exam.lmsAvailable == null || exam.isLmsAvailable()) {
-                this.examDAO.markLMSAvailability(quizId, false, updateId);
-            }
-            throw new RuntimeException("Not Available");
+            log.info(
+                    "Try to recover quiz data for Moodle quiz with internal identifier: {}",
+                    quizId);
+
+            return this.lmsAPIService
+                    .getLmsAPITemplate(lmsSetupId)
+                    .flatMap(template -> template.tryRecoverQuizForExam(exam))
+                    .onError(error -> {
+
+                        this.additionalAttributesDAO.saveAdditionalAttribute(
+                                EntityType.EXAM,
+                                exam.id,
+                                Exam.ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS,
+                                String.valueOf(attempts + 1))
+                                .onError(error1 -> log.error("Failed to save new attempts: ", error1));
+
+                        if (exam.lmsAvailable == null || exam.isLmsAvailable()) {
+                            this.examDAO.markLMSAvailability(quizId, false, updateId);
+                        }
+                    })
+                    .getOrThrowRuntime("Not Available");
+
+//            // If this is a Moodle quiz, try to recover from eventually restore of the quiz on the LMS side
+//            // NOTE: This is a workaround for Moodle quizzes that had have a recovery within the sandbox tool
+//            //       Where potentially quiz identifiers get changed during such a recovery and the SEB Server
+//            //       internal mapping is not working properly anymore. In this case we try to recover from such
+//            //       a case by using the short name of the quiz and search for the quiz within the course with this
+//            //       short name. If one quiz has been found that matches all criteria, we adapt the internal id
+//            //       mapping to this quiz.
+//            //       If recovering fails, this returns null and the calling side must handle the lack of quiz data
+//            if (lmsTemplate.getType() == LmsType.MOODLE || lmsTemplate.getType() == LmsType.MOODLE_PLUGIN) {
+//
+//                final int attempts = Integer.parseInt(this.additionalAttributesDAO.getAdditionalAttribute(
+//                        EntityType.EXAM,
+//                        exam.id,
+//                        Exam.ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS)
+//                        .map(AdditionalAttributeRecord::getValue)
+//                        .getOr("0"));
+//
+//                if (attempts >= this.recoverAttempts) {
+//                    if (log.isDebugEnabled()) {
+//                        log.debug("Skip recovering quiz due to too many attempts: {}", exam.getModelId());
+//                        throw new RuntimeException("Recover attempts reached");
+//                    }
+//                }
+//
+//                log.info(
+//                        "Try to recover quiz data for Moodle quiz with internal identifier: {}",
+//                        quizId);
+//
+//                if (exam != null && exam.name != null
+//                        && !exam.name.startsWith(Constants.SQUARE_BRACE_OPEN.toString())) {
+//
+//                    log.debug("Found formerName quiz name: {}", exam.name);
+//
+//                    // get the course name identifier
+//                    final String shortname = MoodleUtils.getShortname(quizId);
+//                    if (StringUtils.isNotBlank(shortname)) {
+//
+//                        log.debug("Using short-name: {} for recovering", shortname);
+//
+//                        final QuizData recoveredQuizData = lmsTemplate
+//                                .getQuizzes(new FilterMap())
+//                                .getOrThrow()
+//                                .stream()
+//                                .filter(quiz -> {
+//                                    final String qShortName = MoodleUtils.getShortname(quiz.id);
+//                                    return qShortName != null && qShortName.equals(shortname);
+//                                })
+//                                .filter(quiz -> exam.name.equals(quiz.name))
+//                                .findAny()
+//                                .get();
+//
+//                        if (recoveredQuizData != null) {
+//
+//                            log.debug("Found quiz data for recovering: {}", recoveredQuizData);
+//
+//                            // save exam with new external id and quit data
+//                            this.examDAO
+//                                    .updateQuizData(exam.id, recoveredQuizData, updateId)
+//                                    .getOrThrow();
+//
+//                            log.debug("Successfully recovered exam quiz data to new externalId {}",
+//                                    recoveredQuizData.id);
+//                        }
+//                        return recoveredQuizData;
+//                    }
+//                }
+//
+//                this.additionalAttributesDAO.saveAdditionalAttribute(
+//                        EntityType.EXAM,
+//                        exam.id,
+//                        Exam.ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS,
+//                        String.valueOf(attempts + 1))
+//                        .onError(error -> log.error("Failed to save new attempts: ", error));
+//            }
+//
+//            if (exam.lmsAvailable == null || exam.isLmsAvailable()) {
+//                this.examDAO.markLMSAvailability(quizId, false, updateId);
+//            }
+//
+//            throw new RuntimeException("Not Available");
         });
     }
 

@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.async.CircuitBreaker;
 import ch.ethz.seb.sebserver.gbl.model.exam.Chapters;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
@@ -87,6 +88,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
     static final String MOODLE_QUIZ_API_FUNCTION_NAME = "mod_quiz_get_quizzes_by_courses";
     static final String MOODLE_COURSE_API_COURSE_IDS = "courseids";
     static final String MOODLE_COURSE_API_IDS = "ids";
+    static final String MOODLE_COURSE_API_COURSE_SHORTNAME = "shortname";
     static final String MOODLE_COURSE_SEARCH_API_FUNCTION_NAME = "core_course_search_courses";
     static final String MOODLE_COURSE_BY_FIELD_API_FUNCTION_NAME = "core_course_get_courses_by_field";
     static final String MOODLE_COURSE_API_FIELD_NAME = "field";
@@ -329,6 +331,71 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                     .map(template -> getQuizzesForIds(template, ids))
                     .getOr(Collections.emptyList())
                     .get(0);
+        });
+    }
+
+    @Override
+    public Result<QuizData> tryRecoverQuizForExam(final Exam exam) {
+        return Result.tryCatch(() -> {
+
+            final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
+            final MoodleAPIRestTemplate restTemplate = getRestTemplate().getOrThrow();
+            final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
+                    ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
+                    : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
+
+            // get the course name identifier for recovering
+            final String shortname = MoodleUtils.getShortname(exam.externalId);
+
+            final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+            attributes.add(MOODLE_COURSE_API_FIELD_NAME, MOODLE_COURSE_API_COURSE_SHORTNAME);
+            attributes.add(MOODLE_COURSE_API_FIELD_VALUE, shortname);
+            final String coursePageJSON = restTemplate.callMoodleAPIFunction(
+                    MOODLE_COURSE_BY_FIELD_API_FUNCTION_NAME,
+                    attributes);
+
+            final Map<String, CourseData> courses = this.jsonMapper.readValue(
+                    coursePageJSON,
+                    Courses.class).courses
+                            .stream()
+                            .collect(Collectors.toMap(c -> c.id, Function.identity()));
+
+            // then get all quizzes of courses and filter
+            final LinkedMultiValueMap<String, String> cAttributes = new LinkedMultiValueMap<>();
+            final List<String> courseIds = new ArrayList<>(courses.keySet());
+            if (courseIds.size() == 1) {
+                // NOTE: This is a workaround because the Moodle API do not support lists with only one element.
+                courseIds.add("0");
+            }
+            cAttributes.put(
+                    MoodleCourseAccess.MOODLE_COURSE_API_COURSE_IDS,
+                    courseIds);
+
+            final String quizzesJSON = this.protectedMoodlePageCall
+                    .protectedRun(() -> restTemplate.callMoodleAPIFunction(
+                            MoodleCourseAccess.MOODLE_QUIZ_API_FUNCTION_NAME,
+                            attributes))
+                    .getOrThrow();
+
+            this.jsonMapper.readValue(
+                    quizzesJSON,
+                    CourseQuizData.class).quizzes.stream().forEach(quiz -> {
+                        final CourseData data = courses.get(quiz.course);
+                        if (data != null) {
+                            data.quizzes.add(quiz);
+                        }
+                    });
+
+            return courses.values()
+                    .stream()
+                    .flatMap(c -> MoodleUtils.quizDataOf(
+                            lmsSetup,
+                            c,
+                            urlPrefix,
+                            this.prependShortCourseName).stream())
+                    .filter(q -> exam.name.contains(q.name))
+                    .findFirst()
+                    .get();
         });
     }
 

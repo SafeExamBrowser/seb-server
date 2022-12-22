@@ -44,12 +44,6 @@ public interface ExamAdminService {
      * @return The exam with the initial additional attributes */
     Result<Exam> initAdditionalAttributes(final Exam exam);
 
-    /** Saves additional attributes for the exam that are specific to a type of LMS
-     *
-     * @param exam The Exam to add the LMS specific attributes
-     * @return Result refer to the created exam or to an error when happened */
-    Result<Exam> saveLMSAttributes(Exam exam);
-
     /** Saves the security key settings for an specific exam.
      *
      * @param institutionId The institution identifier

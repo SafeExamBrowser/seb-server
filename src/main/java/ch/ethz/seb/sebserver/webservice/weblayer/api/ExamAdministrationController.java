@@ -528,7 +528,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CLIENT_GROUPS.of(error));
                     return entity;
                 })
-                .flatMap(this.examTemplateService::initAdditionalAttributes)
+                .flatMap(this.examTemplateService::initAdditionalTemplateAttributes)
                 .onErrorDo(error -> {
                     errors.add(ErrorMessage.EXAM_IMPORT_ERROR_AUTO_ATTRIBUTES.of(error));
                     return entity;
@@ -563,7 +563,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return Result.tryCatch(() -> {
             this.examSessionService.flushCache(entity);
             return entity;
-        }).flatMap(this.examAdminService::saveLMSAttributes);
+        });
     }
 
     @Override
