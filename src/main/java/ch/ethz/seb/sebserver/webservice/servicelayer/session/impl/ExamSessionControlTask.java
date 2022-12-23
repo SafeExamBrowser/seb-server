@@ -58,7 +58,7 @@ public class ExamSessionControlTask implements DisposableBean {
             final WebserviceInfo webserviceInfo,
             @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,
-            @Value("${sebserver.webservice.api.exam.update-interval:1 * * * * *}") final String examTaskCron,
+            @Value("${sebserver.webservice.api.exam.update-interval:60000}") final String examTaskCron,
             @Value("${sebserver.webservice.api.exam.update-ping:5000}") final Long pingUpdateRate) {
 
         this.examDAO = examDAO;
