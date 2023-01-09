@@ -393,7 +393,7 @@ class ExamUpdateHandler {
 
             if (attempts >= this.recoverAttempts) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Skip recovering quiz due to too many attempts: {}", exam.getModelId());
+                    log.debug("Skip recovering quiz due to too many attempts for exam: {}", exam.getModelId());
                     throw new RuntimeException("Recover attempts reached");
                 }
             }

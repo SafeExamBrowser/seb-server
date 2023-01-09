@@ -761,6 +761,8 @@ public class ExamDAOImpl implements ExamDAO {
         final Map<String, String> additionalAttributes = new HashMap<>(quizData.getAdditionalAttributes());
         if (StringUtils.isNotBlank(quizData.description)) {
             additionalAttributes.put(QuizData.QUIZ_ATTR_DESCRIPTION, quizData.description);
+        } else {
+            additionalAttributes.put(QuizData.QUIZ_ATTR_DESCRIPTION, StringUtils.EMPTY);
         }
         if (StringUtils.isNotBlank(quizData.startURL)) {
             additionalAttributes.put(QuizData.QUIZ_ATTR_START_URL, quizData.startURL);
