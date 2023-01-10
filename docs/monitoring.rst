@@ -4,7 +4,7 @@ Exam Monitoring
 A key feature of the SEB Server is the ability to overview and monitor SEB clients that are connected to the SEB Server and participate in a running exam.
 It is also possible to interact with individual SEB clients that are connected and send them instructions, e.g.: to quit and reload for example.
 But the main focus lies on monitoring and the SEB Server does not take automated actions but always only shows incidents as they are defined by
-indicators to an exam supporter. A exam supporter then can take action.
+indicators to an exam supporter. An exam supporter then can take action.
 
 As an exam supporter you see all running exams where you have been assigned to by an exam administrator in a list. 
 
@@ -12,16 +12,16 @@ As an exam supporter you see all running exams where you have been assigned to b
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/monitoring/runningExams.png
     
-To navigate to this list click on the "Running Exams" menu within the "Monitoring" category. And you will see the list with the name of the
+To navigate to this list, click on the "Running Exams" menu within the "Monitoring" category. And you will see the list with the name of the
 exam, the type and start- and end-time of the exam. If the exam you are looking for is not on the list, please check the start-time filter 
 and make sure that it is set before the start-time of the exam. If not, use the filter to set the date before the exams start-date and
-use the lens-symbol on the right to apply the new filter. If the exam you are looking for is still not on the list, please contact a 
+use the lens-symbol on the right to apply the new filter. If the exam you are looking for is still not on the list, please contact an 
 exam administrator of your institution to get help and check if you are correctly assigned to the exam as an exam supporter.
 
 To monitor an exam either double-click on the list entry of the exam or select the list entry and use the "Monitoring" action form the
 right action pane to navigate into the main page of exam monitoring.
 
-On the main page of exam monitoring you find a heat-map list of all SEB client connections that are connected to the exam since the
+On the main page of exam monitoring, you find a heat-map list of all SEB client connections that are connected to the exam since the
 exam is running. There are state filter switches on the right action pane that allows to show/hide SEB client connection of specified states.
 As default you should see at least all active connections instantly.
 
@@ -44,7 +44,7 @@ The following SEB connection states are defined:
 - **Closed** This state marks a closed SEB connection that was once active.
 - **Canceled** This state marks a SEB connection that has been canceled.
 
-This general connection attributes are followed by the indicator attributes of all indicator defined by the exam. The column name of an indicator is
+This general connection attributes are followed by the indicator attributes of all indicators defined by the exam. The column name of an indicator is
 the name of the indicator defined in the exam. The cell shows the measured value of the indicator for each SEB client connection and
 the cell is tinted in the color of the reached threshold also defined for each indicator on the exam administration.
 
@@ -72,19 +72,20 @@ with usual list (multi)selection by holding Ctrl or Shift key plus right mouse c
 **Filter**
 
 There are connection state filter to hide/show SEB client connection in particular states. These are located in the right action pane hand has the name of the
-filter action that will be performed on click (hide/show) and the name of the affected connection status. With this actions you are able to toggle between
+filter action that will be performed on click (hide/show) and the name of the affected connection status. With this actions, you are able to toggle between
 hide and show SEB client connection of a particular state.
 
 - **Show/Hide Requested** Use this to show or hide all SEB client connections that are currently in the "Requested" state and are not responding anymore.
-- **Show/Hide Active** Use this to hide SEB client connections in active state that has no incident and are not missing. If this filter is enabled and an active SEB connection gets an incident or is marked as missing it suddenly appears in the list. So no incidences are accidentally hidden. This feature is best used for exams with a lot of participants to keep a good overview.
+- **Show/Hide Active** Use this to hide SEB client connections in active state that has no incident and are not missing. If this filter is enabled and an active SEB connection gets an incident or is marked as missing it 
+suddenly appears in the list. So, no incidences are accidentally hidden. This feature is best used for exams with a lot of participants to keep a good overview.
 - **Show/Hide Closed** Use this to show or hide all SEB client connections that are currently in the "Closed" state.
 - **Show/Hide Canceled** Use this to show or hide all SEB client connections that are currently in the "Canceled" state.
 
-Since SEB Server version 1.3 each filter also shows the current number of connection in the particular state. Now one has an overview of how many connections 
-are there for an exam and in witch state.
+Since SEB Server version 1.3 each filter also shows the current number of connections in the particular state. Now one has an overview of how many connections 
+are there for an exam and in which state.
 
 .. note::
-    When a certain state filter is set to hide and a particular SEB client connection switches into that state, it will automatically disappear from the list.
+    When a certain state filter is set to hide, and a particular SEB client connection switches into that state, it will automatically disappear from the list.
 
 Detailed View
 -------------
@@ -100,7 +101,7 @@ in a form and additional a list of all events and logs the SEB client has sent t
 The table shows the event type that for all log-events is the log-level, The text and a value that has been sent with the event. The Value may be empty
 and marked as "Not a Number" (NaN). In this table we also have the client- and the server-time of the event. The client-time is the time the SEB client
 sends along with the event to the SEB Server and the server time is the time the SEB Server got the event. With this it is also possible to see or 
-overview temporary network latency or other irregularities, when this two time values differs much.
+overview temporary network latency or other irregularities, when those two time values differ much.
 
 In the detail view you are also able to use the instructions "Quit SEB Client" and "Mark as Canceled" for the selected SEB client connection.
 
@@ -112,7 +113,7 @@ This section is about the live proctoring on monitoring a running exam and using
 To configure the optional live proctoring for a specific exam please have a look at `Optional Live Proctoring <https://seb-server.readthedocs.io/en/latest/exam_proctoring.html#sebProctoringSettings>`_ 
 
 .. note::
-    This feature is still in a prototype state and not all functionality might work as expected. Basically the meeting features
+    This feature is still in a prototype state and not all functionality might work as expected. Basically, the meeting features
     are given or restricted by the meeting service that is used and the API and GUI that is given by that meeting service client
 
     
@@ -132,7 +133,7 @@ SEB Server will then open a dialog with a list of all participants. Double-click
 load the detailed monitoring view of that participant.
 
 .. note:: 
-    A collecting room, once created will live as long as the exam is running and not has been deleted. When the exam ends or is been deleted,
+    A collecting room, once created, will live as long as the exam is running and not has been deleted. When the exam ends or is been deleted,
     the collecting room will automatically get deleted on the SEB Server's persistent storage as well as on the meeting service side if needed.
     
 **Town-Hall Feature**
@@ -162,7 +163,7 @@ When the single room is closed the connected SEB clients is enforced to leave th
 
 **Broadcast Features**
 
-Within a live proctoring window a proctor can use the enabled features of the integrated meeting service and is able to communicate with the SEB clients by using one
+Within a live proctoring window, a proctor can use the enabled features of the integrated meeting service and is able to communicate with the SEB clients by using one
 of the following features if available for the service:
 
 - **Start Audio Broadcast** Will enforce the SEB clients within the particular room to enable receive audio and a proctor can speak to the students that are in the meeting.
@@ -181,10 +182,10 @@ A student as well as a proctor is then able to use all the features of the meeti
 
 **Known Issues with Live Proctoring**
 
-- Within the Zoom service it often happens that a participant appear twice in a room or meeting. This is probably caused by SEB clients rejoining the meetings while rooms or feature settings are changed.
-- In Zoom it is not possible to fully control a participant microphone. Therefore it may happen that participant can hear each other even if no proctor is in the meeting.
+- Within the Zoom service it often happens that a participant appears twice in a room or meeting. This is probably caused by SEB clients rejoining the meetings while rooms or feature settings are changed.
+- In Zoom it is not possible to fully control a participant microphone. Therefore, it may happen that participant can hear each other even if no proctor is in the meeting.
 - Within Jitsi Meet service when a proctor leaves the room it currently happens that a random participant became host/moderator since it is not possible in Jitsi Meet to have a meeting without host. We try to mitigate the problem with the `moderator plugin <https://github.com/nvonahsen/jitsi-token-moderation-plugin>`_ or `Jitsi Meet SaS <https://jaas.8x8.vc/#/>`_
-- In both services while broadcasting, it is not guaranteed that a student always see the proctor. Usually the meeting service shows or pins the participant that is currently speaking automatically.
+- In both services while broadcasting, it is not guaranteed that a student always sees the proctor. Usually, the meeting service shows or pins the participant that is currently speaking automatically.
 
 
 Finished Exams
@@ -192,7 +193,7 @@ Finished Exams
 
 Since SEB Server version 1.4 there is a new section "Finished Exams" within the monitoring section to view finished and archived exams
 like you do within the monitoring. You see all the SEB connections that has been connected to the exam when running and are able to view
-particular SEB client connection details by either double-click on a SEB client connection entry in the list or by selection and using the View action
+particular SEB client connection's details by either double-click on a SEB client connection entry in the list or by selection and using the View action
 on the right action pane.
 
 In the "Finished Exams" list you can see all finished or archived exams and filter the list by Name, State and Type.
@@ -204,7 +205,7 @@ In the "Finished Exams" list you can see all finished or archived exams and filt
 To see a particular finished or archived exam you can just double-click in the list entry or use the View action on the right action pane.
 In the exam view you see all SEB connections that has been connected to the exam during the exam run just like in the usual monitoring view
 but with no update since the SEB connections are not active and the data is not changing anymore. You are able to filter the list by
-User or Session Info, Connection Info or Status and are also be able to sort the list even for indicator columns. 
+User or Session Info, Connection Info or Status and are also able to sort the list even for indicator columns. 
 
 .. image:: images/monitoring/finishedExam.png
     :align: center
@@ -225,8 +226,8 @@ All SEB Client Logs
 
 As an exam administrator as well as an exam supporter, you are able to search SEB client events for all exams that have been run on the SEB Server and that
 you have access to within your user-account privilege settings. As an exam supporter you will only see the SEB client logs of the exams you are assigned to.
-To search all SEB client log events, go the the "Monitoring" section and click on the "SEB Client Logs" menu on the left menu pane. The SEB Server will show
-you a list of all SEB client logs ever happen and you have access to. You can filter and sort the list as usual by using the filter above to find all logs
+To search all SEB client log events, go the "Monitoring" section and click on the "SEB Client Logs" menu on the left menu pane. The SEB Server will show
+you a list of all SEB client logs ever happened and you have access to. You can filter and sort the list as usual by using the filter above to find all logs
 of an exam for example.
 
 .. image:: images/monitoring/sebClientLogs.png

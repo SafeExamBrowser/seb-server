@@ -10,14 +10,14 @@ Import and store X.509 certificates within SEB Server is a new feature since SEB
 or an exam administrator to upload and store certificates for further use within SEB Server.
 
 .. note:: 
-    Certificates uploaded to SEB Server are stored in a secured certificate-store that is stored within the data base rather then a 
-    usual file. The certificated store is password secured and only the binary data of the certificate store is places into the 
-    databease for securty reasons.
+    Certificates uploaded to SEB Server are stored in a secured certificate-store that is stored within the data base rather than a 
+    usual file. The certificated store is password secured and only the binary data of the certificate store is placed into the 
+    database for security reasons.
     
 Once a certificate has been uploaded to SEB Server it can be used for various other features of SEB Server where a certificate is needed.
 One feature that also comes with the SEB Server version 1.2 is the ability to encrypt a connection configuration with a certificate
-that has the right purpose (Identity) to do so. If you need this feature already, please have a look at: :ref:`connection-configuration-label`
-Other planed features are the import of certificate encrypted exam configurations as well as to embed certificates within a exam configuration
+that has the right purpose (Identity) to do so. If you need this feature already, please have a look at: :ref:`connection-configuration-label`.
+Other planed features are the import of certificate encrypted exam configurations as well as to embed certificates within an exam configuration
 to allow certificate pinning between SEB and LMS.
 
 There is currently certificate upload support for two version of certificates:
@@ -52,8 +52,8 @@ Use Cases
 - Choose "Import Certificate" from the right action pane and the upload dialog will open.
 - Within the upload dialog, select the certificate file on your local machine that you want to upload.
 - If the certificate is password protected, you will need to give the password to upload the certificate.
-- Chlick on "OK" to start the import.
-- If the import is successful the imported certificate will show up in the list. Otherwise SEB Server will display an error message with the reason of failure.
+- Click on "OK" to start the import.
+- If the import is successful, the imported certificate will show up in the list. Otherwise, SEB Server will display an error message with the reason of failure.
 
 **Remove / delete a certificate**
 
