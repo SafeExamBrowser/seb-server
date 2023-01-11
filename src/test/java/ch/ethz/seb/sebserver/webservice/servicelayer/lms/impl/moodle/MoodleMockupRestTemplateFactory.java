@@ -15,10 +15,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.util.Arrays;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -39,12 +39,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseRestriction;
 
-@Deprecated
-public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
+public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactory {
 
     private final APITemplateDataSupplier apiTemplateDataSupplier;
 
-    public MockupRestTemplateFactory(final APITemplateDataSupplier apiTemplateDataSupplier) {
+    public MoodleMockupRestTemplateFactory(final APITemplateDataSupplier apiTemplateDataSupplier) {
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
     }
 
@@ -77,11 +76,21 @@ public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
 
     public static final class MockupMoodleRestTemplate implements MoodleAPIRestTemplate {
 
-        private final String accessToken = UUID.randomUUID().toString();
+        private final String accessToken = "MockupMoodleRestTemplate-Test-Token";
         private final String url;
+        public final Collection<String> testLog = new ArrayList<>();
+        public final Collection<HttpEntity<?>> callLog = new ArrayList<>();
+
+        private final List<MockCD> courses = new ArrayList<>();
 
         public MockupMoodleRestTemplate(final String url) {
             this.url = url;
+
+            for (int i = 0; i < 20; i++) {
+                this.courses.add(new MockCD(
+                        String.valueOf(i),
+                        getQuizzesForCourse(i)));
+            }
         }
 
         @Override
@@ -95,13 +104,12 @@ public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
 
         @Override
         public CharSequence getAccessToken() {
-            System.out.println("***** getAccessToken: " + this.accessToken);
             return this.accessToken;
         }
 
         @Override
         public void testAPIConnection(final String... functions) {
-            System.out.println("***** testAPIConnection functions: " + functions);
+            this.testLog.add("testAPIConnection functions: " + Arrays.asList(functions));
         }
 
         @Override
@@ -147,7 +155,8 @@ public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
                 functionReqEntity = new HttpEntity<>(new LinkedMultiValueMap<>());
             }
 
-            System.out.println("***** callMoodleAPIFunction HttpEntity: " + functionReqEntity);
+            this.testLog.add("callMoodleAPIFunction: " + functionName);
+            this.callLog.add(functionReqEntity);
 
             if (MoodlePluginCourseAccess.COURSES_API_FUNCTION_NAME.equals(functionName)) {
                 return respondCourses(queryAttributes);
@@ -167,6 +176,21 @@ public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
             else {
                 throw new RuntimeException("Unknown function: " + functionName);
             }
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("MockupMoodleRestTemplate [accessToken=");
+            builder.append(this.accessToken);
+            builder.append(", url=");
+            builder.append(this.url);
+            builder.append(", testLog=");
+            builder.append(this.testLog);
+            builder.append(", callLog=");
+            builder.append(this.callLog);
+            builder.append("]");
+            return builder.toString();
         }
 
         @SuppressWarnings("unused")
@@ -210,7 +234,7 @@ public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
 
             public MockQ(final String courseId, final String num) {
                 this.id = num;
-                this.coursemodule = courseId;
+                this.coursemodule = num;
                 this.course = courseId;
                 this.name = "quiz " + num;
                 this.intro = this.name;
@@ -223,21 +247,17 @@ public class MockupRestTemplateFactory implements MoodleRestTemplateFactory {
             try {
                 final List<String> ids = queryAttributes.get(MoodlePluginCourseAccess.PARAM_COURSE_ID);
                 final String from = queryAttributes.getFirst(MoodlePluginCourseAccess.PARAM_PAGE_START);
+                final String size = queryAttributes.getFirst(MoodlePluginCourseAccess.PARAM_PAGE_SIZE);
                 System.out.println("************* from: " + from);
                 final List<MockCD> courses;
                 if (ids != null && !ids.isEmpty()) {
-                    courses = ids
-                            .stream()
-                            .map(id -> new MockCD(
-                                    id,
-                                    getQuizzesForCourse(Integer.parseInt(id))))
-                            .collect(Collectors.toList());
-                } else if (from != null && Integer.valueOf(from) < 11) {
-                    courses = new ArrayList<>();
-                    final int num = (Integer.valueOf(from) > 0) ? 10 : 1;
-                    for (int i = 0; i < 10; i++) {
-                        courses.add(new MockCD(String.valueOf(num + i), getQuizzesForCourse(num + i)));
-                    }
+                    courses = this.courses.stream().filter(c -> ids.contains(c.id)).collect(Collectors.toList());
+                } else if (from != null && Integer.valueOf(from) < this.courses.size()) {
+
+                    final int to = Integer.valueOf(from) + Integer.valueOf(size);
+                    courses = this.courses.subList(
+                            Integer.valueOf(from),
+                            (to < this.courses.size()) ? to : this.courses.size() - 1);
                 } else {
                     courses = new ArrayList<>();
                 }

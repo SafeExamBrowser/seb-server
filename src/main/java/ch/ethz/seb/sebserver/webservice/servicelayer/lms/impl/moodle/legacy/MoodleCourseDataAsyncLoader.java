@@ -85,7 +85,10 @@ public class MoodleCourseDataAsyncLoader {
             final Environment environment) {
 
         this.jsonMapper = jsonMapper;
-        this.fromCutTime = Utils.toUnixTimeInSeconds(DateTime.now(DateTimeZone.UTC).minusYears(3));
+        final int yearsBeforeNow = environment.getProperty(
+                "sebserver.webservice.lms.moodle.fetch.cutoffdate.yearsBeforeNow",
+                Integer.class, 3);
+        this.fromCutTime = Utils.toUnixTimeInSeconds(DateTime.now(DateTimeZone.UTC).minusYears(yearsBeforeNow));
         this.asyncRunner = asyncRunner;
 
         this.moodleRestCall = asyncService.createCircuitBreaker(

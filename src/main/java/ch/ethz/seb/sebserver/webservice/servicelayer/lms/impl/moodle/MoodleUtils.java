@@ -279,6 +279,39 @@ public abstract class MoodleUtils {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class CoursesPagePlugin {
+        public final String coursecount;
+        public final Integer needle;
+        public final Integer perpage;
+
+        public CoursesPagePlugin(
+                @JsonProperty("coursecount") final String coursecount,
+                @JsonProperty("needle") final Integer needle,
+                @JsonProperty("perpage") final Integer perpage) {
+            this.coursecount = coursecount;
+            this.needle = needle;
+            this.perpage = perpage;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class CoursesPlugin {
+        public final CoursesPagePlugin stats;
+        public final Collection<CourseData> results;
+        public final Collection<Warning> warnings;
+
+        @JsonCreator
+        public CoursesPlugin(
+                @JsonProperty("stats") final CoursesPagePlugin stats,
+                @JsonProperty("courses") final Collection<CourseData> results,
+                @JsonProperty("warnings") final Collection<Warning> warnings) {
+            this.stats = stats;
+            this.results = results;
+            this.warnings = warnings;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class Courses {
         public final Collection<CourseData> courses;
         public final Collection<Warning> warnings;
@@ -454,26 +487,40 @@ public abstract class MoodleUtils {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class MoodleQuizRestrictions {
+        public final Collection<MoodleQuizRestriction> data;
+        public final Collection<Warning> warnings;
+
+        public MoodleQuizRestrictions(
+                @JsonProperty("data") final Collection<MoodleQuizRestriction> data,
+                @JsonProperty("warnings") final Collection<Warning> warnings) {
+
+            this.data = data;
+            this.warnings = warnings;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class MoodleQuizRestriction {
-        public final String quiz_id;
-        public final String config_keys;
-        public final String browser_exam_keys;
-        public final String quit_link;
-        public final String quit_secret;
+        public final String quizid;
+        public final String configkeys;
+        public final String browserkeys;
+        public final String quitlink;
+        public final String quitsecret;
 
         @JsonCreator
         public MoodleQuizRestriction(
-                @JsonProperty("quiz_id") final String quiz_id,
-                @JsonProperty("config_keys") final String config_keys,
-                @JsonProperty("browser_exam_keys") final String browser_exam_keys,
-                @JsonProperty("quit_link") final String quit_link,
-                @JsonProperty("quit_secret") final String quit_secret) {
+                @JsonProperty("quizid") final String quizid,
+                @JsonProperty("configkeys") final String configkeys,
+                @JsonProperty("browserkeys") final String browserkeys,
+                @JsonProperty("quitlink") final String quitlink,
+                @JsonProperty("quitsecret") final String quitsecret) {
 
-            this.quiz_id = quiz_id;
-            this.config_keys = config_keys;
-            this.browser_exam_keys = browser_exam_keys;
-            this.quit_link = quit_link;
-            this.quit_secret = quit_secret;
+            this.quizid = quizid;
+            this.configkeys = configkeys;
+            this.browserkeys = browserkeys;
+            this.quitlink = quitlink;
+            this.quitsecret = quitsecret;
         }
     }
 

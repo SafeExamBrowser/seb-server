@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
@@ -59,6 +59,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.Courses;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CoursesPlugin;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
 
 public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess implements CourseAccessAPI {
@@ -66,18 +67,21 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     private static final Logger log = LoggerFactory.getLogger(MoodlePluginCourseAccess.class);
 
     public static final String MOODLE_QUIZ_START_URL_PATH = "mod/quiz/view.php?id=";
-    public static final String COURSES_API_FUNCTION_NAME = "quizaccess_sebserver_get_courses";
+    public static final String COURSES_API_FUNCTION_NAME = "quizaccess_sebserver_get_exams";
     public static final String USERS_API_FUNCTION_NAME = "core_user_get_users_by_field";
 
     public static final String ATTR_FIELD = "field";
     public static final String ATTR_VALUE = "value";
     public static final String ATTR_ID = "id";
     public static final String ATTR_SHORTNAME = "shortname";
-    public static final String CRITERIA_COURSE_IDS = "ids";
-    public static final String CRITERIA_FROM_DATE = "from_date";
-    public static final String CRITERIA_TO_DATE = "to_date";
-    public static final String CRITERIA_LIMIT_FROM = "limitfrom";
-    public static final String CRITERIA_LIMIT_NUM = "limitnum";
+
+    public static final String PARAM_COURSE_ID = "courseid";
+    public static final String PARAM_SQL_CONDITIONS = "conditions";
+    public static final String PARAM_PAGE_START = "startneedle";
+    public static final String PARAM_PAGE_SIZE = "perpage";
+
+    public static final String SQL_CONDITION_TEMPLATE =
+            "(startdate >= %s or timecreated >=%s) and (enddate is null or enddate is 0 or enddate is >= %s)";
 
     private final JSONMapper jsonMapper;
     private final MoodleRestTemplateFactory restTemplateFactory;
@@ -85,6 +89,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     private final boolean prependShortCourseName;
     private final int pageSize;
     private final int maxSize;
+    private final int cutoffTimeOffset;
 
     private MoodleAPIRestTemplate restTemplate;
 
@@ -119,7 +124,11 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
         this.maxSize =
                 environment.getProperty("sebserver.webservice.cache.moodle.course.maxSize", Integer.class, 10000);
         this.pageSize =
-                environment.getProperty("sebserver.webservice.cache.moodle.course.pageSize", Integer.class, 10);
+                environment.getProperty("sebserver.webservice.cache.moodle.course.pageSize", Integer.class, 500);
+
+        this.cutoffTimeOffset = environment.getProperty(
+                "sebserver.webservice.lms.moodle.fetch.cutoffdate.yearsBeforeNow",
+                Integer.class, 3);
     }
 
     @Override
@@ -169,7 +178,10 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             int page = 0;
             int failedAttempts = 0;
-            final DateTime quizFromTime = filterMap.getQuizFromTime();
+            DateTime quizFromTime = filterMap.getQuizFromTime();
+            if (quizFromTime == null) {
+                quizFromTime = DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset);
+            }
             final Predicate<QuizData> quizFilter = LmsAPIService.quizFilterPredicate(filterMap);
 
             while (!asyncQuizFetchBuffer.finished && !asyncQuizFetchBuffer.canceled) {
@@ -401,11 +413,20 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
         final String lmsName = getLmsSetupName();
         try {
             // get course ids per page
-            final String fromDate = String.valueOf(Utils.toUnixTimeInSeconds(quizFromTime));
+            final long filterDate = Utils.toUnixTimeInSeconds(quizFromTime);
+            final long defaultCutOff = Utils.toUnixTimeInSeconds(
+                    DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset));
+            final long cutoffDate = (filterDate < defaultCutOff) ? filterDate : defaultCutOff;
+            final String sqlCondition = String.format(
+                    SQL_CONDITION_TEMPLATE,
+                    String.valueOf(cutoffDate),
+                    String.valueOf(cutoffDate),
+                    String.valueOf(filterDate));
             final String fromElement = String.valueOf(page * size);
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-            attributes.add(CRITERIA_FROM_DATE, fromDate);
-            attributes.add(CRITERIA_LIMIT_FROM, fromElement);
+            attributes.add(PARAM_SQL_CONDITIONS, sqlCondition);
+            attributes.add(PARAM_PAGE_START, fromElement);
+            attributes.add(PARAM_PAGE_SIZE, String.valueOf(size));
 
             final String courseKeyPageJSON = this.protectedMoodlePageCall
                     .protectedRun(() -> restTemplate.callMoodleAPIFunction(
@@ -413,7 +434,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                             attributes))
                     .getOrThrow();
 
-            final Courses coursePage = this.jsonMapper.readValue(courseKeyPageJSON, Courses.class);
+            final CoursesPlugin coursePage = this.jsonMapper.readValue(courseKeyPageJSON, CoursesPlugin.class);
 
             if (coursePage == null) {
                 log.error("No CoursePage Response");
@@ -425,7 +446,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             }
 
             Collection<CourseData> result;
-            if (coursePage.courses == null || coursePage.courses.isEmpty()) {
+            if (coursePage.results == null || coursePage.results.isEmpty()) {
                 if (log.isDebugEnabled()) {
                     log.debug("LMS Setup: {} No courses found on page: {}", lmsName, page);
                     if (log.isTraceEnabled()) {
@@ -434,7 +455,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                 }
                 result = Collections.emptyList();
             } else {
-                result = coursePage.courses;
+                result = coursePage.results;
             }
 
             if (log.isDebugEnabled()) {
@@ -476,7 +497,9 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                             lmsSetup,
                             courseData,
                             urlPrefix,
-                            this.prependShortCourseName).stream())
+                            this.prependShortCourseName)
+                            .stream()
+                            .filter(q -> internalIds.contains(q.id)))
                     .collect(Collectors.toList());
 
         } catch (final Exception e) {
@@ -497,19 +520,17 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                 log.debug("Get courses for ids: {} on LMS: {}", courseIds, lmsSetup);
             }
 
-            final String joinedIds = StringUtils.join(courseIds, Constants.COMMA);
-
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-            attributes.add(CRITERIA_COURSE_IDS, joinedIds);
+            attributes.put(PARAM_COURSE_ID, new ArrayList<>(courseIds));
             final String coursePageJSON = restTemplate.callMoodleAPIFunction(
                     COURSES_API_FUNCTION_NAME,
                     attributes);
 
-            final Courses courses = this.jsonMapper.readValue(
+            final CoursesPlugin courses = this.jsonMapper.readValue(
                     coursePageJSON,
-                    Courses.class);
+                    CoursesPlugin.class);
 
-            if (courses.courses == null || courses.courses.isEmpty()) {
+            if (courses.results == null || courses.results.isEmpty()) {
                 log.warn("No courses found for ids: {} on LMS: {}", courseIds, lmsSetup.name);
 
                 if (courses != null && courses.warnings != null && !courses.warnings.isEmpty()) {
@@ -518,7 +539,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                 return Collections.emptyList();
             }
 
-            return courses.courses;
+            return courses.results;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get courses for ids", e);
             return Collections.emptyList();
@@ -537,6 +558,20 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
         }
 
         return Result.of(this.restTemplate);
+    }
+
+    protected String toTestString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("MoodlePluginCourseAccess [pageSize=");
+        builder.append(this.pageSize);
+        builder.append(", maxSize=");
+        builder.append(this.maxSize);
+        builder.append(", cutoffTimeOffset=");
+        builder.append(this.cutoffTimeOffset);
+        builder.append(", restTemplate=");
+        builder.append(this.restTemplate);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

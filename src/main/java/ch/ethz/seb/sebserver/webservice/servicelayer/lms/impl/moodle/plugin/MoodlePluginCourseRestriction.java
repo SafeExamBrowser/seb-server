@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRe
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleQuizRestriction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleQuizRestrictions;
 
 public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
 
@@ -110,16 +111,7 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
                     addQuery,
                     new LinkedMultiValueMap<>());
 
-            try {
-
-                final MoodleQuizRestriction moodleRestriction = this.jsonMapper.readValue(
-                        srJSON,
-                        MoodleUtils.MoodleQuizRestriction.class);
-
-                return toSEBRestriction(exam, moodleRestriction);
-            } catch (final Exception e) {
-                throw new RuntimeException("Unexpected error while get SEB restriction: ", e);
-            }
+            return restrictionFromJson(exam, srJSON);
         });
     }
 
@@ -160,16 +152,7 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
                     addQuery,
                     queryAttributes);
 
-            try {
-
-                final MoodleQuizRestriction moodleRestriction = this.jsonMapper.readValue(
-                        srJSON,
-                        MoodleUtils.MoodleQuizRestriction.class);
-
-                return toSEBRestriction(exam, moodleRestriction);
-            } catch (final Exception e) {
-                throw new RuntimeException("Unexpected error while get SEB restriction: ", e);
-            }
+            return restrictionFromJson(exam, srJSON);
         });
     }
 
@@ -200,16 +183,56 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
         });
     }
 
-    private SEBRestriction toSEBRestriction(final Exam exam, final MoodleQuizRestriction moodleRestriction) {
+    private SEBRestriction restrictionFromJson(final Exam exam, final String srJSON) {
+        try {
+            // fist try to get from multiple data
+            final MoodleQuizRestrictions moodleRestrictions = this.jsonMapper.readValue(
+                    srJSON,
+                    MoodleUtils.MoodleQuizRestrictions.class);
+
+            return toSEBRestriction(exam, moodleRestrictions);
+        } catch (final Exception e) {
+            try {
+                // then try to get from single
+                final MoodleQuizRestriction moodleRestriction = this.jsonMapper.readValue(
+                        srJSON,
+                        MoodleUtils.MoodleQuizRestriction.class);
+
+                return toSEBRestriction(exam, moodleRestriction);
+            } catch (final Exception ee) {
+                throw new RuntimeException("Unexpected error while get SEB restriction: ", ee);
+            }
+        }
+    }
+
+    private SEBRestriction toSEBRestriction(
+            final Exam exam,
+            final MoodleQuizRestrictions moodleRestrictions) {
+
+        if (moodleRestrictions.warnings != null && !moodleRestrictions.warnings.isEmpty()) {
+            log.warn("Moodle restriction call warnings: {}", moodleRestrictions.warnings);
+        }
+
+        if (moodleRestrictions.data == null || moodleRestrictions.data.isEmpty()) {
+            throw new IllegalArgumentException("Expecting MoodleQuizRestriction not available. Exam: " + exam);
+        }
+
+        return toSEBRestriction(exam, moodleRestrictions.data.iterator().next());
+    }
+
+    private SEBRestriction toSEBRestriction(
+            final Exam exam,
+            final MoodleQuizRestriction moodleRestriction) {
+
         final List<String> configKeys = Arrays.asList(StringUtils.split(
-                moodleRestriction.config_keys,
+                moodleRestriction.configkeys,
                 Constants.LIST_SEPARATOR));
         final List<String> browserExamKeys = new ArrayList<>(Arrays.asList(StringUtils.split(
-                moodleRestriction.browser_exam_keys,
+                moodleRestriction.browserkeys,
                 Constants.LIST_SEPARATOR)));
         final Map<String, String> additionalProperties = new HashMap<>();
-        additionalProperties.put(ATTRIBUTE_QUIT_URL, moodleRestriction.quit_link);
-        additionalProperties.put(ATTRIBUTE_QUIT_SECRET, moodleRestriction.quit_secret);
+        additionalProperties.put(ATTRIBUTE_QUIT_URL, moodleRestriction.quitlink);
+        additionalProperties.put(ATTRIBUTE_QUIT_SECRET, moodleRestriction.quitsecret);
 
         return new SEBRestriction(
                 exam.id,
