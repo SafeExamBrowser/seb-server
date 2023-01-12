@@ -479,6 +479,11 @@ public class LmsSetupForm implements TemplateComposer {
                             Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
                 }
                 case QUIZ_ACCESS_API_REQUEST: {
+                    if (error.message.contains("quizaccess_sebserver_get_exams")) {
+                        throw new PageMessageException(new LocTextKey(
+                                "sebserver.lmssetup.action.test.quizRequestError.moodle.missing.plugin",
+                                Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
+                    }
                     throw new PageMessageException(new LocTextKey(
                             "sebserver.lmssetup.action.test.quizRequestError",
                             Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));

@@ -32,7 +32,8 @@ public final class LmsSetupTestResult {
         MISSING_ATTRIBUTE,
         TOKEN_REQUEST,
         QUIZ_ACCESS_API_REQUEST,
-        QUIZ_RESTRICTION_API_REQUEST
+        QUIZ_RESTRICTION_API_REQUEST,
+        TEMPLATE_CREATION
     }
 
     @JsonProperty(Domain.LMS_SETUP.ATTR_LMS_TYPE)
@@ -59,7 +60,7 @@ public final class LmsSetupTestResult {
                 Collections.emptyList());
     }
 
-    protected LmsSetupTestResult(final LmsSetup.LmsType lmsType, final Error error) {
+    public LmsSetupTestResult(final LmsSetup.LmsType lmsType, final Error error) {
         this(lmsType,
                 Utils.immutableCollectionOf(Arrays.asList(error)),
                 Collections.emptyList());
@@ -163,7 +164,6 @@ public final class LmsSetupTestResult {
             builder.append("]");
             return builder.toString();
         }
-
     }
 
 }

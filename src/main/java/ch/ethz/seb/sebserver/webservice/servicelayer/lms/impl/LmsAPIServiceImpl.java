@@ -24,7 +24,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentials;
 import ch.ethz.seb.sebserver.gbl.client.ProxyData;
@@ -33,12 +32,12 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.LmsSetupDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -133,17 +132,13 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     public Result<LmsAPITemplate> getLmsAPITemplate(final String lmsSetupId) {
         return Result.tryCatch(() -> {
             synchronized (this) {
-                LmsAPITemplate lmsAPITemplate = getFromCache(lmsSetupId);
+                final LmsAPITemplate lmsAPITemplate = getFromCache(lmsSetupId);
                 if (lmsAPITemplate == null) {
-                    lmsAPITemplate = createLmsSetupTemplate(lmsSetupId);
-                    if (lmsAPITemplate != null) {
-                        this.cache.put(new CacheKey(lmsSetupId, System.currentTimeMillis()), lmsAPITemplate);
-                    }
+                    return createLmsSetupTemplate(lmsSetupId)
+                            .onError(error -> log.error("Failed to create LMSSetup: ", error))
+                            .onSuccess(t -> this.cache.put(new CacheKey(lmsSetupId, System.currentTimeMillis()), t))
+                            .getOrThrow();
                 }
-                if (lmsAPITemplate == null) {
-                    throw new ResourceNotFoundException(EntityType.LMS_SETUP, lmsSetupId);
-                }
-
                 return lmsAPITemplate;
             }
         });
@@ -153,10 +148,12 @@ public class LmsAPIServiceImpl implements LmsAPIService {
     public LmsSetupTestResult test(final LmsAPITemplate template) {
         final LmsSetupTestResult testCourseAccessAPI = template.testCourseAccessAPI();
         if (!testCourseAccessAPI.isOk()) {
+            this.cache.remove(new CacheKey(template.lmsSetup().getModelId(), 0));
             return testCourseAccessAPI;
         }
 
         if (template.lmsSetup().getLmsType().features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
+            this.cache.remove(new CacheKey(template.lmsSetup().getModelId(), 0));
             return template.testCourseRestrictionAPI();
         }
 
@@ -169,7 +166,15 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 lmsSetup,
                 this.clientCredentialService);
 
-        final LmsAPITemplate lmsSetupTemplate = createLmsSetupTemplate(apiTemplateDataSupplier);
+        final Result<LmsAPITemplate> createLmsSetupTemplate = createLmsSetupTemplate(apiTemplateDataSupplier);
+        if (createLmsSetupTemplate.hasError()) {
+            return new LmsSetupTestResult(
+                    lmsSetup.lmsType,
+                    new LmsSetupTestResult.Error(ErrorType.TEMPLATE_CREATION,
+                            createLmsSetupTemplate.getError().getMessage()));
+
+        }
+        final LmsAPITemplate lmsSetupTemplate = createLmsSetupTemplate.get();
 
         final LmsSetupTestResult testCourseAccessAPI = lmsSetupTemplate.testCourseAccessAPI();
         if (!testCourseAccessAPI.isOk()) {
@@ -182,40 +187,6 @@ public class LmsAPIServiceImpl implements LmsAPIService {
 
         return LmsSetupTestResult.ofOkay(lmsSetupTemplate.lmsSetup().getLmsType());
     }
-
-//    /** Collect all QuizData from all affecting LmsSetup.
-//     * If filterMap contains a LmsSetup identifier, only the QuizData from that LmsSetup is collected.
-//     * Otherwise QuizData from all active LmsSetup of the current institution are collected.
-//     *
-//     * @param filterMap the FilterMap containing either an LmsSetup identifier or an institution identifier
-//     * @return list of QuizData from all affecting LmsSetup */
-//    private Result<List<QuizData>> getAllQuizzesFromLMSSetups(final FilterMap filterMap) {
-//
-//        // case 1. if lmsSetupId is available only get quizzes from specified LmsSetup
-//        final Long lmsSetupId = filterMap.getLmsSetupId();
-//        if (lmsSetupId != null) {
-//            return getQuizzesForSingleLMS(filterMap, lmsSetupId);
-//        }
-//
-//        // case 2. get quizzes from all LmsSetups of specified institution
-//        return this.quizLookupService.getAllQuizzesFromLMSSetups(
-//                filterMap,
-//                this::getLmsAPITemplate);
-//
-////            final Long institutionId = filterMap.getInstitutionId();
-////            return this.lmsSetupDAO.all(institutionId, true)
-////                    .getOrThrow()
-////                    .parallelStream()
-////                    .map(LmsSetup::getModelId)
-////                    .map(this::getLmsAPITemplate)
-////                    .flatMap(Result::onErrorLogAndSkip)
-////                    .map(template -> template.getQuizzes(filterMap))
-////                    .flatMap(Result::onErrorLogAndSkip)
-////                    .flatMap(List::stream)
-////                    .distinct()
-////                    .collect(Collectors.toList());
-//
-//    }
 
     private LmsAPITemplate getFromCache(final String lmsSetupId) {
         // first cleanup the cache by removing old instances
@@ -245,7 +216,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         return lmsAPITemplate;
     }
 
-    private LmsAPITemplate createLmsSetupTemplate(final String lmsSetupId) {
+    private Result<LmsAPITemplate> createLmsSetupTemplate(final String lmsSetupId) {
 
         if (log.isDebugEnabled()) {
             log.debug("Create new LmsAPITemplate for id: {}", lmsSetupId);
@@ -256,7 +227,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 this.lmsSetupDAO));
     }
 
-    private LmsAPITemplate createLmsSetupTemplate(final APITemplateDataSupplier apiTemplateDataSupplier) {
+    private Result<LmsAPITemplate> createLmsSetupTemplate(final APITemplateDataSupplier apiTemplateDataSupplier) {
 
         final LmsType lmsType = apiTemplateDataSupplier.getLmsSetup().lmsType;
 
@@ -268,8 +239,7 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                 .get(lmsType);
 
         return lmsAPITemplateFactory
-                .create(apiTemplateDataSupplier)
-                .getOrThrow();
+                .create(apiTemplateDataSupplier);
     }
 
     /** Used to always get the actual LMS connection data from persistent */

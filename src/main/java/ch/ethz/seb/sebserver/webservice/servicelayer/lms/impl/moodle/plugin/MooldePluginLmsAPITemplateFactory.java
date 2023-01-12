@@ -11,7 +11,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -29,9 +28,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsAPITemplateAdapter;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MockupRestTemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodlePluginCheck;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactoryImpl;
 
 @Lazy
 @Service
@@ -46,7 +45,6 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
     private final ClientCredentialService clientCredentialService;
     private final ExamConfigurationValueService examConfigurationValueService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
-    private final ApplicationContext applicationContext;
     private final String[] alternativeTokenRequestPaths;
 
     protected MooldePluginLmsAPITemplateFactory(
@@ -58,7 +56,6 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
             final ClientCredentialService clientCredentialService,
             final ExamConfigurationValueService examConfigurationValueService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
-            final ApplicationContext applicationContext,
             @Value("${sebserver.webservice.lms.moodle.api.token.request.paths:}") final String alternativeTokenRequestPaths) {
 
         this.moodlePluginCheck = moodlePluginCheck;
@@ -69,7 +66,6 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
         this.clientCredentialService = clientCredentialService;
         this.examConfigurationValueService = examConfigurationValueService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
-        this.applicationContext = applicationContext;
         this.alternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
                 ? StringUtils.split(alternativeTokenRequestPaths, Constants.LIST_SEPARATOR)
                 : null;
@@ -84,15 +80,16 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
     public Result<LmsAPITemplate> create(final APITemplateDataSupplier apiTemplateDataSupplier) {
         return Result.tryCatch(() -> {
 
-//            final MoodleRestTemplateFactory moodleRestTemplateFactory = new MoodleRestTemplateFactoryImpl(
-//                    this.jsonMapper,
-//                    apiTemplateDataSupplier,
-//                    this.clientCredentialService,
-//                    this.clientHttpRequestFactoryService,
-//                    this.alternativeTokenRequestPaths);
+            final MoodleRestTemplateFactory moodleRestTemplateFactory = new MoodleRestTemplateFactoryImpl(
+                    this.jsonMapper,
+                    apiTemplateDataSupplier,
+                    this.clientCredentialService,
+                    this.clientHttpRequestFactoryService,
+                    this.alternativeTokenRequestPaths);
 
-            final MoodleRestTemplateFactory moodleRestTemplateFactory =
-                    new MockupRestTemplateFactory(apiTemplateDataSupplier);
+//            if (!this.moodlePluginCheck.checkPluginAvailable(moodleRestTemplateFactory)) {
+//                throw new RuntimeException("Unable to detect SEB Server Moodle integration plugin!");
+//            }
 
             final MoodlePluginCourseAccess moodlePluginCourseAccess = new MoodlePluginCourseAccess(
                     this.jsonMapper,

@@ -160,7 +160,6 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                     USERS_API_FUNCTION_NAME);
 
         } catch (final RuntimeException e) {
-            log.error("Failed to access Moodle course API: ", e);
             return LmsSetupTestResult.ofQuizAccessAPIError(LmsType.MOODLE_PLUGIN, e.getMessage());
         }
 

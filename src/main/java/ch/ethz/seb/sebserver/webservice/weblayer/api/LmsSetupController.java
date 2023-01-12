@@ -28,7 +28,9 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
@@ -93,9 +95,16 @@ public class LmsSetupController extends ActivatableEntityController<LmsSetup, Lm
                 EntityType.LMS_SETUP,
                 institutionId);
 
-        final LmsSetupTestResult result = this.lmsAPIService.getLmsAPITemplate(modelId)
+        final LmsSetupTestResult result = this.lmsAPIService
+                .getLmsAPITemplate(modelId)
                 .map(this.lmsAPIService::test)
-                .getOrThrow();
+                .onErrorDo(error -> {
+                    final LmsType lmsType = this.entityDAO.byPK(modelId).get().lmsType;
+                    return new LmsSetupTestResult(
+                            lmsType,
+                            new LmsSetupTestResult.Error(ErrorType.TEMPLATE_CREATION, error.getMessage()));
+                })
+                .get();
 
         if (result.missingLMSSetupAttribute != null && !result.missingLMSSetupAttribute.isEmpty()) {
             throw new APIMessageException(result.missingLMSSetupAttribute);
