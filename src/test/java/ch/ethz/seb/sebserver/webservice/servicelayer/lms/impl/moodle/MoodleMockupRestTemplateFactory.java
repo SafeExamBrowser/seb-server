@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Arrays;
+import org.assertj.core.util.Lists;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -36,6 +37,8 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleQuizRestriction;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleQuizRestrictions;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseRestriction;
 
@@ -248,7 +251,6 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
                 final List<String> ids = queryAttributes.get(MoodlePluginCourseAccess.PARAM_COURSE_ID);
                 final String from = queryAttributes.getFirst(MoodlePluginCourseAccess.PARAM_PAGE_START);
                 final String size = queryAttributes.getFirst(MoodlePluginCourseAccess.PARAM_PAGE_SIZE);
-                System.out.println("************* from: " + from);
                 final List<MockCD> courses;
                 if (ids != null && !ids.isEmpty()) {
                     courses = this.courses.stream().filter(c -> ids.contains(c.id)).collect(Collectors.toList());
@@ -266,7 +268,6 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
                 response.put("results", courses);
                 final JSONMapper jsonMapper = new JSONMapper();
                 final String result = jsonMapper.writeValueAsString(response);
-                System.out.println("******** courses response: " + result);
                 return result;
             } catch (final JsonProcessingException e) {
                 e.printStackTrace();
@@ -274,7 +275,7 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
             }
         }
 
-        private final Map<String, MoodleQuizRestriction> restrcitions = new HashMap<>();
+        private final Map<String, MoodleQuizRestrictions> restrcitions = new HashMap<>();
 
         private String respondSetRestriction(final String quizId, final MultiValueMap<String, String> queryAttributes) {
             final List<String> configKeys = queryAttributes.get(MoodlePluginCourseRestriction.ATTRIBUTE_CONFIG_KEYS);
@@ -288,26 +289,27 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
                     StringUtils.join(beks, Constants.LIST_SEPARATOR),
                     quitURL,
                     quitSecret);
-            this.restrcitions.put(quizId, moodleQuizRestriction);
+
+            this.restrcitions.put(
+                    quizId,
+                    new MoodleQuizRestrictions(Lists.list(moodleQuizRestriction), null));
 
             final JSONMapper jsonMapper = new JSONMapper();
             try {
                 return jsonMapper.writeValueAsString(moodleQuizRestriction);
             } catch (final JsonProcessingException e) {
-                e.printStackTrace();
-                return "";
+                throw new RuntimeException(e);
             }
         }
 
         private String respondGetRestriction(final String quizId, final MultiValueMap<String, String> queryAttributes) {
-            final MoodleQuizRestriction moodleQuizRestriction = this.restrcitions.get(quizId);
+            final MoodleQuizRestrictions moodleQuizRestriction = this.restrcitions.get(quizId);
             if (moodleQuizRestriction != null) {
                 final JSONMapper jsonMapper = new JSONMapper();
                 try {
                     return jsonMapper.writeValueAsString(moodleQuizRestriction);
                 } catch (final JsonProcessingException e) {
-                    e.printStackTrace();
-                    return "";
+                    throw new RuntimeException(e);
                 }
             }
             return "";
@@ -325,8 +327,28 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
         }
 
         private String respondUsers(final MultiValueMap<String, String> queryAttributes) {
-            // TODO
-            return "";
+            final String id = queryAttributes.getFirst(MoodlePluginCourseAccess.ATTR_VALUE);
+            final String field = queryAttributes.getFirst(MoodlePluginCourseAccess.ATTR_FIELD);
+
+            if (!field.equals(MoodlePluginCourseAccess.ATTR_ID)) {
+                return "<error>";
+            }
+
+            if (id.contains("2")) {
+                final MoodleUserDetails moodleUserDetails = new MoodleUserDetails(
+                        id, "testuser", "test", "user", "test user", "text@user.mail",
+                        null, null, null, null, null, null, null, null, null, null, null, null);
+                final MoodleUserDetails[] array = new MoodleUserDetails[] { moodleUserDetails };
+                try {
+                    final JSONMapper jsonMapper = new JSONMapper();
+                    return jsonMapper.writeValueAsString(array);
+                } catch (final JsonProcessingException e) {
+                    e.printStackTrace();
+                    return "";
+                }
+            }
+
+            return "<error>";
         }
 
     }

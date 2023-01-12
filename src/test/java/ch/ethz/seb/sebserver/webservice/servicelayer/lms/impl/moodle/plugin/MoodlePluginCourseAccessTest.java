@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
+import ch.ethz.seb.sebserver.gbl.model.user.ExamineeAccountDetails;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
@@ -55,7 +56,6 @@ public class MoodlePluginCourseAccessTest {
         final LmsSetupTestResult testCourseAccessAPI = candidate.testCourseAccessAPI();
 
         assertTrue(testCourseAccessAPI.isOk());
-
         assertEquals("MoodlePluginCourseAccess [pageSize=500, maxSize=10000, cutoffTimeOffset=3, "
                 + "restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, "
                 + "testLog=[testAPIConnection functions: [quizaccess_sebserver_get_exams, core_user_get_users_by_field]], "
@@ -235,6 +235,50 @@ public class MoodlePluginCourseAccessTest {
                 candidate.toTestString());
 
         DateTimeUtils.setCurrentMillisSystem();
+    }
+
+    @Test
+    public void testGetKnownUserDetails() {
+        final MoodlePluginCourseAccess candidate = crateMockup();
+
+        final Result<ExamineeAccountDetails> userDetailsResult = candidate.getExamineeAccountDetails("2");
+
+        if (userDetailsResult.hasError()) {
+            userDetailsResult.getError().printStackTrace();
+        }
+
+        assertFalse(userDetailsResult.hasError());
+        final ExamineeAccountDetails examineeAccountDetails = userDetailsResult.get();
+        assertEquals(
+                "ExamineeAccountDetails [id=2, name=test user, username=testuser, email=text@user.mail, "
+                        + "additionalAttributes={mailformat=null, firstname=test, auth=null, timezone=null, description=null, firstaccess=null, confirmed=null, suspended=null, lastname=user, lastaccess=null, theme=null, descriptionformat=null, department=null, lang=null}]",
+                examineeAccountDetails.toString());
+
+        assertEquals(
+                "MoodlePluginCourseAccess [pageSize=500, maxSize=10000, cutoffTimeOffset=3, "
+                        + "restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, "
+                        + "testLog=["
+                        + "callMoodleAPIFunction: core_user_get_users_by_field], "
+                        + "callLog=["
+                        + "<field=id&value=2,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
+                candidate.toTestString());
+    }
+
+    @Test
+    public void testGetUnknownUserDetails() {
+        final MoodlePluginCourseAccess candidate = crateMockup();
+
+        final Result<ExamineeAccountDetails> userDetailsResult = candidate.getExamineeAccountDetails("1");
+
+        assertTrue(userDetailsResult.hasError());
+        assertEquals("Illegal response format detected: <error>", userDetailsResult.getError().getMessage());
+
+        assertEquals(
+                "MoodlePluginCourseAccess [pageSize=500, maxSize=10000, cutoffTimeOffset=3, "
+                        + "restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, "
+                        + "testLog=[callMoodleAPIFunction: core_user_get_users_by_field], "
+                        + "callLog=[<field=id&value=1,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
+                candidate.toTestString());
     }
 
     private MoodlePluginCourseAccess crateMockup() {

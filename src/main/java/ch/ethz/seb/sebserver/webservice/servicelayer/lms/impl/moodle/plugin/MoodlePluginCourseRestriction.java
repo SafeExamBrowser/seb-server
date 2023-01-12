@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,7 +121,7 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             final Exam exam,
             final SEBRestriction sebRestrictionData) {
 
-        return Result.tryCatch(() -> {
+        return getRestTemplate().map(restTemplate -> {
 
             if (log.isDebugEnabled()) {
                 log.debug("Apply SEB Client restriction on exam: {}", exam);
@@ -147,7 +148,7 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             queryAttributes.add(ATTRIBUTE_QUIT_URL, quitLink);
             queryAttributes.add(ATTRIBUTE_QUIT_SECRET, quitSecret);
 
-            final String srJSON = this.restTemplate.callMoodleAPIFunction(
+            final String srJSON = restTemplate.callMoodleAPIFunction(
                     RESTRICTION_SET_FUNCTION_NAME,
                     addQuery,
                     queryAttributes);
@@ -158,7 +159,7 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
 
     @Override
     public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
-        return Result.tryCatch(() -> {
+        return getRestTemplate().map(restTemplate -> {
             if (log.isDebugEnabled()) {
                 log.debug("Release SEB Client restriction on exam: {}", exam);
             }
@@ -174,7 +175,7 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             queryAttributes.add(ATTRIBUTE_QUIT_URL, quitLink);
             queryAttributes.add(ATTRIBUTE_QUIT_SECRET, quitSecret);
 
-            this.restTemplate.callMoodleAPIFunction(
+            restTemplate.callMoodleAPIFunction(
                     RESTRICTION_SET_FUNCTION_NAME,
                     addQuery,
                     queryAttributes);
@@ -185,6 +186,15 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
 
     private SEBRestriction restrictionFromJson(final Exam exam, final String srJSON) {
         try {
+
+            if (StringUtils.isBlank(srJSON)) {
+                return new SEBRestriction(
+                        exam.id,
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.emptyMap());
+            }
+
             // fist try to get from multiple data
             final MoodleQuizRestrictions moodleRestrictions = this.jsonMapper.readValue(
                     srJSON,
@@ -224,12 +234,16 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             final Exam exam,
             final MoodleQuizRestriction moodleRestriction) {
 
-        final List<String> configKeys = Arrays.asList(StringUtils.split(
-                moodleRestriction.configkeys,
-                Constants.LIST_SEPARATOR));
-        final List<String> browserExamKeys = new ArrayList<>(Arrays.asList(StringUtils.split(
-                moodleRestriction.browserkeys,
-                Constants.LIST_SEPARATOR)));
+        final List<String> configKeys = StringUtils.isNoneBlank(moodleRestriction.configkeys)
+                ? Arrays.asList(StringUtils.split(
+                        moodleRestriction.configkeys,
+                        Constants.LIST_SEPARATOR))
+                : Collections.emptyList();
+        final List<String> browserExamKeys = StringUtils.isNoneBlank(moodleRestriction.browserkeys)
+                ? new ArrayList<>(Arrays.asList(StringUtils.split(
+                        moodleRestriction.browserkeys,
+                        Constants.LIST_SEPARATOR)))
+                : Collections.emptyList();
         final Map<String, String> additionalProperties = new HashMap<>();
         additionalProperties.put(ATTRIBUTE_QUIT_URL, moodleRestriction.quitlink);
         additionalProperties.put(ATTRIBUTE_QUIT_SECRET, moodleRestriction.quitsecret);
@@ -253,6 +267,14 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
         }
 
         return Result.of(this.restTemplate);
+    }
+
+    public String toTestString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("MoodlePluginCourseRestriction [restTemplate=");
+        builder.append(this.restTemplate);
+        builder.append("]");
+        return builder.toString();
     }
 
 }

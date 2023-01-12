@@ -113,6 +113,13 @@ public abstract class MoodleUtils {
         }
     }
 
+    public static void checkJSONFormat(final String userDetailsJSON) {
+        if (!userDetailsJSON.startsWith(String.valueOf(Constants.CURLY_BRACE_OPEN)) &&
+                !userDetailsJSON.startsWith(String.valueOf(Constants.SQUARE_BRACE_OPEN))) {
+            throw new RuntimeException("Illegal response format detected: " + userDetailsJSON);
+        }
+    }
+
     private static final Pattern ACCESS_DENIED_PATTERN_1 =
             Pattern.compile(Pattern.quote("No access rights"), Pattern.CASE_INSENSITIVE);
     private static final Pattern ACCESS_DENIED_PATTERN_2 =

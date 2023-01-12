@@ -28,7 +28,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.LmsAPITemplateAdapter;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodlePluginCheck;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactoryImpl;
 
@@ -37,7 +36,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
 @WebServiceProfile
 public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
-    private final MoodlePluginCheck moodlePluginCheck;
     private final JSONMapper jsonMapper;
     private final CacheManager cacheManager;
     private final AsyncService asyncService;
@@ -48,7 +46,6 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
     private final String[] alternativeTokenRequestPaths;
 
     protected MooldePluginLmsAPITemplateFactory(
-            final MoodlePluginCheck moodlePluginCheck,
             final JSONMapper jsonMapper,
             final CacheManager cacheManager,
             final AsyncService asyncService,
@@ -58,7 +55,6 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             @Value("${sebserver.webservice.lms.moodle.api.token.request.paths:}") final String alternativeTokenRequestPaths) {
 
-        this.moodlePluginCheck = moodlePluginCheck;
         this.jsonMapper = jsonMapper;
         this.cacheManager = cacheManager;
         this.asyncService = asyncService;
@@ -87,10 +83,6 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
                     this.clientHttpRequestFactoryService,
                     this.alternativeTokenRequestPaths);
 
-//            if (!this.moodlePluginCheck.checkPluginAvailable(moodleRestTemplateFactory)) {
-//                throw new RuntimeException("Unable to detect SEB Server Moodle integration plugin!");
-//            }
-
             final MoodlePluginCourseAccess moodlePluginCourseAccess = new MoodlePluginCourseAccess(
                     this.jsonMapper,
                     this.asyncService,
@@ -109,7 +101,6 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
                     apiTemplateDataSupplier,
                     moodlePluginCourseAccess,
                     moodlePluginCourseRestriction);
-
         });
     }
 

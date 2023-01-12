@@ -261,7 +261,7 @@ public class ExamSEBRestrictionSettings {
 
                     .addField(FormBuilder.text(
                             SEBRestriction.ATTR_BROWSER_KEYS,
-                            (lmsType == lmsType.MOODLE_PLUGIN)
+                            (lmsType == LmsType.MOODLE_PLUGIN)
                                     ? SEB_RESTRICTION_FORM_MOODLE_BEK_KEY
                                     : SEB_RESTRICTION_FORM_BROWSER_KEYS,
                             StringUtils.join(sebRestriction.getBrowserExamKeys(), Constants.CARRIAGE_RETURN))

@@ -273,6 +273,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                     COURSES_API_FUNCTION_NAME,
                     attributes);
 
+            MoodleUtils.checkJSONFormat(courseJSON);
+
             return this.jsonMapper.readValue(
                     courseJSON,
                     Courses.class).courses
@@ -311,6 +313,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                         Utils.truncateText(userDetailsJSON, 2000));
                 throw new RuntimeException("No user details on Moodle API request (access-denied)");
             }
+
+            MoodleUtils.checkJSONFormat(userDetailsJSON);
 
             final MoodleUserDetails[] userDetails = this.jsonMapper.<MoodleUserDetails[]> readValue(
                     userDetailsJSON,
@@ -433,6 +437,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                             attributes))
                     .getOrThrow();
 
+            MoodleUtils.checkJSONFormat(courseKeyPageJSON);
+
             final CoursesPlugin coursePage = this.jsonMapper.readValue(courseKeyPageJSON, CoursesPlugin.class);
 
             if (coursePage == null) {
@@ -524,6 +530,8 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final String coursePageJSON = restTemplate.callMoodleAPIFunction(
                     COURSES_API_FUNCTION_NAME,
                     attributes);
+
+            MoodleUtils.checkJSONFormat(coursePageJSON);
 
             final CoursesPlugin courses = this.jsonMapper.readValue(
                     coursePageJSON,
