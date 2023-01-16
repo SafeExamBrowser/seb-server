@@ -153,7 +153,7 @@ public class ZoomWindowScriptResolverTest {
                         + "                   console.log('INIT SUCCESS')\r\n"
                         + "                    ZoomMtg.join({\r\n"
                         + "                        signature: signature,\r\n"
-                        + "                        apiKey: API_KEY,\r\n"
+                        + "                        sdkKey: API_KEY,\r\n"
                         + "                        meetingNumber: config.meetingNumber,\r\n"
                         + "                        userName: config.userName,\r\n"
                         + "                        passWord: config.passWord,\r\n"

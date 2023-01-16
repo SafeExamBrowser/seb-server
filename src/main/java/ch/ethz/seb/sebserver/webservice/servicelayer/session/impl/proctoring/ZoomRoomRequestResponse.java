@@ -20,6 +20,61 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public interface ZoomRoomRequestResponse {
     // @formatter:off
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class SDKJWTPayload {
+        public final String appKey;
+        public final String sdkKey;
+        public final long mn;
+        public final int role;
+        public final long iat;
+        public final long exp;
+        public final long tokenExp;
+        public SDKJWTPayload(
+                final String appKey,
+                final String sdkKey,
+                final long mn,
+                final int
+                role,
+                final long iat,
+                final long exp,
+                final long tokenExp) {
+
+            this.appKey = appKey;
+            this.sdkKey = sdkKey;
+            this.mn = mn;
+            this.role = role;
+            this.iat = iat;
+            this.exp = exp;
+            this.tokenExp = tokenExp;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class AdditionalZoomRoomData {
+
+        @JsonProperty("meeting_id")
+        public final Long meeting_id;
+        @JsonProperty("user_id")
+        public final String user_id;
+        @JsonProperty("start_url")
+        public final String start_url;
+        @JsonProperty("join_url")
+        public final String join_url;
+
+        @JsonCreator
+        public AdditionalZoomRoomData(
+                @JsonProperty("meeting_id") final Long meeting_id,
+                @JsonProperty("user_id") final String user_id,
+                @JsonProperty("start_url") final String start_url,
+                @JsonProperty("join_url") final String join_url) {
+
+            this.meeting_id = meeting_id;
+            this.user_id = user_id;
+            this.start_url = start_url;
+            this.join_url = join_url;
+        }
+    }
+
     //https://marketplace.zoom.us/docs/api-reference/zoom-api/users/users
     @JsonIgnoreProperties(ignoreUnknown = true)
     static class UserPageResponse {
