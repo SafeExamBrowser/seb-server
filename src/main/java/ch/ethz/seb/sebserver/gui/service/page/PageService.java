@@ -157,12 +157,6 @@ public interface PageService {
         return this.activationToggleActionFunction(table, noSelectionText, null);
     }
 
-//    /** Get a message supplier to notify deactivation dependencies to the user for all given entities
-//     *
-//     * @param entities Set of entities to collect the dependencies for
-//     * @return a message supplier to notify deactivation dependencies to the user */
-//    Supplier<LocTextKey> confirmDeactivation(final Set<EntityKey> keys);
-
     /** Get a message supplier to notify deactivation dependencies to the user for given entity
      *
      * @param entity the entity instance
@@ -180,6 +174,9 @@ public interface PageService {
                 throw new PageMessageException(MESSAGE_NO_MULTISELECTION);
             }
             final T entity = table.getSingleSelectedROWData();
+            if (entity == null) {
+                return null;
+            }
             if (!entity.isActive()) {
                 return null;
             }
