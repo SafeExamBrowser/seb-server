@@ -184,9 +184,13 @@ A student as well as a proctor is then able to use all the features of the meeti
 
 - Within the Zoom service it often happens that a participant appears twice in a room or meeting. This is probably caused by SEB clients rejoining the meetings while rooms or feature settings are changed.
 - In Zoom it is not possible to fully control a participant microphone. Therefore, it may happen that participant can hear each other even if no proctor is in the meeting.
-- Within Jitsi Meet service when a proctor leaves the room it currently happens that a random participant became host/moderator since it is not possible in Jitsi Meet to have a meeting without host. We try to mitigate the problem with the `moderator plugin <https://github.com/nvonahsen/jitsi-token-moderation-plugin>`_ or `Jitsi Meet SaS <https://jaas.8x8.vc/#/>`_
+- Within Jitsi Meet service when a proctor leaves the room it currently happens that a random participant became host/moderator since it is not possible in Jitsi Meet to have a meeting without host. We try to mitigate the problem with the `moderator plugin <https://github.com/nvonahsen/jitsi-token-moderation-plugin>`_ 
 - In both services while broadcasting, it is not guaranteed that a student always sees the proctor. Usually, the meeting service shows or pins the participant that is currently speaking automatically.
 
+.. note:: 
+    The above listed points are issues within the current proctoring integration and not solutions. We are working hard to improve the 
+    proctoring integration but due to limited resources this can take its time. And please consider that proctoring integration with 
+    SEB Server is still in prototype state.
 
 Finished Exams
 --------------
