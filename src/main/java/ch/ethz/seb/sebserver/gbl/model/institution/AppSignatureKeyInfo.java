@@ -13,7 +13,7 @@ import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 
-import org.apache.tomcat.util.buf.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -68,7 +68,7 @@ public class AppSignatureKeyInfo implements ModelIdAware {
 
     @Override
     public String getModelId() {
-        return this.key;
+        return StringUtils.isNoneBlank(this.key) ? this.key : "-1";
     }
 
     public String getKey() {

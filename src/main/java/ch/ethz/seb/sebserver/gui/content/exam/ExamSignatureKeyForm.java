@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
+import java.util.function.Function;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
@@ -21,6 +23,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.institution.AppSignatureKeyInfo;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -31,6 +34,7 @@ import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
+import ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys;
 import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.TemplateComposer;
@@ -116,6 +120,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
         final boolean signatureKeyCheckEnabled = BooleanUtils.toBoolean(
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
         final String ct = exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD);
+        final boolean readonly = exam.status == ExamStatus.FINISHED || exam.status == ExamStatus.ARCHIVED;
 
         final Composite content = widgetFactory
                 .defaultPageLayout(pageContext.getParent(), TILE);
@@ -132,7 +137,8 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                         Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED,
                         FORM_ENABLED,
                         String.valueOf(signatureKeyCheckEnabled))
-                        .withInputSpan(1))
+                        .withInputSpan(1)
+                        .readonly(readonly))
 
                 .addField(FormBuilder.text(
                         Exam.ADDITIONAL_ATTR_NUMERICAL_TRUST_THRESHOLD,
@@ -144,7 +150,8 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                             }
                         })
                         .mandatory()
-                        .withInputSpan(1))
+                        .withInputSpan(1)
+                        .readonly(readonly))
 
                 .build();
 
@@ -174,19 +181,23 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                         AppSignatureKeyInfo::getNumberOfConnections)
                                 .widthProportion(1))
 
-                .withDefaultAction(table -> actionBuilder
-                        .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP)
-                        .withParentEntityKey(entityKey)
-                        .withExec(action -> this.addSecurityKeyGrantPopup.showGrantPopup(
-                                action,
-                                table.getSingleSelectedROWData()))
-                        .noEventPropagation()
-                        .ignoreMoveAwayFromEdit()
-                        .create())
+                .withDefaultActionIf(
+                        () -> !readonly,
+                        table -> actionBuilder
+                                .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP)
+                                .withParentEntityKey(entityKey)
+                                .withExec(action -> this.addSecurityKeyGrantPopup.showGrantPopup(
+                                        action,
+                                        table.getSingleSelectedROWData()))
+                                .noEventPropagation()
+                                .ignoreMoveAwayFromEdit()
+                                .create())
 
-                .withSelectionListener(this.pageService.getSelectionPublisher(
-                        pageContext,
-                        ActionDefinition.EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP))
+                .withSelectionListenerIf(
+                        () -> !readonly,
+                        this.pageService.getSelectionPublisher(
+                                pageContext,
+                                ActionDefinition.EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP))
 
                 .compose(pageContext.copyOf(content));
 
@@ -214,15 +225,17 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                         GRANT_LIST_TAG,
                         SecurityKey::getTag).widthProportion(1))
 
-                .withDefaultAction(table -> actionBuilder
-                        .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_GRANT_POPUP)
-                        .withParentEntityKey(entityKey)
-                        .withExec(action -> this.securityKeyGrantPopup.showGrantPopup(
-                                action,
-                                table.getSingleSelectedROWData()))
-                        .noEventPropagation()
-                        .ignoreMoveAwayFromEdit()
-                        .create())
+                .withDefaultActionIf(
+                        () -> !readonly,
+                        table -> actionBuilder
+                                .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_GRANT_POPUP)
+                                .withParentEntityKey(entityKey)
+                                .withExec(action -> this.securityKeyGrantPopup.showGrantPopup(
+                                        action,
+                                        table.getSingleSelectedROWData()))
+                                .noEventPropagation()
+                                .ignoreMoveAwayFromEdit()
+                                .create())
 
                 .withSelectionListener(this.pageService.getSelectionPublisher(
                         pageContext,
@@ -235,30 +248,43 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(action -> this.saveSettings(action, form.getForm()))
                 .ignoreMoveAwayFromEdit()
-                .publish()
+                .publishIf(() -> !readonly)
 
                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_CANCEL_MODIFY)
                 .withExec(this.pageService.backToCurrentFunction())
-                .publish()
+                .publishIf(() -> !readonly)
+
+                .newAction(ActionDefinition.EXAM_SECURITY_KEY_BACK_MODIFY)
+                .withEntityKey(entityKey)
+                //.withExec(this.pageService.backToCurrentFunction())
+                .publishIf(() -> readonly)
 
                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP)
                 .withParentEntityKey(entityKey)
                 .withSelect(
                         connectionInfoTable::getMultiSelection,
-                        action -> this.addSecurityKeyGrantPopup.showGrantPopup(
-                                action,
-                                connectionInfoTable.getSingleSelectedROWData()),
+                        this.addGrant(connectionInfoTable),
                         APP_SIG_KEY_LIST_EMPTY_SELECTION_TEXT_KEY)
                 .ignoreMoveAwayFromEdit()
                 .noEventPropagation()
-                .publish(false)
+                .publishIf(() -> !readonly, false)
+
+                .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_ASK_POPUP)
+                .withParentEntityKey(entityKey)
+                .withAttribute(AttributeKeys.READ_ONLY, String.valueOf(readonly))
+                .withSelect(
+                        connectionInfoTable::getMultiSelection,
+                        this.showASK(connectionInfoTable),
+                        APP_SIG_KEY_LIST_EMPTY_SELECTION_TEXT_KEY)
+                .ignoreMoveAwayFromEdit()
+                .noEventPropagation()
+                .publishIf(() -> readonly, false)
 
                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_GRANT_POPUP)
                 .withEntityKey(entityKey)
                 .withSelect(
                         grantsList::getMultiSelection,
-                        action -> this.securityKeyGrantPopup.showGrantPopup(action,
-                                grantsList.getSingleSelectedROWData()),
+                        this.showGrant(grantsList),
                         GRANT_LIST_EMPTY_SELECTION_TEXT_KEY)
                 .ignoreMoveAwayFromEdit()
                 .noEventPropagation()
@@ -272,9 +298,7 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                         this::deleteGrant,
                         GRANT_LIST_EMPTY_SELECTION_TEXT_KEY)
                 .ignoreMoveAwayFromEdit()
-                .publish(false)
-
-        ;
+                .publishIf(() -> !readonly, false);
     }
 
     private PageAction saveSettings(final PageAction action, final Form form) {
@@ -291,6 +315,36 @@ public class ExamSignatureKeyForm implements TemplateComposer {
                 .call()
                 .onError(error -> action.pageContext().notifySaveError(EntityType.EXAM, error));
         return action;
+    }
+
+    private Function<PageAction, PageAction> addGrant(final EntityTable<AppSignatureKeyInfo> connectionInfoTable) {
+        return action -> {
+            final EntityKey singleSelection = action.getSingleSelection();
+            if (singleSelection != null) {
+                this.addSecurityKeyGrantPopup.showGrantPopup(action, connectionInfoTable.getSingleSelectedROWData());
+            }
+            return action;
+        };
+    }
+
+    private Function<PageAction, PageAction> showASK(final EntityTable<AppSignatureKeyInfo> connectionInfoTable) {
+        return action -> {
+            final EntityKey singleSelection = action.getSingleSelection();
+            if (singleSelection != null) {
+                this.addSecurityKeyGrantPopup.showGrantPopup(action, connectionInfoTable.getSingleSelectedROWData());
+            }
+            return action;
+        };
+    }
+
+    private Function<PageAction, PageAction> showGrant(final EntityTable<SecurityKey> grantsList) {
+        return action -> {
+            final EntityKey singleSelection = action.getSingleSelection();
+            if (singleSelection != null) {
+                this.securityKeyGrantPopup.showGrantPopup(action, grantsList.getSingleSelectedROWData());
+            }
+            return action;
+        };
     }
 
     private PageAction deleteGrant(final PageAction action) {

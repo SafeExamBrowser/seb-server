@@ -25,7 +25,6 @@ public class ProctoringSettingsValidator
             return false;
         }
 
-        //if (value.enableProctoring) {
         if (value.serverType == ProctoringServerType.JITSI_MEET || value.serverType == ProctoringServerType.ZOOM) {
             boolean passed = true;
 
@@ -37,25 +36,44 @@ public class ProctoringSettingsValidator
                 passed = false;
             }
 
-            if (StringUtils.isBlank(value.appKey)) {
-                context.disableDefaultConstraintViolation();
-                context
-                        .buildConstraintViolationWithTemplate("proctoringSettings:appKey:notNull")
-                        .addPropertyNode("appKey").addConstraintViolation();
-                passed = false;
+            if (value.serverType == ProctoringServerType.JITSI_MEET) {
+                if (StringUtils.isBlank(value.appKey)) {
+                    context.disableDefaultConstraintViolation();
+                    context
+                            .buildConstraintViolationWithTemplate("proctoringSettings:appKey:notNull")
+                            .addPropertyNode("appKey").addConstraintViolation();
+                    passed = false;
+                }
+
+                if (StringUtils.isBlank(value.appSecret)) {
+                    context.disableDefaultConstraintViolation();
+                    context
+                            .buildConstraintViolationWithTemplate("proctoringSettings:appSecret:notNull")
+                            .addPropertyNode("appSecret").addConstraintViolation();
+                    passed = false;
+                }
             }
 
-            if (StringUtils.isBlank(value.appSecret)) {
-                context.disableDefaultConstraintViolation();
-                context
-                        .buildConstraintViolationWithTemplate("proctoringSettings:appSecret:notNull")
-                        .addPropertyNode("appSecret").addConstraintViolation();
-                passed = false;
+            if (value.serverType == ProctoringServerType.ZOOM) {
+                if (StringUtils.isBlank(value.sdkKey)) {
+                    context.disableDefaultConstraintViolation();
+                    context
+                            .buildConstraintViolationWithTemplate("proctoringSettings:sdkKey:notNull")
+                            .addPropertyNode("sdkKey").addConstraintViolation();
+                    passed = false;
+                }
+
+                if (StringUtils.isBlank(value.sdkSecret)) {
+                    context.disableDefaultConstraintViolation();
+                    context
+                            .buildConstraintViolationWithTemplate("proctoringSettings:sdkSecret:notNull")
+                            .addPropertyNode("sdkSecret").addConstraintViolation();
+                    passed = false;
+                }
             }
 
             return passed;
         }
-        //}
 
         return true;
     }

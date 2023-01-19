@@ -15,7 +15,9 @@ import java.util.Base64;
 import java.util.Base64.Encoder;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -36,6 +38,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
+import org.springframework.security.oauth2.client.resource.BaseOAuth2ProtectedResourceDetails;
+import org.springframework.security.oauth2.client.token.DefaultAccessTokenRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -86,15 +92,12 @@ public class ZoomProctoringService implements ExamProctoringService {
 
     private static final String TOKEN_ENCODE_ALG = "HmacSHA256";
 
-    @Deprecated
     private static final String ZOOM_ACCESS_TOKEN_HEADER =
             "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
+
     @Deprecated
     private static final String ZOOM_API_ACCESS_TOKEN_PAYLOAD =
             "{\"iss\":\"%s\",\"exp\":%s}";
-    @Deprecated
-    private static final String ZOOM_SDK_ACCESS_TOKEN_PAYLOAD =
-            "{\"appKey\":\"%s\",\"iat\":%s,\"exp\":%s,\"tokenExp\":%s}";
 
     private static final Map<String, String> SEB_API_NAME_INSTRUCTION_NAME_MAPPING = Utils.immutableMapOf(Arrays.asList(
             new Tuple<>(
@@ -125,7 +128,6 @@ public class ZoomProctoringService implements ExamProctoringService {
     private final Cryptor cryptor;
     private final AsyncService asyncService;
     private final JSONMapper jsonMapper;
-    private final ZoomRestTemplate zoomRestTemplate;
     private final RemoteProctoringRoomDAO remoteProctoringRoomDAO;
     private final AuthorizationService authorizationService;
     private final SEBClientInstructionService sebInstructionService;
@@ -149,7 +151,6 @@ public class ZoomProctoringService implements ExamProctoringService {
         this.cryptor = cryptor;
         this.asyncService = asyncService;
         this.jsonMapper = jsonMapper;
-        this.zoomRestTemplate = new ZoomRestTemplate(this);
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
         this.authorizationService = authorizationService;
         this.sebInstructionService = sebInstructionService;
@@ -173,16 +174,26 @@ public class ZoomProctoringService implements ExamProctoringService {
 
             try {
 
-                final ClientCredentials credentials = new ClientCredentials(
+                final ProctoringServiceSettings proctoringServiceSettings = new ProctoringServiceSettings(
+                        proctoringSettings.examId,
+                        proctoringSettings.enableProctoring,
+                        proctoringSettings.serverType,
+                        proctoringSettings.serverURL,
+                        proctoringSettings.collectingRoomSize,
+                        proctoringSettings.enabledFeatures,
+                        proctoringSettings.serviceInUse,
                         proctoringSettings.appKey,
-                        this.cryptor
-                                .encrypt(proctoringSettings.appSecret)
-                                .getOrThrow());
+                        this.cryptor.encrypt(proctoringSettings.appSecret).getOrThrow(),
+                        proctoringSettings.accountId,
+                        proctoringSettings.clientId,
+                        this.cryptor.encrypt(proctoringSettings.clientSecret).getOrThrow(),
+                        proctoringSettings.sdkKey,
+                        this.cryptor.encrypt(proctoringSettings.sdkSecret).getOrThrow(),
+                        proctoringSettings.useZoomAppClientForCollectingRoom);
 
-                final ResponseEntity<String> result = this.zoomRestTemplate
-                        .testServiceConnection(
-                                proctoringSettings.serverURL,
-                                credentials);
+                final ZoomRestTemplate newRestTemplate = createNewRestTemplate(proctoringServiceSettings);
+
+                final ResponseEntity<String> result = newRestTemplate.testServiceConnection();
 
                 if (result.getStatusCode() != HttpStatus.OK) {
                     throw new APIMessageException(Arrays.asList(
@@ -415,13 +426,8 @@ public class ZoomProctoringService implements ExamProctoringService {
                         roomData.getAdditionalRoomData(),
                         AdditionalZoomRoomData.class);
 
-                final ClientCredentials credentials = new ClientCredentials(
-                        proctoringSettings.appKey,
-                        proctoringSettings.appSecret);
-
                 this.deleteAdHocMeeting(
                         proctoringSettings,
-                        credentials,
                         additionalZoomRoomData.meeting_id,
                         additionalZoomRoomData.user_id)
                         .getOrThrow();
@@ -521,15 +527,10 @@ public class ZoomProctoringService implements ExamProctoringService {
             final ProctoringServiceSettings proctoringSettings) {
 
         return Result.tryCatch(() -> {
-            final ClientCredentials credentials = new ClientCredentials(
-                    proctoringSettings.appKey,
-                    proctoringSettings.appSecret);
 
+            final ZoomRestTemplate zoomRestTemplate = getZoomRestTemplate(proctoringSettings);
             // First create a new user/host for the new room
-            final ResponseEntity<String> createUser = this.zoomRestTemplate.createUser(
-                    proctoringSettings.serverURL,
-                    credentials,
-                    roomName);
+            final ResponseEntity<String> createUser = zoomRestTemplate.createUser(roomName);
 
             final int statusCodeValue = createUser.getStatusCodeValue();
             if (statusCodeValue >= 400) {
@@ -540,16 +541,11 @@ public class ZoomProctoringService implements ExamProctoringService {
                     createUser.getBody(),
                     UserResponse.class);
 
-            this.zoomRestTemplate.applyUserSettings(
-                    proctoringSettings.serverURL,
-                    credentials,
-                    userResponse.id);
+            zoomRestTemplate.applyUserSettings(userResponse.id);
 
             // Then create new meeting with the ad-hoc user/host
             final CharSequence meetingPwd = UUID.randomUUID().toString().subSequence(0, 9);
-            final ResponseEntity<String> createMeeting = this.zoomRestTemplate.createMeeting(
-                    proctoringSettings.serverURL,
-                    credentials,
+            final ResponseEntity<String> createMeeting = zoomRestTemplate.createMeeting(
                     userResponse.id,
                     subject,
                     duration,
@@ -580,67 +576,16 @@ public class ZoomProctoringService implements ExamProctoringService {
 
     private Result<Void> deleteAdHocMeeting(
             final ProctoringServiceSettings proctoringSettings,
-            final ClientCredentials credentials,
             final Long meetingId,
             final String userId) {
 
         return Result.tryCatch(() -> {
 
-            this.zoomRestTemplate.deleteMeeting(proctoringSettings.serverURL, credentials, meetingId);
-            this.zoomRestTemplate.deleteUser(proctoringSettings.serverURL, credentials, userId);
+            final ZoomRestTemplate zoomRestTemplate = getZoomRestTemplate(proctoringSettings);
+            zoomRestTemplate.deleteMeeting(meetingId);
+            zoomRestTemplate.deleteUser(userId);
 
         });
-    }
-
-    private String createJWTForAPIAccess(
-            final ClientCredentials credentials,
-            final Long expTime) {
-
-        try {
-
-            final CharSequence decryptedSecret = this.cryptor
-                    .decrypt(credentials.secret)
-                    .getOrThrow();
-
-            final StringBuilder builder = new StringBuilder();
-            final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
-
-            final String jwtHeaderPart = urlEncoder
-                    .encodeToString(ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
-
-            final String jwtPayload = String.format(
-                    ZOOM_API_ACCESS_TOKEN_PAYLOAD
-                            .replaceAll(" ", "")
-                            .replaceAll("\n", ""),
-                    credentials.clientIdAsString(),
-                    expTime);
-
-            if (log.isTraceEnabled()) {
-                log.trace("Zoom API Token payload: {}", jwtPayload);
-            }
-
-            final String jwtPayloadPart = urlEncoder
-                    .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
-
-            final String message = jwtHeaderPart + "." + jwtPayloadPart;
-
-            final Mac sha256_HMAC = Mac.getInstance(TOKEN_ENCODE_ALG);
-            final SecretKeySpec secret_key = new SecretKeySpec(
-                    Utils.toByteArray(decryptedSecret),
-                    TOKEN_ENCODE_ALG);
-
-            sha256_HMAC.init(secret_key);
-            final String hash = urlEncoder
-                    .encodeToString(sha256_HMAC.doFinal(Utils.toByteArray(message)));
-
-            builder.append(message)
-                    .append(".")
-                    .append(hash);
-
-            return builder.toString();
-        } catch (final Exception e) {
-            throw new RuntimeException("Failed to create JWT for Zoom API access: ", e);
-        }
     }
 
     private String createSDKJWT(
@@ -706,62 +651,6 @@ public class ZoomProctoringService implements ExamProctoringService {
         }
     }
 
-//    private String createJWTForSDKAccess(
-//            final ClientCredentials sdkCredentials,
-//            final Long expTime) {
-//
-//        try {
-//
-//            final CharSequence decryptedSecret = this.cryptor
-//                    .decrypt(sdkCredentials.secret)
-//                    .getOrThrow();
-//
-//            final StringBuilder builder = new StringBuilder();
-//            final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
-//
-//            final String jwtHeaderPart = urlEncoder
-//                    .encodeToString(ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
-//
-//            // epoch time in seconds
-//            final long secondsNow = Utils.getSecondsNow();
-//
-//            final String jwtPayload = String.format(
-//                    ZOOM_SDK_ACCESS_TOKEN_PAYLOAD
-//                            .replaceAll(" ", "")
-//                            .replaceAll("\n", ""),
-//                    sdkCredentials.clientIdAsString(),
-//                    secondsNow,
-//                    expTime,
-//                    expTime);
-//
-//            if (log.isTraceEnabled()) {
-//                log.trace("Zoom SDK Token payload: {}", jwtPayload);
-//            }
-//
-//            final String jwtPayloadPart = urlEncoder
-//                    .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
-//
-//            final String message = jwtHeaderPart + "." + jwtPayloadPart;
-//
-//            final Mac sha256_HMAC = Mac.getInstance(TOKEN_ENCODE_ALG);
-//            final SecretKeySpec secret_key = new SecretKeySpec(
-//                    Utils.toByteArray(decryptedSecret),
-//                    TOKEN_ENCODE_ALG);
-//
-//            sha256_HMAC.init(secret_key);
-//            final String hash = urlEncoder
-//                    .encodeToString(sha256_HMAC.doFinal(Utils.toByteArray(message)));
-//
-//            builder.append(message)
-//                    .append(".")
-//                    .append(hash);
-//
-//            return builder.toString();
-//        } catch (final Exception e) {
-//            throw new RuntimeException("Failed to create JWT for Zoom API access: ", e);
-//        }
-//    }
-
     private long expiryTimeforExam(final ProctoringServiceSettings examProctoring) {
 
         // NOTE: following is the original code that includes the exam end time but seems to make trouble for OLAT
@@ -795,44 +684,93 @@ public class ZoomProctoringService implements ExamProctoringService {
         return nowPlusOneDayInSeconds - 10;
     }
 
-    private final static class ZoomRestTemplate {
+    private final LinkedHashMap<Long, ZoomRestTemplate> restTemplatesCache = new LinkedHashMap<>();
 
-        private static final int LIZENSED_USER = 2;
-        private static final String API_TEST_ENDPOINT = "v2/users";
-        private static final String API_CREATE_USER_ENDPOINT = "v2/users";
-        private static final String API_APPLY_USER_SETTINGS_ENDPOINT = "v2/users/{userId}/settings";
-        private static final String API_DELETE_USER_ENDPOINT = "v2/users/{userid}?action=delete";
-        private static final String API_USER_CUST_CREATE = "custCreate";
-        private static final String API_ZOOM_ROOM_USER = "SEBProctoringRoomUser";
-        private static final String API_CREATE_MEETING_ENDPOINT = "v2/users/{userid}/meetings";
-        private static final String API_DELETE_MEETING_ENDPOINT = "v2/meetings/{meetingid}";
-        private static final String API_END_MEETING_ENDPOINT = "v2/meetings/{meetingid}/status";
+    private synchronized ZoomRestTemplate getZoomRestTemplate(final ProctoringServiceSettings proctoringSettings) {
+        if (!this.restTemplatesCache.containsKey(proctoringSettings.examId)) {
+            this.restTemplatesCache.put(
+                    proctoringSettings.examId,
+                    createNewRestTemplate(proctoringSettings));
+        } else {
+            final ZoomRestTemplate zoomRestTemplate = this.restTemplatesCache.get(proctoringSettings.examId);
+            if (!zoomRestTemplate.isValid(proctoringSettings)) {
+                this.restTemplatesCache.remove(proctoringSettings.examId);
+                this.restTemplatesCache.put(
+                        proctoringSettings.examId,
+                        createNewRestTemplate(proctoringSettings));
+            }
+        }
 
-        private final ZoomProctoringService zoomProctoringService;
-        private final RestTemplate restTemplate;
-        private final CircuitBreaker<ResponseEntity<String>> circuitBreaker;
+        if (this.restTemplatesCache.size() > 5) {
+            final Long toRemove = this.restTemplatesCache.keySet().iterator().next();
+            if (!Objects.equals(proctoringSettings.examId, toRemove)) {
+                this.restTemplatesCache.remove(toRemove);
+            }
+        }
 
-        public ZoomRestTemplate(final ZoomProctoringService zoomProctoringService) {
+        return this.restTemplatesCache.get(proctoringSettings.examId);
+    }
+
+    private ZoomRestTemplate createNewRestTemplate(final ProctoringServiceSettings proctoringSettings) {
+        if (StringUtils.isNoneBlank(proctoringSettings.accountId)) {
+            log.info("Create new OAuthZoomRestTemplate for settings: {}", proctoringSettings);
+            return new OAuthZoomRestTemplate(this, proctoringSettings);
+        } else {
+            log.info("Create new JWTZoomRestTemplate for settings: {}", proctoringSettings);
+            return new JWTZoomRestTemplate(this, proctoringSettings);
+        }
+    }
+
+    private static abstract class ZoomRestTemplate {
+
+        protected static final int LIZENSED_USER = 2;
+        protected static final String API_TEST_ENDPOINT = "v2/users";
+        protected static final String API_CREATE_USER_ENDPOINT = "v2/users";
+        protected static final String API_APPLY_USER_SETTINGS_ENDPOINT = "v2/users/{userId}/settings";
+        protected static final String API_DELETE_USER_ENDPOINT = "v2/users/{userid}?action=delete";
+        protected static final String API_USER_CUST_CREATE = "custCreate";
+        protected static final String API_ZOOM_ROOM_USER = "SEBProctoringRoomUser";
+        protected static final String API_CREATE_MEETING_ENDPOINT = "v2/users/{userid}/meetings";
+        protected static final String API_DELETE_MEETING_ENDPOINT = "v2/meetings/{meetingid}";
+        protected static final String API_END_MEETING_ENDPOINT = "v2/meetings/{meetingid}/status";
+
+        protected final ZoomProctoringService zoomProctoringService;
+        protected final CircuitBreaker<ResponseEntity<String>> circuitBreaker;
+        protected final ProctoringServiceSettings proctoringSettings;
+
+        protected ClientCredentials credentials;
+        protected RestTemplate restTemplate;
+
+        public ZoomRestTemplate(
+                final ZoomProctoringService zoomProctoringService,
+                final ProctoringServiceSettings proctoringSettings) {
 
             this.zoomProctoringService = zoomProctoringService;
-            this.restTemplate = new RestTemplate(zoomProctoringService.clientHttpRequestFactoryService
-                    .getClientHttpRequestFactory()
-                    .getOrThrow());
-
             this.circuitBreaker = zoomProctoringService.asyncService.createCircuitBreaker(
                     2,
                     10 * Constants.SECOND_IN_MILLIS,
                     10 * Constants.SECOND_IN_MILLIS);
+            this.proctoringSettings = proctoringSettings;
+            initConnection();
         }
 
-        public ResponseEntity<String> testServiceConnection(
-                final String zoomServerUrl,
-                final ClientCredentials credentials) {
+        protected abstract void initConnection();
+
+        protected abstract HttpHeaders getHeaders();
+
+        boolean isValid(final ProctoringServiceSettings proctoringSettings) {
+            return Objects.equals(proctoringSettings.serverURL, this.proctoringSettings.serverURL) &&
+                    Objects.equals(proctoringSettings.appKey, this.proctoringSettings.appKey) &&
+                    Objects.equals(proctoringSettings.accountId, this.proctoringSettings.accountId) &&
+                    Objects.equals(proctoringSettings.clientId, this.proctoringSettings.clientId);
+        }
+
+        public ResponseEntity<String> testServiceConnection() {
 
             try {
 
                 final String url = UriComponentsBuilder
-                        .fromUriString(zoomServerUrl)
+                        .fromUriString(this.proctoringSettings.serverURL)
                         .path(API_TEST_ENDPOINT)
                         .queryParam("status", "active")
                         .queryParam("page_size", "10")
@@ -840,7 +778,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                         .queryParam("data_type", "Json")
                         .build()
                         .toUriString();
-                return exchange(url, HttpMethod.GET, credentials);
+                return exchange(url, HttpMethod.GET);
 
             } catch (final Exception e) {
                 log.error("Failed to test zoom service connection: ", e);
@@ -848,17 +786,15 @@ public class ZoomProctoringService implements ExamProctoringService {
             }
         }
 
-        public ResponseEntity<String> createUser(
-                final String zoomServerUrl,
-                final ClientCredentials credentials,
-                final String roomName) {
+        public ResponseEntity<String> createUser(final String roomName) {
 
             try {
+
                 final String url = UriComponentsBuilder
-                        .fromUriString(zoomServerUrl)
+                        .fromUriString(this.proctoringSettings.serverURL)
                         .path(API_CREATE_USER_ENDPOINT)
                         .toUriString();
-                final String host = new URL(zoomServerUrl).getHost();
+                final String host = new URL(this.proctoringSettings.serverURL).getHost();
                 final CreateUserRequest createUserRequest = new CreateUserRequest(
                         API_USER_CUST_CREATE,
                         new CreateUserRequest.UserInfo(
@@ -868,7 +804,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                                 API_ZOOM_ROOM_USER));
 
                 final String body = this.zoomProctoringService.jsonMapper.writeValueAsString(createUserRequest);
-                final HttpHeaders headers = getHeaders(credentials);
+                final HttpHeaders headers = getHeaders();
                 headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
                 return exchange(url, HttpMethod.POST, body, headers);
 
@@ -878,13 +814,10 @@ public class ZoomProctoringService implements ExamProctoringService {
             }
         }
 
-        public ResponseEntity<String> applyUserSettings(
-                final String zoomServerUrl,
-                final ClientCredentials credentials,
-                final String userId) {
+        public ResponseEntity<String> applyUserSettings(final String userId) {
             try {
                 final String url = UriComponentsBuilder
-                        .fromUriString(zoomServerUrl)
+                        .fromUriString(this.proctoringSettings.serverURL)
                         .path(API_APPLY_USER_SETTINGS_ENDPOINT)
                         .buildAndExpand(userId)
                         .normalize()
@@ -892,7 +825,7 @@ public class ZoomProctoringService implements ExamProctoringService {
 
                 final ApplyUserSettingsRequest applySettingsRequest = new ApplyUserSettingsRequest();
                 final String body = this.zoomProctoringService.jsonMapper.writeValueAsString(applySettingsRequest);
-                final HttpHeaders headers = getHeaders(credentials);
+                final HttpHeaders headers = getHeaders();
 
                 headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
                 final ResponseEntity<String> exchange = exchange(url, HttpMethod.PATCH, body, headers);
@@ -904,8 +837,6 @@ public class ZoomProctoringService implements ExamProctoringService {
         }
 
         public ResponseEntity<String> createMeeting(
-                final String zoomServerUrl,
-                final ClientCredentials credentials,
                 final String userId,
                 final String topic,
                 final int duration,
@@ -915,7 +846,7 @@ public class ZoomProctoringService implements ExamProctoringService {
             try {
 
                 final String url = UriComponentsBuilder
-                        .fromUriString(zoomServerUrl)
+                        .fromUriString(this.proctoringSettings.serverURL)
                         .path(API_CREATE_MEETING_ENDPOINT)
                         .buildAndExpand(userId)
                         .toUriString();
@@ -927,7 +858,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                         waitingRoom);
 
                 final String body = this.zoomProctoringService.jsonMapper.writeValueAsString(createRoomRequest);
-                final HttpHeaders headers = getHeaders(credentials);
+                final HttpHeaders headers = getHeaders();
                 headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
                 return exchange(url, HttpMethod.POST, body, headers);
 
@@ -937,21 +868,18 @@ public class ZoomProctoringService implements ExamProctoringService {
             }
         }
 
-        public ResponseEntity<String> deleteMeeting(
-                final String zoomServerUrl,
-                final ClientCredentials credentials,
-                final Long meetingId) {
+        public ResponseEntity<String> deleteMeeting(final Long meetingId) {
 
             // try to set set meeting status to ended first
             try {
 
                 final String url = UriComponentsBuilder
-                        .fromUriString(zoomServerUrl)
+                        .fromUriString(this.proctoringSettings.serverURL)
                         .path(API_END_MEETING_ENDPOINT)
                         .buildAndExpand(meetingId)
                         .toUriString();
 
-                final HttpHeaders headers = getHeaders(credentials);
+                final HttpHeaders headers = getHeaders();
                 headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
                 final ResponseEntity<String> exchange = exchange(
@@ -976,12 +904,12 @@ public class ZoomProctoringService implements ExamProctoringService {
             try {
 
                 final String url = UriComponentsBuilder
-                        .fromUriString(zoomServerUrl)
+                        .fromUriString(this.proctoringSettings.serverURL)
                         .path(API_DELETE_MEETING_ENDPOINT)
                         .buildAndExpand(meetingId)
                         .toUriString();
 
-                return exchange(url, HttpMethod.DELETE, credentials);
+                return exchange(url, HttpMethod.DELETE);
 
             } catch (final Exception e) {
                 log.warn("Failed to delete Zoom ad-hoc meeting: {} cause: {} / {}",
@@ -992,20 +920,17 @@ public class ZoomProctoringService implements ExamProctoringService {
             }
         }
 
-        public ResponseEntity<String> deleteUser(
-                final String zoomServerUrl,
-                final ClientCredentials credentials,
-                final String userId) {
+        public ResponseEntity<String> deleteUser(final String userId) {
 
             try {
                 final String url = UriComponentsBuilder
-                        .fromUriString(zoomServerUrl)
+                        .fromUriString(this.proctoringSettings.serverURL)
                         .path(API_DELETE_USER_ENDPOINT)
                         .buildAndExpand(userId)
                         .normalize()
                         .toUriString();
 
-                return exchange(url, HttpMethod.DELETE, credentials);
+                return exchange(url, HttpMethod.DELETE);
 
             } catch (final Exception e) {
                 log.error("Failed to delete Zoom ad-hoc user with id: {} cause: {} / {}",
@@ -1016,24 +941,11 @@ public class ZoomProctoringService implements ExamProctoringService {
             }
         }
 
-        private HttpHeaders getHeaders(final ClientCredentials credentials) {
-            final String jwt = this.zoomProctoringService
-                    .createJWTForAPIAccess(
-                            credentials,
-                            System.currentTimeMillis() + Constants.MINUTE_IN_MILLIS);
-
-            final HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
-            httpHeaders.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
-            return httpHeaders;
-        }
-
         private ResponseEntity<String> exchange(
                 final String url,
-                final HttpMethod method,
-                final ClientCredentials credentials) {
+                final HttpMethod method) {
 
-            return exchange(url, method, null, getHeaders(credentials));
+            return exchange(url, method, null, getHeaders());
         }
 
         private ResponseEntity<String> exchange(
@@ -1067,6 +979,140 @@ public class ZoomProctoringService implements ExamProctoringService {
                 }
             });
             return protectedRunResult.getOrThrow();
+        }
+    }
+
+    private final static class OAuthZoomRestTemplate extends ZoomRestTemplate {
+
+        private BaseOAuth2ProtectedResourceDetails resource;
+
+        public OAuthZoomRestTemplate(
+                final ZoomProctoringService zoomProctoringService,
+                final ProctoringServiceSettings proctoringSettings) {
+
+            super(zoomProctoringService, proctoringSettings);
+        }
+
+        @Override
+        protected void initConnection() {
+
+            if (this.resource == null) {
+
+                this.credentials = new ClientCredentials(
+                        this.proctoringSettings.clientId,
+                        this.proctoringSettings.clientSecret);
+
+                final CharSequence decryptedSecret = this.zoomProctoringService.cryptor
+                        .decrypt(this.credentials.secret)
+                        .getOrThrow();
+
+                this.resource = new BaseOAuth2ProtectedResourceDetails();
+                this.resource.setAccessTokenUri(this.proctoringSettings.serverURL + "/oauth/token");
+                this.resource.setClientId(this.credentials.clientIdAsString());
+                this.resource.setClientSecret(decryptedSecret.toString());
+                this.resource.setGrantType("account_credentials");
+
+                final DefaultAccessTokenRequest defaultAccessTokenRequest = new DefaultAccessTokenRequest();
+                defaultAccessTokenRequest.set("account_id", this.proctoringSettings.accountId);
+                this.restTemplate = new OAuth2RestTemplate(
+                        this.resource,
+                        new DefaultOAuth2ClientContext(defaultAccessTokenRequest));
+            }
+        }
+
+        @Override
+        public HttpHeaders getHeaders() {
+            final HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+            return httpHeaders;
+        }
+    }
+
+    @Deprecated
+    private final static class JWTZoomRestTemplate extends ZoomRestTemplate {
+
+        public JWTZoomRestTemplate(
+                final ZoomProctoringService zoomProctoringService,
+                final ProctoringServiceSettings proctoringSettings) {
+
+            super(zoomProctoringService, proctoringSettings);
+        }
+
+        @Override
+        public void initConnection() {
+            if (this.restTemplate == null) {
+
+                this.credentials = new ClientCredentials(
+                        this.proctoringSettings.appKey,
+                        this.proctoringSettings.appSecret);
+
+                this.restTemplate = new RestTemplate(this.zoomProctoringService.clientHttpRequestFactoryService
+                        .getClientHttpRequestFactory()
+                        .getOrThrow());
+            }
+        }
+
+        @Override
+        public HttpHeaders getHeaders() {
+            final String jwt = this.createJWTForAPIAccess(
+                    this.credentials,
+                    System.currentTimeMillis() + Constants.MINUTE_IN_MILLIS);
+
+            final HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
+            httpHeaders.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+            return httpHeaders;
+        }
+
+        private String createJWTForAPIAccess(
+                final ClientCredentials credentials,
+                final Long expTime) {
+
+            try {
+
+                final CharSequence decryptedSecret = this.zoomProctoringService.cryptor
+                        .decrypt(credentials.secret)
+                        .getOrThrow();
+
+                final StringBuilder builder = new StringBuilder();
+                final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
+
+                final String jwtHeaderPart = urlEncoder
+                        .encodeToString(ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
+
+                final String jwtPayload = String.format(
+                        ZOOM_API_ACCESS_TOKEN_PAYLOAD
+                                .replaceAll(" ", "")
+                                .replaceAll("\n", ""),
+                        credentials.clientIdAsString(),
+                        expTime);
+
+                if (log.isTraceEnabled()) {
+                    log.trace("Zoom API Token payload: {}", jwtPayload);
+                }
+
+                final String jwtPayloadPart = urlEncoder
+                        .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
+
+                final String message = jwtHeaderPart + "." + jwtPayloadPart;
+
+                final Mac sha256_HMAC = Mac.getInstance(TOKEN_ENCODE_ALG);
+                final SecretKeySpec secret_key = new SecretKeySpec(
+                        Utils.toByteArray(decryptedSecret),
+                        TOKEN_ENCODE_ALG);
+
+                sha256_HMAC.init(secret_key);
+                final String hash = urlEncoder
+                        .encodeToString(sha256_HMAC.doFinal(Utils.toByteArray(message)));
+
+                builder.append(message)
+                        .append(".")
+                        .append(hash);
+
+                return builder.toString();
+            } catch (final Exception e) {
+                throw new RuntimeException("Failed to create JWT for Zoom API access: ", e);
+            }
         }
     }
 

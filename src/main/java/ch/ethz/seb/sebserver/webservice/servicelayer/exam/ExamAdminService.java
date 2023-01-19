@@ -116,6 +116,8 @@ public interface ExamAdminService {
      * @return ExamProctoringService instance */
     Result<ExamProctoringService> getExamProctoringService(final Long examId);
 
+    Result<Exam> resetProctoringSettings(Exam exam);
+
     /** This archives a finished exam and set it to archived state as well as the assigned
      * exam configurations that are also set to archived state.
      *

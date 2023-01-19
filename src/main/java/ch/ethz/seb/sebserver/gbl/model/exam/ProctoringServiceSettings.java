@@ -42,10 +42,18 @@ public class ProctoringServiceSettings implements Entity {
     public static final String ATTR_ENABLE_PROCTORING = "enableProctoring";
     public static final String ATTR_SERVER_TYPE = "serverType";
     public static final String ATTR_SERVER_URL = "serverURL";
+
+    // Jitsi access (former also Zoom)
     public static final String ATTR_APP_KEY = "appKey";
     public static final String ATTR_APP_SECRET = "appSecret";
+
+    // Zoom Access
+    public static final String ATTR_ACCOUNT_ID = "accountId";
+    public static final String ATTR_ACCOUNT_CLIENT_ID = "clientId";
+    public static final String ATTR_ACCOUNT_CLIENT_SECRET = "clientSecret";
     public static final String ATTR_SDK_KEY = "sdkKey";
     public static final String ATTR_SDK_SECRET = "sdkSecret";
+
     public static final String ATTR_COLLECTING_ROOM_SIZE = "collectingRoomSize";
     public static final String ATTR_ENABLED_FEATURES = "enabledFeatures";
     public static final String ATTR_COLLECT_ALL_ROOM_NAME = "collectAllRoomName";
@@ -70,6 +78,15 @@ public class ProctoringServiceSettings implements Entity {
 
     @JsonProperty(ATTR_APP_SECRET)
     public final CharSequence appSecret;
+
+    @JsonProperty(ATTR_ACCOUNT_ID)
+    public final String accountId;
+
+    @JsonProperty(ATTR_ACCOUNT_CLIENT_ID)
+    public final String clientId;
+
+    @JsonProperty(ATTR_ACCOUNT_CLIENT_SECRET)
+    public final CharSequence clientSecret;
 
     @JsonProperty(ATTR_SDK_KEY)
     public final String sdkKey;
@@ -100,6 +117,9 @@ public class ProctoringServiceSettings implements Entity {
             @JsonProperty(ATTR_SERVICE_IN_USE) final Boolean serviceInUse,
             @JsonProperty(ATTR_APP_KEY) final String appKey,
             @JsonProperty(ATTR_APP_SECRET) final CharSequence appSecret,
+            @JsonProperty(ATTR_ACCOUNT_ID) final String accountId,
+            @JsonProperty(ATTR_ACCOUNT_CLIENT_ID) final String clientId,
+            @JsonProperty(ATTR_ACCOUNT_CLIENT_SECRET) final CharSequence clientSecret,
             @JsonProperty(ATTR_SDK_KEY) final String sdkKey,
             @JsonProperty(ATTR_SDK_SECRET) final CharSequence sdkSecret,
             @JsonProperty(ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM) final Boolean useZoomAppClientForCollectingRoom) {
@@ -113,9 +133,48 @@ public class ProctoringServiceSettings implements Entity {
         this.serviceInUse = serviceInUse;
         this.appKey = StringUtils.trim(appKey);
         this.appSecret = appSecret;
+        this.accountId = StringUtils.trim(accountId);
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
         this.sdkKey = StringUtils.trim(sdkKey);
         this.sdkSecret = sdkSecret;
         this.useZoomAppClientForCollectingRoom = BooleanUtils.toBoolean(useZoomAppClientForCollectingRoom);
+    }
+
+    public ProctoringServiceSettings(final Long examId) {
+        this.examId = examId;
+        this.enableProctoring = false;
+        this.serverType = null;
+        this.serverURL = null;
+        this.collectingRoomSize = 20;
+        this.enabledFeatures = EnumSet.allOf(ProctoringFeature.class);
+        this.serviceInUse = false;
+        this.appKey = null;
+        this.appSecret = null;
+        this.accountId = null;
+        this.clientId = null;
+        this.clientSecret = null;
+        this.sdkKey = null;
+        this.sdkSecret = null;
+        this.useZoomAppClientForCollectingRoom = false;
+    }
+
+    public ProctoringServiceSettings(final Long examId, final ProctoringServiceSettings copyOf) {
+        this.examId = examId;
+        this.enableProctoring = copyOf.enableProctoring;
+        this.serverType = copyOf.serverType;
+        this.serverURL = copyOf.serverURL;
+        this.collectingRoomSize = copyOf.collectingRoomSize;
+        this.enabledFeatures = copyOf.enabledFeatures;
+        this.serviceInUse = false;
+        this.appKey = copyOf.appKey;
+        this.appSecret = copyOf.appSecret;
+        this.accountId = copyOf.accountId;
+        this.clientId = copyOf.clientId;
+        this.clientSecret = copyOf.clientSecret;
+        this.sdkKey = copyOf.sdkKey;
+        this.sdkSecret = copyOf.sdkSecret;
+        this.useZoomAppClientForCollectingRoom = copyOf.useZoomAppClientForCollectingRoom;
     }
 
     @Override
@@ -163,6 +222,18 @@ public class ProctoringServiceSettings implements Entity {
 
     public CharSequence getAppSecret() {
         return this.appSecret;
+    }
+
+    public String getAccountId() {
+        return this.accountId;
+    }
+
+    public String getClientId() {
+        return this.clientId;
+    }
+
+    public CharSequence getClientSecret() {
+        return this.clientSecret;
     }
 
     public String getSdkKey() {
@@ -222,18 +293,20 @@ public class ProctoringServiceSettings implements Entity {
         builder.append(this.serverURL);
         builder.append(", appKey=");
         builder.append(this.appKey);
-        builder.append(", appSecret=");
-        builder.append("--");
+        builder.append(", accountId=");
+        builder.append(this.accountId);
+        builder.append(", clientId=");
+        builder.append(this.clientId);
         builder.append(", sdkKey=");
         builder.append(this.sdkKey);
-        builder.append(", sdkSecret=");
-        builder.append("--");
         builder.append(", collectingRoomSize=");
         builder.append(this.collectingRoomSize);
         builder.append(", enabledFeatures=");
         builder.append(this.enabledFeatures);
         builder.append(", serviceInUse=");
         builder.append(this.serviceInUse);
+        builder.append(", useZoomAppClientForCollectingRoom=");
+        builder.append(this.useZoomAppClientForCollectingRoom);
         builder.append("]");
         return builder.toString();
     }

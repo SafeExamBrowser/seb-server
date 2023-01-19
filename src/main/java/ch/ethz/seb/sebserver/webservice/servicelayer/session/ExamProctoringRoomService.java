@@ -17,9 +17,12 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 
 /** Defines functionality to deal with proctoring rooms in a generic way (independent from meeting service) */
 public interface ExamProctoringRoomService {
+
+    ProctoringAdminService getProctoringAdminService();
 
     /** Get all existing default proctoring rooms of an exam.
      *
@@ -135,5 +138,7 @@ public interface ExamProctoringRoomService {
      * @param roomName The name of the proctoring room
      * @return Result refer to void or to an error when happened */
     Result<Void> notifyRoomOpened(Long examId, String roomName);
+
+    Result<Exam> cleanupAllRooms(Exam exam);
 
 }

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.page.impl;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -17,6 +18,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
@@ -110,9 +113,53 @@ public class ModalInputDialog<T> extends Dialog {
         open(title, predicate, cancelCallback, contentComposer);
     }
 
+    public void openWithActions(
+            final LocTextKey title,
+            final BiConsumer<Composite, Supplier<T>> actionComposer,
+            final Runnable cancelCallback,
+            final ModalInputDialogComposer<T> contentComposer) {
+
+        // Create the selection dialog window
+        this.shell = new Shell(getParent(), getStyle());
+        this.shell.setText(getText());
+        this.shell.setData(RWT.CUSTOM_VARIANT, CustomVariant.MESSAGE.key);
+        this.shell.setText(this.widgetFactory.getI18nSupport().getText(title));
+        this.shell.setLayout(new GridLayout(1, true));
+        final GridData gridData2 = new GridData(SWT.FILL, SWT.BOTTOM, false, false);
+        this.shell.setLayoutData(gridData2);
+
+        final Composite main = new Composite(this.shell, SWT.NONE);
+        main.setLayout(new GridLayout());
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        gridData.horizontalSpan = 2;
+        gridData.widthHint = this.dialogWidth;
+        main.setLayoutData(gridData);
+        final Supplier<T> valueSupplier = contentComposer.compose(main);
+        gridData.heightHint = calcDialogHeight(main);
+
+        final Composite actions = new Composite(this.shell, SWT.NONE);
+        final RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
+        actions.setLayout(rowLayout);
+        if (actionComposer != null) {
+            actionComposer.accept(actions, valueSupplier);
+        }
+
+        actions.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
+        final Button cancel = this.widgetFactory.buttonLocalized(actions, CANCEL_TEXT_KEY);
+        cancel.setLayoutData(new RowData());
+        cancel.addListener(SWT.Selection, event -> {
+            if (cancelCallback != null) {
+                cancelCallback.run();
+            }
+            this.shell.close();
+        });
+
+        finishUp(this.shell);
+    }
+
     public void open(
             final LocTextKey title,
-            final Predicate<T> callback,
+            final Predicate<T> okCallback,
             final Runnable cancelCallback,
             final ModalInputDialogComposer<T> contentComposer) {
 
@@ -142,7 +189,7 @@ public class ModalInputDialog<T> extends Dialog {
         ok.addListener(SWT.Selection, event -> {
             if (valueSupplier != null) {
                 final T result = valueSupplier.get();
-                if (callback.test(result)) {
+                if (okCallback.test(result)) {
                     this.shell.close();
                 }
             } else {

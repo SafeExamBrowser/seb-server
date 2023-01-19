@@ -147,7 +147,8 @@ public class WidgetFactory {
         NOTIFICATION("notification.png"),
         VERIFY("verify.png"),
         SHIELD("shield.png"),
-        NO_SHIELD("no_shield.png");
+        NO_SHIELD("no_shield.png"),
+        BACK("back.png");
 
         public String fileName;
         private ImageData image = null;

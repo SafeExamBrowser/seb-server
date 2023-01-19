@@ -18,6 +18,7 @@ public enum ActionCategory {
     LMS_SETUP_LIST(new LocTextKey("sebserver.lmssetup.list.actions"), 1),
     QUIZ_LIST(new LocTextKey("sebserver.quizdiscovery.list.actions"), 1),
     EXAM_LIST(new LocTextKey("sebserver.exam.list.actions"), 1),
+    EXAM_SECURITY(new LocTextKey("sebserver.exam.security.actions"), 1),
     EXAM_TEMPLATE_LIST(new LocTextKey("sebserver.examtemplate.list.actions"), 1),
     INDICATOR_TEMPLATE_LIST(new LocTextKey("sebserver.examtemplate.indicator.list.actions"), 1),
     CLIENT_GROUP_TEMPLATE_LIST(new LocTextKey("sebserver.examtemplate.clientgroup.list.actions"), 2),

@@ -78,6 +78,7 @@ public class AddSecurityKeyGrantPopup {
     public PageAction showGrantPopup(final PageAction action, final AppSignatureKeyInfo appSignatureKeyInfo) {
         final PageContext pageContext = action.pageContext();
         final PopupComposer popupComposer = new PopupComposer(this.pageService, pageContext, appSignatureKeyInfo);
+        final boolean readonly = action.pageContext().isReadonly();
         try {
             final ModalInputDialog<FormHandle<?>> dialog =
                     new ModalInputDialog<>(
@@ -90,7 +91,7 @@ public class AddSecurityKeyGrantPopup {
                     formHandle,
                     appSignatureKeyInfo);
 
-            if (appSignatureKeyInfo.key == null) {
+            if (appSignatureKeyInfo.key == null || readonly) {
                 dialog.open(
                         TITLE_TEXT_KEY,
                         popupComposer);
@@ -130,6 +131,7 @@ public class AddSecurityKeyGrantPopup {
             widgetFactory.addFormSubContextHeader(parent, TITLE_TEXT_INFO, null);
             final boolean hasASK = this.appSignatureKeyInfo.key != null;
             final PageContext formContext = this.pageContext.copyOf(parent);
+            final boolean readonly = this.pageContext.isReadonly();
             final FormHandle<?> form = this.pageService.formBuilder(formContext)
 
                     .addField(FormBuilder.text(
@@ -140,7 +142,7 @@ public class AddSecurityKeyGrantPopup {
                                     : Constants.EMPTY_NOTE)
                             .readonly(true))
 
-                    .addFieldIf(() -> hasASK,
+                    .addFieldIf(() -> hasASK && !readonly,
                             () -> FormBuilder.text(
                                     Domain.SEB_SECURITY_KEY_REGISTRY.ATTR_TAG,
                                     TITLE_TEXT_FORM_TAG)

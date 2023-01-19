@@ -3597,6 +3597,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 false,
                 "apiKey",
                 "apiSecret",
+                "accountId",
+                "clientId",
+                "clientSecret",
                 "sdkKey",
                 "sdkSecret",
                 false);
@@ -3721,6 +3724,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 EnumSet.allOf(ProctoringFeature.class),
                 true,
                 "appKey", "appSecret",
+                "accountId", "clientId", "clientSecret",
                 "sdkKey", "sdkSecret",
                 false);
 

@@ -91,6 +91,9 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
                                         : false,
                                 getString(mapping, ProctoringServiceSettings.ATTR_APP_KEY),
                                 getString(mapping, ProctoringServiceSettings.ATTR_APP_SECRET),
+                                getString(mapping, ProctoringServiceSettings.ATTR_ACCOUNT_ID),
+                                getString(mapping, ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_ID),
+                                getString(mapping, ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_SECRET),
                                 getString(mapping, ProctoringServiceSettings.ATTR_SDK_KEY),
                                 getString(mapping, ProctoringServiceSettings.ATTR_SDK_SECRET),
                                 getBoolean(mapping,
@@ -139,19 +142,42 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
                     ProctoringServiceSettings.ATTR_COLLECTING_ROOM_SIZE,
                     String.valueOf(proctoringServiceSettings.collectingRoomSize));
 
-            this.additionalAttributesDAO.saveAdditionalAttribute(
-                    parentEntityKey.entityType,
-                    entityId,
-                    ProctoringServiceSettings.ATTR_APP_KEY,
-                    StringUtils.trim(proctoringServiceSettings.appKey));
+            if (StringUtils.isNotBlank(proctoringServiceSettings.appKey)) {
+                this.additionalAttributesDAO.saveAdditionalAttribute(
+                        parentEntityKey.entityType,
+                        entityId,
+                        ProctoringServiceSettings.ATTR_APP_KEY,
+                        StringUtils.trim(proctoringServiceSettings.appKey));
 
-            this.additionalAttributesDAO.saveAdditionalAttribute(
-                    parentEntityKey.entityType,
-                    entityId,
-                    ProctoringServiceSettings.ATTR_APP_SECRET,
-                    this.cryptor.encrypt(Utils.trim(proctoringServiceSettings.appSecret))
-                            .getOrThrow()
-                            .toString());
+                this.additionalAttributesDAO.saveAdditionalAttribute(
+                        parentEntityKey.entityType,
+                        entityId,
+                        ProctoringServiceSettings.ATTR_APP_SECRET,
+                        this.cryptor.encrypt(Utils.trim(proctoringServiceSettings.appSecret))
+                                .getOrThrow()
+                                .toString());
+            }
+
+            if (StringUtils.isNotBlank(proctoringServiceSettings.accountId)) {
+                this.additionalAttributesDAO.saveAdditionalAttribute(
+                        parentEntityKey.entityType,
+                        entityId,
+                        ProctoringServiceSettings.ATTR_ACCOUNT_ID,
+                        StringUtils.trim(proctoringServiceSettings.accountId));
+                this.additionalAttributesDAO.saveAdditionalAttribute(
+                        parentEntityKey.entityType,
+                        entityId,
+                        ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_ID,
+                        StringUtils.trim(proctoringServiceSettings.clientId));
+
+                this.additionalAttributesDAO.saveAdditionalAttribute(
+                        parentEntityKey.entityType,
+                        entityId,
+                        ProctoringServiceSettings.ATTR_ACCOUNT_CLIENT_SECRET,
+                        this.cryptor.encrypt(Utils.trim(proctoringServiceSettings.clientSecret))
+                                .getOrThrow()
+                                .toString());
+            }
 
             if (StringUtils.isNotBlank(proctoringServiceSettings.sdkKey)) {
                 this.additionalAttributesDAO.saveAdditionalAttribute(

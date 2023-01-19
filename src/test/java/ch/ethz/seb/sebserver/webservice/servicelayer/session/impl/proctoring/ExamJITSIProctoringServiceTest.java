@@ -43,7 +43,7 @@ public class ExamJITSIProctoringServiceTest {
 
         final ProctoringServiceSettings proctoringServiceSettings = new ProctoringServiceSettings(
                 1L, true, ProctoringServerType.JITSI_MEET, "URL?",
-                null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null);
 
         final Result<Boolean> testExamProctoring = jitsiProctoringService
                 .testExamProctoring(proctoringServiceSettings);
@@ -59,7 +59,9 @@ public class ExamJITSIProctoringServiceTest {
 
         final ProctoringServiceSettings proctoringServiceSettings = new ProctoringServiceSettings(
                 1L, true, ProctoringServerType.JITSI_MEET, "http://jitsi.ch",
-                2, null, true, "key", "secret", null, null, false);
+                2, null, true, "key", "secret", "accountId",
+                "clientId",
+                "clientSecret", null, null, false);
 
         final Result<ProctoringRoomConnection> proctorRoomConnection = jitsiProctoringService
                 .getProctorRoomConnection(proctoringServiceSettings, "TestRoom", "Test-User");

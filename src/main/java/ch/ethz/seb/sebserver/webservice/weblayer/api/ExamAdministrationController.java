@@ -71,6 +71,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
@@ -87,6 +88,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final ExamSessionService examSessionService;
     private final SEBRestrictionService sebRestrictionService;
     private final SecurityKeyService securityKeyService;
+    private final ExamProctoringRoomService examProctoringRoomService;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -101,7 +103,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final ExamTemplateService examTemplateService,
             final ExamSessionService examSessionService,
             final SEBRestrictionService sebRestrictionService,
-            final SecurityKeyService securityKeyService) {
+            final SecurityKeyService securityKeyService,
+            final ExamProctoringRoomService examProctoringRoomService) {
 
         super(authorization,
                 bulkActionService,
@@ -118,6 +121,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.examSessionService = examSessionService;
         this.sebRestrictionService = sebRestrictionService;
         this.securityKeyService = securityKeyService;
+        this.examProctoringRoomService = examProctoringRoomService;
     }
 
     @Override
@@ -484,6 +488,29 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 })
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_PROCTORING_RESET_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Exam resetProctoringServiceSettings(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examId) {
+
+        checkModifyPrivilege(institutionId);
+
+        return this.entityDAO
+                .byPK(examId)
+                .flatMap(this.examProctoringRoomService::cleanupAllRooms)
+                .flatMap(this.examAdminService::resetProctoringSettings)
+                .getOrThrow();
+
     }
 
     // **** Proctoring

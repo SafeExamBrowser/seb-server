@@ -157,6 +157,16 @@ public class TableBuilder<ROW extends ModelIdAware> {
         return this;
     }
 
+    public TableBuilder<ROW> withSelectionListenerIf(
+            final BooleanSupplier check,
+            final Consumer<EntityTable<ROW>> selectionListener) {
+
+        if (check.getAsBoolean()) {
+            this.selectionListener = selectionListener;
+        }
+        return this;
+    }
+
     public TableBuilder<ROW> withContentChangeListener(final Consumer<Integer> contentChangeListener) {
         this.contentChangeListener = contentChangeListener;
         return this;

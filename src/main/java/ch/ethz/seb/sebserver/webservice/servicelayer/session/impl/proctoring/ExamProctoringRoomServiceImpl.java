@@ -85,6 +85,11 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     }
 
     @Override
+    public ProctoringAdminService getProctoringAdminService() {
+        return this.proctoringAdminService;
+    }
+
+    @Override
     public Result<Collection<RemoteProctoringRoom>> getProctoringCollectingRooms(final Long examId) {
         return this.remoteProctoringRoomDAO.getCollectingRooms(examId);
     }
@@ -296,6 +301,19 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 closeCollectingRoom(examId, roomName, settings, examProctoringService);
             }
         });
+    }
+
+    @Override
+    public Result<Exam> cleanupAllRooms(final Exam exam) {
+        return this.clientConnectionDAO
+                .getAllActiveConnectionTokens(exam.id)
+                .map(activeConnections -> {
+                    if (activeConnections != null && !activeConnections.isEmpty()) {
+                        throw new IllegalStateException("There are still active connections for this exam");
+                    }
+                    return exam;
+                })
+                .flatMap(this::disposeRoomsForExam);
     }
 
     private void assignToCollectingRoom(final ClientConnectionRecord cc) {

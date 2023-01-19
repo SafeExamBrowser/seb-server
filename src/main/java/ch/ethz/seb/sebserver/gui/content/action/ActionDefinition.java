@@ -301,27 +301,27 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.exam.action.sebrestriction.details"),
             ImageIcon.RESTRICTION,
             PageStateDefinitionImpl.EXAM_VIEW,
-            ActionCategory.FORM),
+            ActionCategory.EXAM_SECURITY),
     EXAM_ENABLE_SEB_RESTRICTION(
             new LocTextKey("sebserver.exam.action.sebrestriction.enable"),
             ImageIcon.UNLOCK,
             PageStateDefinitionImpl.EXAM_VIEW,
-            ActionCategory.FORM),
+            ActionCategory.EXAM_SECURITY),
     EXAM_DISABLE_SEB_RESTRICTION(
             new LocTextKey("sebserver.exam.action.sebrestriction.disable"),
             ImageIcon.LOCK,
             PageStateDefinitionImpl.EXAM_VIEW,
-            ActionCategory.FORM),
+            ActionCategory.EXAM_SECURITY),
     EXAM_PROCTORING_ON(
             new LocTextKey("sebserver.exam.proctoring.actions.open"),
             ImageIcon.VISIBILITY,
             PageStateDefinitionImpl.EXAM_VIEW,
-            ActionCategory.FORM),
+            ActionCategory.EXAM_SECURITY),
     EXAM_PROCTORING_OFF(
             new LocTextKey("sebserver.exam.proctoring.actions.open"),
             ImageIcon.VISIBILITY_OFF,
             PageStateDefinitionImpl.EXAM_VIEW,
-            ActionCategory.FORM),
+            ActionCategory.EXAM_SECURITY),
 
     EXAM_CONFIGURATION_NEW(
             new LocTextKey("sebserver.exam.configuration.action.list.new"),
@@ -419,12 +419,12 @@ public enum ActionDefinition {
             new LocTextKey("sebserver.exam.signaturekey.action.edit"),
             ImageIcon.SHIELD,
             PageStateDefinitionImpl.SECURITY_KEY_EDIT,
-            ActionCategory.FORM),
+            ActionCategory.EXAM_SECURITY),
     EXAM_SECURITY_KEY_DISABLED(
             new LocTextKey("sebserver.exam.signaturekey.action.edit"),
             ImageIcon.NO_SHIELD,
             PageStateDefinitionImpl.SECURITY_KEY_EDIT,
-            ActionCategory.FORM),
+            ActionCategory.EXAM_SECURITY),
     EXAM_RELOAD_SECURITY_KEY_VIEW(
             new LocTextKey("sebserver.exam.signaturekey.action.edit"),
             ImageIcon.SHIELD,
@@ -441,8 +441,18 @@ public enum ActionDefinition {
             ImageIcon.CANCEL,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
+    EXAM_SECURITY_KEY_BACK_MODIFY(
+            new LocTextKey("sebserver.exam.signaturekey.action.back"),
+            ImageIcon.BACK,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.FORM),
     EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP(
             new LocTextKey("sebserver.exam.signaturekey.action.addGrant"),
+            ImageIcon.ADD,
+            PageStateDefinitionImpl.SECURITY_KEY_EDIT,
+            ActionCategory.APP_SIGNATURE_KEY_LIST),
+    EXAM_SECURITY_KEY_SHOW_ASK_POPUP(
+            new LocTextKey("sebserver.exam.signaturekey.action.showASK"),
             ImageIcon.ADD,
             PageStateDefinitionImpl.SECURITY_KEY_EDIT,
             ActionCategory.APP_SIGNATURE_KEY_LIST),
@@ -915,7 +925,7 @@ public enum ActionDefinition {
 
     MONITOR_EXAM_BACK_TO_OVERVIEW(
             new LocTextKey("sebserver.monitoring.exam.action.detail.view"),
-            ImageIcon.SHOW,
+            ImageIcon.BACK,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.FORM),
 
@@ -1025,7 +1035,7 @@ public enum ActionDefinition {
             ActionCategory.CLIENT_EVENT_LIST),
     FINISHED_EXAM_BACK_TO_OVERVIEW(
             new LocTextKey("sebserver.finished.exam.action.detail.view"),
-            ImageIcon.SHOW,
+            ImageIcon.BACK,
             PageStateDefinitionImpl.FINISHED_EXAM,
             ActionCategory.FORM),
     FINISHED_EXAM_EXPORT_CSV(

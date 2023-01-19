@@ -60,7 +60,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     private static final Logger log = LoggerFactory.getLogger(ExamAdminServiceImpl.class);
 
     private final ExamDAO examDAO;
-    private final ProctoringAdminService proctoringServiceSettingsService;
+    private final ProctoringAdminService proctoringAdminService;
     private final AdditionalAttributesDAO additionalAttributesDAO;
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
@@ -70,7 +70,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     protected ExamAdminServiceImpl(
             final ExamDAO examDAO,
-            final ProctoringAdminService proctoringServiceSettingsService,
+            final ProctoringAdminService proctoringAdminService,
             final AdditionalAttributesDAO additionalAttributesDAO,
             final ConfigurationNodeDAO configurationNodeDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
@@ -79,7 +79,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.numerical.threshold:2}") int defaultNumericalTrustThreshold) {
 
         this.examDAO = examDAO;
-        this.proctoringServiceSettingsService = proctoringServiceSettingsService;
+        this.proctoringAdminService = proctoringAdminService;
         this.additionalAttributesDAO = additionalAttributesDAO;
         this.configurationNodeDAO = configurationNodeDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
@@ -200,7 +200,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     public Result<ProctoringServiceSettings> getProctoringServiceSettings(final Long examId) {
-        return this.proctoringServiceSettingsService.getProctoringSettings(new EntityKey(examId, EntityType.EXAM));
+        return this.proctoringAdminService.getProctoringSettings(new EntityKey(examId, EntityType.EXAM));
     }
 
     @Override
@@ -209,7 +209,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final Long examId,
             final ProctoringServiceSettings proctoringServiceSettings) {
 
-        return this.proctoringServiceSettingsService
+        return this.proctoringAdminService
                 .saveProctoringServiceSettings(
                         new EntityKey(examId, EntityType.EXAM),
                         proctoringServiceSettings)
@@ -239,8 +239,28 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     @Override
     public Result<ExamProctoringService> getExamProctoringService(final Long examId) {
         return getProctoringServiceSettings(examId)
-                .flatMap(settings -> this.proctoringServiceSettingsService
+                .flatMap(settings -> this.proctoringAdminService
                         .getExamProctoringService(settings.serverType));
+    }
+
+    @Override
+    public Result<Exam> resetProctoringSettings(final Exam exam) {
+        return getProctoringServiceSettings(exam.id)
+                .map(settings -> {
+                    ProctoringServiceSettings resetSettings;
+                    if (exam.examTemplateId != null) {
+                        // get settings from origin template
+                        resetSettings = this.proctoringAdminService
+                                .getProctoringSettings(new EntityKey(exam.examTemplateId, EntityType.EXAM_TEMPLATE))
+                                .map(template -> new ProctoringServiceSettings(exam.id, template))
+                                .getOr(new ProctoringServiceSettings(exam.id));
+                    } else {
+                        // create new reseted settings
+                        resetSettings = new ProctoringServiceSettings(exam.id);
+                    }
+                    return resetSettings;
+                }).flatMap(settings -> saveProctoringServiceSettings(exam.id, settings))
+                .map(settings -> exam);
     }
 
     private Result<Exam> initAdditionalAttributesForMoodleExams(final Exam exam) {

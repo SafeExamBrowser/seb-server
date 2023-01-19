@@ -452,6 +452,14 @@ public class ExamForm implements TemplateComposer {
                         exam.getName()))
                 .publishIf(() -> editable && readonly)
 
+                .newAction(ActionDefinition.EXAM_SECURITY_KEY_ENABLED)
+                .withEntityKey(entityKey)
+                .publishIf(() -> signatureKeyCheckEnabled && readonly)
+
+                .newAction(ActionDefinition.EXAM_SECURITY_KEY_DISABLED)
+                .withEntityKey(entityKey)
+                .publishIf(() -> !signatureKeyCheckEnabled && readonly)
+
                 .newAction(ActionDefinition.EXAM_MODIFY_SEB_RESTRICTION_DETAILS)
                 .withEntityKey(entityKey)
                 .withExec(this.examSEBRestrictionSettings.settingsFunction(this.pageService))
@@ -472,14 +480,6 @@ public class ExamForm implements TemplateComposer {
                 .withExec(action -> this.examSEBRestrictionSettings.setSEBRestriction(action, false, this.restService))
                 .publishIf(() -> sebRestrictionAvailable && readonly && modifyGrant && !importFromQuizData
                         && BooleanUtils.isTrue(isRestricted))
-
-                .newAction(ActionDefinition.EXAM_SECURITY_KEY_ENABLED)
-                .withEntityKey(entityKey)
-                .publishIf(() -> signatureKeyCheckEnabled && readonly)
-
-                .newAction(ActionDefinition.EXAM_SECURITY_KEY_DISABLED)
-                .withEntityKey(entityKey)
-                .publishIf(() -> !signatureKeyCheckEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_ON)
                 .withEntityKey(entityKey)
