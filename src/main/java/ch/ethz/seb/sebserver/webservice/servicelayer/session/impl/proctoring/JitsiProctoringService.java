@@ -351,6 +351,11 @@ public class JitsiProctoringService implements ExamProctoringService {
         return Result.EMPTY;
     }
 
+    @Override
+    public void clearRestTemplateCache(final Long examId) {
+        // Nothing to do here
+    }
+
     protected Result<ProctoringRoomConnection> createProctoringConnection(
             final String connectionToken,
             final String url,

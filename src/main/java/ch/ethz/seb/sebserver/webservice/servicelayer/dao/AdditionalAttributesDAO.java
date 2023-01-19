@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -102,10 +103,37 @@ public interface AdditionalAttributesDAO {
             final Long entityId,
             final Map<String, String> attributes) {
 
+        return saveAdditionalAttributes(type, entityId, attributes, false);
+    }
+
+    /** Use this to save an additional attributes for a specific entity.
+     * If an additional attribute with specified name already exists for the specified entity
+     * this updates just the value for this additional attribute. Otherwise create a new instance
+     * of additional attribute with the given data
+     *
+     * @param type the entity type
+     * @param entityId the entity identifier (primary key)
+     * @param attributes Map of attributes to save for
+     * @param deleteNullValues indicates if null values shall be deleted or not */
+    default Result<Collection<AdditionalAttributeRecord>> saveAdditionalAttributes(
+            final EntityType type,
+            final Long entityId,
+            final Map<String, String> attributes,
+            final boolean deleteNullValues) {
+
         return Result.tryCatch(() -> attributes.entrySet()
                 .stream()
-                .map(attr -> saveAdditionalAttribute(type, entityId, attr.getKey(), attr.getValue())
-                        .onError(error -> log.warn("Failed to save additional attribute: {}", error.getMessage())))
+                .map(attr -> {
+                    if (deleteNullValues && attr.getValue() == null) {
+                        delete(type, entityId, attr.getKey());
+                        return null;
+                    } else {
+                        return saveAdditionalAttribute(type, entityId, attr.getKey(), attr.getValue())
+                                .onError(error -> log.warn("Failed to save additional attribute: {}",
+                                        error.getMessage()));
+                    }
+                })
+                .filter(Objects::nonNull)
                 .flatMap(Result::skipOnError)
                 .collect(Collectors.toList()));
     }

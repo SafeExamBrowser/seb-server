@@ -125,4 +125,6 @@ public interface ExamProctoringService {
             RemoteProctoringRoom room,
             Collection<ClientConnection> clientConnections);
 
+    public void clearRestTemplateCache(final Long examId);
+
 }

@@ -126,7 +126,7 @@ public class ProctoringServiceSettings implements Entity {
 
         this.examId = examId;
         this.enableProctoring = BooleanUtils.isTrue(enableProctoring);
-        this.serverType = (serverType != null) ? serverType : ProctoringServerType.JITSI_MEET;
+        this.serverType = (serverType != null) ? serverType : ProctoringServerType.ZOOM;
         this.serverURL = serverURL;
         this.collectingRoomSize = (collectingRoomSize != null) ? collectingRoomSize : 20;
         this.enabledFeatures = enabledFeatures != null ? enabledFeatures : EnumSet.allOf(ProctoringFeature.class);
@@ -144,7 +144,7 @@ public class ProctoringServiceSettings implements Entity {
     public ProctoringServiceSettings(final Long examId) {
         this.examId = examId;
         this.enableProctoring = false;
-        this.serverType = null;
+        this.serverType = ProctoringServerType.ZOOM;
         this.serverURL = null;
         this.collectingRoomSize = 20;
         this.enabledFeatures = EnumSet.allOf(ProctoringFeature.class);

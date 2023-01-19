@@ -245,6 +245,9 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     public Result<Exam> resetProctoringSettings(final Exam exam) {
+
+        // first delete all proctoring settings
+
         return getProctoringServiceSettings(exam.id)
                 .map(settings -> {
                     ProctoringServiceSettings resetSettings;

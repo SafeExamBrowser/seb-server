@@ -15,7 +15,9 @@ import java.util.Base64;
 import java.util.Base64.Encoder;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -38,11 +40,22 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.resource.BaseOAuth2ProtectedResourceDetails;
-import org.springframework.security.oauth2.client.token.DefaultAccessTokenRequest;
+import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedException;
+import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
+import org.springframework.security.oauth2.client.resource.UserRedirectRequiredException;
+import org.springframework.security.oauth2.client.token.AccessTokenProvider;
+import org.springframework.security.oauth2.client.token.AccessTokenRequest;
+import org.springframework.security.oauth2.client.token.OAuth2AccessTokenSupport;
+import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -196,13 +209,10 @@ public class ZoomProctoringService implements ExamProctoringService {
                 final ResponseEntity<String> result = newRestTemplate.testServiceConnection();
 
                 if (result.getStatusCode() != HttpStatus.OK) {
-                    throw new APIMessageException(Arrays.asList(
-                            APIMessage.fieldValidationError(ProctoringServiceSettings.ATTR_SERVER_URL,
-                                    "proctoringSettings:serverURL:url.invalid"),
-                            APIMessage.ErrorMessage.EXTERNAL_SERVICE_BINDING_ERROR.of()));
+                    throw new RuntimeException("Invalid Zoom Service response: " + result);
                 }
             } catch (final Exception e) {
-                log.error("Failed to access Zoom service at: {}", proctoringSettings.serverURL, e.getMessage());
+                log.error("Failed to access Zoom service at: {}", proctoringSettings.serverURL, e);
                 throw new APIMessageException(Arrays.asList(
                         APIMessage.fieldValidationError(ProctoringServiceSettings.ATTR_SERVER_URL,
                                 "proctoringSettings:serverURL:url.noservice"),
@@ -655,33 +665,15 @@ public class ZoomProctoringService implements ExamProctoringService {
 
         // NOTE: following is the original code that includes the exam end time but seems to make trouble for OLAT
         final long nowInSeconds = Utils.getSecondsNow();
-//        final long nowPlus30MinInSeconds = nowInSeconds + Utils.toSeconds(30 * Constants.MINUTE_IN_MILLIS);
         final long nowPlusOneDayInSeconds = nowInSeconds + Utils.toSeconds(Constants.DAY_IN_MILLIS);
-//        final long nowPlusTwoDayInSeconds = nowInSeconds + Utils.toSeconds(2 * Constants.DAY_IN_MILLIS);
 
-//        long expTime = nowPlusOneDayInSeconds;
-//        if (examProctoring.examId == null && this.examSessionService.isExamRunning(examProctoring.examId)) {
-//            final Exam exam = this.examSessionService.getRunningExam(examProctoring.examId)
-//                    .getOrThrow();
-//            if (exam.endTime != null) {
-//                expTime = Utils.toSeconds(exam.endTime.getMillis());
-//            }
-//        }
-//        // refer to https://marketplace.zoom.us/docs/sdk/native-sdks/auth
-//        // "exp": 0, //JWT expiration date (Min:1800 seconds greater than iat value, Max: 48 hours greater than iat value) in epoch format.
-//        if (expTime >= nowPlusTwoDayInSeconds) {
-//            expTime = nowPlusTwoDayInSeconds - 10; // Do not set to max because it is not well defined if max is included or not
-//        } else if (expTime < nowPlus30MinInSeconds) {
-//            expTime = nowPlusOneDayInSeconds;
-//        }
-//
-//        log.debug("**** SDK Token exp time with exam-end-time inclusion would be: {}", expTime);
-//
-//
-        // NOTE: Set this to the maximum according to https://marketplace.zoom.us/docs/sdk/native-sdks/auth
-        //return nowPlusTwoDayInSeconds - 1000; // Do not set to max because it is not well defined if max is included or not;
         // NOTE: It seems that since the update of web sdk to SDKToken to 1.7.0, the max is new + one day
         return nowPlusOneDayInSeconds - 10;
+    }
+
+    @Override
+    public synchronized void clearRestTemplateCache(final Long examId) {
+        this.restTemplatesCache.remove(examId);
     }
 
     private final LinkedHashMap<Long, ZoomRestTemplate> restTemplatesCache = new LinkedHashMap<>();
@@ -828,7 +820,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                 final HttpHeaders headers = getHeaders();
 
                 headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-                final ResponseEntity<String> exchange = exchange(url, HttpMethod.PATCH, body, headers);
+                final ResponseEntity<String> exchange = exchange(url, HttpMethod.POST, body, headers);
                 return exchange;
             } catch (final Exception e) {
                 log.error("Failed to apply user settings for Zoom user: {}", userId, e);
@@ -1006,17 +998,19 @@ public class ZoomProctoringService implements ExamProctoringService {
                         .decrypt(this.credentials.secret)
                         .getOrThrow();
 
-                this.resource = new BaseOAuth2ProtectedResourceDetails();
+                this.resource = new ClientCredentialsResourceDetails();
                 this.resource.setAccessTokenUri(this.proctoringSettings.serverURL + "/oauth/token");
                 this.resource.setClientId(this.credentials.clientIdAsString());
                 this.resource.setClientSecret(decryptedSecret.toString());
                 this.resource.setGrantType("account_credentials");
+                this.resource.setId(this.proctoringSettings.accountId);
 
-                final DefaultAccessTokenRequest defaultAccessTokenRequest = new DefaultAccessTokenRequest();
-                defaultAccessTokenRequest.set("account_id", this.proctoringSettings.accountId);
-                this.restTemplate = new OAuth2RestTemplate(
-                        this.resource,
-                        new DefaultOAuth2ClientContext(defaultAccessTokenRequest));
+                final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+                requestFactory.setOutputStreaming(false);
+                final OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(this.resource);
+                oAuth2RestTemplate.setRequestFactory(requestFactory);
+                oAuth2RestTemplate.setAccessTokenProvider(new ZoomCredentialsAccessTokenProvider());
+                this.restTemplate = oAuth2RestTemplate;
             }
         }
 
@@ -1113,6 +1107,65 @@ public class ZoomProctoringService implements ExamProctoringService {
             } catch (final Exception e) {
                 throw new RuntimeException("Failed to create JWT for Zoom API access: ", e);
             }
+        }
+    }
+
+    private static final class ZoomCredentialsAccessTokenProvider extends OAuth2AccessTokenSupport
+            implements AccessTokenProvider {
+
+        @Override
+        public boolean supportsResource(final OAuth2ProtectedResourceDetails resource) {
+            return resource instanceof ClientCredentialsResourceDetails
+                    && "account_credentials".equals(resource.getGrantType());
+        }
+
+        @Override
+        public boolean supportsRefresh(final OAuth2ProtectedResourceDetails resource) {
+            return false;
+        }
+
+        @Override
+        public OAuth2AccessToken refreshAccessToken(final OAuth2ProtectedResourceDetails resource,
+                final OAuth2RefreshToken refreshToken, final AccessTokenRequest request)
+                throws UserRedirectRequiredException {
+            return null;
+        }
+
+        @Override
+        public OAuth2AccessToken obtainAccessToken(final OAuth2ProtectedResourceDetails details,
+                final AccessTokenRequest request)
+                throws UserRedirectRequiredException, AccessDeniedException, OAuth2AccessDeniedException {
+
+            final ClientCredentialsResourceDetails resource = (ClientCredentialsResourceDetails) details;
+            return retrieveToken(request, resource, getParametersForTokenRequest(resource), new HttpHeaders());
+
+        }
+
+        private MultiValueMap<String, String> getParametersForTokenRequest(
+                final ClientCredentialsResourceDetails resource) {
+
+            final MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+            form.set("grant_type", "account_credentials");
+            form.set("account_id", resource.getId());
+
+            if (resource.isScoped()) {
+
+                final StringBuilder builder = new StringBuilder();
+                final List<String> scope = resource.getScope();
+
+                if (scope != null) {
+                    final Iterator<String> scopeIt = scope.iterator();
+                    while (scopeIt.hasNext()) {
+                        builder.append(scopeIt.next());
+                        if (scopeIt.hasNext()) {
+                            builder.append(' ');
+                        }
+                    }
+                }
+
+                form.set("scope", builder.toString());
+            }
+            return form;
         }
     }
 

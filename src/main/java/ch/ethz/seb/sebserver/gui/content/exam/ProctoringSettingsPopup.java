@@ -111,6 +111,8 @@ public class ProctoringSettingsPopup {
             new LocTextKey("sebserver.exam.proctoring.form.resetSettings");
     private final static LocTextKey RESET_CONFIRM_KEY =
             new LocTextKey("sebserver.exam.proctoring.form.resetConfirm");
+    private final static LocTextKey RESET_ACTIVE_CON_KEY =
+            new LocTextKey("sebserver.exam.proctoring.form.resetActive");
 
     Function<PageAction, PageAction> settingsFunction(final PageService pageService, final boolean modifyGrant) {
 
@@ -171,7 +173,7 @@ public class ProctoringSettingsPopup {
                         pc -> new SEBProctoringPropertiesForm(
                                 pageService,
                                 pageContext,
-                                resetButtonHandler));
+                                resetButtonHandler).compose(pc.getParent()));
             }
 
             return action;
@@ -207,8 +209,14 @@ public class ProctoringSettingsPopup {
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
                 .onError(error -> {
-                    log.error("Failed to rest proctoring settings for exam: {}", entityKey, error);
-                    pageContext.notifyUnexpectedError(error);
+                    if (error.getMessage().contains("active connections") ||
+                            (error.getCause() != null &&
+                                    error.getCause().getMessage().contains("active connections"))) {
+                        pageContext.publishInfo(RESET_ACTIVE_CON_KEY);
+                    } else {
+                        log.error("Failed to rest proctoring settings for exam: {}", entityKey, error);
+                        pageContext.notifyUnexpectedError(error);
+                    }
                 }).map(settings -> true).getOr(false);
     }
 

@@ -22,6 +22,8 @@ import javax.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -79,6 +81,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RestController
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_ADMINISTRATION_ENDPOINT)
 public class ExamAdministrationController extends EntityController<Exam, Exam> {
+
+    private static final Logger log = LoggerFactory.getLogger(ExamAdministrationController.class);
 
     private final ExamDAO examDAO;
     private final UserDAO userDAO;
@@ -508,9 +512,16 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return this.entityDAO
                 .byPK(examId)
                 .flatMap(this.examProctoringRoomService::cleanupAllRooms)
+                .map(exam -> {
+                    this.examAdminService.getExamProctoringService(exam.id)
+                            .onSuccess(service -> service.clearRestTemplateCache(exam.id))
+                            .onError(error -> log.warn(
+                                    "Failed to clear proctoring rest template cache for exam: {}",
+                                    error.getMessage()));
+                    return exam;
+                })
                 .flatMap(this.examAdminService::resetProctoringSettings)
                 .getOrThrow();
-
     }
 
     // **** Proctoring

@@ -256,7 +256,6 @@ public class ExamSignatureKeyForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_BACK_MODIFY)
                 .withEntityKey(entityKey)
-                //.withExec(this.pageService.backToCurrentFunction())
                 .publishIf(() -> readonly)
 
                 .newAction(ActionDefinition.EXAM_SECURITY_KEY_SHOW_ADD_GRANT_POPUP)

@@ -139,6 +139,11 @@ public interface ExamProctoringRoomService {
      * @return Result refer to void or to an error when happened */
     Result<Void> notifyRoomOpened(Long examId, String roomName);
 
+    /** Disposes all open proctoring rooms for a given exam and removes the references on the persistent storage.
+     * First checks if there are active SEB client connections on for the given exam and if so, throws error.
+     *
+     * @param exam The exam to cleanup the rooms
+     * @return Result refer to the given exam or to an error when happened */
     Result<Exam> cleanupAllRooms(Exam exam);
 
 }
