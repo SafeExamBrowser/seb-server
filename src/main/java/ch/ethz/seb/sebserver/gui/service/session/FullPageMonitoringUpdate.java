@@ -225,8 +225,8 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
         this.monitoringFullPageData = restCallBuilder
                 .call()
                 .get(error -> {
-                    recoverFromDisposedRestTemplate(error);
                     this.pushContext.reportError(error);
+                    recoverFromDisposedRestTemplate(error);
                     return this.monitoringFullPageData;
                 });
     }
@@ -307,11 +307,15 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
     }
 
     public void recoverFromDisposedRestTemplate(final Exception error) {
-        if (log.isDebugEnabled()) {
-            log.debug("Try to recover from disposed OAuth2 rest template...");
-        }
-        if (error instanceof DisposedOAuth2RestTemplateException) {
-            this.pageService.getRestService().injectCurrentRestTemplate(this.restCallBuilder);
+        try {
+            if (log.isDebugEnabled()) {
+                log.debug("Try to recover from disposed OAuth2 rest template...");
+            }
+            if (error instanceof DisposedOAuth2RestTemplateException) {
+                this.pageService.getRestService().injectCurrentRestTemplate(this.restCallBuilder);
+            }
+        } catch (final Exception e) {
+            log.error("Failed to recover from disposed rest template: ", e);
         }
     }
 }
