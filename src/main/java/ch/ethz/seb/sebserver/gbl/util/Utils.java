@@ -664,7 +664,7 @@ public final class Utils {
                             if (sb.length() > 0) {
                                 sb.append(Constants.AMPERSAND);
                             }
-                            if (sb.length() == 1) {
+                            if (values.size() == 1) {
                                 return sb.append(name).append(Constants.EQUALITY_SIGN).append(values.get(0));
                             }
                             return sb.append(toAppFormUrlEncodedBody(name, values));

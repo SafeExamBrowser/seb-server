@@ -221,19 +221,16 @@ public class LmsSetupForm implements TemplateComposer {
                         lmsSetup.getLmsAuthName())
                         .mandatory(!readonly))
 
-                .addFieldIf(
-                        isEdit,
-                        () -> FormBuilder.text(
-                                Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
-                                FORM_SECRET_LMS_TEXT_KEY)
-                                .asPasswordField()
-                                .mandatory(!readonly))
+                .addField(FormBuilder.password(
+                        Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
+                        FORM_SECRET_LMS_TEXT_KEY,
+                        lmsSetup.getLmsAuthSecret())
+                        .mandatory(!readonly))
 
-                .addFieldIf(
-                        isEdit,
-                        () -> FormBuilder.text(
-                                Domain.LMS_SETUP.ATTR_LMS_REST_API_TOKEN,
-                                FORM_TOKEN_LMS_TEXT_KEY))
+                .addField(FormBuilder.password(
+                        Domain.LMS_SETUP.ATTR_LMS_REST_API_TOKEN,
+                        FORM_TOKEN_LMS_TEXT_KEY,
+                        lmsSetup.lmsRestApiToken))
 
                 .addFieldIf(
                         isEdit,
@@ -277,10 +274,10 @@ public class LmsSetupForm implements TemplateComposer {
                                 .withEmptyCellSpan(0))
                 .addFieldIf(
                         () -> !readonly,
-                        () -> FormBuilder.text(
+                        () -> FormBuilder.password(
                                 Domain.LMS_SETUP.ATTR_LMS_PROXY_AUTH_SECRET,
-                                FORM_PROXY_PWD_KEY)
-                                .asPasswordField()
+                                FORM_PROXY_PWD_KEY,
+                                lmsSetup.proxyAuthSecret)
                                 .withInputSpan(3)
                                 .withLabelSpan(2)
                                 .withEmptyCellSeparation(true)

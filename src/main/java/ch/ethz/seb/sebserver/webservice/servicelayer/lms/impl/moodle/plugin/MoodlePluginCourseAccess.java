@@ -72,6 +72,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
     public static final String ATTR_FIELD = "field";
     public static final String ATTR_VALUE = "value";
+    public static final String ATTR_VALUE_ARRAY = "values[]";
     public static final String ATTR_ID = "id";
     public static final String ATTR_SHORTNAME = "shortname";
 
@@ -300,7 +301,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             final MultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
             queryAttributes.add(ATTR_FIELD, ATTR_ID);
-            queryAttributes.add(ATTR_VALUE, examineeSessionId);
+            queryAttributes.add(ATTR_VALUE_ARRAY, examineeSessionId);
 
             final String userDetailsJSON = template.callMoodleAPIFunction(
                     USERS_API_FUNCTION_NAME,
@@ -441,6 +442,21 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                     .getOrThrow();
 
             MoodleUtils.checkJSONFormat(courseKeyPageJSON);
+
+            if (courseKeyPageJSON.startsWith("{\"exception\":")) {
+                if (courseKeyPageJSON.contains("nocoursefound")) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(
+                                "Got nocoursefound exception from Moodle for page: {}. "
+                                        + "Assuming that there are no more courses and stop fetching.",
+                                page);
+                    }
+                    return Collections.emptyList();
+                }
+                log.error("Moodle exception while page fetching on page: {}, response: {}", page, courseKeyPageJSON);
+                log.info("Stop fetching because of Moodle error response");
+                return Collections.emptyList();
+            }
 
             final CoursesPlugin coursePage = this.jsonMapper.readValue(courseKeyPageJSON, CoursesPlugin.class);
 

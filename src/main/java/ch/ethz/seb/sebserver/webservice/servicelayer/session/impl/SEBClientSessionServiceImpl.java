@@ -92,6 +92,9 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
 
     @Override
     public void updateASKGrants() {
+
+        // TODO check only for exams with enabled ASK check!!!
+
         this.clientConnectionDAO
                 .getAllActiveNotGranted()
                 .onError(error -> log.error("Failed to get none granted active client connections: ", error))

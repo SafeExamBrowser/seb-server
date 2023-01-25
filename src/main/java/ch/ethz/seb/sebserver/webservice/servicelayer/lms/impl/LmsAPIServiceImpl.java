@@ -291,7 +291,8 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         public ClientCredentials getLmsClientCredentials() {
             return this.clientCredentialService.encryptClientCredentials(
                     this.lmsSetup.getLmsAuthName(),
-                    this.lmsSetup.getLmsAuthSecret())
+                    this.lmsSetup.getLmsAuthSecret(),
+                    this.lmsSetup.lmsRestApiToken)
                     .getOrThrow();
         }
 
@@ -303,7 +304,8 @@ public class LmsAPIServiceImpl implements LmsAPIService {
                             this.lmsSetup.proxyPort,
                             this.clientCredentialService.encryptClientCredentials(
                                     this.lmsSetup.proxyAuthUsername,
-                                    this.lmsSetup.proxyAuthSecret)
+                                    this.lmsSetup.proxyAuthSecret,
+                                    this.lmsSetup.lmsRestApiToken)
                                     .getOrThrow())
                     : null;
         }

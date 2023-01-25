@@ -260,7 +260,7 @@ public class MoodlePluginCourseAccessTest {
                         + "testLog=["
                         + "callMoodleAPIFunction: core_user_get_users_by_field], "
                         + "callLog=["
-                        + "<field=id&value=2,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
+                        + "<field=id&values[]=2,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
                 candidate.toTestString());
     }
 
@@ -277,7 +277,7 @@ public class MoodlePluginCourseAccessTest {
                 "MoodlePluginCourseAccess [pageSize=500, maxSize=10000, cutoffTimeOffset=3, "
                         + "restTemplate=MockupMoodleRestTemplate [accessToken=MockupMoodleRestTemplate-Test-Token, url=https://test.org/, "
                         + "testLog=[callMoodleAPIFunction: core_user_get_users_by_field], "
-                        + "callLog=[<field=id&value=1,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
+                        + "callLog=[<field=id&values[]=1,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
                 candidate.toTestString());
     }
 
@@ -306,7 +306,7 @@ public class MoodlePluginCourseAccessTest {
 
             @Override
             public ClientCredentials getLmsClientCredentials() {
-                return new ClientCredentials("lms-user", "lms-user-secret");
+                return new ClientCredentials("lms-user", "lms-user-secret", "lms-user-token");
             }
 
             @Override

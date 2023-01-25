@@ -40,7 +40,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.LmsSetupRecordMapper;
@@ -171,32 +170,28 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             checkUniqueName(lmsSetup);
 
-            final LmsSetupRecord savedRecord = recordById(lmsSetup.id)
-                    .getOrThrow();
+//            final LmsSetupRecord savedRecord = recordById(lmsSetup.id)
+//                    .getOrThrow();
 
-            final ClientCredentials lmsCredentials = createAPIClientCredentials(lmsSetup);
-            final ClientCredentials proxyCredentials = createProxyClientCredentials(lmsSetup);
+//            final ClientCredentials lmsCredentials = createAPIClientCredentials(lmsSetup);
+//            final ClientCredentials proxyCredentials = createProxyClientCredentials(lmsSetup);
             final LmsSetupRecord newRecord = new LmsSetupRecord(
                     lmsSetup.id,
                     lmsSetup.institutionId,
                     lmsSetup.name,
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
                     lmsSetup.lmsApiUrl,
-                    lmsCredentials.clientIdAsString(),
-                    (lmsCredentials.hasSecret())
-                            ? lmsCredentials.secretAsString()
-                            : savedRecord.getLmsClientsecret(),
-                    (lmsCredentials.hasAccessToken())
-                            ? lmsCredentials.accessTokenAsString()
-                            : savedRecord.getLmsRestApiToken(),
+                    lmsSetup.lmsAuthName,
+                    this.encryptForSave(lmsSetup.lmsAuthSecret),
+                    this.encryptForSave(lmsSetup.lmsRestApiToken),
                     lmsSetup.getProxyHost(),
                     lmsSetup.getProxyPort(),
-                    proxyCredentials.clientIdAsString(),
-                    proxyCredentials.secretAsString(),
+                    lmsSetup.proxyAuthUsername,
+                    this.encryptForSave(lmsSetup.proxyAuthSecret),
                     System.currentTimeMillis(),
-                    savedRecord.getActive());
+                    null);
 
-            this.lmsSetupRecordMapper.updateByPrimaryKey(newRecord);
+            this.lmsSetupRecordMapper.updateByPrimaryKeySelective(newRecord);
             return this.lmsSetupRecordMapper.selectByPrimaryKey(lmsSetup.id);
         })
                 .flatMap(this::toDomainModel)
@@ -210,21 +205,19 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
             checkUniqueName(lmsSetup);
 
-            final ClientCredentials lmsCredentials = createAPIClientCredentials(lmsSetup);
-            final ClientCredentials proxyCredentials = createProxyClientCredentials(lmsSetup);
             final LmsSetupRecord newRecord = new LmsSetupRecord(
                     null,
                     lmsSetup.institutionId,
                     lmsSetup.name,
                     (lmsSetup.lmsType != null) ? lmsSetup.lmsType.name() : null,
                     lmsSetup.lmsApiUrl,
-                    lmsCredentials.clientIdAsString(),
-                    lmsCredentials.secretAsString(),
-                    lmsCredentials.accessTokenAsString(),
+                    lmsSetup.lmsAuthName,
+                    this.encryptForSave(lmsSetup.lmsAuthSecret),
+                    this.encryptForSave(lmsSetup.lmsRestApiToken),
                     lmsSetup.getProxyHost(),
                     lmsSetup.getProxyPort(),
-                    proxyCredentials.clientIdAsString(),
-                    proxyCredentials.secretAsString(),
+                    lmsSetup.proxyAuthUsername,
+                    this.encryptForSave(lmsSetup.proxyAuthSecret),
                     System.currentTimeMillis(),
                     BooleanUtils.toInteger(false));
 
@@ -390,33 +383,33 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
 
     private Result<LmsSetup> toDomainModel(final LmsSetupRecord record) {
 
-        final ClientCredentials clientCredentials = new ClientCredentials(
-                record.getLmsClientname(),
-                record.getLmsClientsecret(),
-                record.getLmsRestApiToken());
-
-        final ClientCredentials proxyCredentials = new ClientCredentials(
-                record.getLmsProxyAuthUsername(),
-                record.getLmsProxyAuthSecret());
-
         return Result.tryCatch(() -> new LmsSetup(
                 record.getId(),
                 record.getInstitutionId(),
                 record.getName(),
                 LmsType.valueOf(record.getLmsType()),
-                Utils.toString(clientCredentials.clientId),
-                null,
+                record.getLmsClientname(),
+                record.getLmsClientsecret(),
                 record.getLmsUrl(),
-                Utils.toString(
-                        this.clientCredentialService
-                                .getPlainAccessToken(clientCredentials)
-                                .getOr(null)),
+                record.getLmsRestApiToken(),
                 record.getLmsProxyHost(),
                 record.getLmsProxyPort(),
-                Utils.toString(proxyCredentials.clientId),
-                Utils.toString(proxyCredentials.secret),
+                record.getLmsProxyAuthUsername(),
+                record.getLmsProxyAuthSecret(),
                 BooleanUtils.toBooleanObject(record.getActive()),
                 record.getUpdateTime()));
+    }
+
+    private String encryptForSave(final String input) {
+        if (StringUtils.isBlank(input)) {
+            return input;
+        }
+        // check if input is already encrypted and possible to decrypt
+        if (this.clientCredentialService.decrypt(input).hasError()) {
+            return this.clientCredentialService.encrypt(input).get().toString();
+        } else {
+            return input;
+        }
     }
 
     // check if same name already exists for the same institution
@@ -436,23 +429,6 @@ public class LmsSetupDAOImpl implements LmsSetupDAO {
                     Domain.LMS_SETUP.ATTR_NAME,
                     "lmsSetup:name:name.notunique"));
         }
-    }
-
-    private ClientCredentials createProxyClientCredentials(final LmsSetup lmsSetup) {
-        return (StringUtils.isBlank(lmsSetup.proxyAuthUsername))
-                ? new ClientCredentials(null, null)
-                : this.clientCredentialService.encryptClientCredentials(
-                        lmsSetup.proxyAuthUsername,
-                        lmsSetup.proxyAuthSecret)
-                        .getOrThrow();
-    }
-
-    private ClientCredentials createAPIClientCredentials(final LmsSetup lmsSetup) {
-        return this.clientCredentialService.encryptClientCredentials(
-                lmsSetup.lmsAuthName,
-                lmsSetup.lmsAuthSecret,
-                lmsSetup.lmsRestApiToken)
-                .getOrThrow();
     }
 
 }

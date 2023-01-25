@@ -103,8 +103,7 @@ public class LmsSetupAPITest extends AdministrationAPIIntegrationTester {
         assertEquals("new LmsSetup 1", lmsSetup.name);
         assertTrue(LmsType.MOCKUP == lmsSetup.lmsType);
         assertEquals("lms1Name", lmsSetup.lmsAuthName);
-        // secrets, once set are not exposed
-        assertEquals(null, lmsSetup.lmsAuthSecret);
+        assertNotNull(lmsSetup.lmsAuthSecret);
         assertFalse(lmsSetup.active);
 
         // activate

@@ -9,10 +9,8 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
@@ -254,24 +251,14 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             final Exam exam,
             final MoodleQuizRestriction moodleRestriction) {
 
-        final List<String> configKeys = StringUtils.isNoneBlank(moodleRestriction.configkeys)
-                ? Arrays.asList(StringUtils.split(
-                        moodleRestriction.configkeys,
-                        Constants.LIST_SEPARATOR))
-                : Collections.emptyList();
-        final List<String> browserExamKeys = StringUtils.isNoneBlank(moodleRestriction.browserkeys)
-                ? new ArrayList<>(Arrays.asList(StringUtils.split(
-                        moodleRestriction.browserkeys,
-                        Constants.LIST_SEPARATOR)))
-                : Collections.emptyList();
         final Map<String, String> additionalProperties = new HashMap<>();
         additionalProperties.put(ATTRIBUTE_QUIT_URL, moodleRestriction.quitlink);
         additionalProperties.put(ATTRIBUTE_QUIT_SECRET, moodleRestriction.quitsecret);
 
         return new SEBRestriction(
                 exam.id,
-                configKeys,
-                browserExamKeys,
+                moodleRestriction.configkeys,
+                moodleRestriction.browserkeys,
                 additionalProperties);
     }
 

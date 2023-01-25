@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +30,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
@@ -286,8 +286,8 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
 
             final MoodleQuizRestriction moodleQuizRestriction = new MoodleQuizRestriction(
                     quizId,
-                    StringUtils.join(configKeys, Constants.LIST_SEPARATOR),
-                    StringUtils.join(beks, Constants.LIST_SEPARATOR),
+                    trimList(configKeys),
+                    trimList(beks),
                     quitURL,
                     quitSecret);
 
@@ -301,6 +301,13 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
             } catch (final JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        private List<String> trimList(final List<String> list) {
+            if (list.size() == 1 && StringUtils.isBlank(list.get(0))) {
+                return Collections.emptyList();
+            }
+            return list;
         }
 
         private String respondGetRestriction(final String quizId, final MultiValueMap<String, String> queryAttributes) {
@@ -328,7 +335,7 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
         }
 
         private String respondUsers(final MultiValueMap<String, String> queryAttributes) {
-            final String id = queryAttributes.getFirst(MoodlePluginCourseAccess.ATTR_VALUE);
+            final String id = queryAttributes.getFirst(MoodlePluginCourseAccess.ATTR_VALUE_ARRAY);
             final String field = queryAttributes.getFirst(MoodlePluginCourseAccess.ATTR_FIELD);
 
             if (!field.equals(MoodlePluginCourseAccess.ATTR_ID)) {

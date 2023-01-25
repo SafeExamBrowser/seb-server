@@ -510,16 +510,16 @@ public abstract class MoodleUtils {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class MoodleQuizRestriction {
         public final String quizid;
-        public final String configkeys;
-        public final String browserkeys;
+        public final List<String> configkeys;
+        public final List<String> browserkeys;
         public final String quitlink;
         public final String quitsecret;
 
         @JsonCreator
         public MoodleQuizRestriction(
                 @JsonProperty("quizid") final String quizid,
-                @JsonProperty("configkeys") final String configkeys,
-                @JsonProperty("browserkeys") final String browserkeys,
+                @JsonProperty("configkeys") final List<String> configkeys,
+                @JsonProperty("browserkeys") final List<String> browserkeys,
                 @JsonProperty("quitlink") final String quitlink,
                 @JsonProperty("quitsecret") final String quitsecret) {
 
