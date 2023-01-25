@@ -233,8 +233,7 @@ public class LmsSetupForm implements TemplateComposer {
                         isEdit,
                         () -> FormBuilder.text(
                                 Domain.LMS_SETUP.ATTR_LMS_REST_API_TOKEN,
-                                FORM_TOKEN_LMS_TEXT_KEY)
-                                .mandatory(!readonly))
+                                FORM_TOKEN_LMS_TEXT_KEY))
 
                 .addFieldIf(
                         isEdit,

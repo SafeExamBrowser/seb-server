@@ -87,7 +87,7 @@ public class MoodlePluginCourseRestrictionTest {
                         + "examId=1, "
                         + "configKeys=[configKey1], "
                         + "browserExamKeys=[BEK1, BEK2], "
-                        + "additionalProperties={quit_link=quitLink, quit_secret=quitSecret}]",
+                        + "additionalProperties={quitsecret=quitSecret, quitlink=quitLink}]",
                 sebRestriction.toString());
 
         Result<SEBRestriction> sebClientRestriction = candidate.getSEBClientRestriction(exam);
@@ -99,7 +99,7 @@ public class MoodlePluginCourseRestrictionTest {
                         + "examId=1, "
                         + "configKeys=[configKey1], "
                         + "browserExamKeys=[BEK1, BEK2], "
-                        + "additionalProperties={quit_link=quitLink, quit_secret=quitSecret}]",
+                        + "additionalProperties={quitsecret=quitSecret, quitlink=quitLink}]",
                 sebRestriction.toString());
 
         assertTrue(candidate.hasSEBClientRestriction(exam));
@@ -120,7 +120,7 @@ public class MoodlePluginCourseRestrictionTest {
                         + "examId=1, "
                         + "configKeys=[], "
                         + "browserExamKeys=[], "
-                        + "additionalProperties={quit_link=quitLink, quit_secret=quitSecret}]",
+                        + "additionalProperties={quitsecret=null, quitlink=null}]",
                 sebRestriction.toString());
     }
 
