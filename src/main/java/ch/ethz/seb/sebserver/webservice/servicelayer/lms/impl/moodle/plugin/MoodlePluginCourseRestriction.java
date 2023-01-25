@@ -43,11 +43,14 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
     public static final String RESTRICTION_GET_FUNCTION_NAME = "quizaccess_sebserver_get_restriction";
     public static final String RESTRICTION_SET_FUNCTION_NAME = "quizaccess_sebserver_set_restriction";
 
-    public static final String ATTRIBUTE_QUIZ_ID = "quiz_id";
-    public static final String ATTRIBUTE_CONFIG_KEYS = "config_keys";
-    public static final String ATTRIBUTE_BROWSER_EXAM_KEYS = "browser_exam_keys";
-    public static final String ATTRIBUTE_QUIT_URL = "quit_link";
-    public static final String ATTRIBUTE_QUIT_SECRET = "quit_secret";
+    public static final String ATTRIBUTE_QUIZ_ID = "quizid";
+    public static final String ATTRIBUTE_CONFIG_KEYS = "configkeys[]";
+    public static final String ATTRIBUTE_BROWSER_EXAM_KEYS = "browserkeys[]";
+    public static final String ATTRIBUTE_QUIT_URL = "quitlink";
+    public static final String ATTRIBUTE_QUIT_SECRET = "quitsecret";
+
+    private static final String NO_RESTRICTION_SET_WARNING = "error/SEB Server is not enabled";
+    private static final String DELETED_RESTRICTION_WARNING = "You have deleted restriction";
 
     private final JSONMapper jsonMapper;
     private final MoodleRestTemplateFactory restTemplateFactory;
@@ -168,17 +171,19 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             final LinkedMultiValueMap<String, String> addQuery = new LinkedMultiValueMap<>();
             addQuery.add(ATTRIBUTE_QUIZ_ID, quizId);
 
-            final String quitLink = this.examConfigurationValueService.getQuitLink(exam.id);
-            final String quitSecret = this.examConfigurationValueService.getQuitSecret(exam.id);
-
             final LinkedMultiValueMap<String, String> queryAttributes = new LinkedMultiValueMap<>();
-            queryAttributes.add(ATTRIBUTE_QUIT_URL, quitLink);
-            queryAttributes.add(ATTRIBUTE_QUIT_SECRET, quitSecret);
 
-            restTemplate.callMoodleAPIFunction(
+            queryAttributes.add(ATTRIBUTE_CONFIG_KEYS, StringUtils.EMPTY);
+            queryAttributes.add(ATTRIBUTE_BROWSER_EXAM_KEYS, StringUtils.EMPTY);
+
+            final String srJSON = restTemplate.callMoodleAPIFunction(
                     RESTRICTION_SET_FUNCTION_NAME,
                     addQuery,
                     queryAttributes);
+
+            if (!srJSON.contains(DELETED_RESTRICTION_WARNING)) {
+                log.warn("Release SEB restriction seems to failed. Moodle response: {}", srJSON);
+            }
 
             return exam;
         });
@@ -187,7 +192,22 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
     private SEBRestriction restrictionFromJson(final Exam exam, final String srJSON) {
         try {
 
+            // check blank result
             if (StringUtils.isBlank(srJSON)) {
+                return new SEBRestriction(
+                        exam.id,
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        Collections.emptyMap());
+            }
+
+            // check no restriction set
+            if (srJSON.contains(NO_RESTRICTION_SET_WARNING)) {
+
+                if (log.isDebugEnabled()) {
+                    log.debug("No restriction set for exam: {}", exam);
+                }
+
                 return new SEBRestriction(
                         exam.id,
                         Collections.emptyList(),
@@ -262,7 +282,9 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             if (templateRequest.hasError()) {
                 return templateRequest;
             } else {
-                this.restTemplate = templateRequest.get();
+                final MoodleAPIRestTemplate moodleAPIRestTemplate = templateRequest.get();
+                moodleAPIRestTemplate.setService(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
+                this.restTemplate = moodleAPIRestTemplate;
             }
         }
 

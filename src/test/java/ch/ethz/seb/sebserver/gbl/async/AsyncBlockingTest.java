@@ -35,7 +35,6 @@ public class AsyncBlockingTest {
         final Collection<Future<String>> features = new ArrayList<>();
         for (int i = 0; i < TASKS; i++) {
             final Future<String> runAsync = this.asyncRunner.runAsync(this::doAsync);
-            //System.out.println("*********** run async: " + i);
             features.add(runAsync);
         }
         assertEquals(TASKS, features.size());

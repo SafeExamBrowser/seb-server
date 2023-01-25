@@ -114,15 +114,17 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         }
 
         if (StringUtils.isBlank(lmsSetup.lmsRestApiToken)) {
-            if (!credentials.hasClientId()) {
-                missingAttrs.add(APIMessage.fieldValidationError(
-                        LMS_SETUP.ATTR_LMS_CLIENTNAME,
-                        "lmsSetup:lmsClientname:notNull"));
-            }
-            if (!credentials.hasSecret()) {
-                missingAttrs.add(APIMessage.fieldValidationError(
-                        LMS_SETUP.ATTR_LMS_CLIENTSECRET,
-                        "lmsSetup:lmsClientsecret:notNull"));
+            if (!credentials.hasAccessToken()) {
+                if (!credentials.hasClientId()) {
+                    missingAttrs.add(APIMessage.fieldValidationError(
+                            LMS_SETUP.ATTR_LMS_CLIENTNAME,
+                            "lmsSetup:lmsClientname:notNull"));
+                }
+                if (!credentials.hasSecret()) {
+                    missingAttrs.add(APIMessage.fieldValidationError(
+                            LMS_SETUP.ATTR_LMS_CLIENTSECRET,
+                            "lmsSetup:lmsClientsecret:notNull"));
+                }
             }
         }
 
@@ -170,14 +172,17 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             final CharSequence plainClientId = credentials.clientId;
             final CharSequence plainClientSecret = this.clientCredentialService
                     .getPlainClientSecret(credentials)
-                    .getOrThrow();
+                    .getOr(StringUtils.EMPTY);
+            final CharSequence plainAPIToken = this.clientCredentialService
+                    .getPlainAccessToken(credentials)
+                    .getOr(StringUtils.EMPTY);
 
             final MoodleAPIRestTemplateImpl restTemplate = new MoodleAPIRestTemplateImpl(
                     this.jsonMapper,
                     this.apiTemplateDataSupplier,
                     lmsSetup.lmsApiUrl,
                     accessTokenPath,
-                    lmsSetup.lmsRestApiToken,
+                    plainAPIToken,
                     plainClientId,
                     plainClientSecret);
 
@@ -200,6 +205,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
 
     public static class MoodleAPIRestTemplateImpl extends RestTemplate implements MoodleAPIRestTemplate {
 
+        private static final String MOODLE_MOBILE_APP_SERVICE = "moodle_mobile_app";
         private static final String REST_API_TEST_FUNCTION = "core_webservice_get_site_info";
 
         final JSONMapper jsonMapper;
@@ -208,6 +214,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         private final String serverURL;
         private final String tokenPath;
 
+        private final CharSequence apiToken;
         private CharSequence accessToken;
 
         private final Map<String, String> tokenReqURIVars;
@@ -218,7 +225,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 final APITemplateDataSupplier apiTemplateDataSupplier,
                 final String serverURL,
                 final String tokenPath,
-                final CharSequence accessToken,
+                final CharSequence apiToken,
                 final CharSequence username,
                 final CharSequence password) {
 
@@ -227,12 +234,13 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
 
             this.serverURL = serverURL;
             this.tokenPath = tokenPath;
-            this.accessToken = StringUtils.isNotBlank(accessToken) ? accessToken : null;
+            this.apiToken = apiToken;
+            this.accessToken = StringUtils.isNotBlank(apiToken) ? apiToken : null;
 
             this.tokenReqURIVars = new HashMap<>();
             this.tokenReqURIVars.put(URI_VAR_USER_NAME, String.valueOf(username));
             this.tokenReqURIVars.put(URI_VAR_PASSWORD, String.valueOf(password));
-            this.tokenReqURIVars.put(URI_VAR_SERVICE, "moodle_mobile_app");
+            this.tokenReqURIVars.put(URI_VAR_SERVICE, MOODLE_MOBILE_APP_SERVICE);
 
         }
 
@@ -336,6 +344,8 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                     functionReqEntity,
                     String.class);
 
+            System.out.println("*************** response: " + response);
+
             final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
             if (response.getStatusCode() != HttpStatus.OK) {
                 throw new RuntimeException(
@@ -361,6 +371,11 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
         }
 
         private void requestAccessToken() {
+
+            if (StringUtils.isNotBlank(this.apiToken)) {
+                this.accessToken = this.apiToken;
+                return;
+            }
 
             final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
             try {

@@ -61,7 +61,7 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
     @Override
     public Result<CharSequence> getPlainClientSecret(final ClientCredentials credentials) {
         if (credentials == null || !credentials.hasSecret()) {
-            return null;
+            return Result.ofRuntimeError("ClientCredentials has no secret");
         }
 
         return this.cryptor.decrypt(credentials.secret);

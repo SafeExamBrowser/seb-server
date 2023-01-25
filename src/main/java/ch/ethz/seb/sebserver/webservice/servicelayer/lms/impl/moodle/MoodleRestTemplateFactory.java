@@ -14,16 +14,34 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.APITemplateDataSupplier;
 
+/** Defines a MoodleAPIRestTemplate factory for moodle */
 public interface MoodleRestTemplateFactory {
 
+    /** Use this to test the LMSSetup input for MoodleAPIRestTemplate
+     *
+     * @return LmsSetupTestResult containing the result of the test */
     LmsSetupTestResult test();
 
+    /** Get the LMSSetup data supplier for this factory.
+     *
+     * @return APITemplateDataSupplier */
     APITemplateDataSupplier getApiTemplateDataSupplier();
 
+    /** Get all known, defined API access token request paths.
+     *
+     * @return Set of known and configured API access token paths */
     Set<String> getKnownTokenAccessPaths();
 
+    /** Creates a MoodleAPIRestTemplate for the bundled LMSSetup of this factory.
+     *
+     * @return Result refer to the MoodleAPIRestTemplate or to an error when happened */
     Result<MoodleAPIRestTemplate> createRestTemplate();
 
+    /** Creates a MoodleAPIRestTemplate for the bundled LMSSetup of this factory.
+     * Uses specified access token request path to request an access token.
+     *
+     * @param accessTokenPath access token request path to request an access token
+     * @return Result refer to the MoodleAPIRestTemplate or to an error when happened */
     Result<MoodleAPIRestTemplate> createRestTemplate(final String accessTokenPath);
 
 }

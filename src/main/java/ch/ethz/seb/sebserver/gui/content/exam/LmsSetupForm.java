@@ -76,6 +76,8 @@ public class LmsSetupForm implements TemplateComposer {
             new LocTextKey("sebserver.lmssetup.form.secret.lms");
     private static final LocTextKey FORM_CLIENTNAME_LMS_TEXT_KEY =
             new LocTextKey("sebserver.lmssetup.form.clientname.lms");
+    private static final LocTextKey FORM_TOKEN_LMS_TEXT_KEY =
+            new LocTextKey("sebserver.lmssetup.form.accesstoken.lms");
     private static final LocTextKey FORM_URL_TEXT_KEY =
             new LocTextKey("sebserver.lmssetup.form.url");
     private static final LocTextKey FORM_TYPE_TEXT_KEY =
@@ -225,6 +227,13 @@ public class LmsSetupForm implements TemplateComposer {
                                 Domain.LMS_SETUP.ATTR_LMS_CLIENTSECRET,
                                 FORM_SECRET_LMS_TEXT_KEY)
                                 .asPasswordField()
+                                .mandatory(!readonly))
+
+                .addFieldIf(
+                        isEdit,
+                        () -> FormBuilder.text(
+                                Domain.LMS_SETUP.ATTR_LMS_REST_API_TOKEN,
+                                FORM_TOKEN_LMS_TEXT_KEY)
                                 .mandatory(!readonly))
 
                 .addFieldIf(

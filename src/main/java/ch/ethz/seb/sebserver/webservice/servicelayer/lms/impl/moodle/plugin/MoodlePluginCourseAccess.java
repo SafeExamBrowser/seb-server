@@ -75,13 +75,14 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     public static final String ATTR_ID = "id";
     public static final String ATTR_SHORTNAME = "shortname";
 
-    public static final String PARAM_COURSE_ID = "courseid";
+    public static final String PARAM_COURSE_ID_ARRAY = "courseid[]";
     public static final String PARAM_SQL_CONDITIONS = "conditions";
     public static final String PARAM_PAGE_START = "startneedle";
     public static final String PARAM_PAGE_SIZE = "perpage";
 
     public static final String SQL_CONDITION_TEMPLATE =
-            "(startdate >= %s or timecreated >=%s) and (enddate is null or enddate is 0 or enddate is >= %s)";
+            //"(startdate >= %s or timecreated >=%s) and (enddate is null or enddate = 0 or enddate >= %s)";
+            "(startdate is null OR startdate = 0 OR startdate >= %s) AND (enddate is null or enddate = 0 OR enddate >= %s)";
 
     private final JSONMapper jsonMapper;
     private final MoodleRestTemplateFactory restTemplateFactory;
@@ -423,10 +424,12 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final String sqlCondition = String.format(
                     SQL_CONDITION_TEMPLATE,
                     String.valueOf(cutoffDate),
-                    String.valueOf(cutoffDate),
                     String.valueOf(filterDate));
             final String fromElement = String.valueOf(page * size);
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+
+            // Note: courseid[]=0 means all courses. Moodle don't like empty parameter
+            attributes.add(PARAM_COURSE_ID_ARRAY, "0");
             attributes.add(PARAM_SQL_CONDITIONS, sqlCondition);
             attributes.add(PARAM_PAGE_START, fromElement);
             attributes.add(PARAM_PAGE_SIZE, String.valueOf(size));
@@ -526,7 +529,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             }
 
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-            attributes.put(PARAM_COURSE_ID, new ArrayList<>(courseIds));
+            attributes.put(PARAM_COURSE_ID_ARRAY, new ArrayList<>(courseIds));
             final String coursePageJSON = restTemplate.callMoodleAPIFunction(
                     COURSES_API_FUNCTION_NAME,
                     attributes);
@@ -560,7 +563,9 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             if (templateRequest.hasError()) {
                 return templateRequest;
             } else {
-                this.restTemplate = templateRequest.get();
+                final MoodleAPIRestTemplate moodleAPIRestTemplate = templateRequest.get();
+                moodleAPIRestTemplate.setService(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
+                this.restTemplate = moodleAPIRestTemplate;
             }
         }
 

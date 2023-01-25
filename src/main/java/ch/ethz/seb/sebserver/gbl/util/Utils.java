@@ -658,7 +658,7 @@ public final class Utils {
                         (sb, entry) -> {
                             final String name = entry.getKey();
                             final List<String> values = entry.getValue();
-                            if (values == null || values.isEmpty()) {
+                            if (values == null) {
                                 return sb;
                             }
                             if (sb.length() > 0) {

@@ -248,11 +248,12 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
 
         private String respondCourses(final MultiValueMap<String, String> queryAttributes) {
             try {
-                final List<String> ids = queryAttributes.get(MoodlePluginCourseAccess.PARAM_COURSE_ID);
+                final List<String> ids = queryAttributes.get(MoodlePluginCourseAccess.PARAM_COURSE_ID_ARRAY);
                 final String from = queryAttributes.getFirst(MoodlePluginCourseAccess.PARAM_PAGE_START);
                 final String size = queryAttributes.getFirst(MoodlePluginCourseAccess.PARAM_PAGE_SIZE);
                 final List<MockCD> courses;
-                if (ids != null && !ids.isEmpty()) {
+
+                if (ids != null && !ids.isEmpty() && !ids.get(0).equals("0")) {
                     courses = this.courses.stream().filter(c -> ids.contains(c.id)).collect(Collectors.toList());
                 } else if (from != null && Integer.valueOf(from) < this.courses.size()) {
 

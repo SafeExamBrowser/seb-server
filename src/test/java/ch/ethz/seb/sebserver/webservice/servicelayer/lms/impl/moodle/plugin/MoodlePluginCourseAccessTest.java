@@ -84,8 +84,8 @@ public class MoodlePluginCourseAccessTest {
                         + "callMoodleAPIFunction: quizaccess_sebserver_get_exams, "
                         + "callMoodleAPIFunction: quizaccess_sebserver_get_exams], "
                         + "callLog=["
-                        + "<conditions=(startdate >= -94694400 or timecreated >=-94694400) and (enddate is null or enddate is 0 or enddate is >= -94694400)&startneedle=0&perpage=500,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
-                        + "<conditions=(startdate >= -94694400 or timecreated >=-94694400) and (enddate is null or enddate is 0 or enddate is >= -94694400)&startneedle=500&perpage=500,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
+                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=0&perpage=500,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
+                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=500&perpage=500,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
                 candidate.toTestString());
 
         final List<String> ids =
@@ -152,11 +152,11 @@ public class MoodlePluginCourseAccessTest {
                         + "callMoodleAPIFunction: quizaccess_sebserver_get_exams, "
                         + "callMoodleAPIFunction: quizaccess_sebserver_get_exams], "
                         + "callLog=["
-                        + "<conditions=(startdate >= -94694400 or timecreated >=-94694400) and (enddate is null or enddate is 0 or enddate is >= -94694400)&startneedle=0&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
-                        + "<conditions=(startdate >= -94694400 or timecreated >=-94694400) and (enddate is null or enddate is 0 or enddate is >= -94694400)&startneedle=5&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
-                        + "<conditions=(startdate >= -94694400 or timecreated >=-94694400) and (enddate is null or enddate is 0 or enddate is >= -94694400)&startneedle=10&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
-                        + "<conditions=(startdate >= -94694400 or timecreated >=-94694400) and (enddate is null or enddate is 0 or enddate is >= -94694400)&startneedle=15&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
-                        + "<conditions=(startdate >= -94694400 or timecreated >=-94694400) and (enddate is null or enddate is 0 or enddate is >= -94694400)&startneedle=20&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
+                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=0&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
+                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=5&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
+                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=10&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
+                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=15&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>, "
+                        + "<courseid[]=0&conditions=(startdate is null OR startdate = 0 OR startdate >= -94694400) AND (enddate is null or enddate = 0 OR enddate >= -94694400)&startneedle=20&perpage=5,[Content-Type:\"application/x-www-form-urlencoded\"]>]]]",
                 candidate.toTestString());
 
         final List<String> ids =
