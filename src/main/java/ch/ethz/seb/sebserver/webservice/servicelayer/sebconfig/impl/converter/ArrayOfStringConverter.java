@@ -39,7 +39,8 @@ public class ArrayOfStringConverter implements AttributeValueConverter {
     public static final Set<AttributeType> SUPPORTED_TYPES = Collections.unmodifiableSet(
             new HashSet<>(Arrays.asList(
                     AttributeType.MULTI_CHECKBOX_SELECTION,
-                    AttributeType.MULTI_SELECTION)));
+                    AttributeType.MULTI_SELECTION,
+                    AttributeType.TEXT_FIELD_LIST)));
 
     private static final String XML_TEMPLATE = "<key>%s</key><array>";
     private static final String XML_TEMPLATE_ENTRY = "<string>%s</string>";

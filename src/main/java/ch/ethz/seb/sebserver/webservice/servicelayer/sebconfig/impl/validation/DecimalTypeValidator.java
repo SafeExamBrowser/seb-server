@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.AttributeType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
@@ -45,7 +46,26 @@ public class DecimalTypeValidator implements ConfigurationValueValidator {
         }
 
         try {
-            Double.parseDouble(value.value);
+            final double val = Double.parseDouble(value.value);
+
+            final String resources = attribute.getResources();
+            if (!StringUtils.isBlank(resources)) {
+                final String[] split = StringUtils.split(resources, Constants.LIST_SEPARATOR);
+                if (split.length > 0) {
+                    // check lower boundary
+                    if (Double.parseDouble(split[0]) < val) {
+                        return false;
+                    }
+
+                    if (split.length > 1) {
+                        // check upper boundary
+                        if (Double.parseDouble(split[1]) > val) {
+                            return false;
+                        }
+                    }
+                }
+            }
+
             return true;
         } catch (final NumberFormatException nfe) {
             return false;

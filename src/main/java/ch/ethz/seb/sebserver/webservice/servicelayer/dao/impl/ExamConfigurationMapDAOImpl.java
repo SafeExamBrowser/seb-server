@@ -382,7 +382,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
     @Override
     @Transactional(readOnly = true)
     public Result<Boolean> checkNoActiveExamReferences(final Long configurationNodeId) {
-        return Result.tryCatch(() -> this.examConfigurationMapRecordMapper.selectByExample()
+        return Result.tryCatch(() -> !this.examConfigurationMapRecordMapper.selectByExample()
                 .where(
                         ExamConfigurationMapRecordDynamicSqlSupport.configurationNodeId,
                         isEqualTo(configurationNodeId))

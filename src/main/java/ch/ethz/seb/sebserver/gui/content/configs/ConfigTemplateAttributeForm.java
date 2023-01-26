@@ -96,6 +96,9 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
         final EntityKey templateKey = pageContext.getParentEntityKey();
         final Long templateId = Long.valueOf(templateKey.modelId);
 
+        boolean modifyGrant = false;
+        boolean hasView = false;
+
         try {
 
             final ConfigurationNode template = this.restService
@@ -104,9 +107,8 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                     .call()
                     .onError(error -> pageContext.notifyLoadError(EntityType.CONFIGURATION_NODE, error))
                     .getOrThrow();
-
             final EntityGrantCheck entityGrant = this.currentUser.entityGrantCheck(template);
-            final boolean modifyGrant = entityGrant.m();
+            modifyGrant = entityGrant.m();
 
             // the attribute
             final TemplateAttribute attribute = this.restService.getBuilder(GetTemplateAttribute.class)
@@ -131,8 +133,8 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                     FORM_TITLE);
 
             final PageContext formContext = pageContext.copyOf(content);
-
-            final boolean hasView = attribute.getOrientation() != null;
+            hasView = attribute.getOrientation() != null;
+            final boolean _hasView = hasView;
 
             this.pageService.formBuilder(formContext)
                     .readonly(true) // TODO change this for next version
@@ -145,14 +147,14 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                             FORM_TYPE_TEXT_KEY,
                             () -> this.resourceService.getAttributeTypeName(attribute)))
                     .addFieldIf(
-                            () -> hasView,
+                            () -> _hasView,
                             () -> FormBuilder.singleSelection(
                                     Domain.ORIENTATION.ATTR_VIEW_ID,
                                     FORM_VIEW_TEXT_KEY,
                                     attribute.getViewModelId(),
                                     () -> this.resourceService.getViewResources(templateKey.modelId)))
                     .addFieldIf(
-                            () -> hasView,
+                            () -> _hasView,
                             () -> FormBuilder.text(
                                     Domain.ORIENTATION.ATTR_GROUP_ID,
                                     FORM_GROUP_TEXT_KEY,
@@ -201,37 +203,40 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                     configuration.id,
                     Collections.singletonList(viewContext));
 
-            this.pageService.pageActionBuilder(formContext.clearEntityKeys())
-
-                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_SET_DEFAULT)
-                    .withEntityKey(attributeKey)
-                    .withParentEntityKey(templateKey)
-                    .withExec(this.examConfigurationService::resetToDefaults)
-                    .ignoreMoveAwayFromEdit()
-                    .publishIf(() -> modifyGrant)
-
-                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_REMOVE_VIEW)
-                    .withEntityKey(attributeKey)
-                    .withParentEntityKey(templateKey)
-                    .withExec(this.examConfigurationService::removeFromView)
-                    .ignoreMoveAwayFromEdit()
-                    .publishIf(() -> modifyGrant && hasView)
-
-                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_ATTACH_DEFAULT_VIEW)
-                    .withEntityKey(attributeKey)
-                    .withParentEntityKey(templateKey)
-                    .withExec(this.examConfigurationService::attachToDefaultView)
-                    .ignoreMoveAwayFromEdit()
-                    .publishIf(() -> modifyGrant && !hasView)
-
-                    .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_EDIT_TEMPLATE)
-                    .withEntityKey(templateKey)
-                    .ignoreMoveAwayFromEdit()
-                    .publish();
-
         } catch (final Exception e) {
             pageContext.notifyUnexpectedError(e);
         }
+
+        final boolean _modifyGrant = modifyGrant;
+        final boolean _hasView = hasView;
+        this.pageService.pageActionBuilder(pageContext.clearEntityKeys())
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_SET_DEFAULT)
+                .withEntityKey(attributeKey)
+                .withParentEntityKey(templateKey)
+                .withExec(this.examConfigurationService::resetToDefaults)
+                .ignoreMoveAwayFromEdit()
+                .publishIf(() -> _modifyGrant)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_REMOVE_VIEW)
+                .withEntityKey(attributeKey)
+                .withParentEntityKey(templateKey)
+                .withExec(this.examConfigurationService::removeFromView)
+                .ignoreMoveAwayFromEdit()
+                .publishIf(() -> _modifyGrant && _hasView)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_ATTACH_DEFAULT_VIEW)
+                .withEntityKey(attributeKey)
+                .withParentEntityKey(templateKey)
+                .withExec(this.examConfigurationService::attachToDefaultView)
+                .ignoreMoveAwayFromEdit()
+                .publishIf(() -> _modifyGrant && !_hasView)
+
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_EDIT_TEMPLATE)
+                .withEntityKey(templateKey)
+                .ignoreMoveAwayFromEdit()
+                .publish();
+
     }
 
     private Orientation getDefaultOrientation(final TemplateAttribute attribute) {

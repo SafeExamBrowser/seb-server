@@ -21,6 +21,8 @@ public enum AttributeType {
     PASSWORD_FIELD(TEXT),
     /** Multiple lined text value */
     TEXT_AREA(TEXT),
+    /** An editable list if TEXT_FIELD inputs stored in a comma separated String value */
+    TEXT_FIELD_LIST(TEXT),
     /** Check Box or boolean type */
     CHECKBOX(TEXT),
 

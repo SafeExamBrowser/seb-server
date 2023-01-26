@@ -332,7 +332,8 @@ public class ExamConfigXMLParser extends DefaultHandler {
             // check if we have a simple values array
             if (attribute != null && (attribute.type == AttributeType.MULTI_CHECKBOX_SELECTION
                     || attribute.type == AttributeType.MULTI_SELECTION
-                    || attribute.type == AttributeType.TEXT_AREA)) {
+                    || attribute.type == AttributeType.TEXT_AREA
+                    || attribute.type == AttributeType.TEXT_FIELD_LIST)) {
 
                 saveValue(attrName, attribute, top.listIndex, (top.value == null) ? "" : top.value);
             }
