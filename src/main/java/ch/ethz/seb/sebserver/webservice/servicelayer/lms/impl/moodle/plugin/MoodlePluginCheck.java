@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle;
+package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.plugin.MoodlePluginCourseAccess;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleAPIRestTemplate;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestTemplateFactory;
 
 @Lazy
 @Service
@@ -41,7 +42,7 @@ public class MoodlePluginCheck {
             }
 
             final MoodleAPIRestTemplate restTemplate = restTemplateFactory
-                    .createRestTemplate()
+                    .createRestTemplate(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME)
                     .getOrThrow();
 
             try {

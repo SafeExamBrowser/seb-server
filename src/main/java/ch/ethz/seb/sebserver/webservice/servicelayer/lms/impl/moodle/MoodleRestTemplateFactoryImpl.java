@@ -136,13 +136,13 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
     }
 
     @Override
-    public Result<MoodleAPIRestTemplate> createRestTemplate() {
+    public Result<MoodleAPIRestTemplate> createRestTemplate(final String service) {
 
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
 
         return this.knownTokenAccessPaths
                 .stream()
-                .map(this::createRestTemplate)
+                .map(path -> this.createRestTemplate(service, path))
                 .map(result -> {
                     if (result.hasError()) {
                         log.warn("Failed to get access token for LMS: {}({})",
@@ -161,7 +161,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
     }
 
     @Override
-    public Result<MoodleAPIRestTemplate> createRestTemplate(final String accessTokenPath) {
+    public Result<MoodleAPIRestTemplate> createRestTemplate(final String service, final String accessTokenPath) {
 
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
 
@@ -182,6 +182,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                     this.apiTemplateDataSupplier,
                     lmsSetup.lmsApiUrl,
                     accessTokenPath,
+                    service,
                     plainAPIToken,
                     plainClientId,
                     plainClientSecret);
@@ -205,7 +206,6 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
 
     public static class MoodleAPIRestTemplateImpl extends RestTemplate implements MoodleAPIRestTemplate {
 
-        private static final String MOODLE_MOBILE_APP_SERVICE = "moodle_mobile_app";
         private static final String REST_API_TEST_FUNCTION = "core_webservice_get_site_info";
 
         final JSONMapper jsonMapper;
@@ -225,6 +225,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                 final APITemplateDataSupplier apiTemplateDataSupplier,
                 final String serverURL,
                 final String tokenPath,
+                final String service,
                 final CharSequence apiToken,
                 final CharSequence username,
                 final CharSequence password) {
@@ -240,18 +241,12 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             this.tokenReqURIVars = new HashMap<>();
             this.tokenReqURIVars.put(URI_VAR_USER_NAME, String.valueOf(username));
             this.tokenReqURIVars.put(URI_VAR_PASSWORD, String.valueOf(password));
-            this.tokenReqURIVars.put(URI_VAR_SERVICE, MOODLE_MOBILE_APP_SERVICE);
-
+            this.tokenReqURIVars.put(URI_VAR_SERVICE, service);
         }
 
         @Override
         public String getService() {
             return this.tokenReqURIVars.get(URI_VAR_SERVICE);
-        }
-
-        @Override
-        public void setService(final String service) {
-            this.tokenReqURIVars.put(URI_VAR_SERVICE, service);
         }
 
         @Override

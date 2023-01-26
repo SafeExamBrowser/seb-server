@@ -16,6 +16,7 @@ import java.util.TreeMap;
 
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.util.LinkedMultiValueMap;
@@ -44,7 +45,8 @@ public class MoodleCourseAccessTest {
 
         final MoodleRestTemplateFactoryImpl moodleRestTemplateFactory = mock(MoodleRestTemplateFactoryImpl.class);
         final MoodleAPIRestTemplateImpl moodleAPIRestTemplate = mock(MoodleAPIRestTemplateImpl.class);
-        when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.of(moodleAPIRestTemplate));
+        when(moodleRestTemplateFactory.createRestTemplate(Mockito.anyString()))
+                .thenReturn(Result.of(moodleAPIRestTemplate));
         when(moodleAPIRestTemplate.callMoodleAPIFunction(
                 anyString(),
                 any())).thenReturn("[\r\n" +
@@ -119,7 +121,8 @@ public class MoodleCourseAccessTest {
     @Test
     public void testInitAPIAccessError1() {
         final MoodleRestTemplateFactoryImpl moodleRestTemplateFactory = mock(MoodleRestTemplateFactoryImpl.class);
-        when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.ofRuntimeError("Error1"));
+        when(moodleRestTemplateFactory.createRestTemplate(Mockito.anyString()))
+                .thenReturn(Result.ofRuntimeError("Error1"));
         when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay(LmsType.MOODLE));
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(
@@ -140,7 +143,8 @@ public class MoodleCourseAccessTest {
     public void testInitAPIAccessError2() {
         final MoodleRestTemplateFactoryImpl moodleRestTemplateFactory = mock(MoodleRestTemplateFactoryImpl.class);
         final MoodleAPIRestTemplateImpl moodleAPIRestTemplate = mock(MoodleAPIRestTemplateImpl.class);
-        when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.of(moodleAPIRestTemplate));
+        when(moodleRestTemplateFactory.createRestTemplate(Mockito.anyString()))
+                .thenReturn(Result.of(moodleAPIRestTemplate));
         doThrow(RuntimeException.class).when(moodleAPIRestTemplate).testAPIConnection(any());
         when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay(LmsType.MOODLE));
 
@@ -162,7 +166,8 @@ public class MoodleCourseAccessTest {
     public void testInitAPIAccessOK() {
         final MoodleRestTemplateFactoryImpl moodleRestTemplateFactory = mock(MoodleRestTemplateFactoryImpl.class);
         final MoodleAPIRestTemplateImpl moodleAPIRestTemplate = mock(MoodleAPIRestTemplateImpl.class);
-        when(moodleRestTemplateFactory.createRestTemplate()).thenReturn(Result.of(moodleAPIRestTemplate));
+        when(moodleRestTemplateFactory.createRestTemplate(Mockito.anyString()))
+                .thenReturn(Result.of(moodleAPIRestTemplate));
         when(moodleRestTemplateFactory.test()).thenReturn(LmsSetupTestResult.ofOkay(LmsType.MOODLE));
 
         final MoodleCourseAccess moodleCourseAccess = new MoodleCourseAccess(

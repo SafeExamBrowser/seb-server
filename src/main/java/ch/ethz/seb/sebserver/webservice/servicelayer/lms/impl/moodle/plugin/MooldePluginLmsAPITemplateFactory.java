@@ -36,7 +36,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
 @WebServiceProfile
 public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
-    public static final String SEB_SERVER_SERVICE_NAME = "seb-server-service";
+    public static final String SEB_SERVER_SERVICE_NAME = "SEB-Server-Webservice";
 
     private final JSONMapper jsonMapper;
     private final CacheManager cacheManager;

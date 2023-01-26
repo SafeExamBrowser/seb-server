@@ -34,14 +34,16 @@ public interface MoodleRestTemplateFactory {
 
     /** Creates a MoodleAPIRestTemplate for the bundled LMSSetup of this factory.
      *
+     * @param service The moodle web service name to within requesting an access token for
      * @return Result refer to the MoodleAPIRestTemplate or to an error when happened */
-    Result<MoodleAPIRestTemplate> createRestTemplate();
+    Result<MoodleAPIRestTemplate> createRestTemplate(String service);
 
     /** Creates a MoodleAPIRestTemplate for the bundled LMSSetup of this factory.
      * Uses specified access token request path to request an access token.
      *
+     * @param service The moodle web service name to within requesting an access token for
      * @param accessTokenPath access token request path to request an access token
      * @return Result refer to the MoodleAPIRestTemplate or to an error when happened */
-    Result<MoodleAPIRestTemplate> createRestTemplate(final String accessTokenPath);
+    Result<MoodleAPIRestTemplate> createRestTemplate(String service, String accessTokenPath);
 
 }

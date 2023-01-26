@@ -783,12 +783,15 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<ClientConnectionRecord>> getAllActiveNotGranted() {
+    public Result<Collection<ClientConnectionRecord>> getAllActiveNotGranted(final Long examId) {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper
                 .selectByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.status,
                         SqlBuilder.isIn(ClientConnection.SECURE_CHECK_STATES))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.securityCheckGranted,
                         SqlBuilder.isEqualTo(Constants.BYTE_FALSE),

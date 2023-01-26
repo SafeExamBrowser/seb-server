@@ -722,7 +722,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
     private Result<MoodleAPIRestTemplate> getRestTemplate() {
         if (this.restTemplate == null) {
             final Result<MoodleAPIRestTemplate> templateRequest = this.restTemplateFactory
-                    .createRestTemplate();
+                    .createRestTemplate(MoodleLmsAPITemplateFactory.MOODLE_MOBILE_APP_SERVICE);
             if (templateRequest.hasError()) {
                 return templateRequest;
             } else {

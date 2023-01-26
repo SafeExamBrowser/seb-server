@@ -68,12 +68,12 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
     }
 
     @Override
-    public Result<MoodleAPIRestTemplate> createRestTemplate() {
+    public Result<MoodleAPIRestTemplate> createRestTemplate(final String service) {
         return Result.of(new MockupMoodleRestTemplate(this.apiTemplateDataSupplier.getLmsSetup().lmsApiUrl));
     }
 
     @Override
-    public Result<MoodleAPIRestTemplate> createRestTemplate(final String accessTokenPath) {
+    public Result<MoodleAPIRestTemplate> createRestTemplate(final String service, final String accessTokenPath) {
         return Result.of(new MockupMoodleRestTemplate(this.apiTemplateDataSupplier.getLmsSetup().lmsApiUrl));
     }
 
@@ -99,10 +99,6 @@ public class MoodleMockupRestTemplateFactory implements MoodleRestTemplateFactor
         @Override
         public String getService() {
             return "mockup-service";
-        }
-
-        @Override
-        public void setService(final String service) {
         }
 
         @Override

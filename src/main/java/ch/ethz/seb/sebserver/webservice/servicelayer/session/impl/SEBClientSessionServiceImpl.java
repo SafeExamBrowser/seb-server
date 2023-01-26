@@ -12,11 +12,13 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Objects;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -92,14 +94,11 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
 
     @Override
     public void updateASKGrants() {
-
-        // TODO check only for exams with enabled ASK check!!!
-
-        this.clientConnectionDAO
-                .getAllActiveNotGranted()
-                .onError(error -> log.error("Failed to get none granted active client connections: ", error))
-                .getOr(Collections.emptyList())
-                .forEach(this.securityKeyService::updateAppSignatureKeyGrant);
+        this.examSessionService
+                .getExamDAO()
+                .allRunningExamIds()
+                .onSuccess(ids -> ids.stream().forEach(examId -> updateASKGrant(examId)))
+                .onError(error -> log.error("Unexpected error while trying to updateASKGrants: ", error));
     }
 
     @Override
@@ -199,6 +198,23 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
                 connection.getIndicatorMapping(EventType.ERROR_LOG)
                         .forEach(indicator -> indicator.notifyValueChange(clientEventRecord));
             }
+        }
+    }
+
+    private void updateASKGrant(final Long examId) {
+        if (this.examSessionService
+                .getRunningExam(examId)
+                .map(exam -> exam.getAdditionalAttribute(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED))
+                .map(BooleanUtils::toBoolean)
+                .getOr(true)) {
+
+            this.clientConnectionDAO
+                    .getAllActiveNotGranted(examId)
+                    .onError(error -> log.error(
+                            "Failed to get none granted active client connections: ",
+                            error))
+                    .getOr(Collections.emptyList())
+                    .forEach(this.securityKeyService::updateAppSignatureKeyGrant);
         }
     }
 

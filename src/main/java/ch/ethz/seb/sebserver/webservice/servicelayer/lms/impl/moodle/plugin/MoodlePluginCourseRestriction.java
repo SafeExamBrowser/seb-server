@@ -265,12 +265,11 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
     private Result<MoodleAPIRestTemplate> getRestTemplate() {
         if (this.restTemplate == null) {
             final Result<MoodleAPIRestTemplate> templateRequest = this.restTemplateFactory
-                    .createRestTemplate();
+                    .createRestTemplate(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
             if (templateRequest.hasError()) {
                 return templateRequest;
             } else {
                 final MoodleAPIRestTemplate moodleAPIRestTemplate = templateRequest.get();
-                moodleAPIRestTemplate.setService(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
                 this.restTemplate = moodleAPIRestTemplate;
             }
         }

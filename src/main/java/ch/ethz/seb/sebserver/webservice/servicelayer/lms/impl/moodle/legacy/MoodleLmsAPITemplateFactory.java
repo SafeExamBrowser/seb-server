@@ -36,6 +36,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
 @WebServiceProfile
 public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
+    static final String MOODLE_MOBILE_APP_SERVICE = "moodle_mobile_app";
+
     private final JSONMapper jsonMapper;
     private final AsyncService asyncService;
     private final Environment environment;

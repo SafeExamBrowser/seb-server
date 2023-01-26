@@ -170,7 +170,12 @@ public interface ClientConnectionDAO extends
      * @return Result refer to a collection of client connection records or to an error when happened */
     Result<Collection<ClientConnectionRecord>> getsecurityKeyConnectionRecords(Long examId);
 
-    Result<Collection<ClientConnectionRecord>> getAllActiveNotGranted();
+    /** Get all client connection records that don't have an security access grant yet
+     * and for specific exam.
+     *
+     * @param examId The exam identifier
+     * @return Result refer to client connection records to the an error when happened */
+    Result<Collection<ClientConnectionRecord>> getAllActiveNotGranted(Long examId);
 
     Result<Long> countSignatureHashes(Long examId, String signatureHash);
 

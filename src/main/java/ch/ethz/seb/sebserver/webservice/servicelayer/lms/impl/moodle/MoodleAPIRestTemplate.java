@@ -31,8 +31,6 @@ public interface MoodleAPIRestTemplate {
 
     String getService();
 
-    void setService(String service);
-
     CharSequence getAccessToken();
 
     void testAPIConnection(String... functions);
