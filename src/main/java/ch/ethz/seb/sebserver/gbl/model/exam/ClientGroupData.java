@@ -29,12 +29,21 @@ public interface ClientGroupData extends Entity {
         NONE(null),
         WINDOWS("Windows"),
         MAC_OS("macOS"),
-        I_OS("iOS");
+        I_OS("iOS"),
+        IPAD_OS("iPadOS"),
+        I_OS_OR_IPAD_OS("iOS", "iPadOS");
 
-        public final String queryString;
+        public final String queryString1;
+        public final String queryString2;
 
-        private ClientOS(final String queryString) {
-            this.queryString = queryString;
+        private ClientOS(final String queryString1) {
+            this.queryString1 = queryString1;
+            this.queryString2 = null;
+        }
+
+        private ClientOS(final String queryString1, final String queryString2) {
+            this.queryString1 = queryString1;
+            this.queryString2 = queryString2;
         }
 
     }

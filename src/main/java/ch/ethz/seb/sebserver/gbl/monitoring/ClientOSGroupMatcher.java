@@ -37,7 +37,8 @@ public class ClientOSGroupMatcher implements ClientGroupConnectionMatcher {
 
         try {
             final ClientOS osType = ClientOS.valueOf(group.getData());
-            return clientConnection.info.contains(osType.queryString);
+            return clientConnection.info.contains(osType.queryString1) ||
+                    (osType.queryString2 != null && clientConnection.info.contains(osType.queryString2));
         } catch (final Exception e) {
             return false;
         }
