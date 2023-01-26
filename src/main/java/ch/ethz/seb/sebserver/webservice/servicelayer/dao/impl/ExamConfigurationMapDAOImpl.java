@@ -389,7 +389,7 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .build()
                 .execute()
                 .stream()
-                .filter(rec -> !isExamActive(rec.getExamId()))
+                .filter(rec -> isExamActive(rec.getExamId()))
                 .findFirst()
                 .isPresent());
     }
