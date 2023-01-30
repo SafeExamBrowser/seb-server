@@ -77,7 +77,8 @@ public class ClientConnectionDetails implements MonitoringEntry {
     public final boolean checkSecurityGrant;
 
     private ClientConnectionData connectionData = null;
-    public Boolean grantDenied = null;
+    public boolean grantChecked = false;
+    public boolean grantDenied = false;
     private boolean statusChanged = true;
     private boolean missingChanged = true;
     private long startTime = -1;
@@ -169,7 +170,12 @@ public class ClientConnectionDetails implements MonitoringEntry {
     }
 
     @Override
-    public Boolean grantDenied() {
+    public boolean grantChecked() {
+        return this.grantChecked;
+    }
+
+    @Override
+    public boolean grantDenied() {
         return this.grantDenied;
     }
 
@@ -201,8 +207,10 @@ public class ClientConnectionDetails implements MonitoringEntry {
         }
         this.connectionData = connectionData;
         if (this.connectionData == null || this.connectionData.clientConnection.securityCheckGranted == null) {
-            this.grantDenied = null;
+            this.grantChecked = false;
+            this.grantDenied = false;
         } else {
+            this.grantChecked = true;
             this.grantDenied = !this.connectionData.clientConnection.securityCheckGranted;
         }
         if (this.startTime < 0) {

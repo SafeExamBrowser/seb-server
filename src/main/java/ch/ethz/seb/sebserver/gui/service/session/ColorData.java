@@ -41,10 +41,9 @@ public class ColorData {
             return this.defaultColor;
         }
 
-        final Boolean grantDenied = entry.grantDenied();
         switch (status) {
             case ACTIVE:
-                return (grantDenied != null && grantDenied)
+                return (entry.grantChecked() && entry.grantDenied())
                         ? this.color3 : (entry.hasMissingPing())
                                 ? this.color2 : this.color1;
             default:

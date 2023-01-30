@@ -46,7 +46,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
 
     private final Boolean grantDenied;
 
-    protected ClientConnectionDataInternal(
+    public ClientConnectionDataInternal(
             final ClientConnection clientConnection,
             final PendingNotificationIndication pendingNotificationIndication,
             final List<ClientIndicator> clientIndicators,
@@ -141,18 +141,38 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         }
 
         @Override
+        public Integer notificationFlag() {
+            final int flag = 0
+                    | (isMissingPing() ? ClientMonitoringDataView.FLAG_MISSING_PING : 0)
+                    | (isPendingNotification() ? ClientMonitoringDataView.FLAG_PENDING_NOTIFICATION : 0)
+                    | (!isGrantChecked() ? ClientMonitoringDataView.FLAG_GRANT_NOT_CHECKED : 0)
+                    | (isGrantDenied() ? ClientMonitoringDataView.FLAG_GRANT_DENIED : 0);
+
+            return (flag > 0) ? flag : null;
+        }
+
+        @Override
+        @JsonIgnore
         public boolean isMissingPing() {
             return BooleanUtils.isTrue(getMissingPing());
         }
 
         @Override
+        @JsonIgnore
         public boolean isPendingNotification() {
             return BooleanUtils.isTrue(pendingNotification());
         }
 
         @Override
-        public Boolean isGrantDenied() {
-            return ClientConnectionDataInternal.this.grantDenied;
+        @JsonIgnore
+        public boolean isGrantChecked() {
+            return ClientConnectionDataInternal.this.grantDenied != null;
+        }
+
+        @Override
+        @JsonIgnore
+        public boolean isGrantDenied() {
+            return BooleanUtils.isTrue(ClientConnectionDataInternal.this.grantDenied);
         }
 
     };

@@ -16,13 +16,9 @@ public interface MonitoringEntry {
 
     boolean hasMissingPing();
 
-    /** Indicates the security key grant check state
-     * true = grant denied
-     * false = granted
-     * null = not checked yet
-     *
-     * @return the security key grant check state */
-    Boolean grantDenied();
+    boolean grantChecked();
+
+    boolean grantDenied();
 
     boolean showNoGrantCheckApplied();
 

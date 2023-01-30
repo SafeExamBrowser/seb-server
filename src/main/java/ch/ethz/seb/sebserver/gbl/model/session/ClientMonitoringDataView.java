@@ -26,9 +26,13 @@ public interface ClientMonitoringDataView {
     public static final String ATTR_INFO = "in";
     public static final String ATTR_INDICATOR_VALUES = "iv";
     public static final String ATTR_CLIENT_GROUPS = "cg";
-    public static final String ATTR_MISSING_PING = "mp";
-    public static final String ATTR_GRANT_DENIED = "gd";
-    public static final String ATTR_PENDING_NOTIFICATION = "pn";
+    public static final String ATTR_NOTIFICATION_FLAG = "nf";
+
+    public static final int FLAG_MISSING_PING = 1;
+    public static final int FLAG_PENDING_NOTIFICATION = 2;
+    public static final int FLAG_GRANT_NOT_CHECKED = 4;
+    public static final int FLAG_GRANT_DENIED = 8;
+    public static final int FLAG_INVALID_SEB_VERSION = 16;
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID)
     Long getId();
@@ -39,14 +43,28 @@ public interface ClientMonitoringDataView {
     @JsonProperty(ATTR_INDICATOR_VALUES)
     Map<Long, String> getIndicatorValues();
 
-    @JsonProperty(ATTR_MISSING_PING)
-    boolean isMissingPing();
+    @JsonProperty(ATTR_NOTIFICATION_FLAG)
+    Integer notificationFlag();
 
-    @JsonProperty(ATTR_GRANT_DENIED)
-    Boolean isGrantDenied();
+    default boolean isMissingPing() {
+        final Integer notificationFlag = notificationFlag();
+        return notificationFlag != null && (notificationFlag & FLAG_MISSING_PING) > 0;
+    }
 
-    @JsonProperty(ATTR_PENDING_NOTIFICATION)
-    boolean isPendingNotification();
+    default boolean isGrantChecked() {
+        final Integer notificationFlag = notificationFlag();
+        return notificationFlag != null && (notificationFlag & FLAG_GRANT_NOT_CHECKED) == 0;
+    }
+
+    default boolean isGrantDenied() {
+        final Integer notificationFlag = notificationFlag();
+        return notificationFlag != null && (notificationFlag & FLAG_GRANT_DENIED) > 0;
+    }
+
+    default boolean isPendingNotification() {
+        final Integer notificationFlag = notificationFlag();
+        return notificationFlag != null && (notificationFlag & FLAG_PENDING_NOTIFICATION) > 0;
+    }
 
     public static Predicate<ClientMonitoringDataView> getStatusPredicate(final ConnectionStatus... status) {
         final EnumSet<ConnectionStatus> states = EnumSet.noneOf(ConnectionStatus.class);

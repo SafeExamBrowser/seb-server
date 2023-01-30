@@ -9,9 +9,11 @@
 package ch.ethz.seb.sebserver.gbl.model;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
@@ -70,6 +72,10 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.monitoring.SimpleIndicatorValue;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.PendingNotificationIndication;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
 
 public class ModelObjectJSONGenerator {
 
@@ -282,8 +288,30 @@ public class ModelObjectJSONGenerator {
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
+        final ClientConnectionDataInternal clientConnectionDataInternal = new ClientConnectionDataInternal(
+                new ClientConnection(
+                        1L, 1L, 1L, ConnectionStatus.ACTIVE, UUID.randomUUID().toString(),
+                        "user-account-1", "86.119.30.213",
+                        "seb_os_name", "seb_machine_name", "seb_version",
+                        "vdiID", true, "", currentTimeMillis, currentTimeMillis,
+                        123L,
+                        true,
+                        false, null),
+                new PendingNotificationIndication() {
+                    @Override
+                    public boolean notifictionPending() {
+                        return false;
+                    }
+                },
+                Arrays.asList(
+                        new ClientIndicatorTestImpl(1L, 1.0),
+                        new ClientIndicatorTestImpl(2L, 2.0),
+                        new ClientIndicatorTestImpl(3L, 3.0)),
+                new HashSet<>(Arrays.asList(1L, 2L)));
+
         System.out.println(domainObject.getClass().getSimpleName() + ":");
-        System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
+        System.out.println(
+                writerWithDefaultPrettyPrinter.writeValueAsString(clientConnectionDataInternal.monitoringDataView));
 
         domainObject = new ClientEvent(1L, 1L, EventType.WARN_LOG,
                 System.currentTimeMillis(), System.currentTimeMillis(), 123.0, "text");
@@ -323,6 +351,77 @@ public class ModelObjectJSONGenerator {
                 "attribute3");
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
+
+    }
+
+    private static class ClientIndicatorTestImpl implements ClientIndicator {
+
+        public final Long indicatorId;
+        public final double value;
+
+        public ClientIndicatorTestImpl(final Long indicatorId, final double value) {
+            this.value = value;
+            this.indicatorId = indicatorId;
+        }
+
+        @Override
+        public Long getIndicatorId() {
+            // TODO Auto-generated method stub
+            return this.indicatorId;
+        }
+
+        @Override
+        public double getValue() {
+            return this.value;
+        }
+
+        @Override
+        public void init(final Indicator indicatorDefinition, final Long connectionId, final boolean active,
+                final boolean cachingEnabled) {
+        }
+
+        @Override
+        public IndicatorType getType() {
+            return IndicatorType.ERROR_COUNT;
+        }
+
+        @Override
+        public Long examId() {
+            return 1L;
+        }
+
+        @Override
+        public Long connectionId() {
+            return 1L;
+        }
+
+        @Override
+        public double computeValueAt(final long timestamp) {
+            return 0;
+        }
+
+        @Override
+        public Set<EventType> observedEvents() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public void notifyValueChange(final ClientEvent event) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void notifyValueChange(final ClientEventRecord clientEventRecord) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public boolean hasIncident() {
+            // TODO Auto-generated method stub
+            return false;
+        }
 
     }
 

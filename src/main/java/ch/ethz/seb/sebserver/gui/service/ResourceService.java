@@ -648,15 +648,14 @@ public class ResourceService {
                 if (monitoringEntry.hasMissingPing()) {
                     return missingPing;
                 }
-                final Boolean grantDenied = monitoringEntry.grantDenied();
-                if (grantDenied != null) {
-                    if (grantDenied) {
-                        return grantDeniedText;
-                    }
-                } else if (monitoringEntry.showNoGrantCheckApplied()) {
-                    return localizedNames.get(status) + grantMissingText;
-                }
+                if (!monitoringEntry.grantChecked()) {
+                    if (monitoringEntry.showNoGrantCheckApplied()) {
 
+                        return localizedNames.get(status) + grantMissingText;
+                    }
+                } else if (monitoringEntry.grantDenied()) {
+                    return grantDeniedText;
+                }
             }
 
             return localizedNames.get(status);

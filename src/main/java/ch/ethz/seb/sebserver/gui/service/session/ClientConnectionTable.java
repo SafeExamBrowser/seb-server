@@ -479,7 +479,12 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         @Override
-        public Boolean grantDenied() {
+        public boolean grantChecked() {
+            return this.monitoringData.grantChecked;
+        }
+
+        @Override
+        public boolean grantDenied() {
             return this.monitoringData.grantDenied;
         }
 
