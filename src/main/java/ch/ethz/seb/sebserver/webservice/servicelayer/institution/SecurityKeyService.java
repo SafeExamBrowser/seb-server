@@ -66,7 +66,10 @@ public interface SecurityKeyService {
      * @param appSignatureKey The encrypted App Signature Key sent by a SEB client
      * @param connectionToken The connection token of the SEB client connection
      * @return Result refer to the App Signature Key hash for given App Signature Key or to an error when happened */
-    Result<String> getAppSignatureKeyHash(String appSignatureKey, String connectionToken);
+    Result<String> getAppSignatureKeyHash(
+            String appSignatureKey,
+            String connectionToken,
+            CharSequence salt);
 
     /** Use this to update an App Signature Key grant for a particular SEB connection. This will
      * apply the security check again and mark the connection regarding to the security check.

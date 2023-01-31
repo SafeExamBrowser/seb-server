@@ -278,7 +278,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             null,
                             null,
                             null,
-                            getSignatureHash(appSignatureKey, connectionToken)))
+                            getSignatureHash(
+                                    appSignatureKey,
+                                    connectionToken,
+                                    clientConnection.examId != null ? clientConnection.examId : examId)))
                     .getOrThrow();
 
             // initialize distributed indicator value caches if possible and needed
@@ -400,7 +403,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     proctoringEnabled,
                     null,
-                    getSignatureHash(appSignatureKey, connectionToken));
+                    getSignatureHash(
+                            appSignatureKey,
+                            connectionToken,
+                            clientConnection.examId != null ? clientConnection.examId : examId));
 
             // ClientConnection integrity check
             // institutionId, connectionToken and clientAddress must be set
@@ -813,9 +819,21 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         return this.examSessionService.getConnectionDataInternal(connectionToken);
     }
 
-    private String getSignatureHash(final String appSignatureKey, final String connectionToken) {
+    private String getSignatureHash(
+            final String appSignatureKey,
+            final String connectionToken,
+            final Long examId) {
+
+        if (examId == null) {
+            return null;
+        }
+
+        final String salt = this.examSessionService
+                .getAppSignatureKeySalt(examId)
+                .getOr(null);
+
         return this.securityKeyService
-                .getAppSignatureKeyHash(appSignatureKey, connectionToken)
+                .getAppSignatureKeyHash(appSignatureKey, connectionToken, salt)
                 .onError(error -> log.error("Failed to get hash signature from sent app signature key: ", error))
                 .getOr(null);
     }

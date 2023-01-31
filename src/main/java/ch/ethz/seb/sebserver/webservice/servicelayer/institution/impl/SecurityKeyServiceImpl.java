@@ -167,14 +167,25 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
     }
 
     @Override
-    public Result<String> getAppSignatureKeyHash(final String appSignatureKey, final String connectionToken) {
+    public Result<String> getAppSignatureKeyHash(
+            final String appSignatureKey,
+            final String connectionToken,
+            final CharSequence salt) {
+
         if (StringUtils.isBlank(appSignatureKey)) {
             return Result.ofEmpty();
         }
 
         // TODO if certificate encryption is available check if exam has defined certificate for decryption
 
-        return Cryptor.decrypt(appSignatureKey, connectionToken)
+        return Cryptor
+                .decrypt(appSignatureKey + salt, connectionToken)
+                .onErrorDo(error -> {
+                    log.warn(
+                            "Failed to decrypt ASK with added salt value. Try to decrypt without added salt. Error: {}",
+                            error.getMessage());
+                    return Cryptor.decrypt(appSignatureKey, connectionToken).get();
+                })
                 .map(signature -> createSignatureHash(signature));
 
     }
