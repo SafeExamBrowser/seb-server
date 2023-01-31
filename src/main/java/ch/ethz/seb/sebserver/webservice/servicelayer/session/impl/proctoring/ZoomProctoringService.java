@@ -342,7 +342,7 @@ public class ZoomProctoringService implements ExamProctoringService {
                     sdkCredentials,
                     expiryTimeforExam(proctoringSettings),
                     additionalZoomRoomData.meeting_id,
-                    true);
+                    false);
 
             return new ProctoringRoomConnection(
                     ProctoringServerType.ZOOM,
