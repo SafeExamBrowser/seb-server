@@ -99,7 +99,7 @@ public class ExamProctoringRoomServiceTest extends AdministrationAPIIntegrationT
                 false,
                 "",
                 null,
-                false));
+                false, false));
         assertFalse(createNew.hasError());
     }
 

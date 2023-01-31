@@ -95,7 +95,7 @@ public class SEBClientEventCSVExporterTest {
         final ClientConnectionRecord connection = new ClientConnectionRecord(0L, 1L, 2L, "status", "token", "sessionid",
                 "clientaddress", "virtualaddress", 3, "vdi", 4L, 5L, 6L, 7,
                 "seb_os_name", "seb_machine_name", "seb_version",
-                (byte) 0, null);
+                (byte) 0, null, null);
         final SEBClientEventCSVExporter exporter = new SEBClientEventCSVExporter();
         final ClientEventRecord event = new ClientEventRecord(0L, 1L, 2, 3L, 4L, new BigDecimal(5), "text");
         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -145,7 +145,7 @@ public class SEBClientEventCSVExporterTest {
         final ClientConnectionRecord connection = new ClientConnectionRecord(0L, 1L, 2L, "status", "token", "sessionid",
                 "clientaddress", "virtualaddress", 3, "vdi", 4L, 5L, 6L, 7,
                 "seb_os_name", "seb_machine_name", "seb_version",
-                (byte) 0, null);
+                (byte) 0, null, null);
         final SEBClientEventCSVExporter exporter = new SEBClientEventCSVExporter();
         final ClientEventRecord event = new ClientEventRecord(0L, 1L, 2, 3L, 4L, new BigDecimal(5), "text");
         final Exam exam = new Exam(0L, 1L, 3L, "externalid", true, "name", new DateTime(1L),

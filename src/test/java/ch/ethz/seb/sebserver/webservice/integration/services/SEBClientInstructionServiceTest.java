@@ -47,7 +47,7 @@ public class SEBClientInstructionServiceTest extends AdministrationAPIIntegratio
         if (cc == null) {
             this.clientConnectionDAO.createNew(new ClientConnection(
                     null, 1L, 2L, ConnectionStatus.ACTIVE, "testToken", "user1", "0.0.0.0", false, null, null,
-                    false))
+                    false, false))
                     .getOrThrow();
         }
     }

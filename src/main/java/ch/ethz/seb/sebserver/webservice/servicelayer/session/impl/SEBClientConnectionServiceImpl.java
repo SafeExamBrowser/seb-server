@@ -165,6 +165,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     null,
+                    null,
                     null))
                     .getOrThrow();
 
@@ -281,7 +282,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             getSignatureHash(
                                     appSignatureKey,
                                     connectionToken,
-                                    clientConnection.examId != null ? clientConnection.examId : examId)))
+                                    clientConnection.examId != null ? clientConnection.examId : examId),
+                            null))
                     .getOrThrow();
 
             // initialize distributed indicator value caches if possible and needed
@@ -406,7 +408,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     getSignatureHash(
                             appSignatureKey,
                             connectionToken,
-                            clientConnection.examId != null ? clientConnection.examId : examId));
+                            clientConnection.examId != null ? clientConnection.examId : examId),
+                    null);
 
             // ClientConnection integrity check
             // institutionId, connectionToken and clientAddress must be set
@@ -506,6 +509,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 null,
                 establishedClientConnection.remoteProctoringRoomUpdate,
                 null,
+                null,
                 null);
 
         // Update other connection with token and exam id
@@ -514,7 +518,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         vdiPairCompanion.getId(), null,
                         vdiExamId, null, null, null, null, null, null,
                         establishedClientConnection.connectionToken,
-                        null, null, null, null, null, null, null, null, null))
+                        null, null, null, null, null, null, null, null, null, null))
                 .getOrThrow();
 
         reloadConnectionCache(vdiPairCompanion.getConnectionToken(), connection.examId);
@@ -746,7 +750,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             // create new ClientConnection for update
             final ClientConnection authenticatedClientConnection = new ClientConnection(
                     clientConnection.id, null, null, ConnectionStatus.AUTHENTICATED, null,
-                    accountId, null, null, null, null, null, null, null, null, null, null, null, null, null);
+                    accountId, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
             clientConnection = this.clientConnectionDAO
                     .save(authenticatedClientConnection)
@@ -801,7 +805,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         return this.clientConnectionDAO.save(new ClientConnection(
                 clientConnection.id, null, null, status,
                 null, null, null, null, null, null, null, null, null, null, null, null,
-                proctoringEnabled, null, null))
+                proctoringEnabled, null, null, null))
                 .getOrThrow();
     }
 

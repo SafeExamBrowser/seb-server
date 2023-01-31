@@ -262,7 +262,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 null, null, null, null, null, null,
                 null, null, null, null, null, null, null,
                 remoteProctoringRoomUpdate,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
         return updateRecord;
     }
 
@@ -383,7 +383,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     Utils.truncateText(data.sebOSName, 255),
                     Utils.truncateText(data.sebVersion, 255),
                     Utils.toByte(data.securityCheckGranted),
-                    data.ask);
+                    data.ask,
+                    Utils.toByte(data.clientVersionGranted));
 
             this.clientConnectionRecordMapper.insert(newRecord);
             return newRecord;
@@ -421,12 +422,27 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     Utils.truncateText(data.sebOSName, 255),
                     Utils.truncateText(data.sebVersion, 255),
                     Utils.toByte(data.securityCheckGranted),
-                    data.ask);
+                    data.ask,
+                    Utils.toByte(data.clientVersionGranted));
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
             return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
         })
                 .flatMap(ClientConnectionDAOImpl::toDomainModel)
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Boolean> saveSecurityCheckStatus(final Long connectionId, final Boolean checkStatus) {
+        return Result.tryCatch(() -> {
+            this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
+                    connectionId,
+                    null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                    Utils.toByte(checkStatus),
+                    null, null));
+            return checkStatus;
+        })
                 .onError(TransactionHandler::rollback);
     }
 
@@ -441,7 +457,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
                     connectionId,
                     null, null, null, null, null, null, null, null, null, null, null,
-                    roomId, 0, null, null, null, null, null));
+                    roomId, 0, null, null, null, null, null, null));
         })
                 .onError(TransactionHandler::rollback);
     }
@@ -453,7 +469,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
                     id,
                     null, null, null, null, null, null, null, null, null, null, null, null,
-                    1, null, null, null, null, null));
+                    1, null, null, null, null, null, null));
         })
                 .onError(TransactionHandler::rollback);
     }
@@ -483,7 +499,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         record.getClientOsName(),
                         record.getClientVersion(),
                         record.getSecurityCheckGranted(),
-                        record.getAsk()));
+                        record.getAsk(),
+                        record.getClientVersionGranted()));
             } else {
                 throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, String.valueOf(connectionId));
             }
@@ -872,7 +889,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getRemoteProctoringRoomId(),
                     BooleanUtils.toBooleanObject(record.getRemoteProctoringRoomUpdate()),
                     Utils.fromByteOrNull(record.getSecurityCheckGranted()),
-                    record.getAsk());
+                    record.getAsk(),
+                    Utils.fromByteOrNull(record.getClientVersionGranted()));
         });
     }
 

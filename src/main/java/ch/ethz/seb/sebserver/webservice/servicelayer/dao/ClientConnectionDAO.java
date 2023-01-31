@@ -29,6 +29,7 @@ public interface ClientConnectionDAO extends
 
     Logger log = LoggerFactory.getLogger(ClientConnectionDAO.class);
 
+    /** ClientConnection cache name */
     String CONNECTION_TOKENS_CACHE = "CONNECTION_TOKENS_CACHE";
 
     /** Get a list of all connection tokens of all connections (no matter what state)
@@ -184,5 +185,12 @@ public interface ClientConnectionDAO extends
      * @param examId the exam identifier
      * @return Result refer to a collection of client connection identifiers or to an error when happened */
     Result<Collection<Long>> getAllConnectionIdsForExam(Long examId);
+
+    /** Saves the given security check status for specified client connection id
+     *
+     * @param id the client connection identifier (PK)
+     * @param checkStatus The status to save
+     * @return Result refer to the given check status or to an error when happened */
+    Result<Boolean> saveSecurityCheckStatus(Long id, Boolean checkStatus);
 
 }

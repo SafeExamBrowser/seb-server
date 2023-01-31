@@ -69,7 +69,7 @@ public final class ClientConnection implements GrantEntity {
             null, null, null, null, null, null, null,
             false,
             null, null, null, null,
-            false, false, null);
+            false, false, null, false);
 
     public static final String ATTR_INFO = "seb_info";
     public static final String FILTER_ATTR_EXAM_ID = Domain.CLIENT_CONNECTION.ATTR_EXAM_ID;
@@ -102,6 +102,9 @@ public final class ClientConnection implements GrantEntity {
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_SECURITY_CHECK_GRANTED)
     public final Boolean securityCheckGranted;
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_VERSION_GRANTED)
+    public final Boolean clientVersionGranted;
 
     @JsonIgnore // not used yet on GUI side
     //@JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI)
@@ -143,7 +146,8 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI) final Boolean vdi,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN) final String vdiPairToken,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_SECURITY_CHECK_GRANTED) final Boolean securityCheckGranted) {
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_SECURITY_CHECK_GRANTED) final Boolean securityCheckGranted,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_VERSION_GRANTED) final Boolean clientVersionGranted) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -166,6 +170,7 @@ public final class ClientConnection implements GrantEntity {
         this.sebVersion = Constants.EMPTY_NOTE;
         this.securityCheckGranted = securityCheckGranted;
         this.ask = null;
+        this.clientVersionGranted = clientVersionGranted;
     }
 
     public ClientConnection(
@@ -187,7 +192,8 @@ public final class ClientConnection implements GrantEntity {
             final Long remoteProctoringRoomId,
             final Boolean remoteProctoringRoomUpdate,
             final Boolean securityCheckGranted,
-            final String ask) {
+            final String ask,
+            final Boolean clientVersionGranted) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -219,6 +225,7 @@ public final class ClientConnection implements GrantEntity {
 
         this.securityCheckGranted = securityCheckGranted;
         this.ask = ask;
+        this.clientVersionGranted = clientVersionGranted;
     }
 
     @Override
@@ -323,6 +330,10 @@ public final class ClientConnection implements GrantEntity {
 
     public Boolean getSecurityCheckGranted() {
         return this.securityCheckGranted;
+    }
+
+    public Boolean getClientVersionGranted() {
+        return this.clientVersionGranted;
     }
 
     @Override

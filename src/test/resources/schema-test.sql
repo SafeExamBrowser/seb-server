@@ -138,6 +138,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `client_version` VARCHAR(45) NULL,
   `security_check_granted` TINYINT(1) UNSIGNED NULL,
   `ask` VARCHAR(255) NULL,
+  `client_version_granted` TINYINT(1) UNSIGNED NULL,
   PRIMARY KEY (`id`),
   INDEX `connection_exam_ref_idx` (`exam_id` ASC),
   INDEX `clientConnectionInstitutionRef_idx` (`institution_id` ASC),

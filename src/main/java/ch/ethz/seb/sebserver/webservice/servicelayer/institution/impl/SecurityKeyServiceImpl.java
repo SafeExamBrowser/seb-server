@@ -32,7 +32,6 @@ import ch.ethz.seb.sebserver.gbl.model.institution.AppSignatureKeyInfo;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityCheckResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey.KeyType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
@@ -242,10 +241,11 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                                 if (granted != grantedBefore) {
                                     // update grant
                                     this.clientConnectionDAO
-                                            .save(new ClientConnection(
-                                                    rec.getId(), null,
-                                                    null, null, null, null, null, null, null, null,
-                                                    null, null, null, null, null, null, null, granted, null));
+                                            .saveSecurityCheckStatus(rec.getId(), granted)
+                                            .onError(error -> log.error(
+                                                    "Failed to save security key grant for SEB connection: {}",
+                                                    rec.getId(),
+                                                    error));
                                     this.examSessionCacheService.evictClientConnection(rec.getConnectionToken());
                                 }
                             }
@@ -375,10 +375,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
 
     private void saveSecurityCheckState(final ClientConnectionRecord record, final Boolean checkStatus) {
         this.clientConnectionDAO
-                .save(new ClientConnection(
-                        record.getId(), null,
-                        null, null, null, null, null, null, null, null,
-                        null, null, null, null, null, null, null, checkStatus, null))
+                .saveSecurityCheckStatus(record.getId(), checkStatus)
                 .onError(error -> log.error("Failed to save ClientConnection grant: ",
                         error))
                 .onSuccess(c -> this.examSessionCacheService.evictClientConnection(record.getConnectionToken()));
