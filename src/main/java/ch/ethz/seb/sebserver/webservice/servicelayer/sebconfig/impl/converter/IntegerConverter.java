@@ -34,7 +34,10 @@ public class IntegerConverter implements AttributeValueConverter {
 
     public static final Set<String> SUPPORTED_ATTR_NAMES = Utils.immutableSetOf(
             "taskBarHeight",
-            "allowedDisplaysMaxNumber");
+            "allowedDisplaysMaxNumber",
+            "allowMacOSVersionNumberMajor",
+            "allowMacOSVersionNumberMinor",
+            "allowMacOSVersionNumberPatch");
 
     public static final Set<AttributeType> SUPPORTED_TYPES = Utils.immutableSetOf(
             AttributeType.INTEGER,
