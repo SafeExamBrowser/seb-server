@@ -204,15 +204,15 @@ public class EntityTable<ROW extends ModelIdAware> {
                 this.table.addListener(SWT.MouseDoubleClick, event -> {
                     // if the action has its own selection function, apply this
                     EntityKey selection = defaultAction.getSingleSelection();
+
                     if (selection == null) {
                         // otherwise use current selection of this table
                         selection = getSingleSelection();
                     }
+
                     if (selection != null) {
                         this.pageService.executePageAction(
                                 defaultAction.withEntityKey(selection));
-                    } else {
-                        this.pageService.executePageAction(defaultAction);
                     }
                 });
             }

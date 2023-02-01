@@ -417,15 +417,17 @@ public class SEBExamConfigForm implements TemplateComposer {
     }
 
     private PageAction deleteConfiguration(final PageAction action) {
+        final EntityKey entityKey = action.getEntityKey();
+
         final ConfigurationNode configNode = this.restService
                 .getBuilder(GetExamConfigNode.class)
-                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
                 .getOrThrow();
 
         final Result<EntityProcessingReport> call = this.restService
                 .getBuilder(DeleteExamConfiguration.class)
-                .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call();
 
         final PageContext pageContext = action.pageContext();

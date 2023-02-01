@@ -133,6 +133,7 @@ public final class Constants {
     public static final String XML_PLIST_STRING = "string";
     public static final String XML_PLIST_DATA = "data";
     public static final String XML_PLIST_INTEGER = "integer";
+    public static final String XML_PLIST_REAL = "real";
 
     public static final String OAUTH2_GRANT_TYPE_PASSWORD = "password";
     public static final String OAUTH2_CLIENT_SECRET = "client_secret";

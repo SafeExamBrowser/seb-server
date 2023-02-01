@@ -81,7 +81,8 @@ public class ExamConfigXMLParser extends DefaultHandler {
             Constants.XML_PLIST_BOOLEAN_TRUE,
             Constants.XML_PLIST_STRING,
             Constants.XML_PLIST_DATA,
-            Constants.XML_PLIST_INTEGER));
+            Constants.XML_PLIST_INTEGER,
+            Constants.XML_PLIST_REAL));
 
     private static final Set<String> KNOWN_INLINE_TABLES = Utils.immutableSetOf(Arrays.asList(
             "arguments"));
@@ -162,6 +163,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
             case VALUE_STRING:
             case VALUE_DATA:
             case VALUE_INTEGER:
+            case VALUE_REAL_NUMBER:
                 startValueElement(type, top);
                 break;
         }
@@ -397,7 +399,7 @@ public class ExamConfigXMLParser extends DefaultHandler {
             } else {
                 top.value += StringEscapeUtils.unescapeXml(value);
             }
-        } else if (top.type == Type.VALUE_INTEGER) {
+        } else if (top.type == Type.VALUE_INTEGER || top.type == Type.VALUE_REAL_NUMBER) {
             top.value = value;
         } else if (top.type == Type.KEY) {
             top.name = value;
@@ -574,7 +576,8 @@ public class ExamConfigXMLParser extends DefaultHandler {
             VALUE_BOOLEAN_FALSE(true, Constants.XML_PLIST_BOOLEAN_FALSE),
             VALUE_STRING(true, Constants.XML_PLIST_STRING),
             VALUE_DATA(true, Constants.XML_PLIST_DATA),
-            VALUE_INTEGER(true, Constants.XML_PLIST_INTEGER);
+            VALUE_INTEGER(true, Constants.XML_PLIST_INTEGER),
+            VALUE_REAL_NUMBER(true, Constants.XML_PLIST_REAL);
 
             private final boolean isValueType;
             private final String typeName;
