@@ -216,7 +216,7 @@ public abstract class FieldBuilder<T> {
 
     public static Label createErrorLabel(final Composite innerGrid) {
         final Label errorLabel = new Label(innerGrid, SWT.NONE);
-        final GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
+        final GridData gridData = new GridData(SWT.FILL, SWT.TOP, true, true);
         errorLabel.setLayoutData(gridData);
         errorLabel.setVisible(false);
         errorLabel.setData(RWT.CUSTOM_VARIANT, CustomVariant.ERROR.key);

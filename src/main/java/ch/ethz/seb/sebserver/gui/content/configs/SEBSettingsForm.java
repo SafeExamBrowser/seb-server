@@ -171,7 +171,7 @@ public class SEBSettingsForm implements TemplateComposer {
                         view,
                         viewContextSupplier,
                         attributes,
-                        20,
+                        30,
                         readonly,
                         publishedMessagePanelViewCallback);
                 viewContexts.add(viewContext);

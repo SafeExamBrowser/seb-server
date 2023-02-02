@@ -305,16 +305,6 @@ public class GridTable extends Composite {
         }
     }
 
-    interface ControlAdapter {
-        String getValue();
-
-        void setValue(String value);
-
-        void dispose();
-
-        ColumnDef columnDef();
-    }
-
     private static class Dummy implements ControlAdapter {
 
         private final Label label;
