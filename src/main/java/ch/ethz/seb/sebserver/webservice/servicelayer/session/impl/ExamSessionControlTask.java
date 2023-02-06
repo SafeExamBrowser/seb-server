@@ -108,6 +108,7 @@ public class ExamSessionControlTask implements DisposableBean {
         controlExamLMSUpdate();
         controlExamState(updateId);
         this.examDAO.releaseAgedLocks();
+        this.sebClientSessionService.cleanupInstructions();
     }
 
     @Scheduled(
@@ -127,7 +128,6 @@ public class ExamSessionControlTask implements DisposableBean {
 
         this.sebClientSessionService.updatePingEvents();
         this.sebClientSessionService.updateASKGrants();
-        this.sebClientSessionService.cleanupInstructions();
         this.examProcotringRoomService.updateProctoringCollectingRooms();
     }
 

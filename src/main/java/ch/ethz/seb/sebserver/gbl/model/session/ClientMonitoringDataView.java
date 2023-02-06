@@ -61,6 +61,11 @@ public interface ClientMonitoringDataView {
         return notificationFlag != null && (notificationFlag & FLAG_GRANT_DENIED) > 0;
     }
 
+    default boolean isSEBVersionDenied() {
+        final Integer notificationFlag = notificationFlag();
+        return notificationFlag != null && (notificationFlag & FLAG_INVALID_SEB_VERSION) > 0;
+    }
+
     default boolean isPendingNotification() {
         final Integer notificationFlag = notificationFlag();
         return notificationFlag != null && (notificationFlag & FLAG_PENDING_NOTIFICATION) > 0;

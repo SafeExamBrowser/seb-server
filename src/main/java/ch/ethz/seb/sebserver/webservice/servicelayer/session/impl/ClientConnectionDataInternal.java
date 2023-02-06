@@ -45,6 +45,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
     private final PendingNotificationIndication pendingNotificationIndication;
 
     private final Boolean grantDenied;
+    private final Boolean sebVersionDenied;
 
     public ClientConnectionDataInternal(
             final ClientConnection clientConnection,
@@ -75,6 +76,12 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
             this.grantDenied = null;
         } else {
             this.grantDenied = !clientConnection.securityCheckGranted;
+        }
+
+        if (clientConnection.clientVersionGranted == null) {
+            this.sebVersionDenied = null;
+        } else {
+            this.sebVersionDenied = !clientConnection.clientVersionGranted;
         }
     }
 
@@ -175,6 +182,11 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
             return BooleanUtils.isTrue(ClientConnectionDataInternal.this.grantDenied);
         }
 
+        @Override
+        @JsonIgnore
+        public boolean isSEBVersionDenied() {
+            return BooleanUtils.isTrue(ClientConnectionDataInternal.this.sebVersionDenied);
+        }
     };
 
     /** This is a static monitoring connection data wrapper/holder */

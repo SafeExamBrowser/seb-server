@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.validation.constraints.NotNull;
@@ -73,6 +74,8 @@ public final class Exam implements GrantEntity {
     public static final String ADDITIONAL_ATTR_SIGNATURE_KEY_CERT_ALIAS = "SIGNATURE_KEY_CERT_ALIAS";
     /** This attribute name is used to store the per exam generated app-signature-key encryption salt */
     public static final String ADDITIONAL_ATTR_SIGNATURE_KEY_SALT = "SIGNATURE_KEY_SALT";
+    /** Comma separated String value that defines allowed SEB version from linked Exam Configuration */
+    public static final String ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS = "ALLOWED_SEB_VERSIONS";
 
     public enum ExamStatus {
         UP_COMING,
@@ -149,6 +152,11 @@ public final class Exam implements GrantEntity {
     @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES)
     public final Map<String, String> additionalAttributes;
 
+    @JsonIgnore
+    public final boolean checkASK;
+    @JsonIgnore
+    public final List<AllowedSEBVersion> allowedSEBVersions;
+
     @JsonCreator
     public Exam(
             @JsonProperty(EXAM.ATTR_ID) final Long id,
@@ -193,7 +201,11 @@ public final class Exam implements GrantEntity {
                 ? Collections.unmodifiableCollection(supporter)
                 : Collections.emptyList();
 
-        this.additionalAttributes = additionalAttributes;
+        this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
+
+        this.checkASK = BooleanUtils
+                .toBoolean(this.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
+        this.allowedSEBVersions = initAllowedSEBVersions();
     }
 
     public Exam(final String modelId, final QuizData quizData, final POSTMapper mapper) {
@@ -225,6 +237,9 @@ public final class Exam implements GrantEntity {
         this.lastModified = null;
         this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
 
+        this.checkASK = BooleanUtils
+                .toBoolean(this.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
+        this.allowedSEBVersions = initAllowedSEBVersions();
     }
 
     public Exam(final QuizData quizData) {
@@ -251,6 +266,25 @@ public final class Exam implements GrantEntity {
         this.examTemplateId = null;
         this.lastModified = null;
         this.additionalAttributes = null;
+        this.checkASK = false;
+        this.allowedSEBVersions = null;
+    }
+
+    private List<AllowedSEBVersion> initAllowedSEBVersions() {
+        if (this.additionalAttributes.containsKey(ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS)) {
+            final String asvString = this.additionalAttributes.get(Exam.ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS);
+            final String[] split = StringUtils.split(asvString, Constants.LIST_SEPARATOR);
+            final List<AllowedSEBVersion> result = new ArrayList<>();
+            for (int i = 0; i < split.length; i++) {
+                final AllowedSEBVersion allowedSEBVersion = new AllowedSEBVersion(split[i]);
+                if (allowedSEBVersion.isValidFormat) {
+                    result.add(allowedSEBVersion);
+                }
+            }
+            return result;
+        } else {
+            return null;
+        }
     }
 
     @Override

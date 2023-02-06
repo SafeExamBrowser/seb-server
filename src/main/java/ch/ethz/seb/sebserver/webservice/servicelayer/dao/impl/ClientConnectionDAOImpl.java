@@ -448,6 +448,19 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional
+    public Result<Boolean> saveSEBClientVersionCheckStatus(final Long connectionId, final Boolean checkStatus) {
+        return Result.tryCatch(() -> {
+            this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
+                    connectionId,
+                    null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                    null, null, Utils.toByte(checkStatus)));
+            return checkStatus;
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
     public Result<Void> assignToProctoringRoom(
             final Long connectionId,
             final String connectionToken,
@@ -834,6 +847,25 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.ask,
                         SqlBuilder.isEqualTo(signatureHash))
+                .build()
+                .execute());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ClientConnectionRecord>> getAllActiveNoSEBVersionCheck(final Long examId) {
+        return Result.tryCatch(() -> this.clientConnectionRecordMapper
+                .selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.status,
+                        SqlBuilder.isIn(ClientConnection.SECURE_CHECK_STATES))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.examId,
+                        SqlBuilder.isEqualTo(examId))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.clientVersionGranted,
+                        SqlBuilder.isNull())
+                .and(ClientConnectionRecordDynamicSqlSupport.ask, SqlBuilder.isNotNull())
                 .build()
                 .execute());
     }

@@ -21,8 +21,22 @@ public interface ExamConfigurationValueService {
      * @return The current value of the above SEB settings attribute and given exam. */
     String getMappedDefaultConfigAttributeValue(Long examId, String configAttributeName);
 
+    /** Get the quitPassword SEB Setting from the Exam Configuration that is applied to the given exam.
+     *
+     * @param examId Exam identifier
+     * @return the vlaue of the quitPassword SEB Setting */
     String getQuitSecret(Long examId);
 
+    /** Get the quitLink SEB Setting from the Exam Configuration that is applied to the given exam.
+     *
+     * @param examId Exam identifier
+     * @return the value of the quitLink SEB Setting */
     String getQuitLink(Long examId);
+
+    /** Get the allowedSEBVersions SEB Setting from the Exam Configuration that is applied to the given exam.
+     *
+     * @param examId Exam identifier
+     * @return the value of the allowedSEBVersions SEB Setting */
+    String getAllowedSEBVersion(Long examId);
 
 }

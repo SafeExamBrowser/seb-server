@@ -171,14 +171,26 @@ public interface ClientConnectionDAO extends
      * @return Result refer to a collection of client connection records or to an error when happened */
     Result<Collection<ClientConnectionRecord>> getsecurityKeyConnectionRecords(Long examId);
 
-    /** Get all client connection records that don't have an security access grant yet
+    /** Get all client connection records that don't have a security access grant yet
      * and for specific exam.
      *
      * @param examId The exam identifier
      * @return Result refer to client connection records to the an error when happened */
     Result<Collection<ClientConnectionRecord>> getAllActiveNotGranted(Long examId);
 
+    /** Count all known and matching ASK hashes for a given exam.
+     *
+     * @param examId The exam identifier
+     * @param signatureHash The signature hash the count
+     * @return Result refer to the signature hash count or to an result when happened */
     Result<Long> countSignatureHashes(Long examId, String signatureHash);
+
+    /** Get all client connection records that don't have a SEB client version check yet
+     * and for specific exam.
+     *
+     * @param examId The exam identifier
+     * @return Result refer to client connection records to the an error when happened */
+    Result<Collection<ClientConnectionRecord>> getAllActiveNoSEBVersionCheck(Long examId);
 
     /** Get all client connection identifiers for an exam.
      *
@@ -188,9 +200,16 @@ public interface ClientConnectionDAO extends
 
     /** Saves the given security check status for specified client connection id
      *
-     * @param id the client connection identifier (PK)
+     * @param connectionId the client connection identifier (PK)
      * @param checkStatus The status to save
      * @return Result refer to the given check status or to an error when happened */
-    Result<Boolean> saveSecurityCheckStatus(Long id, Boolean checkStatus);
+    Result<Boolean> saveSecurityCheckStatus(Long connectionId, Boolean checkStatus);
+
+    /** Saves the given SEB version check status for specified client connection id
+     *
+     * @param connectionId the client connection identifier (PK)
+     * @param checkStatus The status to save
+     * @return Result refer to the given check status or to an error when happened */
+    Result<Boolean> saveSEBClientVersionCheckStatus(Long connectionId, Boolean checkStatus);
 
 }

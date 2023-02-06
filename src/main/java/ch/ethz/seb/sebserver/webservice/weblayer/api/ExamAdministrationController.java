@@ -64,11 +64,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
@@ -93,6 +95,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final SEBRestrictionService sebRestrictionService;
     private final SecurityKeyService securityKeyService;
     private final ExamProctoringRoomService examProctoringRoomService;
+    private final ExamConfigurationValueService examConfigurationValueService;
+    private final AdditionalAttributesDAO additionalAttributesDAO;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -108,7 +112,9 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final ExamSessionService examSessionService,
             final SEBRestrictionService sebRestrictionService,
             final SecurityKeyService securityKeyService,
-            final ExamProctoringRoomService examProctoringRoomService) {
+            final ExamProctoringRoomService examProctoringRoomService,
+            final ExamConfigurationValueService examConfigurationValueService,
+            final AdditionalAttributesDAO additionalAttributesDAO) {
 
         super(authorization,
                 bulkActionService,
@@ -126,6 +132,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.sebRestrictionService = sebRestrictionService;
         this.securityKeyService = securityKeyService;
         this.examProctoringRoomService = examProctoringRoomService;
+        this.examConfigurationValueService = examConfigurationValueService;
+        this.additionalAttributesDAO = additionalAttributesDAO;
     }
 
     @Override
@@ -599,6 +607,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     @Override
     protected Result<Exam> notifySaved(final Exam entity) {
         return Result.tryCatch(() -> {
+            this.saveAdditionalExamConfigAttributes(entity);
             this.examSessionService.flushCache(entity);
             return entity;
         });
@@ -700,6 +709,29 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                         .getOrThrow();
             }
         });
+    }
+
+    private void saveAdditionalExamConfigAttributes(final Exam entity) {
+        try {
+            final String allowedSEBVersion = this.examConfigurationValueService
+                    .getAllowedSEBVersion(entity.id);
+
+            if (StringUtils.isNotBlank(allowedSEBVersion)) {
+                this.additionalAttributesDAO.saveAdditionalAttribute(
+                        EntityType.EXAM,
+                        entity.id, Exam.ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS,
+                        allowedSEBVersion)
+                        .getOrThrow();
+            } else {
+                this.additionalAttributesDAO.delete(
+                        EntityType.EXAM,
+                        entity.id, Exam.ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS);
+            }
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to save additional Exam Configuration settings for exam: {}",
+                    entity, e);
+        }
     }
 
     static Function<Collection<Exam>, List<Exam>> pageSort(final String sort) {

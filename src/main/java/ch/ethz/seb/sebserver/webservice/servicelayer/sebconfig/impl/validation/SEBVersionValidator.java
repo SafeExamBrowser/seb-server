@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.model.exam.AllowedSEBVersion;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -61,8 +62,7 @@ public class SEBVersionValidator implements ConfigurationValueValidator {
     }
 
     private boolean isValidSEBVersionMarker(final String versionMarker) {
-        // TODO Auto-generated method stub
-        return false;
+        return new AllowedSEBVersion(versionMarker).isValidFormat;
     }
 
     @Override

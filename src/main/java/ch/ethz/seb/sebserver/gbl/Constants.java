@@ -77,6 +77,7 @@ public final class Constants {
     public static final Character LIST_SEPARATOR_CHAR = COMMA;
     public static final Character COMPLEX_VALUE_SEPARATOR = COLON;
     public static final Character HASH_TAG = '#';
+    public static final Character DOT = '.';
 
     public static final String NULL = "null";
     public static final String PERCENTAGE_STRING = Constants.PERCENTAGE.toString();

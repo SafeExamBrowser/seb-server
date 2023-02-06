@@ -10,15 +10,15 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
+import ch.ethz.seb.sebserver.gbl.model.exam.AllowedSEBVersion;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrate
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientVersionService;
 
 @Lazy
 @Service
@@ -49,6 +50,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
     private final ClientIndicatorFactory clientIndicatorFactory;
     private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
     private final SecurityKeyService securityKeyService;
+    private final SEBClientVersionService sebClientVersionService;
 
     public SEBClientSessionServiceImpl(
             final ClientConnectionDAO clientConnectionDAO,
@@ -57,7 +59,8 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
             final SEBClientInstructionService sebInstructionService,
             final ClientIndicatorFactory clientIndicatorFactory,
             final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
-            final SecurityKeyService securityKeyService) {
+            final SecurityKeyService securityKeyService,
+            final SEBClientVersionService sebClientVersionService) {
 
         this.clientConnectionDAO = clientConnectionDAO;
         this.examSessionService = examSessionService;
@@ -67,6 +70,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
         this.clientIndicatorFactory = clientIndicatorFactory;
         this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
         this.securityKeyService = securityKeyService;
+        this.sebClientVersionService = sebClientVersionService;
     }
 
     @Override
@@ -97,7 +101,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
         this.examSessionService
                 .getExamDAO()
                 .allRunningExamIds()
-                .onSuccess(ids -> ids.stream().forEach(examId -> updateASKGrant(examId)))
+                .onSuccess(ids -> ids.stream().forEach(examId -> updateGrants(examId)))
                 .onError(error -> log.error("Unexpected error while trying to updateASKGrants: ", error));
     }
 
@@ -201,11 +205,23 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
         }
     }
 
+    private void updateGrants(final Long examId) {
+        try {
+            updateASKGrant(examId);
+        } catch (final Exception e) {
+            log.error("Failed to update ASK grant for exam: {}", examId, e);
+        }
+        try {
+            updateAllowedSEBVersionGrant(examId);
+        } catch (final Exception e) {
+            log.error("Failed to update SEB client version grant for exam: {}", examId, e);
+        }
+    }
+
     private void updateASKGrant(final Long examId) {
         if (this.examSessionService
                 .getRunningExam(examId)
-                .map(exam -> exam.getAdditionalAttribute(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED))
-                .map(BooleanUtils::toBoolean)
+                .map(exam -> exam.checkASK)
                 .getOr(true)) {
 
             this.clientConnectionDAO
@@ -218,4 +234,22 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
         }
     }
 
+    private void updateAllowedSEBVersionGrant(final Long examId) {
+        final List<AllowedSEBVersion> allowedSEBVersions = this.examSessionService
+                .getRunningExam(examId)
+                .map(exam -> exam.allowedSEBVersions)
+                .getOr(Collections.emptyList());
+
+        if (allowedSEBVersions != null && !allowedSEBVersions.isEmpty()) {
+            this.clientConnectionDAO
+                    .getAllActiveNoSEBVersionCheck(examId)
+                    .onError(error -> log.error(
+                            "Failed to get none SEB version checked active client connections: ",
+                            error))
+                    .getOr(Collections.emptyList())
+                    .forEach(cc -> this.sebClientVersionService.checkVersionAndUpdateClientConnection(
+                            cc,
+                            allowedSEBVersions));
+        }
+    }
 }

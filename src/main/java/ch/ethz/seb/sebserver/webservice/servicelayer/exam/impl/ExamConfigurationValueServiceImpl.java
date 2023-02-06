@@ -124,4 +124,18 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
         }
     }
 
+    @Override
+    public String getAllowedSEBVersion(final Long examId) {
+        try {
+
+            return getMappedDefaultConfigAttributeValue(
+                    examId,
+                    CONFIG_ATTR_NAME_QUIT_LINK);
+
+        } catch (final Exception e) {
+            log.error("Failed to get SEB restriction with quit link: ", e);
+            return null;
+        }
+    }
+
 }
