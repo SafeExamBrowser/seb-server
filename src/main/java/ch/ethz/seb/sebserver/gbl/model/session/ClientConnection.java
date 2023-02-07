@@ -222,7 +222,7 @@ public final class ClientConnection implements GrantEntity {
                 .append(Constants.LIST_SEPARATOR)
                 .append(getOSInfo(seb_os_name))
                 .append(Constants.LIST_SEPARATOR)
-                .append((clientAddress != null) ? "IP: " + clientAddress : Constants.EMPTY_NOTE)
+                .append((clientAddress != null) ? " IP:" + clientAddress : Constants.EMPTY_NOTE)
                 .toString();
 
         this.securityCheckGranted = securityCheckGranted;
@@ -442,13 +442,13 @@ public final class ClientConnection implements GrantEntity {
     }
 
     private String getSEBInfo(final String seb_version) {
-        return (seb_version != null) ? "SEBV: " + seb_version : Constants.EMPTY_NOTE;
+        return (seb_version != null) ? "SEB:" + seb_version : Constants.EMPTY_NOTE;
     }
 
     private String getOSInfo(final String seb_os_name) {
         if (seb_os_name != null) {
             final String[] split = StringUtils.split(seb_os_name, Constants.LIST_SEPARATOR);
-            return "OSV: " + split[0];
+            return " OS:" + split[0];
         }
         return Constants.EMPTY_NOTE;
     }

@@ -46,6 +46,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
@@ -67,6 +68,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     private final LmsAPIService lmsAPIService;
     private final boolean appSignatureKeyEnabled;
     private final int defaultNumericalTrustThreshold;
+    private final ExamConfigurationValueService examConfigurationValueService;
 
     protected ExamAdminServiceImpl(
             final ExamDAO examDAO,
@@ -75,6 +77,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final ConfigurationNodeDAO configurationNodeDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final LmsAPIService lmsAPIService,
+            final ExamConfigurationValueService examConfigurationValueService,
             final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.enabled:false}") boolean appSignatureKeyEnabled,
             final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.numerical.threshold:2}") int defaultNumericalTrustThreshold) {
 
@@ -84,6 +87,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         this.configurationNodeDAO = configurationNodeDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.lmsAPIService = lmsAPIService;
+        this.examConfigurationValueService = examConfigurationValueService;
         this.appSignatureKeyEnabled = appSignatureKeyEnabled;
         this.defaultNumericalTrustThreshold = defaultNumericalTrustThreshold;
     }
@@ -196,6 +200,30 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                 .getLmsAPITemplate(exam.lmsSetupId)
                 .map(lmsAPI -> lmsAPI.hasSEBClientRestriction(exam))
                 .onError(error -> log.error("Failed to check SEB restriction: ", error));
+    }
+
+    @Override
+    public void updateAdditionalExamConfigAttributes(final Long examId) {
+        try {
+            final String allowedSEBVersion = this.examConfigurationValueService
+                    .getAllowedSEBVersion(examId);
+
+            if (StringUtils.isNotBlank(allowedSEBVersion)) {
+                this.additionalAttributesDAO.saveAdditionalAttribute(
+                        EntityType.EXAM,
+                        examId, Exam.ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS,
+                        allowedSEBVersion)
+                        .getOrThrow();
+            } else {
+                this.additionalAttributesDAO.delete(
+                        EntityType.EXAM,
+                        examId, Exam.ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS);
+            }
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to save additional Exam Configuration settings for exam: {}",
+                    examId, e);
+        }
     }
 
     @Override

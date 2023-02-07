@@ -100,6 +100,7 @@ public class ResourceService {
     private static final String MISSING_CLIENT_PING_NAME_KEY = "MISSING_PING";
     private static final String DENIED_CLIENT_SEC_GRANT_NAME_KEY = "GRANT_DENIED";
     private static final String MISSING_CLIENT_SEC_GRANT_NAME_KEY = "MISSING_GRANT";
+    private static final String DENIED_CLIENT_SEB_VERSION_NAME_KEY = "SEB_VERSION_DENIED";
 
     public static final Comparator<Tuple<String>> RESOURCE_COMPARATOR = Comparator.comparing(t -> t._2);
     public static final Comparator<Tuple3<String>> RESOURCE_COMPARATOR_TUPLE_3 = Comparator.comparing(t -> t._2);
@@ -638,6 +639,7 @@ public class ResourceService {
         final String grantMissingText = this.i18nSupport.getText(
                 SEB_CONNECTION_STATUS_KEY_PREFIX + MISSING_CLIENT_SEC_GRANT_NAME_KEY,
                 MISSING_CLIENT_SEC_GRANT_NAME_KEY);
+
         final EnumMap<ConnectionStatus, String> localizedNames = new EnumMap<>(ConnectionStatus.class);
         Arrays.asList(ConnectionStatus.values()).stream().forEach(state -> localizedNames.put(state, this.i18nSupport
                 .getText(SEB_CONNECTION_STATUS_KEY_PREFIX + state.name(), state.name())));

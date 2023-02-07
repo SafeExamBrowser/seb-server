@@ -27,8 +27,8 @@ public class AllowedSEBVersion {
     public final int major;
     public final int minor;
     public final int patch;
-    public final boolean alianceEdition;
-    public final boolean minimal;
+    public boolean alianceEdition;
+    public boolean minimal;
     public final boolean isValidFormat;
 
     public AllowedSEBVersion(final String wholeVersionString) {
@@ -61,29 +61,43 @@ public class AllowedSEBVersion {
             valid = false;
         }
         this.minor = num;
-        try {
-            num = Integer.valueOf(split[3]);
-        } catch (final Exception e) {
-            valid = false;
+        if (split.length >= 3) {
+            try {
+                num = Integer.valueOf(split[3]);
+            } catch (final Exception e) {
+                num = 0;
+                if (split[3].equals(ALIANCE_EDITION_IDENTIFIER)) {
+                    this.alianceEdition = true;
+                } else if (split[3].equals(MINIMAL_IDENTIFIER)) {
+                    this.minimal = true;
+                } else {
+                    valid = false;
+                }
+            }
+        } else {
+            num = 0;
         }
         this.patch = num;
 
-        if (split.length > 4 && ALIANCE_EDITION_IDENTIFIER.equalsIgnoreCase(split[4])) {
-            this.alianceEdition = true;
-            if (split.length > 5 && MINIMAL_IDENTIFIER.equalsIgnoreCase(split[5])) {
+        if (valid && split.length > 4) {
+            if (!this.alianceEdition && split[4].equals(ALIANCE_EDITION_IDENTIFIER)) {
+                this.alianceEdition = true;
+            } else if (!this.minimal && split[4].equals(MINIMAL_IDENTIFIER)) {
                 this.minimal = true;
             } else {
-                this.minimal = false;
-            }
-        } else {
-            this.alianceEdition = false;
-            if (split.length > 4 && MINIMAL_IDENTIFIER.equalsIgnoreCase(split[4])) {
-                this.minimal = true;
-            } else {
-                this.minimal = false;
+                valid = false;
             }
         }
 
+        if (valid && split.length > 5) {
+            if (!this.alianceEdition && split[5].equals(ALIANCE_EDITION_IDENTIFIER)) {
+                this.alianceEdition = true;
+            } else if (!this.minimal && split[5].equals(MINIMAL_IDENTIFIER)) {
+                this.minimal = true;
+            } else {
+                valid = false;
+            }
+        }
         this.isValidFormat = valid;
     }
 
@@ -91,9 +105,12 @@ public class AllowedSEBVersion {
         if (Objects.equals(this.osTypeString, clientVersion.osTypeString)) {
             if (this.minimal) {
                 // check greater or equals minimum version
-                return this.major <= clientVersion.major ||
-                        this.minor <= clientVersion.minor ||
-                        this.patch <= clientVersion.patch;
+                return this.major < clientVersion.major
+                        || (this.major == clientVersion.major
+                                && this.minor < clientVersion.minor)
+                        || (this.major == clientVersion.major
+                                && this.minor == clientVersion.minor
+                                && this.patch <= clientVersion.patch);
             } else {
                 // check exact match
                 return this.major == clientVersion.major &&

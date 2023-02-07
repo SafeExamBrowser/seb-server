@@ -50,7 +50,11 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
     }
 
     @Override
-    public String getMappedDefaultConfigAttributeValue(final Long examId, final String configAttributeName) {
+    public String getMappedDefaultConfigAttributeValue(
+            final Long examId,
+            final String configAttributeName,
+            final String defaultValue) {
+
         try {
 
             final Long configId = this.examConfigurationMapDAO
@@ -62,7 +66,7 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
                     .getOr(null);
 
             if (configId == null) {
-                return null;
+                return defaultValue;
             }
 
             final Long attrId = this.configurationAttributeDAO
@@ -73,11 +77,18 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
 
             return this.configurationValueDAO
                     .getConfigAttributeValue(configId, attrId)
-                    .getOrThrow();
+                    .onError(error -> log.warn(
+                            "Failed to get exam config attribute: {} {} error: {}",
+                            examId,
+                            configAttributeName,
+                            error.getMessage()))
+                    .getOr(defaultValue);
 
         } catch (final Exception e) {
-            log.error("Unexpected error while trying to extract SEB settings attribute value:", e);
-            return null;
+            if (defaultValue == null) {
+                log.error("Unexpected error while trying to extract SEB settings attribute value:", e);
+            }
+            return defaultValue;
         }
     }
 
@@ -130,10 +141,10 @@ public class ExamConfigurationValueServiceImpl implements ExamConfigurationValue
 
             return getMappedDefaultConfigAttributeValue(
                     examId,
-                    CONFIG_ATTR_NAME_QUIT_LINK);
+                    CONFIG_ATTR_NAME_ALLOWED_SEB_VERSION,
+                    StringUtils.EMPTY);
 
         } catch (final Exception e) {
-            log.error("Failed to get SEB restriction with quit link: ", e);
             return null;
         }
     }

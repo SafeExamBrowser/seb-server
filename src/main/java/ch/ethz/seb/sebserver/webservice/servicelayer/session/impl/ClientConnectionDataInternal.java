@@ -153,7 +153,8 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
                     | (isMissingPing() ? ClientMonitoringDataView.FLAG_MISSING_PING : 0)
                     | (isPendingNotification() ? ClientMonitoringDataView.FLAG_PENDING_NOTIFICATION : 0)
                     | (!isGrantChecked() ? ClientMonitoringDataView.FLAG_GRANT_NOT_CHECKED : 0)
-                    | (isGrantDenied() ? ClientMonitoringDataView.FLAG_GRANT_DENIED : 0);
+                    | (isGrantDenied() ? ClientMonitoringDataView.FLAG_GRANT_DENIED : 0)
+                    | (isSEBVersionDenied() ? ClientMonitoringDataView.FLAG_INVALID_SEB_VERSION : 0);
 
             return (flag > 0) ? flag : null;
         }

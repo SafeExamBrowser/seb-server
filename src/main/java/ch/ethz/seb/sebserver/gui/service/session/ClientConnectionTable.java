@@ -94,6 +94,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     private final PageService pageService;
     private final Exam exam;
     private final boolean checkSecurityGrant;
+    private final boolean checkSEBVersion;
     private final boolean distributedSetup;
 
     private final Map<Long, IndicatorData> indicatorMapping;
@@ -131,6 +132,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         this.exam = exam;
         this.checkSecurityGrant = BooleanUtils.toBoolean(
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
+        this.checkSEBVersion = exam.additionalAttributes.containsKey(Exam.ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS);
         this.distributedSetup = distributedSetup;
 
         final WidgetFactory widgetFactory = pageService.getWidgetFactory();
@@ -489,6 +491,16 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         @Override
+        public boolean sebVersionDenied() {
+            return this.monitoringData.sebVersionDenied;
+        }
+
+        @Override
+        public int incidentFlag() {
+            return this.monitoringData.notificationFlag;
+        }
+
+        @Override
         public boolean showNoGrantCheckApplied() {
             return ClientConnectionTable.this.checkSecurityGrant;
         }
@@ -506,20 +518,22 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         private void updateData(final TableItem tableItem) {
-            tableItem.setText(0, getConnectionIdentifier());
+            int row = 0;
+            tableItem.setText(row++, getConnectionIdentifier());
             if (ClientConnectionTable.this.hasClientGroups) {
-                tableItem.setText(1, getGroupInfo());
-                tableItem.setText(2, getConnectionInfo());
-                tableItem.setText(
-                        3,
-                        ClientConnectionTable.this.localizedClientConnectionStatusNameFunction.apply(this));
-            } else {
-                tableItem.setText(1, getConnectionInfo());
-                tableItem.setText(
-                        2,
-                        ClientConnectionTable.this.localizedClientConnectionStatusNameFunction.apply(this));
+                tableItem.setText(row++, getGroupInfo());
             }
-
+            tableItem.setText(row++, getConnectionInfo());
+            if (ClientConnectionTable.this.checkSEBVersion) {
+                if (sebVersionDenied()) {
+                    tableItem.setBackground(row - 1, ClientConnectionTable.this.colorData.color2);
+                } else {
+                    tableItem.setBackground(row - 1, ClientConnectionTable.this.colorData.color1);
+                }
+            }
+            tableItem.setText(
+                    row++,
+                    ClientConnectionTable.this.localizedClientConnectionStatusNameFunction.apply(this));
             if (this.monitoringData != null) {
                 updateConnectionStatusColor(tableItem);
                 updateNotifications(tableItem);
@@ -546,9 +560,11 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             if (BooleanUtils.isTrue(this.monitoringData.pendingNotification)) {
                 tableItem.setImage(0,
                         WidgetFactory.ImageIcon.NOTIFICATION.getImage(ClientConnectionTable.this.table.getDisplay()));
+                tableItem.setBackground(0, ClientConnectionTable.this.colorData.color2);
             } else {
                 if (tableItem.getImage(0) != null) {
                     tableItem.setImage(0, null);
+                    tableItem.setBackground(0, ClientConnectionTable.this.colorData.color1);
                 }
             }
         }
@@ -745,6 +761,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         private ClientConnectionTable getOuterType() {
             return ClientConnectionTable.this;
         }
+
     }
 
     private void fetchStaticClientConnectionData() {

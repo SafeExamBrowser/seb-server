@@ -104,6 +104,11 @@ public interface ExamAdminService {
         return isProctoringEnabled(exam.id);
     }
 
+    /** Updates needed additional attributes from assigned exam configuration for the exam
+     *
+     * @param examId The exam identifier */
+    void updateAdditionalExamConfigAttributes(final Long examId);
+
     /** This indicates if proctoring is set and enabled for a certain exam.
      *
      * @param examId the exam identifier

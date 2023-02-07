@@ -12,6 +12,7 @@ public interface ExamConfigurationValueService {
 
     public static final String CONFIG_ATTR_NAME_QUIT_LINK = "quitURL";
     public static final String CONFIG_ATTR_NAME_QUIT_SECRET = "hashedQuitPassword";
+    public static final String CONFIG_ATTR_NAME_ALLOWED_SEB_VERSION = "sebAllowedVersions";
 
     /** Get the actual SEB settings attribute value for the exam configuration mapped as default configuration
      * to the given exam
@@ -19,7 +20,21 @@ public interface ExamConfigurationValueService {
      * @param examId The exam identifier
      * @param configAttributeName The name of the SEB settings attribute
      * @return The current value of the above SEB settings attribute and given exam. */
-    String getMappedDefaultConfigAttributeValue(Long examId, String configAttributeName);
+    default String getMappedDefaultConfigAttributeValue(final Long examId, final String configAttributeName) {
+        return getMappedDefaultConfigAttributeValue(examId, configAttributeName, null);
+    }
+
+    /** Get the actual SEB settings attribute value for the exam configuration mapped as default configuration
+     * to the given exam
+     *
+     * @param examId The exam identifier
+     * @param configAttributeName The name of the SEB settings attribute
+     * @param The default value that is given back if there is no value from configuration
+     * @return The current value of the above SEB settings attribute and given exam. */
+    String getMappedDefaultConfigAttributeValue(
+            Long examId,
+            String configAttributeName,
+            String defaultValue);
 
     /** Get the quitPassword SEB Setting from the Exam Configuration that is applied to the given exam.
      *

@@ -47,6 +47,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.EntityDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
@@ -60,6 +61,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final ExamConfigUpdateService examConfigUpdateService;
     private final ExamSessionService examSessionService;
+    private final ExamAdminService examAdminService;
 
     protected ExamConfigurationMappingController(
             final AuthorizationService authorization,
@@ -71,7 +73,8 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
             final ExamDAO examDao,
             final ConfigurationNodeDAO configurationNodeDAO,
             final ExamConfigUpdateService examConfigUpdateService,
-            final ExamSessionService examSessionService) {
+            final ExamSessionService examSessionService,
+            final ExamAdminService examAdminService) {
 
         super(
                 authorization,
@@ -85,6 +88,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
         this.configurationNodeDAO = configurationNodeDAO;
         this.examConfigUpdateService = examConfigUpdateService;
         this.examSessionService = examSessionService;
+        this.examAdminService = examAdminService;
     }
 
     @Override
@@ -181,6 +185,7 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
 
     @Override
     protected Result<ExamConfigurationMap> notifyCreated(final ExamConfigurationMap entity) {
+        this.examAdminService.updateAdditionalExamConfigAttributes(entity.examId);
         // update the attached configurations state to "In Use"
         return this.configurationNodeDAO.save(new ConfigurationNode(
                 entity.configurationNodeId,
@@ -200,6 +205,8 @@ public class ExamConfigurationMappingController extends EntityController<ExamCon
     @Override
     protected Result<Pair<ExamConfigurationMap, EntityProcessingReport>> notifyDeleted(
             final Pair<ExamConfigurationMap, EntityProcessingReport> pair) {
+
+        this.examAdminService.updateAdditionalExamConfigAttributes(pair.a.examId);
         // update the attached configurations state to "Ready"
         return this.configurationNodeDAO.save(new ConfigurationNode(
                 pair.a.configurationNodeId,

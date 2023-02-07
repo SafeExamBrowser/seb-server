@@ -24,12 +24,13 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
     public final Long id;
     public final ConnectionStatus status;
     public final Map<Long, String> indicatorVals;
-    public final Integer notificationFlag;
 
+    public final int notificationFlag;
     public final boolean missingPing;
     public final boolean grantChecked;
     public final boolean grantDenied;
     public final boolean pendingNotification;
+    public final boolean sebVersionDenied;
 
     @JsonCreator
     public ClientMonitoringData(
@@ -41,11 +42,12 @@ public class ClientMonitoringData implements ClientMonitoringDataView {
         this.id = id;
         this.status = status;
         this.indicatorVals = indicatorVals;
-        this.notificationFlag = notificationFlag;
+        this.notificationFlag = notificationFlag != null ? notificationFlag : -1;
         this.missingPing = notificationFlag != null && (notificationFlag & FLAG_MISSING_PING) > 0;
         this.grantChecked = notificationFlag == null || (notificationFlag & FLAG_GRANT_NOT_CHECKED) == 0;
         this.grantDenied = notificationFlag != null && (notificationFlag & FLAG_GRANT_DENIED) > 0;
         this.pendingNotification = notificationFlag != null && (notificationFlag & FLAG_PENDING_NOTIFICATION) > 0;
+        this.sebVersionDenied = notificationFlag != null && (notificationFlag & FLAG_INVALID_SEB_VERSION) > 0;
     }
 
     @Override

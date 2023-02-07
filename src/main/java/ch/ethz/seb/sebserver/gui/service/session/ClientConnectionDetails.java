@@ -180,6 +180,17 @@ public class ClientConnectionDetails implements MonitoringEntry {
     }
 
     @Override
+    public int incidentFlag() {
+        return -1;
+    }
+
+    @Override
+    public boolean sebVersionDenied() {
+        return this.connectionData.clientConnection.clientVersionGranted != null &&
+                !this.connectionData.clientConnection.clientVersionGranted;
+    }
+
+    @Override
     public boolean showNoGrantCheckApplied() {
         return this.checkSecurityGrant;
     }

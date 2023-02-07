@@ -14,11 +14,15 @@ public interface MonitoringEntry {
 
     ConnectionStatus getStatus();
 
+    int incidentFlag();
+
     boolean hasMissingPing();
 
     boolean grantChecked();
 
     boolean grantDenied();
+
+    boolean sebVersionDenied();
 
     boolean showNoGrantCheckApplied();
 

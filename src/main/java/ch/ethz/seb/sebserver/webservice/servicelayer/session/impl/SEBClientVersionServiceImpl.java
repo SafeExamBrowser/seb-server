@@ -96,8 +96,8 @@ public class SEBClientVersionServiceImpl implements SEBClientVersionService {
             final String[] versionNumberSplit = StringUtils.split(versioNumber, Constants.DOT);
 
             final int major = extractVersionNumber(versionNumberSplit[0]);
-            final int minor = extractVersionNumber(versionNumberSplit[1]);
-            final int patch = extractVersionNumber(versionNumberSplit[2]);
+            final int minor = (versionNumberSplit.length > 1) ? extractVersionNumber(versionNumberSplit[1]) : 0;
+            final int patch = (versionNumberSplit.length > 2) ? extractVersionNumber(versionNumberSplit[2]) : 0;
 
             final ClientVersion version = new ClientVersion(osType, major, minor, patch);
             return allowedSEBVersions
@@ -106,7 +106,9 @@ public class SEBClientVersionServiceImpl implements SEBClientVersionService {
                     .findFirst()
                     .isPresent();
         } catch (final Exception e) {
-            log.warn("Unexpected error while trying to parse SEB version number in: {} {}", clientOSName,
+            log.warn(
+                    "Invalid SEB version number in: {} {}",
+                    clientOSName,
                     clientVersion);
             return false;
         }

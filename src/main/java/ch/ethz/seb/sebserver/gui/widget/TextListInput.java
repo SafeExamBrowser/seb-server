@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -26,7 +25,6 @@ import org.eclipse.swt.widgets.Text;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 public class TextListInput extends Composite {
@@ -44,16 +42,20 @@ public class TextListInput extends Composite {
 
     private Listener valueChangeEventListener = null;
 
+    private boolean isEditable = true;
+
     public TextListInput(
             final Composite parent,
             final LocTextKey nameKey,
             final int initialSize,
-            final WidgetFactory widgetFactory) {
+            final WidgetFactory widgetFactory,
+            final boolean editable) {
 
         super(parent, SWT.NONE);
         this.nameKey = nameKey;
         this.initialSize = initialSize;
         this.widgetFactory = widgetFactory;
+        this.isEditable = editable;
 
         // main grid layout
         GridLayout gridLayout = new GridLayout(1, false);
@@ -93,9 +95,6 @@ public class TextListInput extends Composite {
         this.addAction.setLayoutData(gridData);
 
         this.content = header;
-        for (int i = 0; i < initialSize; i++) {
-            addRow(null);
-        }
     }
 
     public void addListener(final Listener valueChangeEventListener) {
@@ -123,7 +122,6 @@ public class TextListInput extends Composite {
     }
 
     public void setValue(final String value) {
-        System.out.println("************ value: " + value);
         if (StringUtils.isBlank(value)) {
             // clear rows
             new ArrayList<>(this.list).stream().forEach(row -> row.deleteRow());
@@ -148,8 +146,9 @@ public class TextListInput extends Composite {
     }
 
     public void setEditable(final boolean b) {
+        this.isEditable = b;
         this.addAction.setEnabled(b);
-        this.list.stream().forEach(row -> row.setEditable(b));
+        this.setValue(getValue());
     }
 
     private final class Row {
@@ -162,17 +161,23 @@ public class TextListInput extends Composite {
                     TextListInput.this.content,
                     TextListInput.this.nameKey);
             GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
-            this.textInput.setLayoutData(gridData);
-            this.addListener();
+            this.textInput.setEditable(TextListInput.this.isEditable);
+            if (TextListInput.this.isEditable) {
+                this.textInput.setLayoutData(gridData);
+                this.addListener();
+                this.deleteButton = TextListInput.this.widgetFactory.imageButton(
+                        ImageIcon.REMOVE_BOX,
+                        TextListInput.this.content,
+                        new LocTextKey(TextListInput.this.nameKey.name + ".removeAction"),
+                        deleteEvent -> deleteRow());
+                gridData = new GridData(SWT.RIGHT, SWT.CENTER, false, true);
+                gridData.widthHint = ACTION_COLUMN_WIDTH;
+                this.deleteButton.setLayoutData(gridData);
+                this.deleteButton.setEnabled(TextListInput.this.isEditable);
+            } else {
+                this.deleteButton = null;
+            }
 
-            this.deleteButton = TextListInput.this.widgetFactory.imageButton(
-                    ImageIcon.REMOVE_BOX,
-                    TextListInput.this.content,
-                    new LocTextKey(TextListInput.this.nameKey.name + ".removeAction"),
-                    deleteEvent -> deleteRow());
-            gridData = new GridData(SWT.RIGHT, SWT.CENTER, false, true);
-            gridData.widthHint = ACTION_COLUMN_WIDTH;
-            this.deleteButton.setLayoutData(gridData);
         }
 
         private void addListener() {
@@ -185,20 +190,24 @@ public class TextListInput extends Composite {
         public void deleteRow() {
             TextListInput.this.list.remove(this);
             this.textInput.dispose();
-            this.deleteButton.dispose();
+            if (this.deleteButton != null) {
+                this.deleteButton.dispose();
+            }
             TextListInput.this.content.getParent().getParent().layout(true, true);
             if (TextListInput.this.valueChangeEventListener != null) {
                 TextListInput.this.valueChangeEventListener.handleEvent(null);
             }
         }
 
-        public void setEditable(final boolean e) {
-            this.textInput.setEditable(e);
-            this.textInput.setData(
-                    RWT.CUSTOM_VARIANT,
-                    e ? null : CustomVariant.CONFIG_INPUT_READONLY.key);
-            this.deleteButton.setEnabled(e);
-        }
+//        public void setEditable(final boolean e) {
+//            this.textInput.setEditable(e);
+//            this.textInput.setData(
+//                    RWT.CUSTOM_VARIANT,
+//                    e ? null : CustomVariant.CONFIG_INPUT_READONLY.key);
+//            if (this.deleteButton != null) {
+//                this.deleteButton.setEnabled(e);
+//            }
+//        }
     }
 
 }

@@ -80,7 +80,8 @@ public class TextFieldListBuilder extends AbstractTableFieldBuilder {
                 innerGrid,
                 new LocTextKey(attributeNameKey),
                 3,
-                this.widgetFactory);
+                this.widgetFactory,
+                !viewContext.isReadonly());
         WidgetFactory.setTestId(textListInput, attributeNameKey);
         textListInput.setLayoutData(gridData);
 

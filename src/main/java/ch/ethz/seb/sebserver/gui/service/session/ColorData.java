@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.Display;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class ColorData {
@@ -42,10 +42,21 @@ public class ColorData {
         }
 
         switch (status) {
-            case ACTIVE:
-                return (entry.grantChecked() && entry.grantDenied())
-                        ? this.color3 : (entry.hasMissingPing())
-                                ? this.color2 : this.color1;
+            case CONNECTION_REQUESTED:
+            case AUTHENTICATED:
+            case ACTIVE: {
+                final int incidentFlag = entry.incidentFlag();
+                if (incidentFlag > 0) {
+                    if ((incidentFlag & ClientMonitoringDataView.FLAG_GRANT_DENIED) > 0) {
+                        return this.color3;
+                    }
+                    if ((incidentFlag & (ClientMonitoringDataView.FLAG_GRANT_NOT_CHECKED
+                            | ClientMonitoringDataView.FLAG_MISSING_PING)) > 0) {
+                        return this.color2;
+                    }
+                }
+                return this.color1;
+            }
             default:
                 return this.defaultColor;
         }
@@ -55,41 +66,25 @@ public class ColorData {
         return Utils.darkColorContrast(statusColor.getRGB()) ? this.darkColor : this.lightColor;
     }
 
-    int statusWeight(final ClientConnectionData connectionData) {
-        if (connectionData == null) {
-            return 100;
-        }
-
-        switch (connectionData.clientConnection.status) {
-            case CONNECTION_REQUESTED:
-            case AUTHENTICATED:
-                return 1;
-            case ACTIVE:
-                return (connectionData.clientConnection.securityCheckGranted)
-                        ? -1 : (connectionData.missingPing)
-                                ? 0 : 2;
-            case CLOSED:
-                return 3;
-            default:
-                return 10;
-        }
-    }
-
     int statusWeight(final MonitoringEntry entry) {
         if (entry == null) {
             return 100;
         }
 
-        final Boolean grantDenied = entry.grantDenied();
         switch (entry.getStatus()) {
             case CONNECTION_REQUESTED:
-            case AUTHENTICATED:
+            case AUTHENTICATED: {
+                if (entry.incidentFlag() > 0) {
+                    return -1;
+                }
                 return 1;
-            case ACTIVE:
-                return (grantDenied == null)
-                        ? -1 : (grantDenied)
-                                ? -2 : (entry.hasMissingPing())
-                                        ? 0 : 2;
+            }
+            case ACTIVE: {
+                if (entry.incidentFlag() > 0) {
+                    return -1;
+                }
+                return 2;
+            }
             case CLOSED:
                 return 4;
             default:
