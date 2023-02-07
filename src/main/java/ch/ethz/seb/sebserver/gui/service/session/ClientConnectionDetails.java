@@ -32,6 +32,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
@@ -132,7 +133,8 @@ public class ClientConnectionDetails implements MonitoringEntry {
                 .addField(FormBuilder.text(
                         ClientConnection.ATTR_INFO,
                         CONNECTION_INFO_TEXT_KEY,
-                        Constants.EMPTY_NOTE))
+                        Constants.EMPTY_NOTE)
+                        .asArea(50))
                 .withDefaultSpanInput(3)
                 .addField(FormBuilder.text(
                         Domain.CLIENT_CONNECTION.ATTR_STATUS,
@@ -251,7 +253,7 @@ public class ClientConnectionDetails implements MonitoringEntry {
 
         form.setFieldValue(
                 ClientConnection.ATTR_INFO,
-                this.connectionData.clientConnection.info);
+                getConnectionInfo(this.connectionData.clientConnection));
 
         if (this.hasClientGroups
                 && Constants.EMPTY_NOTE.equals(form.getFieldValue(ClientConnectionData.ATTR_CLIENT_GROUPS))) {
@@ -315,6 +317,14 @@ public class ClientConnectionDetails implements MonitoringEntry {
         if (notificationTable != null) {
             notificationTable.refreshPageSize();
         }
+    }
+
+    private String getConnectionInfo(final ClientConnection clientConnection) {
+        return Utils.formatLineBreaks(this.pageService.getI18nSupport().getText(
+                "sebserver.monitoring.exam.connection.info", "--",
+                clientConnection.getSebVersion(),
+                clientConnection.getSebOSName(),
+                clientConnection.clientAddress));
     }
 
     private void reloadPage(final PageContext pageContext) {

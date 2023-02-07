@@ -115,7 +115,8 @@ public final class ClientConnection implements GrantEntity {
     //@JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN)
     public final String vdiPairToken;
 
-    @JsonIgnore
+    //@JsonIgnore
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS)
     public final String clientAddress;
     @JsonIgnore
     public final Long remoteProctoringRoomId;
@@ -127,11 +128,13 @@ public final class ClientConnection implements GrantEntity {
     public final Long updateTime;
     @JsonIgnore
     public final Boolean remoteProctoringRoomUpdate;
-    @JsonIgnore
+    //@JsonIgnore
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_OS_NAME)
     public final String sebOSName;
     @JsonIgnore
     public final String sebMachineName;
-    @JsonIgnore
+    //@JsonIgnore
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_VERSION)
     public final String sebVersion;
     @JsonIgnore
     public final String ask;
@@ -148,6 +151,9 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI) final Boolean vdi,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN) final String vdiPairToken,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_OS_NAME) final String sebOSName,
+            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_VERSION) final String sebVersion,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_SECURITY_CHECK_GRANTED) final Boolean securityCheckGranted,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_VERSION_GRANTED) final Boolean clientVersionGranted) {
 
@@ -166,10 +172,10 @@ public final class ClientConnection implements GrantEntity {
         this.remoteProctoringRoomId = remoteProctoringRoomId;
         this.remoteProctoringRoomUpdate = false;
 
-        this.clientAddress = Constants.EMPTY_NOTE;
-        this.sebOSName = Constants.EMPTY_NOTE;
+        this.clientAddress = clientAddress;
+        this.sebOSName = sebOSName;
         this.sebMachineName = Constants.EMPTY_NOTE;
-        this.sebVersion = Constants.EMPTY_NOTE;
+        this.sebVersion = sebVersion;
         this.securityCheckGranted = securityCheckGranted;
         this.ask = null;
         this.clientVersionGranted = clientVersionGranted;
