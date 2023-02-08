@@ -55,6 +55,30 @@ public class ProctoringSettingsValidator
             }
 
             if (value.serverType == ProctoringServerType.ZOOM) {
+                if (StringUtils.isBlank(value.accountId)) {
+                    context.disableDefaultConstraintViolation();
+                    context
+                            .buildConstraintViolationWithTemplate("proctoringSettings:accountId:notNull")
+                            .addPropertyNode("accountId").addConstraintViolation();
+                    passed = false;
+                }
+
+                if (StringUtils.isBlank(value.clientId)) {
+                    context.disableDefaultConstraintViolation();
+                    context
+                            .buildConstraintViolationWithTemplate("proctoringSettings:clientId:notNull")
+                            .addPropertyNode("clientId").addConstraintViolation();
+                    passed = false;
+                }
+
+                if (StringUtils.isBlank(value.clientSecret)) {
+                    context.disableDefaultConstraintViolation();
+                    context
+                            .buildConstraintViolationWithTemplate("proctoringSettings:clientSecret:notNull")
+                            .addPropertyNode("clientSecret").addConstraintViolation();
+                    passed = false;
+                }
+
                 if (StringUtils.isBlank(value.sdkKey)) {
                     context.disableDefaultConstraintViolation();
                     context

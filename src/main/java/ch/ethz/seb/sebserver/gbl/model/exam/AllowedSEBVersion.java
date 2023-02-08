@@ -61,7 +61,7 @@ public class AllowedSEBVersion {
             valid = false;
         }
         this.minor = num;
-        if (split.length >= 3) {
+        if (split.length > 3) {
             try {
                 num = Integer.valueOf(split[3]);
             } catch (final Exception e) {

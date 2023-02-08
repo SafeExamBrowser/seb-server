@@ -63,6 +63,8 @@ public class ClientConnectionDetails implements MonitoringEntry {
             new LocTextKey("sebserver.monitoring.connection.form.info");
     private final static LocTextKey CONNECTION_STATUS_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.connection.form.status");
+    private final static LocTextKey WRONG_SEB_CLIENT_TOOLTIP =
+            new LocTextKey("sebserver.finished.connection.form.info.wrong.client.tooltip");
 
     private static final int NUMBER_OF_NONE_INDICATOR_ROWS = 3;
 
@@ -130,12 +132,15 @@ public class ClientConnectionDetails implements MonitoringEntry {
                                 CONNECTION_GROUP_TEXT_KEY,
                                 Constants.EMPTY_NOTE)
                                 .asMarkupLabel())
+                .withDefaultSpanInput(3)
+
                 .addField(FormBuilder.text(
                         ClientConnection.ATTR_INFO,
                         CONNECTION_INFO_TEXT_KEY,
                         Constants.EMPTY_NOTE)
                         .asArea(50)
                         .asColorBox())
+                .withDefaultSpanEmptyCell(2)
                 .withDefaultSpanInput(3)
                 .addField(FormBuilder.text(
                         Domain.CLIENT_CONNECTION.ATTR_STATUS,
@@ -322,6 +327,8 @@ public class ClientConnectionDetails implements MonitoringEntry {
         if (this.connectionData.clientConnection.clientVersionGranted != null &&
                 !this.connectionData.clientConnection.clientVersionGranted) {
             form.setFieldColor(ClientConnection.ATTR_INFO, this.colorData.color2);
+            form.getFieldInput(ClientConnection.ATTR_INFO)
+                    .setToolTipText(this.pageService.getI18nSupport().getText(WRONG_SEB_CLIENT_TOOLTIP));
         }
     }
 

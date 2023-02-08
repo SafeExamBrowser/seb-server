@@ -500,7 +500,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_PROCTORING_RESET_PATH_SEGMENT,
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Exam resetProctoringServiceSettings(
+    public Exam resetProctoringRooms(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -520,7 +520,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                                     error.getMessage()));
                     return exam;
                 })
-                .flatMap(this.examAdminService::resetProctoringSettings)
                 .getOrThrow();
     }
 

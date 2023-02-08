@@ -83,11 +83,6 @@ public class ProctoringSettingsPopup {
     private final static LocTextKey SEB_PROCTORING_FORM_SECRET_JITSI =
             new LocTextKey("sebserver.exam.proctoring.form.secret.jitsi");
 
-    private final static LocTextKey SEB_PROCTORING_FORM_APPKEY_ZOOM =
-            new LocTextKey("sebserver.exam.proctoring.form.appkey.zoom");
-    private final static LocTextKey SEB_PROCTORING_FORM_SECRET_ZOOM =
-            new LocTextKey("sebserver.exam.proctoring.form.secret.zoom");
-
     private final static LocTextKey SEB_PROCTORING_FORM_ACCOUNT_ID =
             new LocTextKey("sebserver.exam.proctoring.form.accountId");
     private final static LocTextKey SEB_PROCTORING_FORM_CLIENT_ID =
@@ -113,6 +108,8 @@ public class ProctoringSettingsPopup {
             new LocTextKey("sebserver.exam.proctoring.form.resetConfirm");
     private final static LocTextKey RESET_ACTIVE_CON_KEY =
             new LocTextKey("sebserver.exam.proctoring.form.resetActive");
+    private final static LocTextKey RESET_SUCCESS_KEY =
+            new LocTextKey("sebserver.exam.proctoring.form.resetOk");
 
     Function<PageAction, PageAction> settingsFunction(final PageService pageService, final boolean modifyGrant) {
 
@@ -144,16 +141,19 @@ public class ProctoringSettingsPopup {
                         }
                     });
 
-                    final Button reset = widgetFactory.buttonLocalized(composite, RESET_TEXT_KEY);
-                    reset.setLayoutData(new RowData());
-                    reset.addListener(SWT.Selection, event -> {
-                        pageContext.applyConfirmDialog(RESET_CONFIRM_KEY, apply -> {
-                            if (apply && doResetSettings(pageService, pageContext)) {
-                                dialog.close();
-                            }
+                    final EntityKey entityKey = pageContext.getEntityKey();
+                    if (entityKey.entityType == EntityType.EXAM) {
+                        final Button reset = widgetFactory.buttonLocalized(composite, RESET_TEXT_KEY);
+                        reset.setLayoutData(new RowData());
+                        reset.addListener(SWT.Selection, event -> {
+                            pageContext.applyConfirmDialog(RESET_CONFIRM_KEY, apply -> {
+                                if (apply && doResetSettings(pageService, pageContext)) {
+                                    dialog.close();
+                                }
+                            });
                         });
-                    });
-                    resetButtonHandler.set(reset);
+                        resetButtonHandler.set(reset);
+                    }
                 };
 
                 final SEBProctoringPropertiesForm bindFormContext = new SEBProctoringPropertiesForm(
@@ -208,16 +208,10 @@ public class ProctoringSettingsPopup {
                 .getBuilder(ResetProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
-                .onError(error -> {
-                    if (error.getMessage().contains("active connections") ||
-                            (error.getCause() != null &&
-                                    error.getCause().getMessage().contains("active connections"))) {
-                        pageContext.publishInfo(RESET_ACTIVE_CON_KEY);
-                    } else {
-                        log.error("Failed to rest proctoring settings for exam: {}", entityKey, error);
-                        pageContext.notifyUnexpectedError(error);
-                    }
-                }).map(settings -> true).getOr(false);
+                .onError(error -> handleResetError(pageContext, entityKey, error))
+                .onSuccess(settings -> pageContext.publishInfo(RESET_SUCCESS_KEY))
+                .map(settings -> true)
+                .getOr(false);
     }
 
     private boolean doSaveSettings(
@@ -452,19 +446,6 @@ public class ProctoringSettingsPopup {
                             .mandatory())
 
                     .addField(FormBuilder.text(
-                            ProctoringServiceSettings.ATTR_APP_KEY,
-                            SEB_PROCTORING_FORM_APPKEY_ZOOM,
-                            proctoringSettings.appKey))
-                    .withEmptyCellSeparation(false)
-
-                    .addField(FormBuilder.password(
-                            ProctoringServiceSettings.ATTR_APP_SECRET,
-                            SEB_PROCTORING_FORM_SECRET_ZOOM,
-                            (proctoringSettings.appSecret != null)
-                                    ? String.valueOf(proctoringSettings.appSecret)
-                                    : null))
-
-                    .addField(FormBuilder.text(
                             ProctoringServiceSettings.ATTR_ACCOUNT_ID,
                             SEB_PROCTORING_FORM_ACCOUNT_ID,
                             proctoringSettings.accountId)
@@ -559,11 +540,20 @@ public class ProctoringSettingsPopup {
         }
     }
 
-    private static final class FormHandleAnchor {
+    private void handleResetError(final PageContext pageContext, final EntityKey entityKey, final Exception error) {
+        if (error.getMessage().contains("active connections") ||
+                (error.getCause() != null &&
+                        error.getCause().getMessage().contains("active connections"))) {
+            pageContext.publishInfo(RESET_ACTIVE_CON_KEY);
+        } else {
+            log.error("Failed to rest proctoring settings for exam: {}", entityKey, error);
+            pageContext.notifyUnexpectedError(error);
+        }
+    }
 
+    private static final class FormHandleAnchor {
         FormHandle<ProctoringServiceSettings> formHandle;
         PageContext formContext;
-
     }
 
 }
