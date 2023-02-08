@@ -331,9 +331,26 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
                 attrs);
     }
 
+    private ExamineeAccountDetails tryGetExamineeById(final RestTemplate restTemplate, final String id) {
+        try {
+            ExamineeAccountDetails examineeAccountDetails = getExamineeById(restTemplate, id);
+
+            // SEBSERV-378: If there is no first and last name set, try once again to get the user data
+            if (StringUtils.isBlank(examineeAccountDetails.getDisplayName())) {
+                log.warn("Failed to get ExamineeAccountDetails from Ans. No DisplayName, try once again");
+                examineeAccountDetails = getExamineeById(restTemplate, id);
+            }
+
+            return examineeAccountDetails;
+        } catch (final Exception e) {
+            log.error("Failed to get ExamineeAccountDetails from Ans, try once again: ", e);
+            return getExamineeById(restTemplate, id);
+        }
+    }
+
     @Override
     public Result<ExamineeAccountDetails> getExamineeAccountDetails(final String examineeUserId) {
-        return getRestTemplate().map(t -> this.getExamineeById(t, examineeUserId));
+        return getRestTemplate().map(t -> this.tryGetExamineeById(t, examineeUserId));
     }
 
     @Override
