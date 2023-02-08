@@ -108,16 +108,15 @@ public final class ClientConnection implements GrantEntity {
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_VERSION_GRANTED)
     public final Boolean clientVersionGranted;
 
-    @JsonIgnore // not used yet on GUI side
-    //@JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI)
-    public final Boolean vdi;
-    @JsonIgnore // not used yet on GUI side
-    //@JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN)
-    public final String vdiPairToken;
-
-    //@JsonIgnore
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS)
     public final String clientAddress;
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_OS_NAME)
+    public final String sebOSName;
+
+    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_VERSION)
+    public final String sebVersion;
+
     @JsonIgnore
     public final Long remoteProctoringRoomId;
     @JsonIgnore
@@ -128,14 +127,12 @@ public final class ClientConnection implements GrantEntity {
     public final Long updateTime;
     @JsonIgnore
     public final Boolean remoteProctoringRoomUpdate;
-    //@JsonIgnore
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_OS_NAME)
-    public final String sebOSName;
+    @JsonIgnore // not used yet on GUI side
+    public final Boolean vdi;
+    @JsonIgnore // not used yet on GUI side
+    public final String vdiPairToken;
     @JsonIgnore
     public final String sebMachineName;
-    //@JsonIgnore
-    @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_VERSION)
-    public final String sebVersion;
     @JsonIgnore
     public final String ask;
 
