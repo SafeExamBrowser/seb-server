@@ -134,7 +134,8 @@ public class ClientConnectionDetails implements MonitoringEntry {
                         ClientConnection.ATTR_INFO,
                         CONNECTION_INFO_TEXT_KEY,
                         Constants.EMPTY_NOTE)
-                        .asArea(50))
+                        .asArea(50)
+                        .asColorBox())
                 .withDefaultSpanInput(3)
                 .addField(FormBuilder.text(
                         Domain.CLIENT_CONNECTION.ATTR_STATUS,
@@ -229,6 +230,7 @@ public class ClientConnectionDetails implements MonitoringEntry {
         if (this.startTime < 0) {
             this.startTime = System.currentTimeMillis();
         }
+
     }
 
     public void updateGUI(
@@ -316,6 +318,10 @@ public class ClientConnectionDetails implements MonitoringEntry {
         final EntityTable<ClientNotification> notificationTable = notificationTableSupplier.get();
         if (notificationTable != null) {
             notificationTable.refreshPageSize();
+        }
+        if (this.connectionData.clientConnection.clientVersionGranted != null &&
+                !this.connectionData.clientConnection.clientVersionGranted) {
+            form.setFieldColor(ClientConnection.ATTR_INFO, this.colorData.color2);
         }
     }
 
