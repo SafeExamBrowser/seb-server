@@ -286,6 +286,10 @@ public class UserAccountForm implements TemplateComposer {
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> !readonly)
 
+                .newAction(ActionDefinition.USER_ACCOUNT_CHANGE_PASSWORD)
+                .withEntityKey(entityKey)
+                .publishIf(() -> modifyGrant && !readonly && institutionActive && userAccount.isActive())
+
                 .newAction(ActionDefinition.USER_ACCOUNT_SAVE_AND_ACTIVATE)
                 .withEntityKey(entityKey)
                 .withExec(formHandle::saveAndActivate)
