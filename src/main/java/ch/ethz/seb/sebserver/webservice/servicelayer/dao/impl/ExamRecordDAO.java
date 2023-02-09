@@ -183,6 +183,13 @@ public class ExamRecordDAO {
                             ExamRecordDynamicSqlSupport.type,
                             isEqualToWhenPresent(filterMap.getExamType()));
 
+            // SEBSERV-298
+            if (filterMap.getBoolean(Exam.FILTER_ATTR_HIDE_MISSING)) {
+                whereClause = whereClause.and(
+                        ExamRecordDynamicSqlSupport.lmsAvailable,
+                        SqlBuilder.isGreaterThan(0));
+            }
+
             final String examStatus = filterMap.getExamStatus();
             if (StringUtils.isNotBlank(examStatus)) {
                 whereClause = whereClause

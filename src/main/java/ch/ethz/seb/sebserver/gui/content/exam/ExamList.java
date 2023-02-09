@@ -243,6 +243,29 @@ public class ExamList implements TemplateComposer {
                         EMPTY_SELECTION_TEXT_KEY)
                 .publishIf(() -> userGrant.im(), false);
 
+        actionBuilder
+                .newAction(ActionDefinition.EXAM_LIST_HIDE_MISSING)
+                .withExec(action -> hideMissingExams(action, table))
+                .noEventPropagation()
+                .withSwitchAction(
+                        actionBuilder.newAction(ActionDefinition.EXAM_LIST_SHOW_MISSING)
+                                .withExec(action -> showMissingExams(action, table))
+                                .noEventPropagation()
+                                .create())
+                .publish();
+
+    }
+
+    private PageAction showMissingExams(final PageAction action, final EntityTable<Exam> table) {
+        table.setStaticFilter(Exam.FILTER_ATTR_HIDE_MISSING, Constants.FALSE_STRING);
+        table.applyFilter();
+        return action;
+    }
+
+    private PageAction hideMissingExams(final PageAction action, final EntityTable<Exam> table) {
+        table.setStaticFilter(Exam.FILTER_ATTR_HIDE_MISSING, Constants.TRUE_STRING);
+        table.applyFilter();
+        return action;
     }
 
     static PageAction modifyExam(final PageAction action, final EntityTable<Exam> table) {

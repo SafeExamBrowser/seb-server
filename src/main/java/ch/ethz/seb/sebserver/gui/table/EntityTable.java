@@ -254,6 +254,10 @@ public class EntityTable<ROW extends ModelIdAware> {
         return this.sortOrder;
     }
 
+    public void setStaticFilter(final String name, final String value) {
+        this.staticQueryParams.set(name, value);
+    }
+
     public EntityType getEntityType() {
         if (this.pageSupplier != null) {
             return this.pageSupplier.getEntityType();

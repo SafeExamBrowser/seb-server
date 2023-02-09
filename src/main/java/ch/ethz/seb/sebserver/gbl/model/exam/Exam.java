@@ -61,6 +61,7 @@ public final class Exam implements GrantEntity {
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_STATUS = "status";
     public static final String FILTER_CACHED_QUIZZES = "cached-quizzes";
+    public static final String FILTER_ATTR_HIDE_MISSING = "show-missing";
 
     public static final String ATTR_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
 

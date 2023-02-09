@@ -265,7 +265,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
         filterMap
                 .putIfAbsent(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
-                .putIfAbsent(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name());
+                .putIfAbsent(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name())
+                .putIfAbsent(Exam.FILTER_ATTR_HIDE_MISSING, Constants.TRUE_STRING);
 
         return this.examDAO.allMatching(filterMap, predicate)
                 .map(col -> col.stream()

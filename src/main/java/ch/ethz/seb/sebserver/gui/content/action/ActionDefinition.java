@@ -297,6 +297,17 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.FORM),
 
+    EXAM_LIST_HIDE_MISSING(
+            new LocTextKey("sebserver.exam.action.list.hide.missing"),
+            ImageIcon.TOGGLE_OFF,
+            PageStateDefinitionImpl.EXAM_LIST,
+            ActionCategory.EXAM_LIST),
+    EXAM_LIST_SHOW_MISSING(
+            new LocTextKey("sebserver.exam.action.list.show.missing"),
+            ImageIcon.TOGGLE_ON,
+            PageStateDefinitionImpl.EXAM_LIST,
+            ActionCategory.EXAM_LIST),
+
     EXAM_MODIFY_SEB_RESTRICTION_DETAILS(
             new LocTextKey("sebserver.exam.action.sebrestriction.details"),
             ImageIcon.RESTRICTION,
@@ -956,6 +967,7 @@ public enum ActionDefinition {
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.STATE_FILTER),
+
     MONITOR_EXAM_HIDE_CLOSED_CONNECTION(
             new LocTextKey("sebserver.monitoring.exam.connection.action.hide.closed"),
             ImageIcon.TOGGLE_OFF,
