@@ -157,7 +157,7 @@ public class ZoomProctoringService implements ExamProctoringService {
             final AuthorizationService authorizationService,
             final SEBClientInstructionService sebInstructionService,
             @Value("${sebserver.webservice.proctoring.enableWaitingRoom:false}") final boolean enableWaitingRoom,
-            @Value("${sebserver.webservice.proctoring.sendRejoinForCollectingRoom:true}") final boolean sendRejoinForCollectingRoom) {
+            @Value("${sebserver.webservice.proctoring.sendRejoinForCollectingRoom:false}") final boolean sendRejoinForCollectingRoom) {
 
         this.examSessionService = examSessionService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
