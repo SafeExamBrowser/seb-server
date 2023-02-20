@@ -663,7 +663,6 @@ public class ZoomProctoringService implements ExamProctoringService {
 
     private long expiryTimeforExam(final ProctoringServiceSettings examProctoring) {
 
-        // NOTE: following is the original code that includes the exam end time but seems to make trouble for OLAT
         final long nowInSeconds = Utils.getSecondsNow();
         final long nowPlusOneDayInSeconds = nowInSeconds + Utils.toSeconds(Constants.DAY_IN_MILLIS);
 
