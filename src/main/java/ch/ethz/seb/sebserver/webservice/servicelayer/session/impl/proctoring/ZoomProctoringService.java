@@ -146,6 +146,7 @@ public class ZoomProctoringService implements ExamProctoringService {
     private final SEBClientInstructionService sebInstructionService;
     private final boolean enableWaitingRoom;
     private final boolean sendRejoinForCollectingRoom;
+    private final int tokenExpirySeconds;
 
     public ZoomProctoringService(
             final ExamSessionService examSessionService,
@@ -157,7 +158,8 @@ public class ZoomProctoringService implements ExamProctoringService {
             final AuthorizationService authorizationService,
             final SEBClientInstructionService sebInstructionService,
             @Value("${sebserver.webservice.proctoring.enableWaitingRoom:false}") final boolean enableWaitingRoom,
-            @Value("${sebserver.webservice.proctoring.sendRejoinForCollectingRoom:false}") final boolean sendRejoinForCollectingRoom) {
+            @Value("${sebserver.webservice.proctoring.sendRejoinForCollectingRoom:false}") final boolean sendRejoinForCollectingRoom,
+            @Value("${sebserver.webservice.proctoring.zoom.tokenexpiry.seconds:86400}") final int tokenExpirySeconds) {
 
         this.examSessionService = examSessionService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
@@ -169,6 +171,7 @@ public class ZoomProctoringService implements ExamProctoringService {
         this.sebInstructionService = sebInstructionService;
         this.enableWaitingRoom = enableWaitingRoom;
         this.sendRejoinForCollectingRoom = sendRejoinForCollectingRoom;
+        this.tokenExpirySeconds = tokenExpirySeconds;
     }
 
     @Override
@@ -664,7 +667,7 @@ public class ZoomProctoringService implements ExamProctoringService {
     private long expiryTimeforExam(final ProctoringServiceSettings examProctoring) {
 
         final long nowInSeconds = Utils.getSecondsNow();
-        final long nowPlusOneDayInSeconds = nowInSeconds + Utils.toSeconds(Constants.DAY_IN_MILLIS);
+        final long nowPlusOneDayInSeconds = nowInSeconds + this.tokenExpirySeconds;
 
         // NOTE: It seems that since the update of web sdk to SDKToken to 1.7.0, the max is new + one day
         return nowPlusOneDayInSeconds - 10;
@@ -707,7 +710,7 @@ public class ZoomProctoringService implements ExamProctoringService {
             log.info("Create new OAuthZoomRestTemplate for settings: {}", proctoringSettings);
             return new OAuthZoomRestTemplate(this, proctoringSettings);
         } else {
-            log.info("Create new JWTZoomRestTemplate for settings: {}", proctoringSettings);
+            log.warn("Create new JWTZoomRestTemplate for settings: {}", proctoringSettings);
             return new JWTZoomRestTemplate(this, proctoringSettings);
         }
     }
