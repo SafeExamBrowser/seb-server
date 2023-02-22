@@ -179,12 +179,12 @@ public class ClientConnectionDetails implements MonitoringEntry {
 
     @Override
     public boolean grantChecked() {
-        return this.grantChecked;
+        return !this.checkSecurityGrant || this.grantChecked;
     }
 
     @Override
     public boolean grantDenied() {
-        return this.grantDenied;
+        return this.checkSecurityGrant && this.grantDenied;
     }
 
     @Override
