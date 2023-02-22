@@ -14,7 +14,6 @@ import org.eclipse.swt.widgets.Display;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 public class ColorData {
@@ -45,15 +44,11 @@ public class ColorData {
             case CONNECTION_REQUESTED:
             case AUTHENTICATED:
             case ACTIVE: {
-                final int incidentFlag = entry.incidentFlag();
-                if (incidentFlag > 0) {
-                    if ((incidentFlag & ClientMonitoringDataView.FLAG_GRANT_DENIED) > 0) {
-                        return this.color3;
-                    }
-                    if ((incidentFlag & (ClientMonitoringDataView.FLAG_GRANT_NOT_CHECKED
-                            | ClientMonitoringDataView.FLAG_MISSING_PING)) > 0) {
-                        return this.color2;
-                    }
+                if (entry.grantDenied()) {
+                    return this.color3;
+                }
+                if (!entry.grantChecked() || entry.hasMissingPing()) {
+                    return this.color2;
                 }
                 return this.color1;
             }
@@ -80,8 +75,9 @@ public class ColorData {
                 return 1;
             }
             case ACTIVE: {
-                if (entry.incidentFlag() > 0) {
-                    return -1;
+                final int incidentFlag = entry.incidentFlag();
+                if (incidentFlag > 0) {
+                    return -incidentFlag;
                 }
                 return 2;
             }
