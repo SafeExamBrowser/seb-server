@@ -76,7 +76,6 @@ public class ExamConfigResetToTemplate implements BatchActionExec {
                     return node;
                 })
                 .map(Entity::getEntityKey);
-
     }
 
     private ConfigurationNode checkConsistency(final ConfigurationNode configurationNode) {

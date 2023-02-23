@@ -69,7 +69,6 @@ public class SEBExamConfigBatchResetToTemplatePopup extends AbstractBatchActionW
     protected Supplier<PageContext> createResultPageSupplier(
             final PageContext pageContext,
             final FormHandle<ConfigurationNode> formHandle) {
-
         // No specific fields for this action
         return () -> pageContext;
     }
@@ -78,7 +77,6 @@ public class SEBExamConfigBatchResetToTemplatePopup extends AbstractBatchActionW
     protected void extendBatchActionRequest(
             final PageContext pageContext,
             final RestCall<BatchAction>.RestCallBuilder batchActionRequestBuilder) {
-
         // Nothing to do here
     }
 
@@ -87,7 +85,6 @@ public class SEBExamConfigBatchResetToTemplatePopup extends AbstractBatchActionW
             final PageContext formContext,
             final FormBuilder formHead,
             final boolean readonly) {
-
         // No specific fields for this action
         return formHead;
     }

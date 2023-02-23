@@ -161,6 +161,13 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
     }
 
     @Override
+    @Transactional
+    public <E extends Entity> Result<E> logArchive(final E entity) {
+        return log(UserLogActivityType.ARCHIVE, entity);
+    }
+
+    @Override
+    @Transactional
     public <E extends Entity> Result<E> logFinished(final E entity) {
         return log(UserLogActivityType.FINISHED, entity);
     }
@@ -244,7 +251,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
         try {
             log(
-                    this.userService.getCurrentUser(),
+                    this.userService.getCurrentUser().getUserInfo().uuid,
                     activityType,
                     entityType,
                     entityId,
@@ -272,7 +279,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
         return Result.tryCatch(() -> {
             log(
-                    this.userService.getCurrentUser(),
+                    this.userService.getCurrentUser().getUserInfo().uuid,
                     activityType,
                     entityType,
                     entityId,
@@ -295,7 +302,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                 _message = "Entity details: " + entity;
             }
 
-            log(user, activityType, entity.entityType(), entity.getModelId(), _message);
+            log(user.getUserInfo().uuid, activityType, entity.entityType(), entity.getModelId(), _message);
             return entity;
         })
                 .onError(TransactionHandler::rollback)
@@ -308,8 +315,35 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                         t));
     }
 
+    @Override
+    @Transactional
+    public <E extends Entity> Result<E> log(
+            final String userUUID,
+            final UserLogActivityType activityType,
+            final E entity,
+            final String message) {
+
+        return Result.tryCatch(() -> {
+            String _message = message;
+            if (message == null) {
+                _message = "Entity details: " + entity;
+            }
+
+            log(userUUID, activityType, entity.entityType(), entity.getModelId(), _message);
+            return entity;
+        })
+                .onError(TransactionHandler::rollback)
+                .onError(t -> log.error(
+                        "Unexpected error while trying to log user activity for user {}, action-type: {} entity-type: {} entity-id: {}",
+                        userUUID,
+                        activityType,
+                        entity.entityType().name(),
+                        entity.getModelId(),
+                        t));
+    }
+
     private void log(
-            final SEBServerUser user,
+            final String userUUID,
             final UserLogActivityType activityType,
             final EntityType entityType,
             final String entityId,
@@ -317,7 +351,7 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
         this.userLogRecordMapper.insertSelective(new UserActivityLogRecord(
                 null,
-                user.getUserInfo().uuid,
+                userUUID,
                 System.currentTimeMillis(),
                 activityType.name(),
                 entityType.name(),

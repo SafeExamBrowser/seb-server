@@ -78,6 +78,12 @@ public interface UserActivityLogDAO extends
      * @return Result of the Entity or referring to an Error if happened */
     <E extends Entity> Result<E> logModify(E entity);
 
+    /** Create a user activity log entry for the current user of activity type ARCHIVE
+     *
+     * @param entity the Entity
+     * @return Result of the Entity or referring to an Error if happened */
+    <E extends Entity> Result<E> logArchive(E entity);
+
     /** Create a user activity log entry for the current user of activity type FINISHED
      *
      * @param entity the Entity
@@ -142,6 +148,19 @@ public interface UserActivityLogDAO extends
      * @return Result of the Entity or referring to an Error if happened */
     <E extends Entity> Result<E> log(
             SEBServerUser user,
+            UserLogActivityType activityType,
+            E entity,
+            String message);
+
+    /** Creates a user activity log entry.
+     *
+     * @param userUUID The User UUID
+     * @param activityType the activity type
+     * @param entity the Entity
+     * @param message an optional message
+     * @return Result of the Entity or referring to an Error if happened */
+    <E extends Entity> Result<E> log(
+            String userUUID,
             UserLogActivityType activityType,
             E entity,
             String message);

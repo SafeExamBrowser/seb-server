@@ -98,12 +98,19 @@ public class ExamList implements TemplateComposer {
     private final ResourceService resourceService;
     private final int pageSize;
 
+    private final ExamBatchArchivePopup examBatchArchivePopup;
+    private final ExamBatchDeletePopup examBatchDeletePopup;
+
     protected ExamList(
             final PageService pageService,
+            final ExamBatchArchivePopup examBatchArchivePopup,
+            final ExamBatchDeletePopup examBatchDeletePopup,
             @Value("${sebserver.gui.list.page.size:20}") final Integer pageSize) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
+        this.examBatchArchivePopup = examBatchArchivePopup;
+        this.examBatchDeletePopup = examBatchDeletePopup;
         this.pageSize = pageSize;
 
         this.institutionFilter = new TableFilterAttribute(
@@ -156,6 +163,7 @@ public class ExamList implements TemplateComposer {
         // table
         final EntityTable<Exam> table =
                 this.pageService.entityTableBuilder(restService.getRestCall(GetExamPage.class))
+                        .withMultiSelection()
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
                         .withRowDecorator(decorateOnExamConsistency(this.pageService))
@@ -224,7 +232,9 @@ public class ExamList implements TemplateComposer {
                         .withSelectionListener(this.pageService.getSelectionPublisher(
                                 pageContext,
                                 ActionDefinition.EXAM_VIEW_FROM_LIST,
-                                ActionDefinition.EXAM_MODIFY_FROM_LIST))
+                                ActionDefinition.EXAM_MODIFY_FROM_LIST,
+                                ActionDefinition.EXAM_LIST_BULK_ARCHIVE,
+                                ActionDefinition.EXAM_LIST_BULK_DELETE))
 
                         .compose(pageContext.copyOf(content));
 
@@ -241,7 +251,23 @@ public class ExamList implements TemplateComposer {
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         action -> modifyExam(action, table),
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> userGrant.im(), false);
+                .publishIf(() -> userGrant.im(), false)
+
+                .newAction(ActionDefinition.EXAM_LIST_BULK_ARCHIVE)
+                .withSelect(
+                        table::getMultiSelection,
+                        this.examBatchArchivePopup.popupCreationFunction(pageContext),
+                        EMPTY_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(() -> userGrant.im(), false)
+
+                .newAction(ActionDefinition.EXAM_LIST_BULK_DELETE)
+                .withSelect(
+                        table::getMultiSelection,
+                        this.examBatchDeletePopup.popupCreationFunction(pageContext),
+                        EMPTY_SELECTION_TEXT_KEY)
+                .noEventPropagation()
+                .publishIf(() -> userGrant.iw(), false);
 
         actionBuilder
                 .newAction(ActionDefinition.EXAM_LIST_HIDE_MISSING)
@@ -322,7 +348,7 @@ public class ExamList implements TemplateComposer {
                 });
     }
 
-    private static Function<Exam, String> examLmsSetupNameFunction(final ResourceService resourceService) {
+    public static Function<Exam, String> examLmsSetupNameFunction(final ResourceService resourceService) {
         return exam -> resourceService.getLmsSetupNameFunction()
                 .apply(String.valueOf(exam.lmsSetupId));
     }

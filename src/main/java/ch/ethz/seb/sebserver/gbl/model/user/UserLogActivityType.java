@@ -21,5 +21,6 @@ public enum UserLogActivityType {
     FINISHED,
     DELETE,
     LOGIN,
-    LOGOUT
+    LOGOUT,
+    ARCHIVE
 }

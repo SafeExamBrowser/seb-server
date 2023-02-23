@@ -20,7 +20,9 @@ public final class API {
 
     public enum BatchActionType {
         EXAM_CONFIG_STATE_CHANGE(EntityType.CONFIGURATION_NODE),
-        EXAM_CONFIG_REST_TEMPLATE_SETTINGS(EntityType.CONFIGURATION_NODE);
+        EXAM_CONFIG_REST_TEMPLATE_SETTINGS(EntityType.CONFIGURATION_NODE),
+        ARCHIVE_EXAM(EntityType.EXAM),
+        DELETE_EXAM(EntityType.EXAM);
 
         public final EntityType entityType;
 

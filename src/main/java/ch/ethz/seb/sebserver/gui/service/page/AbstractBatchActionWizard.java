@@ -84,6 +84,12 @@ public abstract class AbstractBatchActionWizard {
             final FormBuilder formHead,
             final boolean readonly);
 
+    protected void applySelectionList(
+            final PageContext formContext,
+            final Set<EntityKey> multiSelection) {
+
+    }
+
     public Function<PageAction, PageAction> popupCreationFunction(final PageContext pageContext) {
 
         return action -> {
@@ -134,6 +140,8 @@ public abstract class AbstractBatchActionWizard {
                 multiSelection,
                 false)
                         .build();
+
+        applySelectionList(formContext, multiSelection);
 
         return createResultPageSupplier(pageContext, formHandle);
     }

@@ -307,6 +307,16 @@ public enum ActionDefinition {
             ImageIcon.TOGGLE_ON,
             PageStateDefinitionImpl.EXAM_LIST,
             ActionCategory.EXAM_LIST),
+    EXAM_LIST_BULK_ARCHIVE(
+            new LocTextKey("sebserver.exam.list.action.archive"),
+            ImageIcon.ARCHIVE,
+            PageStateDefinitionImpl.EXAM_LIST,
+            ActionCategory.EXAM_LIST),
+    EXAM_LIST_BULK_DELETE(
+            new LocTextKey("sebserver.exam.list.action.delete"),
+            ImageIcon.DELETE,
+            PageStateDefinitionImpl.EXAM_LIST,
+            ActionCategory.EXAM_LIST),
 
     EXAM_MODIFY_SEB_RESTRICTION_DETAILS(
             new LocTextKey("sebserver.exam.action.sebrestriction.details"),
@@ -683,7 +693,6 @@ public enum ActionDefinition {
             ImageIcon.SWITCH,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_LIST,
             ActionCategory.SEB_EXAM_CONFIG_LIST),
-
     SEB_EXAM_CONFIG_BULK_RESET_TO_TEMPLATE(
             new LocTextKey("sebserver.examconfig.list.action.reset"),
             ImageIcon.EXPORT,
