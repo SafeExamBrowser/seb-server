@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -112,6 +113,13 @@ public class SEBExamConfigBatchStateChangePopup extends AbstractBatchActionWizar
         }
 
         batchActionRequestBuilder.withFormParam(BatchAction.ACTION_ATTRIBUT_TARGET_STATE, targetStateName);
+    }
+
+    @Override
+    protected void processUpdateListAction(final PageContext formContext) {
+        this.pageService.executePageAction(this.pageService.pageActionBuilder(formContext)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_LIST)
+                .create());
     }
 
 }

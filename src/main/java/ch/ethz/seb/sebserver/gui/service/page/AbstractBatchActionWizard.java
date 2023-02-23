@@ -24,7 +24,6 @@ import ch.ethz.seb.sebserver.gbl.model.Domain.BATCH_ACTION;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.Form;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
@@ -84,10 +83,11 @@ public abstract class AbstractBatchActionWizard {
             final FormBuilder formHead,
             final boolean readonly);
 
+    protected abstract void processUpdateListAction(final PageContext formContext);
+
     protected void applySelectionList(
             final PageContext formContext,
             final Set<EntityKey> multiSelection) {
-
     }
 
     public Function<PageAction, PageAction> popupCreationFunction(final PageContext pageContext) {
@@ -227,9 +227,7 @@ public abstract class AbstractBatchActionWizard {
 
         formContext.getParent().layout(true, true);
 
-        this.pageService.executePageAction(this.pageService.pageActionBuilder(formContext)
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_LIST)
-                .create());
+        processUpdateListAction(formContext);
     }
 
     protected FormBuilder getFormHeadBuilder(

@@ -17,6 +17,7 @@ import ch.ethz.seb.sebserver.gbl.api.API.BatchActionType;
 import ch.ethz.seb.sebserver.gbl.model.BatchAction;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
@@ -87,6 +88,13 @@ public class SEBExamConfigBatchResetToTemplatePopup extends AbstractBatchActionW
             final boolean readonly) {
         // No specific fields for this action
         return formHead;
+    }
+
+    @Override
+    protected void processUpdateListAction(final PageContext formContext) {
+        this.pageService.executePageAction(this.pageService.pageActionBuilder(formContext)
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_LIST)
+                .create());
     }
 
 }

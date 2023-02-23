@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
 import ch.ethz.seb.sebserver.gui.form.FormHandle;
 import ch.ethz.seb.sebserver.gui.service.ResourceService;
@@ -102,6 +103,13 @@ public class ExamBatchArchivePopup extends AbstractBatchActionWizard {
 
         // No specific fields for this action
         return formHead;
+    }
+
+    @Override
+    protected void processUpdateListAction(final PageContext formContext) {
+        this.pageService.executePageAction(this.pageService.pageActionBuilder(formContext)
+                .newAction(ActionDefinition.EXAM_VIEW_LIST)
+                .create());
     }
 
     @Override
