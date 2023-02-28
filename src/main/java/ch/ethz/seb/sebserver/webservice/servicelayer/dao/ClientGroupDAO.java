@@ -13,6 +13,7 @@ import java.util.Collection;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
@@ -39,5 +40,11 @@ public interface ClientGroupDAO extends EntityDAO<ClientGroup, ClientGroup>, Bul
     default void evictCacheForExam(final Long examId) {
         // just evict the cache
     }
+
+    /** Delete all client groups for a particular exam.
+     *
+     * @param examId the exam identifier
+     * @return Result refer to the list of deleted client groups or to an error when happened */
+    Result<Collection<EntityKey>> deleteAllForExam(Long examId);
 
 }

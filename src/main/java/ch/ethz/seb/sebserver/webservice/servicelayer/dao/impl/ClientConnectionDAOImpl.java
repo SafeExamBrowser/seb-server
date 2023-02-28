@@ -568,52 +568,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
             ids.stream().forEach(this::clearConnecionTokenCache);
 
-            // delete all related client indicators
-            this.clientIndicatorRecordMapper.deleteByExample()
-                    .where(
-                            ClientIndicatorRecordDynamicSqlSupport.clientConnectionId,
-                            SqlBuilder.isIn(ids))
-                    .build()
-                    .execute();
+            deleteAllRelations(ids);
 
-            // delete all related client events
-            this.clientEventRecordMapper.deleteByExample()
-                    .where(
-                            ClientEventRecordDynamicSqlSupport.clientConnectionId,
-                            SqlBuilder.isIn(ids))
-                    .build()
-                    .execute();
-
-            // delete all related client notifications
-            this.clientNotificationRecordMapper.deleteByExample()
-                    .where(
-                            ClientNotificationRecordDynamicSqlSupport.clientConnectionId,
-                            SqlBuilder.isIn(ids))
-                    .build()
-                    .execute();
-
-            // then delete all related client instructions
-            final List<String> connectionTokens = this.clientConnectionRecordMapper.selectByExample()
-                    .where(
-                            ClientConnectionRecordDynamicSqlSupport.id,
-                            SqlBuilder.isIn(ids))
-                    .build()
-                    .execute()
-                    .stream()
-                    .map(r -> r.getConnectionToken())
-                    .collect(Collectors.toList());
-
-            if (connectionTokens != null && !connectionTokens.isEmpty()) {
-
-                this.clientInstructionRecordMapper.deleteByExample()
-                        .where(
-                                ClientInstructionRecordDynamicSqlSupport.connectionToken,
-                                SqlBuilder.isIn(connectionTokens))
-                        .build()
-                        .execute();
-            }
-
-            // then delete all requested client-connections
             this.clientConnectionRecordMapper.deleteByExample()
                     .where(
                             ClientConnectionRecordDynamicSqlSupport.id,
@@ -882,6 +838,36 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .execute());
     }
 
+    @Override
+    @Transactional
+    public Result<Collection<EntityKey>> deleteAllForExam(final Long examId) {
+        return Result.<Collection<EntityKey>> tryCatch(() -> {
+
+            final List<Long> ids = this.clientConnectionRecordMapper.selectIdsByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                    .build()
+                    .execute();
+
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            deleteAllRelations(ids);
+
+            this.clientConnectionRecordMapper.deleteByExample()
+                    .where(
+                            ClientConnectionRecordDynamicSqlSupport.id,
+                            SqlBuilder.isIn(ids))
+                    .build()
+                    .execute();
+
+            return ids.stream()
+                    .map(id -> new EntityKey(id, EntityType.CLIENT_CONNECTION))
+                    .collect(Collectors.toList());
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
     private Result<ClientConnectionRecord> recordById(final Long id) {
         return Result.tryCatch(() -> {
 
@@ -1023,6 +1009,53 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         }
 
         return id;
+    }
+
+    private void deleteAllRelations(final List<Long> ids) {
+        // delete all related client indicators
+        this.clientIndicatorRecordMapper.deleteByExample()
+                .where(
+                        ClientIndicatorRecordDynamicSqlSupport.clientConnectionId,
+                        SqlBuilder.isIn(ids))
+                .build()
+                .execute();
+
+        // delete all related client events
+        this.clientEventRecordMapper.deleteByExample()
+                .where(
+                        ClientEventRecordDynamicSqlSupport.clientConnectionId,
+                        SqlBuilder.isIn(ids))
+                .build()
+                .execute();
+
+        // delete all related client notifications
+        this.clientNotificationRecordMapper.deleteByExample()
+                .where(
+                        ClientNotificationRecordDynamicSqlSupport.clientConnectionId,
+                        SqlBuilder.isIn(ids))
+                .build()
+                .execute();
+
+        // then delete all related client instructions
+        final List<String> connectionTokens = this.clientConnectionRecordMapper.selectByExample()
+                .where(
+                        ClientConnectionRecordDynamicSqlSupport.id,
+                        SqlBuilder.isIn(ids))
+                .build()
+                .execute()
+                .stream()
+                .map(r -> r.getConnectionToken())
+                .collect(Collectors.toList());
+
+        if (connectionTokens != null && !connectionTokens.isEmpty()) {
+
+            this.clientInstructionRecordMapper.deleteByExample()
+                    .where(
+                            ClientInstructionRecordDynamicSqlSupport.connectionToken,
+                            SqlBuilder.isIn(connectionTokens))
+                    .build()
+                    .execute();
+        }
     }
 
 }

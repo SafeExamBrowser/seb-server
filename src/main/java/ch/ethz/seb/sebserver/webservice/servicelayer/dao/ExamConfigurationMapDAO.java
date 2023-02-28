@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamConfigurationMap;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
@@ -75,5 +76,11 @@ public interface ExamConfigurationMapDAO extends
      * @return Result refer to true if config has no relations to active exams, or false of it has or refer to an error
      *         if happened */
     Result<Boolean> checkNoActiveExamReferences(Long configurationNodeId);
+
+    /** Delete all configuration mappings for a particular exam.
+     *
+     * @param examId the exam identifier
+     * @return Result refer to the list of deleted configuration mappings or to an error when happened */
+    Result<Collection<EntityKey>> deleteAllForExam(Long examId);
 
 }

@@ -270,6 +270,40 @@ public class IndicatorDAOImpl implements IndicatorDAO {
         return getDependencies(bulkAction, selectionFunction);
     }
 
+    @Override
+    @Transactional
+    public Result<Collection<EntityKey>> deleteAllForExam(final Long examId) {
+        return Result.<Collection<EntityKey>> tryCatch(() -> {
+
+            final List<Long> ids = this.indicatorRecordMapper.selectIdsByExample()
+                    .where(IndicatorRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                    .build()
+                    .execute();
+
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            // first delete all thresholds of indicators
+            this.thresholdRecordMapper.deleteByExample()
+                    .where(ThresholdRecordDynamicSqlSupport.indicatorId, isIn(ids))
+                    .build()
+                    .execute();
+
+            // then delete all indicators
+            this.indicatorRecordMapper.deleteByExample()
+                    .where(IndicatorRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
+            return ids.stream()
+                    .map(id -> new EntityKey(id, EntityType.INDICATOR))
+                    .collect(Collectors.toList());
+
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
     private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
         return Result.tryCatch(() -> this.indicatorRecordMapper.selectByExample()
                 .leftJoin(ExamRecordDynamicSqlSupport.examRecord)

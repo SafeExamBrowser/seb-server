@@ -394,6 +394,44 @@ public class ExamConfigurationMapDAOImpl implements ExamConfigurationMapDAO {
                 .isPresent());
     }
 
+    @Override
+    @Transactional
+    public Result<Collection<EntityKey>> deleteAllForExam(final Long examId) {
+        return Result.<Collection<EntityKey>> tryCatch(() -> {
+
+            final List<Long> ids = this.examConfigurationMapRecordMapper.selectIdsByExample()
+                    .where(ExamConfigurationMapRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                    .build()
+                    .execute();
+
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            // get all involved configurations
+            final List<Long> configIds = this.examConfigurationMapRecordMapper.selectByExample()
+                    .where(ExamConfigurationMapRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(rec -> rec.getConfigurationNodeId())
+                    .collect(Collectors.toList());
+
+            this.examConfigurationMapRecordMapper.deleteByExample()
+                    .where(ExamConfigurationMapRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
+            updateConfigurationStates(configIds)
+                    .onError(error -> log.error("Unexpected error while update exam configuration state: ", error));
+
+            return ids.stream()
+                    .map(id -> new EntityKey(id, EntityType.EXAM_CONFIGURATION_MAP))
+                    .collect(Collectors.toList());
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
     private boolean isExamActive(final Long examId) {
         try {
             final boolean active = this.examRecordMapper.countByExample()

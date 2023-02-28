@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionSupportDAO;
@@ -22,5 +23,11 @@ public interface IndicatorDAO extends EntityDAO<Indicator, Indicator>, BulkActio
      * @param examId the Exam identifier to get the Indicators for
      * @return Result referring to the collection of Indicators of an Exam or to an error if happened */
     Result<Collection<Indicator>> allForExam(Long examId);
+
+    /** Delete all indicators for a particular exam.
+     *
+     * @param examId the exam identifier
+     * @return Result refer to the list of deleted indicators or to an error when happened */
+    Result<Collection<EntityKey>> deleteAllForExam(Long examId);
 
 }

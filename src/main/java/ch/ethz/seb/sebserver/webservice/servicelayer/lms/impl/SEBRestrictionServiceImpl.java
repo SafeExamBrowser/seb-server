@@ -38,6 +38,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
@@ -230,6 +231,26 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                         "Failed to release SEB restrictions for finished exam: {}",
                         event.exam,
                         error));
+    }
+
+    @EventListener(ExamDeletionEvent.class)
+    public void notifyExamDeletion(final ExamDeletionEvent event) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("ExamDeletionEvent received, process releaseSEBClientRestriction...");
+        }
+
+        event.ids.stream().forEach(examId -> {
+            this.examDAO
+                    .byPK(examId)
+                    .onSuccess(exam -> {
+                        releaseSEBClientRestriction(exam)
+                                .onError(error -> log.error(
+                                        "Failed to release SEB restrictions for finished exam: {}",
+                                        exam,
+                                        error));
+                    });
+        });
     }
 
     @Override

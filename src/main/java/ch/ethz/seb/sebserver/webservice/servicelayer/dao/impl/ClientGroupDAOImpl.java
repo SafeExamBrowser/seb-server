@@ -233,6 +233,35 @@ public class ClientGroupDAOImpl implements ClientGroupDAO {
         return getDependencies(bulkAction, selectionFunction);
     }
 
+    @Override
+    @Transactional
+    public Result<Collection<EntityKey>> deleteAllForExam(final Long examId) {
+        return Result.<Collection<EntityKey>> tryCatch(() -> {
+
+            final List<Long> ids = this.clientGroupRecordMapper.selectIdsByExample()
+                    .where(ClientGroupRecordDynamicSqlSupport.examId, isEqualTo(examId))
+                    .build()
+                    .execute();
+
+            if (ids == null || ids.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            // delete all client groups
+            this.clientGroupRecordMapper
+                    .deleteByExample()
+                    .where(ClientGroupRecordDynamicSqlSupport.id, isIn(ids))
+                    .build()
+                    .execute();
+
+            return ids.stream()
+                    .map(id -> new EntityKey(id, EntityType.CLIENT_GROUP))
+                    .collect(Collectors.toList());
+
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
     private Result<Collection<EntityDependency>> allIdsOfInstitution(final EntityKey institutionKey) {
         return Result.tryCatch(() -> this.clientGroupRecordMapper
                 .selectByExample()

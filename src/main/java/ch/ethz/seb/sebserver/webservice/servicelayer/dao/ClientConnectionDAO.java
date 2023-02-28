@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -211,5 +212,11 @@ public interface ClientConnectionDAO extends
      * @param checkStatus The status to save
      * @return Result refer to the given check status or to an error when happened */
     Result<Boolean> saveSEBClientVersionCheckStatus(Long connectionId, Boolean checkStatus);
+
+    /** Delete all client connections for a particular exam.
+     *
+     * @param examId the exam identifier
+     * @return Result refer to the list of deleted client connections or to an error when happened */
+    Result<Collection<EntityKey>> deleteAllForExam(Long examId);
 
 }

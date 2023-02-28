@@ -138,7 +138,7 @@ public abstract class AbstractBatchActionWizard {
                 pageService,
                 formContext,
                 multiSelection,
-                false)
+                false, false)
                         .build();
 
         applySelectionList(formContext, multiSelection);
@@ -181,7 +181,7 @@ public abstract class AbstractBatchActionWizard {
                     this.pageService,
                     formContext,
                     multiSelection,
-                    true)
+                    true, true)
                             .build();
 
             this.serverPushService.runServerPush(
@@ -234,7 +234,8 @@ public abstract class AbstractBatchActionWizard {
             final PageService pageService,
             final PageContext formContext,
             final Set<EntityKey> multiSelection,
-            final boolean readonly) {
+            final boolean readonly,
+            final boolean resultPage) {
 
         final FormBuilder formBuilder = pageService
                 .formBuilder(formContext)
@@ -245,7 +246,11 @@ public abstract class AbstractBatchActionWizard {
                         .readonly(true));
 
         buildSpecificFormFields(formContext, formBuilder, readonly);
-        return buildProgressFields(formBuilder, readonly);
+        if (resultPage) {
+            return buildProgressFields(formBuilder, readonly);
+        } else {
+            return formBuilder;
+        }
     }
 
     protected FormBuilder buildProgressFields(final FormBuilder formHead, final boolean readonly) {
