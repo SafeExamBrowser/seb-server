@@ -180,10 +180,14 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
         return Cryptor
                 .decrypt(appSignatureKey + salt, connectionToken)
                 .onErrorDo(error -> {
+
                     log.warn(
                             "Failed to decrypt ASK with added salt value. Try to decrypt without added salt. Error: {}",
                             error.getMessage());
-                    return Cryptor.decrypt(appSignatureKey, connectionToken).get();
+
+                    return Cryptor
+                            .decrypt(appSignatureKey, connectionToken)
+                            .getOrThrow();
                 })
                 .map(signature -> createSignatureHash(signature));
 
