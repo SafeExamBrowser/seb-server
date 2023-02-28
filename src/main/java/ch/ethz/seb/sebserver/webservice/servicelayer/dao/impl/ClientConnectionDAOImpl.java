@@ -821,7 +821,6 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.clientVersionGranted,
                         SqlBuilder.isNull())
-                .and(ClientConnectionRecordDynamicSqlSupport.ask, SqlBuilder.isNotNull())
                 .build()
                 .execute());
     }
