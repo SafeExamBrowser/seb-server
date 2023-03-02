@@ -178,17 +178,18 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
         // TODO if certificate encryption is available check if exam has defined certificate for decryption
 
         return Cryptor
-                .decrypt(appSignatureKey + salt, connectionToken)
-                .onErrorDo(error -> {
-
-                    log.warn(
-                            "Failed to decrypt ASK with added salt value. Try to decrypt without added salt. Error: {}",
-                            error.getMessage());
-
-                    return Cryptor
-                            .decrypt(appSignatureKey, connectionToken)
-                            .getOrThrow();
-                })
+                .decryptASK(appSignatureKey, connectionToken, salt)
+//                .decrypt(appSignatureKey + salt, connectionToken)
+//                .onErrorDo(error -> {
+//
+//                    log.warn(
+//                            "Failed to decrypt ASK with added salt value. Try to decrypt without added salt. Error: {}",
+//                            error.getMessage());
+//
+//                    return Cryptor
+//                            .decrypt(appSignatureKey, connectionToken)
+//                            .getOrThrow();
+//                })
                 .map(signature -> createSignatureHash(signature));
 
     }

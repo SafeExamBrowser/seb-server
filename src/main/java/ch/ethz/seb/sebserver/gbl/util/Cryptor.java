@@ -8,11 +8,20 @@
 
 package ch.ethz.seb.sebserver.gbl.util;
 
+import static org.springframework.security.crypto.util.EncodingUtils.subArray;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.bouncycastle.jcajce.provider.keystore.pkcs12.PKCS12KeyStoreSpi;
 import org.bouncycastle.jcajce.provider.keystore.pkcs12.PKCS12KeyStoreSpi.BCPKCS12KeyStore;
@@ -20,7 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
+import org.springframework.security.crypto.codec.Hex;
 import org.springframework.security.crypto.encrypt.Encryptors;
+import org.springframework.security.crypto.keygen.BytesKeyGenerator;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 
@@ -140,6 +151,34 @@ public class Cryptor {
             return Encryptors
                     .delux(secret, salt)
                     .decrypt(cipherText.toString());
+
+        });
+    }
+
+    public static Result<CharSequence> decryptASK(
+            final CharSequence cipherText,
+            final CharSequence secret,
+            final CharSequence salt) {
+
+        return Result.tryCatch(() -> {
+
+            final String AES_GCM_ALGORITHM = "AES/GCM/NoPadding";
+            final Cipher cipher = Cipher.getInstance(AES_GCM_ALGORITHM);
+            final BytesKeyGenerator ivGen = KeyGenerators.secureRandom(16);
+            final PBEKeySpec keySpec = new PBEKeySpec(Utils.toCharArray(secret), Hex.decode(salt), 1024, 256);
+            final SecretKey secretKey = new SecretKeySpec(
+                    SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1").generateSecret(keySpec).getEncoded(),
+                    "AES");
+
+            final byte[] plainCipherText = Hex.decode(cipherText);
+
+            // decrypt
+            final byte[] iv = subArray(plainCipherText, 0, ivGen.getKeyLength());
+            final GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(128, iv);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmParameterSpec);
+            final byte[] decrypted = cipher.doFinal(subArray(plainCipherText, iv.length, plainCipherText.length));
+
+            return new String(decrypted, "UTF-8");
 
         });
     }
