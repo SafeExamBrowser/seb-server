@@ -194,7 +194,7 @@ public abstract class MoodleUtils {
                     additionalAttrs.put(QuizData.ATTR_ADDITIONAL_TIME_LIMIT, String.valueOf(courseQuizData.time_limit));
                     return new QuizData(
                             MoodleUtils.getInternalQuizId(
-                                    courseQuizData.course_module,
+                                    courseQuizData.id,
                                     courseData.id,
                                     courseData.short_name,
                                     courseData.idnumber),
@@ -227,7 +227,7 @@ public abstract class MoodleUtils {
             final CourseData course = finalCourseDataRef.get(quiz.course);
             if (course != null) {
                 final String internalQuizId = MoodleUtils.getInternalQuizId(
-                        quiz.course_module,
+                        quiz.id,
                         course.id,
                         course.short_name,
                         course.idnumber);
