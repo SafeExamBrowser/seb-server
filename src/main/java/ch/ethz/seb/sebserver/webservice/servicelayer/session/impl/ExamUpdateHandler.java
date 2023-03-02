@@ -137,6 +137,7 @@ class ExamUpdateHandler {
 
                         try {
                             final Exam exam = exams.get(quiz.id);
+
                             if (hasChanges(exam, quiz)) {
 
                                 final Result<QuizData> updateQuizData = this.examDAO

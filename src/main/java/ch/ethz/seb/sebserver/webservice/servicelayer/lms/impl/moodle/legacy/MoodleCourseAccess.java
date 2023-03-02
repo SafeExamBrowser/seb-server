@@ -55,6 +55,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleRestT
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CoursePage;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseQuiz;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseQuizData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.Courses;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
@@ -262,7 +263,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                 courseData.values().stream()
                         .filter(c -> !c.quizzes.isEmpty())
                         .forEach(c -> asyncQuizFetchBuffer.buffer.addAll(
-                                MoodleUtils.quizDataOf(lmsSetup, c, urlPrefix, this.prependShortCourseName)
+                                MoodleUtils.quizDataOf(lmsSetup, c, urlPrefix, this.prependShortCourseName, false)
                                         .stream()
                                         .filter(LmsAPIService.quizFilterPredicate(filterMap))
                                         .collect(Collectors.toList())));
@@ -392,7 +393,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                             lmsSetup,
                             c,
                             urlPrefix,
-                            this.prependShortCourseName).stream())
+                            this.prependShortCourseName, false).stream())
                     .filter(q -> exam.name.contains(q.name))
                     .findFirst()
                     .get();
@@ -600,7 +601,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             final Map<String, CourseData> finalCourseDataRef = courseData;
             courseQuizData.quizzes
                     .stream()
-                    .forEach(quiz -> MoodleUtils.fillSelectedQuizzes(quizIds, finalCourseDataRef, quiz));
+                    .forEach(quiz -> fillSelectedQuizzes(quizIds, finalCourseDataRef, quiz));
 
             final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
                     ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
@@ -613,7 +614,8 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                             lmsSetup,
                             cd,
                             urlPrefix,
-                            this.prependShortCourseName).stream())
+                            this.prependShortCourseName,
+                            false).stream())
                     .collect(Collectors.toList());
 
         } catch (final Exception e) {
@@ -698,7 +700,7 @@ public class MoodleCourseAccess implements CourseAccessAPI {
         final String startURI = uriPrefix + courseQuizData.course_module;
         return new QuizData(
                 MoodleUtils.getInternalQuizId(
-                        courseQuizData.course_module,
+                        courseQuizData.course_module, // TODO this is wrong should be id. Create recovery task
                         courseData.id,
                         courseData.short_name,
                         courseData.idnumber),
@@ -717,6 +719,27 @@ public class MoodleCourseAccess implements CourseAccessAPI {
                         : Utils.toDateTimeUTCUnix(courseData.end_date),
                 startURI,
                 additionalAttrs);
+    }
+
+    private static final void fillSelectedQuizzes(
+            final Set<String> quizIds,
+            final Map<String, CourseData> finalCourseDataRef,
+            final CourseQuiz quiz) {
+        try {
+            final CourseData course = finalCourseDataRef.get(quiz.course);
+            if (course != null) {
+                final String internalQuizId = MoodleUtils.getInternalQuizId(
+                        quiz.course_module, // TODO this is wrong should be id. Create recovery task
+                        course.id,
+                        course.short_name,
+                        course.idnumber);
+                if (quizIds.contains(internalQuizId)) {
+                    course.quizzes.add(quiz);
+                }
+            }
+        } catch (final Exception e) {
+            log.error("Failed to verify selected quiz for course: {}", e.getMessage());
+        }
     }
 
     private Result<MoodleAPIRestTemplate> getRestTemplate() {

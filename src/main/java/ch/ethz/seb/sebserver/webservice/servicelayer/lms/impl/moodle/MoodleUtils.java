@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -178,6 +177,15 @@ public abstract class MoodleUtils {
             final CourseData courseData,
             final String uriPrefix,
             final boolean prependShortCourseName) {
+        return quizDataOf(lmsSetup, courseData, uriPrefix, prependShortCourseName, true);
+    }
+
+    public static List<QuizData> quizDataOf(
+            final LmsSetup lmsSetup,
+            final CourseData courseData,
+            final String uriPrefix,
+            final boolean prependShortCourseName,
+            final boolean useQuizId) {
 
         final Map<String, String> additionalAttrs = new HashMap<>();
         additionalAttrs.put(QuizData.ATTR_ADDITIONAL_CREATION_TIME, String.valueOf(courseData.time_created));
@@ -194,7 +202,7 @@ public abstract class MoodleUtils {
                     additionalAttrs.put(QuizData.ATTR_ADDITIONAL_TIME_LIMIT, String.valueOf(courseQuizData.time_limit));
                     return new QuizData(
                             MoodleUtils.getInternalQuizId(
-                                    courseQuizData.id,
+                                    (useQuizId) ? courseQuizData.id : courseQuizData.course_module,
                                     courseData.id,
                                     courseData.short_name,
                                     courseData.idnumber),
@@ -217,27 +225,6 @@ public abstract class MoodleUtils {
                 .collect(Collectors.toList());
 
         return courseAndQuiz;
-    }
-
-    public static final void fillSelectedQuizzes(
-            final Set<String> quizIds,
-            final Map<String, CourseData> finalCourseDataRef,
-            final CourseQuiz quiz) {
-        try {
-            final CourseData course = finalCourseDataRef.get(quiz.course);
-            if (course != null) {
-                final String internalQuizId = MoodleUtils.getInternalQuizId(
-                        quiz.id,
-                        course.id,
-                        course.short_name,
-                        course.idnumber);
-                if (quizIds.contains(internalQuizId)) {
-                    course.quizzes.add(quiz);
-                }
-            }
-        } catch (final Exception e) {
-            log.error("Failed to verify selected quiz for course: {}", e.getMessage());
-        }
     }
 
     // ---- Mapping Classes ---
