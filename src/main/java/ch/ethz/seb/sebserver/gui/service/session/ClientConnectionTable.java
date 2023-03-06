@@ -395,8 +395,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             final int pSize = this.tableProportions[0] +
                     this.tableProportions[1] +
                     this.tableProportions[2] +
-                    this.tableProportions[3] +
-                    (this.hasClientGroups ? this.tableProportions[4] : 0)
+                    (this.hasClientGroups ? this.tableProportions[3] : 0) +
+                    (this.hasClientGroups ? this.tableProportions[4] : this.tableProportions[3])
                             * this.indicatorMapping.size();
             final int columnUnitSize = (pSize > 0)
                     ? area.width / pSize
