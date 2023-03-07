@@ -52,7 +52,7 @@ jobs:
     steps:
     -
       name: Get short SHA
-      uses: benjlevesque/short-sha@v2
+      uses: benjlevesque/short-sha@v2.1
       id: short-sha
     -
       name: Store short SHA as environment variable
