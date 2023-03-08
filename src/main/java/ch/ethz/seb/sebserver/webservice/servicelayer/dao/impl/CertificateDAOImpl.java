@@ -12,10 +12,10 @@ import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigInteger;
 import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -232,6 +232,7 @@ public class CertificateDAOImpl implements CertificateDAO {
         try {
             final X500Name x500name = new JcaX509CertificateHolder(certificate).getSubject();
             final RDN cn = x500name.getRDNs(BCStyle.CN)[0];
+
             final String dn = IETFUtils.valueToString(cn.getFirst().getValue());
 
             if (StringUtils.isBlank(dn)) {
@@ -239,9 +240,24 @@ public class CertificateDAOImpl implements CertificateDAO {
             } else {
                 return dn.replace(" ", "_").toLowerCase(Locale.ENGLISH);
             }
-        } catch (final CertificateEncodingException e) {
-            log.warn("Error while trying to get alias from certificate subject name. Use serial number as alias");
-            return String.valueOf(certificate.getSerialNumber());
+        } catch (final Exception e) {
+            log.error("Error while trying to get alias from certificate subject name: {}", e.getMessage());
+            try {
+                final String name = certificate.getSubjectDN().getName();
+                if (StringUtils.isNotBlank(name)) {
+                    final String al = name.replace(" ", "").replace(",", "_").replace("=", "-");
+                    log.info("Certificate import: DN name as alias: {}", al);
+                    return al;
+                } else {
+                    final BigInteger serialNumber = certificate.getSerialNumber();
+                    log.info("Certificate import: Use serial number as alias: {}", serialNumber);
+                    return String.valueOf(serialNumber);
+                }
+            } catch (final Exception ee) {
+                final BigInteger serialNumber = certificate.getSerialNumber();
+                log.info("Certificate import: Use serial number as alias: {}", serialNumber);
+                return String.valueOf(serialNumber);
+            }
         }
     }
 
@@ -277,6 +293,8 @@ public class CertificateDAOImpl implements CertificateDAO {
             if (keyUsage[5]) {
                 result.add(CertificateType.KEY_CERT_SIGN);
             }
+        } else {
+            result.add(CertificateType.DIGITAL_SIGNATURE);
         }
 
         final String alias = certificates.keyStore.engineGetCertificateAlias(cert);
