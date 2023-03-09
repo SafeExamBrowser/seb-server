@@ -654,7 +654,7 @@ public class ResourceService {
                         return localizedNames.get(status) + grantMissingText;
                     }
                 } else if (monitoringEntry.grantDenied()) {
-                    return grantDeniedText;
+                    return localizedNames.get(status) + grantDeniedText;
                 }
             }
 

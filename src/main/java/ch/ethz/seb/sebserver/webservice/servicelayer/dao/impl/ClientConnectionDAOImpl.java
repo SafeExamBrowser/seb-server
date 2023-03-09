@@ -799,7 +799,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         SqlBuilder.isEqualTo(examId))
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.status,
-                        SqlBuilder.isIn(ClientConnection.SECURE_STATES))
+                        SqlBuilder.isIn(ClientConnection.SECURE_CHECK_STATES))
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.ask,
                         SqlBuilder.isEqualTo(signatureHash))

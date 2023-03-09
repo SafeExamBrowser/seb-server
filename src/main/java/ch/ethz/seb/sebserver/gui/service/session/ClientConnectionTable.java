@@ -577,6 +577,17 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             tableItem.setForeground(index, statusTextColor);
         }
 
+        private void updateIndicatorValues(final TableItem tableItem) {
+            if (this.monitoringData == null || this.indicatorWeights == null) {
+                return;
+            }
+
+            this.monitoringData.indicatorVals
+                    .entrySet()
+                    .stream()
+                    .forEach(indicatorUpdate(tableItem));
+        }
+
         private Consumer<Map.Entry<Long, String>> indicatorUpdate(final TableItem tableItem) {
             return entry -> {
                 final Long id = entry.getKey();
@@ -606,17 +617,6 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                     }
                 }
             };
-        }
-
-        private void updateIndicatorValues(final TableItem tableItem) {
-            if (this.monitoringData == null || this.indicatorWeights == null) {
-                return;
-            }
-
-            this.monitoringData.indicatorVals
-                    .entrySet()
-                    .stream()
-                    .forEach(indicatorUpdate(tableItem));
         }
 
         @Override
@@ -709,6 +709,9 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
             if (this.indicatorWeights == null) {
                 this.indicatorWeights = new int[ClientConnectionTable.this.indicatorMapping.size()];
+                for (int i = 0; i < this.indicatorWeights.length; i++) {
+                    this.indicatorWeights[i] = -1;
+                }
             }
             if (this.indicatorValueChanged) {
                 updateIndicatorWeight();
@@ -743,6 +746,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 final int indicatorWeight = IndicatorData.getWeight(
                         indicatorData,
                         IndicatorValue.getFromDisplayValue(displayValue));
+
                 if (this.indicatorWeights[indicatorData.index] != indicatorWeight) {
                     ClientConnectionTable.this.needsSort = true;
                     this.thresholdsWeight -= (indicatorData.indicator.type.inverse)
@@ -761,7 +765,6 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         private ClientConnectionTable getOuterType() {
             return ClientConnectionTable.this;
         }
-
     }
 
     private void fetchStaticClientConnectionData() {
