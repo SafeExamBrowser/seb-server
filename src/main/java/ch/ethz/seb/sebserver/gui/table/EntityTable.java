@@ -213,6 +213,11 @@ public class EntityTable<ROW extends ModelIdAware> {
                     if (selection != null) {
                         this.pageService.executePageAction(
                                 defaultAction.withEntityKey(selection));
+                    } else {
+                        final TableItem[] item = this.table.getSelection();
+                        if (item != null && item.length > 0) {
+                            this.pageService.executePageAction(defaultAction);
+                        }
                     }
                 });
             }
