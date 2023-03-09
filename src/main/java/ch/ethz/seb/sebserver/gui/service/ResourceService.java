@@ -645,13 +645,12 @@ public class ResourceService {
 
         return monitoringEntry -> {
             final ConnectionStatus status = monitoringEntry.getStatus();
-            if (status.establishedStatus) {
+            if (status.connectingStatus || status.establishedStatus) {
                 if (monitoringEntry.hasMissingPing()) {
                     return missingPing;
                 }
                 if (!monitoringEntry.grantChecked()) {
                     if (monitoringEntry.showNoGrantCheckApplied()) {
-
                         return localizedNames.get(status) + grantMissingText;
                     }
                 } else if (monitoringEntry.grantDenied()) {
