@@ -36,6 +36,7 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.Configuration;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationAttribute;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationStatus;
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode.ConfigurationType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -424,6 +425,11 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             if (existingNode.type != configurationNode.type) {
                 throw new APIConstraintViolationException(
                         "The Type of ConfigurationNode cannot change after creation");
+            }
+
+            if (configurationNode.type == ConfigurationType.TEMPLATE) {
+                // No configuration template specific checks for now
+                return configurationNode;
             }
 
             // if configuration is in use, "Ready to Use" is not possible

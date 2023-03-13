@@ -402,13 +402,13 @@ public class ConfigurationNodeDAOImpl implements ConfigurationNodeDAO {
                             isEqualTo(data.name))
                     .and(
                             ConfigurationNodeRecordDynamicSqlSupport.type,
-                            isNotEqualTo(data.type.name()))
+                            isEqualTo(data.type.name()))
                     .and(
                             ConfigurationNodeRecordDynamicSqlSupport.id,
                             isNotEqualTo(data.id))
                     .and(
                             ConfigurationNodeRecordDynamicSqlSupport.institutionId,
-                            isNotEqualTo(data.institutionId))
+                            isEqualTo(data.institutionId))
                     .build()
                     .execute();
 
