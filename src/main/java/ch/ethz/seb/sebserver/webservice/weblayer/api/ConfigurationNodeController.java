@@ -412,9 +412,13 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         if (attrs.size() < end) {
             end = attrs.size();
         }
+        int numOfPages = attrs.size() / this.paginationService.getPageSize(pageSize);
+        if (attrs.size() % this.paginationService.getPageSize(pageSize) != 0) {
+            numOfPages++;
+        }
 
         return new Page<>(
-                attrs.size() / this.paginationService.getPageSize(pageSize),
+                numOfPages,
                 this.paginationService.getPageNumber(pageNumber),
                 sort,
                 attrs.subList(start, end));
