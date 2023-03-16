@@ -72,6 +72,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     private final APITemplateDataSupplier apiTemplateDataSupplier;
     private final ExamConfigurationValueService examConfigurationValueService;
     private final Long lmsSetupId;
+    private final boolean restrictWithAdditionalAttributes;
 
     private OlatLmsRestTemplate cachedRestTemplate;
 
@@ -80,7 +81,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             final ClientCredentialService clientCredentialService,
             final APITemplateDataSupplier apiTemplateDataSupplier,
             final ExamConfigurationValueService examConfigurationValueService,
-            final CacheManager cacheManager) {
+            final CacheManager cacheManager,
+            final boolean restrictWithAdditionalAttributes) {
 
         super(cacheManager);
 
@@ -89,6 +91,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         this.apiTemplateDataSupplier = apiTemplateDataSupplier;
         this.examConfigurationValueService = examConfigurationValueService;
         this.lmsSetupId = apiTemplateDataSupplier.getLmsSetup().id;
+        this.restrictWithAdditionalAttributes = restrictWithAdditionalAttributes;
     }
 
     @Override
@@ -355,8 +358,10 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final RestrictionDataPost post = new RestrictionDataPost();
         post.browserExamKeys = new ArrayList<>(restriction.browserExamKeys);
         post.configKeys = new ArrayList<>(restriction.configKeys);
-        post.quitLink = this.examConfigurationValueService.getQuitLink(restriction.examId);
-        post.quitSecret = this.examConfigurationValueService.getQuitSecret(restriction.examId);
+        if (this.restrictWithAdditionalAttributes) {
+            post.quitLink = this.examConfigurationValueService.getQuitLink(restriction.examId);
+            post.quitSecret = this.examConfigurationValueService.getQuitSecret(restriction.examId);
+        }
         final RestrictionData r =
                 this.apiPost(restTemplate, url, post, RestrictionDataPost.class, RestrictionData.class);
         return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());

@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.olat;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 public final class OlatLmsData {
 
@@ -86,7 +87,9 @@ public final class OlatLmsData {
          */
         public List<String> browserExamKeys;
         public List<String> configKeys;
+        @JsonInclude(JsonInclude.Include.NON_NULL)
         public String quitLink;
+        @JsonInclude(JsonInclude.Include.NON_NULL)
         public String quitSecret;
     }
 

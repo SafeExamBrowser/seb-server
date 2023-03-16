@@ -43,6 +43,7 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
     private final AsyncService asyncService;
     private final Environment environment;
     private final CacheManager cacheManager;
+    private final boolean restrictWithAdditionalAttributes;
 
     public OlatLmsAPITemplateFactory(
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
@@ -58,6 +59,10 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
         this.asyncService = asyncService;
         this.environment = environment;
         this.cacheManager = cacheManager;
+        this.restrictWithAdditionalAttributes = environment.getProperty(
+                "sebserver.webservice.lms.olat.sendAdditionalAttributesWithRestriction",
+                Boolean.class,
+                false);
     }
 
     @Override
@@ -74,7 +79,8 @@ public class OlatLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     this.clientCredentialService,
                     apiTemplateDataSupplier,
                     this.examConfigurationValueService,
-                    this.cacheManager);
+                    this.cacheManager,
+                    this.restrictWithAdditionalAttributes);
 
             return new LmsAPITemplateAdapter(
                     this.asyncService,
