@@ -60,7 +60,7 @@ public interface SEBRestrictionService {
      * for the particular LMS type of the Exam. otherwise it returns true to indicate
      * everything is fine with SEB Restriction
      *
-     * @param exam the Exam instance to chech
+     * @param exam the Exam instance to check
      * @return false if the SEB Restriction feature is switched on for the given Exam but the restriction is not applied
      *         to the LMS */
     boolean checkSebRestrictionSet(Exam exam);

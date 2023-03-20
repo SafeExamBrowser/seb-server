@@ -253,7 +253,6 @@ public class ExamForm implements TemplateComposer {
                     .getOr(Collections.emptyList());
             if (sebRestrictionMismatch || (warnings != null && !warnings.isEmpty())) {
                 showConsistencyChecks(warnings, sebRestrictionMismatch, formContext.getParent());
-
             }
         }
 
@@ -654,8 +653,11 @@ public class ExamForm implements TemplateComposer {
                 CustomVariant.TITLE_LABEL,
                 CONSISTENCY_MESSAGE_TITLE);
 
+        final String restrMessageCode = APIMessage.ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION.messageCode;
+
         result
                 .stream()
+                .filter(message -> !(sebRestrictionMismatch && message.messageCode.equals(restrMessageCode)))
                 .map(message -> this.consistencyMessageMapping.get(message.messageCode))
                 .filter(Objects::nonNull)
                 .forEach(message -> this.widgetFactory.labelLocalized(
