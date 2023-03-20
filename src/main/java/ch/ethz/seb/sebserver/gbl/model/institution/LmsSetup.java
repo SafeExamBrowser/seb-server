@@ -48,7 +48,10 @@ public final class LmsSetup implements GrantEntity, Activatable {
          * The SEB restriciton is usually in the form of certain hash keys and addition
          * restriction settings that prompt the LMS to check access on course/quiz connection and
          * allow only access for a dedicated SEB client with the right configuration in place. */
-        SEB_RESTRICTION
+        SEB_RESTRICTION,
+        /** Indicates if the LMS integration has some process for course recovery
+         * after backup-restore process for example. */
+        COURSE_RECOVERY
     }
 
     /** Defines the supported types if LMS bindings.
@@ -59,9 +62,9 @@ public final class LmsSetup implements GrantEntity, Activatable {
         /** The Open edX LMS binding features both APIs, course access as well as SEB restriction */
         OPEN_EDX(Features.COURSE_API, Features.SEB_RESTRICTION),
         /** The Moodle binding features only the course access API so far */
-        MOODLE(Features.COURSE_API /* , Features.SEB_RESTRICTION */),
+        MOODLE(Features.COURSE_API, Features.COURSE_RECOVERY /* , Features.SEB_RESTRICTION */),
         /** The Moodle binding features with SEB Server integration plugin for fully featured */
-        MOODLE_PLUGIN(Features.COURSE_API, Features.SEB_RESTRICTION),
+        MOODLE_PLUGIN(Features.COURSE_API, Features.COURSE_RECOVERY, Features.SEB_RESTRICTION),
         /** The Ans Delft binding is on the way */
         ANS_DELFT(Features.COURSE_API, Features.SEB_RESTRICTION),
         /** The OpenOLAT binding is on the way */

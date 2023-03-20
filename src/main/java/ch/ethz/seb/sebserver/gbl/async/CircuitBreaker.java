@@ -261,6 +261,10 @@ public final class CircuitBreaker<T> {
             if (log.isWarnEnabled()) {
                 log.warn("Attempt error: {}, {}", e.getMessage(), this.state);
             }
+            final Throwable cause = e.getCause();
+            if (cause != null && cause instanceof Exception) {
+                return Result.ofError((Exception) cause);
+            }
             return Result.ofError(e);
         } catch (final TimeoutException e) {
             future.cancel(false);

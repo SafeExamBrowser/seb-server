@@ -48,6 +48,8 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
     private final CircuitBreaker<Collection<QuizData>> quizzesRequest;
     /** CircuitBreaker for protected quiz and course data requests */
     private final CircuitBreaker<QuizData> quizRequest;
+    /** CircuitBreaker for protected quiz and course data requests */
+    private final CircuitBreaker<QuizData> quizRecoverRequest;
     /** CircuitBreaker for protected chapter data requests */
     private final CircuitBreaker<Chapters> chaptersRequest;
     /** CircuitBreaker for protected examinee account details requests */
@@ -96,6 +98,20 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
                         0L));
 
         this.quizRequest = asyncService.createCircuitBreaker(
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
+                        Integer.class,
+                        1),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.blockingTime",
+                        Long.class,
+                        Constants.SECOND_IN_MILLIS * 10),
+                environment.getProperty(
+                        "sebserver.webservice.circuitbreaker.quizzesRequest.timeToRecover",
+                        Long.class,
+                        0L));
+
+        this.quizRecoverRequest = asyncService.createCircuitBreaker(
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.quizzesRequest.attempts",
                         Integer.class,
@@ -293,11 +309,8 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Try to recover quiz for exam {} for LMSSetup: {}", exam, lmsSetup());
         }
 
-        return this.quizRequest.protectedRun(() -> this.courseAccessAPI
+        return this.quizRecoverRequest.protectedRun(() -> this.courseAccessAPI
                 .tryRecoverQuizForExam(exam)
-                .onError(error -> log.error(
-                        "Failed to run protectedQuizRecoverRequest: {}",
-                        error.getMessage()))
                 .getOrThrow());
     }
 

@@ -27,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -35,6 +36,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttribut
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamResetEvent;
@@ -149,6 +151,11 @@ class ExamUpdateHandler {
                                 } else {
                                     if (!exam.isLmsAvailable()) {
                                         this.examDAO.markLMSAvailability(quiz.id, true, updateId);
+                                        // delete attempts attribute
+                                        this.additionalAttributesDAO.delete(
+                                                EntityType.EXAM,
+                                                exam.id,
+                                                Exam.ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS);
                                     }
                                     failedOrMissing.remove(quiz.id);
                                     log.info("Updated quiz data for exam: {}", updateQuizData.get());
@@ -351,8 +358,24 @@ class ExamUpdateHandler {
                 !Utils.isEqualsWithEmptyCheck(exam.getDescription(), quizData.description) ||
                 !Utils.isEqualsWithEmptyCheck(exam.getStartURL(), quizData.startURL)) {
 
-            if (log.isDebugEnabled()) {
-                log.debug("Update difference from LMS. Exam:{}, QuizData: {}", exam, quizData);
+            if (!Utils.isEqualsWithEmptyCheck(exam.name, quizData.name)) {
+                log.info("Update name difference from LMS. Exam:{}, QuizData: {}", exam.name, quizData.name);
+            }
+            if (!Objects.equals(exam.startTime, quizData.startTime)) {
+                log.info("Update startTime difference from LMS. Exam:{}, QuizData: {}", exam.startTime,
+                        quizData.startTime);
+            }
+            if (!Objects.equals(exam.endTime, quizData.endTime)) {
+                log.info("Update endTime difference from LMS. Exam:{}, QuizData: {}", exam.endTime, quizData.endTime);
+            }
+            if (!Utils.isEqualsWithEmptyCheck(exam.getDescription(), quizData.description)) {
+                log.info("Update description difference from LMS. Exam:{}, QuizData: {}", exam.getDescription(),
+                        quizData.description);
+            }
+            if (!Utils.isEqualsWithEmptyCheck(exam.getStartURL(), quizData.startURL)) {
+                log.info("Update startURL difference from LMS. Exam:{}, QuizData: {}",
+                        exam.getStartURL(),
+                        quizData.startURL);
             }
 
             return true;
@@ -384,6 +407,14 @@ class ExamUpdateHandler {
 
         return Result.tryCatch(() -> {
 
+            final LmsAPITemplate lmsTemplate = this.lmsAPIService
+                    .getLmsAPITemplate(lmsSetupId)
+                    .getOrThrow();
+
+            if (!lmsTemplate.getType().features.contains(Features.COURSE_RECOVERY)) {
+                throw new UnsupportedOperationException("No Course Recovery");
+            }
+
             final Exam exam = exams.get(quizId);
             final int attempts = Integer.parseInt(this.additionalAttributesDAO.getAdditionalAttribute(
                     EntityType.EXAM,
@@ -400,7 +431,8 @@ class ExamUpdateHandler {
             }
 
             log.info(
-                    "Try to recover quiz data for Moodle quiz with internal identifier: {}",
+                    "Try to recover quiz data from LMS: {} quiz with internal identifier: {}",
+                    lmsSetupId,
                     quizId);
 
             return this.lmsAPIService
