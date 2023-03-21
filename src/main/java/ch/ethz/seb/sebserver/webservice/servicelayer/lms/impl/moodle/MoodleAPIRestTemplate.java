@@ -67,6 +67,10 @@ public interface MoodleAPIRestTemplate {
             this.message = message;
         }
 
+        public String getMessage() {
+            return this.message;
+        }
+
         @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder();

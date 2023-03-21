@@ -12,12 +12,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.LinkedMultiValueMap;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
@@ -46,7 +48,6 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
     public static final String ATTRIBUTE_QUIT_URL = "quitlink";
     public static final String ATTRIBUTE_QUIT_SECRET = "quitsecret";
 
-    private static final String NO_RESTRICTION_SET_WARNING = "error/SEB Server is not enabled";
     private static final String DELETED_RESTRICTION_WARNING = "You have deleted restriction";
 
     private final JSONMapper jsonMapper;
@@ -178,8 +179,9 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
                     addQuery,
                     queryAttributes);
 
-            if (!srJSON.contains(DELETED_RESTRICTION_WARNING)) {
-                log.warn("Release SEB restriction seems to failed. Moodle response: {}", srJSON);
+            final SEBRestriction restrictionFromJson = restrictionFromJson(exam, srJSON);
+            if (StringUtils.isNotBlank(restrictionFromJson.warningMessage)) {
+                throw new RuntimeException("LMS Warnings: " + restrictionFromJson.warningMessage);
             }
 
             return exam;
@@ -195,21 +197,8 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
                         exam.id,
                         Collections.emptyList(),
                         Collections.emptyList(),
-                        Collections.emptyMap());
-            }
-
-            // check no restriction set
-            if (srJSON.contains(NO_RESTRICTION_SET_WARNING)) {
-
-                if (log.isDebugEnabled()) {
-                    log.debug("No restriction set for exam: {}", exam);
-                }
-
-                return new SEBRestriction(
-                        exam.id,
-                        Collections.emptyList(),
-                        Collections.emptyList(),
-                        Collections.emptyMap());
+                        Collections.emptyMap(),
+                        "Missing or blank response from Moodle");
             }
 
             // fist try to get from multiple data
@@ -217,7 +206,19 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
                     srJSON,
                     MoodleUtils.MoodleQuizRestrictions.class);
 
-            return toSEBRestriction(exam, moodleRestrictions);
+            String warningMessages = null;
+            if (moodleRestrictions.warnings != null && !moodleRestrictions.warnings.isEmpty()) {
+                warningMessages = StringUtils.join(
+                        moodleRestrictions.warnings
+                                .stream()
+                                .map(MoodleAPIRestTemplate.Warning::getMessage)
+                                .collect(Collectors.toList()),
+                        Constants.LIST_SEPARATOR);
+
+                log.warn("Warnings from Moodle: {}", moodleRestrictions.warnings);
+            }
+
+            return toSEBRestriction(exam, moodleRestrictions, warningMessages);
         } catch (final Exception e) {
             try {
                 // then try to get from single
@@ -225,7 +226,7 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
                         srJSON,
                         MoodleUtils.MoodleQuizRestriction.class);
 
-                return toSEBRestriction(exam, moodleRestriction);
+                return toSEBRestriction(exam, moodleRestriction, null);
             } catch (final Exception ee) {
                 throw new RuntimeException("Unexpected error while get SEB restriction: ", ee);
             }
@@ -234,22 +235,33 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
 
     private SEBRestriction toSEBRestriction(
             final Exam exam,
-            final MoodleQuizRestrictions moodleRestrictions) {
+            final MoodleQuizRestrictions moodleRestrictions,
+            final String warnings) {
 
         if (moodleRestrictions.warnings != null && !moodleRestrictions.warnings.isEmpty()) {
             log.warn("Moodle restriction call warnings: {}", moodleRestrictions.warnings);
         }
 
         if (moodleRestrictions.data == null || moodleRestrictions.data.isEmpty()) {
-            throw new IllegalArgumentException("Expecting MoodleQuizRestriction not available. Exam: " + exam);
+            if (StringUtils.isNotBlank(warnings)) {
+                return new SEBRestriction(
+                        exam.id,
+                        null,
+                        null,
+                        null,
+                        warnings);
+            } else {
+                throw new IllegalArgumentException("Expecting MoodleQuizRestriction not available. Exam: " + exam);
+            }
         }
 
-        return toSEBRestriction(exam, moodleRestrictions.data.iterator().next());
+        return toSEBRestriction(exam, moodleRestrictions.data.iterator().next(), warnings);
     }
 
     private SEBRestriction toSEBRestriction(
             final Exam exam,
-            final MoodleQuizRestriction moodleRestriction) {
+            final MoodleQuizRestriction moodleRestriction,
+            final String warnings) {
 
         final Map<String, String> additionalProperties = new HashMap<>();
         additionalProperties.put(ATTRIBUTE_QUIT_URL, moodleRestriction.quitlink);
@@ -259,7 +271,8 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
                 exam.id,
                 moodleRestriction.configkeys,
                 moodleRestriction.browserkeys,
-                additionalProperties);
+                additionalProperties,
+                warnings);
     }
 
     private Result<MoodleAPIRestTemplate> getRestTemplate() {

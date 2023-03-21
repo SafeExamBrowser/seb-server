@@ -376,7 +376,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
         final String url = String.format("/api/v2/assignments/%s", id);
         final AssignmentData assignment = this.apiGet(restTemplate, url, AssignmentData.class);
         final SEBServerData ts = assignment.integrations.safe_exam_browser_server;
-        return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>());
+        return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>(), null);
     }
 
     private SEBRestriction setRestrictionForAssignmentId(final RestTemplate restTemplate, final String id,
@@ -389,7 +389,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
         final AssignmentData r =
                 this.apiPatch(restTemplate, url, assignment, AssignmentData.class, AssignmentData.class);
         final SEBServerData ts = assignment.integrations.safe_exam_browser_server;
-        return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>());
+        return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>(), null);
     }
 
     private SEBRestriction deleteRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
@@ -401,7 +401,7 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
         final AssignmentData r =
                 this.apiPatch(restTemplate, url, assignment, AssignmentData.class, AssignmentData.class);
         final SEBServerData ts = assignment.integrations.safe_exam_browser_server;
-        return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>());
+        return new SEBRestriction(Long.valueOf(id), ts.config_keys, null, new HashMap<String, String>(), null);
     }
 
     @Override

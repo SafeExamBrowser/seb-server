@@ -34,7 +34,7 @@ public class OpenEdxSebRestrictionTest {
         final JSONMapper mapper = new JSONMapper();
 
         final OpenEdxSEBRestriction data =
-                OpenEdxSEBRestriction.from(new SEBRestriction(null, null, null, null));
+                OpenEdxSEBRestriction.from(new SEBRestriction(null, null, null, null, null));
         final String json = mapper.writeValueAsString(data);
         assertEquals(
                 "{\"CONFIG_KEYS\":[],\"BROWSER_KEYS\":[],\"WHITELIST_PATHS\":[],\"BLACKLIST_CHAPTERS\":[],\"PERMISSION_COMPONENTS\":[\"AlwaysAllowStaff\"],\"USER_BANNING_ENABLED\":false}",

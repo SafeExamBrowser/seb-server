@@ -346,7 +346,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
             additionalAttributes.put(ADDITIONAL_ATTR_QUIT_SECRET, r.quitSecret);
         }
 
-        return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, additionalAttributes);
+        return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, additionalAttributes, null);
     }
 
     private SEBRestriction setRestrictionForAssignmentId(
@@ -364,7 +364,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         }
         final RestrictionData r =
                 this.apiPost(restTemplate, url, post, RestrictionDataPost.class, RestrictionData.class);
-        return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());
+        return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>(),
+                null);
     }
 
     private SEBRestriction deleteRestrictionForAssignmentId(final RestTemplate restTemplate, final String id) {
@@ -372,7 +373,8 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         final RestrictionData r = this.apiDelete(restTemplate, url, RestrictionData.class);
         // OLAT returns RestrictionData with null values upon deletion.
         // We return it here for consistency, even though SEB server does not need it
-        return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>());
+        return new SEBRestriction(Long.valueOf(id), r.configKeys, r.browserExamKeys, new HashMap<String, String>(),
+                null);
     }
 
     @Override

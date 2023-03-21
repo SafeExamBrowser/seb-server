@@ -224,7 +224,7 @@ public class ModelObjectJSONGenerator {
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
         domainObject = new SEBRestriction(
-                1L, Arrays.asList("key1", "key2"), Arrays.asList("key1", "key2"), attrs);
+                1L, Arrays.asList("key1", "key2"), Arrays.asList("key1", "key2"), attrs, null);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 

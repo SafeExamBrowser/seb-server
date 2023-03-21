@@ -435,12 +435,14 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Apply course restriction: {} for LMSSetup: {}", exam, lmsSetup());
         }
 
-        return this.restrictionRequest.protectedRun(() -> this.sebRestrictionAPI
+        final Result<SEBRestriction> protectedRun = this.restrictionRequest.protectedRun(() -> this.sebRestrictionAPI
                 .applySEBClientRestriction(exam, sebRestrictionData)
                 .onError(error -> log.error(
                         "Failed to apply SEB restrictions: {}",
                         error.getMessage()))
                 .getOrThrow());
+
+        return protectedRun;
     }
 
     @Override
@@ -455,12 +457,20 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
             log.debug("Release course restriction: {} for LMSSetup: {}", exam.externalId, lmsSetup());
         }
 
-        return this.releaseRestrictionRequest.protectedRun(() -> this.sebRestrictionAPI
+        final Result<Exam> protectedRun = this.releaseRestrictionRequest.protectedRun(() -> this.sebRestrictionAPI
                 .releaseSEBClientRestriction(exam)
                 .onError(error -> log.error(
                         "Failed to release SEB restrictions: {}",
                         error.getMessage()))
                 .getOrThrow());
+
+        if (protectedRun.hasError()) {
+            final Throwable cause = protectedRun.getError().getCause();
+            if (cause.getMessage().contains("LMS Warnings")) {
+                return Result.ofRuntimeError(cause.getMessage());
+            }
+        }
+        return protectedRun;
     }
 
 }

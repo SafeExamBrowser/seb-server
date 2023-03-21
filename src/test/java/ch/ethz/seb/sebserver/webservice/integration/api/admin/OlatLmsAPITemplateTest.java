@@ -103,7 +103,7 @@ public class OlatLmsAPITemplateTest extends AdministrationAPIIntegrationTester {
                 2L,
                 Arrays.asList("configKey1", "configKey2"),
                 Arrays.asList("browserKey1", "browserKey2"),
-                null);
+                null, null);
 
         olatLmsAPITemplate.applySEBClientRestriction(exam, sebRestriction);
 

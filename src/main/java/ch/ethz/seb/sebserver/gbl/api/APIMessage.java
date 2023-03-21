@@ -48,6 +48,7 @@ public class APIMessage implements Serializable {
         FIELD_VALIDATION("1200", HttpStatus.BAD_REQUEST, "Field validation error"),
         PASSWORD_MISMATCH("1300", HttpStatus.BAD_REQUEST, "new password do not match confirmed password"),
         MISSING_PASSWORD("1301", HttpStatus.BAD_REQUEST, "Missing Password"),
+        LMS_WARNINGS("1302", HttpStatus.CONFLICT, "Warnings from LMS"),
 
         EXAM_CONSISTENCY_VALIDATION_SUPPORTER("1400", HttpStatus.OK, "No Exam Supporter defined for the Exam"),
         EXAM_CONSISTENCY_VALIDATION_CONFIG("1401", HttpStatus.OK, "No SEB Exam Configuration defined for the Exam"),

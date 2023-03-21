@@ -72,7 +72,7 @@ public class MoodlePluginCourseRestrictionTest {
                 exam.id,
                 Lists.list("configKey1"),
                 Lists.list("BEK1", "BEK2"),
-                Collections.emptyMap());
+                Collections.emptyMap(), null);
 
         assertFalse(candidate.hasSEBClientRestriction(exam));
 

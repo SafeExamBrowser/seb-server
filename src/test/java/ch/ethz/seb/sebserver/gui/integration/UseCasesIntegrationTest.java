@@ -3514,7 +3514,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                         restriction.examId,
                         restriction.configKeys,
                         examKeys,
-                        Collections.emptyMap()))
+                        Collections.emptyMap(), null))
                 .call()
                 .getOrThrow();
         assertNotNull(exam);

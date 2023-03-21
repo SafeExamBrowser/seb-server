@@ -38,7 +38,7 @@ public class OpenEdxCourseRestriction implements SEBRestrictionAPI {
 
     private static final Logger log = LoggerFactory.getLogger(OpenEdxCourseRestriction.class);
 
-    private static final SEBRestriction NO_RESTRICTION_MARKER = new SEBRestriction(null, null, null, null);
+    private static final SEBRestriction NO_RESTRICTION_MARKER = new SEBRestriction(null, null, null, null, null);
     private static final String OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_INFO = "/seb-openedx/seb-info";
     private static final String OPEN_EDX_DEFAULT_COURSE_RESTRICTION_API_PATH =
             "/seb-openedx/api/v1/course/%s/configuration/";

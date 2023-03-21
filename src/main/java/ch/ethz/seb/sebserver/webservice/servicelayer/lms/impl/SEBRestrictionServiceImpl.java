@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.MoodleSEBRestriction;
@@ -152,7 +153,8 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                     exam.id,
                     configKeys,
                     browserExamKeys,
-                    additionalAttributes);
+                    additionalAttributes,
+                    null);
         });
     }
 
@@ -276,7 +278,13 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                                 .flatMap(lmsTemplate -> lmsTemplate.applySEBClientRestriction(
                                         exam,
                                         sebRestrictionData))
-                                .map(data -> exam)
+                                .map(data -> {
+                                    if (StringUtils.isNoneBlank(data.warningMessage)) {
+                                        throw new APIMessage.APIMessageException(
+                                                APIMessage.ErrorMessage.LMS_WARNINGS.of(data.warningMessage));
+                                    }
+                                    return exam;
+                                })
                                 .onError(error -> this.examDAO.setSEBRestriction(exam.id, false))
                                 .getOrThrow();
                     })
@@ -295,7 +303,9 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                             log.debug(" *** SEB Restriction *** Release SEB Client restrictions from LMS for exam: {}",
                                     exam);
                         }
-                        template.releaseSEBClientRestriction(exam);
+                        template
+                                .releaseSEBClientRestriction(exam)
+                                .getOrThrow();
 
                     }
                     return exam;

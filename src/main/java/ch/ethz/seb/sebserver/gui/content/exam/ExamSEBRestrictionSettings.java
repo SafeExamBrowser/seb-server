@@ -160,7 +160,8 @@ public class ExamSEBRestrictionSettings {
                     Long.parseLong(entityKey.modelId),
                     null,
                     browserKeys,
-                    additionalAttributes);
+                    additionalAttributes,
+                    null);
 
         } catch (final Exception e) {
             log.error("Unexpected error while trying to get settings from form: ", e);

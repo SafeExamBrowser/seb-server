@@ -31,6 +31,7 @@ public final class SEBRestriction implements Entity {
     public static final String ATTR_BROWSER_KEYS = "browserExamKeys";
     public static final String ATTR_CONFIG_KEYS = "configKeys";
     public static final String ATTR_ADDITIONAL_PROPERTIES = "additionalProperties";
+    public static final String ATTR_WARNING = "warningMessage";
 
     @JsonProperty(Domain.EXAM.ATTR_ID)
     public final Long examId;
@@ -40,18 +41,22 @@ public final class SEBRestriction implements Entity {
     public final Collection<String> browserExamKeys;
     @JsonProperty(ATTR_ADDITIONAL_PROPERTIES)
     public final Map<String, String> additionalProperties;
+    @JsonProperty(ATTR_WARNING)
+    public final String warningMessage;
 
     @JsonCreator
     public SEBRestriction(
             @JsonProperty(Domain.EXAM.ATTR_ID) final Long examId,
             @JsonProperty(ATTR_CONFIG_KEYS) final Collection<String> configKeys,
             @JsonProperty(ATTR_BROWSER_KEYS) final Collection<String> browserExamKeys,
-            @JsonProperty(ATTR_ADDITIONAL_PROPERTIES) final Map<String, String> additionalProperties) {
+            @JsonProperty(ATTR_ADDITIONAL_PROPERTIES) final Map<String, String> additionalProperties,
+            @JsonProperty(ATTR_WARNING) final String warningMessage) {
 
         this.examId = examId;
         this.configKeys = Utils.immutableCollectionOf(configKeys);
         this.browserExamKeys = Utils.immutableCollectionOf(browserExamKeys);
         this.additionalProperties = Utils.immutableMapOf(additionalProperties);
+        this.warningMessage = warningMessage;
     }
 
     @Override
@@ -170,7 +175,8 @@ public final class SEBRestriction implements Entity {
                 examId,
                 edxData.configKeys,
                 edxData.browserExamKeys,
-                attrs);
+                attrs,
+                null);
     }
 
     public static SEBRestriction from(final Long examId, final MoodleSEBRestriction restriction) {
@@ -178,6 +184,7 @@ public final class SEBRestriction implements Entity {
                 examId,
                 restriction.configKeys,
                 restriction.browserExamKeys,
+                null,
                 null);
     }
 
