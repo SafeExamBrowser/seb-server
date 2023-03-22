@@ -155,6 +155,9 @@ public class SEBExamConfigImportPopup {
                         .withHeader(
                                 API.IMPORT_PASSWORD_ATTR_NAME,
                                 form.getFieldValue(API.IMPORT_PASSWORD_ATTR_NAME))
+                        .withHeader(
+                                API.IMPORT_FILE_ATTR_NAME,
+                                fileUpload.getFileName())
                         .withBody(inputStream);
 
                 if (newConfig) {

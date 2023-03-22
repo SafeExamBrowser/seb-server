@@ -62,9 +62,10 @@ public interface UserActivityLogDAO extends
 
     /** Create a user activity log entry for the current user of activity type IMPORT
      *
+     * @param uploadFileName The file name of imported file
      * @param entity the Entity
      * @return Result of the Entity or referring to an Error if happened */
-    <E extends Entity> Result<E> logImport(E entity);
+    <E extends Entity> Result<E> logImport(String uploadFileName, E entity);
 
     /** Create a user activity log entry for the current user of activity type EXPORT
      *

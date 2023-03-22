@@ -144,8 +144,16 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
 
     @Override
     @Transactional
-    public <E extends Entity> Result<E> logImport(final E entity) {
-        return log(UserLogActivityType.IMPORT, entity);
+    public <E extends Entity> Result<E> logImport(final String uploadFileName, final E entity) {
+        if (StringUtils.isBlank(uploadFileName)) {
+            return log(UserLogActivityType.IMPORT, entity);
+        } else {
+            return log(
+                    this.userService.getCurrentUser(),
+                    UserLogActivityType.IMPORT,
+                    entity,
+                    toMessage("Imported from file: " + uploadFileName, entity));
+        }
     }
 
     @Override
@@ -630,6 +638,10 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
                     record.getEntityId(),
                     record.getMessage());
         });
+    }
+
+    private String toMessage(final String addition, final Entity entity) {
+        return addition + Constants.CARRIAGE_RETURN + toMessage(entity);
     }
 
     private String toMessage(final Entity entity) {

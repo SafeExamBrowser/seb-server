@@ -334,6 +334,12 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         final Configuration config = doImport
                 .getOrThrow();
 
+        // user log
+        this.configurationNodeDAO.byPK(config.configurationNodeId)
+                .onSuccess(node -> this.userActivityLogDAO.logImport(
+                        request.getHeader(API.IMPORT_FILE_ATTR_NAME),
+                        node));
+
         return this.configurationDAO
                 .saveToHistory(config.configurationNodeId)
                 .getOrThrow();
@@ -360,7 +366,11 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                 .getFollowupConfiguration(modelId)
                 .getOrThrow();
 
-        final Result<Configuration> doImport = doImport(password, request, newConfig);
+        final Result<Configuration> doImport = doImport(password, request, newConfig)
+                .onSuccess(node -> this.userActivityLogDAO.logImport(
+                        request.getHeader(API.IMPORT_FILE_ATTR_NAME),
+                        node));
+
         if (doImport.hasError()) {
             // rollback of the existing values
             this.configurationDAO.undo(newConfig.configurationNodeId);
