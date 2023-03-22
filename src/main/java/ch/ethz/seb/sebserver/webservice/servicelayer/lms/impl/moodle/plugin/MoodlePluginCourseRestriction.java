@@ -49,6 +49,7 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
     public static final String ATTRIBUTE_QUIT_SECRET = "quitsecret";
 
     private static final String DELETED_RESTRICTION_WARNING = "You have deleted restriction";
+    private static final String RESTRICTION_NOT_SET_WARNING = "SEB Server is not enabled for quiz";
 
     private final JSONMapper jsonMapper;
     private final MoodleRestTemplateFactory restTemplateFactory;
@@ -179,9 +180,12 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
                     addQuery,
                     queryAttributes);
 
-            final SEBRestriction restrictionFromJson = restrictionFromJson(exam, srJSON);
-            if (StringUtils.isNotBlank(restrictionFromJson.warningMessage)) {
-                throw new RuntimeException("LMS Warnings: " + restrictionFromJson.warningMessage);
+            final SEBRestriction restriction = restrictionFromJson(exam, srJSON);
+            if (StringUtils.isNotBlank(restriction.warningMessage)) {
+                if (restriction.warningMessage.contains(DELETED_RESTRICTION_WARNING)) {
+                    return exam;
+                }
+                throw new RuntimeException("LMS Warnings: " + restriction.warningMessage);
             }
 
             return exam;
@@ -215,7 +219,13 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
                                 .collect(Collectors.toList()),
                         Constants.LIST_SEPARATOR);
 
-                log.warn("Warnings from Moodle: {}", moodleRestrictions.warnings);
+                if (!warningMessages.contains(DELETED_RESTRICTION_WARNING)) {
+                    if (warningMessages.contains(RESTRICTION_NOT_SET_WARNING)) {
+                        log.info("Message from Moodle: {}", moodleRestrictions.warnings);
+                    } else {
+                        log.warn("Warnings from Moodle: {}", moodleRestrictions.warnings);
+                    }
+                }
             }
 
             return toSEBRestriction(exam, moodleRestrictions, warningMessages);
@@ -237,10 +247,6 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             final Exam exam,
             final MoodleQuizRestrictions moodleRestrictions,
             final String warnings) {
-
-        if (moodleRestrictions.warnings != null && !moodleRestrictions.warnings.isEmpty()) {
-            log.warn("Moodle restriction call warnings: {}", moodleRestrictions.warnings);
-        }
 
         if (moodleRestrictions.data == null || moodleRestrictions.data.isEmpty()) {
             if (StringUtils.isNotBlank(warnings)) {
