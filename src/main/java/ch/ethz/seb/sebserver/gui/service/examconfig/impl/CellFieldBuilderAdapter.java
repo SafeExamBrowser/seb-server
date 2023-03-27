@@ -107,6 +107,14 @@ interface CellFieldBuilderAdapter {
                         xpos--;
                     }
                 }
+                if (orientation.title == TitleOrientation.RIGHT_SPAN) {
+                    int xpos = x + orientation.width;
+                    while (xpos < grid[y].length && grid[y][xpos] == null) {
+                        grid[y][xpos] = DUMMY_BUILDER_ADAPTER;
+                        this.span++;
+                        xpos++;
+                    }
+                }
             }
 
             @Override

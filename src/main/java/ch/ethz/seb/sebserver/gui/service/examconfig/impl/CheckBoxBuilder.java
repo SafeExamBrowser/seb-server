@@ -80,6 +80,7 @@ public class CheckBoxBuilder implements InputFieldBuilder {
 
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         gridData.verticalIndent = 0;
+        gridData.heightHint = 26;
         checkbox.setLayoutData(gridData);
 
         final CheckboxField checkboxField = new CheckboxField(

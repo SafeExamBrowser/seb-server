@@ -70,7 +70,8 @@ public class RadioSelectionFieldBuilder extends SelectionFieldBuilder implements
                 i18nSupport.getText(attributeNameKey))
                 .getTypeInstance();
 
-        selection.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        selection.setLayoutData(gridData);
         final RadioSelectionInputField radioSelectionInputField = new RadioSelectionInputField(
                 attribute,
                 orientation,
