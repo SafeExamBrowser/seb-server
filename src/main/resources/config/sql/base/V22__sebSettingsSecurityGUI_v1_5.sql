@@ -19,7 +19,7 @@ UPDATE orientation SET y_position=8 WHERE config_attribute_id=316 AND template_i
 UPDATE orientation SET y_position=19 WHERE config_attribute_id=317 AND template_id=0;
 UPDATE orientation SET y_position=15 WHERE config_attribute_id=319 AND template_id=0;
 UPDATE orientation SET y_position=16 WHERE config_attribute_id=320 AND template_id=0;
-UPDATE orientation SET y_position=12 WHERE config_attribute_id=947 AND template_id=0;
+UPDATE orientation SET group_id=null, y_position=12 WHERE config_attribute_id=971 AND template_id=0;
 
 INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
     (1551, 0, 9, null, 7, 11, 5, 1, 'NONE');
