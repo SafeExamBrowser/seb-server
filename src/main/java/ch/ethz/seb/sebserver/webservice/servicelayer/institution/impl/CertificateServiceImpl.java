@@ -41,6 +41,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.CertificateDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.CertificateService;
+import io.micrometer.core.instrument.util.StringUtils;
 
 @Lazy
 @Service
@@ -97,14 +98,18 @@ public class CertificateServiceImpl implements CertificateService {
                 return loadCertFromPEM(in)
                         .flatMap(cert -> this.certificateDAO.addCertificate(
                                 institutionId,
-                                this.certificateDAO.extractAlias(cert, alias),
+                                StringUtils.isNotBlank(alias)
+                                        ? alias
+                                        : this.certificateDAO.extractAlias(cert),
                                 cert));
 
             case PKCS12:
                 return loadCertFromPKC(in, password)
                         .flatMap(pair -> this.certificateDAO.addCertificate(
                                 institutionId,
-                                this.certificateDAO.extractAlias(pair.a, alias),
+                                StringUtils.isNotBlank(alias)
+                                        ? alias
+                                        : this.certificateDAO.extractAlias(pair.a),
                                 pair.a,
                                 pair.b));
             default:

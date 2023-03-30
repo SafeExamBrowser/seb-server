@@ -180,7 +180,7 @@ public class CertificateDAOImpl implements CertificateDAO {
                 final X509Certificate cert = certificate;
 
                 return new CertificateInfo(
-                        extractAlias(cert, alias),
+                        StringUtils.isNotBlank(alias) ? alias : extractAlias(cert),
                         new DateTime(cert.getNotBefore()),
                         new DateTime(cert.getNotAfter()),
                         getTypes(certificates, cert));
@@ -224,10 +224,7 @@ public class CertificateDAOImpl implements CertificateDAO {
     }
 
     @Override
-    public String extractAlias(final X509Certificate certificate, final String alias) {
-        if (StringUtils.isNotBlank(alias)) {
-            return alias;
-        }
+    public String extractAlias(final X509Certificate certificate) {
 
         try {
             final X500Name x500name = new JcaX509CertificateHolder(certificate).getSubject();
