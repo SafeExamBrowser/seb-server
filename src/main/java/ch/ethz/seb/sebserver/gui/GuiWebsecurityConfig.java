@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -30,6 +31,8 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private InstitutionalAuthenticationEntryPoint institutionalAuthenticationEntryPoint;
+    @Autowired
+    private CrossOriginIsolationFilter crossOriginIsolationFilter;
 
     @Value("${sebserver.gui.entrypoint:/gui}")
     private String guiEntryPoint;
@@ -84,7 +87,10 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout().disable()
                 .headers().frameOptions().disable()
                 .and()
-                .csrf().disable();
+                .csrf()
+                .disable()
+                // TODO Set filter to dedicated URL
+                .addFilterBefore(this.crossOriginIsolationFilter, ChannelProcessingFilter.class);
     }
 
 }

@@ -195,6 +195,9 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 return false;
             }
 
+            // TODO check if this is needed. If not remove it.
+            //      This gets called many times for a page load
+
             try {
                 final ResponseEntity<String> forEntity =
                         this.restTemplate.getForEntity(this.currentUserURI, String.class);

@@ -78,7 +78,6 @@ public class ProctoringServlet extends HttpServlet {
             log.error("Failed to get proctoring window script for data: {}", proctoringData);
             resp.getOutputStream().println("Failed to get proctoring window script");
         } else {
-            RAPConfiguration.setCORS(resp);
             resp.getOutputStream().println(script);
         }
     }
@@ -87,7 +86,6 @@ public class ProctoringServlet extends HttpServlet {
     protected void doOptions(final HttpServletRequest req, final HttpServletResponse resp)
             throws ServletException, IOException {
 
-        RAPConfiguration.setCORS(resp);
         resp.setStatus(HttpServletResponse.SC_OK);
     }
 
