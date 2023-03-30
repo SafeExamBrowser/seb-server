@@ -354,8 +354,9 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                     }
                 });
 
-        if (!this.toUpdateStatic.isEmpty()) {
+        if (!this.toUpdateStatic.isEmpty() || this.forceUpdateAll) {
             fetchStaticClientConnectionData();
+            this.needsSort = true;
         }
 
         if (!this.toDelete.isEmpty()) {
@@ -370,6 +371,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     }
 
     public void updateGUI() {
+
         if (this.needsSort) {
             sortTable();
         }
@@ -652,7 +654,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         int notificationWeight() {
-            return BooleanUtils.isTrue(this.monitoringData.pendingNotification) || this.marked ? -1 : 0;
+            return BooleanUtils.isTrue(this.monitoringData.pendingNotification) ||
+                    (this.monitoringData.status.establishedStatus && this.marked) ? -1 : 0;
         }
 
         int statusWeight() {

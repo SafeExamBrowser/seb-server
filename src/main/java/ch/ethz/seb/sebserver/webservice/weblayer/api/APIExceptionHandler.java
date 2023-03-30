@@ -213,7 +213,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final Exception ex,
             final WebRequest request) {
 
-        log.error("Unexpected generic error catched at the API endpoint: ", ex);
+        log.error("Unexpected generic error caught at the API endpoint: ", ex);
         return APIMessage.ErrorMessage.GENERIC
                 .createErrorResponse(ex.getMessage());
     }

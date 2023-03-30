@@ -30,23 +30,30 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 public final class ClientConnection implements GrantEntity {
 
     public enum ConnectionStatus {
-        UNDEFINED(0, false, false),
-        CONNECTION_REQUESTED(1, true, false),
-        AUTHENTICATED(2, true, true),
-        ACTIVE(3, false, true),
-        CLOSED(4, false, false),
-        DISABLED(5, false, false);
+        UNDEFINED(0, false, false, false),
+        CONNECTION_REQUESTED(1, true, false, false),
+        AUTHENTICATED(2, true, true, true),
+        ACTIVE(3, false, true, true),
+        CLOSED(4, false, false, true),
+        DISABLED(5, false, false, false);
 
         public final int code;
         public final boolean connectingStatus;
         public final boolean establishedStatus;
         public final boolean clientActiveStatus;
+        public final boolean duplicateCheckStatus;
 
-        ConnectionStatus(final int code, final boolean connectingStatus, final boolean establishedStatus) {
+        ConnectionStatus(
+                final int code,
+                final boolean connectingStatus,
+                final boolean establishedStatus,
+                final boolean duplicateCheckStatus) {
+
             this.code = code;
             this.connectingStatus = connectingStatus;
             this.establishedStatus = establishedStatus;
             this.clientActiveStatus = connectingStatus || establishedStatus;
+            this.duplicateCheckStatus = duplicateCheckStatus;
         }
     }
 

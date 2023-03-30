@@ -637,7 +637,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     private ClientConnectionDataInternal getForTokenAndCheckDuplication(final String token) {
         final ClientConnectionDataInternal cc = this.examSessionCacheService.getClientConnection(token);
-        if (cc.clientConnection.status.establishedStatus) {
+        if (cc.clientConnection.status.duplicateCheckStatus) {
             final Long id = this.duplicateCheck.put(
                     cc.clientConnection.userSessionId,
                     cc.getConnectionId());
