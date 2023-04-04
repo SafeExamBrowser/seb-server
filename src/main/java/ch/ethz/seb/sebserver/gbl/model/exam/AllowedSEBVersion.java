@@ -19,20 +19,34 @@ public class AllowedSEBVersion {
     public static final String OS_WINDOWS_IDENTIFIER = "Win";
     public static final String OS_MAC_IDENTIFIER = "Mac";
     public static final String OS_IOS_IDENTIFIER = "iOS";
-    public static final String ALIANCE_EDITION_IDENTIFIER = "AE";
+    public static final String ALLIANCE_EDITION_IDENTIFIER = "AE";
+    public static final String ALLIANCE_EDITION_IDENTIFIER_FULL1 = "Alliance Edition";
+    public static final String ALLIANCE_EDITION_IDENTIFIER_FULL2 = "Alliance";
     public static final String MINIMAL_IDENTIFIER = "min";
+    public static final String MINIMAL_IDENTIFIER_FULL = "minimal";
 
-    public final String wholeVersionString;
+    //public final String wholeVersionString;
     public final String osTypeString;
     public final int major;
     public final int minor;
     public final int patch;
-    public boolean alianceEdition;
+    public boolean allianceEdition;
     public boolean minimal;
     public final boolean isValidFormat;
 
     public AllowedSEBVersion(final String wholeVersionString) {
-        this.wholeVersionString = wholeVersionString;
+        //this.wholeVersionString = wholeVersionString;
+
+        if (StringUtils.isBlank(wholeVersionString)) {
+            this.isValidFormat = false;
+            this.osTypeString = null;
+            this.major = 0;
+            this.minor = 0;
+            this.patch = 0;
+            this.allianceEdition = false;
+            this.minimal = false;
+            return;
+        }
 
         boolean valid = true;
         final String[] split = StringUtils.split(wholeVersionString, Constants.DOT);
@@ -61,14 +75,15 @@ public class AllowedSEBVersion {
             valid = false;
         }
         this.minor = num;
+
         if (split.length > 3) {
             try {
                 num = Integer.valueOf(split[3]);
             } catch (final Exception e) {
                 num = 0;
-                if (split[3].equals(ALIANCE_EDITION_IDENTIFIER)) {
-                    this.alianceEdition = true;
-                } else if (split[3].equals(MINIMAL_IDENTIFIER)) {
+                if (split[3].equals(ALLIANCE_EDITION_IDENTIFIER)) {
+                    this.allianceEdition = true;
+                } else if (isMinimal(split[3])) {
                     this.minimal = true;
                 } else {
                     valid = false;
@@ -80,9 +95,9 @@ public class AllowedSEBVersion {
         this.patch = num;
 
         if (valid && split.length > 4) {
-            if (!this.alianceEdition && split[4].equals(ALIANCE_EDITION_IDENTIFIER)) {
-                this.alianceEdition = true;
-            } else if (!this.minimal && split[4].equals(MINIMAL_IDENTIFIER)) {
+            if (!this.allianceEdition && split[4].equals(ALLIANCE_EDITION_IDENTIFIER)) {
+                this.allianceEdition = true;
+            } else if (!this.minimal && isMinimal(split[4])) {
                 this.minimal = true;
             } else {
                 valid = false;
@@ -90,9 +105,9 @@ public class AllowedSEBVersion {
         }
 
         if (valid && split.length > 5) {
-            if (!this.alianceEdition && split[5].equals(ALIANCE_EDITION_IDENTIFIER)) {
-                this.alianceEdition = true;
-            } else if (!this.minimal && split[5].equals(MINIMAL_IDENTIFIER)) {
+            if (!this.allianceEdition && split[5].equals(ALLIANCE_EDITION_IDENTIFIER)) {
+                this.allianceEdition = true;
+            } else if (!this.minimal && isMinimal(split[5])) {
                 this.minimal = true;
             } else {
                 valid = false;
@@ -102,6 +117,15 @@ public class AllowedSEBVersion {
     }
 
     public boolean match(final ClientVersion clientVersion) {
+
+        if (clientVersion == null) {
+            return false;
+        }
+
+        if (this.allianceEdition != clientVersion.isAllianceEdition) {
+            return false;
+        }
+
         if (Objects.equals(this.osTypeString, clientVersion.osTypeString)) {
             if (this.minimal) {
                 // check greater or equals minimum version
@@ -118,7 +142,12 @@ public class AllowedSEBVersion {
                         this.patch == clientVersion.patch;
             }
         }
+
         return false;
+    }
+
+    private boolean isMinimal(final String tag) {
+        return MINIMAL_IDENTIFIER.equalsIgnoreCase(tag) || MINIMAL_IDENTIFIER_FULL.equalsIgnoreCase(tag);
     }
 
     public static final class ClientVersion {
@@ -127,12 +156,37 @@ public class AllowedSEBVersion {
         public final int major;
         public final int minor;
         public final int patch;
+        public final boolean isAllianceEdition;
 
-        public ClientVersion(final String osTypeString, final int major, final int minor, final int patch) {
+        public ClientVersion(
+                final String osTypeString,
+                final int major,
+                final int minor,
+                final int patch,
+                final boolean isAlianceVersion) {
+
             this.osTypeString = osTypeString;
             this.major = major;
             this.minor = minor;
             this.patch = patch;
+            this.isAllianceEdition = isAlianceVersion;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("ClientVersion [osTypeString=");
+            builder.append(this.osTypeString);
+            builder.append(", major=");
+            builder.append(this.major);
+            builder.append(", minor=");
+            builder.append(this.minor);
+            builder.append(", patch=");
+            builder.append(this.patch);
+            builder.append(", isAllianceVersion=");
+            builder.append(this.isAllianceEdition);
+            builder.append("]");
+            return builder.toString();
         }
     }
 

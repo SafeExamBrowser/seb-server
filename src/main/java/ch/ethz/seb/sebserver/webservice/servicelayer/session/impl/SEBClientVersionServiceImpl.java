@@ -49,7 +49,7 @@ public class SEBClientVersionServiceImpl implements SEBClientVersionService {
             @Value("${ebserver.webservice.config.knownWindowsOSTags:Win,Windows}") final String knownWindowsOSTags,
             @Value("${ebserver.webservice.config.knownMacOSTags:macOS}") final String knownMacOSTags,
             @Value("${ebserver.webservice.config.knownIOSTags:iOS,iPad,iPadOS}") final String knownIOSTags,
-            @Value("${ebserver.webservice.config.knownRestrictedVersions:BETA,rc,1.0.0.0}") final String knownRestrictedVersions) {
+            @Value("${ebserver.webservice.config.knownRestrictedVersions:1.0.0.0,BETA}") final String knownRestrictedVersions) {
 
         this.clientConnectionDAO = clientConnectionDAO;
         this.examSessionCacheService = examSessionCacheService;
@@ -73,45 +73,16 @@ public class SEBClientVersionServiceImpl implements SEBClientVersionService {
             final String clientVersion,
             final List<AllowedSEBVersion> allowedSEBVersions) {
 
-        // first check if this is a known restricted version
-        if (this.knownRestrictedVersions.stream().filter(clientVersion::contains).findFirst().isPresent()) {
-            if (log.isDebugEnabled()) {
-                log.debug("Found default restricted SEB client version: {}", clientVersion);
-            }
+        final ClientVersion version = extractClientVersion(clientOSName, clientVersion);
+        if (version == null) {
             return false;
         }
 
-        final String osType = verifyOSType(clientOSName, clientVersion);
-
-        if (StringUtils.isBlank(osType)) {
-            if (log.isDebugEnabled()) {
-                log.debug("No SEB client OS type tag found in : {} {}", clientOSName, clientVersion);
-            }
-            return false;
-        }
-
-        try {
-            final String[] versionSplit = StringUtils.split(clientVersion, Constants.SPACE);
-            final String versioNumber = versionSplit[0];
-            final String[] versionNumberSplit = StringUtils.split(versioNumber, Constants.DOT);
-
-            final int major = extractVersionNumber(versionNumberSplit[0]);
-            final int minor = (versionNumberSplit.length > 1) ? extractVersionNumber(versionNumberSplit[1]) : 0;
-            final int patch = (versionNumberSplit.length > 2) ? extractVersionNumber(versionNumberSplit[2]) : 0;
-
-            final ClientVersion version = new ClientVersion(osType, major, minor, patch);
-            return allowedSEBVersions
-                    .stream()
-                    .filter(v -> v.match(version))
-                    .findFirst()
-                    .isPresent();
-        } catch (final Exception e) {
-            log.warn(
-                    "Invalid SEB version number in: {} {}",
-                    clientOSName,
-                    clientVersion);
-            return false;
-        }
+        return allowedSEBVersions
+                .stream()
+                .filter(v -> v.match(version))
+                .findFirst()
+                .isPresent();
     }
 
     @Override
@@ -131,6 +102,49 @@ public class SEBClientVersionServiceImpl implements SEBClientVersionService {
             return Integer.parseInt(versionNumPart);
         } catch (final NumberFormatException nfe) {
             return Integer.parseInt(String.valueOf(versionNumPart.charAt(0)));
+        }
+    }
+
+    protected ClientVersion extractClientVersion(final String clientOSName, final String clientVersion) {
+        try {
+            // first check if this is a known restricted version
+            if (this.knownRestrictedVersions.stream().filter(clientVersion::contains).findFirst().isPresent()) {
+                log.warn("Found default restricted SEB client version: {}", clientVersion);
+                return null;
+            }
+
+            final String osType = verifyOSType(clientOSName, clientVersion);
+
+            if (StringUtils.isBlank(osType)) {
+                log.warn("No SEB client OS type tag found in : {} {}", clientOSName, clientVersion);
+                return null;
+            }
+
+            final String[] versionSplit = StringUtils.split(clientVersion, Constants.SPACE);
+            final String versioNumber = versionSplit[0];
+            final String[] versionNumberSplit = StringUtils.split(versioNumber, Constants.DOT);
+
+            if (versionNumberSplit.length > 3) {
+                log.warn("Invalid SEB version in : {}", clientVersion);
+                return null;
+            }
+
+            final int major = extractVersionNumber(versionNumberSplit[0]);
+            final int minor = (versionNumberSplit.length > 1) ? extractVersionNumber(versionNumberSplit[1]) : 0;
+            final int patch = (versionNumberSplit.length > 2) ? extractVersionNumber(versionNumberSplit[2]) : 0;
+
+            final boolean isAllianceEdition = clientVersion.contains(AllowedSEBVersion.ALLIANCE_EDITION_IDENTIFIER) ||
+                    clientVersion.contains(AllowedSEBVersion.ALLIANCE_EDITION_IDENTIFIER_FULL1) ||
+                    clientVersion.contains(AllowedSEBVersion.ALLIANCE_EDITION_IDENTIFIER_FULL2);
+
+            return new ClientVersion(osType, major, minor, patch, isAllianceEdition);
+
+        } catch (final Exception e) {
+            log.warn(
+                    "Invalid SEB version number in: {} {}",
+                    clientOSName,
+                    clientVersion);
+            return null;
         }
     }
 
