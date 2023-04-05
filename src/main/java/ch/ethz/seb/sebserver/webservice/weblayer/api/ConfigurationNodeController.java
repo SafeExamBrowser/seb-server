@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
@@ -239,13 +240,17 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
-                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId) {
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(
+                    name = API.PARAM_FOLLOWUP,
+                    required = false,
+                    defaultValue = "false") final Boolean followup) {
 
         this.entityDAO.byPK(modelId)
                 .flatMap(this.authorization::checkRead);
 
         final String configKey = this.sebExamConfigService
-                .generateConfigKey(institutionId, modelId)
+                .generateConfigKey(institutionId, modelId, BooleanUtils.toBoolean(followup))
                 .getOrThrow();
 
         return new ConfigKey(configKey);

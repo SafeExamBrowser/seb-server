@@ -174,6 +174,7 @@ public final class API {
 
     public static final String CONFIGURATION_NODE_ENDPOINT = "/configuration-node";
     public static final String CONFIGURATION_FOLLOWUP_PATH_SEGMENT = "/followup";
+    public static final String PARAM_FOLLOWUP = "followup";
     public static final String CONFIGURATION_CONFIG_KEY_PATH_SEGMENT = "/configkey";
     public static final String CONFIGURATION_SETTINGS_PUBLISHED_PATH_SEGMENT = "/settings_published";
     public static final String CONFIGURATION_ENDPOINT = "/configuration";

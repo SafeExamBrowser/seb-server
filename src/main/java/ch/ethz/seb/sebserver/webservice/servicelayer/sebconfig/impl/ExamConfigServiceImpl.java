@@ -273,11 +273,18 @@ public class ExamConfigServiceImpl implements ExamConfigService {
     @Override
     public Result<String> generateConfigKey(
             final Long institutionId,
-            final Long configurationNodeId) {
+            final Long configurationNodeId,
+            final boolean followup) {
 
-        return this.configurationDAO
-                .getConfigurationLastStableVersion(configurationNodeId)
-                .flatMap(config -> generateConfigKey(institutionId, configurationNodeId, config.id));
+        if (followup) {
+            return this.configurationDAO
+                    .getFollowupConfiguration(configurationNodeId)
+                    .flatMap(config -> generateConfigKey(institutionId, configurationNodeId, config.id));
+        } else {
+            return this.configurationDAO
+                    .getConfigurationLastStableVersion(configurationNodeId)
+                    .flatMap(config -> generateConfigKey(institutionId, configurationNodeId, config.id));
+        }
     }
 
     private Result<String> generateConfigKey(
@@ -295,7 +302,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             pout = new PipedOutputStream();
             pin = new PipedInputStream(pout);
 
-            this.examConfigIO.exportForConfigKeyGeneration(
+            this.examConfigIO.exportForConfig(
                     pout,
                     institutionId,
                     configurationNodeId,
@@ -335,7 +342,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
         return this.examConfigurationMapDAO.getConfigurationNodeIds(examId)
                 .map(ids -> ids
                         .stream()
-                        .map(id -> generateConfigKey(institutionId, id)
+                        .map(id -> generateConfigKey(institutionId, id, false)
                                 .getOrThrow())
                         .collect(Collectors.toList()));
     }

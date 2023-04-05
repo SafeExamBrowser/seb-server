@@ -105,7 +105,7 @@ public class ExamConfigIO {
     }
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
-    void exportForConfigKeyGeneration(
+    void exportForConfig(
             final OutputStream out,
             final Long institutionId,
             final Long configurationNodeId,
@@ -122,7 +122,7 @@ public class ExamConfigIO {
             final Long configId) throws Exception {
 
         if (log.isDebugEnabled()) {
-            log.debug("Start export SEB plain XML configuration asynconously");
+            log.debug("Start export SEB plain XML configuration asynchronously");
         }
 
         try {

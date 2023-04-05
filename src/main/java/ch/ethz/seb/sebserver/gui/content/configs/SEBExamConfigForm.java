@@ -336,7 +336,7 @@ public class SEBExamConfigForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_GET_CONFIG_KEY)
                 .withEntityKey(entityKey)
-                .withExec(SEBExamConfigForm.getConfigKeyFunction(this.pageService))
+                .withExec(SEBExamConfigForm.getConfigKeyFunction(this.pageService, true))
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant && isReadonly)
 
@@ -504,11 +504,15 @@ public class SEBExamConfigForm implements TemplateComposer {
         return null;
     }
 
-    public static Function<PageAction, PageAction> getConfigKeyFunction(final PageService pageService) {
+    public static Function<PageAction, PageAction> getConfigKeyFunction(
+            final PageService pageService,
+            final boolean followup) {
+
         final RestService restService = pageService.getResourceService().getRestService();
         return action -> {
             final ConfigKey configKey = restService.getBuilder(ExportConfigKey.class)
                     .withURIVariable(API.PARAM_MODEL_ID, action.getEntityKey().modelId)
+                    .withQueryParam(API.PARAM_FOLLOWUP, String.valueOf(followup))
                     .call()
                     .getOrThrow();
 

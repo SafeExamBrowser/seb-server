@@ -44,7 +44,7 @@ public interface ExamConfigService {
     Result<Long> getFollowupConfigurationId(final Long examConfigNodeId);
 
     /** Used to export a specified SEB Exam Configuration as plain XML
-     * This exports the values of the follow-up configuration defined by a given
+     * This exports the values of the last published changes of a given
      * ConfigurationNode (configurationNodeId)
      *
      * @param out The output stream to write the plain XML text to.
@@ -102,8 +102,13 @@ public interface ExamConfigService {
      *
      * @param institutionId the institutional id
      * @param configurationNodeId the configurationNodeId
+     * @param stable indicates if the follow-up configuration entey shall be used or otherwise the last stable
+     *            to calculate the config key
      * @return Result refer to the generated Config-Key or to an error if happened. */
-    Result<String> generateConfigKey(Long institutionId, Long configurationNodeId);
+    Result<String> generateConfigKey(
+            Long institutionId,
+            Long configurationNodeId,
+            boolean followup);
 
     /** Generates a list of Config-Key from a given Exam by collecting all the SEB Exam Configurations that are attached
      * to this Exam

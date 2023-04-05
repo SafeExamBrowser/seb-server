@@ -227,7 +227,7 @@ public class ExamFormConfigs implements TemplateComposer {
         if (examConfigMappingKey != null) {
             action.withEntityKey(examConfigMappingKey);
             return SEBExamConfigForm
-                    .getConfigKeyFunction(this.pageService)
+                    .getConfigKeyFunction(this.pageService, false)
                     .apply(action);
         }
 
