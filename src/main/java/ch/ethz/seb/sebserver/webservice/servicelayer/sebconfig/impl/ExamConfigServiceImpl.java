@@ -146,18 +146,14 @@ public class ExamConfigServiceImpl implements ExamConfigService {
     public void exportPlainXML(
             final OutputStream out,
             final Long institutionId,
-            final Long configurationNodeId) {
+            final Long configurationNodeId,
+            final boolean followup) {
 
-        this.exportPlainOnly(ConfigurationFormat.XML, out, institutionId, configurationNodeId);
-    }
-
-    @Override
-    public void exportPlainJSON(
-            final OutputStream out,
-            final Long institutionId,
-            final Long configurationNodeId) {
-
-        this.exportPlainOnly(ConfigurationFormat.JSON, out, institutionId, configurationNodeId);
+        Long configId = null;
+        if (followup) {
+            configId = this.configurationDAO.getFollowupConfigurationId(configurationNodeId).getOr(null);
+        }
+        this.exportPlainOnly(ConfigurationFormat.XML, out, institutionId, configurationNodeId, configId);
     }
 
     public Result<Long> getDefaultConfigurationIdForExam(final Long examId) {
@@ -264,7 +260,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             }
         } else {
             // just export in plain text XML format
-            this.exportPlainXML(out, institutionId, configurationNodeId);
+            this.exportPlainXML(out, institutionId, configurationNodeId, false);
         }
 
         return configurationNodeId;
@@ -505,7 +501,8 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             final ConfigurationFormat exportFormat,
             final OutputStream out,
             final Long institutionId,
-            final Long configurationNodeId) {
+            final Long configurationNodeId,
+            final Long configId) {
 
         if (log.isDebugEnabled()) {
             log.debug("Start to stream plain text SEB Configuration data");
@@ -517,11 +514,12 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             pout = new PipedOutputStream();
             pin = new PipedInputStream(pout);
 
-            this.examConfigIO.exportPlain(
+            this.examConfigIO.exportForConfig(
                     exportFormat,
                     pout,
                     institutionId,
-                    configurationNodeId);
+                    configurationNodeId,
+                    configId);
 
             IOUtils.copyLarge(pin, out);
 

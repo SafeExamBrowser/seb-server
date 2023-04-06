@@ -275,10 +275,12 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         final ServletOutputStream outputStream = response.getOutputStream();
 
         try {
+
             this.sebExamConfigService.exportPlainXML(
                     outputStream,
                     institutionId,
-                    modelId);
+                    modelId,
+                    true);
 
             response.setStatus(HttpStatus.OK.value());
         } catch (final Exception e) {

@@ -49,19 +49,14 @@ public interface ExamConfigService {
      *
      * @param out The output stream to write the plain XML text to.
      * @param institutionId The identifier of the institution of the requesting user
-     * @param configurationNodeId the identifier of the ConfigurationNode to export */
-    void exportPlainXML(OutputStream out, Long institutionId, Long configurationNodeId);
-
-    /** Used to export a specified SEB Exam Configuration as plain JSON
-     * This exports the values of the follow-up configuration defined by a given
-     * ConfigurationNode (configurationNodeId) and sorts the attributes recording to
-     * the SEB configuration JSON specification to create a Config-Key as
-     * described here: https://www.safeexambrowser.org/developer/seb-config-key.html
-     *
-     * @param out The output stream to write the plain JSON text to.
-     * @param institutionId The identifier of the institution of the requesting user
-     * @param configurationNodeId the identifier of the ConfigurationNode to export */
-    void exportPlainJSON(OutputStream out, Long institutionId, Long configurationNodeId);
+     * @param configurationNodeId the identifier of the ConfigurationNode to export
+     * @param followup indicates if the follow-up configuration entry shall be used or otherwise the last stable
+     *            to export SEB Settings */
+    void exportPlainXML(
+            OutputStream out,
+            Long institutionId,
+            Long configurationNodeId,
+            boolean followup);
 
     /** Used to export the default SEB Exam Configuration for a given exam identifier.
      * either with encryption if defined or as plain text within the SEB Configuration format
@@ -102,7 +97,7 @@ public interface ExamConfigService {
      *
      * @param institutionId the institutional id
      * @param configurationNodeId the configurationNodeId
-     * @param stable indicates if the follow-up configuration entey shall be used or otherwise the last stable
+     * @param followup indicates if the follow-up configuration entry shall be used or otherwise the last stable
      *            to calculate the config key
      * @return Result refer to the generated Config-Key or to an error if happened. */
     Result<String> generateConfigKey(

@@ -106,6 +106,17 @@ public class ExamConfigIO {
 
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void exportForConfig(
+            final ConfigurationFormat exportFormat,
+            final OutputStream out,
+            final Long institutionId,
+            final Long configurationNodeId,
+            final Long configId) throws Exception {
+
+        exportPlain(exportFormat, out, institutionId, configurationNodeId, configId);
+    }
+
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
+    void exportForConfig(
             final OutputStream out,
             final Long institutionId,
             final Long configurationNodeId,
