@@ -61,6 +61,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.logs.GetExtendedClientEventPage;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.ConfirmPendingClientNotification;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.DisableClientConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionData;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetClientConnectionSecurityKey;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetPendingClientNotifications;
@@ -100,6 +101,10 @@ public class MonitoringClientConnection implements TemplateComposer {
             new LocTextKey("sebserver.monitoring.exam.connection.action.instruction.quit.confirm");
     private static final LocTextKey CONFIRM_OPEN_SINGLE_ROOM =
             new LocTextKey("sebserver.monitoring.exam.connection.action.singleroom.confirm");
+    private static final LocTextKey CONFIRM_CANCEL_MISSING =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.cancel.confirm");
+    private static final LocTextKey CONFIRM_CANCEL_ACTIVE =
+            new LocTextKey("sebserver.monitoring.exam.connection.action.cancel.active.info");
 
     private static final LocTextKey EVENT_LIST_TITLE_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.eventlist.title");
@@ -402,7 +407,21 @@ public class MonitoringClientConnection implements TemplateComposer {
                         some -> new HashSet<>(Arrays.asList(connectionToken))))
                 .noEventPropagation()
                 .publishIf(() -> isExamSupporter.getAsBoolean() &&
-                        connectionData.clientConnection.status.clientActiveStatus);
+                        connectionData.clientConnection.status.clientActiveStatus)
+
+                .newAction(ActionDefinition.MONITOR_EXAM_CLIENT_DISABLE_CONNECTION)
+                .withParentEntityKey(exam.getEntityKey())
+                .withEntityKey(new EntityKey(
+                        connectionData.clientConnection.connectionToken,
+                        EntityType.CLIENT_CONNECTION))
+                .withConfirm(() -> clientConnectionDetails.hasMissingPing()
+                        ? CONFIRM_CANCEL_MISSING
+                        : null)
+                .withExec(action -> this.disableClientConnection(action, clientConnectionDetails))
+                .noEventPropagation()
+                .publishIf(() -> isExamSupporter.getAsBoolean() &&
+                        (connectionData.clientConnection.status == ConnectionStatus.ACTIVE ||
+                                connectionData.clientConnection.status == ConnectionStatus.CLOSED));
 
         if (clientConnectionDetails.checkSecurityGrant) {
             final SecurityKey securityKey = this.pageService
@@ -462,6 +481,30 @@ public class MonitoringClientConnection implements TemplateComposer {
                 });
             }
         }
+    }
+
+    private PageAction disableClientConnection(
+            final PageAction action,
+            final ClientConnectionDetails clientConnectionDetails) {
+
+        final EntityKey entityKey = action.getEntityKey();
+        final EntityKey parentEntityKey = action.getParentEntityKey();
+
+        if (clientConnectionDetails.isActive() && !clientConnectionDetails.hasMissingPing()) {
+            action.pageContext().publishInfo(CONFIRM_CANCEL_ACTIVE);
+            return action;
+        }
+
+        this.pageService.getRestService()
+                .getBuilder(DisableClientConnection.class)
+                .withURIVariable(API.PARAM_PARENT_MODEL_ID, parentEntityKey.modelId)
+                .withFormParam(
+                        Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN,
+                        entityKey.modelId)
+                .call()
+                .onError(error -> action.pageContext().notifyUnexpectedError(error));
+
+        return action;
     }
 
     private PageAction confirmNotification(

@@ -172,6 +172,11 @@ public class ClientConnectionDetails implements MonitoringEntry {
         return this.connectionData.clientConnection.status;
     }
 
+    public boolean isActive() {
+        return this.connectionData.clientConnection.status != null
+                && this.connectionData.clientConnection.status.clientActiveStatus;
+    }
+
     @Override
     public boolean hasMissingPing() {
         return (this.connectionData != null) ? this.connectionData.missingPing : false;

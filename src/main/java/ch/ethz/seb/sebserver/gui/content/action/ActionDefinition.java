@@ -905,6 +905,11 @@ public enum ActionDefinition {
             ImageIcon.LOCK,
             PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
             ActionCategory.FORM),
+    MONITOR_EXAM_CLIENT_DISABLE_CONNECTION(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.disable"),
+            ImageIcon.DISABLE,
+            PageStateDefinitionImpl.MONITORING_CLIENT_CONNECTION,
+            ActionCategory.FORM),
 
     MONITOR_EXAM_CLIENT_CONNECTION_PROCTORING(
             new LocTextKey("sebserver.monitoring.exam.connection.action.proctoring"),
