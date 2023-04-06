@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
+import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
@@ -216,10 +217,14 @@ public class ExamRecordDAO {
                                 or(ExamRecordDynamicSqlSupport.quizEndTime, isNull()));
             }
 
+            final String nameCriteria = filterMap.contains(QuizData.FILTER_ATTR_NAME)
+                    ? filterMap.getSQLWildcard(QuizData.FILTER_ATTR_NAME)
+                    : filterMap.getSQLWildcard(Domain.EXAM.ATTR_QUIZ_NAME);
+
             final List<ExamRecord> records = whereClause
                     .and(
                             ExamRecordDynamicSqlSupport.quizName,
-                            isLikeWhenPresent(filterMap.getSQLWildcard(QuizData.FILTER_ATTR_NAME)))
+                            isLikeWhenPresent(nameCriteria))
                     .build()
                     .execute();
 

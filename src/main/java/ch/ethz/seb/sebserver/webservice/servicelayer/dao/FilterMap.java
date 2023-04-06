@@ -60,6 +60,13 @@ public class FilterMap extends POSTMapper {
         super(params, uriQueryString);
     }
 
+    public boolean containsAny(final Set<String> extFilter) {
+        return extFilter.stream()
+                .filter(this.params::containsKey)
+                .findFirst()
+                .isPresent();
+    }
+
     public Integer getActiveAsInt() {
         return getBooleanAsInteger(Entity.FILTER_ATTR_ACTIVE);
     }
@@ -343,13 +350,6 @@ public class FilterMap extends POSTMapper {
         public FilterMap create() {
             return new FilterMap(this.filterMap.params, null);
         }
-    }
-
-    public boolean containsAny(final Set<String> extFilter) {
-        return extFilter.stream()
-                .filter(this.params::containsKey)
-                .findFirst()
-                .isPresent();
     }
 
 }

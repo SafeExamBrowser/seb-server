@@ -78,6 +78,10 @@ public class POSTMapper {
         }
     }
 
+    public boolean contains(final String name) {
+        return this.params.containsKey(name);
+    }
+
     private String decode(final String val) {
         try {
             return Utils.decodeFormURL_UTF_8(val);
