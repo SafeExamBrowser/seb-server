@@ -82,7 +82,7 @@ public class ColorData {
                 return 2;
             }
             case CLOSED:
-                return 4;
+                return 3;
             default:
                 return 5;
         }
