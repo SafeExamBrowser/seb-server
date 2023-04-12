@@ -420,7 +420,7 @@ public class MonitoringClientConnection implements TemplateComposer {
                 .withExec(action -> this.disableClientConnection(action, clientConnectionDetails))
                 .noEventPropagation()
                 .publishIf(() -> isExamSupporter.getAsBoolean() &&
-                        (connectionData.clientConnection.status == ConnectionStatus.ACTIVE ||
+                        (connectionData.clientConnection.status.clientActiveStatus ||
                                 connectionData.clientConnection.status == ConnectionStatus.CLOSED));
 
         if (clientConnectionDetails.checkSecurityGrant) {
