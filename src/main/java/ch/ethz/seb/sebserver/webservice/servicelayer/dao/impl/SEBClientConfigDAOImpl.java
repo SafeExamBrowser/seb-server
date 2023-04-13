@@ -24,6 +24,8 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
+import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
@@ -130,28 +132,38 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
             final FilterMap filterMap,
             final Predicate<SEBClientConfig> predicate) {
 
-        return Result.tryCatch(() -> this.sebClientConfigRecordMapper
-                .selectByExample()
-                .where(
-                        SebClientConfigRecordDynamicSqlSupport.institutionId,
-                        isEqualToWhenPresent(filterMap.getInstitutionId()))
-                .and(
-                        SebClientConfigRecordDynamicSqlSupport.name,
-                        isLikeWhenPresent(filterMap.getName()))
-                .and(
+        return Result.tryCatch(() -> {
+
+            QueryExpressionDSL<MyBatis3SelectModelAdapter<List<SebClientConfigRecord>>>.QueryExpressionWhereBuilder query =
+                    this.sebClientConfigRecordMapper
+                            .selectByExample()
+                            .where(
+                                    SebClientConfigRecordDynamicSqlSupport.institutionId,
+                                    isEqualToWhenPresent(filterMap.getInstitutionId()))
+                            .and(
+                                    SebClientConfigRecordDynamicSqlSupport.name,
+                                    isLikeWhenPresent(filterMap.getName()))
+                            .and(
+                                    SebClientConfigRecordDynamicSqlSupport.active,
+                                    isEqualToWhenPresent(filterMap.getActiveAsInt()));
+
+            final DateTime sebClientConfigFromTime = filterMap.getSEBClientConfigFromTime();
+            if (sebClientConfigFromTime != null) {
+
+                query = query.and(
                         SebClientConfigRecordDynamicSqlSupport.date,
-                        isGreaterThanOrEqualToWhenPresent(filterMap.getSEBClientConfigFromTime()),
-                        or(SebClientConfigRecordDynamicSqlSupport.active, isNotEqualTo(0)))
-                .and(
-                        SebClientConfigRecordDynamicSqlSupport.active,
-                        isEqualToWhenPresent(filterMap.getActiveAsInt()))
-                .build()
-                .execute()
-                .stream()
-                .map(this::toDomainModel)
-                .flatMap(DAOLoggingSupport::logAndSkipOnError)
-                .filter(predicate)
-                .collect(Collectors.toList()));
+                        isGreaterThanOrEqualTo(sebClientConfigFromTime),
+                        or(SebClientConfigRecordDynamicSqlSupport.active, isNotEqualTo(0)));
+            }
+
+            return query.build()
+                    .execute()
+                    .stream()
+                    .map(this::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .filter(predicate)
+                    .collect(Collectors.toList());
+        });
     }
 
     @Override
