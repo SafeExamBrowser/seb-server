@@ -213,6 +213,7 @@ interface CellFieldBuilderAdapter {
 
     class ExpandBarCellFieldBuilderAdapter implements CellFieldBuilderAdapter {
 
+        public static final int HEIGHT_PER_FIELD = 26;
         final Map<String, Collection<Orientation>> orientationsOfExpandBar;
 
         int x = 100;
@@ -278,7 +279,7 @@ interface CellFieldBuilderAdapter {
                         this.width,
                         labelKey);
 
-                expandItem.setHeight(this.height * 23);
+                expandItem.setHeight(this.height * HEIGHT_PER_FIELD);
                 final Composite body = (Composite) expandItem.getControl();
                 final ViewGridBuilder expandBuilder = new ViewGridBuilder(
                         body,
