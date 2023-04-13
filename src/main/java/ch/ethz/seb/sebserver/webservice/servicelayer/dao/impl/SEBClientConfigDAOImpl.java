@@ -140,7 +140,8 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                         isLikeWhenPresent(filterMap.getName()))
                 .and(
                         SebClientConfigRecordDynamicSqlSupport.date,
-                        isGreaterThanOrEqualToWhenPresent(filterMap.getSEBClientConfigFromTime()))
+                        isGreaterThanOrEqualToWhenPresent(filterMap.getSEBClientConfigFromTime()),
+                        or(SebClientConfigRecordDynamicSqlSupport.active, isNotEqualTo(0)))
                 .and(
                         SebClientConfigRecordDynamicSqlSupport.active,
                         isEqualToWhenPresent(filterMap.getActiveAsInt()))
