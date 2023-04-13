@@ -39,6 +39,7 @@ public class TextListInput extends Composite {
     private final Button addAction;
     private final Composite content;
     private final List<Row> list = new ArrayList<>();
+    private final String tooltipText;
 
     private Listener valueChangeEventListener = null;
 
@@ -81,8 +82,10 @@ public class TextListInput extends Composite {
 
         final LocTextKey toolTipKey = new LocTextKey(nameKey.name + ".tooltip");
         if (widgetFactory.getI18nSupport().hasText(toolTipKey)) {
-            label.setToolTipText(Utils.formatLineBreaks(
-                    widgetFactory.getI18nSupport().getText(toolTipKey)));
+            this.tooltipText = Utils.formatLineBreaks(widgetFactory.getI18nSupport().getText(toolTipKey));
+            label.setToolTipText(this.tooltipText);
+        } else {
+            this.tooltipText = null;
         }
 
         this.addAction = widgetFactory.imageButton(
@@ -103,7 +106,7 @@ public class TextListInput extends Composite {
     }
 
     void addRow(final Event event) {
-        this.list.add(new Row(this.list.size()));
+        this.list.add(new Row(this.list.size(), this.tooltipText));
         this.content.getParent().getParent().layout(true, true);
     }
 
@@ -156,10 +159,13 @@ public class TextListInput extends Composite {
         public final Text textInput;
         public final Button deleteButton;
 
-        public Row(final int index) {
+        public Row(final int index, final String tooltipText) {
             this.textInput = TextListInput.this.widgetFactory.textInput(
                     TextListInput.this.content,
                     TextListInput.this.nameKey);
+            if (tooltipText != null) {
+                this.textInput.setToolTipText(tooltipText);
+            }
             GridData gridData = new GridData(SWT.FILL, SWT.CENTER, true, true);
             this.textInput.setEditable(TextListInput.this.isEditable);
             if (TextListInput.this.isEditable) {
@@ -198,16 +204,6 @@ public class TextListInput extends Composite {
                 TextListInput.this.valueChangeEventListener.handleEvent(null);
             }
         }
-
-//        public void setEditable(final boolean e) {
-//            this.textInput.setEditable(e);
-//            this.textInput.setData(
-//                    RWT.CUSTOM_VARIANT,
-//                    e ? null : CustomVariant.CONFIG_INPUT_READONLY.key);
-//            if (this.deleteButton != null) {
-//                this.deleteButton.setEnabled(e);
-//            }
-//        }
     }
 
 }

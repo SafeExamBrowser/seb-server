@@ -60,19 +60,6 @@ public class TextFieldListBuilder extends AbstractTableFieldBuilder {
         final Composite innerGrid = InputFieldBuilder
                 .createInnerGrid(parent, attribute, orientation);
 
-//        final Composite scroll = PageService.createManagedVScrolledComposite(
-//                innerGrid,
-//                scrolledComposite -> {
-//                    final Composite result = new Composite(scrolledComposite, SWT.NONE);
-//                    final GridLayout gridLayout1 = new GridLayout();
-//                    result.setLayout(gridLayout1);
-//                    final GridData gridData1 = new GridData(SWT.FILL, SWT.FILL, true, true);
-//                    result.setLayoutData(gridData1);
-//                    return result;
-//                },
-//                false,
-//                false, true);
-
         final String attributeNameKey = ExamConfigurationService.attributeNameKey(attribute);
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
         gridData.minimumHeight = WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT;
