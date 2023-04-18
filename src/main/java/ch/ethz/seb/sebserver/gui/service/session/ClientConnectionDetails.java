@@ -65,6 +65,8 @@ public class ClientConnectionDetails implements MonitoringEntry {
             new LocTextKey("sebserver.monitoring.connection.form.status");
     private final static LocTextKey WRONG_SEB_CLIENT_TOOLTIP =
             new LocTextKey("sebserver.finished.connection.form.info.wrong.client.tooltip");
+    private final static LocTextKey GRANTED_TEXT =
+            new LocTextKey("sebserver.monitoring.exam.connection.status.GRANTED");
 
     private static final int NUMBER_OF_NONE_INDICATOR_ROWS = 3;
 
@@ -277,6 +279,9 @@ public class ClientConnectionDetails implements MonitoringEntry {
         if (this.missingChanged || this.statusChanged) {
             // update status
             String stateName = this.localizedClientConnectionStatusNameFunction.apply(this);
+            if (stateName != null && getStatus().clientActiveStatus && this.grantChecked && !this.grantDenied) {
+                stateName = stateName + pageContext.getI18nSupport().getText(GRANTED_TEXT);
+            }
             if (stateName != null) {
                 stateName = stateName.replace("&nbsp;", " ");
             }
