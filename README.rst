@@ -55,6 +55,7 @@ a more automated and secure setup for high-stake exams.
 
 .. image:: /docs/images/setup_1.png
     :align: center
+    :width: 500px
     :target: /docs/images/setup_1.png
     
 
