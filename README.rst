@@ -42,7 +42,7 @@ SEB Server is a modern webservice with a REST API and a GUI service on top of it
 SEB Server provides a range of basic functionalities:
 
 - Built-in institutional multitenancy 
-- Linking of multiple Learning Management Systems (LMS). Currently supported: 
+- Linking of multiple Learning Management Systems (LMS). Currently supported
     - `Open edX <https://open.edx.org/>`_ 
     - `Moodle <https://moodle.org/>`_
     - `Open Olat <https://www.openolat.com/>`_
@@ -57,8 +57,8 @@ The image below shows a very simplified diagram that locates the SEB Server in a
 Safe Exam Browser (SEB). The SEB Server communicates with the LMS for managing and prepare exams as well as with the SEB Client to ensure 
 a more automated and secure setup for high-stake exams.
 
-.. image:: /docs/images/setup_1.png
-    :target: /docs/images/setup_1.png
+.. image:: "/docs/images/setup_1.png"
+    :target: "/docs/images/setup_1.png"
     :align: center
     
 SEB Server Version 1.5 is out
