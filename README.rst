@@ -53,9 +53,9 @@ The image below shows a very simplified diagram that locates the SEB Server in a
 Safe Exam Browser (SEB). The SEB Server communicates with the LMS for managing and prepare exams as well as with the SEB Client to ensure 
 a more automated and secure setup for high-stake exams.
 
-.. image:: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/setup_1.png
+.. image:: /docs/images/setup_1.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/setup_1.png
+    :target: /docs/images/setup_1.png
     
 
 SEB Server Version 1.5 is out
@@ -63,42 +63,41 @@ SEB Server Version 1.5 is out
 
 New Features:
 
-    - Security: New Application Signature Key (ASK) integration within SEB Server exams and monitoring
-    - Security: Minimum SEB Client version tracking within SEB Server monitoring
-    - LMS Integration: Better Moodle integration with new `SEB Server Moodle Plugin <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_
-    - Exam Maintenance: Added new SEB grouping functionality for Exam (and Exam Template) and Monitoring to be able to view/manage SEB Clients within defined groups (IP range, SEB client OS, ...) 
-    - Exam Maintenance: Batch actions for archive and delete exams
-    - Exam Maintenance: Added SEB log export for finished and archived exams
-    - Exam List: Filter for unavailable exams
-    - Exam Monitoring: Added force SEB Lock Screen feature to be able to send lock screen instruction to SEB client as well as release such from SEB Server
-    - User Account: Added "Change Password" function also in User Account edit page
+- Security: New Application Signature Key (ASK) integration within SEB Server exams and monitoring
+- Security: Minimum SEB Client version tracking within SEB Server monitoring
+- LMS Integration: Better Moodle integration with new `SEB Server Moodle Plugin <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_
+- Exam Maintenance: Added new SEB grouping functionality for Exam (and Exam Template) and Monitoring to be able to view/manage SEB Clients within defined groups (IP range, SEB client OS, ...) 
+- Exam Maintenance: Batch actions for archive and delete exams
+- Exam Maintenance: Added SEB log export for finished and archived exams
+- Exam List: Filter for unavailable exams
+- Exam Monitoring: Added force SEB Lock Screen feature to be able to send lock screen instruction to SEB client as well as release such from SEB Server
+- User Account: Added "Change Password" function also in User Account edit page
     
 Improvements:
 
-    - LMS Setup Lookup: Improved parallel data fetch of course and quit data from LMS and added notifications to the UI if background job is still fetching data from LMS in the background
-    - Zoom Proctoring: Adapted to new Zoom API's, SDK's and Apps
-    - Zoom Proctoring: Gallery view works now also in the proctoring web-client of the SEB Server
-    - Open Olat Integration: Added propagation of quit-link and quit-password for exam to Open Olat within the SEB restriction
-    - Monitoring: Improved performance for active monitoring
-    - Migration: Improved migration and added database table-char-set check
-    - SEB Settings: Added various new SEB Settings within the SEB Server database and Configuration Template (not yet in Exam Configuration UI)
-    - Added Tool-Tips also for list filters / various text and minor UI improvements
+- LMS Setup Lookup: Improved parallel data fetch of course and quit data from LMS and added notifications to the UI if background job is still fetching data from LMS in the background
+- Zoom Proctoring: Adapted to new Zoom API's, SDK's and Apps
+- Zoom Proctoring: Gallery view works now also in the proctoring web-client of the SEB Server
+- Open Olat Integration: Added propagation of quit-link and quit-password for exam to Open Olat within the SEB restriction
+- Monitoring: Improved performance for active monitoring
+- Migration: Improved migration and added database table-char-set check
+- SEB Settings: Added various new SEB Settings within the SEB Server database and Configuration Template (not yet in Exam Configuration UI)
+- Added Tool-Tips also for list filters / various text and minor UI improvements
     
 Bugfixes: 
 
-    - Exam Configuration status change to "Archived" is possible for up-coming exams
-    - Fix handling of invalid SEB Server monitoring UI sessions
-    - Open Olat LMS Setup access deadlock (serialized token request for LMS Template)
-    - Fixed exam update background process to update sometimes exams from LMS where nothing changed on LMS side
-    - Zoom proctoring multiplied participants on room change
-    - SEB Restriction warning on Exam seems to be not present when restriction fails
-    - Certificate cannot be imported
-    - Configuration Template: Filtering column "View": Paging in attribute list shows only one page
-    - Exam Configuration export SEB Settings should export current settings
-    - Exam: Name and Date filter does not work correctly
-    - Export Exam Connection Configuration, special characters in exam name cut of file name
-    - Zoom proctoring gallery view seems not to work because of cross-origin settings
-
+- Exam Configuration status change to "Archived" is possible for up-coming exams
+- Fix handling of invalid SEB Server monitoring UI sessions
+- Open Olat LMS Setup access deadlock (serialized token request for LMS Template)
+- Fixed exam update background process to update sometimes exams from LMS where nothing changed on LMS side
+- Zoom proctoring multiplied participants on room change
+- SEB Restriction warning on Exam seems to be not present when restriction fails
+- Certificate cannot be imported
+- Configuration Template: Filtering column "View": Paging in attribute list shows only one page
+- Exam Configuration export SEB Settings should export current settings
+- Exam: Name and Date filter does not work correctly
+- Export Exam Connection Configuration, special characters in exam name cut of file name
+- Zoom proctoring gallery view seems not to work because of cross-origin settings
 
 Docker-Image:
 
