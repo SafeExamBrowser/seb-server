@@ -43,11 +43,11 @@ SEB Server provides a range of basic functionalities:
 
 - Built-in institutional multitenancy
 
-- Linking of multiple Learning Management Systems (LMS). Currently supported LMS:
-    - `Open edX <https://open.edx.org/>`_ 
-    - `Moodle <https://moodle.org/>`_
-    - `Open Olat <https://www.openolat.com/>`_
-    - `Ans <https://ans.app/>`_
+- Linking of multiple Learning Management Systems (LMS). Currently supported LMS: 
+    `Open edX <https://open.edx.org/>`_ 
+    `Moodle <https://moodle.org/>`_
+    `Open Olat <https://www.openolat.com/>`_
+    `Ans <https://ans.app/>`_
     
 - Accessing the Course/Exam-API of a linked LMS to import a courses or exams for managing with SEB Server
 - Creation and administration of SEB Client Configurations that can be used to startup a SEB and that contains SEB Server connection information for a SEB Client
