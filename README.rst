@@ -117,7 +117,7 @@ SEB Server version. There is an entry for each platform with a beta or testing r
 
    "SEB Client for iOS", "ASK: 3.3", "3.1 (ASK: 3.3)"
    "SEB Client for Mac", "ASK: 3.3pre", "3.1 (Zoom: 3.2/ASK: 3.3)"
-   "SEB Client for Windows", "", ""
+   "SEB Client for Windows", "--", "3.5.0 "
 
 **SEB Server Version 1.4.X**
 
