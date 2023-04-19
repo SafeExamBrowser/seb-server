@@ -3,11 +3,6 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-About SEB Server
-================
-
-.. include:: ../README.rst
-
 SEB Server User Guide
 =====================
 
@@ -17,6 +12,7 @@ Table of Content
 .. toctree::
    :maxdepth: 3
    
+   about
    overview
    institution
    useraccount

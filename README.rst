@@ -26,7 +26,7 @@ The Safe Exam Browser Server web application simplifies and centralizes the conf
 What is Safe Exam Browser (SEB)?
 --------------------------------
 
-`Safe Exam Browser <https://safeexambrowser.org/>`_ (SEB) is an application to carry out e-assessments safely. The freeware application is available for Windows, macOS and iOS. It turns any computer temporarily into a secure workstation. It controls access to resources like system functions, other websites and applications and prevents unauthorized resources being used during an exam. Safe Exam Browser can work with Open edX to control what a student can access during a Open edX quiz attempt. With the SEB Open edX plugin you activate the SEB support in Open edX and now only students using an approved version of SEB and the correct settings will be able to access the quiz in your Open edX course. The Safe Exam Browser is offered under a Mozilla Public License and supported by the `SEB Alliance <https://safeexambrowser.org/alliance/>`_.
+`Safe Exam Browser <https://safeexambrowser.org/>`_ (SEB) is an application to carry out e-assessments safely. The free-ware application is available for Windows, macOS and iOS. It turns any computer temporarily into a secure workstation. It controls access to resources like system functions, other websites and applications and prevents unauthorized resources being used during an exam. Safe Exam Browser can work with Open edX to control what a student can access during a Open edX quiz attempt. With the SEB Open edX plugin you activate the SEB support in Open edX and now only students using an approved version of SEB and the correct settings will be able to access the quiz in your Open edX course. The Safe Exam Browser is offered under a Mozilla Public License and supported by the `SEB Alliance <https://safeexambrowser.org/alliance/>`_.
 
 
 What is Safe Exam Browser Server (SEB Server)?
@@ -42,8 +42,7 @@ SEB Server is a modern webservice with a REST API and a GUI service on top of it
 SEB Server provides a range of basic functionalities:
 
 - Built-in institutional multitenancy
-- Linking of multiple Learning Management Systems (LMS). Currently supported LMS: 
-    `Open edX <https://open.edx.org/>`_, `Moodle <https://moodle.org/>`_, `Open Olat <https://www.openolat.com/>`_, `Ans <https://ans.app/>`_
+- Linking of multiple Learning Management Systems (LMS). Currently supported LMS: `Open edX <https://open.edx.org/>`_, `Moodle <https://moodle.org/>`_, `Open Olat <https://www.openolat.com/>`_, `Ans <https://ans.app/>`_
 - Accessing the Course/Exam-API of a linked LMS to import a courses or exams for managing with SEB Server
 - Creation and administration of SEB Client Configurations that can be used to startup a SEB and that contains SEB Server connection information for a SEB Client
 - Creation and administration of SEB Exam Configurations that can be bound to an imported Exam to automatically configure a SEB Client that connects to an exam that is managed by SEB Server
@@ -54,8 +53,8 @@ The image below shows a very simplified diagram that locates the SEB Server in a
 Safe Exam Browser (SEB). The SEB Server communicates with the LMS for managing and prepare exams as well as with the SEB Client to ensure 
 a more automated and secure setup for high-stake exams.
 
-.. image:: /docs/images/setup_1.png
-    :target: /docs/images/setup_1.png
+.. image:: https://github.com/SafeExamBrowser/seb-server/blob/dev-1.5/docs/images/setup_1.png
+    :target: https://github.com/SafeExamBrowser/seb-server/blob/dev-1.5/docs/images/setup_1.png
     :align: center
     
 SEB Server Version 1.5 is out
