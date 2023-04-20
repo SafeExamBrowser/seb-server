@@ -31,7 +31,7 @@ If the background task is still running and fetching data, SEB Server will indic
 with the ability to reload the page by clicking on the respective icon in the note. With this approach you can now see whether all data
 are available and fetched or not.
 
-.. image:: images/exam/lmsExamLookup.png
+.. image:: images/exam/lmsExamLookupLate.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/lmsExamLookupLate.png
 
