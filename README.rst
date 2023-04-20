@@ -19,8 +19,6 @@ Development:
     :target: https://github.com/SafeExamBrowser/seb-server/tree/development
 
 
-About
------
 The Safe Exam Browser Server web application simplifies and centralizes the configuration of Safe Exam Browser clients for exams. It interacts with a learning management or exam system for setting up and conducting e-assessments with Safe Exam Browser. It also improves security by allowing to monitor connected Safe Exam Browser clients in real time during e-assessments. 
 
 What is Safe Exam Browser (SEB)?

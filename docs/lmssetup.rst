@@ -50,7 +50,7 @@ Therefore we need to create a LMS Setup on the SEB Server.
     
 A SEB Server administrator role will be able to see the institution to which the LMS Setup belongs to while an institutional administrator
 is only able to see and create LMS Setup for its own institution. The name of the LMS Setup should be unique and is to identify a LMS
-SEB Server internally. Use the "Type" selector to specify the type of the LMS to bind to the SEB Server within the LMS Setup. Currently supported are:
+SEB Server internally. Use the **"Type"** selector to specify the type of the LMS to bind to the SEB Server within the LMS Setup. Currently supported are:
 
 - **Testing**: This is for testing purposes only and can be used to mock a LMS to test exam settings. This type provides some mock-up courses within the 
   LMS API of the SEB Server that can be seen in the LMS Exam Lookup once the LMS text setup is active. This mock-up courses can be imported and configured
@@ -67,20 +67,23 @@ SEB Server internally. Use the "Type" selector to specify the type of the LMS to
   with SEB Server. Note that Moodle integration is implemented partially within SEB Server version 1.1.x. Only the course access feature is implemented and the course restriction feature will come with a future SEB Server release
 
 - **Moodle with SEB Server Plugin**: The `SEB Server Plugin for Moodle <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_ is new and supported by SEB Server since version 1.5.
-  With this plugin installed on Moodle side, SEB Server as able to more efficiently communicate with Moodle to fetch course data as well as restricting the quiz in Moodle side 
+  With this plugin installed on Moodle side, SEB Server is able to more efficiently communicate with Moodle to fetch course data as well as restricting the quiz on Moodle side 
   For SEB only access, using a auto-generated Browser Exam Key (BEK) for SEB restriction. Also the Moodle user name resolving for SEB Server monitoring is less error prone especially
-  if SSO or other login provider for Moodle is involved. Furthermore the new SEB Server Plugin for Moodle is constantly extended and improved with new features in the future.
+  if Single Sign On some kind of login provider for Moodle is involved. Furthermore the new SEB Server Plugin for Moodle will be constantly extended and improved with new features in the future.
 
-- **Ans Delft**: This type is to bind SEB Server with an `Ans Delft <https://ans.app/>`_ LMS instance. With the API credentials from an Ans Delft instance, SEB Server is able
+- **Ans Delft**: This type is to bind SEB Server with an `Ans Delft <https://ans.app/>`_ LMS. With the API credentials from an Ans Delft instance, SEB Server is able
   to connect to the Ans LMS and provide the common features for Course-Access, SEB Restriction and LMS User Session resolving.
   
-- **Open Olat**: This type is to bind SEB Server with an `Open Olat <https://www.openolat.com/>`_ LMS instance. With the API credentials from an Open Olat instance, SEB Server is able
+- **Open Olat**: This type is to bind SEB Server with an `Open Olat <https://www.openolat.com/>`_ LMS. With the API credentials from an Open Olat instance, SEB Server is able
   to connect to the Olat LMS and provide the common features for Course-Access, SEB Restriction and LMS User Session resolving. For more information please contact the Olat Development-Team at `OpenOLAT UZH <https://www.zi.uzh.ch/en/teaching-and-research/software-elearning/olat.html>`_
 
-The "LMS Server Address" is the root URL to connect to the LMS server with HTTP over the Internet or intranet. This is usually the URL that is 
+The **"LMS Server Address"** is the root URL to connect to the LMS server with HTTP over the Internet or intranet. This is usually the URL that is 
 also used with the Browser to connect to the main page of the LMS system. And additionally the credentials that have been created with the creation of the :ref:`lms-api-account-label` has to be set in the LMS Setup the make the SEB Server
-able to securely connect to the LMS. The API credentials that consists of a client-name and a client-secret must be used with the "LMS Server Username" 
-and the "LMS Server Password" fields of the LMS Setup form on SEB Server.
+able to securely connect to the LMS. The API credentials that consists of a client-name and a client-secret must be used with the **"LMS Server Username"** 
+and the **"LMS Server Password"** fields of the LMS Setup form on SEB Server.
+
+Alternatively to **"LMS Server Username"** and **"LMS Server Password"** you can use a direct **Access Token** to connect to the LMS API if the respective LMS allows to
+generate and use an access token directly.
 
 If the SEB Server running behind a proxy server or a firewall between SEB Server den LMS, the additional proxy settings can be used to setup the proxy-connection.
 
