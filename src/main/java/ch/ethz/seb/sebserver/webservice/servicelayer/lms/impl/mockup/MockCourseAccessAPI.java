@@ -167,11 +167,11 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
                 throw new IllegalArgumentException("Wrong clientId or secret");
             }
 
-            if (this.simulateLatency) {
-                final int seconds = this.random.nextInt(20);
-                System.out.println("************ Mockup LMS wait for " + seconds + " seconds before respond");
-                Thread.sleep(seconds * 1000);
-            }
+            //if (this.simulateLatency) {
+            final int seconds = this.random.nextInt(20);
+            System.out.println("************ Mockup LMS wait for " + seconds + " seconds before respond");
+            Thread.sleep(seconds * 1000);
+            //}
 
             return this.mockups
                     .stream()
@@ -198,11 +198,11 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
             if (asyncQuizFetchBuffer.canceled) {
                 return;
             }
-            if (this.simulateLatency) {
-                final int seconds = this.random.nextInt(5);
-                System.out.println("************ Mockup LMS wait for " + seconds + " seconds before respond");
-                Utils.sleep(seconds * 1000);
-            }
+            //if (this.simulateLatency) {
+            final int seconds = this.random.nextInt(5);
+            System.out.println("************ Mockup LMS wait for " + seconds + " seconds before respond");
+            Utils.sleep(seconds * 1000);
+            //}
             asyncQuizFetchBuffer.buffer.add(quizData);
         }
 

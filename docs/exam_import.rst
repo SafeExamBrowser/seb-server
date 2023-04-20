@@ -13,9 +13,10 @@ section on the left hand side and choosing "LMS Exam Lookup". The SEB Server wil
 are able to filter and sort the list as usual to find to right course for import.
 
 .. note::
-    The "Start-Time" filter is usually set to the date one year before now or to some other default date in the past. The list shows only 
-    the courses that has a start-time after that time. If you have long running courses and it may possible that a course has been stated
-    a year or two ago, you have to adapt this "Start-Time" filter to view those courses that has been started before. 
+    The “Start-Time” filter is usually set to the date one year before now or to some other default date in the past. 
+    The list shows only the courses that has a start-time after that time. If you have long running courses and it may 
+    possible that a course has been stated a year or two ago, you have to adapt this “Start-Time” filter to view those 
+    courses that has been started before.
 
 .. image:: images/exam/lmsExamLookup.png
     :align: center
@@ -23,6 +24,16 @@ are able to filter and sort the list as usual to find to right course for import
     
 You can view more details of a course by double-click on the specific list entry or by selecting the list entry and click the "Show LMS Exam Details" 
 action form the action pane on the right hand side. The application will open a pop-up with available detail information of the course.
+
+Since SEB Server version 1.5 the data-fetching-process to get all course data from bounded LMSs works as a background task and
+the UI request will return anyway no matter if all data has been fetched already and presents the already available data. 
+If the background task is still running and fetching data, SEB Server will indicate that with a message note on top of the page
+with the ability to reload the page by clicking on the respective icon in the note. With this approach you can now see whether all data
+are available and fetched or not.
+
+.. image:: images/exam/lmsExamLookup.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/lmsExamLookupLate.png
 
 To import a course as an exam find the specific course on the list by using the filter and select the list entry. Use the "Import As Exam" action 
 from the action pane on the right hand side. 
@@ -44,8 +55,11 @@ You will see the creation page of the new exam with additional information:
 - **LMS Exam Identifier**: Is the identity of the course on the LMS (external identifier/primary key)
 - **LMS Exam URL**: Is the start URL of the course/exam
 
-You are now able to initially choose a type for the exam - "Exam Type" - that is currently only used 
-for informational purpose and has no further restrictions or consequences on handling on in SEB Server.
+You are now able to either choose an existing :ref:`exam-template-label` to initialize the new exam with the settings defined within the template
+or to set the needed settings only for this exam. If you choose a template, the settings from the template will automatically be added to the exam
+on creation and you are still able to modify them afterwards.
+
+Initially choose a type for the exam - "Exam Type" - that is currently only used for informational purpose and has no further restrictions or consequences on handling on in SEB Server.
 
 .. image:: images/exam/importExam.png
     :align: center
@@ -69,7 +83,7 @@ for monitoring the exam later on.
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examReady.png
 
-How all this different aspects of the exam are defined and prepared is part of the next chapter.
+How all this different aspects of the exam are defined and prepared is part of the next chapters.
     
 
 Use Cases
