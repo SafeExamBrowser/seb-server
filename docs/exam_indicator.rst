@@ -7,6 +7,19 @@ For monitoring connected SEB clients, SEB Server supports some indicators that c
 exam. When you import, the application automatically creates a default ping-indicator for the exam. You are able to modify this default indicator and also
 add some other indicators to the exam to be able to get notified while monitoring an exam session.
 
+.. image:: images/exam/examIndicators.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examIndicators.png
+    
+To add a new indicator to the exam you can use the "Add Indicator" action from the right action pane. In the indicator edit page you are able to give the
+new indicator a name. This name will be displayed in the SEB client connection table on monitoring section as column name for the column of this
+indicator. Then you are able to choose a "Type" that specifies the type of indicator. Choose this from a drop-down selection of supported indicators.
+If you have selected one indicator type, a description will be shown just below the "Type" attribute. 
+
+.. image:: images/exam/editIndicator.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/editIndicator.png
+    
 The type of indicators are pre-defined within the SEB Server and restricts the number of available indicators that can be used. Currently following
 indicators are supported:
 
@@ -14,29 +27,27 @@ indicators are supported:
    This can be used to monitor constant SEB client connections and get notified when a SEB client connection gets lost for some defined 
    time or when a SEB client connection that has been list is back again.
    This indicator is used as default indicator and automatically applied to the exam on import. You are able to modify this indicator 
-   and also delete it but we recommend to have this basic indicator in place for every exam.              
+   and also delete it but we recommend to have this basic indicator in place for every exam.
+- **Battery Status**: This indicator measures the battery load of a SEB client that is not connected to the power grid and can warn you
+  about SEB clients running on devices with low battery load.
+- **WiFi Status** This indicator measures the WiFi connection status for connected SEB client that connects over WiFi and can warn you
+  about low WiFi connection issues.
 - **Errors**: This indicator measures the number of error-logs a specified SEB client is sending to the SEB Server.
 - **Warnings**: This indicator measures the number of warning-logs a specified SEB client is sending to the SEB Server.
+- **Info Log**: This indicator measures if specific SEB client info log events that are sent to SEB Server.
+  This indicator is mostly useful with addition tag information to specify specially tagged SEB info logs.
+
+You can define a "Default Color" for the indicator. An indicator which measured value has not reached any defines threshold will be shown in this 
+color on the SEB client connection table of the monitoring section.
  
 You can define thresholds for each indicator. A threshold is defined by an indication-color and by a threshold-value. On the monitoring side, the 
 indicator for each SEB client connection with change to the threshold color when the measured indicator value has reached the threshold-value.
 
-To add a new indicator to the exam you can use the "Add Indicator" action from the right action pane. In the indicator edit page you are able to give the
-new indicator a name. This name will be displayed in the SEB client connection table on monitoring section as column name for the column of this
-indicator. Then you are able to choose a "Type" that specifies the type of indicator. Choose this from a drop-down selection of supported indicators.
-If you have selected one indicator type, a description will be shown just below the "Type" attribute. 
-
-You can define a "Default Color" for the indicator. An indicator which measured value has not reached any defines threshold will be shown in this 
-color on the SEB client connection table of the monitoring section.
 
 .. note::
     To select a color click on the brush-palette icon of the color input field to open up a color chooser pop-up window. Within the color chooser
     you can select one of the basic colors provided by the chooser or by defining the red, green and blue part of the color.
 
-.. image:: images/exam/editIndicator.png
-    :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/editIndicator.png
-    
 
 Below the default color you see a list of thresholds. Use the plus sign icon to add a new threshold to the list and on an existing threshold use
 the minus sign icon to remove a particular threshold form the list. A threshold has a threshold-value and a threshold-color. The threshold value
