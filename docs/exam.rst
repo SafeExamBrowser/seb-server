@@ -8,9 +8,9 @@ To find a specific exam that has already been imported, go to "Exam Administrati
 see a list of all available exams. You are able to filter and sort the list as usual to find to right course for import.
 
 .. note::
-    The "Start-Time" filter is usually set to the date one year before now or to some other default date in the past. The list shows only 
-    the courses that has a start-time after that time. If you have long running courses and it may possible that a course has been stated
-    a year or two ago, you have to adapt this "Start-Time" filter to view those courses that has been started before. 
+    The Date-Filter above "Start-Time" is usually set to the date one year before now or to some other default date in the past
+    and is applied to the end-date of the exam or quiz. The list shows all running or up-comming exams and only hides finished or
+    archived exams that has an end-date before the Date-Filter date. 
     
 Double click on the list entry of the exam or select the list entry and use the "View Exam" action of the action pane on the right hand side to
 open the exam in the detail view. Within the detail view of the exam you are able to edit the exam attributes, apply SEB exam configuration and
@@ -54,6 +54,10 @@ to an exam is restricted to one since it is not yet possible to apply a SEB exam
 specific group of users. This feature may come with a future release of seb server. But for now you are able to apply just one SEB exam configuration 
 to the exam and this configuration gets delivered to all the SEB clients that connect to the SEB Server and participate to the exam.
 
+.. image:: images/exam/examConfigAdd.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examConfigAdd.png
+
 To apply a SEB exam configuration to an exam use the "Add Exam Configuration" action on the right action pane. A pop-up will prompt you to select an
 SEB exam configuration by a drop-down selection. The drop-down box will present you all SEB exam configurations that are in state "Ready To Use" and
 that are not already used by another exam. If there are more SEB exam configurations in the selection as fitting into the drop-down box, you can either
@@ -85,16 +89,10 @@ Click the "OK" button on the pop-up to apply the selected SEB exam configuration
 If the automated SEB restriction feature is supported by the LMS of the exam, the application of a SEB exam configuration will automatically update
 the SEB restriction details with the generated Config-Key. See :ref:`sebRestriction-label` for more information.
 
-.. image:: images/exam/examWithConfig.png
+.. image:: images/exam/examConfig.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examWithConfig.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examConfig.png
     
-When a SEB exam configuration is applied to the exam, you are able to export the SEB exam configuration XML in plain text or the generated Config-Key for
-testing purposes. Just select the SEB exam configuration in the list to activate the action on the action pane on the right side and use the
-appropriate action. The SEB exam configuration export action will instruct the browser to open a download dialog. How the download is applied is up the 
-the browser of use. Usually you are able to either save the file or open it up with a application. If you have already installed the Safe Exam Browser on
-your device, the browser probably associates the download file already with the SEB client application.
-
 To just generate the Config-Key for testing purposes or to manually apply it on an LMS without the automated SEB restriction feature you can
 use the "Export Config-Key" action to generate the key. The Config-Key is presented by a pop-up and can be selected and copied to the clip-board.
 For more information about the Config-Key its purpose and use, please visit the `SEB documentation <https://www.safeexambrowser.org/developer/seb-config-key.html>`_.
