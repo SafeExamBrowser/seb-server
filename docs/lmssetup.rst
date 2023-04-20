@@ -25,7 +25,7 @@ SEB Server supports this course API's so far:
    Please note that a second Moodle integration part for SEB access restriction with Config-Key will follow together with a Moodle plugin in a future version of SEB Server  
 
 
-**SEB restriction API** 
+**SEB Restriction API** 
 
 If the automated SEB restriction functionality is available for a LMS depends on the following requirements:
 
@@ -62,9 +62,20 @@ SEB Server internally. Use the "Type" selector to specify the type of the LMS to
     .. note:: 
       If you want to use the automated SEB restriction feature too, the `Open edX SEB Plugin <https://seb-server.readthedocs.io/en/latest/lmssetup.html#lms-setup-rest-plugin-label>`_ must be installed properly on the LMS.
   
-- **Moodle**: This type is to bind an existing `Moodle <https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
+- **Moodle**: This type is to bind an existing `Moodle<https://moodle.org//>`_ LMS system that is available on the Internet or intranet. The SEB
   Server tries to make use of the described API's of the Moodle system but there is currently no SEB restriction plugin available that works
   with SEB Server. Note that Moodle integration is implemented partially within SEB Server version 1.1.x. Only the course access feature is implemented and the course restriction feature will come with a future SEB Server release
+
+- **Moodle with SEB Server Plugin**: The `SEB Server Plugin for Moodle<https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_ is new and supported by SEB Server since version 1.5.
+  With this plugin installed on Moodle side, SEB Server as able to more efficiently communicate with Moodle to fetch course data as well as restricting the quiz in Moodle side 
+  For SEB only access, using a auto-generated Browser Exam Key (BEK) for SEB restriction. Also the Moodle user name resolving for SEB Server monitoring is less error prone especially
+  if SSO or other login provider for Moodle is involved. Furthermore the new SEB Server Plugin for Moodle is constantly extended and improved with new features in the future.
+
+- **Ans Delft**: This type is to bind SEB Server with an `Ans Delft<https://ans.app/>`_ LMS instance. With the API credentials from an Ans Delft instance, SEB Server is able
+  to connect to the Ans LMS and provide the common features for Course-Access, SEB Restriction and LMS User Session resolving.
+  
+- **Open Olat**: This type is to bind SEB Server with an `Open Olat <https://www.openolat.com/>`_ LMS instance. With the API credentials from an Open Olat instance, SEB Server is able
+  to connect to the Olat LMS and provide the common features for Course-Access, SEB Restriction and LMS User Session resolving. For more information please contact the Olat Development-Team at `OpenOLAT UZH<https://www.zi.uzh.ch/en/teaching-and-research/software-elearning/olat.html>`_
 
 The "LMS Server Address" is the root URL to connect to the LMS server with HTTP over the Internet or intranet. This is usually the URL that is 
 also used with the Browser to connect to the main page of the LMS system. And additionally the credentials that have been created with the creation of the :ref:`lms-api-account-label` has to be set in the LMS Setup the make the SEB Server
@@ -219,6 +230,10 @@ API account to be used with SEB Server. The role defines only the necessary priv
 
 Moodle role and account settings: :download:`XML <files/webservice_seb-server.xml>`
 
+.. note:: 
+    If you want to use Moodle with SEB Server, we recomend to install the new Moodle Plugin for SEB Server for better integration with Moodle.
+    This plugin comes with the common SEB Server integration features and improved Moodle bining. For more information see :ref:`lms-setup-moodle-plugin-label`
+
 
 
 .. _lms-setup-rest-plugin-label:
@@ -233,4 +248,15 @@ Install SEB restriction API plugin
     There is a SEB integration plugin developed and supported by `eduNEXT <https://www.edunext.co/>`_. 
      - `Documentation <https://seb-openedx.readthedocs.io/en/latest/>`_
      - `Repository <https://github.com/eduNEXT/seb-openedx>`_
+
+
+.. _lms-setup-moodle-plugin-label:
+
+**Moodle Plugin for SEB Server**
+
+    There is a new SEB Server integration plugin for Moodle available since SEB Server 1.5 that can be used with the LMS Setup type Moodle with SEB Server Plugin.
+    This Plugin supports and improves all common SEB Server LMS binding features such as Course-Access, SEB Restriction and LMS Session Name Resolving. 
+    It is also planed to extend and improve this plugin with new Moodle specific feature for further releases of SEB Server.
+     - `Documentation <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_
+     - `Repository <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_
 
