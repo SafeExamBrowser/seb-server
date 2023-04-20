@@ -15,6 +15,8 @@ We will go through all the steps to setting up an exam for Safe Exam Browser wit
    exam_import
    exam
    exam_indicator
+   exam_clientgroups
+   exam_ask
    exam_restriction
    exam_proctoring
    exam_template
