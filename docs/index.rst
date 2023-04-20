@@ -13,6 +13,7 @@ Table of Content
    :maxdepth: 3
    
    about
+     :maxdepth: 1
    overview
    institution
    useraccount
