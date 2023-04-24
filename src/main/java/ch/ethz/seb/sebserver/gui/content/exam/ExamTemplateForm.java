@@ -386,7 +386,7 @@ public class ExamTemplateForm implements TemplateComposer {
                     .newAction(ActionDefinition.CLIENT_GROUP_TEMPLATE_MODIFY_FROM_LIST)
                     .withParentEntityKey(entityKey)
                     .withSelect(
-                            indicatorTable::getMultiSelection,
+                            clientGroupTable::getMultiSelection,
                             PageAction::applySingleSelectionAsEntityKey,
                             CLIENT_GROUP_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> userGrantCheck.m() && clientGroupTable.hasAnyContent(), false)
@@ -394,7 +394,7 @@ public class ExamTemplateForm implements TemplateComposer {
                     .newAction(ActionDefinition.CLIENT_GROUP_TEMPLATE_DELETE_FROM_LIST)
                     .withEntityKey(entityKey)
                     .withSelect(
-                            indicatorTable::getMultiSelection,
+                            clientGroupTable::getMultiSelection,
                             this::deleteSelectedClientGroup,
                             CLIENT_GROUP_EMPTY_SELECTION_TEXT_KEY)
                     .publishIf(() -> userGrantCheck.m() && clientGroupTable.hasAnyContent(), false)
