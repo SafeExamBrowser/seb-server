@@ -134,7 +134,16 @@ has been applied and how many has failed.
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/batch-actions_statechange_finished.png
     
     
-**State Change**
+**Reset To Template Settings**
+
+With this batch-action you are able to reset all SEB Settings either to the respective Configuration Template default values, if the Exam Configuration
+has such a Configuration Template, or to the overall SEB default Settings for exam configurations.
+
+Within the batch-action pop-up you can see how many exam configurations you have selected for the action. Now you are able to select the target state
+to where you would like to change all selected exam configurations state to. Then you can apply the batch action with "Reset Settings" or cancel the batch-action.
+
+While the batch action is running, you see the progress within the pop-up until the batch action has been finished. You also can see how many actions
+has been applied and how many has failed.
 
 Use Cases
 ---------
