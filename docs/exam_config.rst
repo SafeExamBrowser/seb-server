@@ -91,10 +91,50 @@ sometimes it may be needed to manually extract the `SEB Config-Key <https://safe
 Therefore, one can use the "Export Client-Key" action from the right action pane to generate the Config-Key from the actual saved SEB settings revision
 of the exam configuration. The key will be presented by a pop-up dialog where it can be copied for further use.
 
-.. image:: images/exam_config/settings.png
+.. image:: images/exam_config/config_key.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/config_key.png
 
+
+Batch Actions
+-------------
+
+Within the Exam Configuration list page there are two different batch-actions with that it is able to apply one action to many selected exam configurations.
+
+For list multi-selection documentation see: :ref:`gui-list-multi-select`
+
+.. note:: 
+    For all batch actions it is the case that the process try to apply the selected action with a particular selected object. If the action is not possible for the respective
+    object, the failure is ignored and the action will not be applied for such a selection. At the end of the batch action you can see for how many objects this
+    action has been failed.
+
+.. image:: images/exam_config/batch-actions.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/batch-actions.png
+
+
+
+**State Change**
+
+With this batch action you are able to change the state of all selected exam configurations to a specific target state. 
+
+
+.. image:: images/exam_config/batch-actions_statechange.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/batch-actions_statechange.png
+    
+Within the batch-action pop-up you can see how many exam configurations you have selected for the action. Now you are able to select the target state
+to where you would like to change all selected exam configurations state to. Then you can apply the batch action with "Change State" or cancel the batch-action.
+
+While the batch action is running, you see the progress within the pop-up until the batch action has been finished. You also can see how many actions
+has been applied and how many has failed.
+
+.. image:: images/exam_config/batch-actions_statechange_finished.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam_config/batch-actions_statechange_finished.png
+    
+    
+**State Change**
 
 Use Cases
 ---------
