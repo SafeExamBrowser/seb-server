@@ -101,7 +101,7 @@ Batch Actions
 
 Within the Exam Configuration list page there are two different batch-actions with that it is able to apply one action to many selected exam configurations.
 
-For list multi-selection documentation see: :ref:`gui-list-multi-select`
+For list multi-selection documentation see :ref:`gui-listmultiselect`
 
 .. note:: 
     For all batch actions it is the case that the process try to apply the selected action with a particular selected object. If the action is not possible for the respective

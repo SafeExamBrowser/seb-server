@@ -159,7 +159,7 @@ that do not have a sort functionality yet.
 Most columns have a short tooltip description that pops up while the mouse pointer stays over the column header for a moment. 
 A column tooltip usually also explains how to use the column-related filter.
 
-.. _gui-list-multi-select:
+.. _gui-listmultiselect:
 
 **List Multi-Selection**
 
