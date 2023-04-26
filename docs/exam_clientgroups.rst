@@ -22,7 +22,9 @@ for different operating system.
     described grouping type for IP ranges and SEB OS then one SEB user will apply to a certain IP range group type and also to a certain SEB OS group type.
     This is possible and will also be displayed respectively within the monitoring view. 
     
-**Setup SEB Client Grooups**
+    
+Setup SEB Client Groups
+-----------------------
 
 SEB client groups can be set up with the Exam view on SEB Server. Additionally it is also possible to pre-define SEB client groups for Exam Templates that
 would be applied to an Exam while import with template as usual. Creating and managing SEB client groups for Exam Templates is exactly the same as for Exams.
@@ -62,7 +64,8 @@ a certain SEB Client group from the list.
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/examClientgroups.png
     
-**Monitoring with SEB Client Groups**
+Monitoring with SEB Client Groups
+---------------------------------
 
 When SEB groups are defined within your exam, you will find the SEB groups also in your monitoring view of the running exam. In the additional column
 named "Client Groups(s)" after "User Name or Session", you will see the applied SEB client groups of each SEB connection. This can be none, one ore more
