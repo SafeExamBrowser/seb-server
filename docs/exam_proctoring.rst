@@ -25,9 +25,9 @@ Currently supported meeting services are:
 
 To bind and setup a live proctoring service in SEB Server for an exam, go to the view page of the exam and use the "Proctoring Settings" action on the right action pane to open up the proctoring settings dialog.
 
-.. image:: images/exam/proctoringSettings.png
+.. image:: images/exam/proctoringSettingsJITSI.png
     :align: center
-    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/proctoringSettings.png
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/proctoringSettingsJITSI.png
     
 Within the proctoring settings dialog you are able to switch the service on and off by using the "Proctoring enabled" checkbox. You also see if the proctoring service is enabled within 
 the action icon that is either an eye when active or a slashed eye when not active.
@@ -78,7 +78,15 @@ To setup and configure a Jitsi Meet service for testing you can refer to the `Do
 .. note::
     The Jitsi Meet integration works only with JWT authentication. Please refer to the above documentation for how to setup JWT authentication.
     
+.. image:: images/exam/proctoringSettingsJITSI.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/proctoringSettingsJITSI.png
+    
 **Zoom**
+
+.. image:: images/exam/proctoringSettingsZoom.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/proctoringSettingsZoom.png
 
 To integrate Zoom meetings as a live proctoring service within SEB Server you need to have an appropriate Zoom account with API and SDK access.
 `Zoom API and Client SDKs <https://marketplace.zoom.us/docs/sdk/native-sdks/developer-accounts>`_.
@@ -121,4 +129,15 @@ Then you need to setup the Zoom account to run with JWT apps as described:
 .. image:: images/exam/zoomauth3.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/zoomauth3.png
+    
+Reset Rooms
+-----------
+
+This functionality is new since SEB Server version 1.5 and allows you to reset already created but collecting rooms for an exam. This action is only
+available if you already have collecting rooms for an running exam and if there is no active SEB client connected to the exam. Then you can reset your
+proctoring rooms with this actions and also do some proctoring settings changes.
+
+.. image:: images/exam/proctoringSettingsZoom.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/proctoringSettingsZoom.png
  
