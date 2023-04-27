@@ -467,15 +467,15 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             final Set<Long> connectionIds) {
 
         this.duplicateCheck.clear();
-        this.duplicates.clear();
+        final Set<Long> duplicates = new HashSet<>();
         return this.clientConnectionDAO
                 .getConnectionTokens(examId)
                 .map(tokens -> tokens.stream()
-                        .map(this::getForTokenAndCheckDuplication)
+                        .map(token -> this.getForTokenAndCheckDuplication(token, duplicates))
                         .filter(ccd -> connectionIds.contains(ccd.clientConnection.id))
                         .map(ccd -> ccd.clientStaticData)
                         .collect(Collectors.toList()))
-                .map(staticData -> new MonitoringStaticClientData(staticData, this.duplicates));
+                .map(staticData -> new MonitoringStaticClientData(staticData, duplicates));
     }
 
     @Override
@@ -633,17 +633,19 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     }
 
     private final Map<String, Long> duplicateCheck = new HashMap<>();
-    private final Set<Long> duplicates = new HashSet<>();
 
-    private ClientConnectionDataInternal getForTokenAndCheckDuplication(final String token) {
+    private ClientConnectionDataInternal getForTokenAndCheckDuplication(
+            final String token,
+            final Set<Long> duplicates) {
+
         final ClientConnectionDataInternal cc = this.examSessionCacheService.getClientConnection(token);
         if (cc.clientConnection.status.duplicateCheckStatus) {
             final Long id = this.duplicateCheck.put(
                     cc.clientConnection.userSessionId,
                     cc.getConnectionId());
             if (id != null) {
-                this.duplicates.add(id);
-                this.duplicates.add(cc.getConnectionId());
+                duplicates.add(id);
+                duplicates.add(cc.getConnectionId());
             }
         }
         return cc;
