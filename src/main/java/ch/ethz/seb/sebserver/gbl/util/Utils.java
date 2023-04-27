@@ -821,6 +821,18 @@ public final class Utils {
         return false;
     }
 
+    public static boolean isEqualsWithEmptyCheckTruncated(final String s1, final String s2) {
+        if (s2 == null || s1 == null) {
+            return false;
+        }
+
+        if (s1.endsWith("...")) {
+            return Objects.equals(truncateText(s1, 1000), truncateText(s2, 1000));
+        } else {
+            return Objects.equals(s1, s2);
+        }
+    }
+
     public static Long toLong(final String longValue) {
         try {
             return Long.valueOf(longValue);

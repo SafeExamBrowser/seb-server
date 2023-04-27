@@ -355,22 +355,21 @@ class ExamUpdateHandler {
         if (!Utils.isEqualsWithEmptyCheck(exam.name, quizData.name) ||
                 !Objects.equals(exam.startTime, quizData.startTime) ||
                 !Objects.equals(exam.endTime, quizData.endTime) ||
-                !Utils.isEqualsWithEmptyCheck(exam.getDescription(), quizData.description) ||
+                !Utils.isEqualsWithEmptyCheckTruncated(exam.getDescription(), quizData.description) ||
                 !Utils.isEqualsWithEmptyCheck(exam.getStartURL(), quizData.startURL)) {
 
             if (!Utils.isEqualsWithEmptyCheck(exam.name, quizData.name)) {
-                log.info("Update name difference from LMS. Exam:{}, QuizData: {}", exam.name, quizData.name);
+                log.info("Update name difference from LMS. Exam: {}, QuizData: {}", exam.name, quizData.name);
             }
             if (!Objects.equals(exam.startTime, quizData.startTime)) {
-                log.info("Update startTime difference from LMS. Exam:{}, QuizData: {}", exam.startTime,
+                log.info("Update startTime difference from LMS. Exam: {}, QuizData: {}", exam.startTime,
                         quizData.startTime);
             }
             if (!Objects.equals(exam.endTime, quizData.endTime)) {
-                log.info("Update endTime difference from LMS. Exam:{}, QuizData: {}", exam.endTime, quizData.endTime);
+                log.info("Update endTime difference from LMS. Exam: {}, QuizData: {}", exam.endTime, quizData.endTime);
             }
-            if (!Utils.isEqualsWithEmptyCheck(exam.getDescription(), quizData.description)) {
-                log.info("Update description difference from LMS. Exam:{}, QuizData: {}", exam.getDescription(),
-                        quizData.description);
+            if (!Utils.isEqualsWithEmptyCheckTruncated(exam.getDescription(), quizData.description)) {
+                log.info("Update description difference from LMS. Exam: {}", exam);
             }
             if (!Utils.isEqualsWithEmptyCheck(exam.getStartURL(), quizData.startURL)) {
                 log.info("Update startURL difference from LMS. Exam:{}, QuizData: {}",

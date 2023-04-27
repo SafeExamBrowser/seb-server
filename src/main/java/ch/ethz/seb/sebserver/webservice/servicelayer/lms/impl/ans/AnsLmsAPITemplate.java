@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;
@@ -58,6 +59,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.AbstractCachedCourseAccess;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.AssignmentData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.IntegrationsData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.SEBServerData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.ans.AnsLmsData.UserData;
 
@@ -247,8 +249,8 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
             a.start_at = java.time.Instant.now().plus(365, java.time.temporal.ChronoUnit.DAYS).toString();
             a.end_at = java.time.Instant.now().plus(366, java.time.temporal.ChronoUnit.DAYS).toString();
         }
-        final DateTime startTime = new DateTime(a.start_at);
-        final DateTime endTime = new DateTime(a.end_at);
+        final DateTime startTime = new DateTime(a.start_at).toDateTime(DateTimeZone.UTC);
+        final DateTime endTime = new DateTime(a.end_at).toDateTime(DateTimeZone.UTC);
         final Map<String, String> attrs = new HashMap<>();
         attrs.put("assignment_id", String.valueOf(a.id));
         return new QuizData(
@@ -276,7 +278,15 @@ public class AnsLmsAPITemplate extends AbstractCachedCourseAccess implements Lms
 
     private AssignmentData getAssignmentById(final RestTemplate restTemplate, final String id) {
         final String url = String.format("/api/v2/assignments/%s", id);
-        return this.apiGet(restTemplate, url, AssignmentData.class);
+        final AssignmentData assignment = this.apiGet(restTemplate, url, AssignmentData.class);
+        if (assignment.integrations == null) {
+            assignment.integrations = new IntegrationsData();
+        }
+        if (assignment.integrations.safe_exam_browser_server == null) {
+            assignment.integrations.safe_exam_browser_server = new SEBServerData();
+            assignment.integrations.safe_exam_browser_server.enabled = false;
+        }
+        return assignment;
     }
 
     private List<QuizData> getQuizzesByIds(final RestTemplate restTemplate, final Set<String> ids) {
