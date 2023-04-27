@@ -96,16 +96,29 @@ Then you need to setup the Zoom account to run with JWT apps as described:
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/zoom2.png
     
-- Choose either JWT or SDK or both if needed for exams with different SEB clients
-
 .. image:: images/exam/zoom3.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/zoom3.png
-    
-- Follow the instructions to create the API account and use the "App Key" and "App Secret" or SDK Key and SDK Secret within the setup in SEB Server
+
+- Choose "MeetingSDK" fist to create a meeting SDK app that is been used SEB to connect to Zoom meetings.
+- Follow the instructions to create the API account and use the "SDK Key" and "SDK Secret" within the setup in SEB Server proctoring settings
 
 .. image:: images/exam/zoom4.png
     :align: center
     :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/zoom4.png
+    
+- Then choose the "Server-toServer OAuth" to create a API access for SEB Server to connect to Zoom service API. This is needed on SEB Server do create and maintain users and meetings
+- Follow the instructions to create the "Server-toServer OAuth" app on the page and make sure you have and set needed privileges as shown below.
 
+.. image:: images/exam/zoomauth1.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/zoomauth1.png
+    
+.. image:: images/exam/zoomauth2.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/zoomauth2.png
+    
+.. image:: images/exam/zoomauth3.png
+    :align: center
+    :target: https://raw.githubusercontent.com/SafeExamBrowser/seb-server/master/docs/images/exam/zoomauth3.png
  
