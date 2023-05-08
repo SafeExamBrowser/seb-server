@@ -69,16 +69,9 @@ public class ColorData {
         switch (entry.getStatus()) {
             case CONNECTION_REQUESTED:
             case AUTHENTICATED: {
-                if (entry.incidentFlag() > 0) {
-                    return -1;
-                }
-                return 1;
+                return 0;
             }
             case ACTIVE: {
-                final int incidentFlag = entry.incidentFlag();
-                if (incidentFlag > 0) {
-                    return -incidentFlag;
-                }
                 return 2;
             }
             case CLOSED:
