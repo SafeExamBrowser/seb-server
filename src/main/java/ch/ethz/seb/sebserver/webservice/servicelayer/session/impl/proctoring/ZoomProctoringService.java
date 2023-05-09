@@ -1017,6 +1017,37 @@ public class ZoomProctoringService implements ExamProctoringService {
         }
 
         @Override
+        boolean isValid(final ProctoringServiceSettings proctoringSettings) {
+            final boolean valid = super.isValid(proctoringSettings);
+            if (!valid) {
+                return false;
+            }
+
+            try {
+                final OAuth2RestTemplate oAuth2RestTemplate = (OAuth2RestTemplate) super.restTemplate;
+                final OAuth2AccessToken accessToken = oAuth2RestTemplate.getAccessToken();
+                if (accessToken == null) {
+                    return false;
+                }
+
+                final boolean expired = accessToken.isExpired();
+                if (expired) {
+                    return false;
+                }
+
+                final int expiresIn = accessToken.getExpiresIn();
+                if (expiresIn < 60) {
+                    return false;
+                }
+
+                return true;
+            } catch (final Exception e) {
+                log.error("Failed to verify Zoom OAuth2RestTemplate status", e);
+                return false;
+            }
+        }
+
+        @Override
         public HttpHeaders getHeaders() {
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
@@ -1123,14 +1154,15 @@ public class ZoomProctoringService implements ExamProctoringService {
 
         @Override
         public boolean supportsRefresh(final OAuth2ProtectedResourceDetails resource) {
-            return false;
+            return true;
         }
 
         @Override
         public OAuth2AccessToken refreshAccessToken(final OAuth2ProtectedResourceDetails resource,
                 final OAuth2RefreshToken refreshToken, final AccessTokenRequest request)
                 throws UserRedirectRequiredException {
-            return null;
+
+            return this.obtainAccessToken(resource, request);
         }
 
         @Override
@@ -1140,7 +1172,6 @@ public class ZoomProctoringService implements ExamProctoringService {
 
             final ClientCredentialsResourceDetails resource = (ClientCredentialsResourceDetails) details;
             return retrieveToken(request, resource, getParametersForTokenRequest(resource), new HttpHeaders());
-
         }
 
         private MultiValueMap<String, String> getParametersForTokenRequest(

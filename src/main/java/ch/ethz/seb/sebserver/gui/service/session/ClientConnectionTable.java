@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -69,8 +70,6 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionTable.class);
 
     private static final int BOTTOM_PADDING = 20;
-    //private static final int[] TABLE_PROPORTIONS = new int[] { 3, 3, 2, 1 };
-    //private static final int NUMBER_OF_NONE_INDICATOR_COLUMNS = 3;
 
     private static final String INDICATOR_NAME_TEXT_KEY_PREFIX =
             "sebserver.exam.indicator.type.description.";
@@ -101,12 +100,13 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     private final Map<Long, ClientGroup> clientGroupMapping;
     private final Table table;
     private final ColorData colorData;
+    private final List<UpdatableTableItem> sortList = new ArrayList<>();
     private final Function<MonitoringEntry, String> localizedClientConnectionStatusNameFunction;
     private Consumer<ClientConnectionTable> selectionListener;
 
     private int tableWidth;
     private boolean needsSort = false;
-    private LinkedHashMap<Long, UpdatableTableItem> tableMapping;
+    private final LinkedHashMap<Long, UpdatableTableItem> tableMapping;
     private final Set<Long> toDelete = new HashSet<>();
     private final Set<Long> toUpdateStatic = new HashSet<>();
     private final Set<Long> duplicates = new HashSet<>();
@@ -432,13 +432,15 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     }
 
     private void sortTable() {
-        this.tableMapping = this.tableMapping.entrySet()
-                .stream()
-                .sorted(Entry.comparingByValue())
-                .collect(Collectors.toMap(
-                        Entry::getKey,
-                        Entry::getValue,
-                        (e1, e2) -> e1, LinkedHashMap::new));
+        this.sortList.clear();
+        this.sortList.addAll(this.tableMapping.values());
+        Collections.sort(this.sortList);
+        this.tableMapping.clear();
+        final Iterator<UpdatableTableItem> iterator = this.sortList.iterator();
+        while (iterator.hasNext()) {
+            final UpdatableTableItem item = iterator.next();
+            this.tableMapping.put(item.connectionId, item);
+        }
     }
 
     private void notifySelectionChange() {
@@ -494,7 +496,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
         @Override
         public boolean sebVersionDenied() {
-            return this.monitoringData.sebVersionDenied;
+            return (this.monitoringData == null) ? false : this.monitoringData.sebVersionDenied;
         }
 
         @Override
@@ -559,7 +561,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         private void updateNotifications(final TableItem tableItem) {
-            if (BooleanUtils.isTrue(this.monitoringData.pendingNotification)) {
+            if (this.monitoringData != null && BooleanUtils.isTrue(this.monitoringData.pendingNotification)) {
                 tableItem.setImage(0,
                         WidgetFactory.ImageIcon.NOTIFICATION.getImage(ClientConnectionTable.this.table.getDisplay()));
                 tableItem.setBackground(0, ClientConnectionTable.this.colorData.color2);
@@ -595,7 +597,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                 final Long id = entry.getKey();
                 final String displayValue = entry.getValue();
                 final IndicatorData indicatorData = ClientConnectionTable.this.indicatorMapping.get(id);
-                if (indicatorData == null) {
+                if (indicatorData == null || this.monitoringData == null) {
                     return;
                 }
 
@@ -654,6 +656,9 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         int notificationWeight() {
+            if (this.monitoringData == null) {
+                return 0;
+            }
             return BooleanUtils.isTrue(this.monitoringData.pendingNotification) ||
                     (this.monitoringData.status.establishedStatus && this.marked) ? -1 : 0;
         }
@@ -663,6 +668,9 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         int thresholdsWeight() {
+            if (this.monitoringData != null && !this.monitoringData.status.clientActiveStatus) {
+                return 0;
+            }
             return -this.thresholdsWeight;
         }
 
@@ -690,6 +698,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
         }
 
         String getConnectionIdentifier() {
+
             if (this.staticData != null && this.staticData.userSessionId != null) {
                 return this.staticData.userSessionId;
             }
