@@ -326,6 +326,11 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                             cc.getExamId(),
                             cc.getConnectionToken());
 
+                    if (proctoringRoom == null) {
+                        log.warn("Assign SEB client to proctoring room failed for: {}", cc);
+                        return;
+                    }
+
                     if (log.isDebugEnabled()) {
                         log.debug("Assigning new SEB client to proctoring room: {}, connection: {}",
                                 proctoringRoom.id,
