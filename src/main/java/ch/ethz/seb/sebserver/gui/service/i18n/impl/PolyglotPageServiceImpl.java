@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +52,8 @@ import ch.ethz.seb.sebserver.gui.widget.Selection;
 @Service
 @GuiProfile
 public final class PolyglotPageServiceImpl implements PolyglotPageService {
+
+    private static final Logger log = LoggerFactory.getLogger(PolyglotPageServiceImpl.class);
 
     private final I18nSupport i18nSupport;
 
@@ -95,7 +99,11 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
 
     @Override
     public void injectI18n(final Label label, final LocTextKey locTextKey) {
-        injectI18n(label, locTextKey, null);
+        try {
+            injectI18n(label, locTextKey, null);
+        } catch (final Exception e) {
+            log.error("Failed to injectI18n: {}", e.getMessage());
+        }
     }
 
     @Override
