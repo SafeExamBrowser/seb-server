@@ -11,7 +11,9 @@ package ch.ethz.seb.sebserver.gui.service.i18n.impl;
 import java.util.Locale;
 import java.util.function.Consumer;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -30,6 +32,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -48,6 +52,8 @@ import ch.ethz.seb.sebserver.gui.widget.Selection;
 @Service
 @GuiProfile
 public final class PolyglotPageServiceImpl implements PolyglotPageService {
+
+    private static final Logger log = LoggerFactory.getLogger(PolyglotPageServiceImpl.class);
 
     private final I18nSupport i18nSupport;
 
@@ -93,7 +99,11 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
 
     @Override
     public void injectI18n(final Label label, final LocTextKey locTextKey) {
-        injectI18n(label, locTextKey, null);
+        try {
+            injectI18n(label, locTextKey, null);
+        } catch (final Exception e) {
+            log.error("Failed to injectI18n: {}", e.getMessage());
+        }
     }
 
     @Override
@@ -269,8 +279,14 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
             final I18nSupport i18nSupport) {
 
         return label -> {
+
             if (locTextKey != null) {
-                label.setText(i18nSupport.getText(locTextKey));
+                final String text = i18nSupport.getText(locTextKey);
+                if (BooleanUtils.toBoolean((Boolean) label.getData(RWT.MARKUP_ENABLED))) {
+                    label.setText(StringEscapeUtils.escapeHtml4(text));
+                } else {
+                    label.setText(text);
+                }
             }
             if (i18nSupport.hasText(locToolTipKey)) {
                 label.setToolTipText(Utils.formatLineBreaks(i18nSupport.getText(locToolTipKey)));
