@@ -241,7 +241,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 flushCache(exam);
             }
 
-            log.info("Exam {} is not currently running", examId);
+            if (log.isDebugEnabled()) {
+                log.info("Exam {} is not currently running", examId);
+            }
 
             return Result.ofError(new NoSuchElementException(
                     "No currently running exam found for id: " + examId));

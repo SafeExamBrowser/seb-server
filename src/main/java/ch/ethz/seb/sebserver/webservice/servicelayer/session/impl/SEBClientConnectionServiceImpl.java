@@ -329,7 +329,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 if (StringUtils.isNoneBlank(clientAddress) &&
                         StringUtils.isNotBlank(clientConnection.clientAddress) &&
                         !clientAddress.equals(clientConnection.clientAddress)) {
-                    log.error(
+                    log.warn(
                             "ClientConnection integrity violation: client address mismatch: {}, {}",
                             clientAddress,
                             clientConnection.clientAddress);
@@ -337,7 +337,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             "ClientConnection integrity violation: client address mismatch");
                 }
             } else if (!clientConnection.status.clientActiveStatus) {
-                log.error("ClientConnection integrity violation: client connection is not in expected state: {}",
+                log.warn("ClientConnection integrity violation: client connection is not in expected state: {}",
                         clientConnection);
                 throw new IllegalArgumentException(
                         "ClientConnection integrity violation: client connection is not in expected state");

@@ -149,6 +149,15 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(
+            final IllegalArgumentException ex,
+            final WebRequest request) {
+
+        log.warn("Illegal argument or state detected: {}\n    send 400 Bad Request response", ex.getMessage());
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Object> handleResourceNotFoundException(
             final ResourceNotFoundException ex,
@@ -182,7 +191,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
             final ExamNotRunningException ex,
             final WebRequest request) {
 
-        log.info("{}", ex.getMessage());
+        log.debug("{}", ex.getMessage());
         return APIMessage.ErrorMessage.INTEGRITY_VALIDATION
                 .createErrorResponse(ex.getMessage());
     }
