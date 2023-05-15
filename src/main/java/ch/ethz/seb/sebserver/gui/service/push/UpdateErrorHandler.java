@@ -56,14 +56,14 @@ public final class UpdateErrorHandler implements Function<Exception, Boolean> {
             } catch (final Exception ee) {
                 log.warn("Unable to auto-logout: ", ee.getMessage());
             }
-            return true;
+            return false;
         }
     }
 
     @Override
     public Boolean apply(final Exception error) {
         this.errors++;
-        log.error("Failed to update server push: {}", error.getMessage(), error);
+        log.warn("Failed to update server push: {}", error.getMessage());
         if (this.errors > 5) {
             checkUserSession();
         }
