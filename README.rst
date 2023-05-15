@@ -62,7 +62,7 @@ New Features:
 
 - Security: New Application Signature Key (ASK) integration within SEB Server exams and monitoring
 - Security: Minimum SEB Client version tracking within SEB Server monitoring
-- LMS Integration: Better Moodle integration with new `SEB Server Moodle Plugin <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_
+- LMS Integration: Better Moodle integration with new `SEB Server Moodle Plugin <https://github.com/ethz-let/moodle-quizaccess_sebserver>`_
 - Exam Maintenance: Added new SEB grouping functionality for Exam (and Exam Template) and Monitoring to be able to view/manage SEB Clients within defined groups (IP range, SEB client OS, ...) 
 - Exam Maintenance: Batch actions for archive and delete exams
 - Exam Maintenance: Added SEB log export for finished and archived exams
