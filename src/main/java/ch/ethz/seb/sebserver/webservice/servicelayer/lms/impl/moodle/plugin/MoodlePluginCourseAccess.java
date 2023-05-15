@@ -169,11 +169,6 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     }
 
     @Override
-    public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return Result.ofError(new UnsupportedOperationException());
-    }
-
-    @Override
     public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
         try {
 

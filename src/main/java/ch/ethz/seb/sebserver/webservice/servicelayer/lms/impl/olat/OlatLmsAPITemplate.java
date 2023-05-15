@@ -171,15 +171,6 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
     }
 
     @Override
-    public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return this
-                .allQuizzesRequest(filterMap)
-                .map(quizzes -> quizzes.stream()
-                        .filter(LmsAPIService.quizFilterPredicate(filterMap))
-                        .collect(Collectors.toList()));
-    }
-
-    @Override
     public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
         this.allQuizzesRequest(filterMap)
                 .onError(error -> asyncQuizFetchBuffer.finish(error))

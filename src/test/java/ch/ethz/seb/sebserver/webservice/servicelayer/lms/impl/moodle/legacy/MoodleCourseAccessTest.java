@@ -80,7 +80,6 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 this.asyncService,
                 moodleRestTemplateFactory,
-                null,
                 this.env);
 
         final String examId = "123";
@@ -129,7 +128,6 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 this.asyncService,
                 moodleRestTemplateFactory,
-                null,
                 this.env);
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.testCourseAccessAPI();
@@ -152,7 +150,6 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 this.asyncService,
                 moodleRestTemplateFactory,
-                null,
                 this.env);
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.testCourseAccessAPI();
@@ -174,7 +171,6 @@ public class MoodleCourseAccessTest {
                 new JSONMapper(),
                 this.asyncService,
                 moodleRestTemplateFactory,
-                null,
                 this.env);
 
         final LmsSetupTestResult initAPIAccess = moodleCourseAccess.testCourseAccessAPI();

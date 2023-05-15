@@ -22,7 +22,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -59,8 +58,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CourseQuizData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.Courses;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseDataAsyncLoader.CourseDataShort;
-import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.MoodleCourseDataAsyncLoader.CourseQuizShort;
 
 /** Implements the LmsAPITemplate for Open edX LMS Course API access.
  *
@@ -78,7 +75,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.legacy.Mood
  * possibly make this synchronous fetch strategy obsolete in the future. */
 public class MoodleCourseAccess implements CourseAccessAPI {
 
-    private static final long INITIAL_WAIT_TIME = 3 * Constants.SECOND_IN_MILLIS;
+    //private static final long INITIAL_WAIT_TIME = 3 * Constants.SECOND_IN_MILLIS;
 
     private static final Logger log = LoggerFactory.getLogger(MoodleCourseAccess.class);
 
@@ -101,7 +98,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
 
     private final JSONMapper jsonMapper;
     private final MoodleRestTemplateFactory restTemplateFactory;
-    private final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader;
     private final boolean prependShortCourseName;
     private final CircuitBreaker<String> protectedMoodlePageCall;
     private final int pageSize;
@@ -113,11 +109,9 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             final JSONMapper jsonMapper,
             final AsyncService asyncService,
             final MoodleRestTemplateFactory restTemplateFactory,
-            final MoodleCourseDataAsyncLoader moodleCourseDataAsyncLoader,
             final Environment environment) {
 
         this.jsonMapper = jsonMapper;
-        this.moodleCourseDataAsyncLoader = moodleCourseDataAsyncLoader;
         this.restTemplateFactory = restTemplateFactory;
 
         this.prependShortCourseName = BooleanUtils.toBoolean(environment.getProperty(
@@ -174,16 +168,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
         }
 
         return LmsSetupTestResult.ofOkay(LmsType.MOODLE);
-    }
-
-    @Override
-    public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return Result.tryCatch(() -> getRestTemplate()
-                .map(template -> collectAllQuizzes(template, filterMap))
-                .map(quizzes -> quizzes.stream()
-                        .filter(LmsAPIService.quizFilterPredicate(filterMap))
-                        .collect(Collectors.toList()))
-                .getOr(Collections.emptyList()));
     }
 
     @Override
@@ -297,35 +281,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
     @Override
     public Result<QuizData> getQuiz(final String id) {
         return Result.tryCatch(() -> {
-
-            final Map<String, CourseDataShort> cachedCourseData = this.moodleCourseDataAsyncLoader
-                    .getCachedCourseData();
-
-            final String courseId = MoodleUtils.getCourseId(id);
-            final String quizId = MoodleUtils.getQuizId(id);
-            if (cachedCourseData.containsKey(courseId)) {
-                final CourseDataShort courseData = cachedCourseData.get(courseId);
-                final CourseQuizShort quiz = courseData.quizzes
-                        .stream()
-                        .filter(q -> q.id.equals(quizId))
-                        .findFirst()
-                        .orElse(null);
-
-                if (quiz != null) {
-                    final Map<String, String> additionalAttrs = new HashMap<>();
-                    additionalAttrs.put(QuizData.ATTR_ADDITIONAL_CREATION_TIME,
-                            String.valueOf(courseData.time_created));
-                    additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SHORT_NAME, courseData.short_name);
-                    additionalAttrs.put(QuizData.ATTR_ADDITIONAL_ID_NUMBER, courseData.idnumber);
-                    final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-                    final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
-                            ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
-                            : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
-
-                    return createQuizData(lmsSetup, courseData, urlPrefix, additionalAttrs, quiz);
-                }
-            }
-
             // get from LMS in protected request
             final Set<String> ids = Stream.of(id).collect(Collectors.toSet());
             return getRestTemplate()
@@ -475,72 +430,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
         return Result.ofError(new UnsupportedOperationException("not available yet"));
     }
 
-    public void clearCache() {
-        this.moodleCourseDataAsyncLoader.clearCache();
-    }
-
-    private List<QuizData> collectAllQuizzes(
-            final MoodleAPIRestTemplate restTemplate,
-            final FilterMap filterMap) {
-
-        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-        final String urlPrefix = (lmsSetup.lmsApiUrl.endsWith(Constants.URL_PATH_SEPARATOR))
-                ? lmsSetup.lmsApiUrl + MOODLE_QUIZ_START_URL_PATH
-                : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
-
-        final DateTime quizFromTime = (filterMap != null) ? filterMap.getQuizFromTime() : null;
-        final long fromCutTime = (quizFromTime != null) ? Utils.toUnixTimeInSeconds(quizFromTime) : -1;
-
-        // Verify and call the proper strategy to get the course and quiz data
-        Collection<CourseDataShort> courseQuizData = Collections.emptyList();
-        if (this.moodleCourseDataAsyncLoader.isRunning()) {
-            courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData().values();
-        } else if (this.moodleCourseDataAsyncLoader.getLastRunTime() <= 0) {
-            // set cut time if available
-            if (fromCutTime >= 0) {
-                this.moodleCourseDataAsyncLoader.setFromCutTime(fromCutTime);
-            }
-            // first run async and wait some time, get what is there
-            this.moodleCourseDataAsyncLoader.loadAsync(restTemplate);
-            try {
-                Thread.sleep(INITIAL_WAIT_TIME);
-                courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData().values();
-            } catch (final Exception e) {
-                log.error("Failed to wait for first load run: ", e);
-                return Collections.emptyList();
-            }
-        } else if (this.moodleCourseDataAsyncLoader.isLongRunningTask()) {
-            // on long running tasks if we have a different fromCutTime as before
-            // kick off the lazy loading task immediately with the new time filter
-            courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData().values();
-            if (fromCutTime > 0 && fromCutTime != this.moodleCourseDataAsyncLoader.getFromCutTime()) {
-                this.moodleCourseDataAsyncLoader.setFromCutTime(fromCutTime);
-                this.moodleCourseDataAsyncLoader.loadAsync(restTemplate);
-                // otherwise kick off only if the last fetch task was then minutes ago
-            } else if (Utils.getMillisecondsNow() - this.moodleCourseDataAsyncLoader.getLastRunTime() > 10
-                    * Constants.MINUTE_IN_MILLIS) {
-                this.moodleCourseDataAsyncLoader.loadAsync(restTemplate);
-            }
-
-        } else {
-            // just run the task in sync
-            if (fromCutTime >= 0) {
-                this.moodleCourseDataAsyncLoader.setFromCutTime(fromCutTime);
-            }
-            this.moodleCourseDataAsyncLoader.loadSync(restTemplate);
-            courseQuizData = this.moodleCourseDataAsyncLoader.getCachedCourseData().values();
-        }
-
-        if (courseQuizData.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return courseQuizData
-                .stream()
-                .flatMap(courseData -> quizDataOf(lmsSetup, courseData, urlPrefix).stream())
-                .collect(Collectors.toList());
-    }
-
     private List<QuizData> getQuizzesForIds(
             final MoodleAPIRestTemplate restTemplate,
             final Set<String> quizIds) {
@@ -670,55 +559,6 @@ public class MoodleCourseAccess implements CourseAccessAPI {
             log.error("Unexpected error while trying to get courses for ids", e);
             return Collections.emptyList();
         }
-    }
-
-    private List<QuizData> quizDataOf(
-            final LmsSetup lmsSetup,
-            final CourseDataShort courseData,
-            final String uriPrefix) {
-
-        final Map<String, String> additionalAttrs = new HashMap<>();
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_CREATION_TIME, String.valueOf(courseData.time_created));
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_SHORT_NAME, courseData.short_name);
-        additionalAttrs.put(QuizData.ATTR_ADDITIONAL_ID_NUMBER, courseData.idnumber);
-
-        final List<QuizData> courseAndQuiz = courseData.quizzes
-                .stream()
-                .map(courseQuizData -> createQuizData(lmsSetup, courseData, uriPrefix, additionalAttrs, courseQuizData))
-                .collect(Collectors.toList());
-
-        return courseAndQuiz;
-    }
-
-    private QuizData createQuizData(
-            final LmsSetup lmsSetup,
-            final CourseDataShort courseData,
-            final String uriPrefix,
-            final Map<String, String> additionalAttrs,
-            final CourseQuizShort courseQuizData) {
-
-        final String startURI = uriPrefix + courseQuizData.course_module;
-        return new QuizData(
-                MoodleUtils.getInternalQuizId(
-                        courseQuizData.course_module, // TODO this is wrong should be id. Create recovery task
-                        courseData.id,
-                        courseData.short_name,
-                        courseData.idnumber),
-                lmsSetup.getInstitutionId(),
-                lmsSetup.id,
-                lmsSetup.getLmsType(),
-                (this.prependShortCourseName)
-                        ? courseData.short_name + " : " + courseQuizData.name
-                        : courseQuizData.name,
-                Constants.EMPTY_NOTE,
-                (courseQuizData.time_open != null && courseQuizData.time_open > 0)
-                        ? Utils.toDateTimeUTCUnix(courseQuizData.time_open)
-                        : Utils.toDateTimeUTCUnix(courseData.start_date),
-                (courseQuizData.time_close != null && courseQuizData.time_close > 0)
-                        ? Utils.toDateTimeUTCUnix(courseQuizData.time_close)
-                        : Utils.toDateTimeUTCUnix(courseData.end_date),
-                startURI,
-                additionalAttrs);
     }
 
     private static final void fillSelectedQuizzes(

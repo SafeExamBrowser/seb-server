@@ -161,27 +161,6 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
     }
 
     @Override
-    public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return Result.tryCatch(() -> {
-            if (!authenticate()) {
-                throw new IllegalArgumentException("Wrong clientId or secret");
-            }
-
-            if (this.simulateLatency) {
-                final int seconds = this.random.nextInt(20);
-                System.out.println("************ Mockup LMS wait for " + seconds + " seconds before respond");
-                Thread.sleep(seconds * 1000);
-            }
-
-            return this.mockups
-                    .stream()
-                    .map(this::getExternalAddressAlias)
-                    .filter(LmsAPIService.quizFilterPredicate(filterMap))
-                    .collect(Collectors.toList());
-        });
-    }
-
-    @Override
     public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
         if (!authenticate()) {
             asyncQuizFetchBuffer.finish(new IllegalArgumentException("Wrong clientId or secret"));

@@ -20,7 +20,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncService;
 import ch.ethz.seb.sebserver.gbl.client.ClientCredentialService;
-import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -43,7 +42,6 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
     private final Environment environment;
     private final ClientCredentialService clientCredentialService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
-    private final ApplicationContext applicationContext;
     private final String[] alternativeTokenRequestPaths;
 
     protected MoodleLmsAPITemplateFactory(
@@ -60,7 +58,6 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
         this.environment = environment;
         this.clientCredentialService = clientCredentialService;
         this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
-        this.applicationContext = applicationContext;
         this.alternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
                 ? StringUtils.split(alternativeTokenRequestPaths, Constants.LIST_SEPARATOR)
                 : null;
@@ -76,11 +73,6 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
 
         return Result.tryCatch(() -> {
 
-            final LmsSetup lmsSetup = apiTemplateDataSupplier.getLmsSetup();
-            final MoodleCourseDataAsyncLoader asyncLoaderPrototype = this.applicationContext
-                    .getBean(MoodleCourseDataAsyncLoader.class);
-            asyncLoaderPrototype.init(lmsSetup.getModelId());
-
             final MoodleRestTemplateFactory restTemplateFactory = new MoodleRestTemplateFactoryImpl(
                     this.jsonMapper,
                     apiTemplateDataSupplier,
@@ -92,7 +84,6 @@ public class MoodleLmsAPITemplateFactory implements LmsAPITemplateFactory {
                     this.jsonMapper,
                     this.asyncService,
                     restTemplateFactory,
-                    asyncLoaderPrototype,
                     this.environment);
 
             return new LmsAPITemplateAdapter(

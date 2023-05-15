@@ -141,11 +141,6 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
     }
 
     @Override
-    public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-        return getRestTemplate().map(this::collectAllQuizzes);
-    }
-
-    @Override
     public void fetchQuizzes(final FilterMap filterMap, final AsyncQuizFetchBuffer asyncQuizFetchBuffer) {
         try {
             final OAuth2RestTemplate restTemplate = getRestTemplate().getOrThrow();
@@ -360,25 +355,6 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
                                 });
     }
 
-    private ArrayList<QuizData> collectAllQuizzes(final OAuth2RestTemplate restTemplate) {
-        final LmsSetup lmsSetup = getApiTemplateDataSupplier().getLmsSetup();
-        final String externalStartURI = getExternalLMSServerAddress(lmsSetup);
-        return collectAllCourses(
-                lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_ENDPOINT,
-                restTemplate)
-                        .stream()
-                        .reduce(
-                                new ArrayList<>(),
-                                (list, courseData) -> {
-                                    list.add(quizDataOf(lmsSetup, courseData, externalStartURI));
-                                    return list;
-                                },
-                                (list1, list2) -> {
-                                    list1.addAll(list2);
-                                    return list1;
-                                });
-    }
-
     private String getExternalLMSServerAddress(final LmsSetup lmsSetup) {
         final String externalAddressAlias = this.webserviceInfo.getLmsExternalAddressAlias(lmsSetup.lmsApiUrl);
         String _externalStartURI = lmsSetup.lmsApiUrl + OPEN_EDX_DEFAULT_COURSE_START_URL_PREFIX;
@@ -464,22 +440,6 @@ final class OpenEdxCourseAccess extends AbstractCachedCourseAccess implements Co
             }
             return collectCourses.get(0);
         }
-    }
-
-    private List<CourseData> collectAllCourses(final String pageURI, final OAuth2RestTemplate restTemplate) {
-        final List<CourseData> collector = new ArrayList<>();
-        EdXPage page = getEdxPage(pageURI, restTemplate).getBody();
-        if (page != null) {
-            collector.addAll(page.results);
-            while (page != null && StringUtils.isNotBlank(page.next)) {
-                page = getEdxPage(page.next, restTemplate).getBody();
-                if (page != null) {
-                    collector.addAll(page.results);
-                }
-            }
-        }
-
-        return collector;
     }
 
     private ResponseEntity<EdXPage> getEdxPage(final String pageURI, final OAuth2RestTemplate restTemplate) {

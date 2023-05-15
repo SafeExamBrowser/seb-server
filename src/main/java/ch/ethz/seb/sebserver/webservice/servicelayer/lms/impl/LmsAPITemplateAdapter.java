@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -219,26 +218,6 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
         }
 
         return LmsSetupTestResult.ofAPINotSupported(getType());
-    }
-
-    @Override
-    @Deprecated
-    public Result<List<QuizData>> getQuizzes(final FilterMap filterMap) {
-
-        if (this.courseAccessAPI == null) {
-            return Result
-                    .ofError(new UnsupportedOperationException("Course API Not Supported For: " + getType().name()));
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("Get quizzes for LMSSetup: {}", lmsSetup());
-        }
-
-        return this.courseAccessAPI
-                .getQuizzes(filterMap)
-                .onError(error -> log.error(
-                        "Failed to run protectedQuizzesRequest: {}",
-                        error.getMessage()));
     }
 
     @Override

@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.lms;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -51,20 +50,6 @@ public interface CourseAccessAPI {
             throw new RuntimeException("No course API Access: " + testCourseAccessAPI);
         }
     }
-
-    /** Get an unsorted List of filtered {@link QuizData } from the LMS course/quiz API
-     *
-     * @param filterMap the {@link FilterMap } to get a filtered result. Possible filter attributes are:
-     *
-     *            <pre>
-     *      {@link QuizData.FILTER_ATTR_QUIZ_NAME } The quiz name filter text (exclude all names that do not contain the given text)
-     *      {@link QuizData.FILTER_ATTR_START_TIME } The quiz start time (exclude all quizzes that starts before)
-     *            </pre>
-     *
-     * @return Result of an unsorted List of filtered {@link QuizData } from the LMS course/quiz API
-     *         or refer to an error when happened */
-    @Deprecated
-    Result<List<QuizData>> getQuizzes(FilterMap filterMap);
 
     void fetchQuizzes(FilterMap filterMap, AsyncQuizFetchBuffer asyncQuizFetchBuffer);
 
