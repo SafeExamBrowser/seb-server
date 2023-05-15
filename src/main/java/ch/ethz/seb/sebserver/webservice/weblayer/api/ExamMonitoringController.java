@@ -425,7 +425,10 @@ public class ExamMonitoringController {
                 notificationId,
                 examId,
                 connectionToken)
-                .getOrThrow();
+                .onError(error -> {
+                    log.error("Failed to confirm pending notification: {} for exam {}, cause: {}",
+                            notificationId, examId, error.getMessage());
+                });
     }
 
     @RequestMapping(

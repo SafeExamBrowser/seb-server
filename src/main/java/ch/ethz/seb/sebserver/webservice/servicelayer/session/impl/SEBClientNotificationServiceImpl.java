@@ -93,7 +93,7 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
             this.clientEventDAO.getPendingNotificationByValue(clientConnection.id, notificationId)
                     .flatMap(notification -> this.clientEventDAO.confirmPendingNotification(notification.id))
                     .map(this::removeFromCache)
-                    .onError(error -> log.error("Failed to confirm pending notification: {}", event, error));
+                    .getOrThrow();
 
         } catch (final Exception e) {
             log.error(
@@ -110,8 +110,7 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
         return this.clientEventDAO.getPendingNotification(notificationId)
                 .map(notification -> this.confirmClientSide(notification, examId, connectionToken))
                 .flatMap(notification -> this.clientEventDAO.confirmPendingNotification(notificationId))
-                .map(this::removeFromCache)
-                .onError(error -> log.error("Failed to confirm pending notification: {}", notificationId, error));
+                .map(this::removeFromCache);
     }
 
     @Override
