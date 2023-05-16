@@ -11,9 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.i18n.impl;
 import java.util.Locale;
 import java.util.function.Consumer;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -271,14 +269,8 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
             final I18nSupport i18nSupport) {
 
         return label -> {
-
             if (locTextKey != null) {
-                final String text = i18nSupport.getText(locTextKey);
-                if (BooleanUtils.toBoolean((Boolean) label.getData(RWT.MARKUP_ENABLED))) {
-                    label.setText(StringEscapeUtils.escapeHtml4(text));
-                } else {
-                    label.setText(text);
-                }
+                label.setText(i18nSupport.getText(locTextKey));
             }
             if (i18nSupport.hasText(locToolTipKey)) {
                 label.setToolTipText(Utils.formatLineBreaks(i18nSupport.getText(locToolTipKey)));
