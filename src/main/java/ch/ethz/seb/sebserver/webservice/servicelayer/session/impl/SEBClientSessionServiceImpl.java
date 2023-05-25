@@ -170,10 +170,8 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
 
     private void processPing(final String connectionToken, final long timestamp, final int pingNumber) {
 
-        ClientConnectionDataInternal activeClientConnection = null;
-        synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
-            activeClientConnection = this.examSessionCacheService.getClientConnection(connectionToken);
-        }
+        final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
+                .getClientConnection(connectionToken);
 
         if (activeClientConnection != null) {
             activeClientConnection.notifyPing(timestamp, pingNumber);
