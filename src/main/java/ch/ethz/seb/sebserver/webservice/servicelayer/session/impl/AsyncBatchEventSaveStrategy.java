@@ -77,7 +77,7 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
     private final BlockingDeque<ClientEventRecord> eventQueue = new LinkedBlockingDeque<>();
     private final BlockingDeque<ClientNotification> notificationQueue = new LinkedBlockingDeque<>();
     private boolean workersRunning = false;
-    private boolean enabled = false;
+    private final boolean enabled = false;
 
     public AsyncBatchEventSaveStrategy(
             final SEBClientNotificationService sebClientNotificationService,
@@ -95,7 +95,8 @@ public class AsyncBatchEventSaveStrategy implements EventHandlingStrategy {
 
     @Override
     public void enable() {
-        this.enabled = true;
+        log.info("AsyncBatchEventSaveStrategy is deprecated");
+        //this.enabled = true;
     }
 
     @EventListener(SEBServerInitEvent.class)

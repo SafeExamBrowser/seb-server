@@ -19,8 +19,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 @Lazy
 @Component(IndicatorType.Names.LAST_PING)
@@ -92,12 +90,7 @@ public final class PingIntervalClientIndicator extends AbstractPingIndicator {
     }
 
     @Override
-    public void notifyValueChange(final ClientEvent event) {
-
-    }
-
-    @Override
-    public void notifyValueChange(final ClientEventRecord clientEventRecord) {
+    public void notifyValueChange(final String textValue, final double numValue) {
 
     }
 

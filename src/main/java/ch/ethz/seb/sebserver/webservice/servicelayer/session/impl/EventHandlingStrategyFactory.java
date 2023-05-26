@@ -19,6 +19,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.EventHandlingStrate
 @Lazy
 @Service
 @WebServiceProfile
+@Deprecated
 public class EventHandlingStrategyFactory {
 
     private final EventHandlingStrategy eventHandlingStrategy;

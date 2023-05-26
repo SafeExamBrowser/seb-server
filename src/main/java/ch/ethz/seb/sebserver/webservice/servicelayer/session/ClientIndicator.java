@@ -14,10 +14,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.IndicatorType;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.monitoring.IndicatorValue;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 /** A client indicator is a indicator value holder for a specific Indicator
  * on a running client connection.
@@ -64,14 +62,9 @@ public interface ClientIndicator extends IndicatorValue {
     /** This gets called on a value change e.g.: when a ClientEvent was received.
      * NOTE: that this is called only on the same machine (server-instance) on that the ClientEvent was received.
      *
-     * @param event The ClientEvent instance */
-    void notifyValueChange(ClientEvent event);
-
-    /** This gets called on a value change e.g.: when a ClientEvent was received.
-     * NOTE: that this is called only on the same machine (server-instance) on that the ClientEvent was received.
-     *
-     * @param clientEventRecord The ClientEventRecord instance */
-    void notifyValueChange(ClientEventRecord clientEventRecord);
+     * @param textValue The text based value
+     * @param numValue The value number */
+    void notifyValueChange(String textValue, double numValue);
 
     /** This indicates if the indicator indicates an incident. This is the case if the actual indicator value
      * is above or below the max or min value defined by the indicator threshold settings.

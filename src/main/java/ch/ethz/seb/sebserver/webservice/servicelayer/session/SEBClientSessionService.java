@@ -10,7 +10,6 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface SEBClientSessionService {
@@ -39,7 +38,13 @@ public interface SEBClientSessionService {
      *
      * @param connectionToken the connection token
      * @param event The SEB client event data */
-    void notifyClientEvent(String connectionToken, final ClientEvent event);
+    void notifyClientEvent(String connectionToken, String jsonBody);
+
+//    /** Notify a SEB client event for live indication and storing to database.
+//     *
+//     * @param connectionToken the connection token
+//     * @param event The SEB client event data */
+//    void notifyClientEvent(String connectionToken, final ClientEvent event);
 
     /** This is used to confirm SEB instructions that must be confirmed by the SEB client.
      *

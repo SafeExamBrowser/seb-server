@@ -18,7 +18,6 @@ import org.mybatis.dynamic.sql.SqlCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
@@ -41,31 +40,19 @@ public abstract class AbstractLogNumberIndicator extends AbstractLogIndicator {
     }
 
     @Override
-    public void notifyValueChange(final ClientEvent event) {
-        valueChanged(event.text, event.getValue());
-    }
-
-    @Override
-    public void notifyValueChange(final ClientEventRecord clientEventRecord) {
-        final BigDecimal numericValue = clientEventRecord.getNumericValue();
-        if (numericValue != null) {
-            valueChanged(clientEventRecord.getText(), numericValue.doubleValue());
-        }
-    }
-
-    private void valueChanged(final String text, final double value) {
-        if (this.tags == null || this.tags.length == 0 || hasTag(text)) {
+    public void notifyValueChange(final String textValue, final double numValue) {
+        if (this.tags == null || this.tags.length == 0 || hasTag(textValue)) {
             if (super.ditributedIndicatorValueRecordId != null) {
                 if (!this.distributedIndicatorValueService.updateIndicatorValueAsync(
                         this.ditributedIndicatorValueRecordId,
-                        Double.valueOf(value).longValue())) {
+                        Double.valueOf(numValue).longValue())) {
 
                     this.currentValue = computeValueAt(Utils.getMillisecondsNow());
                 } else {
-                    this.currentValue = value;
+                    this.currentValue = numValue;
                 }
             } else {
-                this.currentValue = value;
+                this.currentValue = numValue;
             }
         }
     }
