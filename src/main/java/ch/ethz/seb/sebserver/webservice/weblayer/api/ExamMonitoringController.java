@@ -314,6 +314,8 @@ public class ExamMonitoringController {
                     name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER,
                     required = false) final String hiddenClientGroups) {
 
+        final long now = Utils.getMillisecondsNow();
+
         final Exam runningExam = checkPrivileges(institutionId, examId);
 
         final MonitoringSEBConnectionData monitoringSEBConnectionData = this.examSessionService
@@ -322,21 +324,27 @@ public class ExamMonitoringController {
                         createMonitoringFilter(hiddenStates, hiddenClientGroups))
                 .getOrThrow();
 
+        MonitoringFullPageData monitoringFullPageData;
         if (this.examAdminService.isProctoringEnabled(runningExam).getOr(false)) {
             final Collection<RemoteProctoringRoom> proctoringData = this.examProcotringRoomService
                     .getProctoringCollectingRooms(examId)
                     .getOrThrow();
 
-            return new MonitoringFullPageData(
+            monitoringFullPageData = new MonitoringFullPageData(
                     examId,
                     monitoringSEBConnectionData,
                     proctoringData);
+
         } else {
-            return new MonitoringFullPageData(
+            monitoringFullPageData = new MonitoringFullPageData(
                     examId,
                     monitoringSEBConnectionData,
                     Collections.emptyList());
         }
+
+        System.out.println("%%%%%%%% --> monitoring tuck: " + (Utils.getMillisecondsNow() - now));
+
+        return monitoringFullPageData;
     }
 
     @RequestMapping(
