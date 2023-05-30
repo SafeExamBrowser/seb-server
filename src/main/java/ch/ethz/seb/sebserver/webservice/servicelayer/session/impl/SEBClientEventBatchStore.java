@@ -93,18 +93,16 @@ public class SEBClientEventBatchStore {
     }
 
     @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.task:1000}",
+            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
             initialDelay = 1000)
     public void processEvents() {
 
         final long startTime = Utils.getMillisecondsNow();
 
-        //if (log.isDebugEnabled()) {
         final int size = this.eventDataQueue.size();
         if (size > 1000) {
             log.warn("******* There are more then 1000 SEB client logs in the waiting queue: {}", size);
         }
-        //}
 
         try {
 
@@ -114,8 +112,6 @@ public class SEBClientEventBatchStore {
             if (this.events.isEmpty()) {
                 return;
             }
-
-            System.out.println("********** processing: " + this.events.size());
 
             final List<ClientEventRecord> events = this.events
                     .stream()
@@ -134,9 +130,14 @@ public class SEBClientEventBatchStore {
 
             this.sqlSessionTemplate.flushStatements();
 
-            //if (log.isTraceEnabled()) {
-            log.info("****** Processing SEB events tuck: {}", Utils.getMillisecondsNow() - startTime);
-            //}
+            if (log.isTraceEnabled()) {
+                log.trace("Processing {} SEB events tuck: {}",
+                        this.events.size(),
+                        Utils.getMillisecondsNow() - startTime);
+            }
+            // TODO just for debugging
+            System.out.println("***** Processing " + this.events.size() + " SEB events tuck: "
+                    + (Utils.getMillisecondsNow() - startTime));
 
         } catch (final Exception e) {
             log.error("Failed to process SEB events from eventDataQueue: ", e);

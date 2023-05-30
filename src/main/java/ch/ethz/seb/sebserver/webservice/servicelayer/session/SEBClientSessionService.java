@@ -40,12 +40,6 @@ public interface SEBClientSessionService {
      * @param event The SEB client event data */
     void notifyClientEvent(String connectionToken, String jsonBody);
 
-//    /** Notify a SEB client event for live indication and storing to database.
-//     *
-//     * @param connectionToken the connection token
-//     * @param event The SEB client event data */
-//    void notifyClientEvent(String connectionToken, final ClientEvent event);
-
     /** This is used to confirm SEB instructions that must be confirmed by the SEB client.
      *
      * @param connectionToken The SEB client connection token

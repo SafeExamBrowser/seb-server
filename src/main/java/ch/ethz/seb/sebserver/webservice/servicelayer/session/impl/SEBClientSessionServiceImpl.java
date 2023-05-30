@@ -49,6 +49,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
     private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
     private final SecurityKeyService securityKeyService;
     private final SEBClientVersionService sebClientVersionService;
+    private final SEBClientPingService sebClientPingService;
 
     public SEBClientSessionServiceImpl(
             final ClientConnectionDAO clientConnectionDAO,
@@ -58,7 +59,8 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
             final ClientIndicatorFactory clientIndicatorFactory,
             final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
             final SecurityKeyService securityKeyService,
-            final SEBClientVersionService sebClientVersionService) {
+            final SEBClientVersionService sebClientVersionService,
+            final SEBClientPingService sebClientPingService) {
 
         this.clientConnectionDAO = clientConnectionDAO;
         this.examSessionService = examSessionService;
@@ -69,6 +71,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
         this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
         this.securityKeyService = securityKeyService;
         this.sebClientVersionService = sebClientVersionService;
+        this.sebClientPingService = sebClientPingService;
     }
 
     @Override
@@ -115,14 +118,24 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
             final int pingNumber,
             final String instructionConfirm) {
 
-        processPing(connectionToken, timestamp, pingNumber);
-
-        if (instructionConfirm != null) {
-            this.sebInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
-        }
-
-        return this.sebInstructionService.getInstructionJSON(connectionToken);
+        return this.sebClientPingService.notifyPing(connectionToken, instructionConfirm);
     }
+
+//    @Override
+//    public String notifyPing(
+//            final String connectionToken,
+//            final long timestamp,
+//            final int pingNumber,
+//            final String instructionConfirm) {
+//
+//        processPing(connectionToken, timestamp, pingNumber);
+//
+//        if (instructionConfirm != null) {
+//            this.sebInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
+//        }
+//
+//        return this.sebInstructionService.getInstructionJSON(connectionToken);
+//    }
 
     @Override
     public final void notifyClientEvent(final String connectionToken, final String jsonBody) {
@@ -142,15 +155,15 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
                 this.internalClientConnectionDataFactory.getGroupIds(clientConnection)));
     }
 
-    private void processPing(final String connectionToken, final long timestamp, final int pingNumber) {
-
-        final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-                .getClientConnection(connectionToken);
-
-        if (activeClientConnection != null) {
-            activeClientConnection.notifyPing(timestamp, pingNumber);
-        }
-    }
+//    private void processPing(final String connectionToken, final long timestamp, final int pingNumber) {
+//
+//        final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
+//                .getClientConnection(connectionToken);
+//
+//        if (activeClientConnection != null) {
+//            activeClientConnection.notifyPing(timestamp);
+//        }
+//    }
 
     private void missingPingUpdate(final ClientConnectionDataInternal connection) {
         if (connection.pingIndicator.changeOnIncident()) {
