@@ -510,12 +510,12 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
         private void update(final TableItem tableItem, final boolean force) {
             updateDuplicateColor(tableItem);
-            //if (force || this.dataChanged) {
-            updateData(tableItem);
-            //}
-            //if (force || this.indicatorValueChanged) {
-            updateIndicatorValues(tableItem);
-            //}
+            if (force || this.dataChanged) {
+                updateData(tableItem);
+            }
+            if (force || this.indicatorValueChanged) {
+                updateIndicatorValues(tableItem);
+            }
             this.dataChanged = false;
             this.indicatorValueChanged = false;
         }
@@ -724,10 +724,12 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                     this.indicatorWeights[i] = -1;
                 }
             }
+
+            this.monitoringData = monitoringData;
+
             if (this.indicatorValueChanged) {
                 updateIndicatorWeight();
             }
-            this.monitoringData = monitoringData;
 
             return this.staticData == null
                     || this.staticData == ClientStaticData.NULL_DATA
