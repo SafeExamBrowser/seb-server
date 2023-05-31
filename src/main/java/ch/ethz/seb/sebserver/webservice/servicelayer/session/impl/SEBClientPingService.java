@@ -8,8 +8,9 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ehcache.impl.internal.concurrent.ConcurrentHashMap;
@@ -45,7 +46,7 @@ public class SEBClientPingService {
     }
 
     @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:500}",
+            fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:100}",
             initialDelay = 1000)
     public void processPings() {
         if (this.pings.isEmpty()) {
@@ -60,12 +61,16 @@ public class SEBClientPingService {
         }
 
         try {
-            final Map<String, String> pp = new HashMap<>(this.pings);
-            this.pings.clear();
+            final Set<String> connections = new HashSet<>(this.pings.keySet());
 
-            pp.entrySet()
-                    .stream()
-                    .forEach(entry -> processPing(entry.getKey(), entry.getValue(), startTime));
+            connections.stream().forEach(cid -> processPing(
+                    cid,
+                    this.pings.remove(cid),
+                    Utils.getMillisecondsNow()));
+
+//            pp.entrySet()
+//                    .stream()
+//                    .forEach(entry -> processPing(entry.getKey(), entry.getValue(), startTime));
 
             if (log.isTraceEnabled()) {
                 log.trace("****** Processing {} SEB pings tuck: {}", Utils.getMillisecondsNow() - startTime);
@@ -82,6 +87,10 @@ public class SEBClientPingService {
     public String notifyPing(
             final String connectionToken,
             final String instructionConfirm) {
+
+        if (connectionToken == null) {
+            return null;
+        }
 
         if (instructionConfirm != null) {
             this.pings.put(connectionToken, instructionConfirm);

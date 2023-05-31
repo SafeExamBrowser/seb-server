@@ -378,9 +378,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public ClientConnectionDataInternal getConnectionDataInternal(final String connectionToken) {
-        //synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
-        return this.examSessionCacheService.getClientConnection(connectionToken);
-        //}
+        synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
+            return this.examSessionCacheService.getClientConnection(connectionToken);
+        }
     }
 
     @Override
