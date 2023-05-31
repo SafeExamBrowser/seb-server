@@ -101,6 +101,7 @@ public class SEBServer {
                 protocolHandler.setProcessorCache(-1);
                 protocolHandler.setTcpNoDelay(true);
                 protocolHandler.setThreadPriority(Thread.NORM_PRIORITY + 1);
+                protocolHandler.setMaxConnections(2000);
                 if (protocolHandler instanceof Http11NioProtocol) {
                     System.out.println("*************** Http11NioProtocol");
                     ((Http11NioProtocol) protocolHandler).setPollerThreadPriority(Thread.MAX_PRIORITY);
