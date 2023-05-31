@@ -10,13 +10,10 @@ package ch.ethz.seb.sebserver;
 
 import org.apache.catalina.connector.Connector;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.coyote.http11.AbstractHttp11Protocol;
-import org.apache.coyote.http11.Http11NioProtocol;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -87,29 +84,29 @@ public class SEBServer {
         return firewall;
     }
 
-    @Bean
-    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatCustomizer() {
-        return (tomcat) -> tomcat.addConnectorCustomizers((connector) -> {
-            if (connector.getProtocolHandler() instanceof AbstractHttp11Protocol) {
-                System.out.println("*************** tomcatCustomizer");
-                final AbstractHttp11Protocol<?> protocolHandler = (AbstractHttp11Protocol<?>) connector
-                        .getProtocolHandler();
-                protocolHandler.setKeepAliveTimeout(60000);
-                protocolHandler.setMaxKeepAliveRequests(3000);
-                protocolHandler.setUseKeepAliveResponseHeader(true);
-                protocolHandler.setMinSpareThreads(200);
-                protocolHandler.setProcessorCache(-1);
-                protocolHandler.setTcpNoDelay(true);
-                protocolHandler.setThreadPriority(Thread.NORM_PRIORITY + 1);
-                protocolHandler.setMaxConnections(2000);
-                if (protocolHandler instanceof Http11NioProtocol) {
-                    System.out.println("*************** Http11NioProtocol");
-                    ((Http11NioProtocol) protocolHandler).setPollerThreadPriority(Thread.MAX_PRIORITY);
-                }
-
-            }
-        });
-    }
+//    @Bean
+//    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatCustomizer() {
+//        return (tomcat) -> tomcat.addConnectorCustomizers((connector) -> {
+//            if (connector.getProtocolHandler() instanceof AbstractHttp11Protocol) {
+//                System.out.println("*************** tomcatCustomizer");
+//                final AbstractHttp11Protocol<?> protocolHandler = (AbstractHttp11Protocol<?>) connector
+//                        .getProtocolHandler();
+//                protocolHandler.setKeepAliveTimeout(60000);
+//                protocolHandler.setMaxKeepAliveRequests(3000);
+//                protocolHandler.setUseKeepAliveResponseHeader(true);
+//                protocolHandler.setMinSpareThreads(200);
+//                protocolHandler.setProcessorCache(-1);
+//                protocolHandler.setTcpNoDelay(true);
+//                protocolHandler.setThreadPriority(Thread.NORM_PRIORITY + 1);
+//                protocolHandler.setMaxConnections(2000);
+//                if (protocolHandler instanceof Http11NioProtocol) {
+//                    System.out.println("*************** Http11NioProtocol");
+//                    ((Http11NioProtocol) protocolHandler).setPollerThreadPriority(Thread.MAX_PRIORITY);
+//                }
+//
+//            }
+//        });
+//    }
 
     private Connector redirectConnector(final Environment env) {
         final String sslPort = env.getRequiredProperty("server.port");
