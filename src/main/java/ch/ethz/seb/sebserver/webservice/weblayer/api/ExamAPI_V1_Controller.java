@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
@@ -93,7 +94,7 @@ public class ExamAPI_V1_Controller {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public CompletableFuture<Collection<RunningExamInfo>> handshakeCreate(
+    public DeferredResult<Collection<RunningExamInfo>> handshakeCreate(
             @RequestParam(name = API.PARAM_INSTITUTION_ID, required = false) final Long instIdRequestParam,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examIdRequestParam,
             @RequestParam(name = API.EXAM_API_PARAM_CLIENT_ID, required = false) final String clientIdRequestParam,
@@ -102,69 +103,133 @@ public class ExamAPI_V1_Controller {
             final HttpServletRequest request,
             final HttpServletResponse response) {
 
-        return CompletableFuture.supplyAsync(
-                () -> {
+        final DeferredResult<Collection<RunningExamInfo>> deferredResult = new DeferredResult<>();
+        this.executor.execute(() -> {
+            final POSTMapper mapper = new POSTMapper(formParams, request.getQueryString());
 
-                    final POSTMapper mapper = new POSTMapper(formParams, request.getQueryString());
+            final String remoteAddr = this.getClientAddress(request);
+            final Long institutionId = (instIdRequestParam != null)
+                    ? instIdRequestParam
+                    : mapper.getLong(API.PARAM_INSTITUTION_ID);
+            final Long examId = (examIdRequestParam != null)
+                    ? examIdRequestParam
+                    : mapper.getLong(API.EXAM_API_PARAM_EXAM_ID);
+            final String clientId = (clientIdRequestParam != null)
+                    ? clientIdRequestParam
+                    : mapper.getString(API.EXAM_API_PARAM_CLIENT_ID);
 
-                    final String remoteAddr = this.getClientAddress(request);
-                    final Long institutionId = (instIdRequestParam != null)
-                            ? instIdRequestParam
-                            : mapper.getLong(API.PARAM_INSTITUTION_ID);
-                    final Long examId = (examIdRequestParam != null)
-                            ? examIdRequestParam
-                            : mapper.getLong(API.EXAM_API_PARAM_EXAM_ID);
-                    final String clientId = (clientIdRequestParam != null)
-                            ? clientIdRequestParam
-                            : mapper.getString(API.EXAM_API_PARAM_CLIENT_ID);
+            // Create and get new ClientConnection if all integrity checks passes
+            final ClientConnection clientConnection = this.sebClientConnectionService
+                    .createClientConnection(
+                            principal,
+                            institutionId,
+                            remoteAddr,
+                            mapper.getString(API.EXAM_API_PARAM_SEB_VERSION),
+                            mapper.getString(API.EXAM_API_PARAM_SEB_OS_NAME),
+                            mapper.getString(API.EXAM_API_PARAM_SEB_MACHINE_NAME),
+                            examId,
+                            clientId)
+                    .getOrThrow();
 
-                    // Create and get new ClientConnection if all integrity checks passes
-                    final ClientConnection clientConnection = this.sebClientConnectionService
-                            .createClientConnection(
-                                    principal,
-                                    institutionId,
-                                    remoteAddr,
-                                    mapper.getString(API.EXAM_API_PARAM_SEB_VERSION),
-                                    mapper.getString(API.EXAM_API_PARAM_SEB_OS_NAME),
-                                    mapper.getString(API.EXAM_API_PARAM_SEB_MACHINE_NAME),
-                                    examId,
-                                    clientId)
-                            .getOrThrow();
+            response.setHeader(
+                    API.EXAM_API_SEB_CONNECTION_TOKEN,
+                    clientConnection.connectionToken);
 
-                    response.setHeader(
-                            API.EXAM_API_SEB_CONNECTION_TOKEN,
-                            clientConnection.connectionToken);
+            // Crate list of running exams
+            List<RunningExamInfo> result;
+            if (examId == null) {
+                result = this.examSessionService.getRunningExamsForInstitution(institutionId)
+                        .getOrThrow()
+                        .stream()
+                        .map(this::createRunningExamInfo)
+                        .filter(this::checkConsistency)
+                        .collect(Collectors.toList());
+            } else {
 
-                    // Crate list of running exams
-                    List<RunningExamInfo> result;
-                    if (examId == null) {
-                        result = this.examSessionService.getRunningExamsForInstitution(institutionId)
-                                .getOrThrow()
-                                .stream()
-                                .map(this::createRunningExamInfo)
-                                .filter(this::checkConsistency)
-                                .collect(Collectors.toList());
-                    } else {
+                final Exam exam = this.examSessionService
+                        .getExamDAO()
+                        .byPK(examId)
+                        .getOrThrow();
 
-                        final Exam exam = this.examSessionService
-                                .getExamDAO()
-                                .byPK(examId)
-                                .getOrThrow();
+                result = Arrays.asList(createRunningExamInfo(exam));
+                processASKSalt(response, clientConnection);
+                processAlternativeBEK(response, clientConnection.examId);
+            }
 
-                        result = Arrays.asList(createRunningExamInfo(exam));
-                        processASKSalt(response, clientConnection);
-                        processAlternativeBEK(response, clientConnection.examId);
-                    }
+            if (result.isEmpty()) {
+                log.warn(
+                        "There are no currently running exams for institution: {}. SEB connection creation denied",
+                        institutionId);
+            }
 
-                    if (result.isEmpty()) {
-                        log.warn(
-                                "There are no currently running exams for institution: {}. SEB connection creation denied",
-                                institutionId);
-                    }
+            deferredResult.setResult(result);
+        });
 
-                    return result;
-                },
-                this.executor);
+        return deferredResult;
+
+//        return CompletableFuture.supplyAsync(
+//                () -> {
+//
+//                    final POSTMapper mapper = new POSTMapper(formParams, request.getQueryString());
+//
+//                    final String remoteAddr = this.getClientAddress(request);
+//                    final Long institutionId = (instIdRequestParam != null)
+//                            ? instIdRequestParam
+//                            : mapper.getLong(API.PARAM_INSTITUTION_ID);
+//                    final Long examId = (examIdRequestParam != null)
+//                            ? examIdRequestParam
+//                            : mapper.getLong(API.EXAM_API_PARAM_EXAM_ID);
+//                    final String clientId = (clientIdRequestParam != null)
+//                            ? clientIdRequestParam
+//                            : mapper.getString(API.EXAM_API_PARAM_CLIENT_ID);
+//
+//                    // Create and get new ClientConnection if all integrity checks passes
+//                    final ClientConnection clientConnection = this.sebClientConnectionService
+//                            .createClientConnection(
+//                                    principal,
+//                                    institutionId,
+//                                    remoteAddr,
+//                                    mapper.getString(API.EXAM_API_PARAM_SEB_VERSION),
+//                                    mapper.getString(API.EXAM_API_PARAM_SEB_OS_NAME),
+//                                    mapper.getString(API.EXAM_API_PARAM_SEB_MACHINE_NAME),
+//                                    examId,
+//                                    clientId)
+//                            .getOrThrow();
+//
+//                    response.setHeader(
+//                            API.EXAM_API_SEB_CONNECTION_TOKEN,
+//                            clientConnection.connectionToken);
+//
+//                    // Crate list of running exams
+//                    List<RunningExamInfo> result;
+//                    if (examId == null) {
+//                        result = this.examSessionService.getRunningExamsForInstitution(institutionId)
+//                                .getOrThrow()
+//                                .stream()
+//                                .map(this::createRunningExamInfo)
+//                                .filter(this::checkConsistency)
+//                                .collect(Collectors.toList());
+//                    } else {
+//
+//                        final Exam exam = this.examSessionService
+//                                .getExamDAO()
+//                                .byPK(examId)
+//                                .getOrThrow();
+//
+//                        result = Arrays.asList(createRunningExamInfo(exam));
+//                        processASKSalt(response, clientConnection);
+//                        processAlternativeBEK(response, clientConnection.examId);
+//                    }
+//
+//                    if (result.isEmpty()) {
+//                        log.warn(
+//                                "There are no currently running exams for institution: {}. SEB connection creation denied",
+//                                institutionId);
+//                    }
+//
+//                    return result;
+//                },
+//                this.executor);
     }
 
     private boolean checkConsistency(final RunningExamInfo info) {
@@ -183,7 +248,7 @@ public class ExamAPI_V1_Controller {
             path = API.EXAM_API_HANDSHAKE_ENDPOINT,
             method = RequestMethod.PATCH,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public CompletableFuture<Void> handshakeUpdate(
+    public DeferredResult<Void> handshakeUpdate(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examId,
             @RequestParam(name = API.EXAM_API_USER_SESSION_ID, required = false) final String userSessionId,
@@ -198,39 +263,71 @@ public class ExamAPI_V1_Controller {
             final HttpServletRequest request,
             final HttpServletResponse response) {
 
-        return CompletableFuture.runAsync(
-                () -> {
+        final DeferredResult<Void> deferredResult = new DeferredResult<>();
+        this.executor.execute(() -> {
+            {
 
-                    final String remoteAddr = this.getClientAddress(request);
-                    final Long institutionId = getInstitutionId(principal);
+                final String remoteAddr = this.getClientAddress(request);
+                final Long institutionId = getInstitutionId(principal);
 
-                    final ClientConnection clientConnection = this.sebClientConnectionService
-                            .updateClientConnection(
-                                    connectionToken,
-                                    institutionId,
-                                    examId,
-                                    remoteAddr,
-                                    sebVersion,
-                                    sebOSName,
-                                    sebMachinName,
-                                    userSessionId,
-                                    clientId,
-                                    browserSignatureKey)
-                            .getOrThrow();
+                final ClientConnection clientConnection = this.sebClientConnectionService
+                        .updateClientConnection(
+                                connectionToken,
+                                institutionId,
+                                examId,
+                                remoteAddr,
+                                sebVersion,
+                                sebOSName,
+                                sebMachinName,
+                                userSessionId,
+                                clientId,
+                                browserSignatureKey)
+                        .getOrThrow();
 
-                    if (clientConnection.examId != null) {
-                        processASKSalt(response, clientConnection);
-                        processAlternativeBEK(response, clientConnection.examId);
-                    }
-                },
-                this.executor);
+                if (clientConnection.examId != null) {
+                    processASKSalt(response, clientConnection);
+                    processAlternativeBEK(response, clientConnection.examId);
+                }
+
+                deferredResult.setResult(null);
+            }
+        });
+
+        return deferredResult;
+
+//        return CompletableFuture.runAsync(
+//                () -> {
+//
+//                    final String remoteAddr = this.getClientAddress(request);
+//                    final Long institutionId = getInstitutionId(principal);
+//
+//                    final ClientConnection clientConnection = this.sebClientConnectionService
+//                            .updateClientConnection(
+//                                    connectionToken,
+//                                    institutionId,
+//                                    examId,
+//                                    remoteAddr,
+//                                    sebVersion,
+//                                    sebOSName,
+//                                    sebMachinName,
+//                                    userSessionId,
+//                                    clientId,
+//                                    browserSignatureKey)
+//                            .getOrThrow();
+//
+//                    if (clientConnection.examId != null) {
+//                        processASKSalt(response, clientConnection);
+//                        processAlternativeBEK(response, clientConnection.examId);
+//                    }
+//                },
+//                this.executor);
     }
 
     @RequestMapping(
             path = API.EXAM_API_HANDSHAKE_ENDPOINT,
             method = RequestMethod.PUT,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public CompletableFuture<Void> handshakeEstablish(
+    public DeferredResult<Void> handshakeEstablish(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
             @RequestParam(name = API.EXAM_API_PARAM_EXAM_ID, required = false) final Long examId,
             @RequestParam(name = API.EXAM_API_USER_SESSION_ID, required = false) final String userSessionId,
@@ -245,31 +342,58 @@ public class ExamAPI_V1_Controller {
             final HttpServletRequest request,
             final HttpServletResponse response) {
 
-        return CompletableFuture.runAsync(
-                () -> {
+        final DeferredResult<Void> deferredResult = new DeferredResult<>();
+        this.executor.execute(() -> {
 
-                    final String remoteAddr = this.getClientAddress(request);
-                    final Long institutionId = getInstitutionId(principal);
+            final String remoteAddr = this.getClientAddress(request);
+            final Long institutionId = getInstitutionId(principal);
 
-                    final ClientConnection clientConnection = this.sebClientConnectionService
-                            .establishClientConnection(
-                                    connectionToken,
-                                    institutionId,
-                                    examId,
-                                    remoteAddr,
-                                    sebVersion,
-                                    sebOSName,
-                                    sebMachinName,
-                                    userSessionId,
-                                    clientId,
-                                    browserSignatureKey)
-                            .getOrThrow();
+            final ClientConnection clientConnection = this.sebClientConnectionService
+                    .establishClientConnection(
+                            connectionToken,
+                            institutionId,
+                            examId,
+                            remoteAddr,
+                            sebVersion,
+                            sebOSName,
+                            sebMachinName,
+                            userSessionId,
+                            clientId,
+                            browserSignatureKey)
+                    .getOrThrow();
 
-                    if (clientConnection.examId != null) {
-                        processAlternativeBEK(response, clientConnection.examId);
-                    }
-                },
-                this.executor);
+            if (clientConnection.examId != null) {
+                processAlternativeBEK(response, clientConnection.examId);
+            }
+
+            deferredResult.setResult(null);
+        });
+        return deferredResult;
+//        return CompletableFuture.runAsync(
+//                () -> {
+//
+//                    final String remoteAddr = this.getClientAddress(request);
+//                    final Long institutionId = getInstitutionId(principal);
+//
+//                    final ClientConnection clientConnection = this.sebClientConnectionService
+//                            .establishClientConnection(
+//                                    connectionToken,
+//                                    institutionId,
+//                                    examId,
+//                                    remoteAddr,
+//                                    sebVersion,
+//                                    sebOSName,
+//                                    sebMachinName,
+//                                    userSessionId,
+//                                    clientId,
+//                                    browserSignatureKey)
+//                            .getOrThrow();
+//
+//                    if (clientConnection.examId != null) {
+//                        processAlternativeBEK(response, clientConnection.examId);
+//                    }
+//                },
+//                this.executor);
     }
 
     @RequestMapping(

@@ -46,7 +46,7 @@ public class SEBClientPingService {
     }
 
     @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:100}",
+            fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:500}",
             initialDelay = 1000)
     public void processPings() {
         if (this.pings.isEmpty()) {
@@ -84,13 +84,9 @@ public class SEBClientPingService {
         }
     }
 
-    public String notifyPing(
+    public final String notifyPing(
             final String connectionToken,
             final String instructionConfirm) {
-
-        if (connectionToken == null) {
-            return null;
-        }
 
         if (instructionConfirm != null) {
             this.pings.put(connectionToken, instructionConfirm);
@@ -105,6 +101,10 @@ public class SEBClientPingService {
             final String connectionToken,
             final String instructionConfirm,
             final long timestamp) {
+
+        if (connectionToken == null) {
+            return;
+        }
 
         final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
                 .getClientConnection(connectionToken);
