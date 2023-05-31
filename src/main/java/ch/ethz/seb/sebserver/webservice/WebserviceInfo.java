@@ -101,7 +101,7 @@ public class WebserviceInfo {
         this.distributedUpdateInterval = environment.getProperty(
                 "sebserver.webservice.distributed.updateInterval",
                 Long.class,
-                3000L);
+                2000L);
 
         this.activeProfiles = new HashSet<>(Arrays.asList(environment.getActiveProfiles()));
 
