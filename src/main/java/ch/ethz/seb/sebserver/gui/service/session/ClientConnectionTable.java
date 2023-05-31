@@ -371,7 +371,6 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     }
 
     public void updateGUI() {
-
         if (this.needsSort) {
             sortTable();
         }
@@ -511,12 +510,12 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
         private void update(final TableItem tableItem, final boolean force) {
             updateDuplicateColor(tableItem);
-            if (force || this.dataChanged) {
-                updateData(tableItem);
-            }
-            if (force || this.indicatorValueChanged) {
-                updateIndicatorValues(tableItem);
-            }
+            //if (force || this.dataChanged) {
+            updateData(tableItem);
+            //}
+            //if (force || this.indicatorValueChanged) {
+            updateIndicatorValues(tableItem);
+            //}
             this.dataChanged = false;
             this.indicatorValueChanged = false;
         }
