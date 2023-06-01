@@ -17,6 +17,7 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
 @EnableAsync
@@ -72,6 +73,15 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
         executor.initialize();
         executor.setWaitForTasksToCompleteOnShutdown(false);
         return executor;
+    }
+
+    @Bean
+    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
+        final ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+        threadPoolTaskScheduler.setPoolSize(5);
+        threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(false);
+        threadPoolTaskScheduler.setThreadNamePrefix("SEB-Server-BgTask-");
+        return threadPoolTaskScheduler;
     }
 
     @Override
