@@ -92,10 +92,10 @@ public class SEBClientPingBatchService {
         }
 
         ClientConnectionDataInternal activeClientConnection = null;
-        synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
-            activeClientConnection = this.examSessionCacheService
-                    .getClientConnection(connectionToken);
-        }
+        //synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
+        activeClientConnection = this.examSessionCacheService
+                .getClientConnection(connectionToken);
+        //}
 
         if (activeClientConnection != null) {
             activeClientConnection.notifyPing(timestamp);
