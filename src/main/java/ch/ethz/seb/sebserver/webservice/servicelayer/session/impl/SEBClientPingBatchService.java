@@ -91,11 +91,16 @@ public class SEBClientPingBatchService {
             return;
         }
 
-        final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-                .getClientConnection(connectionToken);
+        ClientConnectionDataInternal activeClientConnection = null;
+        synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
+            activeClientConnection = this.examSessionCacheService
+                    .getClientConnection(connectionToken);
+        }
 
         if (activeClientConnection != null) {
             activeClientConnection.notifyPing(timestamp);
+        } else {
+            log.error("Failed to get ClientConnectionDataInternal for: {}", connectionToken);
         }
 
         if (instructionConfirm != StringUtils.EMPTY) {

@@ -160,10 +160,16 @@ public class SEBClientEventBatchService {
                 return eventData;
             }
 
-            System.out.println("******* storeNotifications: " + eventData);
+            ClientConnectionDataInternal clientConnection = null;
+            synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
+                clientConnection = this.examSessionCacheService
+                        .getClientConnection(eventData.connectionToken);
+            }
 
-            final ClientConnectionDataInternal clientConnection = this.examSessionCacheService
-                    .getClientConnection(eventData.connectionToken);
+            if (clientConnection == null) {
+                log.error("Failed to get ClientConnectionDataInternal for: {}", eventData.connectionToken);
+                return null;
+            }
 
             final Pair<NotificationType, String> typeAndPlainText =
                     ClientNotification.extractTypeAndPlainText(eventData.event.text);
@@ -200,8 +206,12 @@ public class SEBClientEventBatchService {
 
     private ClientEventRecord toEventRecord(final EventData eventData) {
         try {
-            final ClientConnectionDataInternal clientConnection = this.examSessionCacheService
-                    .getClientConnection(eventData.connectionToken);
+
+            ClientConnectionDataInternal clientConnection = null;
+            synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
+                clientConnection = this.examSessionCacheService
+                        .getClientConnection(eventData.connectionToken);
+            }
 
             if (clientConnection == null) {
                 log.warn("Failed to retrieve ClientConnection for token {}. Skip this event",
