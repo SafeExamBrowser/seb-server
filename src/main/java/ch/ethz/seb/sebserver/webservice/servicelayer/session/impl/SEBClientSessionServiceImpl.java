@@ -31,7 +31,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientVersionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.SEBClientEventBatchStore.EventData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.SEBClientEventBatchService.EventData;
 
 @Lazy
 @Service
@@ -42,29 +42,27 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
 
     private final ClientConnectionDAO clientConnectionDAO;
     private final ExamSessionService examSessionService;
-    private final ExamSessionCacheService examSessionCacheService;
-    private final SEBClientEventBatchStore sebClientEventBatchStore;
+    private final SEBClientEventBatchService sebClientEventBatchStore;
     private final SEBClientInstructionService sebInstructionService;
     private final ClientIndicatorFactory clientIndicatorFactory;
     private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
     private final SecurityKeyService securityKeyService;
     private final SEBClientVersionService sebClientVersionService;
-    private final SEBClientPingService sebClientPingService;
+    private final SEBClientPingBatchService sebClientPingService;
 
     public SEBClientSessionServiceImpl(
             final ClientConnectionDAO clientConnectionDAO,
             final ExamSessionService examSessionService,
-            final SEBClientEventBatchStore sebClientEventBatchStore,
+            final SEBClientEventBatchService sebClientEventBatchStore,
             final SEBClientInstructionService sebInstructionService,
             final ClientIndicatorFactory clientIndicatorFactory,
             final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
             final SecurityKeyService securityKeyService,
             final SEBClientVersionService sebClientVersionService,
-            final SEBClientPingService sebClientPingService) {
+            final SEBClientPingBatchService sebClientPingService) {
 
         this.clientConnectionDAO = clientConnectionDAO;
         this.examSessionService = examSessionService;
-        this.examSessionCacheService = examSessionService.getExamSessionCacheService();
         this.sebClientEventBatchStore = sebClientEventBatchStore;
         this.sebInstructionService = sebInstructionService;
         this.clientIndicatorFactory = clientIndicatorFactory;
@@ -114,28 +112,11 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
     @Override
     public String notifyPing(
             final String connectionToken,
-            final long timestamp,
             final int pingNumber,
             final String instructionConfirm) {
 
         return this.sebClientPingService.notifyPing(connectionToken, instructionConfirm);
     }
-
-//    @Override
-//    public String notifyPing(
-//            final String connectionToken,
-//            final long timestamp,
-//            final int pingNumber,
-//            final String instructionConfirm) {
-//
-//        processPing(connectionToken, timestamp, pingNumber);
-//
-//        if (instructionConfirm != null) {
-//            this.sebInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
-//        }
-//
-//        return this.sebInstructionService.getInstructionJSON(connectionToken);
-//    }
 
     @Override
     public final void notifyClientEvent(final String connectionToken, final String jsonBody) {
@@ -154,16 +135,6 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
                 this.clientIndicatorFactory.getIndicatorValues(clientConnection),
                 this.internalClientConnectionDataFactory.getGroupIds(clientConnection)));
     }
-
-//    private void processPing(final String connectionToken, final long timestamp, final int pingNumber) {
-//
-//        final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
-//                .getClientConnection(connectionToken);
-//
-//        if (activeClientConnection != null) {
-//            activeClientConnection.notifyPing(timestamp);
-//        }
-//    }
 
     private void missingPingUpdate(final ClientConnectionDataInternal connection) {
         if (connection.pingIndicator.changeOnIncident()) {

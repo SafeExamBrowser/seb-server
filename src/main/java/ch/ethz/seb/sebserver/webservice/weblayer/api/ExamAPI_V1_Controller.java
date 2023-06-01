@@ -325,32 +325,25 @@ public class ExamAPI_V1_Controller {
             method = RequestMethod.POST,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public CompletableFuture<Void> ping(final HttpServletRequest request, final HttpServletResponse response) {
-        return CompletableFuture.runAsync(
-                () -> {
-                    final String connectionToken = request.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
-                    //final String pingNumString = request.getParameter(API.EXAM_API_PING_NUMBER);
-                    final String instructionConfirm = request.getParameter(API.EXAM_API_PING_INSTRUCTION_CONFIRM);
+    public void ping(final HttpServletRequest request, final HttpServletResponse response) {
 
-                    final String instruction = this.sebClientSessionService
-                            .notifyPing(
-                                    connectionToken,
-                                    0,
-                                    0,
-                                    instructionConfirm);
+        final String connectionToken = request.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
+        //final String pingNumString = request.getParameter(API.EXAM_API_PING_NUMBER);
+        final String instructionConfirm = request.getParameter(API.EXAM_API_PING_INSTRUCTION_CONFIRM);
 
-                    if (instruction == null) {
-                        response.setStatus(HttpStatus.NO_CONTENT.value());
-                    } else {
-                        try {
-                            response.setStatus(HttpStatus.OK.value());
-                            response.getOutputStream().write(instruction.getBytes(StandardCharsets.UTF_8));
-                        } catch (final IOException e) {
-                            log.error("Failed to send instruction as response: {}", connectionToken, e);
-                        }
-                    }
-                },
-                this.executor);
+        final String instruction = this.sebClientSessionService
+                .notifyPing(connectionToken, 0, instructionConfirm);
+
+        if (instruction == null) {
+            response.setStatus(HttpStatus.NO_CONTENT.value());
+        } else {
+            try {
+                response.setStatus(HttpStatus.OK.value());
+                response.getOutputStream().write(instruction.getBytes(StandardCharsets.UTF_8));
+            } catch (final IOException e) {
+                log.error("Failed to send instruction as response: {}", connectionToken, e);
+            }
+        }
     }
 
     @RequestMapping(

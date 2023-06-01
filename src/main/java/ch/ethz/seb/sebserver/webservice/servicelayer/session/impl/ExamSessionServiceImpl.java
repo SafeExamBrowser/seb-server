@@ -378,6 +378,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
     @Override
     public ClientConnectionDataInternal getConnectionDataInternal(final String connectionToken) {
+        // TODO do we really need to synchronize here?
         synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
             return this.examSessionCacheService.getClientConnection(connectionToken);
         }

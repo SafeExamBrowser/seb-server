@@ -314,8 +314,6 @@ public class ExamMonitoringController {
                     name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER,
                     required = false) final String hiddenClientGroups) {
 
-        final long now = Utils.getMillisecondsNow();
-
         final Exam runningExam = checkPrivileges(institutionId, examId);
 
         final MonitoringSEBConnectionData monitoringSEBConnectionData = this.examSessionService
@@ -341,8 +339,6 @@ public class ExamMonitoringController {
                     monitoringSEBConnectionData,
                     Collections.emptyList());
         }
-
-        System.out.println("%%%%%%%% --> monitoring tuck: " + (Utils.getMillisecondsNow() - now));
 
         return monitoringFullPageData;
     }

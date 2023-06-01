@@ -84,30 +84,6 @@ public class SEBServer {
         return firewall;
     }
 
-//    @Bean
-//    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatCustomizer() {
-//        return (tomcat) -> tomcat.addConnectorCustomizers((connector) -> {
-//            if (connector.getProtocolHandler() instanceof AbstractHttp11Protocol) {
-//                System.out.println("*************** tomcatCustomizer");
-//                final AbstractHttp11Protocol<?> protocolHandler = (AbstractHttp11Protocol<?>) connector
-//                        .getProtocolHandler();
-//                protocolHandler.setKeepAliveTimeout(60000);
-//                protocolHandler.setMaxKeepAliveRequests(3000);
-//                protocolHandler.setUseKeepAliveResponseHeader(true);
-//                protocolHandler.setMinSpareThreads(200);
-//                protocolHandler.setProcessorCache(-1);
-//                protocolHandler.setTcpNoDelay(true);
-//                protocolHandler.setThreadPriority(Thread.NORM_PRIORITY + 1);
-//                protocolHandler.setMaxConnections(2000);
-//                if (protocolHandler instanceof Http11NioProtocol) {
-//                    System.out.println("*************** Http11NioProtocol");
-//                    ((Http11NioProtocol) protocolHandler).setPollerThreadPriority(Thread.MAX_PRIORITY);
-//                }
-//
-//            }
-//        });
-//    }
-
     private Connector redirectConnector(final Environment env) {
         final String sslPort = env.getRequiredProperty("server.port");
         final String httpPort = env.getProperty("sebserver.ssl.redirect.html.port", "80");

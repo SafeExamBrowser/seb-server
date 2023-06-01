@@ -32,7 +32,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.SEBClientEventBatchStore;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.SEBClientEventBatchService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.AbstractLogIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.indicator.AbstractLogLevelCountIndicator;
 
@@ -48,7 +48,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
     @Autowired
     private SEBClientSessionService sebClientSessionService;
     @Autowired
-    private SEBClientEventBatchStore sebClientEventBatchStore;
+    private SEBClientEventBatchService sebClientEventBatchStore;
 //    @Autowired
 //    @Qualifier(AsyncServiceSpringConfig.EXAM_API_EXECUTOR_BEAN_NAME)
 //    private Executor executor;

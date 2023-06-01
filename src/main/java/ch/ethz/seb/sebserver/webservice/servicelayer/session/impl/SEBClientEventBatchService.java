@@ -44,9 +44,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificati
 @Lazy
 @Component
 @WebServiceProfile
-public class SEBClientEventBatchStore {
+public class SEBClientEventBatchService {
 
-    private static final Logger log = LoggerFactory.getLogger(SEBClientEventBatchStore.class);
+    private static final Logger log = LoggerFactory.getLogger(SEBClientEventBatchService.class);
 
     private final SEBClientNotificationService sebClientNotificationService;
     private final SqlSessionFactory sqlSessionFactory;
@@ -57,7 +57,7 @@ public class SEBClientEventBatchStore {
     private final SqlSessionTemplate sqlSessionTemplate;
     private final ClientEventRecordMapper clientEventMapper;
 
-    public SEBClientEventBatchStore(
+    public SEBClientEventBatchService(
             final SEBClientNotificationService sebClientNotificationService,
             final SqlSessionFactory sqlSessionFactory,
             final PlatformTransactionManager transactionManager,
@@ -94,14 +94,12 @@ public class SEBClientEventBatchStore {
 
     @Scheduled(
             fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
-            initialDelay = 1000)
+            initialDelay = 100)
     public void processEvents() {
-
-        final long startTime = Utils.getMillisecondsNow();
 
         final int size = this.eventDataQueue.size();
         if (size > 1000) {
-            log.warn("******* There are more then 1000 SEB client logs in the waiting queue: {}", size);
+            log.warn("-----> There are more then 1000 SEB client logs in the waiting queue: {}", size);
         }
 
         try {
@@ -129,15 +127,6 @@ public class SEBClientEventBatchStore {
                     });
 
             this.sqlSessionTemplate.flushStatements();
-
-            if (log.isTraceEnabled()) {
-                log.trace("Processing {} SEB events tuck: {}",
-                        this.events.size(),
-                        Utils.getMillisecondsNow() - startTime);
-            }
-            // TODO just for debugging
-            System.out.println("***** Processing " + this.events.size() + " SEB events tuck: "
-                    + (Utils.getMillisecondsNow() - startTime));
 
         } catch (final Exception e) {
             log.error("Failed to process SEB events from eventDataQueue: ", e);

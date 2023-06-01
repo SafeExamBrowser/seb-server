@@ -27,9 +27,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructio
 @Lazy
 @Component
 @WebServiceProfile
-public class SEBClientPingService {
+public class SEBClientPingBatchService {
 
-    private static final Logger log = LoggerFactory.getLogger(SEBClientPingService.class);
+    private static final Logger log = LoggerFactory.getLogger(SEBClientPingBatchService.class);
 
     private final ExamSessionCacheService examSessionCacheService;
     private final SEBClientInstructionService sebClientInstructionService;
@@ -37,7 +37,7 @@ public class SEBClientPingService {
     private final Map<String, String> pings = new ConcurrentHashMap<>();
     private final Map<String, String> instructions = new ConcurrentHashMap<>();
 
-    public SEBClientPingService(
+    public SEBClientPingBatchService(
             final ExamSessionCacheService examSessionCacheService,
             final SEBClientInstructionService sebClientInstructionService) {
 
@@ -45,19 +45,15 @@ public class SEBClientPingService {
         this.sebClientInstructionService = sebClientInstructionService;
     }
 
-    @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:500}",
-            initialDelay = 1000)
+    @Scheduled(fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:500}")
     public void processPings() {
         if (this.pings.isEmpty()) {
             return;
         }
 
-        final long startTime = Utils.getMillisecondsNow();
-
         final int size = this.pings.size();
         if (size > 1000) {
-            log.warn("******* There are more then 1000 SEB client logs in the waiting queue: {}", size);
+            log.warn("----> There are more then 1000 SEB client logs in the waiting queue: {}", size);
         }
 
         try {
@@ -67,17 +63,6 @@ public class SEBClientPingService {
                     cid,
                     this.pings.remove(cid),
                     Utils.getMillisecondsNow()));
-
-//            pp.entrySet()
-//                    .stream()
-//                    .forEach(entry -> processPing(entry.getKey(), entry.getValue(), startTime));
-
-            if (log.isTraceEnabled()) {
-                log.trace("****** Processing {} SEB pings tuck: {}", Utils.getMillisecondsNow() - startTime);
-            }
-            // TODO just for debugging
-            System.out.println("***** Processing " + size + " SEB pings tuck: "
-                    + (Utils.getMillisecondsNow() - startTime));
 
         } catch (final Exception e) {
             log.error("Failed to process SEB pings from pingDataQueue: ", e);
