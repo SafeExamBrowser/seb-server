@@ -160,11 +160,8 @@ public class SEBClientEventBatchService {
                 return eventData;
             }
 
-            ClientConnectionDataInternal clientConnection = null;
-            //synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
-            clientConnection = this.examSessionCacheService
+            final ClientConnectionDataInternal clientConnection = this.examSessionCacheService
                     .getClientConnection(eventData.connectionToken);
-            //}
 
             if (clientConnection == null) {
                 log.error("Failed to get ClientConnectionDataInternal for: {}", eventData.connectionToken);
@@ -207,11 +204,8 @@ public class SEBClientEventBatchService {
     private ClientEventRecord toEventRecord(final EventData eventData) {
         try {
 
-            ClientConnectionDataInternal clientConnection = null;
-            //synchronized (ExamSessionCacheService.CLIENT_CONNECTION_CREATION_LOCK) {
-            clientConnection = this.examSessionCacheService
+            final ClientConnectionDataInternal clientConnection = this.examSessionCacheService
                     .getClientConnection(eventData.connectionToken);
-            //}
 
             if (clientConnection == null) {
                 log.warn("Failed to retrieve ClientConnection for token {}. Skip this event",
