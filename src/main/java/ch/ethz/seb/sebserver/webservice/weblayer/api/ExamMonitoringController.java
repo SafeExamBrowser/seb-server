@@ -322,21 +322,25 @@ public class ExamMonitoringController {
                         createMonitoringFilter(hiddenStates, hiddenClientGroups))
                 .getOrThrow();
 
+        MonitoringFullPageData monitoringFullPageData;
         if (this.examAdminService.isProctoringEnabled(runningExam).getOr(false)) {
             final Collection<RemoteProctoringRoom> proctoringData = this.examProcotringRoomService
                     .getProctoringCollectingRooms(examId)
                     .getOrThrow();
 
-            return new MonitoringFullPageData(
+            monitoringFullPageData = new MonitoringFullPageData(
                     examId,
                     monitoringSEBConnectionData,
                     proctoringData);
+
         } else {
-            return new MonitoringFullPageData(
+            monitoringFullPageData = new MonitoringFullPageData(
                     examId,
                     monitoringSEBConnectionData,
                     Collections.emptyList());
         }
+
+        return monitoringFullPageData;
     }
 
     @RequestMapping(

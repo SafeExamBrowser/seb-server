@@ -344,10 +344,8 @@ public class DistributedIndicatorValueService implements DisposableBean {
     }
 
     /** Update last ping time on persistent storage asynchronously within a defines thread pool with no
-     * waiting queue to skip further ping updates if all update threads are busy
-     *
-     * TODO: we need a better handling strategy here.
-     * Try to apply a batch update and store the pings in a concurrent hash map **/
+     * waiting queue to skip further ping updates if all update threads are busy **/
+    // TODO: we need a better handling strategy here. Try to apply a batch update managed by SEBClientPingBatchService
     void updatePingAsync(final Long pingRecord) {
         try {
             this.indicatorValueUpdateExecutor
@@ -363,6 +361,7 @@ public class DistributedIndicatorValueService implements DisposableBean {
 
     /** Update indicator value on persistent storage asynchronously within a defined thread pool with no
      * waiting queue to skip further indicator value updates if all update threads are busy **/
+    // TODO: we need a better handling strategy here. Try to apply a batch update managed by SEBClientEventBatchStore
     boolean updateIndicatorValueAsync(final Long pk, final Long value) {
         try {
             this.indicatorValueUpdateExecutor

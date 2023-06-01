@@ -14,6 +14,7 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 /** A exam session SEB client event handling strategy implements a certain strategy to
  * store ClientEvent that are coming in within the specified endpoint in height frequency. */
+@Deprecated
 public interface EventHandlingStrategy extends Consumer<ClientEventRecord> {
 
     String EVENT_CONSUMER_STRATEGY_CONFIG_PROPERTY_KEY = "sebserver.webservice.api.exam.event-handling-strategy";

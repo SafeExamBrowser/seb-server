@@ -45,7 +45,6 @@ import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.RunningExamInfo;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -329,15 +328,11 @@ public class ExamAPI_V1_Controller {
     public void ping(final HttpServletRequest request, final HttpServletResponse response) {
 
         final String connectionToken = request.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
-        final String pingNumString = request.getParameter(API.EXAM_API_PING_NUMBER);
+        //final String pingNumString = request.getParameter(API.EXAM_API_PING_NUMBER);
         final String instructionConfirm = request.getParameter(API.EXAM_API_PING_INSTRUCTION_CONFIRM);
 
         final String instruction = this.sebClientSessionService
-                .notifyPing(
-                        connectionToken,
-                        Utils.getMillisecondsNow(),
-                        pingNumString != null ? Integer.parseInt(pingNumString) : -1,
-                        instructionConfirm);
+                .notifyPing(connectionToken, 0, instructionConfirm);
 
         if (instruction == null) {
             response.setStatus(HttpStatus.NO_CONTENT.value());
@@ -358,10 +353,10 @@ public class ExamAPI_V1_Controller {
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void event(
             @RequestHeader(name = API.EXAM_API_SEB_CONNECTION_TOKEN, required = true) final String connectionToken,
-            @RequestBody(required = true) final ClientEvent event) {
+            @RequestBody(required = true) final String jsonBody) {
 
         this.sebClientSessionService
-                .notifyClientEvent(connectionToken, event);
+                .notifyClientEvent(connectionToken, jsonBody);
     }
 
     private Long getInstitutionId(final Principal principal) {

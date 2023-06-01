@@ -72,7 +72,6 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.monitoring.SimpleIndicatorValue;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ClientIndicator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.PendingNotificationIndication;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
@@ -406,15 +405,8 @@ public class ModelObjectJSONGenerator {
         }
 
         @Override
-        public void notifyValueChange(final ClientEvent event) {
+        public void notifyValueChange(final String textValue, final double numValue) {
             // TODO Auto-generated method stub
-
-        }
-
-        @Override
-        public void notifyValueChange(final ClientEventRecord clientEventRecord) {
-            // TODO Auto-generated method stub
-
         }
 
         @Override

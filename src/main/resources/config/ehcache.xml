@@ -34,7 +34,7 @@
             <ttl unit="hours">24</ttl>
         </expiry>
         <resources>
-            <heap unit="entries">3000</heap>
+            <heap unit="entries">100000</heap>
         </resources>
     </cache>
     

@@ -39,6 +39,7 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
 
     private static final Logger log = LoggerFactory.getLogger(ClientConnectionDataInternal.class);
 
+    // TODO why list for type? Is it possible to restrict to one per type?
     final EnumMap<EventType, Collection<ClientIndicator>> indicatorMapping;
 
     PingIntervalClientIndicator pingIndicator = null;
@@ -85,9 +86,9 @@ public class ClientConnectionDataInternal extends ClientConnectionData {
         }
     }
 
-    public final void notifyPing(final long timestamp, final int pingNumber) {
+    public final void notifyPing(final long timestamp) {
         if (this.pingIndicator != null) {
-            this.pingIndicator.notifyPing(timestamp, pingNumber);
+            this.pingIndicator.notifyPing(timestamp);
         }
     }
 

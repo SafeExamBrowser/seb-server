@@ -15,12 +15,10 @@ import org.mybatis.dynamic.sql.SqlCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent.EventType;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientEventRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 
 public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicator {
 
@@ -38,13 +36,13 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
     }
 
     @Override
-    public void notifyValueChange(final ClientEvent event) {
-        valueChanged(event.text);
-    }
-
-    @Override
-    public void notifyValueChange(final ClientEventRecord clientEventRecord) {
-        valueChanged(clientEventRecord.getText());
+    public final void notifyValueChange(final String textValue, final double numValue) {
+        if (this.tags == null || this.tags.length == 0 || hasTag(textValue)) {
+            if (super.ditributedIndicatorValueRecordId != null) {
+                this.distributedIndicatorValueService.incrementIndicatorValue(super.ditributedIndicatorValueRecordId);
+            }
+            this.currentValue = getValue() + 1d;
+        }
     }
 
     @Override
@@ -110,15 +108,6 @@ public abstract class AbstractLogLevelCountIndicator extends AbstractLogIndicato
         }
 
         return result;
-    }
-
-    private void valueChanged(final String eventText) {
-        if (this.tags == null || this.tags.length == 0 || hasTag(eventText)) {
-            if (super.ditributedIndicatorValueRecordId != null) {
-                this.distributedIndicatorValueService.incrementIndicatorValue(super.ditributedIndicatorValueRecordId);
-            }
-            this.currentValue = getValue() + 1d;
-        }
     }
 
 }

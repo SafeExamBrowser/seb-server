@@ -42,6 +42,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ClientConnectionDataInternal;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.SEBClientEventBatchService;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
 public class SebConnectionTest extends ExamAPIIntegrationTester {
@@ -56,6 +57,8 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
     private ExamDAO examDAO;
     @Autowired
     private LmsAPIService lmsAPIService;
+    @Autowired
+    private SEBClientEventBatchService sebClientEventBatchStore;
 
     @Before
     public void init() {
@@ -558,6 +561,8 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check correct response
         assertTrue(HttpStatus.NO_CONTENT.value() == sendEvent.getStatus());
 
+        this.sebClientEventBatchStore.processEvents();
+
         // check event stored on db
         List<ClientEventRecord> events = this.clientEventRecordMapper
                 .selectByExample()
@@ -582,6 +587,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 10000.0,
                 "testEvent2");
 
+        this.sebClientEventBatchStore.processEvents();
         // check correct response
         assertTrue(HttpStatus.NO_CONTENT.value() == sendEvent.getStatus());
 
@@ -616,7 +622,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 "testEvent1");
         // check correct response
         assertTrue(HttpStatus.NO_CONTENT.value() == sendEvent.getStatus());
-
+        this.sebClientEventBatchStore.processEvents();
         final List<ClientEventRecord> events = this.clientEventRecordMapper
                 .selectByExample()
                 .build()

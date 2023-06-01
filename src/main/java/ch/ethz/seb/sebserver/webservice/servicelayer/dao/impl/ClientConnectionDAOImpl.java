@@ -814,10 +814,13 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .selectByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.status,
-                        SqlBuilder.isIn(ClientConnection.SECURE_CHECK_STATES))
+                        SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()))
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.examId,
                         SqlBuilder.isEqualTo(examId))
+                .and(
+                        ClientConnectionRecordDynamicSqlSupport.clientVersion,
+                        SqlBuilder.isNotNull())
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.clientVersionGranted,
                         SqlBuilder.isNull())

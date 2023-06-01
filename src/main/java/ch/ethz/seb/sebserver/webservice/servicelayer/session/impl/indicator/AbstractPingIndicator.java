@@ -27,7 +27,7 @@ public abstract class AbstractPingIndicator extends AbstractClientIndicator {
         return this.EMPTY_SET;
     }
 
-    public final void notifyPing(final long timestamp, final int pingNumber) {
+    public final void notifyPing(final long timestamp) {
         super.currentValue = timestamp;
 
         if (!this.cachingEnabled && super.ditributedIndicatorValueRecordId != null) {
