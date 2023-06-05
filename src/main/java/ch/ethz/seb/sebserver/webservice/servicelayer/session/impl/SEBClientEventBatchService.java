@@ -97,8 +97,6 @@ public class SEBClientEventBatchService {
             initialDelay = 100)
     public void processEvents() {
 
-        final long start = Utils.getMillisecondsNow();
-
         final int size = this.eventDataQueue.size();
         if (size > 1000) {
             log.warn("-----> There are more then 1000 SEB client logs in the waiting queue: {}", size);
@@ -137,8 +135,6 @@ public class SEBClientEventBatchService {
         } catch (final Exception e) {
             log.error("Failed to process SEB events from eventDataQueue: ", e);
         }
-
-        System.out.println("************ tuck: " + (Utils.getMillisecondsNow() - start));
     }
 
     private EventData convertData(final EventData eventData) {

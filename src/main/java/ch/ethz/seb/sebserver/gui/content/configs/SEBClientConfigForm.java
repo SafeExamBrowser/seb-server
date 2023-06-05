@@ -150,12 +150,14 @@ public class SEBClientConfigForm implements TemplateComposer {
     private final DownloadService downloadService;
     private final String downloadFileName;
     private final Cryptor cryptor;
+    private final long defaultSEBPingInterval;
 
     protected SEBClientConfigForm(
             final PageService pageService,
             final DownloadService downloadService,
             final Cryptor cryptor,
-            @Value("${sebserver.gui.seb.client.config.download.filename}") final String downloadFileName) {
+            @Value("${sebserver.gui.seb.client.config.download.filename}") final String downloadFileName,
+            @Value("${sebserver.gui.seb.client.config.ping.interval:1000}") final long defaultSEBPingInterval) {
 
         this.pageService = pageService;
         this.restService = pageService.getRestService();
@@ -163,6 +165,7 @@ public class SEBClientConfigForm implements TemplateComposer {
         this.currentUser = pageService.getCurrentUser();
         this.downloadService = downloadService;
         this.downloadFileName = downloadFileName;
+        this.defaultSEBPingInterval = defaultSEBPingInterval;
     }
 
     @Override
@@ -179,7 +182,8 @@ public class SEBClientConfigForm implements TemplateComposer {
         final SEBClientConfig clientConfig = (isNew)
                 ? SEBClientConfig.createNew((parentEntityKey != null)
                         ? Long.valueOf(parentEntityKey.modelId)
-                        : user.institutionId)
+                        : user.institutionId,
+                        this.defaultSEBPingInterval)
                 : this.restService
                         .getBuilder(GetClientConfig.class)
                         .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)

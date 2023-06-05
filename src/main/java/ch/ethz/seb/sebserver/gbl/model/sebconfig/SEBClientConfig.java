@@ -506,13 +506,13 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
                 this.lastUpdateUser);
     }
 
-    public static SEBClientConfig createNew(final Long institutionId) {
+    public static SEBClientConfig createNew(final Long institutionId, final long pingIterval) {
         return new SEBClientConfig(
                 null,
                 institutionId,
                 null,
                 ConfigPurpose.CONFIGURE_CLIENT,
-                1000L,
+                pingIterval,
                 VDIType.NO,
                 null,
                 null,
