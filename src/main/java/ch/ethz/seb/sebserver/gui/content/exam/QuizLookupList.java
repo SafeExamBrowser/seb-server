@@ -59,6 +59,7 @@ import ch.ethz.seb.sebserver.gui.table.ColumnDefinition.TableFilterAttribute;
 import ch.ethz.seb.sebserver.gui.table.EntityTable;
 import ch.ethz.seb.sebserver.gui.table.TableFilter.CriteriaType;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
+import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.ImageIcon;
 
 @Lazy
 @Component
@@ -109,6 +110,8 @@ public class QuizLookupList implements TemplateComposer {
             new LocTextKey("sebserver.quizdiscovery.quiz.import.existing");
     private final static LocTextKey TEXT_FETCH_NOTE =
             new LocTextKey("sebserver.quizdiscovery.list.fetchnote");
+    private final static LocTextKey TEXT_FETCH_NOTE_TOOLTIP =
+            new LocTextKey("sebserver.quizdiscovery.list.fetchnote.tooltip");
 
     private final static String TEXT_KEY_ADDITIONAL_ATTR_PREFIX =
             "sebserver.quizdiscovery.quiz.details.additional.";
@@ -464,12 +467,12 @@ public class QuizLookupList implements TemplateComposer {
                 gridData.heightHint = 28;
                 gridData.widthHint = 25;
                 gridData.verticalIndent = 5;
-                final Label action = new Label(warningPanel, SWT.NONE);
-                action.setImage(WidgetFactory.ImageIcon.SWITCH.getImage(notePanel.getDisplay()));
-                action.setLayoutData(gridData);
-                action.addListener(SWT.MouseDown, event -> {
-                    table.applyFilter();
-                });
+
+                this.widgetFactory.imageButton(
+                        ImageIcon.SWITCH,
+                        warningPanel,
+                        TEXT_FETCH_NOTE_TOOLTIP,
+                        event -> table.applyFilter());
 
                 final Label text = new Label(warningPanel, SWT.NONE);
                 text.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
