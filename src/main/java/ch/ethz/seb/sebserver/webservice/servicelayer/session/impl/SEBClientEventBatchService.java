@@ -102,6 +102,10 @@ public class SEBClientEventBatchService {
             log.warn("-----> There are more then 1000 SEB client logs in the waiting queue: {}", size);
         }
 
+        if (size == 0) {
+            return;
+        }
+
         try {
 
             this.events.clear();
