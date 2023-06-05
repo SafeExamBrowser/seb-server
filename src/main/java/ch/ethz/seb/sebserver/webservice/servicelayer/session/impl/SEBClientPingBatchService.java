@@ -52,6 +52,7 @@ public class SEBClientPingBatchService {
         }
 
         final int size = this.pings.size();
+        System.out.println("************** size=" + size);
         if (size > 1000) {
             log.warn("----> There are more then 1000 SEB client logs in the waiting queue: {}", size);
         }
@@ -88,6 +89,7 @@ public class SEBClientPingBatchService {
             final long timestamp) {
 
         if (connectionToken == null) {
+            System.out.println("************** connectionToken null");
             return;
         }
 
