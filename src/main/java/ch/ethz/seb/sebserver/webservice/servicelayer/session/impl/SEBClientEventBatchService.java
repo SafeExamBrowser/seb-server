@@ -93,32 +93,32 @@ public class SEBClientEventBatchService {
     }
 
     @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
+            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:500}",
             initialDelay = 100)
     public void worker1() {
         processEvents("worker1");
     }
 
-    @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
-            initialDelay = 300)
-    public void worker2() {
-        processEvents("worker2");
-    }
-
-    @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
-            initialDelay = 600)
-    public void worker3() {
-        processEvents("worker3");
-    }
-
-    @Scheduled(
-            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
-            initialDelay = 900)
-    public void worker4() {
-        processEvents("worker4");
-    }
+//    @Scheduled(
+//            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
+//            initialDelay = 300)
+//    public void worker2() {
+//        processEvents("worker2");
+//    }
+//
+//    @Scheduled(
+//            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
+//            initialDelay = 600)
+//    public void worker3() {
+//        processEvents("worker3");
+//    }
+//
+//    @Scheduled(
+//            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
+//            initialDelay = 900)
+//    public void worker4() {
+//        processEvents("worker4");
+//    }
 
     public void processOneTime() {
         processEvents("One Time Call");
@@ -243,7 +243,7 @@ public class SEBClientEventBatchService {
             return null;
 
         } catch (final Exception e) {
-            log.error("Failed to verify and process notification for SEB event: {}", eventData);
+            log.error("Failed to verify and process notification for SEB event: {}", eventData, e);
             return eventData;
         }
     }
