@@ -176,12 +176,16 @@ public class SEBClientEventBatchService {
 
             this.sqlSessionTemplate.flushStatements();
 
-            //if (log.isDebugEnabled()) {
-            log.debug("SEBClientEventBatchService worker {} processes batch of size {} in {} ms",
+            if (log.isDebugEnabled()) {
+                log.debug("SEBClientEventBatchService worker {} processes batch of size {} in {} ms",
+                        workerName,
+                        size,
+                        start - Utils.getMillisecondsNow());
+            }
+            log.info("SEBClientEventBatchService worker {} processes batch of size {} in {} ms",
                     workerName,
                     size,
                     start - Utils.getMillisecondsNow());
-            //}
 
         } catch (final Exception e) {
             log.error("Failed to process SEB events from eventDataQueue: ", e);
