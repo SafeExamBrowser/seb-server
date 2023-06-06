@@ -561,7 +561,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         // check correct response
         assertTrue(HttpStatus.NO_CONTENT.value() == sendEvent.getStatus());
 
-        this.sebClientEventBatchStore.processEvents();
+        this.sebClientEventBatchStore.processOneTime();
 
         // check event stored on db
         List<ClientEventRecord> events = this.clientEventRecordMapper
@@ -587,7 +587,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 10000.0,
                 "testEvent2");
 
-        this.sebClientEventBatchStore.processEvents();
+        this.sebClientEventBatchStore.processOneTime();
         // check correct response
         assertTrue(HttpStatus.NO_CONTENT.value() == sendEvent.getStatus());
 
@@ -622,7 +622,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 "testEvent1");
         // check correct response
         assertTrue(HttpStatus.NO_CONTENT.value() == sendEvent.getStatus());
-        this.sebClientEventBatchStore.processEvents();
+        this.sebClientEventBatchStore.processOneTime();
         final List<ClientEventRecord> events = this.clientEventRecordMapper
                 .selectByExample()
                 .build()

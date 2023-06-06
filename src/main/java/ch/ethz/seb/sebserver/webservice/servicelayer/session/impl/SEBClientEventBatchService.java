@@ -95,11 +95,47 @@ public class SEBClientEventBatchService {
     @Scheduled(
             fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
             initialDelay = 100)
-    public void processEvents() {
+    public void worker1() {
+        processEvents("worker1");
+    }
+
+    @Scheduled(
+            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
+            initialDelay = 300)
+    public void worker2() {
+        processEvents("worker2");
+    }
+
+    @Scheduled(
+            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
+            initialDelay = 600)
+    public void worker3() {
+        processEvents("worker3");
+    }
+
+    @Scheduled(
+            fixedDelayString = "${sebserver.webservice.api.exam.session.event.batch.interval:1000}",
+            initialDelay = 900)
+    public void worker4() {
+        processEvents("worker4");
+    }
+
+    public void processOneTime() {
+        processEvents("One Time Call");
+    }
+
+    private void processEvents(final String workerName) {
+
+        long start = 0L;
+        if (log.isDebugEnabled()) {
+            start = Utils.getMillisecondsNow();
+        }
 
         final int size = this.eventDataQueue.size();
         if (size > 1000) {
-            log.warn("-----> There are more then 1000 SEB client logs in the waiting queue: {}", size);
+            log.warn("-----> There are more then 1000 SEB client logs in the waiting queue: {}, worker: {}",
+                    size,
+                    workerName);
         }
 
         if (size == 0) {
@@ -131,6 +167,13 @@ public class SEBClientEventBatchService {
                     });
 
             this.sqlSessionTemplate.flushStatements();
+
+            if (log.isDebugEnabled()) {
+                log.debug("SEBClientEventBatchService worker {} processes batch of size {} in {} ms",
+                        workerName,
+                        size,
+                        start - Utils.getMillisecondsNow());
+            }
 
         } catch (final Exception e) {
             log.error("Failed to process SEB events from eventDataQueue: ", e);
