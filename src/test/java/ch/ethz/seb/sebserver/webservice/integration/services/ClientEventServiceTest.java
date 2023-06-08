@@ -210,7 +210,7 @@ public class ClientEventServiceTest extends AdministrationAPIIntegrationTester {
     }
 
     private void waitForExecutor() {
-        this.sebClientEventBatchStore.processEvents();
+        this.sebClientEventBatchStore.processOneTime();
     }
 
     @Test
