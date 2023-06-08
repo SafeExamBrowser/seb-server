@@ -451,7 +451,7 @@ public class QuizLookupList implements TemplateComposer {
         }
     }
 
-    private boolean showingFetchNote = false;
+    private Composite warningPanel = null;
 
     private void handelPageReload(
             final Composite notePanel,
@@ -459,29 +459,28 @@ public class QuizLookupList implements TemplateComposer {
 
         if (table.isComplete()) {
             PageService.clearComposite(notePanel);
-            this.showingFetchNote = false;
-        } else {
-            if (!this.showingFetchNote) {
-                final Composite warningPanel = this.widgetFactory.createWarningPanel(notePanel, 15, true);
-                GridData gridData = new GridData(SWT.CENTER, SWT.CENTER, false, true);
-                gridData.heightHint = 28;
-                gridData.widthHint = 25;
-                gridData.verticalIndent = 5;
-
-                this.widgetFactory.imageButton(
-                        ImageIcon.SWITCH,
-                        warningPanel,
-                        TEXT_FETCH_NOTE_TOOLTIP,
-                        event -> table.applyFilter());
-
-                final Label text = new Label(warningPanel, SWT.NONE);
-                text.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
-                text.setText(this.pageService.getI18nSupport().getText(TEXT_FETCH_NOTE));
-                gridData = new GridData(SWT.LEFT, SWT.FILL, true, true);
-                gridData.heightHint = 16;
-                text.setLayoutData(gridData);
-                this.showingFetchNote = true;
+            if (this.warningPanel != null) {
+                this.warningPanel.dispose();
             }
+            this.warningPanel = null;
+        } else {
+            if (this.warningPanel != null && !this.warningPanel.isDisposed()) {
+                this.warningPanel.dispose();
+            }
+
+            this.warningPanel = this.widgetFactory.createWarningPanel(notePanel, 15, true);
+            this.widgetFactory.imageButton(
+                    ImageIcon.SWITCH,
+                    this.warningPanel,
+                    TEXT_FETCH_NOTE_TOOLTIP,
+                    event -> table.applyFilter());
+
+            final Label text = new Label(this.warningPanel, SWT.NONE);
+            text.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
+            text.setText(this.pageService.getI18nSupport().getText(TEXT_FETCH_NOTE));
+            final GridData gridData = new GridData(SWT.LEFT, SWT.FILL, true, true);
+            gridData.heightHint = 28;
+            text.setLayoutData(gridData);
         }
         notePanel.getParent().layout(true, true);
     }

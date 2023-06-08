@@ -93,6 +93,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     private final int pageSize;
     private final int maxSize;
     private final int cutoffTimeOffset;
+    private final boolean applyNameCriteria;
 
     private MoodleAPIRestTemplate restTemplate;
 
@@ -101,11 +102,13 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final AsyncService asyncService,
             final MoodleRestTemplateFactory restTemplateFactory,
             final CacheManager cacheManager,
-            final Environment environment) {
+            final Environment environment,
+            final boolean applyNameCriteria) {
 
         super(cacheManager);
         this.jsonMapper = jsonMapper;
         this.restTemplateFactory = restTemplateFactory;
+        this.applyNameCriteria = applyNameCriteria;
 
         this.prependShortCourseName = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.lms.moodle.prependShortCourseName",
@@ -433,7 +436,9 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final String fromElement = String.valueOf(page * size);
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
 
-            if (StringUtils.isNotBlank(nameCondition)) {
+            // TODO clarify with Amr and Luca if this is OK
+            //      and if it is possible to apply the nameCondition also the the course name (shortname)
+            if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
                 sqlCondition = sqlCondition + " AND (m.name LIKE '" +
                         Utils.toSQLWildcard(nameCondition) +
                         "')";

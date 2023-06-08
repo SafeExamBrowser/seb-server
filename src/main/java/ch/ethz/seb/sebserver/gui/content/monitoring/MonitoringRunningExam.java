@@ -154,7 +154,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                 pageContext.getParent(),
                 new LocTextKey(
                         "sebserver.monitoring.exam",
-                        StringEscapeUtils.escapeHtml4(exam.name)));
+                        StringEscapeUtils.escapeXml11(exam.name)));
 
         final Composite tablePane = new Composite(content, SWT.NONE);
         tablePane.setLayout(new GridLayout());
