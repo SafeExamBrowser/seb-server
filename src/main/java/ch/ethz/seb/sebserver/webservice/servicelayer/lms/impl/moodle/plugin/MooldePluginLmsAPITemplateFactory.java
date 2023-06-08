@@ -46,6 +46,7 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
     private final ExamConfigurationValueService examConfigurationValueService;
     private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final String[] alternativeTokenRequestPaths;
+    private final boolean applyNameCriteria;
 
     protected MooldePluginLmsAPITemplateFactory(
             final JSONMapper jsonMapper,
@@ -55,7 +56,8 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
             final ClientCredentialService clientCredentialService,
             final ExamConfigurationValueService examConfigurationValueService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
-            @Value("${sebserver.webservice.lms.moodle.api.token.request.paths:}") final String alternativeTokenRequestPaths) {
+            @Value("${sebserver.webservice.lms.moodle.api.token.request.paths:}") final String alternativeTokenRequestPaths,
+            @Value("${sebserver.webservice.lms.moodle.fetch.applyNameCriteria:false}") final boolean applyNameCriteria) {
 
         this.jsonMapper = jsonMapper;
         this.cacheManager = cacheManager;
@@ -67,6 +69,7 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
         this.alternativeTokenRequestPaths = (alternativeTokenRequestPaths != null)
                 ? StringUtils.split(alternativeTokenRequestPaths, Constants.LIST_SEPARATOR)
                 : null;
+        this.applyNameCriteria = applyNameCriteria;
     }
 
     @Override
@@ -90,7 +93,8 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
                     this.asyncService,
                     moodleRestTemplateFactory,
                     this.cacheManager,
-                    this.environment);
+                    this.environment,
+                    this.applyNameCriteria);
 
             final MoodlePluginCourseRestriction moodlePluginCourseRestriction = new MoodlePluginCourseRestriction(
                     this.jsonMapper,

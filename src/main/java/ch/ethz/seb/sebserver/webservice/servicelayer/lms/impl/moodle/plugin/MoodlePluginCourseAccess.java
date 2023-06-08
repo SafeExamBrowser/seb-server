@@ -61,6 +61,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.Courses;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.CoursesPlugin;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils.MoodleUserDetails;
+import io.micrometer.core.instrument.util.StringUtils;
 
 public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess implements CourseAccessAPI {
 
@@ -92,6 +93,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     private final int pageSize;
     private final int maxSize;
     private final int cutoffTimeOffset;
+    private final boolean applyNameCriteria;
 
     private MoodleAPIRestTemplate restTemplate;
 
@@ -100,11 +102,13 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final AsyncService asyncService,
             final MoodleRestTemplateFactory restTemplateFactory,
             final CacheManager cacheManager,
-            final Environment environment) {
+            final Environment environment,
+            final boolean applyNameCriteria) {
 
         super(cacheManager);
         this.jsonMapper = jsonMapper;
         this.restTemplateFactory = restTemplateFactory;
+        this.applyNameCriteria = applyNameCriteria;
 
         this.prependShortCourseName = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.lms.moodle.prependShortCourseName",
@@ -118,7 +122,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.moodleRestCall.blockingTime",
                         Long.class,
-                        Constants.SECOND_IN_MILLIS * 20),
+                        Constants.SECOND_IN_MILLIS * 30),
                 environment.getProperty(
                         "sebserver.webservice.circuitbreaker.moodleRestCall.timeToRecover",
                         Long.class,
@@ -179,10 +183,11 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                 quizFromTime = DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset);
             }
             final Predicate<QuizData> quizFilter = LmsAPIService.quizFilterPredicate(filterMap);
+            final String quizName = filterMap.getQuizName();
 
             while (!asyncQuizFetchBuffer.finished && !asyncQuizFetchBuffer.canceled) {
                 try {
-                    fetchQuizzesPage(page, quizFromTime, asyncQuizFetchBuffer, quizFilter);
+                    fetchQuizzesPage(page, quizFromTime, quizName, asyncQuizFetchBuffer, quizFilter);
                     page++;
                 } catch (final Exception e) {
                     log.error("Unexpected error while trying to fetch moodle quiz page: {}", page, e);
@@ -366,6 +371,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     private void fetchQuizzesPage(
             final int page,
             final DateTime quizFromTime,
+            final String nameCondition,
             final AsyncQuizFetchBuffer asyncQuizFetchBuffer,
             final Predicate<QuizData> quizFilter) throws JsonParseException, JsonMappingException, IOException {
 
@@ -377,7 +383,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                 : lmsSetup.lmsApiUrl + Constants.URL_PATH_SEPARATOR + MOODLE_QUIZ_START_URL_PATH;
 
         final Collection<CourseData> fetchCoursesPage =
-                fetchCoursesPage(restTemplate, quizFromTime, page, this.pageSize);
+                fetchCoursesPage(restTemplate, quizFromTime, nameCondition, page, this.pageSize);
         // finish if page is empty (no courses left
         if (fetchCoursesPage.isEmpty()) {
             asyncQuizFetchBuffer.finish();
@@ -403,6 +409,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     private Collection<CourseData> fetchCoursesPage(
             final MoodleAPIRestTemplate restTemplate,
             final DateTime quizFromTime,
+            final String nameCondition,
             final int page,
             final int size) throws JsonParseException, JsonMappingException, IOException {
 
@@ -417,12 +424,20 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final long defaultCutOff = Utils.toUnixTimeInSeconds(
                     DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset));
             final long cutoffDate = (filterDate < defaultCutOff) ? filterDate : defaultCutOff;
-            final String sqlCondition = String.format(
+            String sqlCondition = String.format(
                     SQL_CONDITION_TEMPLATE,
                     String.valueOf(cutoffDate),
                     String.valueOf(filterDate));
             final String fromElement = String.valueOf(page * size);
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+
+            // TODO clarify with Amr and Luca if this is OK
+            //      and if it is possible to apply the nameCondition also the the course name (shortname)
+            if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
+                sqlCondition = sqlCondition + " AND (m.name LIKE '" +
+                        Utils.toSQLWildcard(nameCondition) +
+                        "')";
+            }
 
             // Note: courseid[]=0 means all courses. Moodle don't like empty parameter
             attributes.add(PARAM_COURSE_ID_ARRAY, "0");
