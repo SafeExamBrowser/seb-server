@@ -642,12 +642,14 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
         final ClientConnectionDataInternal cc = this.examSessionCacheService.getClientConnection(token);
         if (cc.clientConnection.status.duplicateCheckStatus) {
-            final Long id = this.duplicateCheck.put(
-                    cc.clientConnection.userSessionId,
-                    cc.getConnectionId());
-            if (id != null) {
-                duplicates.add(id);
-                duplicates.add(cc.getConnectionId());
+            if (cc.clientConnection.userSessionId != null) {
+                final Long id = this.duplicateCheck.put(
+                        cc.clientConnection.userSessionId,
+                        cc.getConnectionId());
+                if (id != null) {
+                    duplicates.add(id);
+                    duplicates.add(cc.getConnectionId());
+                }
             }
         }
         return cc;
