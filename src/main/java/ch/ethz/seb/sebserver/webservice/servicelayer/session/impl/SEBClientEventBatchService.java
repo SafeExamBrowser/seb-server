@@ -71,15 +71,11 @@ public class SEBClientEventBatchService {
         this.examSessionCacheService = examSessionCacheService;
         this.jsonMapper = jsonMapper;
 
-        this.sqlSessionTemplate = new SqlSessionTemplate(
-                this.sqlSessionFactory,
-                ExecutorType.BATCH);
-        this.clientEventMapper = this.sqlSessionTemplate.getMapper(
-                ClientEventRecordMapper.class);
+        this.sqlSessionTemplate = new SqlSessionTemplate(this.sqlSessionFactory, ExecutorType.BATCH);
+        this.clientEventMapper = this.sqlSessionTemplate.getMapper(ClientEventRecordMapper.class);
     }
 
     private final BlockingDeque<EventData> eventDataQueue = new LinkedBlockingDeque<>();
-    //private final Collection<EventData> events = new ArrayList<>();
 
     public void accept(final String connectionToken, final String jsonBody) {
         this.eventDataQueue.add(new EventData(
