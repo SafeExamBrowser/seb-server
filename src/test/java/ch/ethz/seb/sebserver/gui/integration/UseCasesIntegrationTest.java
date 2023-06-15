@@ -1578,7 +1578,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
             fail("Exception expected here");
         } catch (final Exception e) {
-            assertEquals("argument \"content\" is null", e.getMessage());
+            assertEquals("Unexpected error while rest call", e.getMessage());
         }
 
         // test follow-up integrity violation
@@ -1596,7 +1596,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
             fail("Exception expected here");
         } catch (final Exception e) {
-            assertEquals("argument \"content\" is null", e.getMessage());
+            assertEquals("Unexpected error while rest call", e.getMessage());
         }
 
         final ConfigurationTableValues newTableValue = new ConfigurationTableValues(
