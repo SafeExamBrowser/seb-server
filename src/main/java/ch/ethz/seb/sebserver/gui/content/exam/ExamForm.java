@@ -242,7 +242,8 @@ public class ExamForm implements TemplateComposer {
                 .getOr(false);
         final boolean sebRestrictionMismatch = readonly &&
                 sebRestrictionAvailable &&
-                isRestricted != exam.sebRestriction;
+                isRestricted != exam.sebRestriction &&
+                exam.status == ExamStatus.RUNNING;
 
         // check exam consistency and inform the user if needed
         Collection<APIMessage> warnings = null;
