@@ -57,7 +57,7 @@ public class MooldePluginLmsAPITemplateFactory implements LmsAPITemplateFactory 
             final ExamConfigurationValueService examConfigurationValueService,
             final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             @Value("${sebserver.webservice.lms.moodle.api.token.request.paths:}") final String alternativeTokenRequestPaths,
-            @Value("${sebserver.webservice.lms.moodle.fetch.applyNameCriteria:false}") final boolean applyNameCriteria) {
+            @Value("${sebserver.webservice.lms.moodle.fetch.applyNameCriteria:true}") final boolean applyNameCriteria) {
 
         this.jsonMapper = jsonMapper;
         this.cacheManager = cacheManager;

@@ -438,8 +438,10 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
             // TODO clarify with Amr and Luca if this is OK
             //      and if it is possible to apply the nameCondition also the the course name (shortname)
-            if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
-                sqlCondition = sqlCondition + " AND (m.name LIKE '" +
+            if (StringUtils.isNotBlank(nameCondition)) {
+                sqlCondition = sqlCondition + " AND (name LIKE '" +
+                        Utils.toSQLWildcard(nameCondition) +
+                        "' OR shortname LIKE '" +
                         Utils.toSQLWildcard(nameCondition) +
                         "')";
             }
