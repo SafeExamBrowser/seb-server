@@ -410,11 +410,14 @@ class ExamUpdateHandler {
                     .getLmsAPITemplate(lmsSetupId)
                     .getOrThrow();
 
+            final Exam exam = exams.get(quizId);
             if (!lmsTemplate.getType().features.contains(Features.COURSE_RECOVERY)) {
+                if (exam.lmsAvailable == null || exam.isLmsAvailable()) {
+                    this.examDAO.markLMSAvailability(quizId, false, updateId);
+                }
                 throw new UnsupportedOperationException("No Course Recovery");
             }
 
-            final Exam exam = exams.get(quizId);
             final int attempts = Integer.parseInt(this.additionalAttributesDAO.getAdditionalAttribute(
                     EntityType.EXAM,
                     exam.id,
