@@ -46,7 +46,7 @@ public final class Message extends MessageBox {
             super.prepareOpen();
         } catch (final IllegalArgumentException e) {
             // fallback on markup text error
-            super.setMessage(StringEscapeUtils.escapeHtml4(super.getMessage()));
+            super.setMessage(StringEscapeUtils.escapeXml11(super.getMessage()));
             super.prepareOpen();
         }
         final GridLayout layout = (GridLayout) super.shell.getLayout();

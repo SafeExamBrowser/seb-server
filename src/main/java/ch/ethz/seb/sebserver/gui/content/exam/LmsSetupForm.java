@@ -15,7 +15,6 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -482,7 +481,7 @@ public class LmsSetupForm implements TemplateComposer {
                 case TOKEN_REQUEST: {
                     throw new PageMessageException(new LocTextKey(
                             "sebserver.lmssetup.action.test.tokenRequestError",
-                            Utils.formatHTMLLinesForceEscaped(StringEscapeUtils.escapeHtml4(error.message))));
+                            Utils.formatHTMLLinesForceEscaped(Utils.escapeHTML_XML_EcmaScript(error.message))));
                 }
                 case QUIZ_ACCESS_API_REQUEST: {
                     if (error.message.contains("quizaccess_sebserver_get_exams")) {
