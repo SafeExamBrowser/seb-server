@@ -36,12 +36,12 @@ public class ExamAPITest extends AdministrationAPIIntegrationTester {
                 sebAdminAccess,
                 sebAdminAccess,
                 "LmsSetupMock",
-                "quiz2",
+                "quiz2 äöüèÜÄÖ ?<",
                 ExamType.MANAGED,
                 "user5");
 
         assertNotNull(exam);
-        assertEquals("quiz2", exam.getExternalId());
+        assertEquals("quiz2 Ã¤Ã¶Ã¼Ã¨ÃÃÃ ?<", exam.getExternalId()); // Note cannot set right collation on h2
         assertEquals(ExamType.MANAGED, exam.getType());
         assertFalse(exam.getSupporter().isEmpty());
 

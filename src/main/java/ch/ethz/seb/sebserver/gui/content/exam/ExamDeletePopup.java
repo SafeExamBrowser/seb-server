@@ -16,6 +16,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -161,7 +162,7 @@ public class ExamDeletePopup {
                     new ActionEvent(action),
                     action.pageContext());
 
-            final String examName = examToDelete.toName().name;
+            final String examName = StringEscapeUtils.escapeXml11(examToDelete.toName().name);
             final List<EntityKey> dependencies = report.results.stream()
                     .filter(key -> !key.equals(entityKey))
                     .collect(Collectors.toList());
