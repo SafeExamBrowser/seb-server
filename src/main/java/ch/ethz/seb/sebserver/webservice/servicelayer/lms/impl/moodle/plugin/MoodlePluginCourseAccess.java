@@ -82,6 +82,9 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     public static final String PARAM_PAGE_START = "startneedle";
     public static final String PARAM_PAGE_SIZE = "perpage";
 
+    public static final String SQL_QUIZ_NAME = "m.name";
+    public static final String SQL_COURSE_NAME = "shortname";
+
     public static final String SQL_CONDITION_TEMPLATE =
             //"(startdate >= %s or timecreated >=%s) and (enddate is null or enddate = 0 or enddate >= %s)";
             "(startdate is null OR startdate = 0 OR startdate >= %s) AND (enddate is null or enddate = 0 OR enddate >= %s)";
@@ -432,9 +435,13 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
 
             if (this.applyNameCriteria && StringUtils.isNotBlank(nameCondition)) {
-                sqlCondition = sqlCondition + " AND (name LIKE '" +
+                sqlCondition = sqlCondition + " AND (" +
+                        SQL_QUIZ_NAME +
+                        " LIKE '" +
                         Utils.toSQLWildcard(nameCondition) +
-                        "' OR shortname LIKE '" +
+                        "' OR " +
+                        SQL_COURSE_NAME +
+                        " LIKE '" +
                         Utils.toSQLWildcard(nameCondition) +
                         "')";
             }
