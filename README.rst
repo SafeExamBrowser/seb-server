@@ -103,7 +103,7 @@ Docker-Image:
 
 Latest Version is 1.5.1 with Docker-Image:
 
-- Exact release version: docker pull anhefti/seb-server:v1.5.1 (sha256:a866faa18848d15301e9f06d17aab1c7293d2a27d967038d32410f817e478408)
+- Exact release version: docker pull anhefti/seb-server:v1.5.1 (sha256:af860f5dd4d99db3e7acaa66d26c3ee72cf0ad08d8ca88febec6d4ecd160b9cf)
 - Latest stable minor version with latest patches: docker pull anhefti/seb-server:v1.5-latest
 
 
