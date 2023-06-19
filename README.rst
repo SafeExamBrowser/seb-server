@@ -98,8 +98,6 @@ Bugfixes:
 
 Docker-Image:
 
-TODO
-
 
 SEB - SEB Server Compatibility
 ------------------------------
