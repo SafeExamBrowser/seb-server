@@ -99,12 +99,12 @@ Bugfixes:
 Docker-Image:
 
 - Exact release version: docker pull anhefti/seb-server:v1.5.0 (sha256:21d62e24dd5cf697ab5f2b437dc458e6c7492ea294f77a424d39d05164d6c8cc)
-- Latest stable minor version with patches: docker pull anhefti/seb-server:v1.5-stable
+- Stable minor version: docker pull anhefti/seb-server:v1.5-stable
 
 Latest Version is 1.5.1 with Docker-Image:
 
 - Exact release version: docker pull anhefti/seb-server:v1.5.1 (sha256:a866faa18848d15301e9f06d17aab1c7293d2a27d967038d32410f817e478408)
-- Latest stable minor version with patches: docker pull anhefti/seb-server:v1.5-latest
+- Latest stable minor version with latest patches: docker pull anhefti/seb-server:v1.5-latest
 
 
 SEB - SEB Server Compatibility
