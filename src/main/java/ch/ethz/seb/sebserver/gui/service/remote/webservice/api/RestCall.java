@@ -180,7 +180,7 @@ public abstract class RestCall<T> {
                     e,
                     "NO RESPONSE AVAILABLE",
                     String.valueOf(builder)));
-            return Result.ofError(e);
+            return Result.ofError(restCallError);
         }
     }
 
@@ -216,6 +216,10 @@ public abstract class RestCall<T> {
             } else {
                 restCallError.errors.add(APIMessage.ErrorMessage.GENERIC.of(responseEntity.getBody()));
             }
+        } catch (final Exception e) {
+            final String body = responseEntity.getBody();
+            log.error("Failed to parse rest response error message: {}", body);
+            throw e;
         }
 
         log.debug(

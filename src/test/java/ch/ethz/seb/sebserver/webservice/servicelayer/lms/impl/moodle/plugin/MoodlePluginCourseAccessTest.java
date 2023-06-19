@@ -324,7 +324,8 @@ public class MoodlePluginCourseAccessTest {
                 asyncService,
                 moodleMockupRestTemplateFactory,
                 new NoOpCacheManager(),
-                mockEnvironment);
+                mockEnvironment,
+                false);
     }
 
 }

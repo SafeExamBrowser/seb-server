@@ -18,6 +18,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -151,7 +152,9 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         final Composite content = this.pageService.getWidgetFactory().defaultPageLayout(
                 pageContext.getParent(),
-                new LocTextKey("sebserver.monitoring.exam", exam.name));
+                new LocTextKey(
+                        "sebserver.monitoring.exam",
+                        StringEscapeUtils.escapeXml11(exam.name)));
 
         final Composite tablePane = new Composite(content, SWT.NONE);
         tablePane.setLayout(new GridLayout());

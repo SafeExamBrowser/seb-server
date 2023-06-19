@@ -270,7 +270,16 @@ public final class PolyglotPageServiceImpl implements PolyglotPageService {
 
         return label -> {
             if (locTextKey != null) {
-                label.setText(i18nSupport.getText(locTextKey));
+                try {
+                    label.setText(i18nSupport.getText(locTextKey));
+                } catch (final Exception e) {
+                    label.setData(RWT.MARKUP_ENABLED, false);
+                    try {
+                        label.setText(i18nSupport.getText(locTextKey));
+                    } catch (final Exception ee) {
+                        label.setText(locTextKey.name);
+                    }
+                }
             }
             if (i18nSupport.hasText(locToolTipKey)) {
                 label.setToolTipText(Utils.formatLineBreaks(i18nSupport.getText(locToolTipKey)));

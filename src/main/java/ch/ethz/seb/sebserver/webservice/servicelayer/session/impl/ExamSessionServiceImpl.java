@@ -241,7 +241,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 flushCache(exam);
             }
 
-            log.info("Exam {} is not currently running", examId);
+            if (log.isDebugEnabled()) {
+                log.info("Exam {} is not currently running", examId);
+            }
 
             return Result.ofError(new NoSuchElementException(
                     "No currently running exam found for id: " + examId));
@@ -265,8 +267,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
         filterMap
                 .putIfAbsent(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
-                .putIfAbsent(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name())
-                .putIfAbsent(Exam.FILTER_ATTR_HIDE_MISSING, Constants.TRUE_STRING);
+                .putIfAbsent(Exam.FILTER_ATTR_STATUS, ExamStatus.RUNNING.name());
 
         return this.examDAO.allMatching(filterMap, predicate)
                 .map(col -> col.stream()
@@ -640,12 +641,14 @@ public class ExamSessionServiceImpl implements ExamSessionService {
 
         final ClientConnectionDataInternal cc = this.examSessionCacheService.getClientConnection(token);
         if (cc.clientConnection.status.duplicateCheckStatus) {
-            final Long id = this.duplicateCheck.put(
-                    cc.clientConnection.userSessionId,
-                    cc.getConnectionId());
-            if (id != null) {
-                duplicates.add(id);
-                duplicates.add(cc.getConnectionId());
+            if (cc.clientConnection.userSessionId != null) {
+                final Long id = this.duplicateCheck.put(
+                        cc.clientConnection.userSessionId,
+                        cc.getConnectionId());
+                if (id != null) {
+                    duplicates.add(id);
+                    duplicates.add(cc.getConnectionId());
+                }
             }
         }
         return cc;

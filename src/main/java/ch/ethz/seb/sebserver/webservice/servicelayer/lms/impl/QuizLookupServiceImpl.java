@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -53,16 +54,19 @@ public class QuizLookupServiceImpl implements QuizLookupService {
     private final UserService userService;
     private final LmsSetupDAO lmsSetupDAO;
     private final AsyncRunner asyncRunner;
+    private final long fetchedDataValiditySeconds;
 
     public QuizLookupServiceImpl(
             final UserService userService,
             final LmsSetupDAO lmsSetupDAO,
             final AsyncService asyncService,
-            final Environment environment) {
+            final Environment environment,
+            @Value("${sebserver.webservice.lms.datafetch.validity.seconds:600}") final long fetchedDataValiditySeconds) {
 
         this.userService = userService;
         this.lmsSetupDAO = lmsSetupDAO;
         this.asyncRunner = asyncService.getAsyncRunner();
+        this.fetchedDataValiditySeconds = fetchedDataValiditySeconds;
     }
 
     @Override
@@ -158,7 +162,10 @@ public class QuizLookupServiceImpl implements QuizLookupService {
         }
 
         if (!asyncLookup.isValid(filterMap)) {
-            this.lookups.remove(userId);
+            final AsyncLookup removed = this.lookups.remove(userId);
+            if (removed != null) {
+                removed.cancel();
+            }
             this.createNewAsyncLookup(userId, filterMap, lmsAPITemplateSupplier);
         }
 
@@ -198,7 +205,12 @@ public class QuizLookupServiceImpl implements QuizLookupService {
             }
 
             final LookupFilterCriteria criteria = new LookupFilterCriteria(filterMap);
-            final AsyncLookup asyncLookup = new AsyncLookup(userInstitutionId, userId, criteria, buffers);
+            final AsyncLookup asyncLookup = new AsyncLookup(
+                    userInstitutionId,
+                    userId,
+                    criteria,
+                    buffers,
+                    this.fetchedDataValiditySeconds);
 
             if (log.isDebugEnabled()) {
                 log.debug("Create new AsyncLookup: user={} criteria={}", userId, criteria);
@@ -278,18 +290,21 @@ public class QuizLookupServiceImpl implements QuizLookupService {
         final Collection<AsyncQuizFetchBuffer> asyncBuffers;
         final long timeCreated;
         long timeCompleted = Long.MAX_VALUE;
+        private final long fetchedDataValiditySeconds;
 
         public AsyncLookup(
                 final long institutionId,
                 final String userId,
                 final LookupFilterCriteria lookupFilterCriteria,
-                final Collection<AsyncQuizFetchBuffer> asyncBuffers) {
+                final Collection<AsyncQuizFetchBuffer> asyncBuffers,
+                final long fetchedDataValiditySeconds) {
 
             this.institutionId = institutionId;
             this.userId = userId;
             this.lookupFilterCriteria = lookupFilterCriteria;
             this.asyncBuffers = asyncBuffers;
             this.timeCreated = Utils.getMillisecondsNow();
+            this.fetchedDataValiditySeconds = fetchedDataValiditySeconds;
         }
 
         LookupResult getAvailable() {
@@ -307,10 +322,7 @@ public class QuizLookupServiceImpl implements QuizLookupService {
 
         boolean isUpToDate() {
             final long now = Utils.getMillisecondsNow();
-            if (now - this.timeCreated > 5 * Constants.MINUTE_IN_MILLIS) {
-                return false;
-            }
-            if (now - this.timeCompleted > Constants.MINUTE_IN_MILLIS) {
+            if (now - this.timeCreated > this.fetchedDataValiditySeconds * Constants.SECOND_IN_MILLIS) {
                 return false;
             }
             return true;

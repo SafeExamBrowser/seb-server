@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.widget;
 
 import java.util.Locale;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.widgets.DialogCallback;
 import org.eclipse.swt.graphics.Rectangle;
@@ -17,7 +18,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
-import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
@@ -46,7 +46,7 @@ public final class Message extends MessageBox {
             super.prepareOpen();
         } catch (final IllegalArgumentException e) {
             // fallback on markup text error
-            super.setMessage(Utils.escapeHTML_XML_EcmaScript(super.getMessage()));
+            super.setMessage(StringEscapeUtils.escapeXml11(super.getMessage()));
             super.prepareOpen();
         }
         final GridLayout layout = (GridLayout) super.shell.getLayout();
