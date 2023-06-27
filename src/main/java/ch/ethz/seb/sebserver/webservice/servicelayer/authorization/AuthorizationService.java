@@ -194,47 +194,6 @@ public interface AuthorizationService {
 
     }
 
-    /** Check grant by using corresponding hasGrant(XY) method and throws PermissionDeniedException
-     * on deny.
-     *
-     * @param privilegeType the privilege type to check
-     * @param userInfo the the user
-     * @param grantEntity the entity */
-    default <T extends GrantEntity> T check(
-            final PrivilegeType privilegeType,
-            final UserInfo userInfo,
-            final T grantEntity) {
-
-        // check institutional grant
-        if (hasGrant(
-                PrivilegeType.MODIFY,
-                EntityType.CONFIGURATION_NODE,
-                grantEntity.getInstitutionId(),
-                userInfo.uuid,
-                userInfo.uuid,
-                userInfo.institutionId,
-                userInfo.getUserRoles())) {
-            return grantEntity;
-        }
-
-        // if there is no institutional grant the user may have owner based grant on the specified realm
-        // TODO
-//        return userInfo.getUserRoles()
-//                .stream()
-//                .map(role -> new RoleTypeKey(entityType, role))
-//                .map(this.privileges::get)
-//                .anyMatch(privilege -> (privilege != null) && privilege.hasOwnershipPrivilege(privilegeType));
-//        if (hasOwnerPrivilege(privilegeType, entityType, institutionId)) {
-//            return;
-//        }
-
-        throw new PermissionDeniedException(
-                grantEntity.entityType(),
-                privilegeType,
-                getUserService().getCurrentUser().getUserInfo());
-
-    }
-
     /** Indicates if the current user has an owner privilege for this give entity type and institution
      *
      * @param privilegeType the privilege type to check
