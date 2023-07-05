@@ -176,3 +176,15 @@ jobs:
       env:
         COSIGN_EXPERIMENTAL: true
         TAGS: ${{ steps.meta.outputs.tags }}
+        
+  cleanup:
+    needs: docker-build
+     # Run only on tagging
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+    -
+      name: Delete Artifacts
+      uses: geekyeggo/delete-artifact@v2
+      with:
+          name: Package
