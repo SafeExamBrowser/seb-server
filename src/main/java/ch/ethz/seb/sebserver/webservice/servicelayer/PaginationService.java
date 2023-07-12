@@ -139,6 +139,7 @@ public interface PaginationService {
         return new Page<>(
                 (numberOfPages > 0) ? numberOfPages : 1,
                 _pageNumber,
+                _pageSize,
                 sort,
                 sorted.subList(start, end));
     }

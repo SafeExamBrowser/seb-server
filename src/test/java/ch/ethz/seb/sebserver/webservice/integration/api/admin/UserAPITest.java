@@ -308,7 +308,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertNotNull(userInfos);
         assertTrue(userInfos.numberOfPages == 2);
         assertNotNull(userInfos.content);
-        assertTrue(userInfos.pageSize == 1);
+        assertTrue(userInfos.pageSize == 3);
         assertTrue(userInfos.content.size() == 1);
         assertEquals("[user7]", getOrderedUUIDs(userInfos.content));
 
@@ -329,6 +329,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         assertTrue(userInfos.pageNumber == 2);
         assertNotNull(userInfos.content);
         assertTrue(userInfos.content.size() == 1);
+        assertTrue(userInfos.pageSize == 3);
         assertEquals("[user7]", getOrderedUUIDs(userInfos.content));
 
         // first page descending sort order
@@ -1050,7 +1051,8 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(usersPage);
-        assertTrue(usersPage.pageSize == 3);
+        assertTrue(usersPage.content.size() == 3);
+        assertTrue(usersPage.pageSize == 10);
         assertEquals("[user1, user2, user5]", getOrderedUUIDs(usersPage.content));
 
         // all inactive of the own institution
@@ -1064,7 +1066,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(usersPage);
-        assertTrue(usersPage.pageSize == 0);
+        assertTrue(usersPage.content.size() == 0);
         assertEquals("[]", getOrderedUUIDs(usersPage.content));
 
         // all active of institution 2
@@ -1080,7 +1082,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(usersPage);
-        assertTrue(usersPage.pageSize == 3);
+        assertTrue(usersPage.content.size() == 3);
         assertEquals("[user3, user4, user7]", getOrderedUUIDs(usersPage.content));
 
         // all inactive of institution 2
@@ -1096,7 +1098,7 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(usersPage);
-        assertTrue(usersPage.pageSize == 1);
+        assertTrue(usersPage.content.size() == 1);
         assertEquals("[user6]", getOrderedUUIDs(usersPage.content));
     }
 

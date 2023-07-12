@@ -400,7 +400,7 @@ public class InstitutionAPITest extends AdministrationAPIIntegrationTester {
                 });
 
         assertNotNull(institutions);
-        assertTrue(institutions.pageSize == 1);
+        assertTrue(institutions.content.size() == 1);
         assertEquals("[3]", getOrderedUUIDs(institutions.content));
     }
 

@@ -40,7 +40,7 @@ public class InstitutionTest {
 
     @Test
     public void pageOfInstituions() throws Exception {
-        final Page<Institution> page = new Page<>(2, 1, "name", Arrays.asList(
+        final Page<Institution> page = new Page<>(2, 1, 3, "name", Arrays.asList(
                 new Institution(1L, "InstOne", "one", "", "", true),
                 new Institution(2L, "InstTwo", "two", "", "", true),
                 new Institution(3L, "InstThree", "three", "", "", true)));
@@ -49,7 +49,7 @@ public class InstitutionTest {
         //final ObjectWriter writerWithDefaultPrettyPrinter = jsonMapper.writerWithDefaultPrettyPrinter();
         String json = jsonMapper.writeValueAsString(page);
         assertEquals(
-                "{\"number_of_pages\":2,\"page_number\":1,\"sort\":\"name\",\"content\":[{\"id\":1,\"name\":\"InstOne\",\"urlSuffix\":\"one\",\"logoImage\":\"\",\"themeName\":\"\",\"active\":true},{\"id\":2,\"name\":\"InstTwo\",\"urlSuffix\":\"two\",\"logoImage\":\"\",\"themeName\":\"\",\"active\":true},{\"id\":3,\"name\":\"InstThree\",\"urlSuffix\":\"three\",\"logoImage\":\"\",\"themeName\":\"\",\"active\":true}],\"complete\":true,\"page_size\":3}",
+                "{\"number_of_pages\":2,\"page_number\":1,\"page_size\":3,\"sort\":\"name\",\"content\":[{\"id\":1,\"name\":\"InstOne\",\"urlSuffix\":\"one\",\"logoImage\":\"\",\"themeName\":\"\",\"active\":true},{\"id\":2,\"name\":\"InstTwo\",\"urlSuffix\":\"two\",\"logoImage\":\"\",\"themeName\":\"\",\"active\":true},{\"id\":3,\"name\":\"InstThree\",\"urlSuffix\":\"three\",\"logoImage\":\"\",\"themeName\":\"\",\"active\":true}],\"complete\":true}",
                 json);
 
         final List<EntityName> namesList = page.content.stream()

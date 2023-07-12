@@ -78,7 +78,7 @@ public interface QuizLookupService {
         return lookupResult -> {
             final List<QuizData> quizzes = lookupResult.quizData;
             if (quizzes.isEmpty()) {
-                return new Page<>(0, 1, sortAttribute, Collections.emptyList(), lookupResult.completed);
+                return new Page<>(0, 1, pageSize, sortAttribute, Collections.emptyList(), lookupResult.completed);
             }
 
             int start = (pageNumber - 1) * pageSize;
@@ -95,6 +95,7 @@ public interface QuizLookupService {
                 return new Page<>(
                         (quizzes.size() <= pageSize) ? 1 : quizzes.size() / pageSize + 1,
                         start / pageSize + 1,
+                        pageSize,
                         sortAttribute,
                         quizzes.subList(start, end));
             }
@@ -107,6 +108,7 @@ public interface QuizLookupService {
                                     ? quizzes.size() / pageSize + 1
                                     : quizzes.size() / pageSize,
                     pageNumber,
+                    pageSize,
                     sortAttribute,
                     quizzes.subList(start, end),
                     lookupResult.completed);

@@ -434,11 +434,14 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             numOfPages++;
         }
 
+        final List<TemplateAttribute> subList = attrs.subList(start, end);
+
         return new Page<>(
                 numOfPages,
                 this.paginationService.getPageNumber(pageNumber),
+                (pageSize != null) ? pageSize : subList.size(),
                 sort,
-                attrs.subList(start, end));
+                subList);
     }
 
     @RequestMapping(

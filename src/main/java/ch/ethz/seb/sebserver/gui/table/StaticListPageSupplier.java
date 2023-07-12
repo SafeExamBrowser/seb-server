@@ -94,16 +94,16 @@ public class StaticListPageSupplier<T> implements PageSupplier<T> {
         public Result<Page<T>> getPage() {
             return Result.tryCatch(() -> {
                 if (this.list.isEmpty()) {
-                    return new Page<>(0, this.pageNumber, this.column, this.list);
+                    return new Page<>(0, this.pageNumber, this.pageSize, this.column, this.list);
                 }
 
                 if (this.pageSize <= 0) {
-                    return new Page<>(1, 1, this.column, this.list);
+                    return new Page<>(1, 1, this.list.size(), this.column, this.list);
                 }
 
                 int numOfPages = this.list.size() / this.pageSize;
                 if (numOfPages <= 0) {
-                    return new Page<>(1, 1, this.column, this.list);
+                    return new Page<>(1, 1, this.pageSize, this.column, this.list);
                 }
                 if (this.list.size() % this.pageSize > 0) {
                     numOfPages++;
@@ -119,7 +119,7 @@ public class StaticListPageSupplier<T> implements PageSupplier<T> {
                 }
 
                 final List<T> subList = this.list.subList(from, to);
-                return new Page<>(numOfPages, this.pageNumber, this.column, subList);
+                return new Page<>(numOfPages, this.pageNumber, this.pageSize, this.column, subList);
             });
         }
     }

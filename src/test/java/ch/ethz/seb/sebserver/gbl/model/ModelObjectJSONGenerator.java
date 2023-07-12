@@ -242,7 +242,8 @@ public class ModelObjectJSONGenerator {
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
-        domainObject = new Page<>(3, 1, "columnName", Arrays.asList("Entry1", "Entry1", "Entry1", "Entry1", "Entry1"));
+        domainObject =
+                new Page<>(3, 1, 5, "columnName", Arrays.asList("Entry1", "Entry1", "Entry1", "Entry1", "Entry1"));
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));
 
