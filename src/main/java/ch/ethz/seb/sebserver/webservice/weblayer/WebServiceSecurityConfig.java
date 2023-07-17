@@ -48,6 +48,7 @@ import ch.ethz.seb.sebserver.WebSecurityConfig;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.CachableJdbcTokenStore;
+import ch.ethz.seb.sebserver.webservice.weblayer.oauth.PreAuthProvider;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebClientDetailsService;
 import ch.ethz.seb.sebserver.webservice.weblayer.oauth.WebserviceResourceConfiguration;
 
@@ -87,6 +88,8 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     private TokenStore tokenStore;
     @Autowired
     private WebClientDetailsService webServiceClientDetails;
+    @Autowired
+    private PreAuthProvider preAuthProvider;
 
     @Value("${sebserver.webservice.api.admin.endpoint}")
     private String adminAPIEndpoint;
@@ -146,6 +149,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
         auth
                 .userDetailsService(this.webServiceUserDetails)
                 .passwordEncoder(this.userPasswordEncoder);
+        auth.authenticationProvider(this.preAuthProvider);
     }
 
     @Override
