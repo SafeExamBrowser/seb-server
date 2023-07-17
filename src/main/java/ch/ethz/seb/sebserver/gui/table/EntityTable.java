@@ -224,6 +224,9 @@ public class EntityTable<ROW extends ModelIdAware> {
         }
         this.table.addListener(SWT.Selection, event -> {
             if (this.multiselection != null && event.item != null) {
+                if (event.item == null || event.item.isDisposed()) {
+                    return;
+                }
                 handleMultiSelection((TableItem) event.item);
                 event.doit = false;
             }
@@ -527,6 +530,9 @@ public class EntityTable<ROW extends ModelIdAware> {
 
         // first remove all rows if there are some
         this.table.removeAll();
+        if (this.multiselection != null) {
+            this.multiselection.clear();
+        }
 
         // get page data and create rows
         final Page<ROW> page = this.pageSupplier.newBuilder()
@@ -642,10 +648,19 @@ public class EntityTable<ROW extends ModelIdAware> {
 
     @SuppressWarnings("unchecked")
     private ROW getRowData(final TableItem item) {
+        if (item == null || item.isDisposed()) {
+            log.warn("Selected item is null or disposed: {}", item);
+            return null;
+        }
         return (ROW) item.getData(TABLE_ROW_DATA);
     }
 
     private EntityKey getEntityKey(final TableItem item) {
+        if (item == null || item.isDisposed()) {
+            log.warn("Selected item is null or disposed: {}", item);
+            return null;
+        }
+
         final ROW rowData = getRowData(item);
         if (rowData instanceof Entity) {
             return ((Entity) rowData).getEntityKey();
