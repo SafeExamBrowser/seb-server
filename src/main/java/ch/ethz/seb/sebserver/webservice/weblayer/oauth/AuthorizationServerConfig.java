@@ -99,7 +99,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         defaultTokenServices.setTokenStore(this.tokenStore);
         defaultTokenServices.setAuthenticationManager(this.authenticationManager);
         defaultTokenServices.setSupportRefreshToken(true);
-        defaultTokenServices.setReuseRefreshToken(true);
+        defaultTokenServices.setReuseRefreshToken(false);
         defaultTokenServices.setTokenEnhancer(jwtAccessTokenConverter);
         defaultTokenServices.setAccessTokenValiditySeconds(this.adminAccessTokenValSec);
         defaultTokenServices.setRefreshTokenValiditySeconds(this.adminRefreshTokenValSec);

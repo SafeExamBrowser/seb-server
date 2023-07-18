@@ -135,6 +135,10 @@ public class CachableJdbcTokenStore implements TokenStore {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(cacheNames = AUTHENTICATION_TOKEN_CACHE, allEntries = true),
+            @CacheEvict(cacheNames = ACCESS_TOKEN_CACHE_NAME, allEntries = true)
+    })
     public void removeAccessTokenUsingRefreshToken(final OAuth2RefreshToken refreshToken) {
         this.jdbcTokenStore.removeAccessTokenUsingRefreshToken(refreshToken);
     }

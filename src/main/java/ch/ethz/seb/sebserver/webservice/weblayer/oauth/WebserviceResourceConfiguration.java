@@ -135,7 +135,7 @@ public abstract class WebserviceResourceConfiguration extends ResourceServerConf
             tokenService.setTokenStore(this.tokenStore);
             tokenService.setClientDetailsService(this.webServiceClientDetails);
             tokenService.setSupportRefreshToken(this.supportRefreshToken);
-            tokenService.setSupportRefreshToken(this.supportRefreshToken);
+            tokenService.setReuseRefreshToken(false);
             tokenService.setAuthenticationManager(this.authenticationManager);
             tokenService.setAccessTokenValiditySeconds(this.accessTokenValiditySeconds);
             tokenService.setRefreshTokenValiditySeconds(this.refreshTokenValiditySeconds);
