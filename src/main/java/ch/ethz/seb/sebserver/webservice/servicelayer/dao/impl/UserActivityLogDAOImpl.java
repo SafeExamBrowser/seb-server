@@ -438,10 +438,10 @@ public class UserActivityLogDAOImpl implements UserActivityLogDAO {
         return Result.tryCatch(() -> {
             final List<String> _activityTypes = (activityTypes != null)
                     ? Arrays.asList(StringUtils.split(activityTypes, Constants.LIST_SEPARATOR))
-                    : null;
+                    : Collections.emptyList();
             final List<String> _entityTypes = (entityTypes != null)
                     ? Arrays.asList(StringUtils.split(entityTypes, Constants.LIST_SEPARATOR))
-                    : null;
+                    : Collections.emptyList();
 
             final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<UserActivityLogRecord>>>.QueryExpressionWhereBuilder whereClause =
                     joinInstitution

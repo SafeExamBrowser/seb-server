@@ -114,7 +114,7 @@ public class ClientEventController extends ReadonlyEntityController<ClientEvent,
                 pageNumber,
                 pageSize,
                 sort,
-                getSQLTableOfEntity().name(),
+                getSQLTableOfEntity().tableNameAtRuntime(),
                 () -> this.clientEventDAO.allMatchingExtended(filterMap, this::hasReadAccess))
                 .getOrThrow();
     }

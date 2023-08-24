@@ -109,7 +109,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
                 pageNumber,
                 pageSize,
                 sort,
-                getSQLTableOfEntity().name(),
+                getSQLTableOfEntity().tableNameAtRuntime(),
                 () -> getAll(filterMap)).getOrThrow();
     }
 
@@ -161,7 +161,7 @@ public abstract class ActivatableEntityController<T extends GrantEntity & Activa
                 pageNumber,
                 pageSize,
                 sort,
-                getSQLTableOfEntity().name(),
+                getSQLTableOfEntity().tableNameAtRuntime(),
                 () -> getAll(filterMap)).getOrThrow();
     }
 

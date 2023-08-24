@@ -294,9 +294,9 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 .flatMap(this::getAttributeMapping)
                 .map(attributeMapping -> {
                     // get all values of the table
-                    final ArrayList<Long> attrs = (attributeMapping != null && !attributeMapping.isEmpty())
+                    final List<Long> attrs = (attributeMapping != null && !attributeMapping.isEmpty())
                             ? new ArrayList<>(attributeMapping.keySet())
-                            : null;
+                            : Collections.emptyList();
                     final List<TableValue> values = this.configurationValueRecordMapper.selectByExample()
                             .where(
                                     ConfigurationValueRecordDynamicSqlSupport.institutionId,
@@ -411,9 +411,9 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
 
                     final Set<EntityKey> tableValues = new HashSet<>();
                     if (attributeMapping != null && !attributeMapping.isEmpty()) {
-                        final ArrayList<Long> attrs = (attributeMapping != null && !attributeMapping.isEmpty())
+                        final List<Long> attrs = (attributeMapping != null && !attributeMapping.isEmpty())
                                 ? new ArrayList<>(attributeMapping.keySet())
-                                : null;
+                                : Collections.emptyList();
                         tableValues.addAll(this.configurationValueRecordMapper.selectByExample()
                                 .where(
                                         ConfigurationValueRecordDynamicSqlSupport.institutionId,

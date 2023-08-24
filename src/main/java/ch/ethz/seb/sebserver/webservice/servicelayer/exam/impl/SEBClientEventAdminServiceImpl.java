@@ -262,7 +262,7 @@ public class SEBClientEventAdminServiceImpl implements SEBClientEventAdminServic
                                 this.pageNumber,
                                 this.pageSize,
                                 this.sort,
-                                ClientEventRecordDynamicSqlSupport.clientEventRecord.name(),
+                                ClientEventRecordDynamicSqlSupport.clientEventRecord.tableNameAtRuntime(),
                                 () -> SEBClientEventAdminServiceImpl.this.sebClientEventExportTransactionHandler
                                         .allMatching(this.filterMap, Utils.truePredicate()))
                         .getOrThrow();

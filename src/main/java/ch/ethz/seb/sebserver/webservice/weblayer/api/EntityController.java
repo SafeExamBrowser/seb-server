@@ -199,7 +199,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 pageNumber,
                 pageSize,
                 sort,
-                getSQLTableOfEntity().name(),
+                getSQLTableOfEntity().tableNameAtRuntime(),
                 () -> getAll(filterMap))
                 .getOrThrow();
 

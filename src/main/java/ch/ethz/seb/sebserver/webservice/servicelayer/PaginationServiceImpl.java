@@ -73,7 +73,7 @@ public class PaginationServiceImpl implements PaginationService {
             return false;
         }
 
-        final Map<String, String> tableMap = this.sortColumnMapping.get(table.name());
+        final Map<String, String> tableMap = this.sortColumnMapping.get(table.tableNameAtRuntime());
         if (tableMap == null) {
             return false;
         }
@@ -241,10 +241,10 @@ public class PaginationServiceImpl implements PaginationService {
                 Domain.INSTITUTION.ATTR_ACTIVE,
                 InstitutionRecordDynamicSqlSupport.active.name());
         this.sortColumnMapping.put(
-                InstitutionRecordDynamicSqlSupport.institutionRecord.name(),
+                InstitutionRecordDynamicSqlSupport.institutionRecord.tableNameAtRuntime(),
                 institutionTableMap);
         this.defaultSortColumn.put(
-                InstitutionRecordDynamicSqlSupport.institutionRecord.name(),
+                InstitutionRecordDynamicSqlSupport.institutionRecord.tableNameAtRuntime(),
                 Domain.INSTITUTION.ATTR_ID);
 
         // User Table
@@ -256,8 +256,8 @@ public class PaginationServiceImpl implements PaginationService {
         userTableMap.put(Domain.USER.ATTR_EMAIL, UserRecordDynamicSqlSupport.email.name());
         userTableMap.put(Domain.USER.ATTR_LANGUAGE, UserRecordDynamicSqlSupport.language.name());
         userTableMap.put(Domain.USER.ATTR_ACTIVE, UserRecordDynamicSqlSupport.active.name());
-        this.sortColumnMapping.put(UserRecordDynamicSqlSupport.userRecord.name(), userTableMap);
-        this.defaultSortColumn.put(UserRecordDynamicSqlSupport.userRecord.name(), Domain.USER.ATTR_ID);
+        this.sortColumnMapping.put(UserRecordDynamicSqlSupport.userRecord.tableNameAtRuntime(), userTableMap);
+        this.defaultSortColumn.put(UserRecordDynamicSqlSupport.userRecord.tableNameAtRuntime(), Domain.USER.ATTR_ID);
 
         // LMS Setup Table
         final Map<String, String> lmsSetupTableMap = new HashMap<>();
@@ -265,8 +265,10 @@ public class PaginationServiceImpl implements PaginationService {
         lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_NAME, LmsSetupRecordDynamicSqlSupport.name.name());
         lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_LMS_TYPE, LmsSetupRecordDynamicSqlSupport.lmsType.name());
         lmsSetupTableMap.put(Domain.LMS_SETUP.ATTR_ACTIVE, LmsSetupRecordDynamicSqlSupport.active.name());
-        this.sortColumnMapping.put(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord.name(), lmsSetupTableMap);
-        this.defaultSortColumn.put(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord.name(), Domain.LMS_SETUP.ATTR_ID);
+        this.sortColumnMapping.put(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord.tableNameAtRuntime(),
+                lmsSetupTableMap);
+        this.defaultSortColumn.put(LmsSetupRecordDynamicSqlSupport.lmsSetupRecord.tableNameAtRuntime(),
+                Domain.LMS_SETUP.ATTR_ID);
 
         // Exam Template Table
         final Map<String, String> examTemplateTableMap = new HashMap<>();
@@ -275,9 +277,10 @@ public class PaginationServiceImpl implements PaginationService {
         examTemplateTableMap.put(Domain.EXAM_TEMPLATE.ATTR_EXAM_TYPE,
                 ExamTemplateRecordDynamicSqlSupport.examType.name());
 
-        this.sortColumnMapping.put(ExamTemplateRecordDynamicSqlSupport.examTemplateRecord.name(), examTemplateTableMap);
+        this.sortColumnMapping.put(ExamTemplateRecordDynamicSqlSupport.examTemplateRecord.tableNameAtRuntime(),
+                examTemplateTableMap);
         this.defaultSortColumn.put(
-                ExamTemplateRecordDynamicSqlSupport.examTemplateRecord.name(),
+                ExamTemplateRecordDynamicSqlSupport.examTemplateRecord.tableNameAtRuntime(),
                 Domain.EXAM_TEMPLATE.ATTR_ID);
 
         // Exam Table
@@ -290,8 +293,8 @@ public class PaginationServiceImpl implements PaginationService {
         examTableMap.put(Domain.EXAM.ATTR_STATUS, ExamRecordDynamicSqlSupport.status.name());
         examTableMap.put(Domain.EXAM.ATTR_TYPE, ExamRecordDynamicSqlSupport.type.name());
 
-        this.sortColumnMapping.put(ExamRecordDynamicSqlSupport.examRecord.name(), examTableMap);
-        this.defaultSortColumn.put(ExamRecordDynamicSqlSupport.examRecord.name(), Domain.EXAM.ATTR_ID);
+        this.sortColumnMapping.put(ExamRecordDynamicSqlSupport.examRecord.tableNameAtRuntime(), examTableMap);
+        this.defaultSortColumn.put(ExamRecordDynamicSqlSupport.examRecord.tableNameAtRuntime(), Domain.EXAM.ATTR_ID);
 
         // SEB Client Configuration Table
         final Map<String, String> sebClientConfigTableMap = new HashMap<>();
@@ -309,10 +312,10 @@ public class PaginationServiceImpl implements PaginationService {
                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_ACTIVE,
                 SebClientConfigRecordDynamicSqlSupport.active.name());
         this.sortColumnMapping.put(
-                SebClientConfigRecordDynamicSqlSupport.sebClientConfigRecord.name(),
+                SebClientConfigRecordDynamicSqlSupport.sebClientConfigRecord.tableNameAtRuntime(),
                 sebClientConfigTableMap);
         this.defaultSortColumn.put(
-                SebClientConfigRecordDynamicSqlSupport.sebClientConfigRecord.name(),
+                SebClientConfigRecordDynamicSqlSupport.sebClientConfigRecord.tableNameAtRuntime(),
                 Domain.SEB_CLIENT_CONFIGURATION.ATTR_ID);
 
         // ConfigurationNode
@@ -334,10 +337,10 @@ public class PaginationServiceImpl implements PaginationService {
                 ConfigurationNodeRecordDynamicSqlSupport.templateId.name());
 
         this.sortColumnMapping.put(
-                ConfigurationNodeRecordDynamicSqlSupport.configurationNodeRecord.name(),
+                ConfigurationNodeRecordDynamicSqlSupport.configurationNodeRecord.tableNameAtRuntime(),
                 configurationNodeTableMap);
         this.defaultSortColumn.put(
-                ConfigurationNodeRecordDynamicSqlSupport.configurationNodeRecord.name(),
+                ConfigurationNodeRecordDynamicSqlSupport.configurationNodeRecord.tableNameAtRuntime(),
                 Domain.CONFIGURATION_NODE.ATTR_ID);
 
         // ClientEvent table
@@ -361,10 +364,10 @@ public class PaginationServiceImpl implements PaginationService {
                 Domain.CLIENT_EVENT.ATTR_NUMERIC_VALUE,
                 ClientEventRecordDynamicSqlSupport.numericValue.name());
         this.sortColumnMapping.put(
-                ClientEventRecordDynamicSqlSupport.clientEventRecord.name(),
+                ClientEventRecordDynamicSqlSupport.clientEventRecord.tableNameAtRuntime(),
                 clientEventTableMap);
         this.defaultSortColumn.put(
-                ClientEventRecordDynamicSqlSupport.clientEventRecord.name(),
+                ClientEventRecordDynamicSqlSupport.clientEventRecord.tableNameAtRuntime(),
                 Domain.CLIENT_EVENT.ATTR_ID);
 
         // User Activity Log Table
@@ -388,10 +391,10 @@ public class PaginationServiceImpl implements PaginationService {
                 Domain.USER_ACTIVITY_LOG.ATTR_TIMESTAMP,
                 UserActivityLogRecordDynamicSqlSupport.timestamp.name());
         this.sortColumnMapping.put(
-                UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord.name(),
+                UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord.tableNameAtRuntime(),
                 userActivityLogTableMap);
         this.defaultSortColumn.put(
-                UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord.name(),
+                UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord.tableNameAtRuntime(),
                 Domain.USER_ACTIVITY_LOG.ATTR_ID);
 
     }

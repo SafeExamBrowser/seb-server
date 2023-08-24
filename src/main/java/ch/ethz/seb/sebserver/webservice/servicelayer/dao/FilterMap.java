@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -218,7 +219,7 @@ public class FilterMap extends POSTMapper {
     public List<String> getClientConnectionTokenList() {
         final String tokenList = getString(ClientConnection.FILTER_ATTR_TOKEN_LIST);
         if (StringUtils.isBlank(tokenList)) {
-            return null;
+            return Collections.emptyList();
         }
 
         return Utils.asImmutableList(StringUtils.split(tokenList, Constants.LIST_SEPARATOR));

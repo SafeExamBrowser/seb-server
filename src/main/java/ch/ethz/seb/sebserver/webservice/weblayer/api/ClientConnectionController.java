@@ -162,7 +162,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                     pageNumber,
                     pageSize,
                     sort,
-                    getSQLTableOfEntity().name(),
+                    getSQLTableOfEntity().tableNameAtRuntime(),
                     () -> getAllData(filterMap))
                     .getOrThrow();
         }
