@@ -100,8 +100,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements E
         response.flushBuffer();
     }
 
-    @Override
-    public String getErrorPath() {
-        return ERROR_PATH;
-    }
 }
