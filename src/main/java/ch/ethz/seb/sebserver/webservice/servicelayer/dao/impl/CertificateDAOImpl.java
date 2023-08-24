@@ -240,7 +240,7 @@ public class CertificateDAOImpl implements CertificateDAO {
         } catch (final Exception e) {
             log.error("Error while trying to get alias from certificate subject name: {}", e.getMessage());
             try {
-                final String name = certificate.getSubjectDN().getName();
+                final String name = certificate.getSubjectX500Principal().getName();
                 if (StringUtils.isNotBlank(name)) {
                     final String al = name.replace(" ", "").replace(",", "_").replace("=", "-");
                     log.info("Certificate import: DN name as alias: {}", al);
