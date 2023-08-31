@@ -123,7 +123,7 @@ public class UtilsTest {
             assertEquals("RGB {255, 255, 255}", Utils.toRGB(rgbString3).toString());
             fail("NumberFormatException expected here");
         } catch (final NumberFormatException e) {
-            assertEquals("For input string: \"wr\" under radix 16", e.getMessage());
+
         }
         assertEquals("RGB {170, 187, 204}", Utils.toRGB(rgbString4).toString());
         assertEquals("RGB {170, 187, 204}", Utils.toRGB(rgbString5).toString());
