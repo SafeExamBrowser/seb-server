@@ -89,6 +89,8 @@ public class ViewGridBuilder {
         this.registeredExpandables = null;
     }
 
+    private ExpandBarCellFieldBuilderAdapter expandBarBuilderAdapter = null;
+
     ViewGridBuilder(
             final Composite parent,
             final ViewContext viewContext,
@@ -100,6 +102,7 @@ public class ViewGridBuilder {
         this.viewContext = viewContext;
         this.isGroupBuilder = false;
         this.isExpandBarBuilder = true;
+        this.expandBarBuilderAdapter = expandBarBuilderAdapter;
         this.xOffset = expandBarBuilderAdapter.x;
         this.yOffset = expandBarBuilderAdapter.y;
         this.grid = new CellFieldBuilderAdapter[expandBarBuilderAdapter.height - 1][expandBarBuilderAdapter.width];
@@ -240,6 +243,10 @@ public class ViewGridBuilder {
 
                     final GroupCellFieldBuilderAdapter groupBuilder =
                             new GroupCellFieldBuilderAdapter(this.viewContext.getOrientationsOfGroup(attribute));
+
+                    if (this.expandBarBuilderAdapter != null) {
+                        groupBuilder.width = this.expandBarBuilderAdapter.width;
+                    }
 
                     final int xpos = groupBuilder.x - this.xOffset;
                     final int ypos = groupBuilder.y - this.yOffset;

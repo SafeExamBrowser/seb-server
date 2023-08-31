@@ -11,7 +11,9 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -163,12 +165,17 @@ interface CellFieldBuilderAdapter {
             this.orientationsOfGroup = orientationsOfGroup;
 
             for (final Orientation o : this.orientationsOfGroup) {
-                final int xpos = o.xPosition - ((o.title == TitleOrientation.LEFT) ? 1 : 0);
+                final int xpos = o.xPosition
+                        - ((o.title == TitleOrientation.LEFT || o.title == TitleOrientation.LEFT_SPAN) ? 1 : 0);
                 this.x = Math.min(xpos, this.x);
                 final int ypos = o.yPosition - ((o.title == TitleOrientation.TOP) ? 1 : 0);
                 this.y = Math.min(ypos, this.y);
                 this.width = Math.max(this.width, o.xpos() + o.width());
                 this.height = Math.max(this.height, o.ypos() + o.height());
+
+                if (o.groupId.equals("screenshot[proctoring|ScreenProctoring]")) {
+                    this.x = o.xpos() - o.width();
+                }
             }
 
             this.width = this.width - this.x;
@@ -243,7 +250,7 @@ interface CellFieldBuilderAdapter {
             }
 
             this.width = this.width - this.x;
-            this.height = this.height - this.y + 2;
+            this.height = this.height - this.y + 10;
         }
 
         @Override
@@ -279,7 +286,6 @@ interface CellFieldBuilderAdapter {
                         this.width,
                         labelKey);
 
-                expandItem.setHeight(this.height * HEIGHT_PER_FIELD);
                 final Composite body = (Composite) expandItem.getControl();
                 final ViewGridBuilder expandBuilder = new ViewGridBuilder(
                         body,
@@ -287,10 +293,22 @@ interface CellFieldBuilderAdapter {
                         this,
                         builder.examConfigurationService);
 
+                final Set<String> groups = new HashSet<>();
                 for (final Orientation orientation : value) {
                     final ConfigurationAttribute attribute = builder.viewContext.getAttribute(orientation.attributeId);
                     expandBuilder.add(attribute);
+                    final String groupKey = ViewGridBuilder.getGroupKey(orientation.groupId);
+                    if (groupKey != null) {
+                        groups.add(groupKey);
+                    }
                 }
+
+                int h = (value.size() + ((groups.size() > 0) ? groups.size() + 1 : 0)) * HEIGHT_PER_FIELD;
+                if (expandItemKey.equals("ScreenProctoring")) {
+                    h = h + 50;
+                }
+
+                expandItem.setHeight(h);
                 expandBuilder.compose();
             }
         }

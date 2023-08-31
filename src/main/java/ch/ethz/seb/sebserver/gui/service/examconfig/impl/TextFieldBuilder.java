@@ -154,18 +154,26 @@ public class TextFieldBuilder implements InputFieldBuilder {
 
         @Override
         public void enable(final boolean group) {
-            this.control.setData(RWT.CUSTOM_VARIANT, null);
-            this.control.setEditable(true);
+            if (group) {
+                this.control.getParent().getParent().setEnabled(true);
+            } else {
+                this.control.setData(RWT.CUSTOM_VARIANT, null);
+                this.control.setEditable(true);
+            }
         }
 
         @Override
         public void disable(final boolean group) {
-            this.control.setData(RWT.CUSTOM_VARIANT, CustomVariant.CONFIG_INPUT_READONLY.key);
-            this.control.setEditable(false);
-            final GridData gridData = (GridData) this.control.getLayoutData();
-            gridData.heightHint = (this.attribute.type == AttributeType.TEXT_AREA)
-                    ? WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT
-                    : WidgetFactory.TEXT_INPUT_MIN_HEIGHT;
+            if (group) {
+                this.control.getParent().getParent().setEnabled(false);
+            } else {
+                this.control.setData(RWT.CUSTOM_VARIANT, CustomVariant.CONFIG_INPUT_READONLY.key);
+                this.control.setEditable(false);
+                final GridData gridData = (GridData) this.control.getLayoutData();
+                gridData.heightHint = (this.attribute.type == AttributeType.TEXT_AREA)
+                        ? WidgetFactory.TEXT_AREA_INPUT_MIN_HEIGHT
+                        : WidgetFactory.TEXT_INPUT_MIN_HEIGHT;
+            }
         }
 
         @Override

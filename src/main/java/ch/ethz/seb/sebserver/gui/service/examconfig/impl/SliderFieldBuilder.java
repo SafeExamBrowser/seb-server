@@ -33,10 +33,6 @@ import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 @GuiProfile
 public class SliderFieldBuilder implements InputFieldBuilder {
 
-    public SliderFieldBuilder() {
-        // TODO Auto-generated constructor stub
-    }
-
     @Override
     public boolean builderFor(
             final ConfigurationAttribute attribute,
@@ -63,16 +59,17 @@ public class SliderFieldBuilder implements InputFieldBuilder {
         WidgetFactory.setTestId(slider, attributeNameKey);
         WidgetFactory.setARIALabel(slider, i18nSupport.getText(attributeNameKey));
 
+        final int thumb = slider.getThumb();
         try {
             final String[] split = StringUtils.split(
                     attribute.getResources(),
                     Constants.LIST_SEPARATOR);
 
             slider.setMinimum(Integer.parseInt(split[0]));
-            slider.setMaximum(Integer.parseInt(split[1]));
+            slider.setMaximum(Integer.parseInt(split[1]) + thumb);
         } catch (final NumberFormatException e) {
-            slider.setMinimum(0);
-            slider.setMaximum(100);
+            slider.setMinimum(1);
+            slider.setMaximum(100 + thumb);
         }
 
         final SliderInputField inputField = new SliderInputField(
@@ -93,7 +90,9 @@ public class SliderFieldBuilder implements InputFieldBuilder {
             };
 
             slider.addListener(SWT.FocusOut, valueChangeEventListener);
-            slider.addListener(SWT.Traverse, valueChangeEventListener);
+            slider.addListener(SWT.Selection, event -> {
+                slider.setToolTipText(String.valueOf(slider.getSelection()));
+            });
         }
         return inputField;
     }

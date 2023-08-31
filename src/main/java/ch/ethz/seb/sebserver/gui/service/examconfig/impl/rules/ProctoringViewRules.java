@@ -37,11 +37,16 @@ public class ProctoringViewRules implements ValueChangeRule {
     public static final String ZOOM_GROUP_FEATURES = "zoomFeatureFlagChat";
     public static final String ZOOM_GROUP_CONTROLS = "zoomAudioMuted";
 
+    public static final String KEY_ENABLE_SPS = "enableScreenProctoring";
+    public static final String SPS_GROUP_SCREENSHOT = "screenProctoringScreenshotMinInterval";
+    public static final String SPS_GROUP_METADATA = "screenProctoringMetadataURLEnabled";
+
     @Override
     public boolean observesAttribute(final ConfigurationAttribute attribute) {
         return KEY_ENABLE_AI.equals(attribute.name) ||
                 KEY_ENABLE_JITSI.equals(attribute.name) ||
-                KEY_ENABLE_ZOOM.equals(attribute.name);
+                KEY_ENABLE_ZOOM.equals(attribute.name) ||
+                KEY_ENABLE_SPS.equals(attribute.name);
     }
 
     @Override
@@ -77,6 +82,14 @@ public class ProctoringViewRules implements ValueChangeRule {
             } else {
                 context.disableGroup(AI_GROUP_FACE_NUMBER);
                 context.disableGroup(AI_GROUP_FACE_ANGLE);
+            }
+        } else if (KEY_ENABLE_SPS.equals(attribute.name)) {
+            if (BooleanUtils.toBoolean(value.value)) {
+                context.enableGroup(SPS_GROUP_SCREENSHOT);
+                context.enableGroup(SPS_GROUP_METADATA);
+            } else {
+                context.disableGroup(SPS_GROUP_SCREENSHOT);
+                context.disableGroup(SPS_GROUP_METADATA);
             }
         }
     }

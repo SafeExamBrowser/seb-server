@@ -14,9 +14,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>Riot</string>
+        <string>remoting_host.exe</string>
         <key>originalName</key>
-        <string>Riot</string>
+        <string>remoting_host.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -36,9 +36,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>seamonkey</string>
+        <string>CiscoWebExStart.exe</string>
         <key>originalName</key>
-        <string>seamonkey</string>
+        <string>CiscoWebExStart.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -58,9 +58,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>Discord</string>
+        <string>CiscoCollabHost.exe</string>
         <key>originalName</key>
-        <string>Discord</string>
+        <string>CiscoCollabHost.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -80,9 +80,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>Slack</string>
+        <string>AA_v3.exe</string>
         <key>originalName</key>
-        <string>Slack</string>
+        <string>AA_v3.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -102,9 +102,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>Teams</string>
+        <string>ptoneclk.exe</string>
         <key>originalName</key>
-        <string>Teams</string>
+        <string>ptoneclk.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -124,9 +124,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>CamRecorder</string>
+        <string>webexmta.exe</string>
         <key>originalName</key>
-        <string>CamRecorder</string>
+        <string>webexmta.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -146,9 +146,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>join.me</string>
+        <string>Teams.exe</string>
         <key>originalName</key>
-        <string>join.me</string>
+        <string>Teams.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -168,9 +168,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>RPCSuite</string>
+        <string>join.me.sentinel.exe</string>
         <key>originalName</key>
-        <string>RPCSuite</string>
+        <string>join.me.sentinel.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -190,9 +190,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>RPCService</string>
+        <string>join.me.exe</string>
         <key>originalName</key>
-        <string>RPCService</string>
+        <string>join.me.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -212,9 +212,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>RemotePCDesktop</string>
+        <string>g2mstart.exe</string>
         <key>originalName</key>
-        <string>RemotePCDesktop</string>
+        <string>g2mstart.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -234,9 +234,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>beamyourscreen-host</string>
+        <string>g2mlauncher.exe</string>
         <key>originalName</key>
-        <string>beamyourscreen-host</string>
+        <string>g2mlauncher.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -256,9 +256,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>AeroAdmin</string>
+        <string>Telegram.exe</string>
         <key>originalName</key>
-        <string>AeroAdmin</string>
+        <string>Telegram.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -278,9 +278,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>Mikogo-host</string>
+        <string>Zoom.exe</string>
         <key>originalName</key>
-        <string>Mikogo-host</string>
+        <string>Zoom.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -300,9 +300,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>chromoting</string>
+        <string>Element.exe</string>
         <key>originalName</key>
-        <string>chromoting</string>
+        <string>Element.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -322,9 +322,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>vncserverui</string>
+        <string>slack.exe</string>
         <key>originalName</key>
-        <string>vncserverui</string>
+        <string>slack.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -344,9 +344,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>vncviewer</string>
+        <string>CamtasiaUtl.exe</string>
         <key>originalName</key>
-        <string>vncviewer</string>
+        <string>CamtasiaUtl.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -366,9 +366,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>vncserver</string>
+        <string>CamRecorder.exe</string>
         <key>originalName</key>
-        <string>vncserver</string>
+        <string>CamRecorder.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -388,9 +388,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>TeamViewer</string>
+        <string>CamPlay.exe</string>
         <key>originalName</key>
-        <string>TeamViewer</string>
+        <string>CamPlay.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -410,9 +410,339 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>GotoMeetingWinStore</string>
+        <string>Camtasia_Studio.exe</string>
         <key>originalName</key>
-        <string>GotoMeetingWinStore</string>
+        <string>Camtasia_Studio.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>CamtasiaStudio.exe</string>
+        <key>originalName</key>
+        <string>CamtasiaStudio.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>Camtasia.exe</string>
+        <key>originalName</key>
+        <string>Camtasia.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>Discord.exe</string>
+        <key>originalName</key>
+        <string>Discord.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>RPCSuite.exe</string>
+        <key>originalName</key>
+        <string>RPCSuite.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>RPCService.exe</string>
+        <key>originalName</key>
+        <string>RPCService.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>RemotePCDesktop.exe</string>
+        <key>originalName</key>
+        <string>RemotePCDesktop.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>beamyourscreen-host.exe</string>
+        <key>originalName</key>
+        <string>beamyourscreen-host.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>AeroAdmin.exe</string>
+        <key>originalName</key>
+        <string>AeroAdmin.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>Mikogo-host.exe</string>
+        <key>originalName</key>
+        <string>Mikogo-host.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>chromoting.exe</string>
+        <key>originalName</key>
+        <string>chromoting.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>vncserverui.exe</string>
+        <key>originalName</key>
+        <string>vncserverui.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>vncviewer.exe</string>
+        <key>originalName</key>
+        <string>vncviewer.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>vncserver.exe</string>
+        <key>originalName</key>
+        <string>vncserver.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>TeamViewer.exe</string>
+        <key>originalName</key>
+        <string>TeamViewer.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>GotoMeetingWinStore.exe</string>
+        <key>originalName</key>
+        <string>GotoMeetingWinStore.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -454,9 +784,9 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>SkypeHost</string>
+        <string>SkypeHost.exe</string>
         <key>originalName</key>
-        <string>SkypeHost</string>
+        <string>SkypeHost.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>
@@ -476,9 +806,31 @@
         <key>os</key>
         <integer>1</integer>
         <key>executable</key>
-        <string>Skype</string>
+        <string>SkypeApp.exe</string>
         <key>originalName</key>
-        <string>Skype</string>
+        <string>SkypeApp.exe</string>
+        <key>description</key>
+        <string />
+        <key>identifier</key>
+        <string />
+        <key>windowHandlingProcess</key>
+        <string />
+        <key>user</key>
+        <string />
+      </dict>
+      <dict>
+        <key>active</key>
+        <true />
+        <key>currentUser</key>
+        <true />
+        <key>strongKill</key>
+        <false />
+        <key>os</key>
+        <integer>1</integer>
+        <key>executable</key>
+        <string>Skype.exe</string>
+        <key>originalName</key>
+        <string>Skype.exe</string>
         <key>description</key>
         <string />
         <key>identifier</key>

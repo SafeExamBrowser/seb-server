@@ -10,7 +10,7 @@ package ch.ethz.seb.sebserver.gbl.client;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class ProxyDataTest {
 
