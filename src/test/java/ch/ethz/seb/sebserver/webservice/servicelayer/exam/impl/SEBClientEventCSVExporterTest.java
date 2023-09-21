@@ -93,7 +93,7 @@ public class SEBClientEventCSVExporterTest {
     @Test
     public void streamDataTestWithConnection() {
         final ClientConnectionRecord connection = new ClientConnectionRecord(0L, 1L, 2L, "status", "token", "sessionid",
-                "clientaddress", "virtualaddress", 3, "vdi", 4L, 5L, 6L, 7,
+                "clientaddress", "virtualaddress", 3, "vdi", 4L, 5L, 6L, (byte) 0, 6L, 7,
                 "seb_os_name", "seb_machine_name", "seb_version",
                 (byte) 0, null, null);
         final SEBClientEventCSVExporter exporter = new SEBClientEventCSVExporter();
@@ -143,7 +143,7 @@ public class SEBClientEventCSVExporterTest {
                 .collect(Collectors.toMap(t -> t._1, t -> t._2));
 
         final ClientConnectionRecord connection = new ClientConnectionRecord(0L, 1L, 2L, "status", "token", "sessionid",
-                "clientaddress", "virtualaddress", 3, "vdi", 4L, 5L, 6L, 7,
+                "clientaddress", "virtualaddress", 3, "vdi", 4L, 5L, 6L, (byte) 0, 6L, 7,
                 "seb_os_name", "seb_machine_name", "seb_version",
                 (byte) 0, null, null);
         final SEBClientEventCSVExporter exporter = new SEBClientEventCSVExporter();

@@ -159,6 +159,7 @@ public final class API {
     public static final String EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT = "/check-imported";
     public static final String EXAM_ADMINISTRATION_SEB_RESTRICTION_CHAPTERS_PATH_SEGMENT = "/chapters";
     public static final String EXAM_ADMINISTRATION_PROCTORING_PATH_SEGMENT = "/proctoring";
+    public static final String EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT = "/screen-proctoring";
     public static final String EXAM_ADMINISTRATION_PROCTORING_RESET_PATH_SEGMENT = "reset";
     public static final String EXAM_ADMINISTRATION_SEB_SECURITY_KEY_GRANTS_PATH_SEGMENT = "/grant";
     public static final String EXAM_ADMINISTRATION_SEB_SECURITY_KEY_INFO_PATH_SEGMENT = "/sebkeyinfo";

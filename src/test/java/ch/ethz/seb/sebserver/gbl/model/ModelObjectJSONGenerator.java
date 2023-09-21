@@ -263,7 +263,7 @@ public class ModelObjectJSONGenerator {
                         "user-account-1", "86.119.30.213",
                         "seb_os_name", "seb_machine_name", "seb_version",
                         "vdiID", true, "", currentTimeMillis, currentTimeMillis,
-                        123L,
+                        123L, false, 123L,
                         true,
                         false, null, null);
         System.out.println(domainObject.getClass().getSimpleName() + ":");
@@ -277,7 +277,7 @@ public class ModelObjectJSONGenerator {
                         "user-account-1", "86.119.30.213",
                         "seb_os_name", "seb_machine_name", "seb_version",
                         "vdiID", true, "", currentTimeMillis, currentTimeMillis,
-                        123L,
+                        123L, false, 123L,
                         true,
                         false, null, null),
                 Arrays.asList(
@@ -294,7 +294,7 @@ public class ModelObjectJSONGenerator {
                         "user-account-1", "86.119.30.213",
                         "seb_os_name", "seb_machine_name", "seb_version",
                         "vdiID", true, "", currentTimeMillis, currentTimeMillis,
-                        123L,
+                        123L, false, 123L,
                         true,
                         false, null, null),
                 new PendingNotificationIndication() {

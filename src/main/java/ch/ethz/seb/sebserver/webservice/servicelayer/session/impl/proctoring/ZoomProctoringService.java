@@ -85,8 +85,8 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.RemoteProctoringRoomDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ZoomRoomRequestResponse.AdditionalZoomRoomData;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.ZoomRoomRequestResponse.ApplyUserSettingsRequest;
@@ -99,7 +99,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.Zoo
 @Lazy
 @Service
 @WebServiceProfile
-public class ZoomProctoringService implements ExamProctoringService {
+public class ZoomProctoringService implements RemoteProctoringService {
 
     private static final Logger log = LoggerFactory.getLogger(ZoomProctoringService.class);
 
@@ -760,7 +760,6 @@ public class ZoomProctoringService implements ExamProctoringService {
         }
 
         public ResponseEntity<String> testServiceConnection() {
-
             try {
 
                 final String url = UriComponentsBuilder

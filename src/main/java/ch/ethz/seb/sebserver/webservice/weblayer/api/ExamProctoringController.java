@@ -35,7 +35,7 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
@@ -47,13 +47,13 @@ public class ExamProctoringController {
 
     private static final Logger log = LoggerFactory.getLogger(ExamProctoringController.class);
 
-    private final ExamProctoringRoomService examProcotringRoomService;
+    private final RemoteProctoringRoomService examProcotringRoomService;
     private final ExamAdminService examAdminService;
     private final AuthorizationService authorizationService;
     private final ExamSessionService examSessionService;
 
     public ExamProctoringController(
-            final ExamProctoringRoomService examProcotringRoomService,
+            final RemoteProctoringRoomService examProcotringRoomService,
             final ExamAdminService examAdminService,
             final AuthorizationService authorizationService,
             final ExamSessionService examSessionService) {

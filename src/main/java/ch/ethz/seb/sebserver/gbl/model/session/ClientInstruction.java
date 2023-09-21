@@ -90,6 +90,18 @@ public final class ClientInstruction {
             public static final String MESSAGE = "message";
             public static final String IMAGE_URL = "imageURL";
         }
+
+        public interface SEB_SCREEN_PROCTORING {
+            public static final String METHOD = "method";
+            public static final String SERVICE_TYPE = "service-type";
+            public static final String SERVICE_TYPE_NAME = "SCREEN_PROCTORING";
+            public static final String URL = "screenProctoringServiceURL";
+            public static final String CLIENT_ID = "screenProctoringClientId";
+            public static final String CLIENT_SECRET = "screenProctoringClientSecret";
+            public static final String GROUP_ID = "screenProctoringGroupId";
+            public static final String SESSION_ID = "screenProctoringClientSessionId";
+        }
+
     }
 
     @JsonProperty(Domain.CLIENT_INSTRUCTION.ATTR_ID)

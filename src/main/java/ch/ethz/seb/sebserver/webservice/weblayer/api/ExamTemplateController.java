@@ -42,6 +42,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.IndicatorTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamTemplateRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
@@ -427,15 +428,23 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
         return this.entityDAO
                 .byPK(examId)
                 .flatMap(this.authorization::checkModify)
-                .map(examTemplate -> {
-                    this.proctoringServiceSettingsService.saveProctoringServiceSettings(
-                            new EntityKey(examId, EntityType.EXAM_TEMPLATE),
-                            proctoringServiceSettings)
-                            .getOrThrow();
-                    return examTemplate;
-                })
+                .flatMap(examTemplate -> testAndSaveProctoringSettings(examId, examTemplate, proctoringServiceSettings))
                 .flatMap(this.userActivityLogDAO::logModify)
                 .getOrThrow();
+    }
+
+    private Result<ExamTemplate> testAndSaveProctoringSettings(
+            final Long examId,
+            final ExamTemplate examTemplate,
+            final ProctoringServiceSettings proctoringServiceSettings) {
+
+        return this.proctoringServiceSettingsService
+                .testProctoringSettings(proctoringServiceSettings)
+                .flatMap(test -> this.proctoringServiceSettingsService
+                        .saveProctoringServiceSettings(
+                                new EntityKey(examId, EntityType.EXAM_TEMPLATE),
+                                proctoringServiceSettings))
+                .map(settings -> examTemplate);
     }
 
     // **** Proctoring

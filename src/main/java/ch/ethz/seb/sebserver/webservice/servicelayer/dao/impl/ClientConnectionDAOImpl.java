@@ -24,6 +24,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -227,7 +228,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional
-    public Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateActive() {
+    public Result<Collection<ClientConnectionRecord>> getAllForProctoringUpdateActive() {
         return Result.<Collection<ClientConnectionRecord>> tryCatch(() -> {
 
             final Collection<ClientConnectionRecord> records = this.clientConnectionRecordMapper
@@ -237,33 +238,20 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .build()
                     .execute();
 
+            final List<ClientConnectionRecord> execute = this.clientConnectionRecordMapper
+                    .selectByExample()
+                    .build()
+                    .execute();
+
             if (records == null || records.isEmpty()) {
                 return Collections.emptyList();
             }
 
-            final List<Long> ids = records
-                    .stream()
-                    .map(rec -> rec.getId())
-                    .collect(Collectors.toList());
-
-            final ClientConnectionRecord updateRecord = createProctoringRoomUpdateRecord(0);
-            this.clientConnectionRecordMapper.updateByExampleSelective(updateRecord)
-                    .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(ids))
-                    .build()
-                    .execute();
+            markProctoringRoomUpdated(records);
 
             return records;
         })
                 .onError(TransactionHandler::rollback);
-    }
-
-    private ClientConnectionRecord createProctoringRoomUpdateRecord(final int remoteProctoringRoomUpdate) {
-        final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
-                null, null, null, null, null, null,
-                null, null, null, null, null, null, null,
-                remoteProctoringRoomUpdate,
-                null, null, null, null, null, null);
-        return updateRecord;
     }
 
     @Override
@@ -294,7 +282,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional
-    public Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateInactive() {
+    public Result<Collection<ClientConnectionRecord>> getAllForProctoringUpdateInactive() {
         return Result.<Collection<ClientConnectionRecord>> tryCatch(() -> {
             final Collection<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                     .selectByExample()
@@ -307,16 +295,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 return Collections.emptyList();
             }
 
-            final List<Long> ids = records
-                    .stream()
-                    .map(rec -> rec.getId())
-                    .collect(Collectors.toList());
-
-            final ClientConnectionRecord updateRecord = createProctoringRoomUpdateRecord(0);
-            this.clientConnectionRecordMapper.updateByExampleSelective(updateRecord)
-                    .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(ids))
-                    .build()
-                    .execute();
+            markProctoringRoomUpdated(records);
 
             return records;
         })
@@ -377,8 +356,10 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.vdiPairToken,
                     millisecondsNow,
                     nanosecondsNow,
+                    data.screenProctoringGroupId,
+                    (byte) 0,
                     data.remoteProctoringRoomId,
-                    null,
+                    0,
                     Utils.truncateText(data.sebMachineName, 255),
                     Utils.truncateText(data.sebOSName, 255),
                     Utils.truncateText(data.sebVersion, 255),
@@ -398,10 +379,11 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public Result<ClientConnection> save(final ClientConnection data) {
         return Result.tryCatch(() -> {
 
+            final Integer proctoringUpdate = BooleanUtils.isTrue(data.remoteProctoringRoomUpdate) ? 1 : null;
+            final Byte spsUpdate = BooleanUtils.isTrue(data.screenProctoringGroupUpdate) ? (byte) 1 : null;
+
             // NOTE: we use nanoseconds here to get a better precision to better avoid
             //       same value of real concurrent calls on distributed systems
-            // TODO: Better solution for the future would be to count this value and
-            //       isolation is done via DB transaction
             final long nanosecondsNow = System.nanoTime();
             final ClientConnectionRecord updateRecord = new ClientConnectionRecord(
                     data.id,
@@ -417,7 +399,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     null,
                     nanosecondsNow,
                     null,
+                    spsUpdate,
                     null,
+                    proctoringUpdate,
                     Utils.truncateText(data.sebMachineName, 255),
                     Utils.truncateText(data.sebOSName, 255),
                     Utils.truncateText(data.sebVersion, 255),
@@ -426,7 +410,10 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     Utils.toByte(data.clientVersionGranted));
 
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(updateRecord);
-            return this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
+            final ClientConnectionRecord selectByPrimaryKey =
+                    this.clientConnectionRecordMapper.selectByPrimaryKey(data.id);
+
+            return selectByPrimaryKey;
         })
                 .flatMap(ClientConnectionDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
@@ -436,11 +423,15 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Transactional
     public Result<Boolean> saveSecurityCheckStatus(final Long connectionId, final Boolean checkStatus) {
         return Result.tryCatch(() -> {
-            this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
-                    connectionId,
-                    null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                    Utils.toByte(checkStatus),
-                    null, null));
+
+            UpdateDSL.updateWithMapper(
+                    this.clientConnectionRecordMapper::update,
+                    ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                    .set(ClientConnectionRecordDynamicSqlSupport.securityCheckGranted)
+                    .equalTo(Utils.toByte(checkStatus))
+                    .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
+                    .build()
+                    .execute();
             return checkStatus;
         })
                 .onError(TransactionHandler::rollback);
@@ -450,10 +441,15 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Transactional
     public Result<Boolean> saveSEBClientVersionCheckStatus(final Long connectionId, final Boolean checkStatus) {
         return Result.tryCatch(() -> {
-            this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
-                    connectionId,
-                    null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                    null, null, Utils.toByte(checkStatus)));
+
+            UpdateDSL.updateWithMapper(
+                    this.clientConnectionRecordMapper::update,
+                    ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                    .set(ClientConnectionRecordDynamicSqlSupport.clientVersionGranted)
+                    .equalTo(Utils.toByte(checkStatus))
+                    .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
+                    .build()
+                    .execute();
             return checkStatus;
         })
                 .onError(TransactionHandler::rollback);
@@ -467,10 +463,14 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             final Long roomId) {
 
         return Result.tryCatch(() -> {
-            this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
-                    connectionId,
-                    null, null, null, null, null, null, null, null, null, null, null,
-                    roomId, 0, null, null, null, null, null, null));
+            UpdateDSL.updateWithMapper(
+                    this.clientConnectionRecordMapper::update,
+                    ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                    .set(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomId).equalTo(roomId)
+                    .set(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate).equalTo(0)
+                    .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
+                    .build()
+                    .execute();
         })
                 .onError(TransactionHandler::rollback);
     }
@@ -479,10 +479,14 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Transactional
     public Result<Void> markForProctoringUpdate(final Long id) {
         return Result.tryCatch(() -> {
-            this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
-                    id,
-                    null, null, null, null, null, null, null, null, null, null, null, null,
-                    1, null, null, null, null, null, null));
+
+            UpdateDSL.updateWithMapper(
+                    this.clientConnectionRecordMapper::update,
+                    ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                    .set(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate).equalTo(1)
+                    .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(id))
+                    .build()
+                    .execute();
         })
                 .onError(TransactionHandler::rollback);
     }
@@ -493,30 +497,74 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         return Result.tryCatch(() -> {
             final ClientConnectionRecord record = this.clientConnectionRecordMapper.selectByPrimaryKey(connectionId);
             if (record != null) {
-                this.clientConnectionRecordMapper.updateByPrimaryKey(new ClientConnectionRecord(
-                        connectionId,
-                        record.getInstitutionId(),
-                        record.getExamId(),
-                        record.getStatus(),
-                        record.getConnectionToken(),
-                        record.getExamUserSessionId(),
-                        record.getClientAddress(),
-                        record.getVirtualClientAddress(),
-                        record.getVdi(),
-                        record.getVdiPairToken(),
-                        record.getCreationTime(),
-                        record.getUpdateTime(),
-                        null,
-                        0,
-                        record.getClientMachineName(),
-                        record.getClientOsName(),
-                        record.getClientVersion(),
-                        record.getSecurityCheckGranted(),
-                        record.getAsk(),
-                        record.getClientVersionGranted()));
+
+                UpdateDSL.updateWithMapper(
+                        this.clientConnectionRecordMapper::update,
+                        ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                        .set(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomId).equalToNull()
+                        .set(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate).equalTo(0)
+                        .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
+                        .build()
+                        .execute();
             } else {
                 throw new ResourceNotFoundException(EntityType.CLIENT_CONNECTION, String.valueOf(connectionId));
             }
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ClientConnectionRecord>> getAllForScreenProctoringUpdate(final Collection<Long> examIds) {
+        return Result.<Collection<ClientConnectionRecord>> tryCatch(() -> {
+
+            if (examIds == null || examIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return this.clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId, isNull())
+                    .and(ClientConnectionRecordDynamicSqlSupport.examId, isIn(examIds))
+                    .and(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.ACTIVE.name()))
+                    .build()
+                    .execute();
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<ClientConnection>> getScreenProctoringGroupConnections(final Long groupId) {
+        return Result.tryCatch(() -> {
+            final Collection<ClientConnection> collect = this.clientConnectionRecordMapper
+                    .selectByExample()
+                    .where(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId, isEqualTo(groupId))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(ClientConnectionDAOImpl::toDomainModel)
+                    .flatMap(DAOLoggingSupport::logAndSkipOnError)
+                    .collect(Collectors.toList());
+            return collect;
+        });
+    }
+
+    @Override
+    @Transactional
+    public Result<Void> assignToScreenProctoringGroup(
+            final Long connectionId,
+            final String connectionToken,
+            final Long groupId) {
+
+        return Result.tryCatch(() -> {
+            UpdateDSL.updateWithMapper(
+                    this.clientConnectionRecordMapper::update,
+                    ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                    .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId).equalTo(groupId)
+                    .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate).equalTo((byte) 0)
+                    .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
+                    .build()
+                    .execute();
         })
                 .onError(TransactionHandler::rollback);
     }
@@ -906,6 +954,10 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     record.getVdiPairToken(),
                     record.getCreationTime(),
                     record.getUpdateTime(),
+                    record.getScreenProctoringGroupId(),
+                    record.getScreenProctoringGroupUpdate() != null
+                            ? BooleanUtils.toBooleanObject(record.getScreenProctoringGroupUpdate())
+                            : null,
                     record.getRemoteProctoringRoomId(),
                     BooleanUtils.toBooleanObject(record.getRemoteProctoringRoomUpdate()),
                     Utils.fromByteOrNull(record.getSecurityCheckGranted()),
@@ -1060,4 +1112,18 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
         }
     }
 
+    private void markProctoringRoomUpdated(final Collection<ClientConnectionRecord> records) {
+        final List<Long> ids = records
+                .stream()
+                .map(rec -> rec.getId())
+                .collect(Collectors.toList());
+
+        UpdateDSL.updateWithMapper(
+                this.clientConnectionRecordMapper::update,
+                ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
+                .set(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate).equalTo(0)
+                .where(ClientConnectionRecordDynamicSqlSupport.id, isIn(ids))
+                .build()
+                .execute();
+    }
 }

@@ -28,9 +28,11 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
 public interface ExamAdminService {
+
+    ProctoringAdminService getProctoringAdminService();
 
     /** Get the exam domain object for the exam identifier (PK).
      *
@@ -119,7 +121,7 @@ public interface ExamAdminService {
      *
      * @param examId the exam identifier
      * @return ExamProctoringService instance */
-    Result<ExamProctoringService> getExamProctoringService(final Long examId);
+    Result<RemoteProctoringService> getExamProctoringService(final Long examId);
 
     /** This resets the proctoring settings for a given exam and stores the default settings.
      *

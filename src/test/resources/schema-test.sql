@@ -114,6 +114,28 @@ CREATE TABLE IF NOT EXISTS `remote_proctoring_room` (
     ON UPDATE NO ACTION);
 
 -- -----------------------------------------------------
+-- Table `screen_proctoring_group`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `screen_proctoring_group` ;
+
+CREATE TABLE IF NOT EXISTS `screen_proctoring_group` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `exam_id` BIGINT UNSIGNED NOT NULL,
+  `uuid` VARCHAR(255) NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `size` INT NULL,
+  `data` VARCHAR(4000) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `uuid_UNIQUE` (`uuid` ASC),
+  INDEX `screenProctoringGroupExamRef_idx` (`exam_id` ASC),
+  CONSTRAINT `screenProctoringGroupExamRef`
+    FOREIGN KEY (`exam_id`)
+    REFERENCES `exam` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+;
+
+-- -----------------------------------------------------
 -- Table `client_connection`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `client_connection` ;
@@ -131,6 +153,8 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   `vdi_pair_token` VARCHAR(255) NULL,
   `creation_time` BIGINT UNSIGNED NOT NULL,
   `update_time` BIGINT UNSIGNED NULL,
+  `screen_proctoring_group_id` BIGINT UNSIGNED NULL,
+  `screen_proctoring_group_update` TINYINT(1) UNSIGNED NULL,
   `remote_proctoring_room_id` BIGINT UNSIGNED NULL,
   `remote_proctoring_room_update` INT(1) UNSIGNED NULL,
   `client_machine_name` VARCHAR(45) NULL,
@@ -144,6 +168,7 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   INDEX `clientConnectionInstitutionRef_idx` (`institution_id` ASC),
   INDEX `connectionTokenRef` (`connection_token` ASC),
   INDEX `clientConnectionProctorRoomRef_idx` (`remote_proctoring_room_id` ASC),
+  INDEX `clientConnectionScreenProctoringGroupRef_idx` (`screen_proctoring_group_id` ASC),
   CONSTRAINT `clientConnectionExamRef`
     FOREIGN KEY (`exam_id`)
     REFERENCES `exam` (`id`)
@@ -157,6 +182,11 @@ CREATE TABLE IF NOT EXISTS `client_connection` (
   CONSTRAINT `clientConnectionRemoteProctoringRoomRef`
     FOREIGN KEY (`remote_proctoring_room_id`)
     REFERENCES `remote_proctoring_room` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `clientConnectionScreenProctoringGroupRef`
+    FOREIGN KEY (`screen_proctoring_group_id`)
+    REFERENCES `screen_proctoring_group` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ;

@@ -44,17 +44,17 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 
 @Lazy
 @Service
 @WebServiceProfile
-public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService {
+public class RemoteProctoringRoomServiceImpl implements RemoteProctoringRoomService {
 
-    private static final Logger log = LoggerFactory.getLogger(ExamProctoringRoomServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(RemoteProctoringRoomServiceImpl.class);
 
     private static final Object RESERVE_ROOM_LOCK = new Object();
 
@@ -66,7 +66,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     private final SEBClientInstructionService sebInstructionService;
     private final boolean sendBroadcastReset;
 
-    public ExamProctoringRoomServiceImpl(
+    public RemoteProctoringRoomServiceImpl(
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO,
             final ClientConnectionDAO clientConnectionDAO,
             final ExamAdminService examAdminService,
@@ -133,16 +133,17 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     @Override
     public void updateProctoringCollectingRooms() {
         try {
+
             // Applying to collecting room
             this.clientConnectionDAO
-                    .getAllConnectionIdsForRoomUpdateActive()
+                    .getAllForProctoringUpdateActive()
                     .getOrThrow()
                     .stream()
                     .forEach(this::assignToCollectingRoom);
 
             // Dispose from collecting room
             this.clientConnectionDAO
-                    .getAllConnectionIdsForRoomUpdateInactive()
+                    .getAllForProctoringUpdateInactive()
                     .getOrThrow()
                     .stream()
                     .forEach(this::removeFromRoom);
@@ -216,7 +217,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.proctoringAdminService
+            final RemoteProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
@@ -254,7 +255,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.proctoringAdminService
+            final RemoteProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
@@ -284,7 +285,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.proctoringAdminService
+            final RemoteProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
@@ -338,10 +339,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     }
 
                     this.clientConnectionDAO
-                            .assignToProctoringRoom(
-                                    cc.getId(),
-                                    cc.getConnectionToken(),
-                                    proctoringRoom.id)
+                            .assignToProctoringRoom(cc.getId(), cc.getConnectionToken(), proctoringRoom.id)
                             .getOrThrow();
 
                     applyProcotringInstruction(cc)
@@ -387,7 +385,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.proctoringAdminService
+            final RemoteProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(proctoringSettings.serverType)
                     .getOrThrow();
 
@@ -431,7 +429,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.proctoringAdminService
+            final RemoteProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(proctoringSettings.serverType)
                     .getOrThrow();
 
@@ -461,7 +459,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     private void closeTownhall(
             final Long examId,
             final ProctoringServiceSettings proctoringSettings,
-            final ExamProctoringService examProctoringService) {
+            final RemoteProctoringService examProctoringService) {
 
         // Get all active connections
         final Collection<String> connectionTokens = this.examSessionService
@@ -497,7 +495,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final Long examId,
             final String roomName,
             final ProctoringServiceSettings proctoringSettings,
-            final ExamProctoringService examProctoringService) {
+            final RemoteProctoringService examProctoringService) {
 
         // get all connections of the room
         final List<String> connectionTokens = this
@@ -543,7 +541,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                 .getOrThrow();
 
         roomsToCleanup.stream().forEach(room -> {
-            final ExamProctoringService examProctoringService = this.examAdminService
+            final RemoteProctoringService examProctoringService = this.examAdminService
                     .getExamProctoringService(room.examId)
                     .getOrThrow();
 
@@ -566,7 +564,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     private void closeBreakOutRoom(
             final Long examId,
             final ProctoringServiceSettings proctoringSettings,
-            final ExamProctoringService examProctoringService,
+            final RemoteProctoringService examProctoringService,
             final RemoteProctoringRoom remoteProctoringRoom) {
 
         // Send default settings to clients if feature is enabled
@@ -611,7 +609,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.proctoringAdminService
+            final RemoteProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
@@ -672,7 +670,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
                     .getProctoringServiceSettings(examId)
                     .getOrThrow();
 
-            final ExamProctoringService examProctoringService = this.proctoringAdminService
+            final RemoteProctoringService examProctoringService = this.proctoringAdminService
                     .getExamProctoringService(settings.serverType)
                     .getOrThrow();
 
@@ -727,7 +725,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final String roomName,
             final String subject) {
 
-        final ExamProctoringService examProctoringService = this.proctoringAdminService
+        final RemoteProctoringService examProctoringService = this.proctoringAdminService
                 .getExamProctoringService(proctoringSettings.serverType)
                 .getOrThrow();
 
@@ -773,7 +771,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
     private void sendJoinCollectingRoomInstructions(
             final ProctoringServiceSettings proctoringSettings,
             final Collection<String> clientConnectionTokens,
-            final ExamProctoringService examProctoringService) {
+            final RemoteProctoringService examProctoringService) {
 
         clientConnectionTokens
                 .stream()
@@ -793,7 +791,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
 
     private void sendJoinCollectingRoomInstruction(
             final ProctoringServiceSettings proctoringSettings,
-            final ExamProctoringService examProctoringService,
+            final RemoteProctoringService examProctoringService,
             final String connectionToken) {
 
         try {
@@ -830,7 +828,7 @@ public class ExamProctoringRoomServiceImpl implements ExamProctoringRoomService 
             final Long examId,
             final String connectionToken,
             final ProctoringRoomConnection proctoringConnection,
-            final ExamProctoringService examProctoringService,
+            final RemoteProctoringService examProctoringService,
             final ProctoringRoomType roomType) {
 
         if (log.isDebugEnabled()) {

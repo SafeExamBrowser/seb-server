@@ -50,6 +50,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.exam.SEBRestriction;
+import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.institution.AppSignatureKeyInfo;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
@@ -73,8 +74,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamTemplateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationService;
 
 @WebServiceProfile
@@ -87,12 +88,12 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final ExamDAO examDAO;
     private final UserDAO userDAO;
     private final ExamAdminService examAdminService;
+    private final RemoteProctoringRoomService remoteProctoringRoomService;
     private final ExamTemplateService examTemplateService;
     private final LmsAPIService lmsAPIService;
     private final ExamSessionService examSessionService;
     private final SEBRestrictionService sebRestrictionService;
     private final SecurityKeyService securityKeyService;
-    private final ExamProctoringRoomService examProctoringRoomService;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -104,11 +105,11 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final LmsAPIService lmsAPIService,
             final UserDAO userDAO,
             final ExamAdminService examAdminService,
+            final RemoteProctoringRoomService remoteProctoringRoomService,
             final ExamTemplateService examTemplateService,
             final ExamSessionService examSessionService,
             final SEBRestrictionService sebRestrictionService,
-            final SecurityKeyService securityKeyService,
-            final ExamProctoringRoomService examProctoringRoomService) {
+            final SecurityKeyService securityKeyService) {
 
         super(authorization,
                 bulkActionService,
@@ -120,12 +121,12 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.examDAO = examDAO;
         this.userDAO = userDAO;
         this.examAdminService = examAdminService;
+        this.remoteProctoringRoomService = remoteProctoringRoomService;
         this.examTemplateService = examTemplateService;
         this.lmsAPIService = lmsAPIService;
         this.examSessionService = examSessionService;
         this.sebRestrictionService = sebRestrictionService;
         this.securityKeyService = securityKeyService;
-        this.examProctoringRoomService = examProctoringRoomService;
     }
 
     @Override
@@ -463,7 +464,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
         checkReadPrivilege(institutionId);
         return this.examAdminService
-                .getProctoringServiceSettings(modelId)
+                .getProctoringAdminService()
+                .getProctoringSettings(new EntityKey(modelId, EntityType.EXAM))
                 .getOrThrow();
     }
 
@@ -486,7 +488,10 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                 .flatMap(this.authorization::checkModify)
                 .map(exam -> {
                     this.examAdminService
-                            .saveProctoringServiceSettings(examId, proctoringServiceSettings)
+                            .getProctoringAdminService()
+                            .saveProctoringServiceSettings(
+                                    new EntityKey(examId, EntityType.EXAM),
+                                    proctoringServiceSettings)
                             .getOrThrow();
                     return exam;
                 })
@@ -511,7 +516,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
         return this.entityDAO
                 .byPK(examId)
-                .flatMap(this.examProctoringRoomService::cleanupAllRooms)
+                .flatMap(this.remoteProctoringRoomService::cleanupAllRooms)
                 .map(exam -> {
                     this.examAdminService.getExamProctoringService(exam.id)
                             .onSuccess(service -> service.clearRestTemplateCache(exam.id))
@@ -524,6 +529,61 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     }
 
     // **** Proctoring
+    // ****************************************************************************
+
+    // ****************************************************************************
+    // **** Screen Proctoring
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ScreenProctoringSettings getScreenProctoringeSettings(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable final Long modelId) {
+
+        checkReadPrivilege(institutionId);
+        return this.examAdminService
+                .getProctoringAdminService()
+                .getScreenProctoringSettings(new EntityKey(modelId, EntityType.EXAM))
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Exam saveScreenProctoringSettings(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(API.PARAM_MODEL_ID) final Long examId,
+            @Valid @RequestBody final ScreenProctoringSettings screenProctoringSettings) {
+
+        checkModifyPrivilege(institutionId);
+        return this.entityDAO
+                .byPK(examId)
+                .flatMap(this.authorization::checkModify)
+                .map(exam -> {
+                    this.examAdminService
+                            .getProctoringAdminService()
+                            .saveScreenProctoringSettings(
+                                    new EntityKey(examId, EntityType.EXAM),
+                                    screenProctoringSettings)
+                            .getOrThrow();
+                    return exam;
+                })
+                .flatMap(this.userActivityLogDAO::logModify)
+                .getOrThrow();
+    }
+
+    // **** Screen Proctoring
     // ****************************************************************************
 
     @Override

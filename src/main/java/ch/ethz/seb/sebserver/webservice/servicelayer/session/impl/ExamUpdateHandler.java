@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -41,11 +42,13 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamResetEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamStartedEvent;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamUpdateTask;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 
 @Lazy
 @Service
 @WebServiceProfile
-class ExamUpdateHandler {
+class ExamUpdateHandler implements ExamUpdateTask {
 
     private static final Logger log = LoggerFactory.getLogger(ExamUpdateHandler.class);
 
@@ -54,7 +57,9 @@ class ExamUpdateHandler {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final SEBRestrictionService sebRestrictionService;
     private final LmsAPIService lmsAPIService;
+    private final ScreenProctoringService screenProctoringService;
     private final String updatePrefix;
+    private final Long examTimePrefix;
     private final Long examTimeSuffix;
     private final boolean tryRecoverExam;
     private final int recoverAttempts;
@@ -66,6 +71,8 @@ class ExamUpdateHandler {
             final SEBRestrictionService sebRestrictionService,
             final LmsAPIService lmsAPIService,
             final WebserviceInfo webserviceInfo,
+            final ScreenProctoringService screenProctoringService,
+            @Value("${sebserver.webservice.api.exam.time-prefix:3600000}") final Long examTimePrefix,
             @Value("${sebserver.webservice.api.exam.time-suffix:3600000}") final Long examTimeSuffix,
             @Value("${sebserver.webservice.api.exam.tryrecover:true}") final boolean tryRecoverExam,
             @Value("${sebserver.webservice.api.exam.recoverattempts:3}") final int recoverAttempts) {
@@ -75,8 +82,10 @@ class ExamUpdateHandler {
         this.applicationEventPublisher = applicationEventPublisher;
         this.sebRestrictionService = sebRestrictionService;
         this.lmsAPIService = lmsAPIService;
+        this.screenProctoringService = screenProctoringService;
         this.updatePrefix = webserviceInfo.getLocalHostAddress()
                 + "_" + webserviceInfo.getServerPort() + "_";
+        this.examTimePrefix = examTimePrefix;
         this.examTimeSuffix = examTimeSuffix;
         this.tryRecoverExam = tryRecoverExam;
         this.recoverAttempts = recoverAttempts;
@@ -88,6 +97,25 @@ class ExamUpdateHandler {
 
     String createUpdateId() {
         return this.updatePrefix + Utils.getMillisecondsNow();
+    }
+
+    @Override
+    public int examUpdateTaskProcessingOrder() {
+        return 0;
+    }
+
+    @Override
+    public void processExamUpdateTask() {
+
+        final String updateId = this.createUpdateId();
+
+        if (log.isDebugEnabled()) {
+            log.debug("Run exam update task with Id: {}", updateId);
+        }
+
+        controlExamLMSUpdate();
+        controlExamState(updateId);
+        this.examDAO.releaseAgedLocks();
     }
 
     Result<Set<String>> updateExamFromLMS(final Long lmsSetupId, final Map<String, Exam> exams) {
@@ -160,6 +188,12 @@ class ExamUpdateHandler {
                                     failedOrMissing.remove(quiz.id);
                                     log.info("Updated quiz data for exam: {}", updateQuizData.get());
                                 }
+
+                                // also update the exam on screen proctoring service if exam has screen proctoring enabled
+                                this.screenProctoringService
+                                        .updateExamOnScreenProctoingService(exam.id)
+                                        .onError(error -> log
+                                                .error("Failed to update exam changes for screen proctoring"));
 
                             } else {
                                 if (!exam.isLmsAvailable()) {
@@ -476,6 +510,73 @@ class ExamUpdateHandler {
                     EntityType.EXAM,
                     exam.id,
                     Exam.ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS);
+        }
+    }
+
+    private void controlExamLMSUpdate() {
+        if (log.isTraceEnabled()) {
+            log.trace("Start update exams from LMS");
+        }
+
+        try {
+
+            // create mapping
+            final Map<Long, Map<String, Exam>> examToLMSMapping = new HashMap<>();
+            this.examDAO.allForLMSUpdate()
+                    .onError(error -> log.error("Failed to update exams from LMS: ", error))
+                    .getOr(Collections.emptyList())
+                    .stream()
+                    .forEach(exam -> {
+                        final Map<String, Exam> examMap = (examToLMSMapping.computeIfAbsent(
+                                exam.lmsSetupId,
+                                lmsId -> new HashMap<>()));
+                        examMap.put(exam.externalId, exam);
+                    });
+
+            // update per LMS Setup
+            examToLMSMapping.entrySet()
+                    .stream()
+                    .forEach(updateEntry -> {
+                        final Result<Set<String>> updateExamFromLMS = this.updateExamFromLMS(
+                                updateEntry.getKey(),
+                                updateEntry.getValue());
+
+                        if (updateExamFromLMS.hasError()) {
+                            log.error("Failed to update exams from LMS: ", updateExamFromLMS.getError());
+                        } else {
+                            final Set<String> failedExams = updateExamFromLMS.get();
+                            if (!failedExams.isEmpty()) {
+                                log.warn("Failed to update following exams from LMS: {}", failedExams);
+                            }
+                        }
+                    });
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while update exams from LMS: ", e);
+        }
+    }
+
+    private void controlExamState(final String updateId) {
+        if (log.isTraceEnabled()) {
+            log.trace("Check starting exams: {}", updateId);
+        }
+
+        try {
+
+            final DateTime now = DateTime.now(DateTimeZone.UTC);
+            this.examDAO
+                    .allThatNeedsStatusUpdate(this.examTimePrefix, this.examTimeSuffix)
+                    .getOrThrow()
+                    .stream()
+                    .forEach(exam -> this.updateState(
+                            exam,
+                            now,
+                            this.examTimePrefix,
+                            this.examTimeSuffix,
+                            updateId));
+
+        } catch (final Exception e) {
+            log.error("Unexpected error while trying to run exam state update task: ", e);
         }
     }
 

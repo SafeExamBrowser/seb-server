@@ -51,9 +51,13 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      *
      * @param institutionId the identifier of the institution
      * @return Result refer to a collection of all active and running exams of the given institution or refer to an
-     *         error if
-     *         happened */
+     *         error if happened */
     Result<Collection<Long>> allIdsOfRunning(final Long institutionId);
+
+    /** Get all active and running exam id's for exams that are enabled for SEB screen proctoring.
+     *
+     * @return Result refer to a collection of all matching exam id's or to an error if happened */
+    Result<Collection<Long>> allIdsOfRunningWithScreenProctoringEnabled();
 
     /** Get all institution ids for that a specified exam for given quiz id already exists
      *

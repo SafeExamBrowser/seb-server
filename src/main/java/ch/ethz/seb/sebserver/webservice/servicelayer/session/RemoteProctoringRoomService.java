@@ -20,7 +20,17 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 
 /** Defines functionality to deal with proctoring rooms in a generic way (independent from meeting service) */
-public interface ExamProctoringRoomService {
+public interface RemoteProctoringRoomService extends SessionUpdateTask {
+
+    @Override
+    default int sessionUpdateTaskProcessingOrder() {
+        return 1;
+    }
+
+    @Override
+    default void processSessionUpdateTask() {
+        updateProctoringCollectingRooms();
+    }
 
     ProctoringAdminService getProctoringAdminService();
 

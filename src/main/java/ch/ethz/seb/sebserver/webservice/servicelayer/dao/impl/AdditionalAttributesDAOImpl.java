@@ -87,6 +87,25 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
     }
 
     @Override
+    public Result<Collection<AdditionalAttributeRecord>> getAdditionalAttribute(
+            final EntityType type,
+            final String attributeName) {
+
+        return Result.tryCatch(() -> {
+            return this.additionalAttributeRecordMapper
+                    .selectByExample()
+                    .where(
+                            AdditionalAttributeRecordDynamicSqlSupport.entityType,
+                            SqlBuilder.isEqualTo(type.name()))
+                    .and(
+                            AdditionalAttributeRecordDynamicSqlSupport.name,
+                            SqlBuilder.isEqualTo(attributeName))
+                    .build()
+                    .execute();
+        });
+    }
+
+    @Override
     @Transactional
     public Result<AdditionalAttributeRecord> saveAdditionalAttribute(
             final EntityType type,

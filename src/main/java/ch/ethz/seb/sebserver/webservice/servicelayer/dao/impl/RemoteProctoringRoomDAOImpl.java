@@ -65,6 +65,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Result<Boolean> isServiceInUse(final Long examId) {
         return Result.tryCatch(() -> this.remoteProctoringRoomRecordMapper
                 .countByExample()
@@ -300,7 +301,7 @@ public class RemoteProctoringRoomDAOImpl implements RemoteProctoringRoomDAO {
                             .build()
                             .execute()
                             .stream()
-                            .filter(r -> r.getSize() < roomMaxSize)
+                            .filter(r -> roomMaxSize <= 0 || r.getSize() < roomMaxSize)
                             .findFirst();
 
             if (room.isPresent()) {

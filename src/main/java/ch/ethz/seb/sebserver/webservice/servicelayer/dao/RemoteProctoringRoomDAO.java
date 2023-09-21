@@ -104,7 +104,7 @@ public interface RemoteProctoringRoomDAO {
      * already have been collected within the actual collecting room.
      *
      * @param examId the exam identifier
-     * @param roomMaxSize the maximum size of connection collected in one collecting room
+     * @param roomMaxSize the maximum size of connection collected in one collecting room. Size of 0 means no limit.
      * @param newRoomFunction Function to create data for a new collecting room if needed.
      * @return Result refer to the collecting room record of place or to an error when happened */
     Result<RemoteProctoringRoom> reservePlaceInCollectingRoom(

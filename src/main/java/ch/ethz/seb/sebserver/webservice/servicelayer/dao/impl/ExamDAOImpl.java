@@ -45,11 +45,13 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamType;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordMapper;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ExamRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.impl.BulkAction;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.AdditionalAttributesDAO;
@@ -615,6 +617,38 @@ public class ExamDAOImpl implements ExamDAO {
 
             return result;
         });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Result<Collection<Long>> allIdsOfRunningWithScreenProctoringEnabled() {
+
+        return this.additionalAttributesDAO
+                .getAdditionalAttribute(EntityType.EXAM, ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)
+                .map(attrs -> {
+
+                    if (attrs.isEmpty()) {
+                        return Collections.emptyList();
+                    }
+
+                    final List<Long> examIds = attrs
+                            .stream()
+                            .map(AdditionalAttributeRecord::getEntityId)
+                            .collect(Collectors.toList());
+
+                    return this.examRecordMapper.selectIdsByExample()
+                            .where(
+                                    ExamRecordDynamicSqlSupport.id,
+                                    isIn(examIds))
+                            .and(
+                                    ExamRecordDynamicSqlSupport.active,
+                                    isEqualToWhenPresent(BooleanUtils.toIntegerObject(true)))
+                            .and(
+                                    ExamRecordDynamicSqlSupport.status,
+                                    isEqualTo(ExamStatus.RUNNING.name()))
+                            .build()
+                            .execute();
+                });
     }
 
     @Override

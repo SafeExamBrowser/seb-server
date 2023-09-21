@@ -19,24 +19,24 @@ import org.springframework.stereotype.Service;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
 @Lazy
 @Service
 @WebServiceProfile
-public class ExamProctoringServiceFactory {
+public class RemoteProctoringServiceFactory {
 
-    private final EnumMap<ProctoringServerType, ExamProctoringService> services;
+    private final EnumMap<ProctoringServerType, RemoteProctoringService> services;
 
-    public ExamProctoringServiceFactory(final Collection<ExamProctoringService> proctorServices) {
+    public RemoteProctoringServiceFactory(final Collection<RemoteProctoringService> proctorServices) {
         this.services = new EnumMap<>(proctorServices
                 .stream()
-                .collect(Collectors.<ExamProctoringService, ProctoringServerType, ExamProctoringService> toMap(
+                .collect(Collectors.<RemoteProctoringService, ProctoringServerType, RemoteProctoringService> toMap(
                         s -> s.getType(),
                         Function.identity())));
     }
 
-    public Result<ExamProctoringService> getExamProctoringService(final ProctoringServerType type) {
+    public Result<RemoteProctoringService> getExamProctoringService(final ProctoringServerType type) {
         if (this.services.containsKey(type)) {
             return Result.of(this.services.get(type));
         }

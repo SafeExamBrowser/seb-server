@@ -3,28 +3,28 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class SecurityKeyRegistryRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.808+02:00", comments="Source field: seb_security_key_registry.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.808+02:00", comments="Source field: seb_security_key_registry.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.institution_id")
     private Long institutionId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.808+02:00", comments="Source field: seb_security_key_registry.key_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.key_type")
     private String keyType;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.808+02:00", comments="Source field: seb_security_key_registry.key_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.key_value")
     private String keyValue;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.808+02:00", comments="Source field: seb_security_key_registry.tag")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.tag")
     private String tag;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.809+02:00", comments="Source field: seb_security_key_registry.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.exam_id")
     private Long examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.809+02:00", comments="Source field: seb_security_key_registry.exam_template_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.exam_template_id")
     private Long examTemplateId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.808+02:00", comments="Source Table: seb_security_key_registry")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source Table: seb_security_key_registry")
     public SecurityKeyRegistryRecord(Long id, Long institutionId, String keyType, String keyValue, String tag, Long examId, Long examTemplateId) {
         this.id = id;
         this.institutionId = institutionId;
@@ -35,37 +35,37 @@ public class SecurityKeyRegistryRecord {
         this.examTemplateId = examTemplateId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.808+02:00", comments="Source field: seb_security_key_registry.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.808+02:00", comments="Source field: seb_security_key_registry.institution_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.institution_id")
     public Long getInstitutionId() {
         return institutionId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.808+02:00", comments="Source field: seb_security_key_registry.key_type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.key_type")
     public String getKeyType() {
         return keyType;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.808+02:00", comments="Source field: seb_security_key_registry.key_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.key_value")
     public String getKeyValue() {
         return keyValue;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.808+02:00", comments="Source field: seb_security_key_registry.tag")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.tag")
     public String getTag() {
         return tag;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.809+02:00", comments="Source field: seb_security_key_registry.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.exam_id")
     public Long getExamId() {
         return examId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.810+02:00", comments="Source field: seb_security_key_registry.exam_template_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.107+02:00", comments="Source field: seb_security_key_registry.exam_template_id")
     public Long getExamTemplateId() {
         return examTemplateId;
     }
@@ -74,7 +74,7 @@ public class SecurityKeyRegistryRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table seb_security_key_registry
      *
-     * @mbg.generated Thu Aug 24 13:24:15 CEST 2023
+     * @mbg.generated Thu Sep 14 09:19:48 CEST 2023
      */
     @Override
     public String toString() {
@@ -97,7 +97,7 @@ public class SecurityKeyRegistryRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table seb_security_key_registry
      *
-     * @mbg.generated Thu Aug 24 13:24:15 CEST 2023
+     * @mbg.generated Thu Sep 14 09:19:48 CEST 2023
      */
     @Override
     public boolean equals(Object that) {
@@ -124,7 +124,7 @@ public class SecurityKeyRegistryRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table seb_security_key_registry
      *
-     * @mbg.generated Thu Aug 24 13:24:15 CEST 2023
+     * @mbg.generated Thu Sep 14 09:19:48 CEST 2023
      */
     @Override
     public int hashCode() {

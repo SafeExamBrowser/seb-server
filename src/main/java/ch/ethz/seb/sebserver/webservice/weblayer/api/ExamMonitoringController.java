@@ -66,7 +66,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
@@ -87,7 +87,7 @@ public class ExamMonitoringController {
     private final AuthorizationService authorization;
     private final PaginationService paginationService;
     private final SEBClientNotificationService sebClientNotificationService;
-    private final ExamProctoringRoomService examProcotringRoomService;
+    private final RemoteProctoringRoomService examProcotringRoomService;
     private final ExamAdminService examAdminService;
     private final SecurityKeyService securityKeyService;
     private final Executor executor;
@@ -98,7 +98,7 @@ public class ExamMonitoringController {
             final AuthorizationService authorization,
             final PaginationService paginationService,
             final SEBClientNotificationService sebClientNotificationService,
-            final ExamProctoringRoomService examProcotringRoomService,
+            final RemoteProctoringRoomService examProcotringRoomService,
             final SecurityKeyService securityKeyService,
             final ExamAdminService examAdminService,
             @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {

@@ -14,7 +14,8 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (1305, 'screenProctoringImageQuantization', 'SINGLE_SELECTION', null, '0,1,2,3,4,5', null, null, '2'),
     (1306, 'screenProctoringImageDownscale', 'SINGLE_SELECTION', null, '0,1,2,3,4,5,6,7,8,9,10', null, null, '0'),
     (1320, 'screenProctoringMetadataURLEnabled', 'CHECKBOX', null, null, null, null, 'true'),
-    (1321, 'screenProctoringMetadataWindowTitleEnabled', 'CHECKBOX', null, null, null, null, 'true')
+    (1321, 'screenProctoringMetadataWindowTitleEnabled', 'CHECKBOX', null, null, null, null, 'true'),
+    (1322, 'screenProctoringMetadataActiveAppEnabled', 'CHECKBOX', null, null, null, null, 'true')
 ;
 
 SET @proct_view_id = (SELECT id FROM view WHERE name='proctoring' AND template_id=0 LIMIT 1);
@@ -29,5 +30,6 @@ INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group
     
     
     (1320, 0,  @proct_view_id, 'metadata[proctoring|ScreenProctoring]', 6, 8, 6, 1, 'NONE'),
-    (1321, 0,  @proct_view_id, 'metadata[proctoring|ScreenProctoring]', 6, 9, 6, 1, 'NONE')
+    (1321, 0,  @proct_view_id, 'metadata[proctoring|ScreenProctoring]', 6, 9, 6, 1, 'NONE'),
+    (1322, 0,  @proct_view_id, 'metadata[proctoring|ScreenProctoring]', 6, 10, 6, 1, 'NONE')
 ;

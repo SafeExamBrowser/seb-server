@@ -29,8 +29,8 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
 
 @Sql(scripts = { "classpath:schema-test.sql", "classpath:data-test.sql", "classpath:data-test-additional.sql" })
 public class ExamProctoringRoomServiceTest extends AdministrationAPIIntegrationTester {
@@ -39,7 +39,7 @@ public class ExamProctoringRoomServiceTest extends AdministrationAPIIntegrationT
     private static final String CONNECTION_TOKEN_2 = "connection_token2";
 
     @Autowired
-    private ExamProctoringRoomService examProctoringRoomService;
+    private RemoteProctoringRoomService examProctoringRoomService;
     @Autowired
     private ExamSessionService examSessionService;
     @Autowired
@@ -74,10 +74,24 @@ public class ExamProctoringRoomServiceTest extends AdministrationAPIIntegrationT
     @Test
     @Order(2)
     public void test02_setProctoringServiceSettings() {
-        this.examAdminService.saveProctoringServiceSettings(
+        final Result<ProctoringServiceSettings> result = this.examAdminService.saveProctoringServiceSettings(
                 2L,
                 new ProctoringServiceSettings(
                         2L, true, ProctoringServerType.JITSI_MEET, "", 1, null, false,
+                        "app-key", "app.secret", "accountId",
+                        "clientId",
+                        "clientSecret", "sdk-key", "sdk.secret", false));
+
+        assertTrue(result.hasError());
+        final Exception error = result.getError();
+
+        assertFalse(this.examAdminService.isProctoringEnabled(2L).get());
+
+        // only with URL set it is saved
+        this.examAdminService.saveProctoringServiceSettings(
+                2L,
+                new ProctoringServiceSettings(
+                        2L, true, ProctoringServerType.JITSI_MEET, "https://test.ch", 1, null, false,
                         "app-key", "app.secret", "accountId",
                         "clientId",
                         "clientSecret", "sdk-key", "sdk.secret", false));
@@ -96,9 +110,6 @@ public class ExamProctoringRoomServiceTest extends AdministrationAPIIntegrationT
                 CONNECTION_TOKEN_1,
                 "",
                 "",
-                false,
-                "",
-                null,
                 "",
                 null,
                 null,

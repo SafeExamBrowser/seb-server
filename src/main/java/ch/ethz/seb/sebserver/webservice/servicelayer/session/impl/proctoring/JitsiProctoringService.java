@@ -62,13 +62,13 @@ import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
 @Lazy
 @Service
 @WebServiceProfile
-public class JitsiProctoringService implements ExamProctoringService {
+public class JitsiProctoringService implements RemoteProctoringService {
 
     private static final Logger log = LoggerFactory.getLogger(JitsiProctoringService.class);
 

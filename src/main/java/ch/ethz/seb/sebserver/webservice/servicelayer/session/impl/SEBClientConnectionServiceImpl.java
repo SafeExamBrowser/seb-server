@@ -166,6 +166,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     null,
+                    null,
+                    null,
                     null))
                     .getOrThrow();
 
@@ -279,6 +281,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                             null,
                             null,
                             null,
+                            null,
+                            null,
                             getSignatureHash(
                                     appSignatureKey,
                                     connectionToken,
@@ -377,6 +381,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 }
             }
 
+            // if screen proctoring enabled mark for screen proctoring update
+            // TODO
+
             final Boolean proctoringEnabled = this.examAdminService
                     .isProctoringEnabled(clientConnection.examId)
                     .getOr(false);
@@ -398,6 +405,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     StringUtils.isNoneBlank(sebMachineName) ? sebMachineName : null,
                     StringUtils.isNoneBlank(sebVersion) ? sebVersion : null,
                     StringUtils.isNoneBlank(clientId) ? clientId : null,
+                    null,
+                    null,
                     null,
                     null,
                     null,
@@ -446,11 +455,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             // initialize distributed indicator value caches if possible and needed
             if (examId != null && this.isDistributedSetup) {
                 this.clientIndicatorFactory.initializeDistributedCaches(clientConnection);
-            }
-
-            // if proctoring is enabled for exam, mark for room update
-            if (proctoringEnabled) {
-                this.clientConnectionDAO.markForProctoringUpdate(updatedClientConnection.id);
             }
 
             // flush and reload caches to work with actual connection data
@@ -507,6 +511,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 null,
                 null,
                 null,
+                establishedClientConnection.screenProctoringGroupUpdate,
+                null,
                 establishedClientConnection.remoteProctoringRoomUpdate,
                 null,
                 null,
@@ -518,7 +524,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         vdiPairCompanion.getId(), null,
                         vdiExamId, null, null, null, null, null, null,
                         establishedClientConnection.connectionToken,
-                        null, null, null, null, null, null, null, null, null, null))
+                        null, null, null, null, null, null, null, null, null, null, null, null))
                 .getOrThrow();
 
         reloadConnectionCache(vdiPairCompanion.getConnectionToken(), connection.examId);
@@ -749,8 +755,11 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             // create new ClientConnection for update
             final ClientConnection authenticatedClientConnection = new ClientConnection(
-                    clientConnection.id, null, null, ConnectionStatus.AUTHENTICATED, null,
-                    accountId, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+                    clientConnection.id,
+                    null, null,
+                    ConnectionStatus.AUTHENTICATED, null,
+                    accountId,
+                    null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
             clientConnection = this.clientConnectionDAO
                     .save(authenticatedClientConnection)
@@ -804,7 +813,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         return this.clientConnectionDAO.save(new ClientConnection(
                 clientConnection.id, null, null, status,
-                null, null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null,
                 proctoringEnabled, null, null, null))
                 .getOrThrow();
     }

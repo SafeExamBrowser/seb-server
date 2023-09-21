@@ -55,10 +55,19 @@ public interface AdditionalAttributesDAO {
      * @param type the entity type
      * @param entityId the entity identifier (primary key)
      * @param attributeName the name of the attribute
-     * @return Result refer to the collection of additional attribute records or to an error if happened */
+     * @return Result refer to the additional attribute record or to an error if happened */
     Result<AdditionalAttributeRecord> getAdditionalAttribute(
             EntityType type,
             Long entityId,
+            String attributeName);
+
+    /** Use this to get all AdditionalAttributeRecord for a specific attribute of a entity type
+     *
+     * @param type the entity type
+     * @param attributeName the name of the attribute
+     * @return Result refer to the collection of additional attribute records or to an error if happened */
+    Result<Collection<AdditionalAttributeRecord>> getAdditionalAttribute(
+            EntityType type,
             String attributeName);
 
     /** Use this to save an additional attribute for a specific entity.

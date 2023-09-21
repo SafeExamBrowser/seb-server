@@ -12,7 +12,28 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 
-public interface SEBClientSessionService {
+public interface SEBClientSessionService extends ExamUpdateTask, SessionUpdateTask {
+
+    @Override
+    default int examUpdateTaskProcessingOrder() {
+        return 10;
+    }
+
+    @Override
+    default void processExamUpdateTask() {
+        cleanupInstructions();
+    }
+
+    @Override
+    default int sessionUpdateTaskProcessingOrder() {
+        return 0;
+    }
+
+    @Override
+    default void processSessionUpdateTask() {
+        updatePingEvents();
+        updateASKGrants();
+    }
 
     /** Used to check current cached ping times of all running connections and
      * if a ping time is overflowing, creating a ping overflow event or if an

@@ -3,28 +3,28 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ClientGroupRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.exam_id")
     private Long examId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.name")
     private String name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.type")
     private String type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.color")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.color")
     private String color;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.icon")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.icon")
     private String icon;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.data")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.data")
     private String data;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source Table: client_group")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source Table: client_group")
     public ClientGroupRecord(Long id, Long examId, String name, String type, String color, String icon, String data) {
         this.id = id;
         this.examId = examId;
@@ -35,37 +35,37 @@ public class ClientGroupRecord {
         this.data = data;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.exam_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.exam_id")
     public Long getExamId() {
         return examId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.name")
     public String getName() {
         return name;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.type")
     public String getType() {
         return type;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.color")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.color")
     public String getColor() {
         return color;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.icon")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.icon")
     public String getIcon() {
         return icon;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-08-24T13:24:15.807+02:00", comments="Source field: client_group.data")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:48.103+02:00", comments="Source field: client_group.data")
     public String getData() {
         return data;
     }
@@ -74,7 +74,7 @@ public class ClientGroupRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_group
      *
-     * @mbg.generated Thu Aug 24 13:24:15 CEST 2023
+     * @mbg.generated Thu Sep 14 09:19:48 CEST 2023
      */
     @Override
     public String toString() {
@@ -97,7 +97,7 @@ public class ClientGroupRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_group
      *
-     * @mbg.generated Thu Aug 24 13:24:15 CEST 2023
+     * @mbg.generated Thu Sep 14 09:19:48 CEST 2023
      */
     @Override
     public boolean equals(Object that) {
@@ -124,7 +124,7 @@ public class ClientGroupRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table client_group
      *
-     * @mbg.generated Thu Aug 24 13:24:15 CEST 2023
+     * @mbg.generated Thu Sep 14 09:19:48 CEST 2023
      */
     @Override
     public int hashCode() {

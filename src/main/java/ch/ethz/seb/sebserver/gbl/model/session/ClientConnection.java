@@ -77,7 +77,7 @@ public final class ClientConnection implements GrantEntity {
             ConnectionStatus.UNDEFINED,
             null, null, null, null, null, null, null,
             false,
-            null, null, null, null,
+            null, null, null, null, false, null,
             false, false, null, false);
 
     public static final String ATTR_INFO = "seb_info";
@@ -125,6 +125,10 @@ public final class ClientConnection implements GrantEntity {
     public final String sebVersion;
 
     @JsonIgnore
+    public final Long screenProctoringGroupId;
+    @JsonIgnore
+    public final Boolean screenProctoringGroupUpdate;
+    @JsonIgnore
     public final Long remoteProctoringRoomId;
     @JsonIgnore
     public final String virtualClientId;
@@ -152,9 +156,6 @@ public final class ClientConnection implements GrantEntity {
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CONNECTION_TOKEN) final String connectionToken,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID) final String userSessionId,
             @JsonProperty(ATTR_INFO) final String info,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI) final Boolean vdi,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_VDI_PAIR_TOKEN) final String vdiPairToken,
-            @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_REMOTE_PROCTORING_ROOM_ID) final Long remoteProctoringRoomId,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_ADDRESS) final String clientAddress,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_OS_NAME) final String sebOSName,
             @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_CLIENT_VERSION) final String sebVersion,
@@ -168,13 +169,15 @@ public final class ClientConnection implements GrantEntity {
         this.connectionToken = connectionToken;
         this.userSessionId = userSessionId;
         this.info = info;
-        this.vdi = vdi;
+        this.vdi = false;
         this.virtualClientId = null;
-        this.vdiPairToken = vdiPairToken;
+        this.vdiPairToken = null;
         this.creationTime = 0L;
         this.updateTime = 0L;
-        this.remoteProctoringRoomId = remoteProctoringRoomId;
+        this.screenProctoringGroupId = null;
+        this.remoteProctoringRoomId = null;
         this.remoteProctoringRoomUpdate = false;
+        this.screenProctoringGroupUpdate = false;
 
         this.clientAddress = clientAddress;
         this.sebOSName = sebOSName;
@@ -201,6 +204,8 @@ public final class ClientConnection implements GrantEntity {
             final String vdiPairToken,
             final Long creationTime,
             final Long updateTime,
+            final Long screenProctoringGroupId,
+            final Boolean screenProctoringGroupUpdate,
             final Long remoteProctoringRoomId,
             final Boolean remoteProctoringRoomUpdate,
             final Boolean securityCheckGranted,
@@ -222,6 +227,10 @@ public final class ClientConnection implements GrantEntity {
         this.vdiPairToken = vdiPairToken;
         this.creationTime = creationTime;
         this.updateTime = updateTime;
+        this.screenProctoringGroupId = screenProctoringGroupId;
+        this.screenProctoringGroupUpdate = (screenProctoringGroupUpdate != null)
+                ? screenProctoringGroupUpdate
+                : false;
         this.remoteProctoringRoomId = remoteProctoringRoomId;
         this.remoteProctoringRoomUpdate = (remoteProctoringRoomUpdate != null)
                 ? remoteProctoringRoomUpdate
@@ -309,6 +318,16 @@ public final class ClientConnection implements GrantEntity {
     @JsonIgnore
     public Long getUpdateTime() {
         return this.updateTime;
+    }
+
+    @JsonIgnore
+    public Long getScreenProctoringGroupId() {
+        return this.screenProctoringGroupId;
+    }
+
+    @JsonIgnore
+    public Boolean getScreenProctoringGroupUpdate() {
+        return this.screenProctoringGroupUpdate;
     }
 
     @JsonIgnore

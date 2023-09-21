@@ -79,14 +79,14 @@ public interface ClientConnectionDAO extends
      * @return Result refer to all inactive connection tokens from the given set */
     Result<Collection<String>> getInactiveConnctionTokens(Set<String> connectionTokens);
 
-    /** Get a collection of all client connections records that needs a room update
+    /** Get a collection of all client connections records that needs a proctoring room update
      * and that are in the status ACTIVE.
      * This also flags the involved connections for no update needed within the
      * same transaction. So if something will go wrong in the update process
      * the affected client connection(s) must be marked for need update again.
      *
      * @return Result refer to a collection of all ClientConnection records for update or to an error when happened */
-    Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateActive();
+    Result<Collection<ClientConnectionRecord>> getAllForProctoringUpdateActive();
 
     /** Get a collection of all client connections records that needs a room update
      * and that are NOT in the status ACTIVE.
@@ -95,7 +95,7 @@ public interface ClientConnectionDAO extends
      * the affected client connection(s) must be marked for need update again.
      *
      * @return Result refer to a collection of all ClientConnection records for update or to an error when happened */
-    Result<Collection<ClientConnectionRecord>> getAllConnectionIdsForRoomUpdateInactive();
+    Result<Collection<ClientConnectionRecord>> getAllForProctoringUpdateInactive();
 
     /** Get all ClientConnection that are assigned to a defined proctoring collecting room.
      *
@@ -122,6 +122,31 @@ public interface ClientConnectionDAO extends
 
     /** Used to re-mark a client connection record for room update in error case. */
     Result<Void> markForProctoringUpdate(Long id);
+
+    /** Get a collection of all client connections records that are not attached to a screen proctoring group
+     * and needs a screen proctoring group update if yet possible
+     *
+     * @param examIds List of all exam ids for update
+     * @return Result refer to a collection of all ClientConnection records for update or to an error when happened */
+    Result<Collection<ClientConnectionRecord>> getAllForScreenProctoringUpdate(Collection<Long> examIds);
+
+    /** Get all ClientConnection that are assigned to a defined screen proctoring collecting group.
+     *
+     * @param groupId The proctoring group identifier (PK)
+     * @return Result refer to a collection of all ClientConnection of the group or to an error if happened */
+    Result<Collection<ClientConnection>> getScreenProctoringGroupConnections(final Long groupId);
+
+    /** This marks the specified SEB client connection as assigned to the given screen proctoring group
+     * and removes the old SEB client connection form the cache
+     *
+     * @param connectionId The SEB client connection identifier (PK)
+     * @param connectionToken the SEB client connection token
+     * @param groupId the screen proctoring group identifier (PK)
+     * @return Empty Result if successful or refer to an error when happened */
+    @CacheEvict(
+            cacheNames = ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
+            key = "#connectionToken")
+    Result<Void> assignToScreenProctoringGroup(Long connectionId, String connectionToken, Long groupId);
 
     /** Get a ClientConnection by connection token.
      *

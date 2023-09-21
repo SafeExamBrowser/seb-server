@@ -266,7 +266,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.Regis
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.useraccount.SaveUserAccount;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.SEBClientConfigDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringRoomService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class UseCasesIntegrationTest extends GuiIntegrationTest {
@@ -3765,7 +3765,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     }
 
     @Autowired
-    private ExamProctoringRoomService examProcotringRoomService;
+    private RemoteProctoringRoomService examProcotringRoomService;
     @Autowired
     private ClientConnectionDAO clientConnectionDAO;
 

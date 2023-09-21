@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -51,7 +50,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamProctoringService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 
 @Lazy
 @Service
@@ -90,6 +89,11 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         this.examConfigurationValueService = examConfigurationValueService;
         this.appSignatureKeyEnabled = appSignatureKeyEnabled;
         this.defaultNumericalTrustThreshold = defaultNumericalTrustThreshold;
+    }
+
+    @Override
+    public ProctoringAdminService getProctoringAdminService() {
+        return this.proctoringAdminService;
     }
 
     @Override
@@ -232,15 +236,16 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
-    @Transactional
     public Result<ProctoringServiceSettings> saveProctoringServiceSettings(
             final Long examId,
             final ProctoringServiceSettings proctoringServiceSettings) {
 
         return this.proctoringAdminService
-                .saveProctoringServiceSettings(
-                        new EntityKey(examId, EntityType.EXAM),
-                        proctoringServiceSettings)
+                .testProctoringSettings(proctoringServiceSettings)
+                .flatMap(test -> this.proctoringAdminService
+                        .saveProctoringServiceSettings(
+                                new EntityKey(examId, EntityType.EXAM),
+                                proctoringServiceSettings))
                 .map(settings -> {
                     this.examDAO.setModified(examId);
                     return settings;
@@ -265,7 +270,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
-    public Result<ExamProctoringService> getExamProctoringService(final Long examId) {
+    public Result<RemoteProctoringService> getExamProctoringService(final Long examId) {
         return getProctoringServiceSettings(examId)
                 .flatMap(settings -> this.proctoringAdminService
                         .getExamProctoringService(settings.serverType));
