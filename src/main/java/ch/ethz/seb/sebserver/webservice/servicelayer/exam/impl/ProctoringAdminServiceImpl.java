@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
@@ -92,8 +93,6 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
 
             checkType(parentEntityKey);
 
-            final boolean notifyChangesToService = notifyChangesToService(parentEntityKey, screenProctoringSettings);
-
             this.screenProctoringService
                     .testSettings(screenProctoringSettings)
                     .flatMap(settings -> this.proctoringSettingsDAO.storeScreenProctoringSettings(
@@ -101,9 +100,12 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
                             screenProctoringSettings))
                     .getOrThrow();
 
-            if (notifyChangesToService) {
+            if (parentEntityKey.entityType == EntityType.EXAM) {
+
                 this.screenProctoringService
-                        .applyScreenProctoingForExam(screenProctoringSettings)
+                        .applyScreenProctoingForExam(screenProctoringSettings.examId)
+                        .onError(error -> this.proctoringSettingsDAO
+                                .disableScreenProctoring(screenProctoringSettings.examId))
                         .getOrThrow();
             }
 
@@ -111,24 +113,15 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
         });
     }
 
-    private boolean notifyChangesToService(
-            final EntityKey entityKey,
-            final ScreenProctoringSettings newSettings) {
-
-        if (entityKey.entityType != EntityType.EXAM) {
-            return false;
-        }
-
-        return this.proctoringSettingsDAO
-                .getScreenProctoringSettings(entityKey)
-                .map(oldSettings -> oldSettings.enableScreenProctoring != newSettings.enableScreenProctoring)
-                .getOr(true);
-    }
-
     @Override
     public Result<RemoteProctoringService> getExamProctoringService(final ProctoringServerType type) {
         return this.remoteProctoringServiceFactory
                 .getExamProctoringService(type);
+    }
+
+    @Override
+    public void notifyExamSaved(final Exam exam) {
+        this.screenProctoringService.notifyExamSaved(exam);
     }
 
     private void checkType(final EntityKey parentEntityKey) {

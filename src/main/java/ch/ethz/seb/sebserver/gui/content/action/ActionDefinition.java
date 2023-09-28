@@ -343,6 +343,16 @@ public enum ActionDefinition {
             ImageIcon.VISIBILITY_OFF,
             PageStateDefinitionImpl.EXAM_VIEW,
             ActionCategory.EXAM_SECURITY),
+    SCREEN_PROCTORING_ON(
+            new LocTextKey("sebserver.exam.sps.actions.open"),
+            ImageIcon.SCREEN_PROC_ON,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.EXAM_SECURITY),
+    SCREEN_PROCTORING_OFF(
+            new LocTextKey("sebserver.exam.sps.actions.open"),
+            ImageIcon.SCREEN_PROC_OFF,
+            PageStateDefinitionImpl.EXAM_VIEW,
+            ActionCategory.EXAM_SECURITY),
 
     EXAM_CONFIGURATION_NEW(
             new LocTextKey("sebserver.exam.configuration.action.list.new"),

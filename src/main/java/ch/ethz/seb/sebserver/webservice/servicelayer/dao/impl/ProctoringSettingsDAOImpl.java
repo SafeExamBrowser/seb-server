@@ -235,6 +235,30 @@ public class ProctoringSettingsDAOImpl implements ProctoringSettingsDAO {
         });
     }
 
+    @Override
+    @Transactional
+    public void disableScreenProctoring(final Long examId) {
+        this.additionalAttributesDAO.saveAdditionalAttribute(
+                EntityType.EXAM,
+                examId,
+                ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING,
+                Constants.FALSE_STRING)
+                .onError(error -> log.warn(
+                        "Failed to disable screen proctoring for exam: {} error: {}",
+                        examId,
+                        error.getMessage()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isScreenProctoringEnabled(final Long examId) {
+        return this.additionalAttributesDAO.getAdditionalAttribute(EntityType.EXAM,
+                examId,
+                ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)
+                .map(attrRec -> BooleanUtils.toBoolean(attrRec.getValue()))
+                .getOr(false);
+    }
+
     private Boolean getEnabled(final Map<String, AdditionalAttributeRecord> mapping) {
         if (mapping.containsKey(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING)) {
             return BooleanUtils.toBoolean(mapping.get(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING).getValue());

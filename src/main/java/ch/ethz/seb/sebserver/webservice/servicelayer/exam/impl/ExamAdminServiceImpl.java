@@ -299,6 +299,12 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                 .map(settings -> exam);
     }
 
+    @Override
+    public void notifyExamSaved(final Exam exam) {
+        updateAdditionalExamConfigAttributes(exam.id);
+        this.proctoringAdminService.notifyExamSaved(exam);
+    }
+
     private Result<Exam> initAdditionalAttributesForMoodleExams(final Exam exam) {
         return Result.tryCatch(() -> {
             final LmsAPITemplate lmsTemplate = this.lmsAPIService

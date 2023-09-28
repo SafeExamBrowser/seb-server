@@ -27,4 +27,8 @@ public interface ProctoringSettingsDAO {
             final EntityKey entityKey,
             final ScreenProctoringSettings screenProctoringSettings);
 
+    void disableScreenProctoring(Long examId);
+
+    boolean isScreenProctoringEnabled(Long examId);
+
 }

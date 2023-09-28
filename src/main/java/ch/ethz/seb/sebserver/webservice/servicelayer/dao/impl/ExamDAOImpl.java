@@ -160,6 +160,28 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    @Transactional
+    public void markUpdate(final Long examId) {
+
+        try {
+
+            final long millisecondsNow = Utils.getMillisecondsNow();
+
+            UpdateDSL.updateWithMapper(
+                    this.examRecordMapper::update,
+                    ExamRecordDynamicSqlSupport.examRecord)
+                    .set(ExamRecordDynamicSqlSupport.lastModified)
+                    .equalTo(millisecondsNow)
+                    .where(ExamRecordDynamicSqlSupport.id, isEqualTo(examId))
+                    .build()
+                    .execute();
+
+        } catch (final Exception e) {
+            log.error("Failed to mark exam for update on distributed setup. exam: {}", examId, e);
+        }
+    }
+
+    @Override
     public void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId) {
 
         if (!available) {

@@ -238,7 +238,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .build()
                     .execute();
 
-            final List<ClientConnectionRecord> execute = this.clientConnectionRecordMapper
+            this.clientConnectionRecordMapper
                     .selectByExample()
                     .build()
                     .execute();
@@ -340,8 +340,6 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             final long millisecondsNow = Utils.getMillisecondsNow();
             // NOTE: we use nanoseconds here to get a better precision to better avoid
             //       same value of real concurrent calls on distributed systems
-            // TODO: Better solution for the future would be to count this value and
-            //       isolation is done via DB transaction
             final long nanosecondsNow = System.nanoTime();
             final ClientConnectionRecord newRecord = new ClientConnectionRecord(
                     null,

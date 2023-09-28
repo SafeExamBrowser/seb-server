@@ -40,6 +40,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 
 public class MockCourseAccessAPI implements CourseAccessAPI {
 
+    private static final String startTime10 = DateTime.now(DateTimeZone.UTC).plus(Constants.MINUTE_IN_MILLIS)
+            .toString(Constants.DEFAULT_DATE_TIME_FORMAT);
+    private static final String endTime10 = DateTime.now(DateTimeZone.UTC).plus(6 * Constants.MINUTE_IN_MILLIS)
+            .toString(Constants.DEFAULT_DATE_TIME_FORMAT);
+
     private final Collection<QuizData> mockups;
     private final WebserviceInfo webserviceInfo;
     private final APITemplateDataSupplier apiTemplateDataSupplier;
@@ -85,10 +90,8 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
         this.mockups.add(new QuizData(
                 "quiz10", institutionId, lmsSetupId, lmsType, "Demo Quiz 10 (MOCKUP)",
                 "Starts in a minute and ends after five minutes",
-                DateTime.now(DateTimeZone.UTC).plus(Constants.MINUTE_IN_MILLIS)
-                        .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
-                DateTime.now(DateTimeZone.UTC).plus(6 * Constants.MINUTE_IN_MILLIS)
-                        .toString(Constants.DEFAULT_DATE_TIME_FORMAT),
+                MockCourseAccessAPI.startTime10,
+                MockCourseAccessAPI.endTime10,
                 "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz11", institutionId, lmsSetupId, lmsType, "Demo Quiz 11 (MOCKUP)",

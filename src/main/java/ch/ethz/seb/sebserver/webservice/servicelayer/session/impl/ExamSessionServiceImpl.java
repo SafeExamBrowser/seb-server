@@ -532,6 +532,9 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     @Override
     public Result<Exam> updateExamCache(final Long examId) {
 
+        // TODO check how often this is called in distributed environments
+        System.out.println("************** performance check: updateExamCache");
+
         try {
             final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM);
             final ValueWrapper valueWrapper = cache.get(examId);
@@ -547,7 +550,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             return Result.ofEmpty();
         }
 
-        final Boolean isUpToDate = this.examDAO.upToDate(exam)
+        final Boolean isUpToDate = this.examDAO
+                .upToDate(exam)
                 .onError(t -> log.error("Failed to verify if cached exam is up to date: {}", exam, t))
                 .getOr(false);
 

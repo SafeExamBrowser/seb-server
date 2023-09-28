@@ -90,6 +90,10 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^*()-_=+[{]}?"
                     .toCharArray();
 
+    private final static char[] possibleLess =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+                    .toCharArray();
+
     public static CharSequence generateClientId() {
         return RandomStringUtils.random(
                 16, 0, possibleCharacters.length - 1, false, false,
@@ -100,6 +104,12 @@ public class ClientCredentialServiceImpl implements ClientCredentialService {
         return RandomStringUtils.random(
                 64, 0, possibleCharacters.length - 1, false, false,
                 possibleCharacters, new SecureRandom());
+    }
+
+    public static CharSequence generateClientSecretLess() {
+        return RandomStringUtils.random(
+                16, 0, possibleLess.length - 1, false, false,
+                possibleLess, new SecureRandom());
     }
 
     public static void clearChars(final CharSequence sequence) {

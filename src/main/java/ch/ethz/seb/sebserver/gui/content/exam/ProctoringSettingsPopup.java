@@ -486,8 +486,11 @@ public class ProctoringSettingsPopup {
 
         }
 
-        private FormBuilder buildHeader(final ProctoringServiceSettings proctoringSettings,
-                final FormHandleAnchor formHandleAnchor, final boolean isReadonly) {
+        private FormBuilder buildHeader(
+                final ProctoringServiceSettings proctoringSettings,
+                final FormHandleAnchor formHandleAnchor,
+                final boolean isReadonly) {
+
             final FormBuilder formBuilder = this.pageService.formBuilder(
                     formHandleAnchor.formContext)
                     .withDefaultSpanInput(5)

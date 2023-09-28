@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
@@ -216,18 +217,16 @@ class ExamUpdateHandler implements ExamUpdateTask {
         });
     }
 
-    Result<Exam> updateRunning(final Long examId) {
-        return this.examDAO.byPK(examId)
-                .map(exam -> {
-                    final DateTime now = DateTime.now(DateTimeZone.UTC);
-                    if (exam.getStatus() == ExamStatus.UP_COMING
-                            && exam.endTime.plus(this.examTimeSuffix).isBefore(now)) {
-                        return setRunning(exam, this.createUpdateId())
-                                .getOr(exam);
-                    } else {
-                        return exam;
-                    }
-                });
+    @EventListener(ExamUpdateEvent.class)
+    void updateRunning(final ExamUpdateEvent event) {
+        this.examDAO
+                .byPK(event.examId)
+                .onSuccess(exam -> updateState(
+                        exam,
+                        DateTime.now(DateTimeZone.UTC),
+                        this.examTimePrefix,
+                        this.examTimeSuffix,
+                        this.createUpdateId()));
     }
 
     void updateState(

@@ -85,6 +85,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
 
     private static final Logger log = LoggerFactory.getLogger(ExamAdministrationController.class);
 
+    // TODO reduce dependencies here.
+    // Move SecurityKeyService, SEBRestrictionService RemoteProctoringRoomService into ExamAdminService
     private final ExamDAO examDAO;
     private final UserDAO userDAO;
     private final ExamAdminService examAdminService;
@@ -658,7 +660,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     @Override
     protected Result<Exam> notifySaved(final Exam entity) {
         return Result.tryCatch(() -> {
-            this.examAdminService.updateAdditionalExamConfigAttributes(entity.id);
+            this.examAdminService.notifyExamSaved(entity);
             this.examSessionService.flushCache(entity);
             return entity;
         });

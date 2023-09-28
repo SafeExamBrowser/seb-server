@@ -136,6 +136,11 @@ public interface ExamAdminService {
      * @return Result refer to the archived exam or to an error when happened */
     Result<Exam> archiveExam(Exam exam);
 
+    /** Gets invoked after an exam has been changed and saved.
+     *
+     * @param exam the exam that has been changed and saved */
+    void notifyExamSaved(Exam exam);
+
     /** Used to check threshold consistency for a given list of thresholds.
      * Checks if all values are present (none null value)
      * Checks if there are duplicates

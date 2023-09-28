@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
@@ -52,7 +51,6 @@ public class ExamSessionCacheService {
     private final ClientConnectionDAO clientConnectionDAO;
     private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
     private final ExamConfigService sebExamConfigService;
-    private final ExamUpdateHandler examUpdateHandler;
 
     protected ExamSessionCacheService(
             final ExamDAO examDAO,
@@ -60,7 +58,6 @@ public class ExamSessionCacheService {
             final ClientConnectionDAO clientConnectionDAO,
             final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
             final ExamConfigService sebExamConfigService,
-            final ExamUpdateHandler examUpdateHandler,
             final RemoteProctoringRoomDAO remoteProctoringRoomDAO) {
 
         this.examDAO = examDAO;
@@ -68,7 +65,6 @@ public class ExamSessionCacheService {
         this.clientConnectionDAO = clientConnectionDAO;
         this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
         this.sebExamConfigService = sebExamConfigService;
-        this.examUpdateHandler = examUpdateHandler;
     }
 
     @Cacheable(
@@ -132,9 +128,11 @@ public class ExamSessionCacheService {
             }
             case UP_COMING:
             case FINISHED: {
-                return this.examUpdateHandler.updateRunning(exam.id)
-                        .map(e -> e.status == ExamStatus.RUNNING)
-                        .getOr(false);
+                return false;
+                // TODO do we really need to double-check here?
+//                return this.examUpdateHandler.updateRunning(exam.id)
+//                        .map(e -> e.status == ExamStatus.RUNNING)
+//                        .getOr(false);
             }
             default: {
                 return false;

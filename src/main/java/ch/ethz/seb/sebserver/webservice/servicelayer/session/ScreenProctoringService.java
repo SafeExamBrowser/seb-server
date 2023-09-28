@@ -34,17 +34,26 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * @return Result refer to the settings or to an error when happened */
     Result<ScreenProctoringSettings> testSettings(ScreenProctoringSettings settings);
 
-    //Result<ScreenProctoringSettings> saveSettingsForExam(ScreenProctoringSettings settings);
-
-    /** This applies the screen proctoring for the given exam.
+    /** This applies the stored screen proctoring for the given exam.
      * If screen proctoring for the exam is enabled, this initializes or re-activate all
      * needed things for screen proctoring for the given exam.
      * If screen proctoring is set to disable, this disables the whole service for the
      * given exam also on SPS side.
      *
-     * @param settings the actual ScreenProctoringSettings of the exam
-     * @return Result refer to the given ScreenProctoringSettings or to an error when happened */
-    Result<ScreenProctoringSettings> applyScreenProctoingForExam(ScreenProctoringSettings settings);
+     * @param examId use the screen proctoring settings of the exam with the given exam id
+     * @return Result refer to the given Exam or to an error when happened */
+    Result<Exam> applyScreenProctoingForExam(Long examId);
+
+    /** Gets invoked after an exam has been changed and saved.
+     *
+     * @param exam the exam that has been changed and saved */
+    void notifyExamSaved(Exam exam);
+
+    @EventListener(ExamStartedEvent.class)
+    void notifyExamStarted(ExamStartedEvent event);
+
+    @EventListener(ExamFinishedEvent.class)
+    void notifyExamFinished(ExamFinishedEvent event);
 
     /** This is been called just before an Exam gets deleted on the permanent storage.
      * This deactivates and dispose or deletes all exam relevant domain entities on the SPS service side.

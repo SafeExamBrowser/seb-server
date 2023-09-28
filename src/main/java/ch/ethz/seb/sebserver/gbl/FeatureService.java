@@ -22,4 +22,6 @@ public interface FeatureService {
 
     boolean isEnabled(CollectingStrategy collectingRoomStrategy);
 
+    boolean isScreenProcteringEnabled();
+
 }

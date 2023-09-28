@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
+import ch.ethz.seb.sebserver.gbl.FeatureService;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
@@ -38,6 +39,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.ExamTemplate;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetupTestResult.ErrorType;
@@ -66,6 +68,7 @@ import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamCon
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetDefaultExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplate;
@@ -149,6 +152,7 @@ public class ExamForm implements TemplateComposer {
     private final ResourceService resourceService;
     private final ExamSEBRestrictionSettings examSEBRestrictionSettings;
     private final ProctoringSettingsPopup proctoringSettingsPopup;
+    private final ScreenProctoringSettingsPopup screenProctoringSettingsPopup;
     private final WidgetFactory widgetFactory;
     private final RestService restService;
     private final ExamDeletePopup examDeletePopup;
@@ -156,22 +160,26 @@ public class ExamForm implements TemplateComposer {
     private final ExamIndicatorsList examIndicatorsList;
     private final ExamClientGroupList examClientGroupList;
     private final ExamCreateClientConfigPopup examCreateClientConfigPopup;
+    private final FeatureService featureService;
 
     protected ExamForm(
             final PageService pageService,
             final ExamSEBRestrictionSettings examSEBRestrictionSettings,
             final ProctoringSettingsPopup proctoringSettingsPopup,
+            final ScreenProctoringSettingsPopup screenProctoringSettingsPopup,
             final ExamToConfigBindingForm examToConfigBindingForm,
             final DownloadService downloadService,
             final ExamDeletePopup examDeletePopup,
             final ExamFormConfigs examFormConfigs,
             final ExamIndicatorsList examIndicatorsList,
             final ExamClientGroupList examClientGroupList,
-            final ExamCreateClientConfigPopup examCreateClientConfigPopup) {
+            final ExamCreateClientConfigPopup examCreateClientConfigPopup,
+            final FeatureService featureService) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
         this.examSEBRestrictionSettings = examSEBRestrictionSettings;
+        this.screenProctoringSettingsPopup = screenProctoringSettingsPopup;
         this.proctoringSettingsPopup = proctoringSettingsPopup;
         this.widgetFactory = pageService.getWidgetFactory();
         this.restService = this.resourceService.getRestService();
@@ -180,6 +188,7 @@ public class ExamForm implements TemplateComposer {
         this.examIndicatorsList = examIndicatorsList;
         this.examClientGroupList = examClientGroupList;
         this.examCreateClientConfigPopup = examCreateClientConfigPopup;
+        this.featureService = featureService;
 
         this.consistencyMessageMapping = new HashMap<>();
         this.consistencyMessageMapping.put(
@@ -410,6 +419,13 @@ public class ExamForm implements TemplateComposer {
                 .map(ProctoringServiceSettings::getEnableProctoring)
                 .getOr(false);
 
+        final boolean screenProctoringEnabled = importFromQuizData ? false : this.restService
+                .getBuilder(GetScreenProctoringSettings.class)
+                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                .call()
+                .map(ScreenProctoringSettings::getEnableScreenProctoring)
+                .getOr(false);
+
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(formContext
                 .clearEntityKeys()
                 .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
@@ -491,7 +507,24 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> !proctoringEnabled && readonly);
+                .publishIf(() -> !proctoringEnabled && readonly)
+
+                .newAction(ActionDefinition.SCREEN_PROCTORING_ON)
+                .withEntityKey(entityKey)
+                .withExec(
+                        this.screenProctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
+                .noEventPropagation()
+                .publishIf(() -> this.featureService.isScreenProcteringEnabled() && screenProctoringEnabled && readonly)
+
+                .newAction(ActionDefinition.SCREEN_PROCTORING_OFF)
+                .withEntityKey(entityKey)
+                .withExec(
+                        this.screenProctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
+                .noEventPropagation()
+                .publishIf(
+                        () -> this.featureService.isScreenProcteringEnabled() && !screenProctoringEnabled && readonly)
+
+        ;
 
         // additional data in read-only view
         if (readonly && !importFromQuizData) {

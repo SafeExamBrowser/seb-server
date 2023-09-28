@@ -20,6 +20,7 @@ import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
+import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
@@ -69,6 +70,11 @@ public interface ProctoringAdminService {
      * @param type exam proctoring service server type
      * @return ExamProctoringService instance */
     Result<RemoteProctoringService> getExamProctoringService(final ProctoringServerType type);
+
+    /** Gets invoked after an exam has been changed and saved.
+     *
+     * @param exam the exam that has been changed and saved */
+    void notifyExamSaved(Exam exam);
 
     /** Use this to test the proctoring service settings against the remote proctoring server.
      *

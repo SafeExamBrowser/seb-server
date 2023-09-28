@@ -211,6 +211,16 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
             key = "#examId")
     Result<QuizData> updateQuizData(Long examId, QuizData quizData, String updateId);
 
+    /** Marks the given exam by setting the last-update-time to current time.
+     * This provokes a cache update on distributed setup.
+     * Additionally this flushes the local cache immediately.
+     *
+     * @param examId the Exam identifier */
+    @CacheEvict(
+            cacheNames = ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM,
+            key = "#examId")
+    void markUpdate(Long examId);
+
     /** This is used by the internal update process to mark exams for which the LMS related data availability
      *
      * @param externalQuizId The exams external UUID or quiz id of the exam to mark

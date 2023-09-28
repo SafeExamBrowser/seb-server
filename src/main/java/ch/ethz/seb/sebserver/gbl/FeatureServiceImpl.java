@@ -59,4 +59,12 @@ public class FeatureServiceImpl implements FeatureService {
         return key.replaceAll("_", "-");
     }
 
+    @Override
+    public boolean isScreenProcteringEnabled() {
+        return this.environment.getProperty(toConfigName(
+                FEATURE_SETTINGS_PREFIX + "seb.screenProctoring"),
+                Boolean.class,
+                Boolean.FALSE);
+    }
+
 }
