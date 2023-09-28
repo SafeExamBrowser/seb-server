@@ -18,6 +18,7 @@ import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -451,31 +452,28 @@ public class QuizLookupList implements TemplateComposer {
         }
     }
 
-    private Composite warningPanel = null;
-
     private void handelPageReload(
             final Composite notePanel,
             final EntityTable<QuizData> table) {
 
         if (table.isComplete()) {
             PageService.clearComposite(notePanel);
-            if (this.warningPanel != null) {
-                this.warningPanel.dispose();
-            }
-            this.warningPanel = null;
         } else {
-            if (this.warningPanel != null && !this.warningPanel.isDisposed()) {
-                this.warningPanel.dispose();
+
+            final Control[] children = notePanel.getChildren();
+            if (children != null && children.length > 0) {
+                return;
             }
 
-            this.warningPanel = this.widgetFactory.createWarningPanel(notePanel, 15, true);
+            final Composite warningPanel = this.widgetFactory.createWarningPanel(notePanel, 15, true);
+            warningPanel.setData("warningPanel", "TRUE");
             this.widgetFactory.imageButton(
                     ImageIcon.SWITCH,
-                    this.warningPanel,
+                    warningPanel,
                     TEXT_FETCH_NOTE_TOOLTIP,
                     event -> table.applyFilter());
 
-            final Label text = new Label(this.warningPanel, SWT.NONE);
+            final Label text = new Label(warningPanel, SWT.NONE);
             text.setData(RWT.MARKUP_ENABLED, Boolean.TRUE);
             text.setText(this.pageService.getI18nSupport().getText(TEXT_FETCH_NOTE));
             final GridData gridData = new GridData(SWT.LEFT, SWT.FILL, true, true);
