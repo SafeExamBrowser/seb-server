@@ -33,7 +33,9 @@ public class OlatLmsRestTemplate extends RestTemplate {
     private ClientCredentialsResourceDetails details;
 
     public void testAuthentication() {
-        authenticate();
+        if (this.token == null) {
+            authenticate();
+        }
     }
 
     public OlatLmsRestTemplate(final ClientCredentialsResourceDetails details) {
@@ -49,6 +51,7 @@ public class OlatLmsRestTemplate extends RestTemplate {
                     final ClientHttpRequestExecution execution) throws IOException {
 
                 try {
+
                     // if there's no token, authenticate first
                     if (OlatLmsRestTemplate.this.token == null) {
                         authenticate();
