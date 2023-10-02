@@ -41,6 +41,8 @@ public class OlatLmsAPITemplateTest extends AdministrationAPIIntegrationTester {
     private ExamConfigurationValueService examConfigurationValueService;
     @Autowired
     private CacheManager cacheManager;
+    @Autowired
+    private OlatLmsRestTemplate olatLmsRestTemplate;
 
     @Test
     public void testSetRestriction() throws Exception {

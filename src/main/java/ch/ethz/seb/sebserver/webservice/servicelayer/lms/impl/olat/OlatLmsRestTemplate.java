@@ -32,6 +32,10 @@ public class OlatLmsRestTemplate extends RestTemplate {
     private String token;
     private ClientCredentialsResourceDetails details;
 
+    public void testAuthentication() {
+        authenticate();
+    }
+
     public OlatLmsRestTemplate(final ClientCredentialsResourceDetails details) {
         super();
         this.details = details;
@@ -45,7 +49,6 @@ public class OlatLmsRestTemplate extends RestTemplate {
                     final ClientHttpRequestExecution execution) throws IOException {
 
                 try {
-
                     // if there's no token, authenticate first
                     if (OlatLmsRestTemplate.this.token == null) {
                         authenticate();
@@ -59,6 +62,7 @@ public class OlatLmsRestTemplate extends RestTemplate {
 
                         return execution.execute(request, body);
                     }
+
                     // otherwise, add the X-OLAT-TOKEN
                     request.getHeaders().set("accept", "application/json");
                     request.getHeaders().set("X-OLAT-TOKEN", OlatLmsRestTemplate.this.token);
@@ -85,6 +89,7 @@ public class OlatLmsRestTemplate extends RestTemplate {
                             log.debug("OLAT [retry API call]: URL {}", request.getURI());
                         }
 
+                        response.close();
                         response = execution.execute(request, body);
 
                         if (log.isDebugEnabled()) {
@@ -97,7 +102,7 @@ public class OlatLmsRestTemplate extends RestTemplate {
 
                 } catch (final Exception e) {
                     // TODO find a way to better deal with Olat temporary unavailability
-                    log.error("Unexpected error: ", e);
+                    log.error("Unexpected error: {}", e.getMessage());
                     throw e;
                 }
             }
