@@ -357,7 +357,7 @@ class ExamUpdateHandler {
                 !Objects.equals(exam.endTime, quizData.endTime) ||
                 !Utils.isEqualsWithEmptyCheckTruncated(exam.getDescription(), quizData.description) ||
                 !Utils.isEqualsWithEmptyCheck(exam.getStartURL(), quizData.startURL) ||
-                !exam.externalId.equals(quizData.id)) {
+                !Objects.equals(exam.externalId, quizData.id)) {
 
             if (!Utils.isEqualsWithEmptyCheck(exam.name, quizData.name)) {
                 log.info("Update name difference from LMS. Exam: {}, QuizData: {}", exam.name, quizData.name);
@@ -377,7 +377,7 @@ class ExamUpdateHandler {
                         exam.getStartURL(),
                         quizData.startURL);
             }
-            if (exam.externalId.equals(quizData.id)) {
+            if (!Objects.equals(exam.externalId, quizData.id)) {
                 log.info("Update quizId difference from LMS. Exam:{}, QuizData: {}",
                         exam.externalId,
                         quizData.id);
