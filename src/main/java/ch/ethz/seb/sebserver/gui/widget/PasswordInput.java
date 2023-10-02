@@ -98,7 +98,7 @@ public class PasswordInput extends Composite {
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
         passwordInput.setLayoutData(gridData);
         passwordInput.setText(value != null
-                ? Utils.escapeHTML_XML_EcmaScript(value)
+                ? value
                 : StringUtils.EMPTY);
         if (!buildPassword) {
             passwordInput.setEditable(false);
