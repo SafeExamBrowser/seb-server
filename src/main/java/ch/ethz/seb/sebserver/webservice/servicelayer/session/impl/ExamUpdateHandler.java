@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import org.joda.time.DateTime;
@@ -28,6 +29,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.Features;
+import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -38,6 +40,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPIService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.LmsAPITemplate;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.SEBRestrictionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.moodle.MoodleUtils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamFinishedEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamResetEvent;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamStartedEvent;
@@ -138,7 +141,12 @@ class ExamUpdateHandler {
                     .forEach(quiz -> {
 
                         try {
-                            final Exam exam = exams.get(quiz.id);
+                            final Exam exam = getExamForQuizWithMoodleSpecialCase(exams, quiz);
+
+                            if (exam == null) {
+                                log.warn("Failed to find map exam to fetched quiz-data: {}", quiz);
+                                return;
+                            }
 
                             if (hasChanges(exam, quiz)) {
 
@@ -356,7 +364,8 @@ class ExamUpdateHandler {
                 !Objects.equals(exam.startTime, quizData.startTime) ||
                 !Objects.equals(exam.endTime, quizData.endTime) ||
                 !Utils.isEqualsWithEmptyCheckTruncated(exam.getDescription(), quizData.description) ||
-                !Utils.isEqualsWithEmptyCheck(exam.getStartURL(), quizData.startURL)) {
+                !Utils.isEqualsWithEmptyCheck(exam.getStartURL(), quizData.startURL) ||
+                !Objects.equals(exam.externalId, quizData.id)) {
 
             if (!Utils.isEqualsWithEmptyCheck(exam.name, quizData.name)) {
                 log.info("Update name difference from LMS. Exam: {}, QuizData: {}", exam.name, quizData.name);
@@ -375,6 +384,11 @@ class ExamUpdateHandler {
                 log.info("Update startURL difference from LMS. Exam:{}, QuizData: {}",
                         exam.getStartURL(),
                         quizData.startURL);
+            }
+            if (!Objects.equals(exam.externalId, quizData.id)) {
+                log.info("Update quizId difference from LMS. Exam:{}, QuizData: {}",
+                        exam.externalId,
+                        quizData.id);
             }
 
             return true;
@@ -477,6 +491,31 @@ class ExamUpdateHandler {
                     exam.id,
                     Exam.ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS);
         }
+    }
+
+    private Exam getExamForQuizWithMoodleSpecialCase(final Map<String, Exam> exams, final QuizData quiz) {
+        Exam exam = exams.get(quiz.id);
+
+        if (exam == null) {
+            try {
+                final LmsAPITemplate lms = this.lmsAPIService
+                        .getLmsAPITemplate(quiz.lmsSetupId)
+                        .getOrThrow();
+
+                if (lms.getType() == LmsType.MOODLE || lms.getType() == LmsType.MOODLE_PLUGIN) {
+                    final String quizId = MoodleUtils.getQuizId(quiz.id);
+                    final Optional<String> find =
+                            exams.keySet().stream().filter(key -> key.startsWith(quizId)).findFirst();
+                    if (find.isPresent()) {
+                        exam = exams.get(find.get());
+                    }
+                }
+            } catch (final Exception e) {
+                log.error("Failed to verify changed external Exam id from moodle course: {}", e.getMessage());
+            }
+        }
+
+        return exam;
     }
 
 }
