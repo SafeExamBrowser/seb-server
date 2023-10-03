@@ -163,6 +163,23 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
                     "lmsSetup:lmsClientsecret:notNull"));
         }
 
+        final Result<OlatLmsRestTemplate> restTemplateResult = getRestTemplate();
+        if (restTemplateResult.hasError()) {
+            missingAttrs.add(APIMessage.fieldValidationError(
+                    LMS_SETUP.ATTR_LMS_URL,
+                    "lmsSetup:lmsUrl:url.noservice"));
+        } else {
+            final OlatLmsRestTemplate olatLmsRestTemplate = restTemplateResult.get();
+            try {
+                olatLmsRestTemplate.testAuthentication();
+            } catch (final Exception e) {
+                log.error("Failed to test Authentication: {}", e.getMessage());
+                missingAttrs.add(APIMessage.fieldValidationError(
+                        LMS_SETUP.ATTR_LMS_URL,
+                        "lmsSetup:lmsUrl:url.noaccess"));
+            }
+        }
+
         if (!missingAttrs.isEmpty()) {
             return LmsSetupTestResult.ofMissingAttributes(LmsType.OPEN_OLAT, missingAttrs);
         }

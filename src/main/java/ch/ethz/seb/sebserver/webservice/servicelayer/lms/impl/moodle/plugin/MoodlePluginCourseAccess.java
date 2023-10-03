@@ -531,6 +531,10 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                         lmsSetup);
             }
 
+            final Set<String> qIdSet = internalIds.stream()
+                    .map(MoodleUtils::getQuizId)
+                    .collect(Collectors.toSet());
+
             return getCoursesForIds(restTemplate, moodleCourseIds)
                     .stream()
                     .filter(courseData -> !courseData.quizzes.isEmpty())
@@ -540,7 +544,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
                             urlPrefix,
                             this.prependShortCourseName)
                             .stream()
-                            .filter(q -> internalIds.contains(q.id)))
+                            .filter(q -> qIdSet.contains(MoodleUtils.getQuizId(q.id))))
                     .collect(Collectors.toList());
 
         } catch (final Exception e) {
