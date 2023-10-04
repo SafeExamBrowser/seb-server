@@ -631,7 +631,6 @@
         <inherit>quizaccess/seb:manage_seb_templateid</inherit>
         <inherit>quizaccess/seb:manage_seb_userconfirmquit</inherit>
         <inherit>quizaccess/seb:managetemplates</inherit>
-        <inherit>quizaccess/sebserver:managesebserver</inherit>
         <inherit>quizaccess/wifiresilience:adminmessages</inherit>
         <inherit>quizaccess/wifiresilience:browserchecks</inherit>
         <inherit>quizaccess/wifiresilience:inspectresponses</inherit>
@@ -733,5 +732,11 @@
         <allow>quizaccess/seb:bypassseb</allow>
         <allow>report/courseoverview:view</allow>
         <allow>webservice/rest:use</allow>
+        
+        <allow>moodle/user:update</allow>
+        <allow>moodle/course:useremail</allow>
+        <allow>moodle/backup:backupcourse</allow>
+        <allow>mod/quiz:manage</allow>
+        <allow>quizaccess/sebserver:managesebserver</allow>
     </permissions>
 </role>
