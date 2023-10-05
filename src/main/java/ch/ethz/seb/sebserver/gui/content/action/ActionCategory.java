@@ -48,6 +48,7 @@ public enum ActionCategory {
     STATE_FILTER(new LocTextKey("sebserver.exam.monitoring.action.category.statefilter"), 40),
     GROUP_FILTER(new LocTextKey("sebserver.exam.monitoring.action.category.groupfilter"), 50),
     PROCTORING(new LocTextKey("sebserver.exam.overall.action.category.proctoring"), 60),
+    SCREEN_PROCTORING(new LocTextKey("sebserver.exam.overall.action.category.screenproctoring"), 65),
 
     FINISHED_EXAM_LIST(new LocTextKey("sebserver.finished.exam.list.actions"), 1);
 

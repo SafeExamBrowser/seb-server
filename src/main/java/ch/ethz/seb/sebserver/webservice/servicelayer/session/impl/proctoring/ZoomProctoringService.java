@@ -60,7 +60,6 @@ import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import ch.ethz.seb.sebserver.ClientHttpRequestFactoryService;
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -108,10 +107,6 @@ public class ZoomProctoringService implements RemoteProctoringService {
     private static final String ZOOM_ACCESS_TOKEN_HEADER =
             "{\"alg\":\"HS256\",\"typ\":\"JWT\"}";
 
-    @Deprecated
-    private static final String ZOOM_API_ACCESS_TOKEN_PAYLOAD =
-            "{\"iss\":\"%s\",\"exp\":%s}";
-
     private static final Map<String, String> SEB_API_NAME_INSTRUCTION_NAME_MAPPING = Utils.immutableMapOf(Arrays.asList(
             new Tuple<>(
                     API.EXAM_PROCTORING_ATTR_RECEIVE_AUDIO,
@@ -137,7 +132,6 @@ public class ZoomProctoringService implements RemoteProctoringService {
             .stream().collect(Collectors.toMap(Tuple::get_1, Tuple::get_2)));
 
     private final ExamSessionService examSessionService;
-    private final ClientHttpRequestFactoryService clientHttpRequestFactoryService;
     private final Cryptor cryptor;
     private final AsyncService asyncService;
     private final JSONMapper jsonMapper;
@@ -150,7 +144,6 @@ public class ZoomProctoringService implements RemoteProctoringService {
 
     public ZoomProctoringService(
             final ExamSessionService examSessionService,
-            final ClientHttpRequestFactoryService clientHttpRequestFactoryService,
             final Cryptor cryptor,
             final AsyncService asyncService,
             final JSONMapper jsonMapper,
@@ -162,7 +155,6 @@ public class ZoomProctoringService implements RemoteProctoringService {
             @Value("${sebserver.webservice.proctoring.zoom.tokenexpiry.seconds:86400}") final int tokenExpirySeconds) {
 
         this.examSessionService = examSessionService;
-        this.clientHttpRequestFactoryService = clientHttpRequestFactoryService;
         this.cryptor = cryptor;
         this.asyncService = asyncService;
         this.jsonMapper = jsonMapper;
@@ -706,13 +698,7 @@ public class ZoomProctoringService implements RemoteProctoringService {
     }
 
     private ZoomRestTemplate createNewRestTemplate(final ProctoringServiceSettings proctoringSettings) {
-        if (StringUtils.isNoneBlank(proctoringSettings.accountId)) {
-            log.info("Create new OAuthZoomRestTemplate for settings: {}", proctoringSettings);
-            return new OAuthZoomRestTemplate(this, proctoringSettings);
-        } else {
-            log.warn("Create new JWTZoomRestTemplate for settings: {}", proctoringSettings);
-            return new JWTZoomRestTemplate(this, proctoringSettings);
-        }
+        return new OAuthZoomRestTemplate(this, proctoringSettings);
     }
 
     private static abstract class ZoomRestTemplate {
@@ -1051,94 +1037,6 @@ public class ZoomProctoringService implements RemoteProctoringService {
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
             return httpHeaders;
-        }
-    }
-
-    @Deprecated
-    private final static class JWTZoomRestTemplate extends ZoomRestTemplate {
-
-        public JWTZoomRestTemplate(
-                final ZoomProctoringService zoomProctoringService,
-                final ProctoringServiceSettings proctoringSettings) {
-
-            super(zoomProctoringService, proctoringSettings);
-        }
-
-        @Override
-        public void initConnection() {
-            if (this.restTemplate == null) {
-
-                this.credentials = new ClientCredentials(
-                        this.proctoringSettings.appKey,
-                        this.proctoringSettings.appSecret);
-
-                this.restTemplate = new RestTemplate(this.zoomProctoringService.clientHttpRequestFactoryService
-                        .getClientHttpRequestFactory()
-                        .getOrThrow());
-            }
-        }
-
-        @Override
-        public HttpHeaders getHeaders() {
-            final String jwt = this.createJWTForAPIAccess(
-                    this.credentials,
-                    System.currentTimeMillis() + Constants.MINUTE_IN_MILLIS);
-
-            final HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.set(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
-            httpHeaders.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
-            return httpHeaders;
-        }
-
-        private String createJWTForAPIAccess(
-                final ClientCredentials credentials,
-                final Long expTime) {
-
-            try {
-
-                final CharSequence decryptedSecret = this.zoomProctoringService.cryptor
-                        .decrypt(credentials.secret)
-                        .getOrThrow();
-
-                final StringBuilder builder = new StringBuilder();
-                final Encoder urlEncoder = Base64.getUrlEncoder().withoutPadding();
-
-                final String jwtHeaderPart = urlEncoder
-                        .encodeToString(ZOOM_ACCESS_TOKEN_HEADER.getBytes(StandardCharsets.UTF_8));
-
-                final String jwtPayload = String.format(
-                        ZOOM_API_ACCESS_TOKEN_PAYLOAD
-                                .replaceAll(" ", "")
-                                .replaceAll("\n", ""),
-                        credentials.clientIdAsString(),
-                        expTime);
-
-                if (log.isTraceEnabled()) {
-                    log.trace("Zoom API Token payload: {}", jwtPayload);
-                }
-
-                final String jwtPayloadPart = urlEncoder
-                        .encodeToString(jwtPayload.getBytes(StandardCharsets.UTF_8));
-
-                final String message = jwtHeaderPart + "." + jwtPayloadPart;
-
-                final Mac sha256_HMAC = Mac.getInstance(TOKEN_ENCODE_ALG);
-                final SecretKeySpec secret_key = new SecretKeySpec(
-                        Utils.toByteArray(decryptedSecret),
-                        TOKEN_ENCODE_ALG);
-
-                sha256_HMAC.init(secret_key);
-                final String hash = urlEncoder
-                        .encodeToString(sha256_HMAC.doFinal(Utils.toByteArray(message)));
-
-                builder.append(message)
-                        .append(".")
-                        .append(hash);
-
-                return builder.toString();
-            } catch (final Exception e) {
-                throw new RuntimeException("Failed to create JWT for Zoom API access: ", e);
-            }
         }
     }
 

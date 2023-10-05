@@ -78,7 +78,7 @@ public class ExamSessionControlTask implements DisposableBean {
                 this.examTimePrefix,
                 this.examTimeSuffix);
 
-        this.updateMaster();
+        this.webserviceInfo.updateMaster();
 
         SEBServerInit.INIT_LOGGER.info("------>");
         SEBServerInit.INIT_LOGGER.info(
@@ -105,8 +105,7 @@ public class ExamSessionControlTask implements DisposableBean {
             initialDelay = 5000)
     private void examSessionUpdateTask() {
 
-        updateMaster();
-
+        this.webserviceInfo.updateMaster();
         if (!this.webserviceInfo.isMaster()) {
             return;
         }
@@ -118,10 +117,6 @@ public class ExamSessionControlTask implements DisposableBean {
         this.sessionUpdateTasks
                 .stream()
                 .forEach(SessionUpdateTask::processSessionUpdateTask);
-    }
-
-    private void updateMaster() {
-        this.webserviceInfo.updateMaster();
     }
 
     @Override

@@ -33,6 +33,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.exam.OpenEdxSEBRestriction;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.QuizData;
+import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationNode;
@@ -262,6 +263,23 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                 .onErrorDo(error -> {
                     if (log.isDebugEnabled()) {
                         log.warn("Failed to verify proctoring enabled for exam: {}, {}",
+                                examId,
+                                error.getMessage());
+                    }
+                    return false;
+                });
+    }
+
+    @Override
+    public Result<Boolean> isScreenProctoringEnabled(final Long examId) {
+        return this.additionalAttributesDAO.getAdditionalAttribute(
+                EntityType.EXAM,
+                examId,
+                ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING)
+                .map(rec -> BooleanUtils.toBoolean(rec.getValue()))
+                .onErrorDo(error -> {
+                    if (log.isDebugEnabled()) {
+                        log.warn("Failed to verify screen proctoring enabled for exam: {}, {}",
                                 examId,
                                 error.getMessage());
                     }

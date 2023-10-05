@@ -31,12 +31,14 @@ import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.AuthorizationService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @WebServiceProfile
@@ -51,17 +53,20 @@ public class ExamProctoringController {
     private final ExamAdminService examAdminService;
     private final AuthorizationService authorizationService;
     private final ExamSessionService examSessionService;
+    private final ScreenProctoringService screenProctoringService;
 
     public ExamProctoringController(
             final RemoteProctoringRoomService examProcotringRoomService,
             final ExamAdminService examAdminService,
             final AuthorizationService authorizationService,
-            final ExamSessionService examSessionService) {
+            final ExamSessionService examSessionService,
+            final ScreenProctoringService screenProctoringService) {
 
         this.examProcotringRoomService = examProcotringRoomService;
         this.examAdminService = examAdminService;
         this.authorizationService = authorizationService;
         this.examSessionService = examSessionService;
+        this.screenProctoringService = screenProctoringService;
     }
 
     /** This is called by Spring to initialize the WebDataBinder and is used here to
@@ -92,6 +97,25 @@ public class ExamProctoringController {
         checkAccess(institutionId, examId);
         return this.examProcotringRoomService
                 .getProctoringCollectingRooms(examId)
+                .getOrThrow();
+    }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT
+                    + API.EXAM_SCREEN_PROCTORING_GROUPS_SEGMENT,
+            method = RequestMethod.GET,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<ScreenProctoringGroup> getScreenProctoringGroupsOfExam(
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @PathVariable(name = API.PARAM_MODEL_ID) final Long examId) {
+
+        checkAccess(institutionId, examId);
+        return this.screenProctoringService
+                .getCollectingGroups(examId)
                 .getOrThrow();
     }
 

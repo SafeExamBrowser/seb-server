@@ -76,8 +76,6 @@ public class ScreenProctoringSettingsPopup {
             new LocTextKey("sebserver.exam.sps.form.accountId");
     private final static LocTextKey FORM_ACCOUNT_SECRET_SPS =
             new LocTextKey("sebserver.exam.sps.form.accountSecret");
-    private final static LocTextKey FORM_COLLECT_STRATEGY =
-            new LocTextKey("sebserver.exam.sps.form.collect.strategy");
 
     private final static LocTextKey SAVE_TEXT_KEY =
             new LocTextKey("sebserver.exam.sps.form.saveSettings");

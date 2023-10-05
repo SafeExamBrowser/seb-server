@@ -8,10 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
+import java.util.Collection;
+
 import org.springframework.context.event.EventListener;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
 
@@ -43,6 +46,12 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * @param examId use the screen proctoring settings of the exam with the given exam id
      * @return Result refer to the given Exam or to an error when happened */
     Result<Exam> applyScreenProctoingForExam(Long examId);
+
+    /** Get list of all screen proctoring collecting groups for a particular exam.
+     *
+     * @param examId The exam identifier (PK)
+     * @return Result refer to the list of ScreenProctoringGroup or to an error when happened */
+    Result<Collection<ScreenProctoringGroup>> getCollectingGroups(Long examId);
 
     /** Gets invoked after an exam has been changed and saved.
      *

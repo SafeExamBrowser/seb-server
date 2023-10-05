@@ -52,6 +52,7 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
@@ -66,11 +67,12 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringRoomService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientConnectionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientNotificationService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 @WebServiceProfile
@@ -90,6 +92,7 @@ public class ExamMonitoringController {
     private final RemoteProctoringRoomService examProcotringRoomService;
     private final ExamAdminService examAdminService;
     private final SecurityKeyService securityKeyService;
+    private final ScreenProctoringService screenProctoringService;
     private final Executor executor;
 
     public ExamMonitoringController(
@@ -101,6 +104,7 @@ public class ExamMonitoringController {
             final RemoteProctoringRoomService examProcotringRoomService,
             final SecurityKeyService securityKeyService,
             final ExamAdminService examAdminService,
+            final ScreenProctoringService screenProctoringService,
             @Qualifier(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME) final Executor executor) {
 
         this.sebClientConnectionService = sebClientConnectionService;
@@ -112,6 +116,7 @@ public class ExamMonitoringController {
         this.examProcotringRoomService = examProcotringRoomService;
         this.examAdminService = examAdminService;
         this.securityKeyService = securityKeyService;
+        this.screenProctoringService = screenProctoringService;
         this.executor = executor;
     }
 
@@ -314,6 +319,9 @@ public class ExamMonitoringController {
                     name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER,
                     required = false) final String hiddenClientGroups) {
 
+        // TODO respond this within another Thread-pool (Executor)
+        // TODO try to cache some monitoring data throughout multiple requests (for about 2 sec.)
+
         final Exam runningExam = checkPrivileges(institutionId, examId);
 
         final MonitoringSEBConnectionData monitoringSEBConnectionData = this.examSessionService
@@ -322,25 +330,28 @@ public class ExamMonitoringController {
                         createMonitoringFilter(hiddenStates, hiddenClientGroups))
                 .getOrThrow();
 
-        MonitoringFullPageData monitoringFullPageData;
-        if (this.examAdminService.isProctoringEnabled(runningExam).getOr(false)) {
-            final Collection<RemoteProctoringRoom> proctoringData = this.examProcotringRoomService
-                    .getProctoringCollectingRooms(examId)
-                    .getOrThrow();
+        final boolean proctoringEnabled = this.examAdminService.isProctoringEnabled(runningExam);
+        final boolean screenProctoringEnabled = this.examAdminService.isScreenProctoringEnabled(runningExam);
 
-            monitoringFullPageData = new MonitoringFullPageData(
-                    examId,
-                    monitoringSEBConnectionData,
-                    proctoringData);
+        final Collection<RemoteProctoringRoom> proctoringData = (proctoringEnabled)
+                ? this.examProcotringRoomService
+                        .getProctoringCollectingRooms(examId)
+                        .onError(error -> log.error("Failed to get RemoteProctoringRoom for exam: {}", examId, error))
+                        .getOr(Collections.emptyList())
+                : Collections.emptyList();
 
-        } else {
-            monitoringFullPageData = new MonitoringFullPageData(
-                    examId,
-                    monitoringSEBConnectionData,
-                    Collections.emptyList());
-        }
+        final Collection<ScreenProctoringGroup> screenProctoringData = (screenProctoringEnabled)
+                ? this.screenProctoringService
+                        .getCollectingGroups(examId)
+                        .onError(error -> log.error("Failed to get ScreenProctoringGroup for exam: {}", examId, error))
+                        .getOr(Collections.emptyList())
+                : Collections.emptyList();
 
-        return monitoringFullPageData;
+        return new MonitoringFullPageData(
+                examId,
+                monitoringSEBConnectionData,
+                proctoringData,
+                screenProctoringData);
     }
 
     @RequestMapping(

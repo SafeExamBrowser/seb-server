@@ -90,20 +90,35 @@ public interface ExamAdminService {
     /** This indicates if proctoring is set and enabled for a certain exam.
      *
      * @param examId the exam instance
-     * @return Result refer to proctoring is enabled flag or to an error when happened. */
-    default Result<Boolean> isProctoringEnabled(final Exam exam) {
+     * @return proctoring is enabled flag */
+    default boolean isProctoringEnabled(final Exam exam) {
         if (exam == null || exam.id == null) {
-            return Result.ofRuntimeError("Invalid Exam model");
+            return false;
         }
 
         if (exam.additionalAttributesIncluded()) {
-            return Result.tryCatch(() -> {
-                return BooleanUtils.toBooleanObject(
-                        exam.getAdditionalAttribute(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING));
-            });
+            return BooleanUtils.toBoolean(
+                    exam.getAdditionalAttribute(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING));
         }
 
-        return isProctoringEnabled(exam.id);
+        return isProctoringEnabled(exam.id).getOr(false);
+    }
+
+    /** This indicates if screen proctoring is set and enabled for a certain exam.
+     *
+     * @param examId the exam instance
+     * @return screen proctoring is enabled flag */
+    default boolean isScreenProctoringEnabled(final Exam exam) {
+        if (exam == null || exam.id == null) {
+            return false;
+        }
+
+        if (exam.additionalAttributesIncluded()) {
+            return BooleanUtils.toBoolean(
+                    exam.getAdditionalAttribute(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING));
+        }
+
+        return isProctoringEnabled(exam.id).getOr(false);
     }
 
     /** Updates needed additional attributes from assigned exam configuration for the exam
@@ -116,6 +131,12 @@ public interface ExamAdminService {
      * @param examId the exam identifier
      * @return Result refer to proctoring is enabled flag or to an error when happened. */
     Result<Boolean> isProctoringEnabled(final Long examId);
+
+    /** This indicates if screen proctoring is set and enabled for a certain exam.
+     *
+     * @param examId the exam identifier
+     * @return Result refer to screen proctoring is enabled flag or to an error when happened. */
+    Result<Boolean> isScreenProctoringEnabled(final Long examId);
 
     /** Get the exam proctoring service implementation for specified exam.
      *

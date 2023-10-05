@@ -8,9 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.service.session.proctoring;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -18,6 +18,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.client.service.JavaScriptExecutor;
+import org.eclipse.rap.rwt.client.service.UrlLauncher;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
@@ -27,7 +28,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -39,8 +43,10 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
+import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -55,7 +61,6 @@ import ch.ethz.seb.sebserver.gui.service.page.PageService;
 import ch.ethz.seb.sebserver.gui.service.page.PageService.PageActionBuilder;
 import ch.ethz.seb.sebserver.gui.service.page.event.ActionActivationEvent;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.IsTownhallRoomAvailable;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.NotifyProctoringRoomOpened;
@@ -92,6 +97,9 @@ public class MonitoringProctoringService {
     private final JSONMapper jsonMapper;
     private final Resource openRoomScriptRes;
     private final String remoteProctoringEndpoint;
+
+    @Value("${sebserver.gui.screen.proctoring.api-servler.endpoint:/screen-proctoring}")
+    private String screenProctoringViewServletEndpoint;
 
     public MonitoringProctoringService(
             final PageService pageService,
@@ -152,86 +160,123 @@ public class MonitoringProctoringService {
         return action;
     }
 
-    public void initCollectingRoomActions(
-            final PageContext pageContext,
-            final PageActionBuilder actionBuilder,
-            final ProctoringServiceSettings proctoringSettings,
-            final ProctoringGUIService proctoringGUIService) {
-
-        proctoringGUIService.clearCollectingRoomActionState();
-        final EntityKey entityKey = pageContext.getEntityKey();
-        final Collection<RemoteProctoringRoom> collectingRooms = this.pageService
-                .getRestService()
-                .getBuilder(GetCollectingRooms.class)
-                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                .call()
-                .onError(error -> log.error("Failed to get collecting room data:", error))
-                .getOr(Collections.emptyList());
-
-        updateCollectingRoomActions(
-                collectingRooms,
-                pageContext,
-                actionBuilder,
-                proctoringSettings,
-                proctoringGUIService);
-    }
-
     public void updateCollectingRoomActions(
             final Collection<RemoteProctoringRoom> collectingRooms,
+            final Collection<ScreenProctoringGroup> screenProctoringGroups,
             final PageContext pageContext,
-            final PageActionBuilder actionBuilder,
             final ProctoringServiceSettings proctoringSettings,
-            final ProctoringGUIService proctoringGUIService) {
-
-        final EntityKey entityKey = pageContext.getEntityKey();
-        final I18nSupport i18nSupport = this.pageService.getI18nSupport();
+            final ProctoringGUIService proctoringGUIService,
+            final ScreenProctoringSettings screenProctoringSettings) {
 
         collectingRooms
                 .stream()
-                .forEach(room -> {
-                    if (proctoringGUIService.collectingRoomActionActive(room.name)) {
-                        // update action
-                        final TreeItem treeItem = proctoringGUIService.getCollectingRoomActionItem(room.name);
-                        proctoringGUIService.registerCollectingRoomAction(room, treeItem);
-                        treeItem.setText(i18nSupport.getText(new LocTextKey(
-                                ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM.title.name,
-                                room.subject,
-                                room.roomSize,
-                                proctoringSettings.collectingRoomSize)));
-                        processProctorRoomActionActivation(treeItem, room, pageContext);
-                    } else {
-                        // create new action
-                        final PageAction action =
-                                actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM)
-                                        .withEntityKey(entityKey)
-                                        .withExec(_action -> openExamProctoringRoom(
-                                                proctoringGUIService,
-                                                proctoringSettings,
-                                                room,
-                                                _action))
-                                        .withNameAttributes(
-                                                room.subject,
-                                                room.roomSize,
-                                                proctoringSettings.collectingRoomSize)
-                                        .noEventPropagation()
-                                        .create();
-
-                        this.pageService.publishAction(
-                                action,
-                                _treeItem -> proctoringGUIService.registerCollectingRoomAction(
-                                        room,
-                                        _treeItem,
-                                        collectingRoom -> showCollectingRoomPopup(pageContext, entityKey,
-                                                collectingRoom)));
-
-                        processProctorRoomActionActivation(
-                                proctoringGUIService.getCollectingRoomActionItem(room.name),
-                                room, pageContext);
-                    }
-                });
+                .forEach(room -> updateProctoringAction(
+                        pageContext,
+                        proctoringSettings,
+                        proctoringGUIService,
+                        room));
 
         if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.TOWN_HALL)) {
             updateTownhallButton(proctoringGUIService, pageContext);
+        }
+
+        if (screenProctoringGroups != null) {
+            screenProctoringGroups
+                    .stream()
+                    .forEach(group -> updateScreenProctoringAction(
+                            pageContext,
+                            screenProctoringSettings,
+                            proctoringGUIService,
+                            group));
+        }
+    }
+
+    private void updateScreenProctoringAction(
+            final PageContext pageContext,
+            final ScreenProctoringSettings settings,
+            final ProctoringGUIService proctoringGUIService,
+            final ScreenProctoringGroup group) {
+
+        final PageActionBuilder actionBuilder = this.pageService
+                .pageActionBuilder(pageContext.clearEntityKeys());
+        final EntityKey entityKey = pageContext.getEntityKey();
+        final I18nSupport i18nSupport = this.pageService.getI18nSupport();
+
+        final TreeItem screeProcotringGroupAction = proctoringGUIService.getScreeProcotringGroupAction(group);
+        if (screeProcotringGroupAction != null) {
+            // update action
+            screeProcotringGroupAction.setText(i18nSupport.getText(new LocTextKey(
+                    ActionDefinition.MONITOR_EXAM_VIEW_SCREEN_PROCTOR_GROUP.title.name,
+                    group.name,
+                    group.size)));
+
+        } else {
+            // create action
+            this.pageService.publishAction(
+                    actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_SCREEN_PROCTOR_GROUP)
+                            .withEntityKey(entityKey)
+                            .withExec(_action -> openScreenProctoringTab(
+                                    settings,
+                                    group,
+                                    _action))
+                            .withNameAttributes(
+                                    group.name,
+                                    group.size)
+                            .noEventPropagation()
+                            .create(),
+                    _treeItem -> proctoringGUIService.registerScreeProcotringGroupAction(group, _treeItem));
+        }
+    }
+
+    private void updateProctoringAction(
+            final PageContext pageContext,
+            final ProctoringServiceSettings proctoringSettings,
+            final ProctoringGUIService proctoringGUIService,
+            final RemoteProctoringRoom room) {
+
+        final PageActionBuilder actionBuilder = this.pageService
+                .pageActionBuilder(pageContext.clearEntityKeys());
+        final EntityKey entityKey = pageContext.getEntityKey();
+        final I18nSupport i18nSupport = this.pageService.getI18nSupport();
+
+        if (proctoringGUIService.collectingRoomActionActive(room.name)) {
+            // update action
+            final TreeItem treeItem = proctoringGUIService.getCollectingRoomActionItem(room.name);
+            proctoringGUIService.registerCollectingRoomAction(room, treeItem);
+            treeItem.setText(i18nSupport.getText(new LocTextKey(
+                    ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM.title.name,
+                    room.subject,
+                    room.roomSize,
+                    proctoringSettings.collectingRoomSize)));
+            processProctorRoomActionActivation(treeItem, room, pageContext);
+        } else {
+            // create new action
+            final PageAction action =
+                    actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_VIEW_PROCTOR_ROOM)
+                            .withEntityKey(entityKey)
+                            .withExec(_action -> openExamProctoringRoom(
+                                    proctoringGUIService,
+                                    proctoringSettings,
+                                    room,
+                                    _action))
+                            .withNameAttributes(
+                                    room.subject,
+                                    room.roomSize,
+                                    proctoringSettings.collectingRoomSize)
+                            .noEventPropagation()
+                            .create();
+
+            this.pageService.publishAction(
+                    action,
+                    _treeItem -> proctoringGUIService.registerCollectingRoomAction(
+                            room,
+                            _treeItem,
+                            collectingRoom -> showCollectingRoomPopup(pageContext, entityKey,
+                                    collectingRoom)));
+
+            processProctorRoomActionActivation(
+                    proctoringGUIService.getCollectingRoomActionItem(room.name),
+                    room, pageContext);
         }
     }
 
@@ -261,6 +306,28 @@ public class MonitoringProctoringService {
                         ProctorRoomConnectionsPopup.PAGE_ATTR_JOIN_LINK,
                         joinURL);
         this.proctorRoomConnectionsPopup.show(pc, collectingRoom.subject);
+    }
+
+    private PageAction openScreenProctoringTab(
+            final ScreenProctoringSettings settings,
+            final ScreenProctoringGroup group,
+            final PageAction _action) {
+
+        final String serviceRedirect = settings.spsServiceURL + "/guilogin";
+        final ResponseEntity<Void> redirect = new RestTemplate().exchange(
+                serviceRedirect,
+                HttpMethod.GET,
+                null,
+                Void.class);
+
+        final URI redirectLocation = redirect.getHeaders().getLocation();
+        final UrlLauncher launcher = RWT.getClient().getService(UrlLauncher.class);
+        final String url = this.remoteProctoringEndpoint
+                + this.screenProctoringViewServletEndpoint
+                + "?group=" + group.uuid
+                + "&loc=" + redirectLocation;
+        launcher.openURL(url);
+        return _action;
     }
 
     private PageAction openExamProctoringRoom(

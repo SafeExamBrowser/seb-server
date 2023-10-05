@@ -1035,11 +1035,11 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.CLIENT_EVENT_LIST),
 
-    MONITOR_EXAM_NEW_PROCTOR_ROOM(
-            new LocTextKey("sebserver.monitoring.exam.action.newroom"),
-            ImageIcon.VISIBILITY,
-            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
-            ActionCategory.PROCTORING),
+//    MONITOR_EXAM_NEW_PROCTOR_ROOM(
+//            new LocTextKey("sebserver.monitoring.exam.action.newroom"),
+//            ImageIcon.VISIBILITY,
+//            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+//            ActionCategory.PROCTORING),
     MONITOR_EXAM_VIEW_PROCTOR_ROOM(
             new LocTextKey("sebserver.monitoring.exam.action.viewroom"),
             ImageIcon.PROCTOR_ROOM,
@@ -1055,6 +1055,12 @@ public enum ActionDefinition {
             ImageIcon.CANCEL,
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.PROCTORING),
+
+    MONITOR_EXAM_VIEW_SCREEN_PROCTOR_GROUP(
+            new LocTextKey("sebserver.monitoring.exam.action.viewgroup"),
+            ImageIcon.SCREEN_PROC_ON,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.SCREEN_PROCTORING),
 
     FINISHED_EXAM_VIEW_LIST(
             new LocTextKey("sebserver.finished.action.list"),

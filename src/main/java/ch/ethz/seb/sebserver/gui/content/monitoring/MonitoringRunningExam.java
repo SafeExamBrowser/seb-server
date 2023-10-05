@@ -18,12 +18,15 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TreeItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -38,7 +41,10 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
+import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
@@ -60,8 +66,11 @@ import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicators;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetScreenProctoringGroups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 import ch.ethz.seb.sebserver.gui.service.session.ClientConnectionTable;
 import ch.ethz.seb.sebserver.gui.service.session.FullPageMonitoringGUIUpdate;
@@ -75,6 +84,8 @@ import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService
 @Component
 @GuiProfile
 public class MonitoringRunningExam implements TemplateComposer {
+
+    private static final Logger log = LoggerFactory.getLogger(MonitoringRunningExam.class);
 
     private static final LocTextKey EMPTY_SELECTION_TEXT_KEY =
             new LocTextKey("sebserver.monitoring.exam.connection.emptySelection");
@@ -194,8 +205,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                         ActionDefinition.MONITOR_EXAM_CLIENT_CONNECTION,
                         ActionDefinition.MONITOR_EXAM_QUIT_SELECTED,
                         ActionDefinition.MONITOR_EXAM_LOCK_SELECTED,
-                        ActionDefinition.MONITOR_EXAM_DISABLE_SELECTED_CONNECTION,
-                        ActionDefinition.MONITOR_EXAM_NEW_PROCTOR_ROOM));
+                        ActionDefinition.MONITOR_EXAM_DISABLE_SELECTED_CONNECTION));
 
         actionBuilder
 
@@ -275,14 +285,19 @@ public class MonitoringRunningExam implements TemplateComposer {
                     .call()
                     .getOr(null);
 
-            if (proctoringSettings != null && proctoringSettings.enableProctoring) {
-                guiUpdates.add(createProctoringActions(
-                        proctoringSettings,
-                        currentUser.getProctoringGUIService(),
-                        pageContext,
-                        content,
-                        actionBuilder));
-            }
+            final ScreenProctoringSettings screenProctoringSettings = this.restService
+                    .getBuilder(GetScreenProctoringSettings.class)
+                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                    .call()
+                    .getOr(null);
+
+            guiUpdates.add(createProctoringActions(
+                    proctoringSettings,
+                    screenProctoringSettings,
+                    currentUser.getProctoringGUIService(),
+                    pageContext,
+                    content));
+
         }
 
         // finally start the page update (server push)
@@ -304,12 +319,20 @@ public class MonitoringRunningExam implements TemplateComposer {
 
     private FullPageMonitoringGUIUpdate createProctoringActions(
             final ProctoringServiceSettings proctoringSettings,
+            final ScreenProctoringSettings screenProctoringSettings,
             final ProctoringGUIService proctoringGUIService,
             final PageContext pageContext,
-            final Composite parent,
-            final PageActionBuilder actionBuilder) {
+            final Composite parent) {
 
-        if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.TOWN_HALL)) {
+        final PageActionBuilder actionBuilder = this.pageService
+                .pageActionBuilder(pageContext.clearEntityKeys());
+
+        final boolean proctoringEnabled = proctoringSettings != null &&
+                BooleanUtils.toBoolean(proctoringSettings.enableProctoring);
+        final boolean screenProctoringEnabled = screenProctoringSettings != null &&
+                BooleanUtils.toBoolean(proctoringSettings.enableProctoring);
+
+        if (proctoringEnabled && proctoringSettings.enabledFeatures.contains(ProctoringFeature.TOWN_HALL)) {
             final EntityKey entityKey = pageContext.getEntityKey();
             actionBuilder.newAction(ActionDefinition.MONITOR_EXAM_OPEN_TOWNHALL_PROCTOR_ROOM)
                     .withEntityKey(entityKey)
@@ -338,18 +361,44 @@ public class MonitoringRunningExam implements TemplateComposer {
             }
         }
 
-        this.monitoringProctoringService.initCollectingRoomActions(
-                pageContext,
-                actionBuilder,
-                proctoringSettings,
-                proctoringGUIService);
+        proctoringGUIService.clearCollectingRoomActionState();
+        final EntityKey entityKey = pageContext.getEntityKey();
+        final Collection<RemoteProctoringRoom> collectingRooms = (proctoringEnabled)
+                ? this.pageService
+                        .getRestService()
+                        .getBuilder(GetCollectingRooms.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                        .call()
+                        .onError(error -> log.error("Failed to get collecting room data:", error))
+                        .getOr(Collections.emptyList())
+                : Collections.emptyList();
 
-        return monitoringStatus -> this.monitoringProctoringService.updateCollectingRoomActions(
-                monitoringStatus.proctoringData(),
+        final Collection<ScreenProctoringGroup> screenProctoringGroups = (screenProctoringEnabled)
+                ? this.pageService
+                        .getRestService()
+                        .getBuilder(GetScreenProctoringGroups.class)
+                        .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                        .call()
+                        .onError(error -> log.error("Failed to get collecting room data:", error))
+                        .getOr(Collections.emptyList())
+                : Collections.emptyList();
+
+        this.monitoringProctoringService.updateCollectingRoomActions(
+                collectingRooms,
+                screenProctoringGroups,
                 pageContext,
-                actionBuilder,
                 proctoringSettings,
-                proctoringGUIService);
+                proctoringGUIService,
+                screenProctoringSettings);
+
+        return monitoringStatus -> this.monitoringProctoringService
+                .updateCollectingRoomActions(
+                        monitoringStatus.proctoringData(),
+                        monitoringStatus.screenProctoringData(),
+                        pageContext,
+                        proctoringSettings,
+                        proctoringGUIService,
+                        screenProctoringSettings);
     }
 
     private FullPageMonitoringGUIUpdate createFilterActions(
@@ -430,8 +479,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                     .noEventPropagation()
                     .withSwitchAction(
                             actionBuilder.newAction(hideActionDef)
-                                    .withExec(
-                                            hideStateViewAction(filter, clientTable, status))
+                                    .withExec(hideStateViewAction(filter, clientTable, status))
                                     .noEventPropagation()
                                     .withNameAttributes(numOfConnections)
                                     .create())
@@ -443,8 +491,7 @@ public class MonitoringRunningExam implements TemplateComposer {
                     .noEventPropagation()
                     .withSwitchAction(
                             actionBuilder.newAction(showActionDef)
-                                    .withExec(
-                                            showStateViewAction(filter, clientTable, status))
+                                    .withExec(showStateViewAction(filter, clientTable, status))
                                     .noEventPropagation()
                                     .withNameAttributes(numOfConnections)
                                     .create())

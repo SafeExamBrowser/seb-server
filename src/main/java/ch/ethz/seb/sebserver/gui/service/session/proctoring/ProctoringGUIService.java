@@ -28,6 +28,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringRoomConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
+import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
@@ -40,6 +41,7 @@ public class ProctoringGUIService {
     private static final Logger log = LoggerFactory.getLogger(ProctoringGUIService.class);
 
     public static final String SESSION_ATTR_PROCTORING_DATA = "SESSION_ATTR_PROCTORING_DATA";
+    public static final String SESSION_ATTR_SCREEN_PROCTORING_DATA = "SESSION_ATTR_SCREEN_PROCTORING_DATA";
     private static final String SHOW_CONNECTION_ACTION_APPLIED = "SHOW_CONNECTION_ACTION_APPLIED";
     private static final String CLOSE_ROOM_SCRIPT = "var existingWin = window.open('', '%s'); existingWin.close()";
 
@@ -47,10 +49,23 @@ public class ProctoringGUIService {
 
     final Map<String, RoomData> openWindows = new HashMap<>();
     final Map<String, Pair<RemoteProctoringRoom, TreeItem>> collectingRoomsActionState;
+    final Map<String, TreeItem> screenProctoringGroupState;
 
     public ProctoringGUIService(final RestService restService) {
         this.restService = restService;
         this.collectingRoomsActionState = new HashMap<>();
+        this.screenProctoringGroupState = new HashMap<>();
+    }
+
+    public void registerScreeProcotringGroupAction(
+            final ScreenProctoringGroup screenProctoringGroup,
+            final TreeItem actionItem) {
+
+        this.screenProctoringGroupState.put(screenProctoringGroup.uuid, actionItem);
+    }
+
+    public TreeItem getScreeProcotringGroupAction(final ScreenProctoringGroup screenProctoringGroup) {
+        return this.screenProctoringGroupState.get(screenProctoringGroup.uuid);
     }
 
     public boolean collectingRoomActionActive(final String name) {

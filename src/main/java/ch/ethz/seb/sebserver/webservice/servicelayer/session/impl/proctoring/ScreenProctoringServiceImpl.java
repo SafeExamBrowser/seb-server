@@ -200,6 +200,11 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
+    public Result<Collection<ScreenProctoringGroup>> getCollectingGroups(final Long examId) {
+        return this.screenProctoringGroupDAO.getCollectingGroups(examId);
+    }
+
+    @Override
     public Result<Exam> updateExamOnScreenProctoingService(final Long examId) {
         return this.examDAO.byPK(examId)
                 .map(exam -> {
