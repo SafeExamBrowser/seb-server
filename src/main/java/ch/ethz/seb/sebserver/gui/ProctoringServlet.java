@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -25,16 +26,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.AuthorizationContextHolder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.SEBServerAuthorizationContext;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService.ProctoringWindowData;
+import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringGUIService.ScreenProctoringWindowData;
 import ch.ethz.seb.sebserver.gui.service.session.proctoring.ProctoringWindowScriptResolver;
 
 @Component
 @GuiProfile
 public class ProctoringServlet extends HttpServlet {
+
+    public static final String SCREEN_PROCOTRING_FLAG_PARAM = "screenproctoring";
 
     private static final long serialVersionUID = 3475978419653411800L;
     private static final Logger log = LoggerFactory.getLogger(ProctoringServlet.class);
@@ -58,11 +63,53 @@ public class ProctoringServlet extends HttpServlet {
         final WebApplicationContext webApplicationContext = WebApplicationContextUtils
                 .getRequiredWebApplicationContext(servletContext);
 
-        final boolean authenticated = isAuthenticated(httpSession, webApplicationContext);
-        if (!authenticated) {
+        UserInfo user;
+        try {
+            user = isAuthenticated(httpSession, webApplicationContext);
+        } catch (final Exception e) {
             resp.setStatus(HttpStatus.FORBIDDEN.value());
             return;
         }
+
+        final String parameter = req.getParameter(SCREEN_PROCOTRING_FLAG_PARAM);
+        if (BooleanUtils.toBoolean(parameter)) {
+            openScreenProctoring(req, resp, user, httpSession);
+        } else {
+            openRemoteProctoring(resp, httpSession);
+        }
+    }
+
+    private void openScreenProctoring(
+            final HttpServletRequest req,
+            final HttpServletResponse resp,
+            final UserInfo user,
+            final HttpSession httpSession) throws IOException {
+
+        final ScreenProctoringWindowData data = (ScreenProctoringWindowData) httpSession
+                .getAttribute(ProctoringGUIService.SESSION_ATTR_SCREEN_PROCTORING_DATA);
+
+        // NOTE: POST on data.loginLocation seems not to work for automated login
+        // TODO discuss with Nadim how to make a direct login POST on the GUI client
+        //      maybe there is a way to expose /login endpoint for directly POST credentials for login.
+
+        // https://stackoverflow.com/questions/46582/response-redirect-with-post-instead-of-get
+        final StringBuilder sb = new StringBuilder();
+        sb.append("<html>");
+        sb.append("<body onload='document.forms[\"form\"].submit()'>");
+        sb.append("<form name='form' action='");
+        sb.append(data.loginLocation).append("' method='post'>");
+        sb.append("</input type='hidden' name='username' value='").append("super-admin").append("'>");
+        sb.append("</input type='hidden' name='password' type='password' value='").append("admin").append("'>");
+        sb.append("</form>");
+        sb.append("</body>");
+        sb.append("</html>");
+
+        resp.getOutputStream().println(sb.toString());
+    }
+
+    private void openRemoteProctoring(
+            final HttpServletResponse resp,
+            final HttpSession httpSession) throws IOException {
 
         final ProctoringWindowData proctoringData =
                 (ProctoringWindowData) httpSession
@@ -89,7 +136,7 @@ public class ProctoringServlet extends HttpServlet {
         resp.setStatus(HttpServletResponse.SC_OK);
     }
 
-    private boolean isAuthenticated(
+    private UserInfo isAuthenticated(
             final HttpSession httpSession,
             final WebApplicationContext webApplicationContext) {
 
@@ -97,7 +144,11 @@ public class ProctoringServlet extends HttpServlet {
                 .getBean(AuthorizationContextHolder.class);
         final SEBServerAuthorizationContext authorizationContext = authorizationContextHolder
                 .getAuthorizationContext(httpSession);
-        return authorizationContext.isValid() && authorizationContext.isLoggedIn();
+        if (!authorizationContext.isValid() || !authorizationContext.isLoggedIn()) {
+            throw new RuntimeException("No authentication found");
+        }
+
+        return authorizationContext.getLoggedInUser().getOrThrow();
     }
 
 }

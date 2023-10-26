@@ -24,6 +24,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ProctoringSettings
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCacheService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.proctoring.RemoteProctoringServiceFactory;
 
 @Lazy
@@ -34,15 +35,18 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
     private final ProctoringSettingsDAO proctoringSettingsDAO;
     private final RemoteProctoringServiceFactory remoteProctoringServiceFactory;
     private final ScreenProctoringService screenProctoringService;
+    private final ExamSessionCacheService examSessionCacheService;
 
     public ProctoringAdminServiceImpl(
             final ProctoringSettingsDAOImpl proctoringSettingsDAO,
             final RemoteProctoringServiceFactory remoteProctoringServiceFactory,
-            final ScreenProctoringService screenProctoringService) {
+            final ScreenProctoringService screenProctoringService,
+            final ExamSessionCacheService examSessionCacheService) {
 
         this.proctoringSettingsDAO = proctoringSettingsDAO;
         this.remoteProctoringServiceFactory = remoteProctoringServiceFactory;
         this.screenProctoringService = screenProctoringService;
+        this.examSessionCacheService = examSessionCacheService;
     }
 
     @Override
@@ -65,10 +69,19 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
 
             checkType(parentEntityKey);
 
-            return this.proctoringSettingsDAO
+            final ProctoringServiceSettings result = this.proctoringSettingsDAO
                     .saveProctoringServiceSettings(parentEntityKey, proctoringServiceSettings)
                     .getOrThrow();
 
+            if (parentEntityKey.entityType == EntityType.EXAM) {
+                try {
+                    this.examSessionCacheService.evict(Long.parseLong(parentEntityKey.modelId));
+                } catch (final Exception e) {
+                    log.warn("Failed to update Exam cache:_{}", e.getMessage());
+                }
+            }
+
+            return result;
         });
     }
 
@@ -107,6 +120,12 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
                         .onError(error -> this.proctoringSettingsDAO
                                 .disableScreenProctoring(screenProctoringSettings.examId))
                         .getOrThrow();
+
+                try {
+                    this.examSessionCacheService.evict(Long.parseLong(parentEntityKey.modelId));
+                } catch (final Exception e) {
+                    log.warn("Failed to update Exam cache:_{}", e.getMessage());
+                }
             }
 
             return screenProctoringSettings;

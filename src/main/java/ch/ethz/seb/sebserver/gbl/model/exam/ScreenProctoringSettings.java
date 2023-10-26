@@ -10,12 +10,14 @@ package ch.ethz.seb.sebserver.gbl.model.exam;
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.hibernate.validator.constraints.URL;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -81,6 +83,31 @@ public class ScreenProctoringSettings {
         this.spsAccountPassword = spsAccountPassword;
         this.collectingStrategy = collectingStrategy;
         this.collectingGroupSize = collectingGroupSize;
+    }
+
+    public ScreenProctoringSettings(final Exam exam) {
+        if (exam == null) {
+            throw new IllegalStateException("Exam has null reference");
+        }
+        if (!exam.additionalAttributesIncluded()) {
+            throw new IllegalStateException("Exam has no additional attributes");
+        }
+
+        this.examId = exam.id;
+        this.enableScreenProctoring = BooleanUtils.toBooleanObject(exam.additionalAttributes.getOrDefault(
+                ATTR_ENABLE_SCREEN_PROCTORING,
+                Constants.FALSE_STRING));
+        this.spsServiceURL = exam.additionalAttributes.get(ATTR_SPS_SERVICE_URL);
+        this.spsAPIKey = exam.additionalAttributes.get(ATTR_SPS_API_KEY);
+        this.spsAPISecret = exam.additionalAttributes.get(ATTR_SPS_API_SECRET);
+        this.spsAccountId = exam.additionalAttributes.get(ATTR_SPS_ACCOUNT_ID);
+        this.spsAccountPassword = exam.additionalAttributes.get(ATTR_SPS_ACCOUNT_PASSWORD);
+        this.collectingStrategy = CollectingStrategy.valueOf(exam.additionalAttributes.getOrDefault(
+                ATTR_COLLECTING_STRATEGY,
+                CollectingStrategy.EXAM.name()));
+        this.collectingGroupSize = Integer.parseInt(exam.additionalAttributes.getOrDefault(
+                ATTR_COLLECTING_GROUP_SIZE,
+                "-1"));
     }
 
     public Long getExamId() {

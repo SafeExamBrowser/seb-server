@@ -422,6 +422,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public Result<Boolean> saveSecurityCheckStatus(final Long connectionId, final Boolean checkStatus) {
         return Result.tryCatch(() -> {
 
+            // TODO fix update time update (SEBSERV-474)
+
             UpdateDSL.updateWithMapper(
                     this.clientConnectionRecordMapper::update,
                     ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
@@ -439,6 +441,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Transactional
     public Result<Boolean> saveSEBClientVersionCheckStatus(final Long connectionId, final Boolean checkStatus) {
         return Result.tryCatch(() -> {
+
+            // TODO fix update time update (SEBSERV-474)
 
             UpdateDSL.updateWithMapper(
                     this.clientConnectionRecordMapper::update,

@@ -8,7 +8,11 @@
 
 package ch.ethz.seb.sebserver.gbl.model.exam;
 
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
@@ -175,6 +180,64 @@ public class ProctoringServiceSettings implements Entity {
         this.sdkKey = copyOf.sdkKey;
         this.sdkSecret = copyOf.sdkSecret;
         this.useZoomAppClientForCollectingRoom = copyOf.useZoomAppClientForCollectingRoom;
+    }
+
+    public ProctoringServiceSettings(final Exam exam) {
+        if (exam == null) {
+            throw new IllegalStateException("Exam has null reference");
+        }
+        if (!exam.additionalAttributesIncluded()) {
+            throw new IllegalStateException("Exam has no additional attributes");
+        }
+
+        this.examId = exam.id;
+        this.enableProctoring = BooleanUtils.toBooleanObject(exam.additionalAttributes.getOrDefault(
+                ATTR_ENABLE_PROCTORING,
+                Constants.FALSE_STRING));
+        this.serverType = ProctoringServerType.valueOf(exam.additionalAttributes.getOrDefault(
+                ATTR_SERVER_TYPE,
+                ProctoringServerType.ZOOM.name()));
+        this.serverURL = exam.additionalAttributes.get(ATTR_SERVER_URL);
+        this.collectingRoomSize = Integer.parseInt(exam.additionalAttributes.getOrDefault(
+                ATTR_COLLECTING_ROOM_SIZE,
+                "-1"));
+        this.enabledFeatures = getEnabledFeatures(exam.additionalAttributes);
+        this.serviceInUse = this.enableProctoring;
+        this.appKey = exam.additionalAttributes.get(ATTR_APP_KEY);
+        this.appSecret = exam.additionalAttributes.get(ATTR_APP_SECRET);
+        this.accountId = exam.additionalAttributes.get(ATTR_ACCOUNT_ID);
+        this.clientId = exam.additionalAttributes.get(ATTR_ACCOUNT_CLIENT_ID);
+        this.clientSecret = exam.additionalAttributes.get(ATTR_ACCOUNT_CLIENT_SECRET);
+        this.sdkKey = exam.additionalAttributes.get(ATTR_SDK_KEY);
+        this.sdkSecret = exam.additionalAttributes.get(ATTR_SDK_SECRET);
+        this.useZoomAppClientForCollectingRoom = BooleanUtils.toBooleanObject(exam.additionalAttributes.getOrDefault(
+                ATTR_USE_ZOOM_APP_CLIENT_COLLECTING_ROOM,
+                Constants.FALSE_STRING));
+    }
+
+    private EnumSet<ProctoringFeature> getEnabledFeatures(final Map<String, String> mapping) {
+        if (mapping.containsKey(ProctoringServiceSettings.ATTR_ENABLED_FEATURES)) {
+            try {
+                final String value = mapping.get(ProctoringServiceSettings.ATTR_ENABLED_FEATURES);
+                return StringUtils.isNotBlank(value)
+                        ? EnumSet.copyOf(Arrays.asList(StringUtils.split(value, Constants.LIST_SEPARATOR))
+                                .stream()
+                                .map(str -> {
+                                    try {
+                                        return ProctoringFeature.valueOf(str);
+                                    } catch (final Exception e) {
+                                        return null;
+                                    }
+                                })
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toSet()))
+                        : EnumSet.noneOf(ProctoringFeature.class);
+            } catch (final Exception e) {
+                return EnumSet.allOf(ProctoringFeature.class);
+            }
+        } else {
+            return EnumSet.allOf(ProctoringFeature.class);
+        }
     }
 
     @Override

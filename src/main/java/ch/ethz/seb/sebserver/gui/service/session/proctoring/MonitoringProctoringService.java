@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gui.service.session.proctoring;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -51,6 +50,7 @@ import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
+import ch.ethz.seb.sebserver.gui.ProctoringServlet;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.content.action.ActionPane;
 import ch.ethz.seb.sebserver.gui.content.monitoring.ProctorRoomConnectionsPopup;
@@ -64,6 +64,7 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetProctorRoomConnection;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.IsTownhallRoomAvailable;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.NotifyProctoringRoomOpened;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.auth.CurrentUser;
 
 @Lazy
 @Component
@@ -97,9 +98,7 @@ public class MonitoringProctoringService {
     private final JSONMapper jsonMapper;
     private final Resource openRoomScriptRes;
     private final String remoteProctoringEndpoint;
-
-    @Value("${sebserver.gui.screen.proctoring.api-servler.endpoint:/screen-proctoring}")
-    private String screenProctoringViewServletEndpoint;
+    private final String remoteProctoringViewServletEndpoint;
 
     public MonitoringProctoringService(
             final PageService pageService,
@@ -107,7 +106,8 @@ public class MonitoringProctoringService {
             final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup,
             final JSONMapper jsonMapper,
             @Value(OPEN_ROOM_SCRIPT_RES) final Resource openRoomScript,
-            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint) {
+            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint,
+            @Value("${sebserver.gui.remote.proctoring.api-servler.endpoint:/remote-view-servlet}") final String remoteProctoringViewServletEndpoint) {
 
         this.pageService = pageService;
         this.guiServiceInfo = guiServiceInfo;
@@ -115,6 +115,7 @@ public class MonitoringProctoringService {
         this.jsonMapper = jsonMapper;
         this.openRoomScriptRes = openRoomScript;
         this.remoteProctoringEndpoint = remoteProctoringEndpoint;
+        this.remoteProctoringViewServletEndpoint = remoteProctoringViewServletEndpoint;
     }
 
     public boolean isTownhallRoomActive(final String examModelId) {
@@ -313,19 +314,33 @@ public class MonitoringProctoringService {
             final ScreenProctoringGroup group,
             final PageAction _action) {
 
-        final String serviceRedirect = settings.spsServiceURL + "/guilogin";
-        final ResponseEntity<Void> redirect = new RestTemplate().exchange(
+        // TODO make this configurable or static
+        final String serviceRedirect = settings.spsServiceURL + "/gui-redirect-location";
+        final ResponseEntity<String> redirect = new RestTemplate().exchange(
                 serviceRedirect,
                 HttpMethod.GET,
                 null,
-                Void.class);
+                String.class);
 
-        final URI redirectLocation = redirect.getHeaders().getLocation();
+        final String redirectLocation = redirect.getBody();
+        final CurrentUser currentUser = this.pageService.getCurrentUser();
+
+        ProctoringGUIService.setCurrentScreenProctoringWindowData(
+                group.uuid,
+                redirectLocation,
+                currentUser.get().username,
+                "admin");
+
         final UrlLauncher launcher = RWT.getClient().getService(UrlLauncher.class);
-        final String url = this.remoteProctoringEndpoint
-                + this.screenProctoringViewServletEndpoint
-                + "?group=" + group.uuid
-                + "&loc=" + redirectLocation;
+        final String url = this.guiServiceInfo.getExternalServerURIBuilder().toUriString()
+                + this.remoteProctoringEndpoint
+                + this.remoteProctoringViewServletEndpoint
+                + Constants.SLASH
+                + Constants.QUERY
+                + ProctoringServlet.SCREEN_PROCOTRING_FLAG_PARAM
+                + Constants.EQUALITY_SIGN
+                + Constants.TRUE_STRING;
+
         launcher.openURL(url);
         return _action;
     }

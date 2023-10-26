@@ -65,8 +65,6 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.push.ServerPushService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.clientgroup.GetClientGroups;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.indicator.GetIndicators;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.session.GetCollectingRooms;
@@ -279,18 +277,8 @@ public class MonitoringRunningExam implements TemplateComposer {
                     clientTable,
                     isExamSupporter));
 
-            final ProctoringServiceSettings proctoringSettings = this.restService
-                    .getBuilder(GetExamProctoringSettings.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                    .call()
-                    .getOr(null);
-
-            final ScreenProctoringSettings screenProctoringSettings = this.restService
-                    .getBuilder(GetScreenProctoringSettings.class)
-                    .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                    .call()
-                    .getOr(null);
-
+            final ProctoringServiceSettings proctoringSettings = new ProctoringServiceSettings(exam);
+            final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(exam);
             guiUpdates.add(createProctoringActions(
                     proctoringSettings,
                     screenProctoringSettings,
@@ -330,7 +318,12 @@ public class MonitoringRunningExam implements TemplateComposer {
         final boolean proctoringEnabled = proctoringSettings != null &&
                 BooleanUtils.toBoolean(proctoringSettings.enableProctoring);
         final boolean screenProctoringEnabled = screenProctoringSettings != null &&
-                BooleanUtils.toBoolean(proctoringSettings.enableProctoring);
+                BooleanUtils.toBoolean(screenProctoringSettings.enableScreenProctoring);
+
+        if (!proctoringEnabled && !screenProctoringEnabled) {
+            return monitoringStatus -> {
+            };
+        }
 
         if (proctoringEnabled && proctoringSettings.enabledFeatures.contains(ProctoringFeature.TOWN_HALL)) {
             final EntityKey entityKey = pageContext.getEntityKey();
@@ -361,7 +354,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             }
         }
 
-        proctoringGUIService.clearCollectingRoomActionState();
+        proctoringGUIService.clearActionState();
         final EntityKey entityKey = pageContext.getEntityKey();
         final Collection<RemoteProctoringRoom> collectingRooms = (proctoringEnabled)
                 ? this.pageService

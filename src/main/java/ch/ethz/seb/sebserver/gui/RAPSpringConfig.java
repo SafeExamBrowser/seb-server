@@ -45,9 +45,6 @@ public class RAPSpringConfig {
     @Value("${sebserver.gui.remote.proctoring.api-servler.endpoint:/remote-view-servlet}")
     private String remoteProctoringViewServletEndpoint;
 
-    @Value("${sebserver.gui.screen.proctoring.api-servler.endpoint:/screen-proctoring}")
-    private String screenProctoringViewServletEndpoint;
-
     @Bean
     public StaticApplicationPropertyResolver staticApplicationPropertyResolver() {
         return new StaticApplicationPropertyResolver();
@@ -84,17 +81,6 @@ public class RAPSpringConfig {
         return new ServletRegistrationBean<>(
                 proctoringServlet,
                 this.remoteProctoringEndpoint + this.remoteProctoringViewServletEndpoint + "/*");
-    }
-
-    @Bean
-    public ServletRegistrationBean<ScreenProctoringServlet> servletScreenProctoringRegistrationBean(
-            final ApplicationContext applicationContext) {
-
-        final ScreenProctoringServlet proctoringServlet = applicationContext
-                .getBean(ScreenProctoringServlet.class);
-        return new ServletRegistrationBean<>(
-                proctoringServlet,
-                this.remoteProctoringEndpoint + this.screenProctoringViewServletEndpoint + "/*");
     }
 
     @Bean

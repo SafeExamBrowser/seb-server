@@ -129,8 +129,9 @@ public class ProctoringGUIService {
                 .reduce(0, (acc, room) -> acc + room.a.roomSize, Integer::sum);
     }
 
-    public void clearCollectingRoomActionState() {
+    public void clearActionState() {
         this.collectingRoomsActionState.clear();
+        this.screenProctoringGroupState.clear();
     }
 
     public boolean registerProctoringWindow(
@@ -157,10 +158,26 @@ public class ProctoringGUIService {
                 .getAttribute(SESSION_ATTR_PROCTORING_DATA);
     }
 
+    public static ScreenProctoringWindowData getCurrentScreemProctoringWindowData() {
+        return (ScreenProctoringWindowData) RWT.getUISession()
+                .getHttpSession()
+                .getAttribute(SESSION_ATTR_SCREEN_PROCTORING_DATA);
+    }
+
     public static void setCurrentProctoringWindowData(
             final String examId,
             final ProctoringRoomConnection data) {
         setCurrentProctoringWindowData(examId, data.roomName, data);
+    }
+
+    public static void setCurrentScreenProctoringWindowData(
+            final String groupId,
+            final String loginLocation,
+            final String username,
+            final String password) {
+        RWT.getUISession().getHttpSession().setAttribute(
+                SESSION_ATTR_SCREEN_PROCTORING_DATA,
+                new ScreenProctoringWindowData(groupId, loginLocation, username, password));
     }
 
     public static void setCurrentProctoringWindowData(
@@ -226,6 +243,7 @@ public class ProctoringGUIService {
 
     public void clear() {
         this.collectingRoomsActionState.clear();
+        this.screenProctoringGroupState.clear();
         if (!this.openWindows.isEmpty()) {
             new HashSet<>(this.openWindows.entrySet())
                     .stream()
@@ -265,6 +283,8 @@ public class ProctoringGUIService {
 
     public static class ProctoringWindowData implements Serializable {
         private static final long serialVersionUID = -9060185011534956417L;
+
+        public final boolean isScreenProctoring;
         public final String windowName;
         public final String examId;
         public final ProctoringRoomConnection connectionData;
@@ -273,9 +293,28 @@ public class ProctoringGUIService {
                 final String examId,
                 final String windowName,
                 final ProctoringRoomConnection connectionData) {
+            this.isScreenProctoring = false;
             this.windowName = windowName;
             this.examId = examId;
             this.connectionData = connectionData;
+        }
+    }
+
+    public static class ScreenProctoringWindowData implements Serializable {
+
+        private static final long serialVersionUID = 8551477894732539282L;
+        public final String groupId;
+        public final String loginLocation;
+        public final String username;
+        public final String password;
+
+        public ScreenProctoringWindowData(final String groupId, final String loginLocation, final String username,
+                final String password) {
+            super();
+            this.groupId = groupId;
+            this.loginLocation = loginLocation;
+            this.username = username;
+            this.password = password;
         }
     }
 
