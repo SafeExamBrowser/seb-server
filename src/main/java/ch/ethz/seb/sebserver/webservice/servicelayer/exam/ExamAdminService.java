@@ -26,6 +26,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientOS;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
@@ -115,10 +116,10 @@ public interface ExamAdminService {
 
         if (exam.additionalAttributesIncluded()) {
             return BooleanUtils.toBoolean(
-                    exam.getAdditionalAttribute(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING));
+                    exam.getAdditionalAttribute(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING));
         }
 
-        return isProctoringEnabled(exam.id).getOr(false);
+        return isScreenProctoringEnabled(exam.id).getOr(false);
     }
 
     /** Updates needed additional attributes from assigned exam configuration for the exam

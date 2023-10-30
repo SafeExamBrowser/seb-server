@@ -153,6 +153,28 @@ public class ScreenProctoringGroupDAOImpl implements ScreenProctoringGroupDAO {
 
     @Override
     @Transactional
+    public Result<ScreenProctoringGroup> releasePlaceInCollectingGroup(final Long examId, final Long groupId) {
+        return Result.tryCatch(() -> {
+            final ScreenProctoringGroopRecord record =
+                    this.screenProctoringGroopRecordMapper.selectByPrimaryKey(groupId);
+
+            UpdateDSL.updateWithMapper(
+                    this.screenProctoringGroopRecordMapper::update,
+                    ScreenProctoringGroopRecordDynamicSqlSupport.screenProctoringGroopRecord)
+                    .set(ScreenProctoringGroopRecordDynamicSqlSupport.size)
+                    .equalTo(record.getSize() - 1)
+                    .where(ScreenProctoringGroopRecordDynamicSqlSupport.id, isEqualTo(groupId))
+                    .build()
+                    .execute();
+
+            return this.screenProctoringGroopRecordMapper.selectByPrimaryKey(groupId);
+        })
+                .map(this::toDomainModel)
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
     public Result<ScreenProctoringGroup> createNewGroup(final ScreenProctoringGroup group) {
         return Result.tryCatch(() -> {
 

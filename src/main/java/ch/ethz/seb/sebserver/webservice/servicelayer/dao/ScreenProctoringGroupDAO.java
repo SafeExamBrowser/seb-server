@@ -59,6 +59,8 @@ public interface ScreenProctoringGroupDAO {
      * @throws If the Result contains a AllGroupsFullException, there must be created a new Group first */
     Result<ScreenProctoringGroup> reservePlaceInCollectingGroup(Long examId, int maxSize);
 
+    Result<ScreenProctoringGroup> releasePlaceInCollectingGroup(Long examId, Long groupId);
+
     /** This creates a new ScreenProctoringGroup with the given group data.
      * Note that examId and uuid and name are mandatory. The size is ignored and initially set to 0
      *

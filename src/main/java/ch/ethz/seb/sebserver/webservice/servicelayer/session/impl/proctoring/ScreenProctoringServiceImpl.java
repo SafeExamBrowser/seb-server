@@ -297,6 +297,8 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     private void applyScreenProctoringSession(final ClientConnectionRecord ccRecord) {
 
+        Long placeReservedInGroup = null;
+
         try {
             final Long examId = ccRecord.getExamId();
             final Exam runningExam = this.examSessionCacheService.getRunningExam(examId);
@@ -305,6 +307,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             final ScreenProctoringGroup group = applySEBConnectionToGroup(
                     ccRecord,
                     runningExam);
+            placeReservedInGroup = group.id;
 
             // create screen proctoring session for SEB connection on SPS service
             final String spsSessionToken = this.screenProctoringAPIBinding
@@ -315,6 +318,15 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
         } catch (final Exception e) {
             log.error("Failed to apply screen proctoring session to SEB with connection: ", ccRecord, e);
+
+//            if (placeReservedInGroup != null) {
+//                // release reserved place in group
+//                this.screenProctoringGroupDAO.releasePlaceInCollectingGroup(
+//                        ccRecord.getExamId(),
+//                        placeReservedInGroup)
+//                        .onError(
+//                                error -> log.warn("Failed to release reserved place in group: {}", error.getMessage()));
+//            }
         }
     }
 
@@ -348,7 +360,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             final ClientConnectionRecord ccRecord,
             final Exam exam) {
 
-        final ScreenProctoringGroup screenProctoringGroup = getProctoringGroup(exam);
+        final ScreenProctoringGroup screenProctoringGroup = reservePlaceOnProctoringGroup(exam);
         this.clientConnectionDAO.assignToScreenProctoringGroup(
                 exam.id,
                 ccRecord.getConnectionToken(),
@@ -358,7 +370,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         return screenProctoringGroup;
     }
 
-    private ScreenProctoringGroup getProctoringGroup(final Exam exam) {
+    private ScreenProctoringGroup reservePlaceOnProctoringGroup(final Exam exam) {
 
         int collectingGroupSize = 0;
         if (exam.additionalAttributes.containsKey(ScreenProctoringSettings.ATTR_COLLECTING_GROUP_SIZE)) {

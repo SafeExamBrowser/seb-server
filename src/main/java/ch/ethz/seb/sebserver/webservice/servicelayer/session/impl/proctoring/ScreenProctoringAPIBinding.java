@@ -487,7 +487,6 @@ class ScreenProctoringAPIBinding {
 
         final String token = clientConnection.getConnectionToken();
         final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(examId);
-
         final String uri = UriComponentsBuilder
                 .fromUriString(this.apiTemplate.screenProctoringSettings.spsServiceURL)
                 .path(SPS_API.SESSION_ENDPOINT)
