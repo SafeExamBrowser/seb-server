@@ -422,13 +422,16 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public Result<Boolean> saveSecurityCheckStatus(final Long connectionId, final Boolean checkStatus) {
         return Result.tryCatch(() -> {
 
-            // TODO fix update time update (SEBSERV-474)
-
+            // NOTE: we use nanoseconds here to get a better precision to better avoid
+            //       same value of real concurrent calls on distributed systems
+            final long nanosecondsNow = System.nanoTime();
             UpdateDSL.updateWithMapper(
                     this.clientConnectionRecordMapper::update,
                     ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
                     .set(ClientConnectionRecordDynamicSqlSupport.securityCheckGranted)
                     .equalTo(Utils.toByte(checkStatus))
+                    .set(ClientConnectionRecordDynamicSqlSupport.updateTime)
+                    .equalTo(nanosecondsNow)
                     .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
                     .build()
                     .execute();
@@ -442,13 +445,16 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     public Result<Boolean> saveSEBClientVersionCheckStatus(final Long connectionId, final Boolean checkStatus) {
         return Result.tryCatch(() -> {
 
-            // TODO fix update time update (SEBSERV-474)
-
+            // NOTE: we use nanoseconds here to get a better precision to better avoid
+            //       same value of real concurrent calls on distributed systems
+            final long nanosecondsNow = System.nanoTime();
             UpdateDSL.updateWithMapper(
                     this.clientConnectionRecordMapper::update,
                     ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
                     .set(ClientConnectionRecordDynamicSqlSupport.clientVersionGranted)
                     .equalTo(Utils.toByte(checkStatus))
+                    .set(ClientConnectionRecordDynamicSqlSupport.updateTime)
+                    .equalTo(nanosecondsNow)
                     .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
                     .build()
                     .execute();
