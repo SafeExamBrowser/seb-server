@@ -319,14 +319,14 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         } catch (final Exception e) {
             log.error("Failed to apply screen proctoring session to SEB with connection: ", ccRecord, e);
 
-//            if (placeReservedInGroup != null) {
-//                // release reserved place in group
-//                this.screenProctoringGroupDAO.releasePlaceInCollectingGroup(
-//                        ccRecord.getExamId(),
-//                        placeReservedInGroup)
-//                        .onError(
-//                                error -> log.warn("Failed to release reserved place in group: {}", error.getMessage()));
-//            }
+            if (placeReservedInGroup != null) {
+                // release reserved place in group
+                this.screenProctoringGroupDAO.releasePlaceInCollectingGroup(
+                        ccRecord.getExamId(),
+                        placeReservedInGroup)
+                        .onError(
+                                error -> log.warn("Failed to release reserved place in group: {}", error.getMessage()));
+            }
         }
     }
 
@@ -336,7 +336,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
         if (!exam.additionalAttributes.containsKey(ScreenProctoringSettings.ATTR_COLLECTING_STRATEGY)) {
             log.warn("Can't verify collecting strategy for exam: {} use default group assignment.", exam.id);
-            return applyToDefaultGroup(ccRecord, exam);
+            return applyToDefaultGroup(ccRecord.getId(), ccRecord.getConnectionToken(), exam);
         }
 
         final CollectingStrategy strategy = CollectingStrategy.valueOf(exam.additionalAttributes
@@ -350,20 +350,21 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             case EXAM:
             case FIX_SIZE:
             default: {
-                return applyToDefaultGroup(ccRecord, exam);
+                return applyToDefaultGroup(ccRecord.getId(), ccRecord.getConnectionToken(), exam);
             }
         }
 
     }
 
     private ScreenProctoringGroup applyToDefaultGroup(
-            final ClientConnectionRecord ccRecord,
+            final Long connectioId,
+            final String connectionToken,
             final Exam exam) {
 
         final ScreenProctoringGroup screenProctoringGroup = reservePlaceOnProctoringGroup(exam);
         this.clientConnectionDAO.assignToScreenProctoringGroup(
-                exam.id,
-                ccRecord.getConnectionToken(),
+                connectioId,
+                connectionToken,
                 screenProctoringGroup.id)
                 .getOrThrow();
 

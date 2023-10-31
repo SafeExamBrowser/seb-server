@@ -533,7 +533,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     public Result<Exam> updateExamCache(final Long examId) {
 
         // TODO check how often this is called in distributed environments
-        System.out.println("************** performance check: updateExamCache");
+        //System.out.println("************** performance check: updateExamCache");
 
         try {
             final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM);

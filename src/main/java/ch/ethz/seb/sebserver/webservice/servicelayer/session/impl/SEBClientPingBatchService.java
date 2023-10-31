@@ -11,41 +11,67 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
+
+import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ehcache.impl.internal.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientPingService;
 
 @Lazy
 @Component
 @WebServiceProfile
-public class SEBClientPingBatchService {
+public class SEBClientPingBatchService implements SEBClientPingService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientPingBatchService.class);
 
     private final ExamSessionCacheService examSessionCacheService;
     private final SEBClientInstructionService sebClientInstructionService;
+    private final ThreadPoolTaskScheduler threadPoolTaskScheduler;
+    private final long schendulerInterval;
 
     private final Map<String, String> pings = new ConcurrentHashMap<>();
     private final Map<String, String> instructions = new ConcurrentHashMap<>();
 
+    private ScheduledFuture<?> scheduleAtFixedRate = null;
+
     public SEBClientPingBatchService(
             final ExamSessionCacheService examSessionCacheService,
-            final SEBClientInstructionService sebClientInstructionService) {
+            final SEBClientInstructionService sebClientInstructionService,
+            final ThreadPoolTaskScheduler threadPoolTaskScheduler,
+            @Value("${sebserver.webservice.api.exam.session.ping.batch.interval:500}") final long schendulerInterval) {
 
         this.examSessionCacheService = examSessionCacheService;
         this.sebClientInstructionService = sebClientInstructionService;
+        this.threadPoolTaskScheduler = threadPoolTaskScheduler;
+        this.schendulerInterval = schendulerInterval;
     }
 
-    @Scheduled(fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:500}")
+    void init() {
+        if (this.scheduleAtFixedRate == null) {
+
+            log.info(
+                    "Initialize SEBClientPingBatchService for schedule batch update at a rate of {} milliseconds",
+                    this.schendulerInterval);
+
+            this.scheduleAtFixedRate = this.threadPoolTaskScheduler.scheduleAtFixedRate(
+                    () -> processPings(),
+                    this.schendulerInterval);
+        }
+    }
+
+    //@Scheduled(fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:500}")
     public void processPings() {
         if (this.pings.isEmpty()) {
             return;
@@ -69,17 +95,34 @@ public class SEBClientPingBatchService {
         }
     }
 
+    @Override
+    public PingServiceType pingServiceType() {
+        return PingServiceType.BATCH;
+    }
+
+    @Override
     public final String notifyPing(
             final String connectionToken,
             final String instructionConfirm) {
 
+        final String instruction = this.instructions.remove(connectionToken);
+
         if (instructionConfirm != null) {
+            System.out.println("************ put instructionConfirm: " + instructionConfirm + " instructions: "
+                    + this.instructions);
             this.pings.put(connectionToken, instructionConfirm);
+            // TODO is this a good idea or is there another better way to deal with instruction confirm synchronization?
+            if (instruction != null && instruction.contains("\"instruction-confirm\":\"" + instructionConfirm + "\"")) {
+                return null;
+            }
         } else if (!this.pings.containsKey(connectionToken)) {
             this.pings.put(connectionToken, StringUtils.EMPTY);
         }
 
-        return this.instructions.remove(connectionToken);
+//        System.out.println(
+//                "**************** notifyPing instructionConfirm: " + instructionConfirm + " pings: " + this.pings);
+
+        return instruction;
     }
 
     private void processPing(
@@ -107,6 +150,13 @@ public class SEBClientPingBatchService {
         final String instructionJSON = this.sebClientInstructionService.getInstructionJSON(connectionToken);
         if (instructionJSON != null) {
             this.instructions.put(connectionToken, instructionJSON);
+        }
+    }
+
+    @PreDestroy
+    protected void shutdown() {
+        if (this.scheduleAtFixedRate != null) {
+            this.scheduleAtFixedRate.cancel(true);
         }
     }
 

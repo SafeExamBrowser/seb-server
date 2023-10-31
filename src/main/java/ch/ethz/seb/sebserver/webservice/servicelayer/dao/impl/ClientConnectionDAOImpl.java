@@ -530,13 +530,15 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 return Collections.emptyList();
             }
 
-            return this.clientConnectionRecordMapper
+            final List<ClientConnectionRecord> execute = this.clientConnectionRecordMapper
                     .selectByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId, isNull())
                     .and(ClientConnectionRecordDynamicSqlSupport.examId, isIn(examIds))
                     .and(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.ACTIVE.name()))
                     .build()
                     .execute();
+
+            return execute;
         });
     }
 

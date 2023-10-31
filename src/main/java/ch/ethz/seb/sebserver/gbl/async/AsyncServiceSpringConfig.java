@@ -78,7 +78,7 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
     @Bean
     public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
         final ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(5);
+        threadPoolTaskScheduler.setPoolSize(10);
         threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(false);
         threadPoolTaskScheduler.setThreadNamePrefix("SEB-Server-BgTask-");
         return threadPoolTaskScheduler;

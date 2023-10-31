@@ -29,6 +29,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientConnectionDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.institution.SecurityKeyService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientPingService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientSessionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientVersionService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.SEBClientEventBatchService.EventData;
@@ -48,7 +49,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
     private final InternalClientConnectionDataFactory internalClientConnectionDataFactory;
     private final SecurityKeyService securityKeyService;
     private final SEBClientVersionService sebClientVersionService;
-    private final SEBClientPingBatchService sebClientPingService;
+    private final SEBClientPingService sebClientPingService;
 
     public SEBClientSessionServiceImpl(
             final ClientConnectionDAO clientConnectionDAO,
@@ -59,7 +60,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
             final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
             final SecurityKeyService securityKeyService,
             final SEBClientVersionService sebClientVersionService,
-            final SEBClientPingBatchService sebClientPingService) {
+            final SEBClientPingServiceFactory sebClientPingServiceFactory) {
 
         this.clientConnectionDAO = clientConnectionDAO;
         this.examSessionService = examSessionService;
@@ -69,7 +70,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
         this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
         this.securityKeyService = securityKeyService;
         this.sebClientVersionService = sebClientVersionService;
-        this.sebClientPingService = sebClientPingService;
+        this.sebClientPingService = sebClientPingServiceFactory.getSEBClientPingService();
     }
 
     @Override
