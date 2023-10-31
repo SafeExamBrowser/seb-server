@@ -436,9 +436,14 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Transactional
     public Result<Boolean> saveSecurityCheckStatus(final Long connectionId, final Boolean checkStatus) {
         return Result.tryCatch(() -> {
+
+            // NOTE: we use nanoseconds here to get a better precision to better avoid
+            //       same value of real concurrent calls on distributed systems
+            final long nanosecondsNow = System.nanoTime();
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
                     connectionId,
-                    null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null, null, nanosecondsNow, null, null, null, null,
+                    null,
                     Utils.toByte(checkStatus),
                     null, null));
             return checkStatus;
@@ -450,9 +455,13 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     @Transactional
     public Result<Boolean> saveSEBClientVersionCheckStatus(final Long connectionId, final Boolean checkStatus) {
         return Result.tryCatch(() -> {
+            // NOTE: we use nanoseconds here to get a better precision to better avoid
+            //       same value of real concurrent calls on distributed systems
+            final long nanosecondsNow = System.nanoTime();
             this.clientConnectionRecordMapper.updateByPrimaryKeySelective(new ClientConnectionRecord(
                     connectionId,
-                    null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, null, null, null, nanosecondsNow, null, null, null, null,
+                    null,
                     null, null, Utils.toByte(checkStatus)));
             return checkStatus;
         })
