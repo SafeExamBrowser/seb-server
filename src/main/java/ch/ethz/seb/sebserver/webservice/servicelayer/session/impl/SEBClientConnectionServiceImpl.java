@@ -381,12 +381,13 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 }
             }
 
-            // if screen proctoring enabled mark for screen proctoring update
-            // TODO
-
             final Boolean proctoringEnabled = this.examAdminService
                     .isProctoringEnabled(clientConnection.examId)
                     .getOr(false);
+            final Boolean screenProctoringEnabled = this.examAdminService
+                    .isScreenProctoringEnabled(clientConnection.examId)
+                    .getOr(false);
+
             final Long currentExamId = (examId != null) ? examId : clientConnection.examId;
             final String currentVdiConnectionId = (clientId != null)
                     ? clientId
@@ -410,7 +411,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     null,
-                    null,
+                    screenProctoringEnabled,
                     null,
                     proctoringEnabled,
                     null,

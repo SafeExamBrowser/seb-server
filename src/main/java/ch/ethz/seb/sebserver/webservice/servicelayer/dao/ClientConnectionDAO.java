@@ -148,6 +148,11 @@ public interface ClientConnectionDAO extends
             key = "#connectionToken")
     Result<Void> assignToScreenProctoringGroup(Long connectionId, String connectionToken, Long groupId);
 
+    @CacheEvict(
+            cacheNames = ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
+            key = "#connectionToken")
+    Result<Void> markScreenProcotringApplied(Long connectionId, String connectionToken);
+
     /** Get a ClientConnection by connection token.
      *
      * @param connectionToken the connection token

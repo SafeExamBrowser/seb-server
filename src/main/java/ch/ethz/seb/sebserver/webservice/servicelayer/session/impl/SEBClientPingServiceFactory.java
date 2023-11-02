@@ -33,7 +33,7 @@ public class SEBClientPingServiceFactory {
 
     public SEBClientPingServiceFactory(
             final Collection<SEBClientPingService> serviceBeans,
-            @Value("${sebserver.webservice.api.exam.session.ping.service.type:BLOCKING}") final String serviceType) {
+            @Value("${sebserver.webservice.api.exam.session.ping.service.strategy:BLOCKING}") final String serviceType) {
 
         SEBClientPingService.PingServiceType serviceTypeToSet = SEBClientPingService.PingServiceType.BLOCKING;
         try {

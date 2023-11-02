@@ -316,6 +316,10 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             // create instruction for SEB and add it to instruction queue for SEB connection
             registerJoinInstruction(ccRecord, spsSessionToken, group, runningExam);
 
+            this.clientConnectionDAO
+                    .markScreenProcotringApplied(ccRecord.getId(), ccRecord.getConnectionToken())
+                    .getOrThrow();
+
         } catch (final Exception e) {
             log.error("Failed to apply screen proctoring session to SEB with connection: ", ccRecord, e);
 

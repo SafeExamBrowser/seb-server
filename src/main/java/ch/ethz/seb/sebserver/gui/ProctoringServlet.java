@@ -94,15 +94,15 @@ public class ProctoringServlet extends HttpServlet {
 
         // https://stackoverflow.com/questions/46582/response-redirect-with-post-instead-of-get
         final StringBuilder sb = new StringBuilder();
-        sb.append("<html>");
-        sb.append("<body onload='document.forms[\"form\"].submit()'>");
-        sb.append("<form name='form' action='");
-        sb.append(data.loginLocation).append("' method='post'>");
-        sb.append("</input type='hidden' name='username' value='").append("super-admin").append("'>");
-        sb.append("</input type='hidden' name='password' type='password' value='").append("admin").append("'>");
-        sb.append("</form>");
-        sb.append("</body>");
-        sb.append("</html>");
+//        sb.append("<html>");
+//        sb.append("<body onload='document.forms[\"form\"].submit()'>");
+//        sb.append("<form name='form' action='");
+//        sb.append( "" /* data.loginLocation */).append("' method='post'>");
+//        sb.append("</input type='hidden' name='username' value='").append("super-admin").append("'>");
+//        sb.append("</input type='hidden' name='password' type='password' value='").append("admin").append("'>");
+//        sb.append("</form>");
+//        sb.append("</body>");
+//        sb.append("</html>");
 
         resp.getOutputStream().println(sb.toString());
     }

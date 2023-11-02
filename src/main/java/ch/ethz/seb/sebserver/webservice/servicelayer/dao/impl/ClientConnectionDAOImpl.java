@@ -532,7 +532,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
             final List<ClientConnectionRecord> execute = this.clientConnectionRecordMapper
                     .selectByExample()
-                    .where(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId, isNull())
+                    .where(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate, isNotEqualTo((byte) 0))
                     .and(ClientConnectionRecordDynamicSqlSupport.examId, isIn(examIds))
                     .and(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.ACTIVE.name()))
                     .build()
@@ -571,6 +571,20 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     this.clientConnectionRecordMapper::update,
                     ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
                     .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId).equalTo(groupId)
+                    //.set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate).equalTo((byte) 0)
+                    .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
+                    .build()
+                    .execute();
+        })
+                .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    public Result<Void> markScreenProcotringApplied(final Long connectionId, final String connectionToken) {
+        return Result.tryCatch(() -> {
+            UpdateDSL.updateWithMapper(
+                    this.clientConnectionRecordMapper::update,
+                    ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
                     .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate).equalTo((byte) 0)
                     .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
                     .build()
@@ -1136,4 +1150,5 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                 .build()
                 .execute();
     }
+
 }

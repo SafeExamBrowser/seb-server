@@ -485,6 +485,8 @@ class ScreenProctoringAPIBinding {
             final ScreenProctoringGroup localGroup,
             final ClientConnectionRecord clientConnection) {
 
+        // TODO check if the Session with token UUID already exists and if true, return the token
+
         final String token = clientConnection.getConnectionToken();
         final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(examId);
         final String uri = UriComponentsBuilder

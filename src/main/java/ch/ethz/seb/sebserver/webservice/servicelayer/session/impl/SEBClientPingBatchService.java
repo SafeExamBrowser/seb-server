@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -41,8 +42,10 @@ public class SEBClientPingBatchService implements SEBClientPingService {
     private final ThreadPoolTaskScheduler threadPoolTaskScheduler;
     private final long schendulerInterval;
 
+    private final Set<String> pingKeys = new HashSet<>();
     private final Map<String, String> pings = new ConcurrentHashMap<>();
     private final Map<String, String> instructions = new ConcurrentHashMap<>();
+    private final Set<String> confirmedInstructions = Collections.synchronizedSet(new HashSet<>());
 
     private ScheduledFuture<?> scheduleAtFixedRate = null;
 
@@ -83,9 +86,10 @@ public class SEBClientPingBatchService implements SEBClientPingService {
         }
 
         try {
-            final Set<String> connections = new HashSet<>(this.pings.keySet());
-
-            connections.stream().forEach(cid -> processPing(
+            this.pingKeys.clear();
+            this.pingKeys.addAll(this.pings.keySet());
+            //final Set<String> connections = new HashSet<>(this.pings.keySet());
+            this.pingKeys.stream().forEach(cid -> processPing(
                     cid,
                     this.pings.remove(cid),
                     Utils.getMillisecondsNow()));
@@ -111,10 +115,10 @@ public class SEBClientPingBatchService implements SEBClientPingService {
             System.out.println("************ put instructionConfirm: " + instructionConfirm + " instructions: "
                     + this.instructions);
             this.pings.put(connectionToken, instructionConfirm);
-            // TODO is this a good idea or is there another better way to deal with instruction confirm synchronization?
-            if (instruction != null && instruction.contains("\"instruction-confirm\":\"" + instructionConfirm + "\"")) {
-                return null;
-            }
+//            // TODO is this a good idea or is there another better way to deal with instruction confirm synchronization?
+//            if (instruction != null && instruction.contains("\"instruction-confirm\":\"" + instructionConfirm + "\"")) {
+//                return null;
+//            }
         } else if (!this.pings.containsKey(connectionToken)) {
             this.pings.put(connectionToken, StringUtils.EMPTY);
         }
@@ -145,6 +149,10 @@ public class SEBClientPingBatchService implements SEBClientPingService {
 
         if (instructionConfirm != StringUtils.EMPTY) {
             this.sebClientInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
+        }
+
+        if (this.instructions.containsKey(connectionToken)) {
+            return;
         }
 
         final String instructionJSON = this.sebClientInstructionService.getInstructionJSON(connectionToken);
