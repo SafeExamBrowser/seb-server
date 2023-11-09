@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -47,7 +46,6 @@ public class SEBClientPingBatchService implements SEBClientPingService {
     private final Set<String> pingKeys = new HashSet<>();
     private final Map<String, String> pings = new ConcurrentHashMap<>();
     private final Map<String, String> instructions = new ConcurrentHashMap<>();
-    private final Set<String> confirmedInstructions = Collections.synchronizedSet(new HashSet<>());
 
     private ScheduledFuture<?> scheduleAtFixedRate = null;
 
@@ -149,7 +147,7 @@ public class SEBClientPingBatchService implements SEBClientPingService {
             log.error("Failed to get ClientConnectionDataInternal for: {}", connectionToken);
         }
 
-        if (instructionConfirm != StringUtils.EMPTY) {
+        if (StringUtils.isNotBlank(instructionConfirm)) {
             this.sebClientInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
         }
 
