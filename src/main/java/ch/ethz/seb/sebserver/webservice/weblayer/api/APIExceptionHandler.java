@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
+import org.apache.catalina.connector.ClientAbortException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -279,6 +280,16 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
         return APIMessage.ErrorMessage.GENERIC.createErrorResponse(cause.getMessage());
 
+    }
+
+    @ExceptionHandler(ClientAbortException.class)
+    public ResponseEntity<Object> handleClientAbortException(
+            final ClientAbortException ex,
+            final WebRequest request) {
+
+        log.warn("Client aborted: {}", ex.getMessage());
+
+        return null;
     }
 
 }

@@ -56,6 +56,7 @@ public final class API {
 
     public static final String OAUTH_ENDPOINT = "/oauth";
     public static final String OAUTH_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/token";
+    public static final String OAUTH_JWTTOKEN_ENDPOINT = OAUTH_ENDPOINT + "/jwttoken";
     public static final String OAUTH_REVOKE_TOKEN_ENDPOINT = OAUTH_ENDPOINT + "/revoke-token";
 
     public static final String CURRENT_USER_PATH_SEGMENT = "/me";

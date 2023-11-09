@@ -21,7 +21,7 @@ public interface ProctoringSettingsDAO {
             EntityKey entityKey,
             ProctoringServiceSettings proctoringServiceSettings);
 
-    Result<ScreenProctoringSettings> getScreenProctoringSettings(EntityKey entityKey);
+    Result<ScreenProctoringSettings> getScreenProctoringSettings(EntityKey entityKeyp);
 
     Result<ScreenProctoringSettings> storeScreenProctoringSettings(
             final EntityKey entityKey,

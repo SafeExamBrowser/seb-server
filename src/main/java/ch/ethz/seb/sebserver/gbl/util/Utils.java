@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -917,6 +918,14 @@ public final class Utils {
                 .replace("à", "a")
                 .replace(" ", "_")
                 .replaceAll("[^A-Za-z0-9_]", "");
+    }
+
+    public static String createBasicAuthHeader(final String clientname, final CharSequence clientsecret) {
+        final String plainCreds = clientname + Constants.COLON + clientsecret;
+        final byte[] plainCredsBytes = plainCreds.getBytes();
+        final byte[] base64CredsBytes = Base64.encodeBase64(plainCredsBytes);
+        final String base64Creds = new String(base64CredsBytes);
+        return "Basic " + base64Creds;
     }
 
 }

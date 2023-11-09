@@ -63,4 +63,6 @@ public interface SEBServerAuthorizationContext {
      * @return the underling RestTemplate to connect and communicate with the SEB Server webservice */
     RestTemplate getRestTemplate();
 
+    CharSequence getUserPassword();
+
 }

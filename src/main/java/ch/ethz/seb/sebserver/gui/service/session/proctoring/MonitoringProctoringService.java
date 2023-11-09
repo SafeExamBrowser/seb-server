@@ -27,7 +27,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -47,10 +50,10 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
-import ch.ethz.seb.sebserver.gui.ProctoringServlet;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.content.action.ActionPane;
 import ch.ethz.seb.sebserver.gui.content.monitoring.ProctorRoomConnectionsPopup;
@@ -98,16 +101,16 @@ public class MonitoringProctoringService {
     private final JSONMapper jsonMapper;
     private final Resource openRoomScriptRes;
     private final String remoteProctoringEndpoint;
-    private final String remoteProctoringViewServletEndpoint;
+    private final Cryptor cryptor;
 
     public MonitoringProctoringService(
             final PageService pageService,
             final GuiServiceInfo guiServiceInfo,
             final ProctorRoomConnectionsPopup proctorRoomConnectionsPopup,
             final JSONMapper jsonMapper,
+            final Cryptor cryptor,
             @Value(OPEN_ROOM_SCRIPT_RES) final Resource openRoomScript,
-            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint,
-            @Value("${sebserver.gui.remote.proctoring.api-servler.endpoint:/remote-view-servlet}") final String remoteProctoringViewServletEndpoint) {
+            @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint) {
 
         this.pageService = pageService;
         this.guiServiceInfo = guiServiceInfo;
@@ -115,7 +118,7 @@ public class MonitoringProctoringService {
         this.jsonMapper = jsonMapper;
         this.openRoomScriptRes = openRoomScript;
         this.remoteProctoringEndpoint = remoteProctoringEndpoint;
-        this.remoteProctoringViewServletEndpoint = remoteProctoringViewServletEndpoint;
+        this.cryptor = cryptor;
     }
 
     public boolean isTownhallRoomActive(final String examModelId) {
@@ -314,34 +317,55 @@ public class MonitoringProctoringService {
             final ScreenProctoringGroup group,
             final PageAction _action) {
 
-        // TODO make this configurable or static
-        final String serviceRedirect = settings.spsServiceURL + "/gui-redirect-location";
-        final ResponseEntity<String> redirect = new RestTemplate().exchange(
-                serviceRedirect,
-                HttpMethod.GET,
-                null,
-                String.class);
+        try {
+            // Get login Token for user login from SPS service
+            final RestTemplate restTemplate = new RestTemplate();
+            final String serviceRedirect = settings.spsServiceURL + "/gui-redirect-location";
+            final ResponseEntity<String> redirect = restTemplate.exchange(
+                    serviceRedirect,
+                    HttpMethod.GET,
+                    null,
+                    String.class);
 
-        final String redirectLocation = redirect.getBody();
-        final CurrentUser currentUser = this.pageService.getCurrentUser();
+            // JWT token request URL
+            final String jwtTokenURL = settings.spsServiceURL + API.OAUTH_JWTTOKEN_ENDPOINT;
 
-        ProctoringGUIService.setCurrentScreenProctoringWindowData(
-                group.uuid,
-                redirectLocation,
-                currentUser.get().username,
-                "admin");
+            // Basic Auth header and content type header
+            final HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.add(
+                    HttpHeaders.AUTHORIZATION,
+                    Utils.createBasicAuthHeader(
+                            settings.spsAPIKey,
+                            this.cryptor.decrypt(settings.getSpsAPISecret()).getOrThrow()));
+            httpHeaders.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
 
-        final UrlLauncher launcher = RWT.getClient().getService(UrlLauncher.class);
-        final String url = this.guiServiceInfo.getExternalServerURIBuilder().toUriString()
-                + this.remoteProctoringEndpoint
-                + this.remoteProctoringViewServletEndpoint
-                + Constants.SLASH
-                + Constants.QUERY
-                + ProctoringServlet.SCREEN_PROCOTRING_FLAG_PARAM
-                + Constants.EQUALITY_SIGN
-                + Constants.TRUE_STRING;
+            // user credential and redirect info for jwt token request in body - form URL encoded format
+            final CurrentUser currentUser = this.pageService.getCurrentUser();
+            final CharSequence userPassword = currentUser
+                    .getAuthorizationContextHolder()
+                    .getAuthorizationContext()
+                    .getUserPassword();
+            final String body = "username=" + currentUser.get().username
+                    + "&password=" + userPassword.toString()
+                    + "&redirect=/galleryView/" + group.uuid;
 
-        launcher.openURL(url);
+            // apply jwt token request
+            final HttpEntity<String> httpEntity = new HttpEntity<>(body, httpHeaders);
+            final ResponseEntity<String> tokenRequest = restTemplate.exchange(
+                    jwtTokenURL,
+                    HttpMethod.POST,
+                    httpEntity,
+                    String.class);
+
+            // Open SPS Gui redirect URL with login token (jwt token) in new browser tab
+            final String redirectLocation = redirect.getBody() + "/jwt?token=" + tokenRequest.getBody();
+            final UrlLauncher launcher = RWT.getClient().getService(UrlLauncher.class);
+            launcher.openURL(redirectLocation);
+        } catch (final Exception e) {
+            log.error("Failed to open screen proctoring service group gallery view: ", e);
+            _action.pageContext()
+                    .notifyError(new LocTextKey("Failed to open screen proctoring service group gallery view"), e);
+        }
         return _action;
     }
 

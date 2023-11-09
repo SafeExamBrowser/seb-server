@@ -30,6 +30,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
 
 @Lazy
@@ -80,9 +81,12 @@ public class WebserviceInfo {
     @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:43200}")
     private int examAPITokenValiditySeconds;
 
+    private final ScreenProctoringServiceBundle screenProctoringServiceBundle;
+
     public WebserviceInfo(
             final WebserviceInfoDAO webserviceInfoDAO,
-            final Environment environment) {
+            final Environment environment,
+            final Cryptor cryptor) {
 
         this.webserviceInfoDAO = webserviceInfoDAO;
         this.sebServerVersion = environment.getRequiredProperty(VERSION_KEY);
@@ -145,6 +149,24 @@ public class WebserviceInfo {
         } else {
             this.lmsExternalAddressAlias = Collections.emptyMap();
         }
+
+        final boolean spsBundled = BooleanUtils.toBoolean(environment.getProperty(
+                "sebserver.feature.seb.screenProctoring.bundled",
+                Constants.FALSE_STRING));
+        if (spsBundled) {
+            this.screenProctoringServiceBundle = new ScreenProctoringServiceBundle(
+                    environment.getProperty("sebserver.feature.seb.screenProctoring.bundled.url"),
+                    environment.getProperty("sebserver.feature.seb.screenProctoring.bundled.clientId"),
+                    cryptor.encrypt(
+                            environment.getProperty("sebserver.feature.seb.screenProctoring.bundled.clientPassword"))
+                            .getOrThrow(),
+                    environment.getProperty("sebserver.feature.seb.screenProctoring.bundled.sebserveraccount.username"),
+                    cryptor.encrypt(environment
+                            .getProperty("sebserver.feature.seb.screenProctoring.bundled.sebserveraccount.password"))
+                            .getOrThrow());
+        } else {
+            this.screenProctoringServiceBundle = new ScreenProctoringServiceBundle();
+        }
     }
 
     public boolean isMaster() {
@@ -205,6 +227,10 @@ public class WebserviceInfo {
 
     public long getDistributedUpdateInterval() {
         return this.distributedUpdateInterval;
+    }
+
+    public ScreenProctoringServiceBundle getScreenProctoringServiceBundle() {
+        return this.screenProctoringServiceBundle;
     }
 
     public String getLocalHostName() {
@@ -298,6 +324,55 @@ public class WebserviceInfo {
         builder.append(this.lmsExternalAddressAlias);
         builder.append("]");
         return builder.toString();
+    }
+
+    public static final class ScreenProctoringServiceBundle {
+
+        public final boolean bundled;
+        public final String serviceURL;
+        public final String clientId;
+        public final CharSequence clientSecret;
+        public final String apiAccountName;
+        public final CharSequence apiAccountPassword;
+
+        public ScreenProctoringServiceBundle(
+                final String serviceURL,
+                final String clientId,
+                final CharSequence clientSecret,
+                final String apiAccountName,
+                final CharSequence apiAccountPassword) {
+
+            this.bundled = true;
+            this.serviceURL = serviceURL;
+            this.clientId = clientId;
+            this.clientSecret = clientSecret;
+            this.apiAccountName = apiAccountName;
+            this.apiAccountPassword = apiAccountPassword;
+        }
+
+        public ScreenProctoringServiceBundle() {
+            this.bundled = false;
+            this.serviceURL = null;
+            this.clientId = null;
+            this.clientSecret = null;
+            this.apiAccountName = null;
+            this.apiAccountPassword = null;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("ScreenProctoringServiceBundle [bundled=");
+            builder.append(this.bundled);
+            builder.append(", serviceURL=");
+            builder.append(this.serviceURL);
+            builder.append(", clientId=");
+            builder.append(this.clientId);
+            builder.append(", apiAccountName=");
+            builder.append(this.apiAccountName);
+            builder.append("]");
+            return builder.toString();
+        }
     }
 
 }

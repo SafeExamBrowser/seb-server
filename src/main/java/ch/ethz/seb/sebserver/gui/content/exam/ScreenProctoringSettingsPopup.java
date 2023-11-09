@@ -199,7 +199,13 @@ public class ScreenProctoringSettingsPopup {
                     new ActionEvent(action),
                     action.pageContext());
             return true;
+        } else {
+            final String bundled = formHandle.getForm().getStaticValue(ScreenProctoringSettings.ATTR_SPS_BUNDLED);
+            if (bundled != null) {
+                pageContext.notifyActivationError(EntityType.SCREEN_PROCTORING_GROUP, saveRequest.getError());
+            }
         }
+
         return false;
     }
 
@@ -243,11 +249,14 @@ public class ScreenProctoringSettingsPopup {
                     this.pageContext.getAttribute(PageContext.AttributeKeys.FORCE_READ_ONLY));
 
             final FormHandle<Entity> form = this.pageService.formBuilder(formContext)
+                    .putStaticValueIf(
+                            () -> settings.bundled,
+                            ScreenProctoringSettings.ATTR_SPS_BUNDLED,
+                            Constants.TRUE_STRING)
                     .withDefaultSpanInput(5)
                     .withEmptyCellSeparation(true)
                     .withDefaultSpanEmptyCell(1)
                     .readonly(isReadonly)
-
                     .addField(FormBuilder.text(
                             "Info",
                             FORM_INFO_TITLE,
@@ -265,33 +274,39 @@ public class ScreenProctoringSettingsPopup {
                             ScreenProctoringSettings.ATTR_SPS_SERVICE_URL,
                             FORM_URL,
                             settings.spsServiceURL)
-                            .mandatory())
+                            .mandatory()
+                            .readonly(settings.bundled))
 
                     .addField(FormBuilder.text(
                             ScreenProctoringSettings.ATTR_SPS_API_KEY,
                             FORM_APPKEY_SPS,
-                            settings.spsAPIKey))
+                            settings.spsAPIKey)
+                            .readonly(settings.bundled))
                     .withEmptyCellSeparation(false)
 
-                    .addField(FormBuilder.password(
-                            ScreenProctoringSettings.ATTR_SPS_API_SECRET,
-                            FORM_APPSECRET_SPS,
-                            (settings.spsAPISecret != null)
-                                    ? String.valueOf(settings.spsAPISecret)
-                                    : null))
+                    .addFieldIf(
+                            () -> !settings.bundled,
+                            () -> FormBuilder.password(
+                                    ScreenProctoringSettings.ATTR_SPS_API_SECRET,
+                                    FORM_APPSECRET_SPS,
+                                    (settings.spsAPISecret != null)
+                                            ? String.valueOf(settings.spsAPISecret)
+                                            : null))
 
                     .addField(FormBuilder.text(
                             ScreenProctoringSettings.ATTR_SPS_ACCOUNT_ID,
                             FORM_ACCOUNT_ID_SPS,
-                            settings.spsAccountId))
+                            settings.spsAccountId)
+                            .readonly(settings.bundled))
                     .withEmptyCellSeparation(false)
-
-                    .addField(FormBuilder.password(
-                            ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD,
-                            FORM_ACCOUNT_SECRET_SPS,
-                            (settings.spsAccountPassword != null)
-                                    ? String.valueOf(settings.spsAccountPassword)
-                                    : null))
+                    .addFieldIf(
+                            () -> !settings.bundled,
+                            () -> FormBuilder.password(
+                                    ScreenProctoringSettings.ATTR_SPS_ACCOUNT_PASSWORD,
+                                    FORM_ACCOUNT_SECRET_SPS,
+                                    (settings.spsAccountPassword != null)
+                                            ? String.valueOf(settings.spsAccountPassword)
+                                            : null))
 
                     .build();
 

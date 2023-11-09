@@ -22,8 +22,8 @@ import org.springframework.stereotype.Component;
 import ch.ethz.seb.sebserver.SEBServerInit;
 import ch.ethz.seb.sebserver.SEBServerInitEvent;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo.ScreenProctoringServiceBundle;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.WebserviceInfoDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.SEBClientPingServiceFactory;
 
 @Component
 @WebServiceProfile
@@ -39,7 +39,6 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
     private final WebserviceInfoDAO webserviceInfoDAO;
     private final DBIntegrityChecker dbIntegrityChecker;
     private final SEBServerMigrationStrategy sebServerMigrationStrategy;
-    private final SEBClientPingServiceFactory sebClientPingServiceFactory;
 
     protected WebserviceInit(
             final SEBServerInit sebServerInit,
@@ -49,8 +48,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
             final WebserviceInfoDAO webserviceInfoDAO,
             final DBIntegrityChecker dbIntegrityChecker,
             final ApplicationContext applicationContext,
-            final SEBServerMigrationStrategy sebServerMigrationStrategy,
-            final SEBClientPingServiceFactory sebClientPingServiceFactory) {
+            final SEBServerMigrationStrategy sebServerMigrationStrategy) {
 
         this.applicationContext = applicationContext;
         this.sebServerInit = sebServerInit;
@@ -61,7 +59,6 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         this.webserviceInfoDAO = webserviceInfoDAO;
         this.dbIntegrityChecker = dbIntegrityChecker;
         this.sebServerMigrationStrategy = sebServerMigrationStrategy;
-        this.sebClientPingServiceFactory = sebClientPingServiceFactory;
     }
 
     public ApplicationContext getApplicationContext() {
@@ -126,7 +123,7 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
 
         SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Working with ping service: {}",
-                this.sebClientPingServiceFactory.getWorkingServiceType());
+                this.environment.getProperty("sebserver.webservice.ping.service.strategy"));
 
         SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Server address: {}", this.environment.getProperty("server.address"));
@@ -153,6 +150,14 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
                 "----> admin API refresh token validity: " + this.webserviceInfo.getAdminRefreshTokenValSec() + "s");
         SEBServerInit.INIT_LOGGER.info(
                 "----> exam API access token validity: " + this.webserviceInfo.getExamAPITokenValiditySeconds() + "s");
+
+        final ScreenProctoringServiceBundle spsBundle = this.webserviceInfo.getScreenProctoringServiceBundle();
+        SEBServerInit.INIT_LOGGER.info("----> ");
+        SEBServerInit.INIT_LOGGER.info("----> Screen Proctoring Bundle enabled: {}", spsBundle.bundled);
+        if (spsBundle.bundled) {
+            SEBServerInit.INIT_LOGGER.info("------> {}", spsBundle);
+        }
+
         SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Property Override Test: {}", this.webserviceInfo.getTestProperty());
 

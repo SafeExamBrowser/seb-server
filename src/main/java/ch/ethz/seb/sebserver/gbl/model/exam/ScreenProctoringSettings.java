@@ -34,6 +34,8 @@ public class ScreenProctoringSettings {
     public static final String ATTR_SPS_ACCOUNT_ID = "spsAccountId";
     public static final String ATTR_SPS_ACCOUNT_PASSWORD = "spsAccountPassword";
 
+    public static final String ATTR_SPS_BUNDLED = "bundled";
+
     @JsonProperty(Domain.EXAM.ATTR_ID)
     public final Long examId;
 
@@ -62,6 +64,9 @@ public class ScreenProctoringSettings {
     @JsonProperty(ATTR_COLLECTING_GROUP_SIZE)
     public final Integer collectingGroupSize;
 
+    @JsonProperty(ATTR_SPS_BUNDLED)
+    public final boolean bundled;
+
     @JsonCreator
     public ScreenProctoringSettings(
             @JsonProperty(Domain.EXAM.ATTR_ID) final Long examId,
@@ -72,7 +77,8 @@ public class ScreenProctoringSettings {
             @JsonProperty(ATTR_SPS_ACCOUNT_ID) final String spsAccountId,
             @JsonProperty(ATTR_SPS_ACCOUNT_PASSWORD) final CharSequence spsAccountPassword,
             @JsonProperty(ATTR_COLLECTING_STRATEGY) final CollectingStrategy collectingStrategy,
-            @JsonProperty(ATTR_COLLECTING_GROUP_SIZE) final Integer collectingGroupSize) {
+            @JsonProperty(ATTR_COLLECTING_GROUP_SIZE) final Integer collectingGroupSize,
+            @JsonProperty(ATTR_SPS_BUNDLED) final boolean bundled) {
 
         this.examId = examId;
         this.enableScreenProctoring = enableScreenProctoring;
@@ -83,6 +89,30 @@ public class ScreenProctoringSettings {
         this.spsAccountPassword = spsAccountPassword;
         this.collectingStrategy = collectingStrategy;
         this.collectingGroupSize = collectingGroupSize;
+        this.bundled = bundled;
+    }
+
+    public ScreenProctoringSettings(
+            final Long examId,
+            final Boolean enableScreenProctoring,
+            final String spsServiceURL,
+            final String spsAPIKey,
+            final CharSequence spsAPISecret,
+            final String spsAccountId,
+            final CharSequence spsAccountPassword,
+            final CollectingStrategy collectingStrategy,
+            final Integer collectingGroupSize) {
+
+        this.examId = examId;
+        this.enableScreenProctoring = enableScreenProctoring;
+        this.spsServiceURL = spsServiceURL;
+        this.spsAPIKey = spsAPIKey;
+        this.spsAPISecret = spsAPISecret;
+        this.spsAccountId = spsAccountId;
+        this.spsAccountPassword = spsAccountPassword;
+        this.collectingStrategy = collectingStrategy;
+        this.collectingGroupSize = collectingGroupSize;
+        this.bundled = false;
     }
 
     public ScreenProctoringSettings(final Exam exam) {
@@ -108,6 +138,7 @@ public class ScreenProctoringSettings {
         this.collectingGroupSize = Integer.parseInt(exam.additionalAttributes.getOrDefault(
                 ATTR_COLLECTING_GROUP_SIZE,
                 "-1"));
+        this.bundled = false;
     }
 
     public Long getExamId() {
@@ -149,6 +180,10 @@ public class ScreenProctoringSettings {
     @Override
     public int hashCode() {
         return Objects.hash(this.examId);
+    }
+
+    public boolean isBundled() {
+        return this.bundled;
     }
 
     @Override

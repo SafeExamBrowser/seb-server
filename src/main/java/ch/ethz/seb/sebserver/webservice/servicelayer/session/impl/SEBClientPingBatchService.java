@@ -21,6 +21,7 @@ import org.ehcache.impl.internal.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
@@ -33,6 +34,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientPingServic
 @Lazy
 @Component
 @WebServiceProfile
+@ConditionalOnExpression("'${sebserver.webservice.ping.service.strategy}'.equals('BATCH')")
 public class SEBClientPingBatchService implements SEBClientPingService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientPingBatchService.class);
@@ -116,9 +118,9 @@ public class SEBClientPingBatchService implements SEBClientPingService {
                     + this.instructions);
             this.pings.put(connectionToken, instructionConfirm);
 //            // TODO is this a good idea or is there another better way to deal with instruction confirm synchronization?
-//            if (instruction != null && instruction.contains("\"instruction-confirm\":\"" + instructionConfirm + "\"")) {
-//                return null;
-//            }
+            if (instruction != null && instruction.contains("\"instruction-confirm\":\"" + instructionConfirm + "\"")) {
+                return null;
+            }
         } else if (!this.pings.containsKey(connectionToken)) {
             this.pings.put(connectionToken, StringUtils.EMPTY);
         }

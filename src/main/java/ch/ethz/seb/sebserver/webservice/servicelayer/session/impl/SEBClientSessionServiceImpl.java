@@ -60,7 +60,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
             final InternalClientConnectionDataFactory internalClientConnectionDataFactory,
             final SecurityKeyService securityKeyService,
             final SEBClientVersionService sebClientVersionService,
-            final SEBClientPingServiceFactory sebClientPingServiceFactory) {
+            final SEBClientPingService sebClientPingService) {
 
         this.clientConnectionDAO = clientConnectionDAO;
         this.examSessionService = examSessionService;
@@ -70,7 +70,7 @@ public class SEBClientSessionServiceImpl implements SEBClientSessionService {
         this.internalClientConnectionDataFactory = internalClientConnectionDataFactory;
         this.securityKeyService = securityKeyService;
         this.sebClientVersionService = sebClientVersionService;
-        this.sebClientPingService = sebClientPingServiceFactory.getSEBClientPingService();
+        this.sebClientPingService = sebClientPingService;
     }
 
     @Override

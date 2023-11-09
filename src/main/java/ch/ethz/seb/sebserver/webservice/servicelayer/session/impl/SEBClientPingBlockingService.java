@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +23,7 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientPingServic
 @Lazy
 @Component
 @WebServiceProfile
+@ConditionalOnExpression("'${sebserver.webservice.ping.service.strategy}'.equals('BLOCKING')")
 public class SEBClientPingBlockingService implements SEBClientPingService {
 
     private static final Logger log = LoggerFactory.getLogger(SEBClientPingBlockingService.class);

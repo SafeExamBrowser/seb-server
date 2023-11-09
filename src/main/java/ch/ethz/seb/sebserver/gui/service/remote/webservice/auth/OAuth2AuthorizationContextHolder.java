@@ -213,6 +213,14 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
         }
 
         @Override
+        public CharSequence getUserPassword() {
+            if (isLoggedIn()) {
+                return this.resource.getPassword();
+            }
+            return null;
+        }
+
+        @Override
         public boolean login(final String username, final CharSequence password) {
             if (!this.valid || this.isLoggedIn()) {
                 return false;
@@ -363,6 +371,5 @@ public class OAuth2AuthorizationContextHolder implements AuthorizationContextHol
                 }
             }
         }
-
     }
 }

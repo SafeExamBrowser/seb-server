@@ -18,7 +18,10 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Result;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo.ScreenProctoringServiceBundle;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ProctoringSettingsDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ProctoringSettingsDAOImpl;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ProctoringAdminService;
@@ -36,17 +39,23 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
     private final RemoteProctoringServiceFactory remoteProctoringServiceFactory;
     private final ScreenProctoringService screenProctoringService;
     private final ExamSessionCacheService examSessionCacheService;
+    private final ScreenProctoringServiceBundle screenProctoringServiceBundle;
+    private final Cryptor cryptor;
 
     public ProctoringAdminServiceImpl(
             final ProctoringSettingsDAOImpl proctoringSettingsDAO,
             final RemoteProctoringServiceFactory remoteProctoringServiceFactory,
             final ScreenProctoringService screenProctoringService,
-            final ExamSessionCacheService examSessionCacheService) {
+            final ExamSessionCacheService examSessionCacheService,
+            final WebserviceInfo webserviceInfo,
+            final Cryptor cryptor) {
 
         this.proctoringSettingsDAO = proctoringSettingsDAO;
         this.remoteProctoringServiceFactory = remoteProctoringServiceFactory;
         this.screenProctoringService = screenProctoringService;
         this.examSessionCacheService = examSessionCacheService;
+        this.screenProctoringServiceBundle = webserviceInfo.getScreenProctoringServiceBundle();
+        this.cryptor = cryptor;
     }
 
     @Override
@@ -91,9 +100,25 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
 
             checkType(parentEntityKey);
 
-            return this.proctoringSettingsDAO
+            ScreenProctoringSettings settings = this.proctoringSettingsDAO
                     .getScreenProctoringSettings(parentEntityKey)
                     .getOrThrow();
+
+            if (this.screenProctoringServiceBundle.bundled) {
+                settings = new ScreenProctoringSettings(
+                        settings.examId,
+                        settings.enableScreenProctoring,
+                        this.screenProctoringServiceBundle.serviceURL,
+                        this.screenProctoringServiceBundle.clientId,
+                        null,
+                        this.screenProctoringServiceBundle.apiAccountName,
+                        null,
+                        settings.collectingStrategy,
+                        settings.collectingGroupSize,
+                        true);
+            }
+
+            return settings;
         });
     }
 
@@ -106,17 +131,30 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
 
             checkType(parentEntityKey);
 
+            ScreenProctoringSettings settings = screenProctoringSettings;
+            if (this.screenProctoringServiceBundle.bundled) {
+                settings = new ScreenProctoringSettings(
+                        screenProctoringSettings.examId,
+                        screenProctoringSettings.enableScreenProctoring,
+                        this.screenProctoringServiceBundle.serviceURL,
+                        this.screenProctoringServiceBundle.clientId,
+                        this.cryptor.decrypt(this.screenProctoringServiceBundle.clientSecret).getOrThrow(),
+                        this.screenProctoringServiceBundle.apiAccountName,
+                        this.cryptor.decrypt(this.screenProctoringServiceBundle.apiAccountPassword).getOrThrow(),
+                        screenProctoringSettings.collectingStrategy,
+                        screenProctoringSettings.collectingGroupSize,
+                        true);
+            }
+
             this.screenProctoringService
-                    .testSettings(screenProctoringSettings)
-                    .flatMap(settings -> this.proctoringSettingsDAO.storeScreenProctoringSettings(
-                            parentEntityKey,
-                            screenProctoringSettings))
+                    .testSettings(settings)
+                    .flatMap(s -> this.proctoringSettingsDAO.storeScreenProctoringSettings(parentEntityKey, s))
                     .getOrThrow();
 
             if (parentEntityKey.entityType == EntityType.EXAM) {
 
                 this.screenProctoringService
-                        .applyScreenProctoingForExam(screenProctoringSettings.examId)
+                        .applyScreenProctoingForExam(settings.examId)
                         .onError(error -> this.proctoringSettingsDAO
                                 .disableScreenProctoring(screenProctoringSettings.examId))
                         .getOrThrow();
@@ -128,7 +166,7 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
                 }
             }
 
-            return screenProctoringSettings;
+            return settings;
         });
     }
 

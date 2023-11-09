@@ -108,6 +108,10 @@ public final class Form implements FormBinding {
         }
     }
 
+    public String getStaticValue(final String name) {
+        return this.staticValues.get(name);
+    }
+
     public void addToGroup(final String groupName, final String fieldName) {
         if (this.formFields.containsKey(fieldName)) {
             this.groups.computeIfAbsent(groupName, k -> new HashSet<>())
