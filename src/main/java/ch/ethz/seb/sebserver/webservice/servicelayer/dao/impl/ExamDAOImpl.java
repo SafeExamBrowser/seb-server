@@ -262,8 +262,7 @@ public class ExamDAOImpl implements ExamDAO {
         return Result.tryCatch(() -> {
 
             final List<String> stateNames = (status != null && status.length > 0)
-                    ? Arrays.asList(status)
-                            .stream().map(s -> s.name())
+                    ? Arrays.stream(status).map(Enum::name)
                             .collect(Collectors.toList())
                     : null;
             return this.examRecordDAO
@@ -443,7 +442,7 @@ public class ExamDAOImpl implements ExamDAO {
 
             if (lockedRecords != null && !lockedRecords.isEmpty()) {
                 final long millisecondsNow = Utils.getMillisecondsNow();
-                lockedRecords.stream().forEach(record -> {
+                lockedRecords.forEach(record -> {
                     try {
                         final String lastUpdateString = record.getLastupdate();
                         if (StringUtils.isNotBlank(lastUpdateString)) {
@@ -454,7 +453,7 @@ public class ExamDAOImpl implements ExamDAO {
                             }
                         }
                     } catch (final Exception e) {
-                        log.warn("Failed to release aged write lock for exam: {} cause:", record, e.getMessage());
+                        log.warn("Failed to release aged write lock for exam: {} cause: {}", record, e.getMessage());
                     }
                 });
             }
@@ -522,7 +521,7 @@ public class ExamDAOImpl implements ExamDAO {
                 return Collections.emptyList();
             }
 
-            // notify exam deletion listener about following deletion, to cleanup stuff before deletion
+            // notify exam deletion listener about following deletion, to clean up stuff before deletion
             this.applicationEventPublisher.publishEvent(new ExamDeletionEvent(ids));
 
             this.examRecordMapper.deleteByExample()
@@ -531,8 +530,7 @@ public class ExamDAOImpl implements ExamDAO {
                     .execute();
 
             // delete all additional attributes
-            ids.stream()
-                    .forEach(id -> this.additionalAttributesDAO.deleteAll(EntityType.EXAM, id));
+            ids.forEach(id -> this.additionalAttributesDAO.deleteAll(EntityType.EXAM, id));
 
             return ids.stream()
                     .map(id -> new EntityKey(id, EntityType.EXAM))
@@ -549,7 +547,7 @@ public class ExamDAOImpl implements ExamDAO {
         }
 
         // define the select function in case of source type
-        Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction;
+        final Function<EntityKey, Result<Collection<EntityDependency>>> selectionFunction;
         switch (bulkAction.sourceType) {
             case INSTITUTION:
                 selectionFunction = this::allIdsOfInstitution;
@@ -744,11 +742,9 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     private Result<Collection<Exam>> toDomainModel(final Collection<ExamRecord> records) {
-        return Result.tryCatch(() -> {
-            return records.stream()
-                    .map(rec -> this.toDomainModel(rec).getOrThrow())
-                    .collect(Collectors.toList());
-        });
+        return Result.tryCatch(() -> records.stream()
+                .map(rec -> this.toDomainModel(rec).getOrThrow())
+                .collect(Collectors.toList()));
     }
 
     private Result<Exam> toDomainModel(final ExamRecord record) {
@@ -771,7 +767,9 @@ public class ExamDAOImpl implements ExamDAO {
                     .getAdditionalAttributes(EntityType.EXAM, record.getId())
                     .getOrThrow()
                     .stream()
-                    .collect(Collectors.toMap(rec -> rec.getName(), rec -> rec.getValue()));
+                    .collect(Collectors.toMap(
+                            AdditionalAttributeRecord::getName,
+                            AdditionalAttributeRecord::getValue));
 
             return new Exam(
                     record.getId(),
@@ -824,21 +822,20 @@ public class ExamDAOImpl implements ExamDAO {
             additionalAttributes.put(QuizData.QUIZ_ATTR_START_URL, quizData.startURL);
         }
 
-        additionalAttributes.entrySet().forEach(entry -> {
-            final String value = entry.getValue();
+        additionalAttributes.forEach((key, value) -> {
             if (value == null) {
                 this.additionalAttributesDAO.delete(
                         EntityType.EXAM,
                         examId,
-                        entry.getKey());
+                        key);
             } else {
                 this.additionalAttributesDAO.saveAdditionalAttribute(
-                        EntityType.EXAM,
-                        examId,
-                        entry.getKey(),
-                        value)
+                                EntityType.EXAM,
+                                examId,
+                                key,
+                                value)
                         .onError(error -> log.error("Failed to save additional quiz attribute: {}",
-                                entry.getKey(),
+                                key,
                                 error));
             }
         });
