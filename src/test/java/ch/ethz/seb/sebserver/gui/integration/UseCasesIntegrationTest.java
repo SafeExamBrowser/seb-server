@@ -3867,7 +3867,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
 
         assertTrue(clientConfig.isActive());
 
-        // simulate a SEB connection...
+        // simulate a SEB connection....
         try {
             new SEBClientBot(
                     credentials.clientIdAsString(),
