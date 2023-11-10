@@ -79,7 +79,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     @CacheEvict(
             cacheNames = ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM,
             key = "#examId")
-    String getAppSigantureKeySalt(Long examId);
+    String getAppSignatureKeySalt(Long examId);
 
     /** Saves the Exam and updates the running exam cache. */
     @Override
@@ -171,7 +171,6 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     /** Use this to check if the exam is up to date
      *
-     * @param examId the exam identifier
      * @param exam the exam to check if it is in sync with the persistent or if there is a newer version
      * @return Result refer to the up-to-date result or to an error if happened */
     Result<Boolean> upToDate(Exam exam);

@@ -497,7 +497,7 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
-    public String getAppSigantureKeySalt(final Long examId) {
+    public synchronized String getAppSignatureKeySalt(final Long examId) {
         final CharSequence salt = KeyGenerators.string().generateKey();
         this.additionalAttributesDAO.initAdditionalAttribute(
                 EntityType.EXAM,

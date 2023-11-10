@@ -143,7 +143,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                         return salt;
                     }
 
-                    return this.examDAO.getAppSigantureKeySalt(examId);
+                    return this.examDAO.getAppSignatureKeySalt(examId);
                 });
     }
 

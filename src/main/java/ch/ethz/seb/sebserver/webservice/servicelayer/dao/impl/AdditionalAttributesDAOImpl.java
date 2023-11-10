@@ -154,6 +154,7 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
                 return this.additionalAttributeRecordMapper
                         .selectByPrimaryKey(rec.getId());
             } else {
+
                 final AdditionalAttributeRecord rec = new AdditionalAttributeRecord(
                         null,
                         type.name(),
@@ -170,6 +171,7 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
     }
 
     @Override
+    @Transactional
     public boolean initAdditionalAttribute(
             final EntityType type,
             final Long entityId,

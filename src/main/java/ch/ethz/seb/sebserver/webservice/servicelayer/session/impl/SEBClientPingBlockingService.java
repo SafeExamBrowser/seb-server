@@ -59,7 +59,7 @@ public class SEBClientPingBlockingService implements SEBClientPingService {
             log.error("Failed to get ClientConnectionDataInternal for: {}", connectionToken);
         }
 
-        if (instructionConfirm != StringUtils.EMPTY) {
+        if (StringUtils.isNotBlank(instructionConfirm)) {
             this.sebClientInstructionService.confirmInstructionDone(connectionToken, instructionConfirm);
         }
 
