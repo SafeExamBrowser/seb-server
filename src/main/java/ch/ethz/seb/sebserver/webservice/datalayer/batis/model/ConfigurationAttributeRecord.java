@@ -3,31 +3,31 @@ package ch.ethz.seb.sebserver.webservice.datalayer.batis.model;
 import javax.annotation.Generated;
 
 public class ConfigurationAttributeRecord {
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.721+02:00", comments="Source field: configuration_attribute.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.077+01:00", comments="Source field: configuration_attribute.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.723+02:00", comments="Source field: configuration_attribute.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.name")
     private String name;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.723+02:00", comments="Source field: configuration_attribute.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.type")
     private String type;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.723+02:00", comments="Source field: configuration_attribute.parent_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.parent_id")
     private Long parentId;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.723+02:00", comments="Source field: configuration_attribute.resources")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.resources")
     private String resources;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.724+02:00", comments="Source field: configuration_attribute.validator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.validator")
     private String validator;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.724+02:00", comments="Source field: configuration_attribute.dependencies")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.dependencies")
     private String dependencies;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.724+02:00", comments="Source field: configuration_attribute.default_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.default_value")
     private String defaultValue;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.711+02:00", comments="Source Table: configuration_attribute")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.063+01:00", comments="Source Table: configuration_attribute")
     public ConfigurationAttributeRecord(Long id, String name, String type, Long parentId, String resources, String validator, String dependencies, String defaultValue) {
         this.id = id;
         this.name = name;
@@ -39,42 +39,42 @@ public class ConfigurationAttributeRecord {
         this.defaultValue = defaultValue;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.723+02:00", comments="Source field: configuration_attribute.id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.id")
     public Long getId() {
         return id;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.723+02:00", comments="Source field: configuration_attribute.name")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.name")
     public String getName() {
         return name;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.723+02:00", comments="Source field: configuration_attribute.type")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.type")
     public String getType() {
         return type;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.723+02:00", comments="Source field: configuration_attribute.parent_id")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.parent_id")
     public Long getParentId() {
         return parentId;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.723+02:00", comments="Source field: configuration_attribute.resources")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.resources")
     public String getResources() {
         return resources;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.724+02:00", comments="Source field: configuration_attribute.validator")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.validator")
     public String getValidator() {
         return validator;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.724+02:00", comments="Source field: configuration_attribute.dependencies")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.dependencies")
     public String getDependencies() {
         return dependencies;
     }
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-09-14T09:19:47.724+02:00", comments="Source field: configuration_attribute.default_value")
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", date="2023-11-14T09:46:30.078+01:00", comments="Source field: configuration_attribute.default_value")
     public String getDefaultValue() {
         return defaultValue;
     }
@@ -83,7 +83,7 @@ public class ConfigurationAttributeRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration_attribute
      *
-     * @mbg.generated Thu Sep 14 09:19:47 CEST 2023
+     * @mbg.generated Tue Nov 14 09:46:30 CET 2023
      */
     @Override
     public String toString() {
@@ -107,7 +107,7 @@ public class ConfigurationAttributeRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration_attribute
      *
-     * @mbg.generated Thu Sep 14 09:19:47 CEST 2023
+     * @mbg.generated Tue Nov 14 09:46:30 CET 2023
      */
     @Override
     public boolean equals(Object that) {
@@ -135,7 +135,7 @@ public class ConfigurationAttributeRecord {
      * This method was generated by MyBatis Generator.
      * This method corresponds to the database table configuration_attribute
      *
-     * @mbg.generated Thu Sep 14 09:19:47 CEST 2023
+     * @mbg.generated Tue Nov 14 09:46:30 CET 2023
      */
     @Override
     public int hashCode() {
