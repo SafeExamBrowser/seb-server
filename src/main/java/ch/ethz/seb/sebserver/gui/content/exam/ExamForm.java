@@ -412,14 +412,15 @@ public class ExamForm implements TemplateComposer {
             this.processTemplateSelection(formHandle.getForm(), formContext);
         }
 
-        final boolean proctoringEnabled = importFromQuizData ? false : this.restService
+        final boolean proctoringEnabled = !importFromQuizData && this.restService
                 .getBuilder(GetExamProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
                 .map(ProctoringServiceSettings::getEnableProctoring)
                 .getOr(false);
 
-        final boolean screenProctoringEnabled = importFromQuizData ? false : this.restService
+        final boolean spsFeatureEnabled = this.featureService.isEnabled(FeatureService.SCREEN_PROCTORING_FEATURE_NAME);
+        final boolean screenProctoringEnabled = spsFeatureEnabled && !importFromQuizData && this.restService
                 .getBuilder(GetScreenProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
@@ -429,6 +430,7 @@ public class ExamForm implements TemplateComposer {
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(formContext
                 .clearEntityKeys()
                 .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
+
 
         // propagate content actions to action-pane
         actionBuilder
@@ -514,7 +516,7 @@ public class ExamForm implements TemplateComposer {
                 .withExec(
                         this.screenProctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> this.featureService.isScreenProcteringEnabled() && screenProctoringEnabled && readonly)
+                .publishIf(() -> spsFeatureEnabled && screenProctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.SCREEN_PROCTORING_OFF)
                 .withEntityKey(entityKey)
@@ -522,7 +524,7 @@ public class ExamForm implements TemplateComposer {
                         this.screenProctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
                 .publishIf(
-                        () -> this.featureService.isScreenProcteringEnabled() && !screenProctoringEnabled && readonly)
+                        () -> spsFeatureEnabled && !screenProctoringEnabled && readonly)
 
         ;
 

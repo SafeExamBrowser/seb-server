@@ -14,6 +14,12 @@ import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 
 public interface FeatureService {
 
+    String SCREEN_PROCTORING_FEATURE_NAME = "seb.screenProctoring";
+    String INSTITUTION_FEATURE_NAME = "admin.institution";
+    String REMOTE_PROCTORING_FEATURE_NAME = "seb.remoteProctoring";
+    String TEST_LMS_FEATURE_NAME = "lms.testLMS";
+    String EXAM_NO_LMS_FEATURE_NAME = "exam.noLMS";
+
     String FEATURE_SETTINGS_PREFIX = "sebserver.feature.";
 
     boolean isEnabled(LmsType LmsType);
@@ -22,6 +28,6 @@ public interface FeatureService {
 
     boolean isEnabled(CollectingStrategy collectingRoomStrategy);
 
-    boolean isScreenProcteringEnabled();
+    boolean isEnabled(String featureSuffix);
 
 }

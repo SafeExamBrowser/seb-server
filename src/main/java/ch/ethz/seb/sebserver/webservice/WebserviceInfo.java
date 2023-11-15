@@ -150,10 +150,13 @@ public class WebserviceInfo {
             this.lmsExternalAddressAlias = Collections.emptyMap();
         }
 
+        final boolean spsEnabled = BooleanUtils.toBoolean(environment.getProperty(
+                "sebserver.feature.seb.screenProctoring.enabled",
+                Constants.FALSE_STRING));
         final boolean spsBundled = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.feature.seb.screenProctoring.bundled",
                 Constants.FALSE_STRING));
-        if (spsBundled) {
+        if (spsEnabled && spsBundled) {
             this.screenProctoringServiceBundle = new ScreenProctoringServiceBundle(
                     environment.getProperty("sebserver.feature.seb.screenProctoring.bundled.url"),
                     environment.getProperty("sebserver.feature.seb.screenProctoring.bundled.clientId"),

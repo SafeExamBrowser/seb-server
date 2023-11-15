@@ -55,16 +55,16 @@ public class FeatureServiceImpl implements FeatureService {
                 Boolean.TRUE);
     }
 
-    private String toConfigName(final String key) {
-        return key.replaceAll("_", "-");
-    }
-
     @Override
-    public boolean isScreenProcteringEnabled() {
+    public boolean isEnabled(final String featureSuffix) {
         return this.environment.getProperty(toConfigName(
-                FEATURE_SETTINGS_PREFIX + "seb.screenProctoring"),
+                        FEATURE_SETTINGS_PREFIX + featureSuffix + ".enabled"),
                 Boolean.class,
                 Boolean.FALSE);
+    }
+
+    private String toConfigName(final String key) {
+        return key.replaceAll("_", "-");
     }
 
 }
