@@ -163,6 +163,8 @@ public interface ZoomRoomRequestResponse {
 
         static class InMeetingSettings {
 
+            @JsonProperty final boolean virtual_background = false;
+            @JsonProperty final VirtualBackgroundSettings virtual_background_settings = new VirtualBackgroundSettings();
             @JsonProperty final boolean auto_saving_chat;
             @JsonProperty final int allow_users_save_chats;
             @JsonProperty final int allow_participants_chat_with;
@@ -178,6 +180,13 @@ public interface ZoomRoomRequestResponse {
             }
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        static class VirtualBackgroundSettings {
+            @JsonProperty final boolean enable = false;
+            @JsonProperty final boolean allow_upload_custom = false;
+            @JsonProperty final boolean allow_videos = false;
+        }
+
         static class FeaturesSettings {
             @JsonProperty final String concurrent_meeting;
             public FeaturesSettings(final String concurrent_meeting) {
@@ -185,6 +194,8 @@ public interface ZoomRoomRequestResponse {
             }
         }
     }
+
+
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     static class UserResponse {
