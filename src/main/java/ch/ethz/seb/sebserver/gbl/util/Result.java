@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 /** A result of a computation that can either be the resulting value of the computation
  * or an error if an exception/error has been thrown during the computation.
- *
+ * <p>
  * Use this to make code more resilient at the same time as avoid many try-catch-blocks
  * on root exceptions/errors and the need of nested exceptions.
  * More specific: use this if a none void method should always give a result and never throw an exception

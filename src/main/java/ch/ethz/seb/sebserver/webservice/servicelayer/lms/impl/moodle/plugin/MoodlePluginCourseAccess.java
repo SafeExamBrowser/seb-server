@@ -213,7 +213,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final Set<String> missingIds = new HashSet<>(ids);
             final Collection<QuizData> result = new ArrayList<>();
             final Set<String> fromCache = ids.stream()
-                    .map(id -> super.getFromCache(id))
+                    .map(super::getFromCache)
                     .filter(Objects::nonNull)
                     .map(qd -> {
                         result.add(qd);
@@ -225,9 +225,9 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
 
                 result.addAll(getRestTemplate()
                         .map(template -> getQuizzesForIds(template, ids))
-                        .map(qd -> super.putToCache(qd))
+                        .map(super::putToCache)
                         .onError(error -> log.error("Failed to get courses for: {}", ids, error))
-                        .getOrElse(() -> Collections.emptyList()));
+                        .getOrElse(Collections::emptyList));
             }
 
             return result;
@@ -246,7 +246,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final Set<String> ids = Stream.of(id).collect(Collectors.toSet());
             final Iterator<QuizData> iterator = getRestTemplate()
                     .map(template -> getQuizzesForIds(template, ids))
-                    .map(qd -> super.putToCache(qd))
+                    .map(super::putToCache)
                     .getOr(Collections.emptyList())
                     .iterator();
 
@@ -426,7 +426,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final long filterDate = Utils.toUnixTimeInSeconds(quizFromTime);
             final long defaultCutOff = Utils.toUnixTimeInSeconds(
                     DateTime.now(DateTimeZone.UTC).minusYears(this.cutoffTimeOffset));
-            final long cutoffDate = (filterDate < defaultCutOff) ? filterDate : defaultCutOff;
+            final long cutoffDate = Math.min(filterDate, defaultCutOff);
             String sqlCondition = String.format(
                     SQL_CONDITION_TEMPLATE,
                     String.valueOf(cutoffDate),

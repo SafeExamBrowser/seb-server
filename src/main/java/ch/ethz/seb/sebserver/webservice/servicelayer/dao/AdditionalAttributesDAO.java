@@ -22,7 +22,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 
 /** Defines functionality to access additional attributes.
- *
+ * <p>
  * Additional attributes are name/value pairs associated with a specified entity but stored
  * in a separated data-base table. */
 public interface AdditionalAttributesDAO {
@@ -31,8 +31,7 @@ public interface AdditionalAttributesDAO {
 
     /** Use this to get all additional attribute records for a specific entity.
      *
-     * @param type the entity type
-     * @param entityId the entity identifier (primary key)
+     * @param entityKey the entity key
      * @return Result refer to the collection of additional attribute records or to an error if happened */
     default Result<Collection<AdditionalAttributeRecord>> getAdditionalAttributes(final EntityKey entityKey) {
         return Result.tryCatch(() -> getAdditionalAttributes(
@@ -87,12 +86,13 @@ public interface AdditionalAttributesDAO {
 
     /** Use this to initialize an additional attribute for a specific entity.
      * If the additional attribute with specified name already exists for the specified entity
-     * this this is just ignored and nothing changes.
+     * this is just ignored and nothing changes.
      *
      * @param type the entity type
      * @param entityId the entity identifier (primary key)
      * @param name the name of the attribute
-     * @param value the value of the attribute */
+     * @param value the value of the attribute
+     * @return true if initialization was successfully*/
     boolean initAdditionalAttribute(
             EntityType type,
             Long entityId,

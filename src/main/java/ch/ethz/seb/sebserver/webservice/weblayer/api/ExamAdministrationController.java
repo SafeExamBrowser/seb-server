@@ -196,7 +196,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return this.examDAO.byPK(modelId)
                 .flatMap(this::checkWriteAccess)
                 .flatMap(this.examAdminService::archiveExam)
-                .flatMap(exam -> super.userActivityLogDAO.logArchive(exam))
+                .flatMap(super.userActivityLogDAO::logArchive)
                 .getOrThrow();
     }
 

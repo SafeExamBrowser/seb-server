@@ -192,7 +192,7 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
                             AdditionalAttributeRecordDynamicSqlSupport.name,
                             SqlBuilder.isEqualTo(name))
                     .build()
-                    .execute().longValue() > 0;
+                    .execute() > 0;
 
             if (!exists) {
                 final AdditionalAttributeRecord rec = new AdditionalAttributeRecord(
@@ -271,7 +271,7 @@ public class AdditionalAttributesDAOImpl implements AdditionalAttributesDAO {
                     .build()
                     .execute();
         } catch (final Exception e) {
-            log.error("Failed to delete all additional attributes for: {} cause: {}", entityId, e);
+            log.error("Failed to delete all additional attributes for: {} cause: {}", entityId, e.getMessage());
         }
     }
 

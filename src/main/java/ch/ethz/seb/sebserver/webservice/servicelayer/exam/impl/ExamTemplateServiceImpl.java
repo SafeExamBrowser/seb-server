@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.exam.impl;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -134,7 +135,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 final ExamTemplate examTemplate = this.examTemplateDAO
                         .byPK(exam.examTemplateId)
-                        .onError(error -> log.warn("No exam template found for id: {}",
+                        .onError(error -> log.warn("No exam template found for id: {} error: {}",
                                 exam.examTemplateId,
                                 error.getMessage()))
                         .getOr(null);
@@ -165,7 +166,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 final ExamTemplate examTemplate = this.examTemplateDAO
                         .byPK(exam.examTemplateId)
-                        .onError(error -> log.warn("No exam template found for id: {}",
+                        .onError(error -> log.warn("No exam template found for id: {} error: {}",
                                 exam.examTemplateId,
                                 error.getMessage()))
                         .getOr(null);
@@ -200,7 +201,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 final ExamTemplate examTemplate = this.examTemplateDAO
                         .byPK(exam.examTemplateId)
-                        .onError(error -> log.warn("No exam template found for id: {}",
+                        .onError(error -> log.warn("No exam template found for id: {} error: {}",
                                 exam.examTemplateId,
                                 error.getMessage()))
                         .getOr(null);
@@ -254,12 +255,21 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                 .findFirst()
                 .orElse(null);
 
-        if (examConfig == null || examConfig.status != ConfigurationStatus.READY_TO_USE) {
+
+        // create new configuration if we don't have an old config that is on READY_TO_USE or the template has changed
+        if (examConfig == null ||
+                examConfig.status != ConfigurationStatus.READY_TO_USE ||
+                !Objects.equals(examConfig.templateId, examTemplate.configTemplateId)) {
+
+            final String newName = (examConfig != null && examConfig.name.equals(configName))
+                    ? examConfig.name + "_"
+                    : configName;
+
             final ConfigurationNode config = new ConfigurationNode(
                     null,
                     exam.institutionId,
                     examTemplate.configTemplateId,
-                    configName,
+                    newName,
                     replaceVars(this.defaultExamConfigDescTemplate, exam, examTemplate),
                     ConfigurationType.EXAM_CONFIG,
                     exam.owner,
@@ -316,7 +326,7 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
 
                 final ExamTemplate examTemplate = this.examTemplateDAO
                         .byPK(exam.examTemplateId)
-                        .onError(error -> log.warn("No exam template found for id: {}",
+                        .onError(error -> log.warn("No exam template found for id: {} error: {}",
                                 exam.examTemplateId,
                                 error.getMessage()))
                         .getOr(null);
