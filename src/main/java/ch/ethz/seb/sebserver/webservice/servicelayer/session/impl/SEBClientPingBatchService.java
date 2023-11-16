@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
@@ -40,41 +41,21 @@ public class SEBClientPingBatchService implements SEBClientPingService {
 
     private final ExamSessionCacheService examSessionCacheService;
     private final SEBClientInstructionService sebClientInstructionService;
-    private final ThreadPoolTaskScheduler threadPoolTaskScheduler;
-    private final long schendulerInterval;
+
 
     private final Set<String> pingKeys = new HashSet<>();
     private final Map<String, String> pings = new ConcurrentHashMap<>();
     private final Map<String, String> instructions = new ConcurrentHashMap<>();
 
-    private ScheduledFuture<?> scheduleAtFixedRate = null;
-
     public SEBClientPingBatchService(
             final ExamSessionCacheService examSessionCacheService,
-            final SEBClientInstructionService sebClientInstructionService,
-            final ThreadPoolTaskScheduler threadPoolTaskScheduler,
-            @Value("${sebserver.webservice.api.exam.session.ping.batch.interval:500}") final long schendulerInterval) {
+            final SEBClientInstructionService sebClientInstructionService) {
 
         this.examSessionCacheService = examSessionCacheService;
         this.sebClientInstructionService = sebClientInstructionService;
-        this.threadPoolTaskScheduler = threadPoolTaskScheduler;
-        this.schendulerInterval = schendulerInterval;
     }
 
-    void init() {
-        if (this.scheduleAtFixedRate == null) {
-
-            log.info(
-                    "Initialize SEBClientPingBatchService for schedule batch update at a rate of {} milliseconds",
-                    this.schendulerInterval);
-
-            this.scheduleAtFixedRate = this.threadPoolTaskScheduler.scheduleAtFixedRate(
-                    () -> processPings(),
-                    this.schendulerInterval);
-        }
-    }
-
-    //@Scheduled(fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:500}")
+    @Scheduled(fixedDelayString = "${sebserver.webservice.api.exam.session.ping.batch.interval:500}")
     public void processPings() {
         if (this.pings.isEmpty()) {
             return;
@@ -160,12 +141,4 @@ public class SEBClientPingBatchService implements SEBClientPingService {
             this.instructions.put(connectionToken, instructionJSON);
         }
     }
-
-    @PreDestroy
-    protected void shutdown() {
-        if (this.scheduleAtFixedRate != null) {
-            this.scheduleAtFixedRate.cancel(true);
-        }
-    }
-
 }
