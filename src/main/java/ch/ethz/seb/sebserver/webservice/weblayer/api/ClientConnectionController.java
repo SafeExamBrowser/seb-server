@@ -8,12 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -106,21 +101,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
         populateFilterMap(filterMap, institutionId, sort);
 
-        if (StringUtils.isNotBlank(sort) || filterMap.containsAny(EXT_FILTER)) {
-
-            final Collection<ClientConnection> allConnections = getAll(filterMap)
-                    .getOrThrow();
-
-            return this.paginationService.buildPageFromList(
-                    pageNumber,
-                    pageSize,
-                    sort,
-                    allConnections,
-                    pageClientConnectionFunction(filterMap, sort));
-
-        } else {
-            return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
-        }
+        return super.getPage(institutionId, pageNumber, pageSize, sort, allRequestParams, request);
     }
 
     @RequestMapping(
@@ -145,7 +126,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
         final FilterMap filterMap = new FilterMap(allRequestParams, request.getQueryString());
         populateFilterMap(filterMap, institutionId, sort);
 
-        if (StringUtils.isNotBlank(sort) || filterMap.containsAny(EXT_FILTER)) {
+        if (StringUtils.isNotBlank(sort) && sort.contains(ClientConnectionData.ATTR_INDICATOR_VALUE)) {
 
             final Collection<ClientConnectionData> allConnections = getAllData(filterMap)
                     .getOrThrow();
@@ -155,7 +136,7 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                     pageSize,
                     sort,
                     allConnections,
-                    pageClientConnectionDataFunction(filterMap, sort));
+                    c -> c.stream().sorted(new IndicatorValueComparator(sort)).collect(Collectors.toList()));
         } else {
 
             return this.paginationService.getPage(
@@ -227,42 +208,6 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
                         .collect(Collectors.toList()));
     }
 
-    private Function<Collection<ClientConnection>, List<ClientConnection>> pageClientConnectionFunction(
-            final FilterMap filterMap,
-            final String sort) {
-
-        return connections -> {
-
-            final List<ClientConnection> filtered = connections
-                    .stream()
-                    .filter(getClientConnectionFilter(filterMap))
-                    .collect(Collectors.toList());
-
-            if (StringUtils.isNotBlank(sort)) {
-                filtered.sort(new ClientConnectionComparator(sort));
-            }
-            return filtered;
-        };
-    }
-
-    private Function<Collection<ClientConnectionData>, List<ClientConnectionData>> pageClientConnectionDataFunction(
-            final FilterMap filterMap,
-            final String sort) {
-
-        return connections -> {
-
-            final List<ClientConnectionData> filtered = connections
-                    .stream()
-                    .filter(getClientConnectionDataFilter(filterMap))
-                    .collect(Collectors.toList());
-
-            if (StringUtils.isNotBlank(sort)) {
-                filtered.sort(new ClientConnectionDataComparator(sort));
-            }
-            return filtered;
-        };
-    }
-
     private Predicate<ClientConnection> getClientConnectionFilter(final FilterMap filterMap) {
         final String infoFilter = filterMap.getString(ClientConnection.FILTER_ATTR_INFO);
         Predicate<ClientConnection> filter = Utils.truePredicate();
@@ -277,57 +222,25 @@ public class ClientConnectionController extends ReadonlyEntityController<ClientC
         return ccd -> clientConnectionFilter.test(ccd.clientConnection);
     }
 
-    private static final class ClientConnectionComparator implements Comparator<ClientConnection> {
+    private static final class IndicatorValueComparator implements Comparator<ClientConnectionData> {
 
-        final String sortColumn;
+        //final ClientConnectionComparator clientConnectionComparator;
+        final String sort;
+        final Long iValuePK;
         final boolean descending;
 
-        ClientConnectionComparator(final String sort) {
-            this.sortColumn = PageSortOrder.decode(sort);
+        IndicatorValueComparator(final String sort) {
+            this.sort = sort;
+            iValuePK = Long.valueOf(StringUtils.split(sort, Constants.UNDERLINE)[1]);
             this.descending = PageSortOrder.getSortOrder(sort) == PageSortOrder.DESCENDING;
         }
 
         @Override
-        public int compare(final ClientConnection cc1, final ClientConnection cc2) {
-            int result = 0;
-            if (Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID.equals(this.sortColumn)) {
-                result = ObjectUtils.compare(cc1.userSessionId, cc2.userSessionId);
-            } else if (ClientConnection.ATTR_INFO.equals(this.sortColumn)) {
-                result = ObjectUtils.compare(cc1.getInfo(), cc2.getInfo());
-            } else if (Domain.CLIENT_CONNECTION.ATTR_STATUS.equals(this.sortColumn)) {
-                result = ObjectUtils.compare(cc1.getStatus(), cc2.getStatus());
-            } else {
-                result = ObjectUtils.compare(cc1.userSessionId, cc2.userSessionId);
-            }
-            return (this.descending) ? -result : result;
-        }
-    }
-
-    private static final class ClientConnectionDataComparator implements Comparator<ClientConnectionData> {
-
-        final ClientConnectionComparator clientConnectionComparator;
-
-        ClientConnectionDataComparator(final String sort) {
-            this.clientConnectionComparator = new ClientConnectionComparator(sort);
-        }
-
-        @Override
         public int compare(final ClientConnectionData cc1, final ClientConnectionData cc2) {
-            if (this.clientConnectionComparator.sortColumn.startsWith(ClientConnectionData.ATTR_INDICATOR_VALUE)) {
-                try {
-                    final Long iValuePK = Long.valueOf(StringUtils.split(
-                            this.clientConnectionComparator.sortColumn,
-                            Constants.UNDERLINE)[1]);
-                    final Double indicatorValue1 = cc1.getIndicatorValue(iValuePK);
-                    final Double indicatorValue2 = cc2.getIndicatorValue(iValuePK);
-                    final int result = indicatorValue1.compareTo(indicatorValue2);
-                    return (this.clientConnectionComparator.descending) ? -result : result;
-                } catch (final Exception e) {
-                    return this.clientConnectionComparator.compare(cc1.clientConnection, cc2.clientConnection);
-                }
-            }
-
-            return this.clientConnectionComparator.compare(cc1.clientConnection, cc2.clientConnection);
+            final Double v1 = cc1.getIndicatorValue(iValuePK);
+            final Double v2 = cc2.getIndicatorValue(iValuePK);
+            final int result = ObjectUtils.compare(v1, v2);
+            return (this.descending) ? -result : result;
         }
     }
 }

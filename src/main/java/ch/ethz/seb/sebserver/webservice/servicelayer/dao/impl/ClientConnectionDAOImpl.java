@@ -114,7 +114,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             final Predicate<ClientConnection> predicate) {
 
         return Result.tryCatch(() -> {
-            final QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientConnectionRecord>>>.QueryExpressionWhereBuilder whereClause =
+            QueryExpressionDSL<MyBatis3SelectModelAdapter<List<ClientConnectionRecord>>>.QueryExpressionWhereBuilder whereClause =
                     (filterMap.getBoolean(FilterMap.ATTR_ADD_INSITUTION_JOIN))
                             ? this.clientConnectionRecordMapper
                                     .selectByExample()
@@ -130,6 +130,23 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                                     .where(
                                             ClientConnectionRecordDynamicSqlSupport.institutionId,
                                             isEqualToWhenPresent(filterMap.getInstitutionId()));
+
+            if (filterMap.contains(ClientConnection.FILTER_ATTR_INFO)) {
+                whereClause = whereClause
+                        .and(
+                                ClientConnectionRecordDynamicSqlSupport.clientVersion,
+                                isLike(filterMap.getSQLWildcard(ClientConnection.FILTER_ATTR_INFO)),
+                                or(
+                                        ClientConnectionRecordDynamicSqlSupport.clientOsName,
+                                        isLike(filterMap.getSQLWildcard(ClientConnection.FILTER_ATTR_INFO)),
+                                        or(
+                                                ClientConnectionRecordDynamicSqlSupport.clientAddress,
+                                                isLike(filterMap.getSQLWildcard(ClientConnection.FILTER_ATTR_INFO))
+                                                )
+                                )
+                        );
+            }
+
             return whereClause
                     .and(
                             ClientConnectionRecordDynamicSqlSupport.connectionToken,

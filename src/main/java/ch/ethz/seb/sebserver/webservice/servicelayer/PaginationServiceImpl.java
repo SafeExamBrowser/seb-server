@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.beans.factory.annotation.Value;
@@ -397,6 +398,25 @@ public class PaginationServiceImpl implements PaginationService {
                 UserActivityLogRecordDynamicSqlSupport.userActivityLogRecord.tableNameAtRuntime(),
                 Domain.USER_ACTIVITY_LOG.ATTR_ID);
 
+        // Client Connection Table
+
+        final Map<String, String> ccTableMap = new HashMap<>();
+        ccTableMap.put(
+                ClientConnection.FILTER_ATTR_SESSION_ID,
+                ClientConnectionRecordDynamicSqlSupport.examUserSessionId.name());
+        ccTableMap.put(
+                ClientConnection.FILTER_ATTR_STATUS,
+                ClientConnectionRecordDynamicSqlSupport.status.name());
+        ccTableMap.put(
+                ClientConnection.FILTER_ATTR_INFO,
+                ClientConnectionRecordDynamicSqlSupport.clientVersion.name());
+
+        this.sortColumnMapping.put(
+                ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord.tableNameAtRuntime(),
+                ccTableMap);
+        this.defaultSortColumn.put(
+                ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord.tableNameAtRuntime(),
+                ClientConnection.FILTER_ATTR_SESSION_ID);
     }
 
 }

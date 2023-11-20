@@ -122,8 +122,8 @@ public class ExamMonitoringController {
 
     /** This is called by Spring to initialize the WebDataBinder and is used here to
      * initialize the default value binding for the institutionId request-parameter
-     * that has the current users insitutionId as default.
-     *
+     * that has the current users institutionId as default.
+     * <p>
      * See also UserService.addUsersInstitutionDefaultPropertySupport */
     @InitBinder
     public void initBinder(final WebDataBinder binder) {
@@ -133,9 +133,9 @@ public class ExamMonitoringController {
     }
 
     /** Get a page of all currently running exams
-     *
+     * <p>
      * GET /{api}/{entity-type-endpoint-name}
-     *
+     * <p>
      * GET /admin-api/v1/monitoring
      * GET /admin-api/v1/monitoring?page_number=2&page_size=10&sort=-name
      * GET /admin-api/v1/monitoring?name=seb&active=true
@@ -193,9 +193,9 @@ public class ExamMonitoringController {
     }
 
     /** Get a page of all currently finished exams
-     *
+     * <p>
      * GET /{api}/{entity-type-endpoint-name}
-     *
+     * <p>
      * GET /admin-api/v1/monitoring
      * GET /admin-api/v1/monitoring?page_number=2&page_size=10&sort=-name
      * GET /admin-api/v1/monitoring?name=seb&active=true
@@ -589,13 +589,12 @@ public class ExamMonitoringController {
         }
 
         final Set<Long> _filterClientGroups = filterClientGroups;
-        final Predicate<ClientConnectionData> filter = ccd -> {
+        return ccd -> {
             if (ccd == null) {
                 return false;
             }
             return stateFilter.test(ccd) && ccd.filter(_filterClientGroups);
         };
-        return filter;
     }
 
 }

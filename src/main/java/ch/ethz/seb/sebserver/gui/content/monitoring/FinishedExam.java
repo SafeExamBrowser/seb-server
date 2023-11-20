@@ -149,6 +149,7 @@ public class FinishedExam implements TemplateComposer {
                 this.pageService.entityTableBuilder(restService.getRestCall(GetFinishedExamClientConnectionPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
+                        .withDefaultSort(Domain.CLIENT_CONNECTION.ATTR_EXAM_USER_SESSION_ID)
                         .withStaticFilter(ClientConnection.FILTER_ATTR_EXAM_ID, examKey.modelId)
 
                         .withColumn(new ColumnDefinition<ClientConnectionData>(
@@ -162,8 +163,7 @@ public class FinishedExam implements TemplateComposer {
                                 ClientConnection.ATTR_INFO,
                                 TABLE_COLUMN_INFO,
                                 c -> c.clientConnection.getInfo())
-                                        .withFilter(this.infoFilter)
-                                        .sortable())
+                                        .withFilter(this.infoFilter))
 
                         .withColumn(new ColumnDefinition<ClientConnectionData>(
                                 Domain.CLIENT_CONNECTION.ATTR_STATUS,
