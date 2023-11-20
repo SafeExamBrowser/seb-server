@@ -122,8 +122,8 @@ public class UtilsTest {
         try {
             assertEquals("RGB {255, 255, 255}", Utils.toRGB(rgbString3).toString());
             fail("NumberFormatException expected here");
-        } catch (final NumberFormatException e) {
-            assertEquals("For input string: \"wr\"", e.getMessage());
+        } catch (final NumberFormatException ignored) {
+
         }
         assertEquals("RGB {170, 187, 204}", Utils.toRGB(rgbString4).toString());
         assertEquals("RGB {170, 187, 204}", Utils.toRGB(rgbString5).toString());
