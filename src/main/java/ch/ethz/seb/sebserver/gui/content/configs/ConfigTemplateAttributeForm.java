@@ -69,6 +69,8 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
             new LocTextKey("sebserver.configtemplate.attr.form.value");
     private static final LocTextKey FORM_VALUE_TOOLTIP_TEXT_KEY =
             new LocTextKey("sebserver.configtemplate.attr.form.value" + Constants.TOOLTIP_TEXT_KEY_SUFFIX);
+    public static final LocTextKey CONF_TEXT_RESET_VALUES =
+            new LocTextKey("sebserver.configtemplate.attr.list.actions.setdefault.confirm");
 
     private final PageService pageService;
     private final RestService restService;
@@ -137,7 +139,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
             final boolean _hasView = hasView;
 
             this.pageService.formBuilder(formContext)
-                    .readonly(true) // TODO change this for next version
+                    .readonly(true)
                     .addField(FormBuilder.text(
                             Domain.CONFIGURATION_ATTRIBUTE.ATTR_NAME,
                             FORM_NAME_TEXT_KEY,
@@ -183,7 +185,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
             final ViewContext viewContext = this.examConfigurationService.createViewContext(
                     valueContext,
                     configuration,
-                    new View(-1L, "template", 10, 0, templateId),
+                    new View(-1L, ViewContext.TEMPLATE_VIEW_NAME, 10, 0, templateId),
                     viewName -> null,
                     attributeMapping,
                     1, false, null);
@@ -211,9 +213,15 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
         final boolean _hasView = hasView;
         this.pageService.pageActionBuilder(pageContext.clearEntityKeys())
 
+                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_EDIT_TEMPLATE)
+                .withEntityKey(templateKey)
+                .ignoreMoveAwayFromEdit()
+                .publish()
+
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_SET_DEFAULT)
                 .withEntityKey(attributeKey)
                 .withParentEntityKey(templateKey)
+                .withConfirm(() -> CONF_TEXT_RESET_VALUES)
                 .withExec(this.examConfigurationService::resetToDefaults)
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> _modifyGrant)
@@ -231,11 +239,8 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                 .withExec(this.examConfigurationService::attachToDefaultView)
                 .ignoreMoveAwayFromEdit()
                 .publishIf(() -> _modifyGrant && !_hasView)
+        ;
 
-                .newAction(ActionDefinition.SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_EDIT_TEMPLATE)
-                .withEntityKey(templateKey)
-                .ignoreMoveAwayFromEdit()
-                .publish();
 
     }
 

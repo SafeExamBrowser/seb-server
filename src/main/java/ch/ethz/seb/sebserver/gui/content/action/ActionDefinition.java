@@ -869,7 +869,7 @@ public enum ActionDefinition {
 
     SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_SET_DEFAULT(
             new LocTextKey("sebserver.configtemplate.attr.action.setdefault"),
-            ImageIcon.UNDO,
+            ImageIcon.RESET,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_ATTRIBUTE_EDIT,
             ActionCategory.FORM),
     SEB_EXAM_CONFIG_TEMPLATE_ATTR_FORM_EDIT_TEMPLATE(

@@ -36,6 +36,7 @@ public final class ViewContext {
     /** Defines a list of checkbox fields that are inverted on the display of SEB settings */
     public static final Set<String> INVERTED_CHECKBOX_SETTINGS = new HashSet<>(Arrays.asList(
             "enableSebBrowser"));
+    public static final String TEMPLATE_VIEW_NAME = "template";
 
     private final Configuration configuration;
     private final View view;
@@ -115,6 +116,10 @@ public final class ViewContext {
         return this.view;
     }
 
+    public boolean isTemplateView() {
+        return TEMPLATE_VIEW_NAME.equals(this.view.name);
+    }
+
     public Collection<ConfigurationAttribute> getChildAttributes(final Long id) {
         return this.attributeMapping.childAttributeMapping.get(id);
     }
@@ -126,6 +131,8 @@ public final class ViewContext {
     public ConfigurationAttribute getAttribute(final Long attributeId) {
         return this.attributeMapping.getAttribute(attributeId);
     }
+
+
 
     public Long getAttributeIdByName(final String name) {
         return this.attributeMapping.attributeNameIdMapping.get(name);
@@ -337,5 +344,6 @@ public final class ViewContext {
 
         values.forEach(this.inputFieldMapping::remove);
     }
+
 
 }

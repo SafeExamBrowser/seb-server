@@ -233,7 +233,7 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
             final Long configurationId,
             final Collection<ViewContext> viewContexts) {
 
-        if (viewContexts == null || viewContexts.size() < 1) {
+        if (viewContexts == null || viewContexts.isEmpty()) {
             log.warn("No viewContexts available");
             return;
         }

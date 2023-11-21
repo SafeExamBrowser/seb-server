@@ -128,6 +128,7 @@ public class WidgetFactory {
         ARCHIVE("archive.png"),
         SEARCH("lens.png"),
         UNDO("undo.png"),
+        RESET("reset.png"),
         COLOR("color.png"),
         USER("user.png"),
         INSTITUTION("institution.png"),

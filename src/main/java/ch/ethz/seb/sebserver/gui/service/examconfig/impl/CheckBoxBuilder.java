@@ -71,7 +71,7 @@ public class CheckBoxBuilder implements InputFieldBuilder {
         final Button checkbox = this.widgetFactory.buttonLocalized(
                 innerGrid,
                 SWT.CHECK,
-                (orientation.title == TitleOrientation.NONE)
+                (orientation.title == TitleOrientation.NONE || viewContext.isTemplateView())
                         ? ExamConfigurationService.attributeNameLocKey(attribute)
                         : null,
                 ExamConfigurationService.getToolTipKey(attribute, i18nSupport),
