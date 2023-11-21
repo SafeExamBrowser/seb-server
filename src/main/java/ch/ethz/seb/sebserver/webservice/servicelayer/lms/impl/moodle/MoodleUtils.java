@@ -37,7 +37,7 @@ public abstract class MoodleUtils {
 
     private static final Logger log = LoggerFactory.getLogger(MoodleUtils.class);
 
-    public static final String getInternalQuizId(
+    public static String getInternalQuizId(
             final String quizId,
             final String courseId,
             final String shortname,
@@ -47,13 +47,25 @@ public abstract class MoodleUtils {
                 new String[] {
                         quizId,
                         courseId,
-                        StringUtils.isNotBlank(shortname) ? shortname : Constants.EMPTY_NOTE,
+                        StringUtils.isNotBlank(shortname) ? maskShortName(shortname) : Constants.EMPTY_NOTE,
                         StringUtils.isNotBlank(idnumber) ? idnumber : Constants.EMPTY_NOTE
                 },
                 Constants.COLON);
     }
 
-    public static final String getQuizId(final String internalQuizId) {
+    private static String maskShortName(final String shortname) {
+        return shortname
+                .replace(Constants.SEMICOLON.toString(), "_SC_")
+                .replace(Constants.COLON.toString(), "_COLON_");
+    }
+
+    private static String unmaskShortName(final String shortname) {
+        return shortname
+                .replace("_SC_", Constants.SEMICOLON.toString())
+                .replace("_COLON_", Constants.COLON.toString());
+    }
+
+    public static String getQuizId(final String internalQuizId) {
         if (StringUtils.isBlank(internalQuizId)) {
             return null;
         }
@@ -61,7 +73,7 @@ public abstract class MoodleUtils {
         return StringUtils.split(internalQuizId, Constants.COLON)[0];
     }
 
-    public static final String getCourseId(final String internalQuizId) {
+    public static String getCourseId(final String internalQuizId) {
         if (StringUtils.isBlank(internalQuizId)) {
             return null;
         }
@@ -69,7 +81,7 @@ public abstract class MoodleUtils {
         return StringUtils.split(internalQuizId, Constants.COLON)[1];
     }
 
-    public static final String getShortname(final String internalQuizId) {
+    public static String getShortname(final String internalQuizId) {
         if (StringUtils.isBlank(internalQuizId)) {
             return null;
         }
@@ -80,7 +92,7 @@ public abstract class MoodleUtils {
         }
 
         final String shortName = split[2];
-        return shortName.equals(Constants.EMPTY_NOTE) ? null : shortName;
+        return shortName.equals(Constants.EMPTY_NOTE) ? null : unmaskShortName(shortName);
     }
 
     public static final String getIdnumber(final String internalQuizId) {
