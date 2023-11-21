@@ -27,6 +27,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -855,7 +857,7 @@ public class ZoomProctoringService implements RemoteProctoringService {
 
         public ResponseEntity<String> deleteMeeting(final Long meetingId) {
 
-            // try to set set meeting status to ended first
+            // try to set meeting status to ended first
             try {
 
                 final String url = UriComponentsBuilder
@@ -999,7 +1001,11 @@ public class ZoomProctoringService implements RemoteProctoringService {
                 this.resource.setId(this.proctoringSettings.accountId);
 
                 final HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-                //requestFactory.setOutputStreaming(false);
+                final HttpClient httpClient = HttpClientBuilder.create()
+                        .disableCookieManagement()
+                        .useSystemProperties()
+                        .build();
+                requestFactory.setHttpClient(httpClient);
                 final OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(this.resource);
                 oAuth2RestTemplate.setRequestFactory(requestFactory);
                 oAuth2RestTemplate.setAccessTokenProvider(new ZoomCredentialsAccessTokenProvider());
