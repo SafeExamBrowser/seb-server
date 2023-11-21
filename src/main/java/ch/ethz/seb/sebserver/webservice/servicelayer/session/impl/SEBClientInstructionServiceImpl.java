@@ -306,7 +306,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
         synchronized (this.instructions) {
 
             final Result<Collection<String>> result = this.clientConnectionDAO
-                    .getInactiveConnctionTokens(this.instructions.keySet());
+                    .getInactiveConnectionTokens(this.instructions.keySet());
 
             if (result.hasValue()) {
                 result.get().stream().forEach(token -> this.instructions.remove(token));

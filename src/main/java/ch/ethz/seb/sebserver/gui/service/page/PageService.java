@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.page;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -138,7 +139,7 @@ public interface PageService {
      * @param noSelectionText LocTextKey for missing selection message
      * @param testBeforeActivation a function to test before activation. This function shall throw an error if test
      *            fails.
-     *            My be null if no specific test is needed before activation
+     *            May be null if no specific test is needed before activation
      * @return page action execution function for switching the activity */
     <T extends Entity & Activatable> Function<PageAction, PageAction> activationToggleActionFunction(
             EntityTable<T> table,
@@ -161,7 +162,7 @@ public interface PageService {
      *
      * @param entity the entity instance
      * @return a message supplier to notify deactivation dependencies to the user */
-    <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(final T entity);
+    <T extends Entity & Activatable> Supplier<LocTextKey> confirmDeactivation(T entity);
 
     /** Get a message supplier to notify deactivation dependencies to the user for given entity table selection
      *
@@ -188,17 +189,17 @@ public interface PageService {
      *
      * @param pageContext the current PageContext
      * @param actionDefinitions list of action definitions that activity should be toggled on table selection
-     * @return the action activation publisher that can be used to control the activity of an certain action */
-    default Consumer<Boolean> getActionActiviationPublisher(
+     * @return the action activation publisher that can be used to control the activity of a certain action */
+    default Consumer<Boolean> getActionActivationPublisher(
             final PageContext pageContext,
             final ActionDefinition... actionDefinitions) {
 
-        return avtivate -> firePageEvent(
-                new ActionActivationEvent(avtivate, actionDefinitions),
+        return activate -> firePageEvent(
+                new ActionActivationEvent(activate, actionDefinitions),
                 pageContext);
     }
 
-    /** Use this to get an table selection action publisher that processes the action
+    /** Use this to get a table selection action publisher that processes the action
      * activation on table selection.
      *
      * @param pageContext the current PageContext
@@ -213,10 +214,10 @@ public interface PageService {
                 pageContext);
     }
 
-    /** Use this to get an table selection action publisher that processes the action
+    /** Use this to get a table selection action publisher that processes the action
      * activation on table selection.
      * </p>
-     * This additional has the ability to define a entity activity action that is toggles in
+     * This additional has the ability to define an entity activity action that is toggles in
      * case of the selected entity
      *
      * @param toggle the base entity activity action definition
@@ -254,7 +255,7 @@ public interface PageService {
     }
 
     /** Publishes a given PageEvent to the current page tree
-     * This goes through the page-tree and collects all listeners the are listen to
+     * This goes through the page-tree and collects all listeners they are listen to
      * the specified page event type.
      *
      * @param event the concrete PageEvent instance */
@@ -277,23 +278,23 @@ public interface PageService {
 
     /** Publishes a PageAction to the current page. This uses the firePageEvent form
      * PageContext of the given PageAction and fires a ActionPublishEvent for the given PageAction
-     *
+     * <p>
      * All ActionPublishEventListeners that are registered within the current page will
      * receive the ActionPublishEvent sent by this.
      *
      * @param pageAction the PageAction to publish
      * @param active indicates whether the action is active or not */
-    void publishAction(final PageAction pageAction, boolean active);
+    void publishAction(PageAction pageAction, boolean active);
 
     /** Publishes a PageAction to the current page. This uses the firePageEvent form
      * PageContext of the given PageAction and fires a ActionPublishEvent for the given PageAction
-     *
+     * <p>
      * All ActionPublishEventListeners that are registered within the current page will
      * receive the ActionPublishEvent sent by this.
      *
      * @param pageAction the PageAction to publish
-     * @param actionConsumer An consumer that gets the actions TreeItem after creation */
-    void publishAction(final PageAction pageAction, Consumer<TreeItem> actionConsumer);
+     * @param actionConsumer A consumer that gets the actions TreeItem after creation */
+    void publishAction(PageAction pageAction, Consumer<TreeItem> actionConsumer);
 
     /** Get a new FormBuilder for the given PageContext
      * This FormBuilder uses the standard form grid which has 8 rows (2 title, 5 input and 1 right-space)
@@ -307,11 +308,11 @@ public interface PageService {
     /** Get a new FormBuilder for the given PageContext and with number of rows.
      *
      * @param pageContext the PageContext on that the FormBuilder should work
-     * @param rows the number of rows of the from
+     * @param rows the number of rows of the form
      * @return a FormBuilder instance for the given PageContext and with number of rows */
     FormBuilder formBuilder(PageContext pageContext, int rows);
 
-    /** Get an new TableBuilder for specified page based RestCall.
+    /** Get a new TableBuilder for specified page based RestCall.
      *
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
@@ -320,7 +321,7 @@ public interface PageService {
         return entityTableBuilder(this.getRestService().getRestCall(apiCall));
     }
 
-    /** Get an new TableBuilder for specified page based RestCall.
+    /** Get a new TableBuilder for specified page based RestCall.
      *
      * @param apiCall the SEB Server API RestCall that feeds the table with data
      * @param <T> the type of the Entity of the table
@@ -329,7 +330,7 @@ public interface PageService {
         return entityTableBuilder(apiCall.getClass().getSimpleName(), apiCall);
     }
 
-    /** Get an new TableBuilder for specified page based RestCall.
+    /** Get a new TableBuilder for specified page based RestCall.
      *
      * @param name The name of the table to build
      * @param apiCall the SEB Server API RestCall that feeds the table with data
@@ -339,7 +340,15 @@ public interface PageService {
             String name,
             RestCall<Page<T>> apiCall);
 
-    <T extends ModelIdAware> TableBuilder<T> staticListTableBuilder(final List<T> staticList, EntityType entityType);
+    default <T extends ModelIdAware> TableBuilder<T> staticListTableBuilder(
+            final List<T> staticList,
+            final EntityType entityType) {
+        return staticListTableBuilder(UUID.randomUUID().toString(), staticList, entityType);
+    }
+    <T extends ModelIdAware> TableBuilder<T> staticListTableBuilder(
+            String name,
+            List<T> staticList,
+            EntityType entityType);
 
     <T extends ModelIdAware> TableBuilder<T> remoteListTableBuilder(
             RestCall<Collection<T>> apiCall,
@@ -353,7 +362,7 @@ public interface PageService {
         return new PageActionBuilder(this, pageContext);
     }
 
-    /** This triggers a logout on the current authorization context to logout the current user
+    /** This triggers a logout on the current authorization context to log out the current user
      * and forward to the login page with showing a successful logout message to the user. */
     boolean logout(PageContext pageContext);
 

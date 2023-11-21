@@ -370,14 +370,11 @@ public class PageServiceImpl implements PageService {
 
     @Override
     public <T extends ModelIdAware> TableBuilder<T> staticListTableBuilder(
+            final String name,
             final List<T> staticList,
             final EntityType entityType) {
 
-        return new TableBuilder<>(
-                (entityType != null)
-                        ? entityType.name()
-                        : "",
-                this, staticList, entityType);
+        return new TableBuilder<>(name,this, staticList, entityType);
     }
 
     @Override

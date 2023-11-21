@@ -63,7 +63,7 @@ public class SecurityKeyGrantPopup {
         return action;
     }
 
-    private final class PopupComposer {
+    private static final class PopupComposer {
 
         private final PageService pageService;
         private final SecurityKey securityKey;

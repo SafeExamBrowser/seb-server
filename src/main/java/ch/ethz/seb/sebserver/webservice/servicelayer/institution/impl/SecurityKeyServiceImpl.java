@@ -85,7 +85,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
         return Result.tryCatch(() -> {
 
             return this.clientConnectionDAO
-                    .getsecurityKeyConnectionRecords(examId)
+                    .getSecurityKeyConnectionRecords(examId)
                     .getOrThrow()
                     .stream()
                     .reduce(
@@ -94,6 +94,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                             Utils::<String, Map<Long, String>> mergeMap)
                     .entrySet()
                     .stream()
+                    .filter(m -> m.getValue() != null && !m.getValue().isEmpty())
                     .map(m -> new AppSignatureKeyInfo(institutionId, examId, m.getKey(), m.getValue()))
                     .collect(Collectors.toList());
         });
@@ -179,7 +180,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
 
         return Cryptor
                 .decryptASK(appSignatureKey, connectionToken, salt)
-                .map(signature -> createSignatureHash(signature));
+                .map(this::createSignatureHash);
 
     }
 
@@ -218,7 +219,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
 
             final String grantedKeyHash = String.valueOf(key);
             this.securityKeyRegistryDAO.delete(keyId).getOrThrow();
-            this.clientConnectionDAO.getsecurityKeyConnectionRecords(key.examId)
+            this.clientConnectionDAO.getSecurityKeyConnectionRecords(key.examId)
                     .getOrThrow()
                     .stream()
                     .filter(rec -> ConnectionStatus.ACTIVE.name().equals(rec.getStatus()))
@@ -271,18 +272,14 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
                             .filter(key -> Utils.isEqualsWithEmptyCheck(String.valueOf(key.key), hashedSignatureKey))
                             .collect(Collectors.toList());
 
-                    if (matches == null || matches.isEmpty()) {
+                    if (matches.isEmpty()) {
                         return numericalCheck(examId, hashedSignatureKey);
                     } else {
                         return new SecurityCheckResult(
                                 matches.stream()
-                                        .filter(key -> key.examId != null)
-                                        .findFirst()
-                                        .isPresent(),
+                                        .anyMatch(key -> key.examId != null),
                                 matches.stream()
-                                        .filter(key -> key.examId == null)
-                                        .findFirst()
-                                        .isPresent(),
+                                        .anyMatch(key -> key.examId == null),
                                 false);
                     }
                 });
@@ -350,8 +347,7 @@ public class SecurityKeyServiceImpl implements SecurityKeyService {
         try {
             final MessageDigest hasher = MessageDigest.getInstance(Constants.SHA_256);
             hasher.update(Utils.toByteArray(signature));
-            final String signatureHash = Hex.toHexString(hasher.digest());
-            return signatureHash;
+            return Hex.toHexString(hasher.digest());
         } catch (final Exception e) {
             throw new RuntimeException(e);
         }

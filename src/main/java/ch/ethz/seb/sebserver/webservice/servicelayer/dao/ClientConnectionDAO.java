@@ -35,7 +35,7 @@ public interface ClientConnectionDAO extends
 
     /** Get a list of all connection tokens of all connections (no matter what state)
      * of an exam.
-     *
+     * <p>
      * Caches the resulting collection of tokens with the given examId as key
      * unless the result has no error.
      *
@@ -77,7 +77,7 @@ public interface ClientConnectionDAO extends
      *
      * @param connectionTokens The set of connection tokens to filter
      * @return Result refer to all inactive connection tokens from the given set */
-    Result<Collection<String>> getInactiveConnctionTokens(Set<String> connectionTokens);
+    Result<Collection<String>> getInactiveConnectionTokens(Set<String> connectionTokens);
 
     /** Get a collection of all client connections records that needs a proctoring room update
      * and that are in the status ACTIVE.
@@ -151,7 +151,7 @@ public interface ClientConnectionDAO extends
     @CacheEvict(
             cacheNames = ExamSessionCacheService.CACHE_NAME_ACTIVE_CLIENT_CONNECTION,
             key = "#connectionToken")
-    Result<Void> markScreenProcotringApplied(Long connectionId, String connectionToken);
+    Result<Void> markScreenProctoringApplied(Long connectionId, String connectionToken);
 
     /** Get a ClientConnection by connection token.
      *
@@ -159,10 +159,10 @@ public interface ClientConnectionDAO extends
      * @return Result refer to the ClientConnection for the specified connection token or to an error if happened */
     Result<ClientConnection> byConnectionToken(String connectionToken);
 
-    /** Use this to check whether a single ClientConnection is up to date or needs a refresh.
+    /** Use this to check whether a single ClientConnection is up-to-date or needs a refresh.
      *
      * @param clientConnection the actual ClientConnection (from the internal cache)
-     * @return Result refer to true if the given ClientConnection is up to date */
+     * @return Result refer to true if the given ClientConnection is up-to-date */
     Result<Boolean> isUpToDate(ClientConnection clientConnection);
 
     Result<Set<String>> getClientConnectionsOutOfSyc(Long examId, Set<Long> timestamps);
@@ -183,7 +183,7 @@ public interface ClientConnectionDAO extends
      * @return Result refer to filtered Set of connection tokens or to an error when happened */
     Result<Set<String>> filterForInstructionStatus(Long examId, Set<String> connectionToken);
 
-    /** Used to get the VDI paired connection if it already exsits.
+    /** Used to get the VDI paired connection if it already exists.
      *
      * @param clientName the VDI connection identifier sent by the SEB client on connect
      * @return Result refer to the relevant VDI pair connection if exists or to an error if not */
@@ -200,27 +200,27 @@ public interface ClientConnectionDAO extends
      *
      * @param examId the exam identifier
      * @return Result refer to a collection of client connection records or to an error when happened */
-    Result<Collection<ClientConnectionRecord>> getsecurityKeyConnectionRecords(Long examId);
+    Result<Collection<ClientConnectionRecord>> getSecurityKeyConnectionRecords(Long examId);
 
     /** Get all client connection records that don't have a security access grant yet
      * and for specific exam.
      *
      * @param examId The exam identifier
-     * @return Result refer to client connection records to the an error when happened */
+     * @return Result refer to client connection records to an error when happened */
     Result<Collection<ClientConnectionRecord>> getAllActiveNotGranted(Long examId);
 
     /** Count all known and matching ASK hashes for a given exam.
      *
      * @param examId The exam identifier
      * @param signatureHash The signature hash the count
-     * @return Result refer to the signature hash count or to an result when happened */
+     * @return Result refer to the signature hash count or to result when happened */
     Result<Long> countSignatureHashes(Long examId, String signatureHash);
 
     /** Get all client connection records that don't have a SEB client version check yet
      * and for specific exam.
      *
      * @param examId The exam identifier
-     * @return Result refer to client connection records to the an error when happened */
+     * @return Result refer to client connection records to the error when happened */
     Result<Collection<ClientConnectionRecord>> getAllActiveNoSEBVersionCheck(Long examId);
 
     /** Get all client connection identifiers for an exam.

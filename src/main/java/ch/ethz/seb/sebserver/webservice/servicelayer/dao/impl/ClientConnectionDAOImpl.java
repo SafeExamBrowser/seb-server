@@ -273,7 +273,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<String>> getInactiveConnctionTokens(final Set<String> connectionTokens) {
+    public Result<Collection<String>> getInactiveConnectionTokens(final Set<String> connectionTokens) {
         return Result.tryCatch(() -> {
             if (connectionTokens == null || connectionTokens.isEmpty()) {
                 return Collections.emptyList();
@@ -597,7 +597,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
     }
 
     @Override
-    public Result<Void> markScreenProcotringApplied(final Long connectionId, final String connectionToken) {
+    public Result<Void> markScreenProctoringApplied(final Long connectionId, final String connectionToken) {
         return Result.tryCatch(() -> {
             UpdateDSL.updateWithMapper(
                     this.clientConnectionRecordMapper::update,
@@ -843,15 +843,15 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
 
     @Override
     @Transactional(readOnly = true)
-    public Result<Collection<ClientConnectionRecord>> getsecurityKeyConnectionRecords(final Long examId) {
+    public Result<Collection<ClientConnectionRecord>> getSecurityKeyConnectionRecords(final Long examId) {
         return Result.tryCatch(() -> this.clientConnectionRecordMapper
                 .selectByExample()
                 .where(
                         ClientConnectionRecordDynamicSqlSupport.examId,
                         SqlBuilder.isEqualTo(examId))
-                .and(
-                        ClientConnectionRecordDynamicSqlSupport.status,
-                        SqlBuilder.isIn(ClientConnection.SECURE_STATES))
+//                .and(
+//                        ClientConnectionRecordDynamicSqlSupport.status,
+//                        SqlBuilder.isIn(ClientConnection.SECURE_STATES))
                 .build()
                 .execute());
     }

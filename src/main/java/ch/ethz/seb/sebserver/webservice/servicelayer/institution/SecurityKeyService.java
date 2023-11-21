@@ -60,7 +60,7 @@ public interface SecurityKeyService {
      * @return Result refer to the newly created security key entry or to an error when happened */
     Result<SecurityKey> grantAppSignatureKey(Long institutionId, Long examId, Long connectionId, String tag);
 
-    /** Get the hashed App Signature Key value from a encrypted App Signature Key sent by a SEB client.
+    /** Get the hashed App Signature Key value from an encrypted App Signature Key sent by a SEB client.
      * The App Signature Key hash is used for security checks. The plain App Signature Key will never be used nor stored
      *
      * @param appSignatureKey The encrypted App Signature Key sent by a SEB client
@@ -72,8 +72,8 @@ public interface SecurityKeyService {
             CharSequence salt);
 
     /** Use this to update an App Signature Key grant for a particular SEB connection. This will
-     * apply the security check again and mark the connection regarding to the security check.
-     *
+     * apply the security check again and mark the connection regarding the security check.
+     * <p>
      * This is used by the internal monitoring update task
      *
      * @param record The ClientConnectionRecord of the specific SEB client connection */

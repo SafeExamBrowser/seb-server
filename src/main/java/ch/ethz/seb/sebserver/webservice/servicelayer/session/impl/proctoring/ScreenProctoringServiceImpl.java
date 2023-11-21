@@ -317,7 +317,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             registerJoinInstruction(ccRecord, spsSessionToken, group, runningExam);
 
             this.clientConnectionDAO
-                    .markScreenProcotringApplied(ccRecord.getId(), ccRecord.getConnectionToken())
+                    .markScreenProctoringApplied(ccRecord.getId(), ccRecord.getConnectionToken())
                     .getOrThrow();
 
         } catch (final Exception e) {

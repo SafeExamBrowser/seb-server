@@ -173,10 +173,10 @@ public class UserActivityLogs implements TemplateComposer {
                             }
                         });
 
-        final Consumer<Boolean> deleteActionActivation = this.pageService.getActionActiviationPublisher(
+        final Consumer<Boolean> deleteActionActivation = this.pageService.getActionActivationPublisher(
                 pageContext,
                 ActionDefinition.LOGS_USER_ACTIVITY_DELETE_ALL);
-        final Consumer<Boolean> detailsActionActivation = this.pageService.getActionActiviationPublisher(
+        final Consumer<Boolean> detailsActionActivation = this.pageService.getActionActivationPublisher(
                 pageContext,
                 ActionDefinition.LOGS_USER_ACTIVITY_SHOW_DETAILS);
         final Consumer<Integer> contentChangeListener = contentSize -> {

@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.context.annotation.Lazy;
@@ -173,6 +174,7 @@ public class AddSecurityKeyGrantPopup {
                                 .getBuilder(GetClientConnections.class)
                                 .withQueryParam(API.PARAM_MODEL_ID_LIST, clientConnectionIds)
                                 .call().getOrThrow());
+                        list.sort((cc1, cc2) -> ObjectUtils.compare(cc1.userSessionId, cc2.userSessionId));
                         this.pageService.staticListTableBuilder(list, EntityType.CLIENT_CONNECTION)
                                 .withPaging(10)
 

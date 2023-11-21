@@ -9,7 +9,6 @@
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -30,7 +29,6 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
-import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.PageSortOrder;
@@ -57,8 +55,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 public class ClientConnectionController extends ReadonlyEntityController<ClientConnection, ClientConnection> {
 
     private final SEBClientSessionService sebClientSessionService;
-
-    private static final Set<String> EXT_FILTER = new HashSet<>(Arrays.asList(ClientConnection.FILTER_ATTR_INFO));
 
     protected ClientConnectionController(
             final AuthorizationService authorization,

@@ -150,10 +150,10 @@ public class SEBClientEvents implements TemplateComposer {
         final boolean writeGrant = this.pageService.getCurrentUser()
                 .hasInstitutionalPrivilege(PrivilegeType.WRITE, EntityType.CLIENT_EVENT);
 
-        final Consumer<Boolean> deleteActionActivation = this.pageService.getActionActiviationPublisher(
+        final Consumer<Boolean> deleteActionActivation = this.pageService.getActionActivationPublisher(
                 pageContext,
                 ActionDefinition.LOGS_SEB_CLIENT_DELETE_ALL);
-        final Consumer<Boolean> detailsActionActivation = this.pageService.getActionActiviationPublisher(
+        final Consumer<Boolean> detailsActionActivation = this.pageService.getActionActivationPublisher(
                 pageContext,
                 ActionDefinition.LOGS_SEB_CLIENT_SHOW_DETAILS);
         final Consumer<Integer> contentChangeListener = contentSize -> {
