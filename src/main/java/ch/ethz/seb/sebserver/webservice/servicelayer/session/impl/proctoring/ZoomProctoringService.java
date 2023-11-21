@@ -40,6 +40,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
@@ -807,7 +808,12 @@ public class ZoomProctoringService implements RemoteProctoringService {
                 final HttpHeaders headers = getHeaders();
 
                 headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-                final ResponseEntity<String> exchange = exchange(url, HttpMethod.POST, body, headers);
+                final ResponseEntity<String> exchange = exchange(url, HttpMethod.PATCH, body, headers);
+                final int statusCodeValue = exchange.getStatusCodeValue();
+                if (statusCodeValue >= 400) {
+                    log.warn("Failed to apply user settings for Zoom user: {} response: {}", userId, exchange);
+                }
+
                 return exchange;
             } catch (final Exception e) {
                 log.error("Failed to apply user settings for Zoom user: {}", userId, e);
@@ -992,8 +998,8 @@ public class ZoomProctoringService implements RemoteProctoringService {
                 this.resource.setGrantType("account_credentials");
                 this.resource.setId(this.proctoringSettings.accountId);
 
-                final SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-                requestFactory.setOutputStreaming(false);
+                final HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+                //requestFactory.setOutputStreaming(false);
                 final OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(this.resource);
                 oAuth2RestTemplate.setRequestFactory(requestFactory);
                 oAuth2RestTemplate.setAccessTokenProvider(new ZoomCredentialsAccessTokenProvider());
