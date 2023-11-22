@@ -131,7 +131,7 @@ public final class ClientConnection implements GrantEntity {
     @JsonIgnore
     public final Long remoteProctoringRoomId;
     @JsonIgnore
-    public final String virtualClientId;
+    public final String sebClientUserId;
     @JsonIgnore
     public final Long creationTime;
     @JsonIgnore
@@ -170,7 +170,7 @@ public final class ClientConnection implements GrantEntity {
         this.userSessionId = userSessionId;
         this.info = info;
         this.vdi = false;
-        this.virtualClientId = null;
+        this.sebClientUserId = null;
         this.vdiPairToken = null;
         this.creationTime = 0L;
         this.updateTime = 0L;
@@ -199,7 +199,7 @@ public final class ClientConnection implements GrantEntity {
             final String seb_os_name,
             final String seb_machine_name,
             final String seb_version,
-            final String virtualClientId,
+            final String sebClientUserId,
             final Boolean vdi,
             final String vdiPairToken,
             final Long creationTime,
@@ -222,7 +222,7 @@ public final class ClientConnection implements GrantEntity {
         this.sebOSName = seb_os_name;
         this.sebMachineName = seb_machine_name;
         this.sebVersion = seb_version;
-        this.virtualClientId = virtualClientId;
+        this.sebClientUserId = sebClientUserId;
         this.vdi = vdi;
         this.vdiPairToken = vdiPairToken;
         this.creationTime = creationTime;
@@ -296,8 +296,8 @@ public final class ClientConnection implements GrantEntity {
     }
 
     @JsonIgnore
-    public String getVirtualClientId() {
-        return this.virtualClientId;
+    public String getSebClientUserId() {
+        return this.sebClientUserId;
     }
 
     @JsonIgnore // not used yet on GUI side
@@ -441,7 +441,7 @@ public final class ClientConnection implements GrantEntity {
         builder.append(", remoteProctoringRoomId=");
         builder.append(this.remoteProctoringRoomId);
         builder.append(", virtualClientId=");
-        builder.append(this.virtualClientId);
+        builder.append(this.sebClientUserId);
         builder.append(", creationTime=");
         builder.append(this.creationTime);
         builder.append(", updateTime=");

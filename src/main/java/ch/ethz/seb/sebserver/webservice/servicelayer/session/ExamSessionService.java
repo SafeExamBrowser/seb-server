@@ -84,7 +84,7 @@ public interface ExamSessionService {
     Result<Collection<APIMessage>> checkExamConsistency(Long examId);
 
     /** Use this to check if a specified Exam has currently active SEB Client connections.
-     *
+     * <p>
      * Active SEB Client connections are established connections that are not yet closed and
      * open connection attempts.
      *
@@ -163,7 +163,7 @@ public interface ExamSessionService {
             OutputStream out);
 
     /** Get current ClientConnectionData for a specified active SEB client connection.
-     *
+     * <p>
      * active SEB client connections are connections that were initialized by a SEB client
      * on the particular server instance.
      *

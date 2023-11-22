@@ -176,7 +176,7 @@ public class SEBClientEventBatchService {
                 log.debug("SEBClientEventBatchService worker {} processes batch of size {} in {} ms",
                         workerName,
                         size,
-                        start - Utils.getMillisecondsNow());
+                        Utils.getMillisecondsNow() - start);
             }
 
         } catch (final Exception e) {

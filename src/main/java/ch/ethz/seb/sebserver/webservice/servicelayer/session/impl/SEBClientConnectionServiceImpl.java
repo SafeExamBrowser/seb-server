@@ -10,11 +10,15 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.security.Principal;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -67,6 +71,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
     private final ExamAdminService examAdminService;
     private final DistributedIndicatorValueService distributedPingCache;
     private final SecurityKeyService securityKeyService;
+    private final SEBClientEventBatchService sebClientEventBatchService;
     private final boolean isDistributedSetup;
 
     protected SEBClientConnectionServiceImpl(
@@ -76,7 +81,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final DistributedIndicatorValueService distributedPingCache,
             final ClientIndicatorFactory clientIndicatorFactory,
             final SecurityKeyService securityKeyService,
-            final WebserviceInfo webserviceInfo) {
+            final WebserviceInfo webserviceInfo,
+            final SEBClientEventBatchService sebClientEventBatchService) {
 
         this.examSessionService = examSessionService;
         this.examSessionCacheService = examSessionService.getExamSessionCacheService();
@@ -87,6 +93,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         this.distributedPingCache = distributedPingCache;
         this.securityKeyService = securityKeyService;
         this.isDistributedSetup = webserviceInfo.isDistributed();
+        this.sebClientEventBatchService = sebClientEventBatchService;
     }
 
     @Override
@@ -113,7 +120,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             if (clientConfig == null) {
                 log.error("Illegal client connection request: requested connection config name: {}",
-                        principal.getName());
+                        (principal != null) ? principal.getName() : clientAddress);
                 throw new AccessDeniedException("Unknown or illegal client access");
             }
 
@@ -226,12 +233,12 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             if (StringUtils.isNoneBlank(clientAddress) &&
                     StringUtils.isNotBlank(clientConnection.clientAddress) &&
                     !clientAddress.equals(clientConnection.clientAddress)) {
+                // log SEB client IP address change
                 log.error(
                         "ClientConnection integrity violation: client address mismatch: {}, {}",
                         clientAddress,
                         clientConnection.clientAddress);
-                throw new IllegalArgumentException(
-                        "ClientConnection integrity violation: client address mismatch");
+                sebLogClientAddressMismatch(clientAddress, clientConnection);
             }
 
             if (examId != null) {
@@ -327,24 +334,24 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             ClientConnection clientConnection = getClientConnection(connectionToken);
 
-            // connection integrity check
-            if (clientConnection.status == ConnectionStatus.ACTIVE) {
-                // connection already established. Check if IP is the same
-                if (StringUtils.isNoneBlank(clientAddress) &&
-                        StringUtils.isNotBlank(clientConnection.clientAddress) &&
-                        !clientAddress.equals(clientConnection.clientAddress)) {
-                    log.warn(
-                            "ClientConnection integrity violation: client address mismatch: {}, {}",
-                            clientAddress,
-                            clientConnection.clientAddress);
-                    throw new IllegalArgumentException(
-                            "ClientConnection integrity violation: client address mismatch");
-                }
-            } else if (!clientConnection.status.clientActiveStatus) {
+            // overall connection status integrity check
+            if (!clientConnection.status.clientActiveStatus) {
                 log.warn("ClientConnection integrity violation: client connection is not in expected state: {}",
                         clientConnection);
                 throw new IllegalArgumentException(
                         "ClientConnection integrity violation: client connection is not in expected state");
+            }
+
+            // check IP address change
+            if (StringUtils.isNoneBlank(clientAddress) &&
+                    StringUtils.isNotBlank(clientConnection.clientAddress) &&
+                    !clientAddress.equals(clientConnection.clientAddress)) {
+                // log client IP address change
+                log.warn(
+                        "ClientConnection integrity violation: client address mismatch: {}, {}",
+                        clientAddress,
+                        clientConnection.clientAddress);
+                sebLogClientAddressMismatch(clientAddress, clientConnection);
             }
 
             if (log.isDebugEnabled()) {
@@ -391,7 +398,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             final Long currentExamId = (examId != null) ? examId : clientConnection.examId;
             final String currentVdiConnectionId = (clientId != null)
                     ? clientId
-                    : clientConnection.virtualClientId;
+                    : clientConnection.sebClientUserId;
 
             // create new ClientConnection for update
             final ClientConnection establishedClientConnection = new ClientConnection(
@@ -438,12 +445,13 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 throw new IllegalStateException("ClientConnection integrity violation");
             }
 
-            final ClientConnection connectionToSave = handleVDISetup(
-                    currentVdiConnectionId,
-                    establishedClientConnection);
-
+// Removed this since VDI integration was postponed and has not been reactivated since then.
+//            final ClientConnection connectionToSave = handleVDISetup(
+//                    currentVdiConnectionId,
+//                    establishedClientConnection);
+//
             final ClientConnection updatedClientConnection = this.clientConnectionDAO
-                    .save(connectionToSave)
+                    .save(establishedClientConnection)
                     .getOrThrow();
 
             // check exam integrity for established connection
@@ -467,12 +475,14 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 log.warn("Failed to load ClientConnectionDataInternal into cache on update");
             } else if (log.isDebugEnabled()) {
                 log.debug("SEB client connection, successfully established ClientConnection: {}",
-                        updatedClientConnection);
+                        establishedClientConnection);
             }
 
-            return updatedClientConnection;
+            return establishedClientConnection;
         });
     }
+
+
 
     private ClientConnection handleVDISetup(
             final String currentVdiConnectionId,
@@ -485,7 +495,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         final Result<ClientConnectionRecord> vdiPairConnectionResult =
                 this.clientConnectionDAO.getVDIPairCompanion(
                         establishedClientConnection.examId,
-                        establishedClientConnection.virtualClientId);
+                        establishedClientConnection.sebClientUserId);
 
         if (!vdiPairConnectionResult.hasValue()) {
             return establishedClientConnection;
@@ -506,7 +516,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 null,
                 null,
                 null,
-                establishedClientConnection.virtualClientId,
+                establishedClientConnection.sebClientUserId,
                 null,
                 vdiPairCompanion.getConnectionToken(),
                 null,
@@ -554,7 +564,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .byConnectionToken(connectionToken)
                     .getOrThrow();
 
-            ClientConnection updatedClientConnection;
+            final ClientConnection updatedClientConnection;
             if (clientConnection.status != ConnectionStatus.CLOSED) {
                 updatedClientConnection = saveInState(
                         clientConnection,
@@ -614,7 +624,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .byConnectionToken(connectionToken)
                     .getOrThrow();
 
-            ClientConnection updatedClientConnection;
+            final ClientConnection updatedClientConnection;
             if (DISABLE_STATE_PREDICATE.test(clientConnection)) {
 
                 updatedClientConnection = saveInState(
@@ -658,10 +668,35 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .map(token -> disableConnection(token, institutionId)
                             .onError(error -> log.error("Failed to disable SEB client connection: {}", token))
                             .getOr(null))
-                    .filter(clientConnection -> clientConnection != null)
-                    .map(clientConnection -> clientConnection.getEntityKey())
+                    .filter(Objects::nonNull)
+                    .map(Entity::getEntityKey)
                     .collect(Collectors.toList());
         });
+    }
+
+    // SEBSERV-475 IP address change during handshake is possible but is logged within SEB logs
+    private void sebLogClientAddressMismatch(
+            final String clientAddress,
+            final ClientConnection clientConnection) {
+
+        try {
+            final long now = Utils.getMillisecondsNow();
+            this.sebClientEventBatchService.accept(new SEBClientEventBatchService.EventData(
+                    clientConnection.connectionToken,
+                    now,
+                    new ClientEvent(
+                            null,
+                            clientConnection.id,
+                            ClientEvent.EventType.WARN_LOG,
+                            now, now, null,
+                            "SEB Client IP address changed: " +
+                                    clientConnection.clientAddress +
+                                    " -> " +
+                                    clientAddress
+                    )));
+        } catch (final Exception e) {
+            log.error("Failed to log SEB client IP address change: ", e);
+        }
     }
 
     private void checkExamRunning(final Long examId, final String user, final String address) {
@@ -730,7 +765,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 }
             }
 
-            // try to get user account display name
+            // try to get user account display name (SEBSERV-228)
             String accountId = userSessionId;
             try {
                 final String newAccountId = this.examSessionService

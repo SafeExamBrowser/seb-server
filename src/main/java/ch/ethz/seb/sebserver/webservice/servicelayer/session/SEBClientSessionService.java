@@ -57,7 +57,7 @@ public interface SEBClientSessionService extends ExamUpdateTask, SessionUpdateTa
     /** Notify a SEB client event for live indication and storing to database.
      *
      * @param connectionToken the connection token
-     * @param event The SEB client event data */
+     * @param jsonBody The SEB client event JSON data */
     void notifyClientEvent(String connectionToken, String jsonBody);
 
     /** This is used to confirm SEB instructions that must be confirmed by the SEB client.
