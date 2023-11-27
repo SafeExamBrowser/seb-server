@@ -14,6 +14,7 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -136,7 +137,7 @@ public class ExamAPI_V1_Controller {
                             clientConnection.connectionToken);
 
                     // Crate list of running exams
-                    List<RunningExamInfo> result;
+                    final List<RunningExamInfo> result;
                     if (examId == null) {
                         result = this.examSessionService.getRunningExamsForInstitution(institutionId)
                                 .getOrThrow()
@@ -189,7 +190,7 @@ public class ExamAPI_V1_Controller {
             @RequestParam(name = API.EXAM_API_USER_SESSION_ID, required = false) final String userSessionId,
             @RequestParam(name = API.EXAM_API_PARAM_SEB_VERSION, required = false) final String sebVersion,
             @RequestParam(name = API.EXAM_API_PARAM_SEB_OS_NAME, required = false) final String sebOSName,
-            @RequestParam(name = API.EXAM_API_PARAM_SEB_MACHINE_NAME, required = false) final String sebMachinName,
+            @RequestParam(name = API.EXAM_API_PARAM_SEB_MACHINE_NAME, required = false) final String sebMachineName,
             @RequestParam(
                     name = API.EXAM_API_PARAM_SIGNATURE_KEY,
                     required = false) final String browserSignatureKey,
@@ -212,7 +213,7 @@ public class ExamAPI_V1_Controller {
                                     remoteAddr,
                                     sebVersion,
                                     sebOSName,
-                                    sebMachinName,
+                                    sebMachineName,
                                     userSessionId,
                                     clientId,
                                     browserSignatureKey)
@@ -315,8 +316,22 @@ public class ExamAPI_V1_Controller {
             final HttpServletRequest request,
             final HttpServletResponse response) {
 
+        Long examId;
+        try {
+            examId = Long.parseLong(Objects.requireNonNull(formParams.getFirst(API.EXAM_API_PARAM_EXAM_ID)));
+        } catch (final Exception e) {
+            examId = null;
+        }
+        final Long _examId = examId;
+        final String remoteAddr = this.getClientAddress(request);
+
         return CompletableFuture.runAsync(
-                () -> streamExamConfig(connectionToken, formParams, principal, response),
+                () -> this.sebClientConnectionService.streamExamConfig(
+                        getInstitutionId(principal),
+                        _examId,
+                        connectionToken,
+                        remoteAddr,
+                        response),
                 this.executor);
     }
 
@@ -328,7 +343,6 @@ public class ExamAPI_V1_Controller {
     public void ping(final HttpServletRequest request, final HttpServletResponse response) {
 
         final String connectionToken = request.getHeader(API.EXAM_API_SEB_CONNECTION_TOKEN);
-        //final String pingNumString = request.getParameter(API.EXAM_API_PING_NUMBER);
         final String instructionConfirm = request.getParameter(API.EXAM_API_PING_INSTRUCTION_CONFIRM);
 
         final String instruction = this.sebClientSessionService
@@ -373,73 +387,7 @@ public class ExamAPI_V1_Controller {
                         .getOr(null));
     }
 
-    private void streamExamConfig(
-            final String connectionToken,
-            final MultiValueMap<String, String> formParams,
-            final Principal principal,
-            final HttpServletResponse response) {
 
-        final Long institutionId = getInstitutionId(principal);
-
-        try {
-
-            // if an examId is provided with the request, update the connection first
-            if (formParams != null && formParams.containsKey(API.EXAM_API_PARAM_EXAM_ID)) {
-                final String examId = formParams.getFirst(API.EXAM_API_PARAM_EXAM_ID);
-                final ClientConnection connection = this.sebClientConnectionService.updateClientConnection(
-                        connectionToken,
-                        institutionId,
-                        Long.valueOf(examId),
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null)
-                        .getOrThrow();
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Updated connection: {}", connection);
-                }
-            }
-
-            final ServletOutputStream outputStream = response.getOutputStream();
-
-            try {
-
-                this.examSessionService
-                        .streamDefaultExamConfig(
-                                institutionId,
-                                connectionToken,
-                                outputStream);
-
-                response.setStatus(HttpStatus.OK.value());
-
-            } catch (final Exception e) {
-                final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
-                outputStream.write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
-                response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-
-            } finally {
-                outputStream.flush();
-                outputStream.close();
-            }
-
-        } catch (final Exception e) {
-            log.error("Unexpected error while trying to stream SEB Exam Configuration to client with connection: {}",
-                    connectionToken,
-                    e);
-
-            final APIMessage errorMessage = APIMessage.ErrorMessage.GENERIC.of(e.getMessage());
-            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            try {
-                response.getOutputStream().write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessage)));
-            } catch (final Exception e1) {
-                log.error("Failed to write error to response: ", e1);
-            }
-        }
-    }
 
     private String getClientAddress(final HttpServletRequest request) {
         try {

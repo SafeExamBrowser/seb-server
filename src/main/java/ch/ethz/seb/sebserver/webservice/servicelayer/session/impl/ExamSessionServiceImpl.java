@@ -227,27 +227,30 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             updateExamCache(examId);
         }
 
-        final Exam exam = this.examSessionCacheService.getRunningExam(examId);
+        return Result.tryCatch(() -> {
 
-        if (this.examSessionCacheService.isRunning(exam)) {
-            if (log.isTraceEnabled()) {
-                log.trace("Exam {} is running and cached", examId);
+            final Exam exam = this.examSessionCacheService.getRunningExam(examId);
+
+            if (this.examSessionCacheService.isRunning(exam)) {
+                if (log.isTraceEnabled()) {
+                    log.trace("Exam {} is running and cached", examId);
+                }
+
+                return exam;
+            } else {
+                if (exam != null) {
+                    log.info("Exam {} is not running anymore. Flush caches", exam);
+                    flushCache(exam);
+                }
+
+                if (log.isDebugEnabled()) {
+                    log.info("Exam {} is not currently running", examId);
+                }
+
+                throw new NoSuchElementException(
+                        "No currently running exam found for id: " + examId);
             }
-
-            return Result.of(exam);
-        } else {
-            if (exam != null) {
-                log.info("Exam {} is not running anymore. Flush caches", exam);
-                flushCache(exam);
-            }
-
-            if (log.isDebugEnabled()) {
-                log.info("Exam {} is not currently running", examId);
-            }
-
-            return Result.ofError(new NoSuchElementException(
-                    "No currently running exam found for id: " + examId));
-        }
+        });
     }
 
     @Override

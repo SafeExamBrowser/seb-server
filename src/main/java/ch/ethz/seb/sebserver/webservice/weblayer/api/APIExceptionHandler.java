@@ -210,7 +210,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Object> handleUnexpected(
+    public ResponseEntity<Object> handleAccessDenied(
             final AccessDeniedException ex,
             final WebRequest request) {
 

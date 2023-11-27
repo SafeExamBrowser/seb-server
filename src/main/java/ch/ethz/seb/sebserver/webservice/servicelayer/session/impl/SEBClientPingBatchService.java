@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +16,8 @@ import java.util.concurrent.ScheduledFuture;
 
 import javax.annotation.PreDestroy;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import org.apache.commons.lang3.StringUtils;
 import org.ehcache.impl.internal.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -42,7 +45,6 @@ public class SEBClientPingBatchService implements SEBClientPingService {
     private final ExamSessionCacheService examSessionCacheService;
     private final SEBClientInstructionService sebClientInstructionService;
 
-
     private final Set<String> pingKeys = new HashSet<>();
     private final Map<String, String> pings = new ConcurrentHashMap<>();
     private final Map<String, String> instructions = new ConcurrentHashMap<>();
@@ -69,7 +71,6 @@ public class SEBClientPingBatchService implements SEBClientPingService {
         try {
             this.pingKeys.clear();
             this.pingKeys.addAll(this.pings.keySet());
-            //final Set<String> connections = new HashSet<>(this.pings.keySet());
             this.pingKeys.stream().forEach(cid -> processPing(
                     cid,
                     this.pings.remove(cid),
@@ -119,11 +120,23 @@ public class SEBClientPingBatchService implements SEBClientPingService {
             return;
         }
 
-        final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
+        final ClientConnectionDataInternal connectionData = this.examSessionCacheService
                 .getClientConnection(connectionToken);
 
-        if (activeClientConnection != null) {
-            activeClientConnection.notifyPing(timestamp);
+        if (connectionData != null) {
+            if (connectionData.clientConnection.status == ClientConnection.ConnectionStatus.DISABLED) {
+                // SEBSERV-440 send quit instruction to SEB
+                sebClientInstructionService.registerInstruction(
+                        connectionData.clientConnection.examId,
+                        ClientInstruction.InstructionType.SEB_QUIT,
+                        Collections.emptyMap(),
+                        connectionData.clientConnection.connectionToken,
+                        false,
+                        false
+                );
+            }
+
+            connectionData.notifyPing(timestamp);
         } else {
             log.error("Failed to get ClientConnectionDataInternal for: {}", connectionToken);
         }

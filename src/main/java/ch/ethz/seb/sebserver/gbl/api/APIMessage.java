@@ -74,7 +74,10 @@ public class APIMessage implements Serializable {
         EXAM_IMPORT_ERROR_AUTO_CONFIG("1610", HttpStatus.PARTIAL_CONTENT,
                 "Failed to automatically create and link exam configuration from the exam template to the exam"),
         EXAM_IMPORT_ERROR_AUTO_CONFIG_LINKING("1611", HttpStatus.PARTIAL_CONTENT,
-                "Failed to automatically link auto-generated exam configuration to the exam");
+                "Failed to automatically link auto-generated exam configuration to the exam"),
+
+        CLIENT_CONNECTION_INTEGRITY_VIOLATION("1700", HttpStatus.NOT_ACCEPTABLE,
+                "SEB client connection is not in valid state to apply requested operation");
 
         public final String messageCode;
         public final HttpStatus httpStatus;

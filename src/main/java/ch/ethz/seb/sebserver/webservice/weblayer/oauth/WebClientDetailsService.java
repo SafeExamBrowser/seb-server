@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ClientConfigService;
 
 /** A ClientDetailsService to manage different API clients of SEB Server webservice API.
- *
+ * <p>
  * Currently supporting two client types for the two different API's on
  * SEB Server webservice;
  * - Administration API for administrative purpose using password grant type with refresh token
@@ -44,7 +44,7 @@ public class WebClientDetailsService implements ClientDetailsService {
     }
 
     /** Load a client by the client id. This method must not return null.
-     *
+     * <p>
      * This checks first if the given clientId matches the client id of AdminAPIClientDetails.
      * If not, iterating through LMSSetup's and matches the sebClientname of each LMSSetup.
      * If there is a match, a ClientDetails object is created from LMSSetup and returned.

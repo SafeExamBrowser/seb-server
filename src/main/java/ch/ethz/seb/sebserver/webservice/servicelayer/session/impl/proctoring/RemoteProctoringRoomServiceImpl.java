@@ -653,6 +653,7 @@ public class RemoteProctoringRoomServiceImpl implements RemoteProctoringRoomServ
                                     InstructionType.SEB_RECONFIGURE_SETTINGS,
                                     attributes,
                                     connectionToken,
+                                    true,
                                     true)
                             .onError(error -> log.error(
                                     "Failed to register reconfiguring instruction for connection: {}",
@@ -852,6 +853,7 @@ public class RemoteProctoringRoomServiceImpl implements RemoteProctoringRoomServ
                         InstructionType.SEB_PROCTORING,
                         attributes,
                         connectionToken,
+                        true,
                         true)
                 .onError(error -> log.error("Failed to send join instruction: {}", connectionToken, error))
                 .getOrThrow();

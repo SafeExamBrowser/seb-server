@@ -43,7 +43,7 @@ public interface SEBClientSessionService extends ExamUpdateTask, SessionUpdateTa
     /** Used to update the app signature key grants of all active SEB connections that miss a grant */
     void updateASKGrants();
 
-    /** Used to cleanup old instructions from the persistent storage */
+    /** Used to clean up old instructions from the persistent storage */
     void cleanupInstructions();
 
     /** Notify a ping for a certain client connection.
@@ -66,7 +66,7 @@ public interface SEBClientSessionService extends ExamUpdateTask, SessionUpdateTa
      * @param instructionConfirm the instruction confirm identifier */
     void confirmInstructionDone(String connectionToken, String instructionConfirm);
 
-    /** Use this to get the get the specific indicator values for a given client connection.
+    /** Use this to get the specific indicator values for a given client connection.
      *
      * @param clientConnection The client connection values
      * @return Result refer to ClientConnectionData instance containing the given clientConnection plus the indicator

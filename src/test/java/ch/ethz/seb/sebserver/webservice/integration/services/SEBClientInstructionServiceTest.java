@@ -66,7 +66,7 @@ public class SEBClientInstructionServiceTest extends AdministrationAPIIntegratio
 
         // register instruction
         this.sebClientInstructionService.registerInstruction(
-                2L, InstructionType.SEB_QUIT, Collections.emptyMap(), "testToken", false);
+                2L, InstructionType.SEB_QUIT, Collections.emptyMap(), "testToken", true,false);
 
         // check on DB
         all = this.clientInstructionDAO
@@ -100,7 +100,7 @@ public class SEBClientInstructionServiceTest extends AdministrationAPIIntegratio
     public void testRegisterWithConfirm() {
         // register instruction
         this.sebClientInstructionService.registerInstruction(
-                2L, InstructionType.SEB_RECONFIGURE_SETTINGS, Collections.emptyMap(), "testToken", true);
+                2L, InstructionType.SEB_RECONFIGURE_SETTINGS, Collections.emptyMap(), "testToken", true,true);
 
         // check on DB
         Collection<ClientInstructionRecord> all = this.clientInstructionDAO
@@ -142,7 +142,7 @@ public class SEBClientInstructionServiceTest extends AdministrationAPIIntegratio
         attributes.put("attr1", "123");
         attributes.put("attr2", "345");
         this.sebClientInstructionService.registerInstruction(
-                2L, InstructionType.SEB_RECONFIGURE_SETTINGS, attributes, "testToken", true);
+                2L, InstructionType.SEB_RECONFIGURE_SETTINGS, attributes, "testToken", true,true);
 
         // check on DB
         Collection<ClientInstructionRecord> all = this.clientInstructionDAO

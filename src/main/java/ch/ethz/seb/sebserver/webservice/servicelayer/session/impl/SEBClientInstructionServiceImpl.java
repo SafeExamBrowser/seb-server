@@ -103,34 +103,36 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
             final InstructionType type,
             final Map<String, String> attributes,
             final String connectionToken,
+            final boolean checkActive,
             final boolean needsConfirm) {
 
         return Result.tryCatch(() -> {
 
-            final boolean isActive = this.clientConnectionDAO
+            if (checkActive && !this.clientConnectionDAO
                     .isInInstructionStatus(examId, connectionToken)
-                    .getOr(false);
+                    .getOr(false)) {
 
-            if (isActive) {
-                try {
-
-                    final String attributesString = (attributes != null && !attributes.isEmpty())
-                            ? this.jsonMapper.writeValueAsString(attributes)
-                            : null;
-
-                    this.clientInstructionDAO
-                            .insert(examId, type, attributesString, connectionToken, needsConfirm)
-                            .map(this::putToCache)
-                            .onError(error -> log.error("Failed to register instruction: {}", error.getMessage()))
-                            .getOrThrow();
-
-                } catch (final Exception e) {
-                    throw new RuntimeException("Unexpected: ", e);
-                }
-            } else {
                 log.warn(
-                        "The SEB client connection : {} is not in a ready state to process instructions. Instruction registration has been skipped",
+                        "The SEB client connection : {} is not in a ready state to process instructions. " +
+                         "Instruction registration has been skipped",
                         connectionToken);
+                return;
+            }
+
+            try {
+
+                final String attributesString = (attributes != null && !attributes.isEmpty())
+                        ? this.jsonMapper.writeValueAsString(attributes)
+                        : null;
+
+                this.clientInstructionDAO
+                        .insert(examId, type, attributesString, connectionToken, needsConfirm)
+                        .map(this::putToCache)
+                        .onError(error -> log.error("Failed to register instruction: {}", error.getMessage()))
+                        .getOrThrow();
+
+            } catch (final Exception e) {
+                throw new RuntimeException("Unexpected: ", e);
             }
         });
     }

@@ -476,6 +476,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         InstructionType.SEB_PROCTORING,
                         attributes,
                         ccRecord.getConnectionToken(),
+                        true,
                         true)
                 .onError(error -> log.error(
                         "Failed to register screen proctoring join instruction for SEB connection: {}",

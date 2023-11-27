@@ -524,6 +524,7 @@ public class ZoomProctoringService implements RemoteProctoringService {
                         InstructionType.SEB_PROCTORING,
                         attributes,
                         connectionToken,
+                        true,
                         true)
                 .onError(error -> log.error("Failed to send join instruction: {}", connectionToken, error));
     }

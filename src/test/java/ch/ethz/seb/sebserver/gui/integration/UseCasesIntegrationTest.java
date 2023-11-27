@@ -2437,7 +2437,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         connections = connectionsCall.get();
         assertFalse(connections.isEmpty());
         conData = connections.iterator().next();
-        assertEquals("DISABLED", conData.clientConnection.status.name());
+        assertEquals("CLOSED", conData.clientConnection.status.name());
 
         // get client logs
         final Result<Page<ExtendedClientEvent>> clientLogPage = restService
@@ -2520,7 +2520,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(ccDataPage.content.isEmpty());
         final ClientConnectionData clientConnectionData = ccDataPage.content.get(0);
         assertNotNull(clientConnectionData);
-        assertEquals("DISABLED", clientConnectionData.clientConnection.status.toString());
+        assertEquals("CLOSED", clientConnectionData.clientConnection.status.toString());
 
         connectionDatacall = restService
                 .getBuilder(GetFinishedExamClientConnectionPage.class)

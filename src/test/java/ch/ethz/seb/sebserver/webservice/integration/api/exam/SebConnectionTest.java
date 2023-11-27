@@ -441,15 +441,15 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 .build()
                 .execute();
 
-        assertTrue(records.size() == 1);
+        assertEquals(1, records.size());
         final ClientConnectionRecord clientConnectionRecord = records.get(0);
         assertEquals("1", String.valueOf(clientConnectionRecord.getInstitutionId()));
         assertEquals("2", String.valueOf(clientConnectionRecord.getExamId()));
         assertEquals("CLOSED", String.valueOf(clientConnectionRecord.getStatus()));
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
-        assertNull(clientConnectionRecord.getExamUserSessionId());
-        assertTrue(clientConnectionRecord.getVdi() == 0);
+        assertNotNull(clientConnectionRecord.getExamUserSessionId());
+        assertEquals(0, (int) clientConnectionRecord.getVdi());
         assertNull(clientConnectionRecord.getVirtualClientAddress());
 
         // check cache after update

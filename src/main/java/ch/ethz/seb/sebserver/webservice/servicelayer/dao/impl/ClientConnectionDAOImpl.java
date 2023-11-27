@@ -364,7 +364,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     data.examId,
                     ConnectionStatus.CONNECTION_REQUESTED.name(),
                     data.connectionToken,
-                    null,
+                    data.userSessionId,
                     data.clientAddress,
                     data.sebClientUserId,
                     BooleanUtils.toInteger(data.vdi, 1, 0, 0),

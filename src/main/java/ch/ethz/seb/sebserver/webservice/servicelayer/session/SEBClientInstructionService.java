@@ -28,12 +28,12 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 
 /** Service for SEB instruction handling.
- *
+ * <p>
  * SEB instructions are sent as response of a SEB Ping on a active SEB Connection
  * If there is an instruction in the queue for a specified SEB Client. */
 public interface SEBClientInstructionService {
 
-    static final Logger log = LoggerFactory.getLogger(SEBClientInstructionService.class);
+    Logger log = LoggerFactory.getLogger(SEBClientInstructionService.class);
 
     /** Get the underling WebserviceInfo
      *
@@ -46,10 +46,10 @@ public interface SEBClientInstructionService {
     void init();
 
     /** Used to register a SEB client instruction for one or more active client connections
-     * within an other background thread. This is none-blocking.
+     * within another background thread. This is none-blocking.
      *
      * @param clientInstruction the ClientInstruction instance to register
-     * @return A Result refer to a void marker or to an error if happened */
+     **/
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     default void registerInstructionAsync(final ClientInstruction clientInstruction) {
         registerInstruction(clientInstruction, false)
@@ -69,7 +69,7 @@ public interface SEBClientInstructionService {
     /** Used to register a SEB client instruction for one or more active client connections
      *
      * @param clientInstruction the ClientInstruction instance to register
-     * @param needsConfirm indicates whether the SEB instruction needs a confirmation or not
+     * @param needsConfirmation indicates whether the SEB instruction needs a confirmation or not
      * @return A Result refer to a void marker or to an error if happened */
     default Result<Void> registerInstruction(
             final ClientInstruction clientInstruction,
@@ -91,6 +91,7 @@ public interface SEBClientInstructionService {
      * @param type The InstructionType
      * @param attributes The instruction's attributes
      * @param connectionToken a connectionToken to register the instruction for.
+     * @param checkActive indicates if the involved client connection shall be checked for active status or not
      * @param needsConfirm indicates whether the SEB instruction needs a confirmation or not
      * @return A Result refer to a void marker or to an error if happened */
     Result<Void> registerInstruction(
@@ -98,6 +99,7 @@ public interface SEBClientInstructionService {
             InstructionType type,
             Map<String, String> attributes,
             String connectionToken,
+            boolean checkActive,
             boolean needsConfirm);
 
     /** Used to register a SEB client instruction for one or more active client connections
@@ -117,9 +119,9 @@ public interface SEBClientInstructionService {
 
     /** Get a SEB instruction for the specified SEB Client connection or null of there
      * is currently no SEB instruction in the queue.
-     *
+     * <p>
      * NOTE: If this call returns a SEB instruction instance, this instance is considered
-     * as processed for the specified SEB Client afterwards and will be removed from the queue
+     * as processed for the specified SEB Client afterward and will be removed from the queue
      *
      * @param connectionToken the SEB Client connection token
      * @return SEB instruction to sent to the SEB Client or null */
@@ -131,7 +133,7 @@ public interface SEBClientInstructionService {
      * @param instructionConfirm the instruction confirm identifier */
     void confirmInstructionDone(String connectionToken, String instructionConfirm);
 
-    /** Used to cleanup out-dated instructions on the persistent storage */
+    /** Used to clean up out-dated instructions on the persistent storage */
     void cleanupInstructions();
 
 }

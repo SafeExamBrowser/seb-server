@@ -440,7 +440,7 @@ public final class ClientConnection implements GrantEntity {
         builder.append(this.clientAddress);
         builder.append(", remoteProctoringRoomId=");
         builder.append(this.remoteProctoringRoomId);
-        builder.append(", virtualClientId=");
+        builder.append(", sebClientUserId=");
         builder.append(this.sebClientUserId);
         builder.append(", creationTime=");
         builder.append(this.creationTime);

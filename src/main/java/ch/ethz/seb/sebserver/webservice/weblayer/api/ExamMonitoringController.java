@@ -463,6 +463,7 @@ public class ExamMonitoringController {
 
         checkPrivileges(institutionId, examId);
 
+        // TODO do this in async in new thread
         if (connectionToken.contains(Constants.LIST_SEPARATOR)) {
             // If we have a bunch of client connections to disable, make it asynchronously and respond to the caller immediately
             this.executor.execute(() -> {
@@ -563,8 +564,8 @@ public class ExamMonitoringController {
         final EnumSet<ConnectionStatus> filterStates = EnumSet.noneOf(ConnectionStatus.class);
         if (StringUtils.isNotBlank(hiddenStates)) {
             final String[] split = StringUtils.split(hiddenStates, Constants.LIST_SEPARATOR);
-            for (int i = 0; i < split.length; i++) {
-                filterStates.add(ConnectionStatus.valueOf(split[i]));
+            for (final String s : split) {
+                filterStates.add(ConnectionStatus.valueOf(s));
             }
         }
 
@@ -583,8 +584,8 @@ public class ExamMonitoringController {
         if (StringUtils.isNotBlank(hiddenClientGroups)) {
             filterClientGroups = new HashSet<>();
             final String[] split = StringUtils.split(hiddenClientGroups, Constants.LIST_SEPARATOR);
-            for (int i = 0; i < split.length; i++) {
-                filterClientGroups.add(Long.parseLong(split[i]));
+            for (final String s : split) {
+                filterClientGroups.add(Long.parseLong(s));
             }
         }
 

@@ -8,6 +8,10 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
+import java.util.Collections;
+
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,11 +54,23 @@ public class SEBClientPingBlockingService implements SEBClientPingService {
             return null;
         }
 
-        final ClientConnectionDataInternal activeClientConnection = this.examSessionCacheService
+        final ClientConnectionDataInternal connectionData = this.examSessionCacheService
                 .getClientConnection(connectionToken);
 
-        if (activeClientConnection != null) {
-            activeClientConnection.notifyPing(Utils.getMillisecondsNow());
+        if (connectionData != null) {
+            if (connectionData.clientConnection.status == ClientConnection.ConnectionStatus.DISABLED) {
+                // SEBSERV-440 send quit instruction to SEB
+                sebClientInstructionService.registerInstruction(
+                        connectionData.clientConnection.examId,
+                        ClientInstruction.InstructionType.SEB_QUIT,
+                        Collections.emptyMap(),
+                        connectionData.clientConnection.connectionToken,
+                        false,
+                        false
+                );
+            }
+
+            connectionData.notifyPing(Utils.getMillisecondsNow());
         } else {
             log.error("Failed to get ClientConnectionDataInternal for: {}", connectionToken);
         }

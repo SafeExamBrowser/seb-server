@@ -154,7 +154,9 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
                 InstructionType.NOTIFICATION_CONFIRM,
                 connectionToken,
                 attributes);
-        this.sebClientInstructionService.registerInstruction(clientInstruction);
+        this.sebClientInstructionService
+                .registerInstruction(clientInstruction)
+                .onError(error -> log.error("Failed to confirm instruction SEB client side: ", error));
 
         return notification;
     }

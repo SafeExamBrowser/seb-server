@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
+import javax.servlet.http.HttpServletResponse;
 import java.security.Principal;
 import java.util.Collection;
 
@@ -157,5 +158,19 @@ public interface SEBClientConnectionService {
      * @return A Result refer to a list of EntityKey of the closed ClientConnection instances, or refer to an error if
      *         happened */
     Result<Collection<EntityKey>> disableConnections(final String[] connectionTokens, final Long institutionId);
+
+    /** Streams the requested exam configuration to given HttpServletResponse output stream
+     *
+     * @param institutionId the institution identifier
+     * @param examId the exam identifier
+     * @param connectionToken the connection identifier token
+     * @param ipAddress the IP Address of the SEB client request
+     * @param response HttpServletResponse instance to stream the exam configuration to */
+    void streamExamConfig(
+            Long institutionId,
+            Long examId,
+            String connectionToken,
+            String ipAddress,
+            HttpServletResponse response);
 
 }
