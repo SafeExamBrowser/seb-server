@@ -21,7 +21,7 @@ import ch.ethz.seb.sebserver.gbl.Constants;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ScreenProctoringSettings {
+public class ScreenProctoringSettings implements SPSAPIAccessData {
 
     public static final String ATTR_ENABLE_SCREEN_PROCTORING = "enableScreenProctoring";
     public static final String ATTR_SPS_SERVICE_URL = "spsServiceURL";

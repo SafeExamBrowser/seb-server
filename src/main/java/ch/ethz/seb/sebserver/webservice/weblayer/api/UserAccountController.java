@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -61,6 +62,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     private final ApplicationEventPublisher applicationEventPublisher;
     private final UserDAO userDAO;
     private final PasswordEncoder userPasswordEncoder;
+    private final ScreenProctoringService screenProctoringService;
 
     public UserAccountController(
             final UserDAO userDAO,
@@ -70,6 +72,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             final BulkActionService bulkActionService,
             final ApplicationEventPublisher applicationEventPublisher,
             final BeanValidationService beanValidationService,
+            final ScreenProctoringService screenProctoringService,
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
 
         super(authorization,
@@ -81,6 +84,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         this.applicationEventPublisher = applicationEventPublisher;
         this.userDAO = userDAO;
         this.userPasswordEncoder = userPasswordEncoder;
+        this.screenProctoringService = screenProctoringService;
     }
 
     @RequestMapping(path = API.CURRENT_USER_PATH_SEGMENT, method = RequestMethod.GET)
@@ -145,6 +149,13 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .flatMap(this::additionalConsistencyChecks);
     }
 
+    @Override
+    protected Result<UserInfo> notifySaved(final UserInfo entity) {
+        final Result<UserInfo> userInfoResult = super.notifySaved(entity);
+        this.synchronizeUserWithSPS(entity);
+        return userInfoResult;
+    }
+
     @RequestMapping(
             path = API.PASSWORD_PATH_SEGMENT,
             method = RequestMethod.PUT,
@@ -159,6 +170,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .flatMap(e -> this.userDAO.changePassword(modelId, passwordChange.getNewPassword()))
                 .flatMap(this::revokeAccessToken)
                 .flatMap(e -> this.userActivityLogDAO.log(UserLogActivityType.PASSWORD_CHANGE, e))
+                .map(this::synchronizeUserWithSPS)
                 .getOrThrow();
     }
 
@@ -258,6 +270,10 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         }
 
         return info;
+    }
 
+    private UserInfo synchronizeUserWithSPS(final UserInfo userInfo) {
+        screenProctoringService.synchronizeSPSUser(userInfo.uuid);
+        return userInfo;
     }
 }

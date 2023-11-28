@@ -154,7 +154,7 @@ public class ProctoringAdminServiceImpl implements ProctoringAdminService {
             if (parentEntityKey.entityType == EntityType.EXAM) {
 
                 this.screenProctoringService
-                        .applyScreenProctoingForExam(settings.examId)
+                        .applyScreenProctoringForExam(settings.examId)
                         .onError(error -> this.proctoringSettingsDAO
                                 .disableScreenProctoring(screenProctoringSettings.examId))
                         .getOrThrow();

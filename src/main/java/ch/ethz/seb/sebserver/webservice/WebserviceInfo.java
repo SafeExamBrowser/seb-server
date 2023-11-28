@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -329,7 +330,7 @@ public class WebserviceInfo {
         return builder.toString();
     }
 
-    public static final class ScreenProctoringServiceBundle {
+    public static final class ScreenProctoringServiceBundle implements SPSAPIAccessData {
 
         public final boolean bundled;
         public final String serviceURL;
@@ -360,6 +361,36 @@ public class WebserviceInfo {
             this.clientSecret = null;
             this.apiAccountName = null;
             this.apiAccountPassword = null;
+        }
+
+        @Override
+        public Long getExamId() {
+            return null;
+        }
+
+        @Override
+        public String getSpsServiceURL() {
+            return serviceURL;
+        }
+
+        @Override
+        public String getSpsAPIKey() {
+            return clientId;
+        }
+
+        @Override
+        public CharSequence getSpsAPISecret() {
+            return clientSecret;
+        }
+
+        @Override
+        public String getSpsAccountId() {
+            return apiAccountName;
+        }
+
+        @Override
+        public CharSequence getSpsAccountPassword() {
+            return apiAccountPassword;
         }
 
         @Override

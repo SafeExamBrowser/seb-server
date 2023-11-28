@@ -26,7 +26,7 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
 
     public static final String EXECUTOR_BEAN_NAME = "AsyncServiceExecutorBean";
 
-    /** This ThreadPool is used for internal long running background tasks */
+    /** This ThreadPool is used for internal long-running background tasks */
     @Bean(name = EXECUTOR_BEAN_NAME)
     public Executor threadPoolTaskExecutor() {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
@@ -61,8 +61,8 @@ public class AsyncServiceSpringConfig implements AsyncConfigurer {
     public static final String EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME = "examAPIPingThreadPoolTaskExecutor";
 
     /** This ThreadPool is used for ping handling in a distributed setup and shall reject
-     * incoming ping requests as fast as possible if there is to much load on the DB.
-     * We prefer to loose a shared ping update and respond to the client in time over a client request timeout */
+     * incoming ping requests as fast as possible if there is too much load on the DB.
+     * We prefer to lose a shared ping update and respond to the client in time over a client request timeout */
     @Bean(name = EXAM_API_PING_SERVICE_EXECUTOR_BEAN_NAME)
     public Executor examAPIPingThreadPoolTaskExecutor() {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

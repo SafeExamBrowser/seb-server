@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session;
 
 import java.util.Collection;
 
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import org.springframework.context.event.EventListener;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
@@ -17,6 +18,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl.ExamDeletionEvent;
+import org.springframework.scheduling.annotation.Async;
 
 public interface ScreenProctoringService extends SessionUpdateTask {
 
@@ -45,7 +47,7 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      *
      * @param examId use the screen proctoring settings of the exam with the given exam id
      * @return Result refer to the given Exam or to an error when happened */
-    Result<Exam> applyScreenProctoingForExam(Long examId);
+    Result<Exam> applyScreenProctoringForExam(Long examId);
 
     /** Get list of all screen proctoring collecting groups for a particular exam.
      *
@@ -64,7 +66,7 @@ public interface ScreenProctoringService extends SessionUpdateTask {
     @EventListener(ExamFinishedEvent.class)
     void notifyExamFinished(ExamFinishedEvent event);
 
-    /** This is been called just before an Exam gets deleted on the permanent storage.
+    /** This is being called just before an Exam gets deleted on the permanent storage.
      * This deactivates and dispose or deletes all exam relevant domain entities on the SPS service side.
      *
      * @param event The ExamDeletionEvent reference all PKs of Exams that are going to be deleted. */
@@ -75,8 +77,8 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * if screen proctoring is enabled for the specified exam.
      *
      * @param examId The SEB Server exam identifier
-     * @return Result refer to the the given exam data or to an error when happened */
-    Result<Exam> updateExamOnScreenProctoingService(Long examId);
+     * @return Result refer to the given exam data or to an error when happened */
+    Result<Exam> updateExamOnScreenProctoringService(Long examId);
 
     /** This is internally used to update client connections that are active but has no groups assignment yet.
      * This attaches SEB client connections to proctoring group of an exam in one batch by checking for
@@ -84,5 +86,8 @@ public interface ScreenProctoringService extends SessionUpdateTask {
      * and if yes, attaching the respective SEB client connection, updating the group and sending
      * SPS connection instruction to SEB client to connect and start sending screenshots. */
     void updateClientConnections();
+
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
+    void synchronizeSPSUser(final String userUUID);
 
 }

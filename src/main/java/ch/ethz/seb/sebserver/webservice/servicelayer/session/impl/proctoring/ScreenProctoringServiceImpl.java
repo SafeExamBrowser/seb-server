@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -59,7 +60,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private static final Logger log = LoggerFactory.getLogger(ScreenProctoringServiceImpl.class);
 
     private final Cryptor cryptor;
-    private final JSONMapper jsonMapper;
     private final ScreenProctoringAPIBinding screenProctoringAPIBinding;
     private final ScreenProctoringGroupDAO screenProctoringGroupDAO;
     private final ProctoringSettingsDAO proctoringSettingsDAO;
@@ -67,6 +67,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     private final ExamDAO examDAO;
     private final SEBClientInstructionService sebInstructionService;
     private final ExamSessionCacheService examSessionCacheService;
+    private final WebserviceInfo webserviceInfo;
 
     public ScreenProctoringServiceImpl(
             final Cryptor cryptor,
@@ -79,24 +80,25 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             final AdditionalAttributesDAO additionalAttributesDAO,
             final ScreenProctoringGroupDAO screenProctoringGroupDAO,
             final SEBClientInstructionService sebInstructionService,
-            final ExamSessionCacheService examSessionCacheService) {
+            final ExamSessionCacheService examSessionCacheService,
+            final WebserviceInfo webserviceInfo) {
 
         this.cryptor = cryptor;
-        this.jsonMapper = jsonMapper;
         this.examDAO = examDAO;
         this.screenProctoringGroupDAO = screenProctoringGroupDAO;
         this.clientConnectionDAO = clientConnectionDAO;
         this.sebInstructionService = sebInstructionService;
         this.examSessionCacheService = examSessionCacheService;
         this.proctoringSettingsDAO = proctoringSettingsDAO;
-
+        this.webserviceInfo = webserviceInfo;
         this.screenProctoringAPIBinding = new ScreenProctoringAPIBinding(
                 userDAO,
                 cryptor,
                 asyncService,
                 jsonMapper,
                 proctoringSettingsDAO,
-                additionalAttributesDAO);
+                additionalAttributesDAO,
+                webserviceInfo);
     }
 
     @Override
@@ -161,7 +163,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
-    public Result<Exam> applyScreenProctoingForExam(final Long examId) {
+    public Result<Exam> applyScreenProctoringForExam(final Long examId) {
 
         return this.examDAO
                 .byPK(examId)
@@ -187,7 +189,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     } else if (!isEnabling && isSPSActive) {
 
                         this.screenProctoringAPIBinding
-                                .dispsoseScreenProctoring(exam)
+                                .disposeScreenProctoring(exam)
                                 .onError(error -> log.error("Failed to dispose screen proctoring for exam: {}",
                                         exam,
                                         error))
@@ -205,7 +207,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
-    public Result<Exam> updateExamOnScreenProctoingService(final Long examId) {
+    public Result<Exam> updateExamOnScreenProctoringService(final Long examId) {
         return this.examDAO.byPK(examId)
                 .map(exam -> {
 
@@ -213,10 +215,10 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         log.debug("Update changed exam attributes for screen proctoring: {}", exam);
                     }
 
-                    final String enabeld = exam.additionalAttributes
+                    final String enabled = exam.additionalAttributes
                             .get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING);
 
-                    if (!BooleanUtils.toBoolean(enabeld)) {
+                    if (!BooleanUtils.toBoolean(enabled)) {
                         return exam;
                     }
 
@@ -239,7 +241,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     .flatMap(this.clientConnectionDAO::getAllForScreenProctoringUpdate)
                     .getOrThrow()
                     .stream()
-                    .forEach(cc -> applyScreenProctoringSession(cc));
+                    .forEach(this::applyScreenProctoringSession);
 
         } catch (final Exception e) {
             log.error("Failed to update active SEB connections for screen proctoring");
@@ -248,15 +250,25 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     @Override
     public void notifyExamSaved(final Exam exam) {
-        final String enabeld = exam.additionalAttributes
+        final String enabled = exam.additionalAttributes
                 .get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING);
 
-        if (!BooleanUtils.toBoolean(enabeld)) {
+        if (!BooleanUtils.toBoolean(enabled)) {
             return;
         }
 
         this.screenProctoringAPIBinding.synchronizeUserAccounts(exam);
         this.screenProctoringAPIBinding.createExamReadPrivileges(exam);
+    }
+
+    @Override
+    public void synchronizeSPSUser(final String userUUID) {
+
+        if (!webserviceInfo.getScreenProctoringServiceBundle().bundled) {
+            return;
+        }
+
+        this.screenProctoringAPIBinding.synchronizeUserAccount(userUUID);
     }
 
     @Override
@@ -321,7 +333,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                     .getOrThrow();
 
         } catch (final Exception e) {
-            log.error("Failed to apply screen proctoring session to SEB with connection: ", ccRecord, e);
+            log.error("Failed to apply screen proctoring session to SEB with connection: {}", ccRecord, e);
 
             if (placeReservedInGroup != null) {
                 // release reserved place in group
@@ -361,13 +373,13 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     private ScreenProctoringGroup applyToDefaultGroup(
-            final Long connectioId,
+            final Long connectionId,
             final String connectionToken,
             final Exam exam) {
 
         final ScreenProctoringGroup screenProctoringGroup = reservePlaceOnProctoringGroup(exam);
         this.clientConnectionDAO.assignToScreenProctoringGroup(
-                connectioId,
+                connectionId,
                 connectionToken,
                 screenProctoringGroup.id)
                 .getOrThrow();
@@ -405,7 +417,9 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
 
     private ScreenProctoringGroup applyNewGroup(final Exam exam, final Integer groupSize) {
 
-        final String spsExamUUID = this.getSPSData(exam).spsExamUUID;
+        final String spsExamUUID = this.screenProctoringAPIBinding
+                .getSPSData(exam.id)
+                .spsExamUUID;
 
         return this.screenProctoringGroupDAO
                 .getCollectingGroups(exam.id)
@@ -458,7 +472,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
             log.debug("Register JOIN instruction for client ");
         }
 
-        final SPSData spsData = getSPSData(exam);
+        final SPSData spsData = this.screenProctoringAPIBinding.getSPSData(exam.id);
         final String url = exam.additionalAttributes.get(ScreenProctoringSettings.ATTR_SPS_SERVICE_URL);
         final Map<String, String> attributes = new HashMap<>();
 
@@ -483,21 +497,4 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
                         ccRecord,
                         error));
     }
-
-    // TODO make this with caching if performance is not good
-    private SPSData getSPSData(final Exam exam) {
-        try {
-
-            final String dataEncrypted = exam.additionalAttributes.get(SPSData.ATTR_SPS_ACCESS_DATA);
-
-            return this.jsonMapper.readValue(
-                    this.cryptor.decrypt(dataEncrypted).getOrThrow().toString(),
-                    SPSData.class);
-
-        } catch (final Exception e) {
-            log.error("Failed to get local SPSData for exam: {}", exam);
-            return null;
-        }
-    }
-
 }

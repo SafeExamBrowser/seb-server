@@ -200,7 +200,7 @@ class ExamUpdateHandler implements ExamUpdateTask {
 
                                 // also update the exam on screen proctoring service if exam has screen proctoring enabled
                                 this.screenProctoringService
-                                        .updateExamOnScreenProctoingService(exam.id)
+                                        .updateExamOnScreenProctoringService(exam.id)
                                         .onError(error -> log
                                                 .error("Failed to update exam changes for screen proctoring"));
 
