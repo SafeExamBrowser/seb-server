@@ -169,7 +169,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     /** This checks if there are write locks that are out of date and release such. */
     void releaseAgedLocks();
 
-    /** Use this to check if the exam is up to date
+    /** Use this to check if the exam is up-to-date
      *
      * @param exam the exam to check if it is in sync with the persistent or if there is a newer version
      * @return Result refer to the up-to-date result or to an error if happened */
@@ -178,7 +178,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
     /** Marks the specified exam as updated (sets the last modified date to now)
      * to notify exam content has changed.
      * This is automatically done also with normal save but not always an entire
-     * save is needed. In this cases this can be used to notify a exam content change.
+     * save is needed. In these cases this can be used to notify a exam content change.
      *
      * @param examId The exam identifier */
     void setModified(Long examId);
@@ -212,7 +212,7 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
 
     /** Marks the given exam by setting the last-update-time to current time.
      * This provokes a cache update on distributed setup.
-     * Additionally this flushes the local cache immediately.
+     * Additionally, this flushes the local cache immediately.
      *
      * @param examId the Exam identifier */
     @CacheEvict(

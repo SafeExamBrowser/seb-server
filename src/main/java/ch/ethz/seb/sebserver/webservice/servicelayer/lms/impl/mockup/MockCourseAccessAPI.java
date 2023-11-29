@@ -85,7 +85,7 @@ public class MockCourseAccessAPI implements CourseAccessAPI {
                 "2019-01-01T09:00:00Z", "2025-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
         this.mockups.add(new QuizData(
                 "quiz7", institutionId, lmsSetupId, lmsType, "Demo Quiz 7 (MOCKUP)", "<p>Demo Quiz Mockup</p>",
-                "2018-01-01T09:00:00Z", "2025-01-01T09:00:00Z", "http://lms.mockup.com/api/"));
+                "2018-01-01T09:00:00Z", null, "http://lms.mockup.com/api/"));
 
         this.mockups.add(new QuizData(
                 "quiz10", institutionId, lmsSetupId, lmsType, "Demo Quiz 10 (MOCKUP)",
