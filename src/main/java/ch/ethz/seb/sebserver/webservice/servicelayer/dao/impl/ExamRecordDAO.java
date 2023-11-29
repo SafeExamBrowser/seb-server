@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.*;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import org.mybatis.dynamic.sql.SqlBuilder;
 import org.mybatis.dynamic.sql.SqlCriterion;
 import org.mybatis.dynamic.sql.select.MyBatis3SelectModelAdapter;
 import org.mybatis.dynamic.sql.select.QueryExpressionDSL;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -88,7 +90,7 @@ public class ExamRecordDAO {
         return Result.tryCatch(() -> {
             return this.examRecordMapper.selectIdsByExample()
                     .where(
-                            ExamRecordDynamicSqlSupport.externalId,
+                            externalId,
                             isEqualToWhenPresent(externalQuizId))
                     .build()
                     .execute()
@@ -126,7 +128,7 @@ public class ExamRecordDAO {
         return Result.tryCatch(() -> {
             return this.examRecordMapper.selectByExample()
                     .where(
-                            ExamRecordDynamicSqlSupport.externalId,
+                            externalId,
                             isEqualToWhenPresent(quizId))
                     .and(
                             ExamRecordDynamicSqlSupport.active,
@@ -314,20 +316,17 @@ public class ExamRecordDAO {
                 throw new IllegalStateException("Exam is currently locked: " + examId);
             }
 
-            final ExamRecord examRecord = new ExamRecord(
-                    examId,
-                    null, null,
-                    quizData.id,
-                    null, null, null, null, null, null, null, null,
-                    updateId,
-                    null, null,
-                    Utils.getMillisecondsNow(),
-                    quizData.getName(),
-                    quizData.getStartTime(),
-                    quizData.getEndTime(),
-                    BooleanUtils.toIntegerObject(true));
+            UpdateDSL.updateWithMapper(examRecordMapper::update, examRecord)
+                    .set(externalId).equalTo(quizData.id)
+                    .set(lastupdate).equalTo(updateId)
+                    .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                    .set(quizName).equalTo(quizData.getName())
+                    .set(quizStartTime).equalTo(quizData.getStartTime())
+                    .set(quizEndTime).equalTo(quizData.getEndTime())
+                    .where(id, isEqualTo(oldRecord::getId))
+                    .build()
+                    .execute();
 
-            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(examId);
         })
                 .onError(TransactionHandler::rollback);
@@ -409,7 +408,7 @@ public class ExamRecordDAO {
             // fist check if it is not already existing
             final List<ExamRecord> records = this.examRecordMapper.selectByExample()
                     .where(ExamRecordDynamicSqlSupport.lmsSetupId, isEqualTo(exam.lmsSetupId))
-                    .and(ExamRecordDynamicSqlSupport.externalId, isEqualTo(exam.externalId))
+                    .and(externalId, isEqualTo(exam.externalId))
                     .build()
                     .execute();
 
