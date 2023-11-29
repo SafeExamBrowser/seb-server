@@ -494,8 +494,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     .getConnectionData(connectionToken)
                     .getOrThrow();
 
-            // A connection can only be disabled if we have a missing ping
-            if (!BooleanUtils.isTrue(connectionData.getMissingPing())) {
+            // A connection can only be disabled if we have a missing ping or for closed connections
+            if (connectionData.clientConnection.status != ConnectionStatus.CLOSED &&
+                    !BooleanUtils.isTrue(connectionData.getMissingPing())) {
                 return connectionData.clientConnection;
             }
 

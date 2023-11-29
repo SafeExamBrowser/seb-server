@@ -15,6 +15,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -154,6 +156,13 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         final Result<UserInfo> userInfoResult = super.notifySaved(entity);
         this.synchronizeUserWithSPS(entity);
         return userInfoResult;
+    }
+
+    @Override
+    protected Result<Pair<UserInfo, EntityProcessingReport>> notifyDeleted(final Pair<UserInfo, EntityProcessingReport> pair) {
+        final Result<Pair<UserInfo, EntityProcessingReport>> result = super.notifyDeleted(pair);
+        this.screenProctoringService.deleteSPSUser(pair.a.uuid);
+        return result;
     }
 
     @RequestMapping(

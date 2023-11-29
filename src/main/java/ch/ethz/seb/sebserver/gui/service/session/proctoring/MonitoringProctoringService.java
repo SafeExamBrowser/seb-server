@@ -180,7 +180,9 @@ public class MonitoringProctoringService {
                         proctoringGUIService,
                         room));
 
-        if (proctoringSettings.enabledFeatures.contains(ProctoringFeature.TOWN_HALL)) {
+        if (BooleanUtils.isTrue(proctoringSettings.enableProctoring) &&
+                proctoringSettings.enabledFeatures.contains(ProctoringFeature.TOWN_HALL)) {
+
             updateTownhallButton(proctoringGUIService, pageContext);
         }
 

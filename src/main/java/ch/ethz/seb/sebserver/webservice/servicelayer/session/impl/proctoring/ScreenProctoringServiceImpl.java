@@ -15,12 +15,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import ch.ethz.seb.sebserver.gbl.async.AsyncServiceSpringConfig;
 import ch.ethz.seb.sebserver.webservice.WebserviceInfo;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
@@ -262,6 +264,7 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
     }
 
     @Override
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     public void synchronizeSPSUser(final String userUUID) {
 
         if (!webserviceInfo.getScreenProctoringServiceBundle().bundled) {
@@ -269,6 +272,17 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         }
 
         this.screenProctoringAPIBinding.synchronizeUserAccount(userUUID);
+    }
+
+    @Override
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
+    public void deleteSPSUser(final String userUUID) {
+
+        if (!webserviceInfo.getScreenProctoringServiceBundle().bundled) {
+            return;
+        }
+
+        this.screenProctoringAPIBinding.deleteSPSUser(userUUID);
     }
 
     @Override

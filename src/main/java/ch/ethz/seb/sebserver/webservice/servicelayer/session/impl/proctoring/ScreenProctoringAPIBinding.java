@@ -363,7 +363,7 @@ class ScreenProctoringAPIBinding {
                     .toUriString();
 
             final ResponseEntity<String> exchange = apiTemplate.exchange(
-                    uri, HttpMethod.POST, null, apiTemplate.getHeaders());
+                    uri, HttpMethod.GET, null, apiTemplate.getHeaders());
 
             if (exchange.getStatusCode() == HttpStatus.OK) {
                 log.info("Synchronize SPS user account for SEB Server user account with id: {} ", userUUID);
@@ -384,6 +384,30 @@ class ScreenProctoringAPIBinding {
 
         } catch (final Exception e) {
             log.error("Failed to synchronize user accounts with SPS for exam: {}", exam);
+        }
+    }
+    void deleteSPSUser(final String userUUID) {
+        try {
+
+            final ScreenProctoringServiceOAuthTemplate apiTemplate = this.getAPITemplate(null);
+
+            final String uri = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .path(SPS_API.USER_ACCOUNT_ENDPOINT + userUUID)
+                    .build()
+                    .toUriString();
+
+            final ResponseEntity<String> exchange = apiTemplate.exchange(
+                    uri, HttpMethod.DELETE, null, apiTemplate.getHeaders());
+
+            if (exchange.getStatusCode() == HttpStatus.OK) {
+                log.info("Successfully deleted User Account on SPS for user: {}", userUUID);
+            } else {
+                log.error("Failed to delete user account on SPS for user: {} response: {}", userUUID, exchange);
+            }
+
+        } catch (final Exception e) {
+            log.error("Failed to delete user account on SPS for user: {}", userUUID);
         }
     }
 
@@ -583,7 +607,7 @@ class ScreenProctoringAPIBinding {
                     .byModelId(userUUID)
                     .getOrThrow();
             final SEBServerUser accountInfo = this.userDAO
-                    .sebServerUserByUsername(userInfo.name)
+                    .sebServerUserByUsername(userInfo.username)
                     .getOrThrow();
 
             final UserMod userMod = getUserModifications(userInfo, accountInfo);
@@ -600,8 +624,24 @@ class ScreenProctoringAPIBinding {
             if (exchange.getStatusCode() != HttpStatus.OK) {
                 log.warn("Failed to synchronize user account on SPS: {}", exchange);
             } else {
-                log.info("Successfully synchronize user account on SPS for user: ");
+                log.info("Successfully synchronize user account on SPS for user: {}", userUUID);
+            }
 
+            // sync activity
+            final String activityURI = UriComponentsBuilder
+                    .fromUriString(apiTemplate.spsAPIAccessData.getSpsServiceURL())
+                    .path(SPS_API.USER_ACCOUNT_ENDPOINT)
+                    .pathSegment(userUUID)
+                    .path(BooleanUtils.isTrue(userInfo.active) ? "/active" : "/inactive")
+                    .build()
+                    .toUriString();
+            final ResponseEntity<String> activityRequest = apiTemplate.exchange(
+                    activityURI, HttpMethod.POST, jsonBody, apiTemplate.getHeaders());
+
+            if (activityRequest.getStatusCode() != HttpStatus.OK) {
+                log.warn("Failed to synchronize activity for user account on SPS: {}", activityRequest);
+            } else {
+                log.info("Successfully synchronize activity for user account on SPS for user: {}", userUUID);
             }
 
         } catch (final Exception e) {

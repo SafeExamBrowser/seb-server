@@ -90,4 +90,7 @@ public interface ScreenProctoringService extends SessionUpdateTask {
     @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
     void synchronizeSPSUser(final String userUUID);
 
+    @Async(AsyncServiceSpringConfig.EXECUTOR_BEAN_NAME)
+    void deleteSPSUser(String userUUID);
+
 }

@@ -2437,7 +2437,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         connections = connectionsCall.get();
         assertFalse(connections.isEmpty());
         conData = connections.iterator().next();
-        assertEquals("CLOSED", conData.clientConnection.status.name());
+        assertEquals("DISABLED", conData.clientConnection.status.name());
 
         // get client logs
         final Result<Page<ExtendedClientEvent>> clientLogPage = restService
@@ -2520,7 +2520,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
         assertFalse(ccDataPage.content.isEmpty());
         final ClientConnectionData clientConnectionData = ccDataPage.content.get(0);
         assertNotNull(clientConnectionData);
-        assertEquals("CLOSED", clientConnectionData.clientConnection.status.toString());
+        assertEquals("DISABLED", clientConnectionData.clientConnection.status.toString());
 
         connectionDatacall = restService
                 .getBuilder(GetFinishedExamClientConnectionPage.class)
@@ -2552,9 +2552,9 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
     @Order(18)
     // *************************************
     // Use Case 18: Login as examAdmin2 and get dependencies of examAdmin2
-    // - Get all dependencies and check correctnes.
-    // - Get all dependencies including only Exam Configuration and check correctnes.
-    // - Get all dependencies including only ClientConnection and check correctnes.
+    // - Get all dependencies and check correctness.
+    // - Get all dependencies including only Exam Configuration and check correctness.
+    // - Get all dependencies including only ClientConnection and check correctness.
     public void testUsecase18_UserDependencies() throws IOException {
         final RestServiceImpl restService = createRestServiceForUser(
                 "examAdmin2",
