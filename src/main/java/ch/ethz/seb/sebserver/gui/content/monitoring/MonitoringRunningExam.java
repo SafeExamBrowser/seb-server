@@ -18,6 +18,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.FeatureService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.SWT;
@@ -109,6 +110,7 @@ public class MonitoringRunningExam implements TemplateComposer {
     private final MonitoringExamSearchPopup monitoringExamSearchPopup;
     private final SEBSendLockPopup sebSendLockPopup;
     private final MonitoringProctoringService monitoringProctoringService;
+    private final FeatureService featureService;
     private final boolean distributedSetup;
     private final long pollInterval;
 
@@ -121,6 +123,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             final SEBSendLockPopup sebSendLockPopup,
             final MonitoringProctoringService monitoringProctoringService,
             final GuiServiceInfo guiServiceInfo,
+            final FeatureService featureService,
             @Value("${sebserver.gui.webservice.poll-interval:2000}") final long pollInterval) {
 
         this.serverPushService = serverPushService;
@@ -134,6 +137,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         this.distributedSetup = guiServiceInfo.isDistributedSetup();
         this.monitoringExamSearchPopup = monitoringExamSearchPopup;
         this.sebSendLockPopup = sebSendLockPopup;
+        this.featureService = featureService;
     }
 
     @Override
@@ -315,7 +319,9 @@ public class MonitoringRunningExam implements TemplateComposer {
         final PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(pageContext.clearEntityKeys());
 
-        final boolean proctoringEnabled = proctoringSettings != null &&
+        final boolean spsFeatureEnabled = this.featureService.isEnabled(FeatureService.SCREEN_PROCTORING_FEATURE_NAME);
+        final boolean proctoringEnabled = spsFeatureEnabled &&
+                proctoringSettings != null &&
                 BooleanUtils.toBoolean(proctoringSettings.enableProctoring);
         final boolean screenProctoringEnabled = screenProctoringSettings != null &&
                 BooleanUtils.toBoolean(screenProctoringSettings.enableScreenProctoring);

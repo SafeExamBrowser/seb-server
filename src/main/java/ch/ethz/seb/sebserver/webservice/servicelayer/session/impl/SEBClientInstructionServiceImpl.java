@@ -214,7 +214,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
                 .append(Constants.CURLY_BRACE_CLOSE)
                 .toString();
 
-        if (log.isDebugEnabled()) {
+        if (log.isTraceEnabled()) {
             log.debug("Send SEB client instruction: {} to: {} ", instructionJSON, connectionToken);
         }
 
@@ -358,7 +358,7 @@ public class SEBClientInstructionServiceImpl implements SEBClientInstructionServ
             return instruction;
         }
 
-        if (log.isDebugEnabled()) {
+        if (log.isTraceEnabled()) {
             log.debug("Put SEB instruction into instruction queue: {}", instruction);
         }
 

@@ -213,10 +213,6 @@ public class ScreenProctoringServiceImpl implements ScreenProctoringService {
         return this.examDAO.byPK(examId)
                 .map(exam -> {
 
-                    if (log.isDebugEnabled()) {
-                        log.debug("Update changed exam attributes for screen proctoring: {}", exam);
-                    }
-
                     final String enabled = exam.additionalAttributes
                             .get(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING);
 

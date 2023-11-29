@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.NoResourceFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -95,6 +96,13 @@ public class SEBClientNotificationServiceImpl implements SEBClientNotificationSe
                     .map(this::removeFromCache)
                     .getOrThrow();
 
+        } catch (final NoResourceFoundException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Notification already confirmed or removed. connectionId: {}, confirmId: {}",
+                        event.connectionId,
+                        event.getValue());
+            }
         } catch (final Exception e) {
             log.error(
                     "Failed to confirm pending notification from SEB Client side. event: {}", event, e);

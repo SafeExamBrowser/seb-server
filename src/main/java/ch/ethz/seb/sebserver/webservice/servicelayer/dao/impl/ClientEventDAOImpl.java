@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -45,11 +46,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientNotificatio
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ClientNotificationRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientEventRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ClientNotificationRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ClientEventDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 
 @Lazy
 @Component
@@ -255,8 +251,9 @@ public class ClientEventDAOImpl implements ClientEventDAO {
                         records);
             }
 
-            if (records.isEmpty() || records.size() > 1) {
-                throw new IllegalStateException(
+            if (records.size() != 1) {
+                throw new NoResourceFoundException(
+                        EntityType.CLIENT_NOTIFICATION,
                         "Failed to find pending notification event for confirm:" + notificationValueId);
             }
 
