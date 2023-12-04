@@ -237,7 +237,7 @@ public class ExamAPI_V1_Controller {
             @RequestParam(name = API.EXAM_API_USER_SESSION_ID, required = false) final String userSessionId,
             @RequestParam(name = API.EXAM_API_PARAM_SEB_VERSION, required = false) final String sebVersion,
             @RequestParam(name = API.EXAM_API_PARAM_SEB_OS_NAME, required = false) final String sebOSName,
-            @RequestParam(name = API.EXAM_API_PARAM_SEB_MACHINE_NAME, required = false) final String sebMachinName,
+            @RequestParam(name = API.EXAM_API_PARAM_SEB_MACHINE_NAME, required = false) final String setMachineName,
             @RequestParam(
                     name = API.EXAM_API_PARAM_SIGNATURE_KEY,
                     required = false) final String browserSignatureKey,
@@ -260,7 +260,7 @@ public class ExamAPI_V1_Controller {
                                     remoteAddr,
                                     sebVersion,
                                     sebOSName,
-                                    sebMachinName,
+                                    setMachineName,
                                     userSessionId,
                                     clientId,
                                     browserSignatureKey)

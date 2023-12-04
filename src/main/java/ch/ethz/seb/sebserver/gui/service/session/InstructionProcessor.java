@@ -48,6 +48,14 @@ public class InstructionProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(InstructionProcessor.class);
 
+    private static final Predicate<ClientMonitoringDataView> ALL_BUT_DISABLED_STATES =
+            ClientMonitoringDataView.getStatusPredicate(
+                    ConnectionStatus.CONNECTION_REQUESTED,
+                    ConnectionStatus.UNDEFINED,
+                    ConnectionStatus.CLOSED,
+                    ConnectionStatus.ACTIVE,
+                    ConnectionStatus.READY);
+
     private final RestService restService;
     private final JSONMapper jsonMapper;
 
@@ -77,6 +85,7 @@ public class InstructionProcessor {
             final Set<String> connectionTokens = selectionFunction
                     .apply(ClientMonitoringDataView.getStatusPredicate(
                             ConnectionStatus.CONNECTION_REQUESTED,
+                            ConnectionStatus.READY,
                             ConnectionStatus.ACTIVE));
 
             if (connectionTokens.isEmpty()) {
@@ -97,7 +106,7 @@ public class InstructionProcessor {
                     null);
 
             processInstruction(() -> this.restService.getBuilder(PropagateInstruction.class)
-                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, String.valueOf(examId))
+                    .withURIVariable(API.PARAM_PARENT_MODEL_ID, examId)
                     .withBody(clientInstruction)
                     .call()
                     .getOrThrow(),
@@ -154,19 +163,14 @@ public class InstructionProcessor {
         }
     }
 
+
+
     public void disableConnection(
             final Long examId,
             final Function<Predicate<ClientMonitoringDataView>, Set<String>> selectionFunction,
             final PageContext pageContext) {
 
-        final Set<String> connectionTokens = selectionFunction
-                .apply(ClientMonitoringDataView.getStatusPredicate(
-                        ConnectionStatus.CONNECTION_REQUESTED,
-                        ConnectionStatus.UNDEFINED,
-                        ConnectionStatus.CLOSED,
-                        ConnectionStatus.ACTIVE,
-                        ConnectionStatus.AUTHENTICATED));
-
+        final Set<String> connectionTokens = selectionFunction.apply(ALL_BUT_DISABLED_STATES);
         if (connectionTokens.isEmpty()) {
             return;
         }

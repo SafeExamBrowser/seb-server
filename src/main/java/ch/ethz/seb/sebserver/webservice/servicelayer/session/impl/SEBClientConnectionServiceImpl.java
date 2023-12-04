@@ -25,7 +25,6 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.SEBClientInstructionService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.jni.Address;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -64,7 +63,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             .getStatusPredicate(
                     ConnectionStatus.UNDEFINED,
                     ConnectionStatus.CONNECTION_REQUESTED,
-                    ConnectionStatus.AUTHENTICATED,
+                    ConnectionStatus.READY,
                     ConnectionStatus.ACTIVE,
                     ConnectionStatus.CLOSED);
 
@@ -266,8 +265,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     clientConnection.id,
                     null,
                     examId,
-                    (userSessionId != null && currentStatus == ConnectionStatus.CONNECTION_REQUESTED)
-                        ? ConnectionStatus.AUTHENTICATED
+                    (StringUtils.isNotBlank(userSessionId) && currentStatus == ConnectionStatus.READY)
+                        ? ConnectionStatus.ACTIVE
                         : null,
                     null,
                     updateUserSessionId,
@@ -345,7 +344,6 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                         connectionToken, institutionId, examId, clientAddress, userSessionId, clientId);
             }
 
-
             final String updateUserSessionId = updateUserSessionId(
                     _examId,
                     userSessionId,
@@ -364,12 +362,16 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     ? clientId
                     : clientConnection.sebClientUserId;
 
+
+
             // create new ClientConnection for update
             final ClientConnection establishedClientConnection = new ClientConnection(
                     clientConnection.id,
                     null,
                     currentExamId,
-                    ConnectionStatus.ACTIVE,
+                    StringUtils.isNotBlank(userSessionId) || alreadyAuthenticated(clientConnection)
+                            ? ConnectionStatus.ACTIVE
+                            : ConnectionStatus.READY,
                     null,
                     updateUserSessionId,
                     StringUtils.isNotBlank(clientAddress) ? clientAddress : null,
@@ -390,20 +392,16 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null);
 
             // ClientConnection integrity check
-            // institutionId, connectionToken and clientAddress must be set
-            // The status ins not already active
-            // and if this is not a VDI prime connection, the examId must also be set
             if (clientConnection.institutionId == null ||
                     clientConnection.connectionToken == null ||
-                    establishedClientConnection.examId == null ||
-                    clientConnection.clientAddress == null ||
-                    establishedClientConnection.status != ConnectionStatus.ACTIVE ||
-                    (!BooleanUtils.isTrue(clientConnection.vdi) && currentExamId == null)) {
+                    currentExamId == null ||
+                    (clientConnection.clientAddress == null && clientAddress == null)) {
 
-                log.error("ClientConnection integrity violation, clientConnection: {}, establishedClientConnection: {}",
+                log.error("ClientConnection integrity violation, clientConnection: {}, updatedClientConnection: {}",
                         clientConnection,
                         establishedClientConnection);
-                throw new IllegalStateException("ClientConnection integrity violation");
+
+                throw new APIConstraintViolationException("ClientConnection integrity violation");
             }
 
             final ClientConnection updatedClientConnection = this.clientConnectionDAO
@@ -635,7 +633,10 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         }
     }
 
-    private void writeSEBClientErrors(HttpServletResponse response, Collection<APIMessage> errorMessages) {
+    private void writeSEBClientErrors(
+            final HttpServletResponse response,
+            final Collection<APIMessage> errorMessages) {
+
         try {
             response.getOutputStream().write(Utils.toByteArray(this.jsonMapper.writeValueAsString(errorMessages)));
         } catch (final Exception e1) {
@@ -663,7 +664,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     false
             );
 
-            throw new IllegalArgumentException(
+            throw new APIConstraintViolationException(
                     "ClientConnection integrity violation: client connection is not in expected state");
         }
 
@@ -842,7 +843,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         if (currentExamId != null && !examId.equals(currentExamId)) {
             log.error("Exam integrity violation: another examId is already set for the connection: {}", ccToken);
-            throw new IllegalArgumentException(
+            throw new APIConstraintViolationException(
                     "Exam integrity violation: another examId is already set for the connection");
         }
 
@@ -913,5 +914,12 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 .getAppSignatureKeyHash(appSignatureKey, connectionToken, salt)
                 .onError(error -> log.error("Failed to get hash signature from sent app signature key: ", error))
                 .getOr(null);
+    }
+
+    private boolean alreadyAuthenticated(final ClientConnection clientConnection) {
+        return clientConnection.userSessionId != null &&
+                !clientConnection.userSessionId.equals(clientConnection.clientAddress) &&
+                !clientConnection.userSessionId.equals(clientConnection.sebClientUserId) &&
+                !clientConnection.userSessionId.equals(clientConnection.sebMachineName);
     }
 }

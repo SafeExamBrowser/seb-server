@@ -32,7 +32,7 @@ public final class ClientConnection implements GrantEntity {
     public enum ConnectionStatus {
         UNDEFINED(0, false, false, false),
         CONNECTION_REQUESTED(1, true, false, false),
-        AUTHENTICATED(2, true, true, true),
+        READY(2, true, true, true),
         ACTIVE(3, false, true, true),
         CLOSED(4, false, false, true),
         DISABLED(5, false, false, false);
@@ -59,18 +59,18 @@ public final class ClientConnection implements GrantEntity {
 
     public final static List<String> ACTIVE_STATES = Utils.immutableListOf(
             ConnectionStatus.ACTIVE.name(),
-            ConnectionStatus.AUTHENTICATED.name(),
+            ConnectionStatus.READY.name(),
             ConnectionStatus.CONNECTION_REQUESTED.name());
 
     public final static List<String> SECURE_STATES = Utils.immutableListOf(
             ConnectionStatus.ACTIVE.name(),
-            ConnectionStatus.AUTHENTICATED.name(),
+            ConnectionStatus.READY.name(),
             ConnectionStatus.CLOSED.name());
 
     public final static List<String> SECURE_CHECK_STATES = Utils.immutableListOf(
             ConnectionStatus.CONNECTION_REQUESTED.name(),
             ConnectionStatus.ACTIVE.name(),
-            ConnectionStatus.AUTHENTICATED.name());
+            ConnectionStatus.READY.name());
 
     public static final ClientConnection EMPTY_CLIENT_CONNECTION = new ClientConnection(
             -1L, -1L, -1L,

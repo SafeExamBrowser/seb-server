@@ -42,7 +42,7 @@ public class ColorData {
 
         switch (status) {
             case CONNECTION_REQUESTED:
-            case AUTHENTICATED:
+            case READY:
             case ACTIVE: {
                 if (entry.grantDenied()) {
                     return this.color3;
@@ -62,23 +62,11 @@ public class ColorData {
     }
 
     int statusWeight(final MonitoringEntry entry) {
-        if (entry == null) {
+        if (entry == null || entry.getStatus() == null) {
             return 100;
         }
 
-        switch (entry.getStatus()) {
-            case CONNECTION_REQUESTED:
-            case AUTHENTICATED: {
-                return 0;
-            }
-            case ACTIVE: {
-                return 2;
-            }
-            case CLOSED:
-                return 3;
-            default:
-                return 5;
-        }
+        return entry.getStatus().code;
     }
 
 }

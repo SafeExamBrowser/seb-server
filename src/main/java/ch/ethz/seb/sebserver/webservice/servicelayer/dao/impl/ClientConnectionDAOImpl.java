@@ -286,7 +286,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .and(ClientConnectionRecordDynamicSqlSupport.status, isNotEqualTo(ConnectionStatus.ACTIVE.name()))
                     .and(
                             ClientConnectionRecordDynamicSqlSupport.status,
-                            isNotEqualTo(ConnectionStatus.AUTHENTICATED.name()))
+                            isNotEqualTo(ConnectionStatus.READY.name()))
                     .and(ClientConnectionRecordDynamicSqlSupport.status,
                             isNotEqualTo(ConnectionStatus.CONNECTION_REQUESTED.name()))
                     .build()
@@ -777,10 +777,14 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                         SqlBuilder.isEqualTo(examId))
                 .and(
                         ClientConnectionRecordDynamicSqlSupport.status,
-                        SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()),
-                        SqlBuilder.or(
-                                ClientConnectionRecordDynamicSqlSupport.status,
-                                SqlBuilder.isEqualTo(ConnectionStatus.CONNECTION_REQUESTED.name())))
+                        SqlBuilder.isIn(ClientConnection.ACTIVE_STATES)
+                )
+//                .and(
+//                        ClientConnectionRecordDynamicSqlSupport.status,
+//                        SqlBuilder.isEqualTo(ConnectionStatus.ACTIVE.name()),
+//                        SqlBuilder.or(
+//                                ClientConnectionRecordDynamicSqlSupport.status,
+//                                SqlBuilder.isEqualTo(ConnectionStatus.CONNECTION_REQUESTED.name())))
                 .build()
                 .execute()
                 .stream()

@@ -238,7 +238,7 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         final ClientConnectionRecord clientConnectionRecord = records.get(0);
         assertEquals("1", String.valueOf(clientConnectionRecord.getInstitutionId()));
         assertEquals("2", String.valueOf(clientConnectionRecord.getExamId()));
-        assertEquals("AUTHENTICATED", String.valueOf(clientConnectionRecord.getStatus()));
+        assertEquals("CONNECTION_REQUESTED", String.valueOf(clientConnectionRecord.getStatus()));
         assertNotNull(clientConnectionRecord.getConnectionToken());
         assertNotNull(clientConnectionRecord.getClientAddress());
         assertEquals("-- (userSessionId)", clientConnectionRecord.getExamUserSessionId());
@@ -361,14 +361,14 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
                 null);
 
         // check correct response
-        assertTrue(HttpStatus.OK.value() != updatedConnection.getStatus());
+        assertTrue(HttpStatus.BAD_REQUEST.value() == updatedConnection.getStatus());
         final String contentAsString = updatedConnection.getContentAsString();
         final Collection<APIMessage> errorMessage = this.jsonMapper.readValue(
                 contentAsString,
                 new TypeReference<Collection<APIMessage>>() {
                 });
         final APIMessage error = errorMessage.iterator().next();
-        assertEquals(ErrorMessage.UNEXPECTED.messageCode, error.messageCode);
+        assertEquals(ErrorMessage.ILLEGAL_API_ARGUMENT.messageCode, error.messageCode);
         assertEquals("ClientConnection integrity violation", error.details);
 
         // check correct stored (no changes)
@@ -394,6 +394,17 @@ public class SebConnectionTest extends ExamAPIIntegrationTester {
         assertNotNull(ccdi);
         assertNull(ccdi.clientConnection.examId);
         assertTrue(ccdi.indicatorValues.isEmpty());
+
+        // check update to active
+        MockHttpServletResponse updateResponse = super.updateConnection(
+                accessToken,
+                connectionToken,
+                null,
+                "test-user");
+
+
+
+
     }
 
     @Test

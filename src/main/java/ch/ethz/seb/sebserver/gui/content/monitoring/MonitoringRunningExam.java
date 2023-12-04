@@ -546,7 +546,7 @@ public class MonitoringRunningExam implements TemplateComposer {
     }
 
     /** This holds the filter action items and implements the specific GUI update for it */
-    private class FilterGUIUpdate implements FullPageMonitoringGUIUpdate {
+    private static class FilterGUIUpdate implements FullPageMonitoringGUIUpdate {
 
         private final PolyglotPageService polyglotPageService;
         private final TreeItem[] actionItemPerStateFilter = new TreeItem[ConnectionStatus.values().length];

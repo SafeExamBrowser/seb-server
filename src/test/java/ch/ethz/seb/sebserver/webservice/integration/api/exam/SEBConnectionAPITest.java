@@ -162,7 +162,7 @@ public class SEBConnectionAPITest extends ExamAPIIntegrationTester {
                 .byConnectionToken(connectionToken)
                 .getOrThrow();
         assertNotNull(clientConnection);
-        assertEquals("AUTHENTICATED", clientConnection.getStatus().name());
+        assertEquals("CONNECTION_REQUESTED", clientConnection.getStatus().name());
         assertEquals(connectionToken, clientConnection.connectionToken);
         assertEquals(1, (long) clientConnection.institutionId);
         assertEquals(2, (long) clientConnection.examId);
