@@ -78,7 +78,7 @@ public class CompositeTableFieldBuilder extends AbstractTableFieldBuilder {
 
         final I18nSupport i18nSupport = viewContext.getI18nSupport();
         final TableContext tableContext = createTableContext(attribute, viewContext);
-        final Table table = createTable(parent, tableContext);
+        final Table table = createTable(parent, tableContext, viewContext.isTemplate);
 
         final String resources = attribute.getResources();
         final String[] columnsAndRows = StringUtils.split(

@@ -79,6 +79,7 @@ public interface ExamConfigurationService {
      * @param attributeMapping The attribute mapping if the properties page
      * @param rows Number of rows supported for the view.
      * @param readonly Indicates if the view shall be composed in read-only mode.
+     * @param isTemplate indicates if the view context is related to a configuration template or not
      * @return ViewContext instance. */
     ViewContext createViewContext(
             PageContext pageContext,
@@ -88,7 +89,8 @@ public interface ExamConfigurationService {
             AttributeMapping attributeMapping,
             int rows,
             boolean readonly,
-            Runnable valueChageCallback);
+            boolean isTemplate,
+            Runnable valueChangeCallback);
 
     Composite createViewGrid(
             Composite parent,

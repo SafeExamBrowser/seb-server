@@ -188,7 +188,7 @@ public class ConfigTemplateAttributeForm implements TemplateComposer {
                     new View(-1L, ViewContext.TEMPLATE_VIEW_NAME, 10, 0, templateId),
                     viewName -> null,
                     attributeMapping,
-                    1, false, null);
+                    1, false, true, null);
 
             final InputFieldBuilder inputFieldBuilder = this.examConfigurationService.getInputFieldBuilder(
                     attribute.getConfigAttribute(),

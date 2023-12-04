@@ -184,7 +184,8 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
             final AttributeMapping attributeMapping,
             final int rows,
             final boolean readonly,
-            final Runnable valueChageCallback) {
+            final boolean isTemplate,
+            final Runnable valueChangeCallback) {
 
         return new ViewContext(
                 configuration,
@@ -197,9 +198,10 @@ public class ExamConfigurationServiceImpl implements ExamConfigurationService {
                         this.restService,
                         this.jsonMapper,
                         this.valueChangeRules,
-                        valueChageCallback),
+                        valueChangeCallback),
                 this.widgetFactory.getI18nSupport(),
-                readonly);
+                readonly,
+                isTemplate);
 
     }
 

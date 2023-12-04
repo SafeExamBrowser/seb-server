@@ -48,6 +48,7 @@ public final class ViewContext {
     final ValueChangeListener valueChangeListener;
     final I18nSupport i18nSupport;
     final boolean readonly;
+    final boolean isTemplate;
 
     ViewContext(
             final Configuration configuration,
@@ -57,7 +58,8 @@ public final class ViewContext {
             final AttributeMapping attributeContext,
             final ValueChangeListener valueChangeListener,
             final I18nSupport i18nSupport,
-            final boolean readonly) {
+            final boolean readonly,
+            final boolean isTemplate) {
 
         Objects.requireNonNull(configuration);
         Objects.requireNonNull(view);
@@ -74,6 +76,7 @@ public final class ViewContext {
         this.valueChangeListener = valueChangeListener;
         this.i18nSupport = i18nSupport;
         this.readonly = readonly;
+        this.isTemplate = isTemplate;
     }
 
     public boolean isReadonly() {

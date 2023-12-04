@@ -76,7 +76,7 @@ public class TableFieldBuilder extends AbstractTableFieldBuilder {
             final ViewContext viewContext) {
 
         final TableContext tableContext = createTableContext(attribute, viewContext);
-        final Table table = createTable(parent, tableContext);
+        final Table table = createTable(parent, tableContext, viewContext.isTemplate);
 
         for (final ConfigurationAttribute columnAttribute : tableContext.getColumnAttributes()) {
             final TableColumn column = this.widgetFactory.tableColumnLocalized(

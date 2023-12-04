@@ -44,7 +44,7 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractTableFieldBuilder.class);
 
-    private static final int ROW_HEIGHT = 20;
+    private static final int ROW_HEIGHT = 30;
     private static final int NAV_HEIGHT = 40;
     private static final int TABLE_WIDTH_SPACE = 50;
 
@@ -65,7 +65,11 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
         this.inputFieldBuilderSupplier = inputFieldBuilderSupplier;
     }
 
-    protected Table createTable(final Composite parent, final TableContext tableContext) {
+    protected Table createTable(
+            final Composite parent,
+            final TableContext tableContext,
+            final boolean isTemplate) {
+
         final Table table = new Table(parent, SWT.NONE | SWT.V_SCROLL);
         table.setLayout(new GridLayout());
         final GridData gridData = new GridData(
@@ -74,7 +78,7 @@ public abstract class AbstractTableFieldBuilder implements InputFieldBuilder {
                 tableContext.orientation.width(),
                 tableContext.orientation.height());
 
-        gridData.heightHint = tableContext.orientation.height() * ROW_HEIGHT + NAV_HEIGHT;
+        gridData.heightHint = (isTemplate ? 15 : tableContext.orientation.height()) * ROW_HEIGHT + NAV_HEIGHT;
         table.setLayoutData(gridData);
         table.setHeaderVisible(true);
         table.addListener(SWT.Resize, event -> adaptColumnWidth(table, tableContext));

@@ -132,7 +132,7 @@ public class InlineTableConverter implements AttributeValueConverter {
                         value.configurationId,
                         configurationAttribute.id,
                         0,
-                        val[1]);
+                        val.length > 1 ? val[1] : null);
 
                 if (xml) {
                     attributeValueConverter.convertToXML(
