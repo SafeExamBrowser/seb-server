@@ -22,7 +22,7 @@ public enum PrivilegeType {
     WRITE;
 
     /** Use this to check implicit privilege.
-     *
+     * <p>
      * Implicit in this case means: if the privilegeType is of type PrivilegeType.WRITE,
      * PrivilegeType.MODIFY and PrivilegeType.READ are implicitly included.
      * If the privilegeType is of type PrivilegeType.MODIFY, the PrivilegeType.READ are implicitly included
