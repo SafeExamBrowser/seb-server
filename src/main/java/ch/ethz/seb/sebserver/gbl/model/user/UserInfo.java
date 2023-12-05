@@ -8,7 +8,6 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
