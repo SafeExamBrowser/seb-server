@@ -41,7 +41,7 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class UserInfo implements UserAccount, Serializable {
 
-    @Serial
+
     private static final long serialVersionUID = 2526446136264377808L;
 
     public static final String ATTR_ENTITY_PRIVILEGES = "entityPrivileges";
