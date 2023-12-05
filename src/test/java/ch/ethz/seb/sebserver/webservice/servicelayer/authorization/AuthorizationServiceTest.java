@@ -75,7 +75,9 @@ public class AuthorizationServiceTest {
                 DateTimeZone.UTC,
                 roles != null
                         ? new HashSet<>(Arrays.asList(roles).stream().map(r -> r.name()).collect(Collectors.toList()))
-                        : Collections.emptySet());
+                        : Collections.emptySet(),
+                Collections.emptyList(),
+                Collections.emptyList());
         return new SEBServerUser(0L, userInfo, "");
     }
 

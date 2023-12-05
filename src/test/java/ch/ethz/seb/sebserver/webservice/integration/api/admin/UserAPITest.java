@@ -12,12 +12,7 @@ import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -598,7 +593,9 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
                 user.getActive(),
                 user.getLanguage(),
                 user.getTimeZone(),
-                Stream.of(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name()).collect(Collectors.toSet()));
+                Stream.of(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name()).collect(Collectors.toSet()),
+                Collections.emptyList(),
+                Collections.emptyList());
         final String modifyUserJson = this.jsonMapper.writeValueAsString(modifyUser);
 
         UserInfo modifiedUserResult = this.jsonMapper.readValue(
@@ -756,7 +753,9 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final UserInfo userInfo = new UserInfo(
                 "NewTestUser", 2L, new DateTime(0, DateTimeZone.UTC), "NewTestUser", "", "NewTestUser",
                 "", true, Locale.CANADA, DateTimeZone.UTC,
-                new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
+                new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())),
+                Collections.emptyList(),
+                Collections.emptyList());
         final String newUserJson = this.jsonMapper.writeValueAsString(userInfo);
         this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT)
                 .header("Authorization", "Bearer " + token)
@@ -783,7 +782,9 @@ public class UserAPITest extends AdministrationAPIIntegrationTester {
         final UserInfo userInfo = new UserInfo(
                 "NewTestUser", 2L, new DateTime(0, DateTimeZone.UTC), "NewTestUser", "", "NewTestUser",
                 "", true, Locale.CANADA, DateTimeZone.UTC,
-                new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())));
+                new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())),
+                Collections.emptyList(),
+                Collections.emptyList());
         //final UserMod newUser = new UserMod(userInfo, "12345678", "12345678");
         final String newUserJson = this.jsonMapper.writeValueAsString(userInfo);
         this.mockMvc.perform(put(this.endpoint + API.USER_ACCOUNT_ENDPOINT)

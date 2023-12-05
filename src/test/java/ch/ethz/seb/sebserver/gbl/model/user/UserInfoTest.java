@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gbl.model.user;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 
@@ -29,15 +30,21 @@ public class UserInfoTest {
                 new UserInfo("id1", 1L, new DateTime(0, DateTimeZone.UTC), "user1", "", "user1", "user1@inst2.none",
                         true, Locale.ENGLISH,
                         DateTimeZone.UTC,
-                        new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name()))),
+                        new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())),
+                        Collections.emptyList(),
+                        Collections.emptyList()),
                 new UserInfo("id2", 3L, new DateTime(0, DateTimeZone.UTC), "user2", "", "user2", "user2@inst2.none",
                         true, Locale.ENGLISH,
                         DateTimeZone.UTC,
-                        new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name()))),
+                        new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())),
+                        Collections.emptyList(),
+                        Collections.emptyList()),
                 new UserInfo("id3", 4L, new DateTime(0, DateTimeZone.UTC), "user3", "", "user3", "user3@inst2.none",
                         false, Locale.GERMAN,
                         DateTimeZone.UTC,
-                        new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())))));
+                        new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name())),
+                        Collections.emptyList(),
+                        Collections.emptyList())));
 
         final JSONMapper jsonMapper = new JSONMapper();
         //final ObjectWriter writerWithDefaultPrettyPrinter = jsonMapper.writerWithDefaultPrettyPrinter();

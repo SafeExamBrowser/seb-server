@@ -24,7 +24,7 @@ import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 
 /** Defines a Privilege by combining a PrivilegeType for base (overall) rights,
  * institutional rights and ownership rights.
- *
+ * <p>
  * A base-, institutional- and ownership- grant is checked in this exact order and the
  * first match fund makes a grant or a denied if none of the three privilege levels has a match */
 public final class Privilege {
@@ -87,11 +87,11 @@ public final class Privilege {
     }
 
     /** Checks if this Privilege has a grant for a given context.
-     *
+     * <p>
      * The privilege grant check function always checks first the base privilege with no institutional or owner grant.
      * If user has a grant on base privileges this returns true without checking further institutional or owner grant
      * If user has no base privilege grant the function checks further grants, first the institutional grant, where
-     * the institution id and the users institution id must match and further more the owner grant, where ownerId
+     * the institution id and the users institution id must match and furthermore the owner grant, where ownerId
      * and the users id must match.
      *
      * @param userId The user identifier of the user to check the grant on
@@ -184,7 +184,7 @@ public final class Privilege {
     }
 
     /** Checks if the current user has role based edit access to a specified user account.
-     *
+     * <p>
      * If user account has UserRole.SEB_SERVER_ADMIN this always gives true
      * If user account has UserRole.INSTITUTIONAL_ADMIN this is true if the given user account has
      * not the UserRole.SEB_SERVER_ADMIN (institutional administrators should not be able to edit SEB Server
@@ -197,17 +197,15 @@ public final class Privilege {
     public static boolean hasRoleBasedUserAccountEditGrant(final UserAccount userAccount, final UserInfo currentUser) {
         final EnumSet<UserRole> userRolesOfUserAccount = userAccount.getUserRoles();
         final EnumSet<UserRole> userRolesOfCurrentUser = currentUser.getUserRoles();
+
         if (userRolesOfCurrentUser.contains(UserRole.SEB_SERVER_ADMIN)) {
             return true;
         }
+
         if (userRolesOfCurrentUser.contains(UserRole.INSTITUTIONAL_ADMIN)) {
             return !userRolesOfUserAccount.contains(UserRole.SEB_SERVER_ADMIN);
         }
-        if (currentUser.equals(userAccount)) {
-            return true;
-        }
 
-        return false;
+        return currentUser.equals(userAccount);
     }
-
 }

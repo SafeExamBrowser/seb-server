@@ -8,12 +8,9 @@
 
 package ch.ethz.seb.sebserver.gbl.model.user;
 
+import java.io.Serial;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.Email;
@@ -21,16 +18,12 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.util.CollectionUtils;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER;
@@ -40,15 +33,19 @@ import ch.ethz.seb.sebserver.gbl.model.EntityName;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 
 /** The user info domain model contains primary user information
- *
+ * <p>
  * This domain model is annotated and fully serializable and deserializable
  * to and from JSON within the Jackson library.
- *
+ * <p>
  * This domain model is immutable and thread-save */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class UserInfo implements UserAccount, Serializable {
 
+    @Serial
     private static final long serialVersionUID = 2526446136264377808L;
+
+    public static final String ATTR_ENTITY_PRIVILEGES = "entityPrivileges";
+    public static final String ATTR_FEATURE_PRIVILEGES = "featurePrivileges";
 
     public static final String FILTER_ATTR_SURNAME = "surname";
     public static final String FILTER_ATTR_USER_NAME = "username";
@@ -112,6 +109,13 @@ public final class UserInfo implements UserAccount, Serializable {
     @JsonProperty(USER_ROLE.REFERENCE_NAME)
     public final Set<String> roles;
 
+    @JsonProperty(ATTR_ENTITY_PRIVILEGES)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public final Collection<EntityPrivilege> entityPrivileges;
+    @JsonProperty(ATTR_FEATURE_PRIVILEGES)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public final Collection<FeaturePrivilege> featurePrivileges;
+
     @JsonCreator
     public UserInfo(
             @JsonProperty(USER.ATTR_UUID) final String uuid,
@@ -124,7 +128,9 @@ public final class UserInfo implements UserAccount, Serializable {
             @JsonProperty(USER.ATTR_ACTIVE) final Boolean active,
             @JsonProperty(USER.ATTR_LANGUAGE) final Locale language,
             @JsonProperty(USER.ATTR_TIMEZONE) final DateTimeZone timeZone,
-            @JsonProperty(USER_ROLE.REFERENCE_NAME) final Set<String> roles) {
+            @JsonProperty(USER_ROLE.REFERENCE_NAME) final Set<String> roles,
+            @JsonProperty(ATTR_ENTITY_PRIVILEGES) final Collection<EntityPrivilege> entityPrivileges,
+            @JsonProperty(ATTR_FEATURE_PRIVILEGES) final Collection<FeaturePrivilege> featurePrivileges) {
 
         this.uuid = uuid;
         this.institutionId = institutionId;
@@ -137,6 +143,8 @@ public final class UserInfo implements UserAccount, Serializable {
         this.language = language;
         this.timeZone = timeZone;
         this.roles = Utils.immutableSetOf(roles);
+        this.entityPrivileges = Utils.immutableCollectionOf(entityPrivileges);
+        this.featurePrivileges = Utils.immutableCollectionOf(featurePrivileges);
     }
 
     @Override
@@ -211,6 +219,14 @@ public final class UserInfo implements UserAccount, Serializable {
     @Override
     public Set<String> getRoles() {
         return this.roles;
+    }
+
+    public Collection<EntityPrivilege> getEntityPrivileges() {
+        return entityPrivileges;
+    }
+
+    public Collection<FeaturePrivilege> getFeaturePrivileges() {
+        return featurePrivileges;
     }
 
     @Override
@@ -323,7 +339,9 @@ public final class UserInfo implements UserAccount, Serializable {
                 userInfo.getActive(),
                 userInfo.getLanguage(),
                 userInfo.getTimeZone(),
-                userInfo.roles);
+                userInfo.roles,
+                userInfo.entityPrivileges,
+                userInfo.featurePrivileges);
     }
 
     /** Use this to create a copy of a given UserInfo by overriding available arguments.
@@ -358,7 +376,9 @@ public final class UserInfo implements UserAccount, Serializable {
                 userInfo.getActive(),
                 (language != null) ? language : userInfo.getLanguage(),
                 (timeZone != null) ? timeZone : userInfo.getTimeZone(),
-                (roles != null) ? new HashSet<>(Arrays.asList(roles)) : userInfo.roles);
+                (roles != null) ? new HashSet<>(Arrays.asList(roles)) : userInfo.roles,
+                userInfo.entityPrivileges,
+                userInfo.featurePrivileges);
     }
 
     public static UserInfo withEMail(final UserInfo userInfo, final String email) {

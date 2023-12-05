@@ -12,6 +12,7 @@ import java.beans.PropertyEditorSupport;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -140,11 +141,12 @@ public class UserServiceImpl implements UserService {
     private static final SEBServerUser ANONYMOUS_USER = new SEBServerUser(
             -1L,
             new UserInfo("SEB_SERVER_ANONYMOUS_USER", -2L, null, "anonymous", "anonymous", "anonymous", null, false,
-                    null,
-                    null,
+                    null, null,
                     Arrays.stream(UserRole.values())
                             .map(Enum::name)
-                            .collect(Collectors.toSet())),
+                            .collect(Collectors.toSet()),
+                    Collections.emptyList(),
+                    Collections.emptyList()),
             null);
 
 }

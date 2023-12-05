@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.integration.api.admin;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.stream.Collectors;
 
@@ -55,7 +56,9 @@ public class OrientationAPITest extends AdministrationAPIIntegrationTester {
         this.userServiceImpl.setAuthenticationIfAbsent(new SEBServerUser(
                 -1L,
                 new UserInfo("user1", 1L, null, "admin", null, null, null, true, null, null,
-                        EnumSet.allOf(UserRole.class).stream().map(r -> r.name()).collect(Collectors.toSet())),
+                        EnumSet.allOf(UserRole.class).stream().map(r -> r.name()).collect(Collectors.toSet()),
+                        Collections.emptyList(),
+                        Collections.emptyList()),
                 null));
         Mockito.when(this.mockRequest.getQueryString()).thenReturn("");
     }

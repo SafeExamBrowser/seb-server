@@ -85,7 +85,9 @@ public class ModelObjectJSONGenerator {
 
         Object domainObject = new UserInfo("uuid", 1L, DateTime.now(), "name", "surname", "username", "email",
                 true, Locale.ENGLISH, DateTimeZone.UTC,
-                new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name())));
+                new HashSet<>(Arrays.asList(UserRole.EXAM_ADMIN.name(), UserRole.EXAM_SUPPORTER.name())),
+                Collections.emptyList(),
+                Collections.emptyList());
 
         System.out.println(domainObject.getClass().getSimpleName() + ":");
         System.out.println(writerWithDefaultPrettyPrinter.writeValueAsString(domainObject));

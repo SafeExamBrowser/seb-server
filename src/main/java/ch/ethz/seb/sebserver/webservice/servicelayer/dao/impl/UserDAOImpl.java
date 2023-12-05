@@ -23,6 +23,11 @@ import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
 
+import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
+import ch.ethz.seb.sebserver.gbl.model.user.*;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.*;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.EntityPrivilegeRecord;
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.FeaturePrivilegeRecord;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -47,16 +52,8 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.InstitutionRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RoleRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.RoleRecordMapper;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
-import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordMapper;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.RoleRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.UserRecord;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
@@ -75,15 +72,21 @@ public class UserDAOImpl implements UserDAO {
 
     private final UserRecordMapper userRecordMapper;
     private final RoleRecordMapper roleRecordMapper;
+    private final EntityPrivilegeRecordMapper entityPrivilegeRecordMapper;
+    private final FeaturePrivilegeRecordMapper featurePrivilegeRecordMapper;
     private final PasswordEncoder userPasswordEncoder;
 
     public UserDAOImpl(
             final UserRecordMapper userRecordMapper,
             final RoleRecordMapper roleRecordMapper,
+            final EntityPrivilegeRecordMapper entityPrivilegeRecordMapper,
+            final FeaturePrivilegeRecordMapper featurePrivilegeRecordMapper,
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
 
         this.userRecordMapper = userRecordMapper;
         this.roleRecordMapper = roleRecordMapper;
+        this.entityPrivilegeRecordMapper = entityPrivilegeRecordMapper;
+        this.featurePrivilegeRecordMapper = featurePrivilegeRecordMapper;
         this.userPasswordEncoder = userPasswordEncoder;
     }
 
@@ -442,7 +445,7 @@ public class UserDAOImpl implements UserDAO {
         } else {
             try {
 
-                if (keys == null || keys.isEmpty()) {
+                if (keys.isEmpty()) {
                     return Collections.emptySet();
                 }
 
@@ -524,6 +527,7 @@ public class UserDAOImpl implements UserDAO {
 
         return Result.tryCatch(() -> {
 
+            final String uuid = record.getUuid();
             final List<RoleRecord> roles = getRoles(record);
             Set<String> userRoles = Collections.emptySet();
             if (roles != null) {
@@ -534,7 +538,7 @@ public class UserDAOImpl implements UserDAO {
             }
 
             return new UserInfo(
-                    record.getUuid(),
+                    uuid,
                     record.getInstitutionId(),
                     record.getCreationDate(),
                     record.getName(),
@@ -544,8 +548,64 @@ public class UserDAOImpl implements UserDAO {
                     BooleanUtils.toBooleanObject(record.getActive()),
                     Locale.forLanguageTag(record.getLanguage()),
                     DateTimeZone.forID(record.getTimezone()),
-                    userRoles);
+                    userRoles,
+                    getEntityPrivileges(uuid),
+                    getFeaturePrivileges(uuid));
         });
+    }
+
+    private Collection<FeaturePrivilege> getFeaturePrivileges(final String uuid) {
+        try {
+
+            return this.featurePrivilegeRecordMapper
+                    .selectByExample()
+                    .where(FeaturePrivilegeRecordDynamicSqlSupport.userUuid, isEqualTo(uuid))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toFeaturePrivilegeModel)
+                    .collect(Collectors.toList());
+
+        } catch (final Exception e) {
+            log.error("Failed to load feature privileges for user: {}", uuid);
+            return Collections.emptyList();
+        }
+    }
+
+
+
+    private Collection<EntityPrivilege> getEntityPrivileges(final String uuid) {
+        try {
+
+            return this.entityPrivilegeRecordMapper
+                    .selectByExample()
+                    .where(EntityPrivilegeRecordDynamicSqlSupport.userUuid, isEqualTo(uuid))
+                    .build()
+                    .execute()
+                    .stream()
+                    .map(this::toEntityPrivilegeModel)
+                    .collect(Collectors.toList());
+
+        } catch (final Exception e) {
+            log.error("Failed to load entity privileges for user: {}", uuid);
+            return Collections.emptyList();
+        }
+    }
+
+    private EntityPrivilege toEntityPrivilegeModel(final EntityPrivilegeRecord record) {
+        return new EntityPrivilege(
+                record.getId(),
+                EntityType.valueOf(record.getEntityType()),
+                record.getEntityId(),
+                record.getUserUuid(),
+                PrivilegeType.byKey(record.getPrivilegeType()));
+    }
+
+    private FeaturePrivilege toFeaturePrivilegeModel(final FeaturePrivilegeRecord record) {
+        return new FeaturePrivilege(
+                record.getId(),
+                record.getFeatureId(),
+                record.getUserUuid());
     }
 
     private Result<SEBServerUser> sebServerUserFromRecord(final UserRecord record) {

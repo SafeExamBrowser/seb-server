@@ -12,6 +12,7 @@ import static org.junit.Assert.*;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -145,7 +146,11 @@ public class ExamJITSIProctoringServiceTest {
     private JitsiProctoringService getMockup() {
         final UserService userService = Mockito.mock(UserService.class);
         Mockito.when(userService.getCurrentUser()).thenReturn(new SEBServerUser(1L,
-                new UserInfo("1", 1L, null, "proctor-user", null, null, null, null, null, null, null), ""));
+                new UserInfo("1", 1L, null, "proctor-user", null,
+                        null, null, null, null, null, null,
+                        Collections.emptyList(),
+                        Collections.emptyList())
+                , ""));
 
         final AuthorizationService authorizationService = Mockito.mock(AuthorizationService.class);
         Mockito.when(authorizationService.getUserService()).thenReturn(userService);
