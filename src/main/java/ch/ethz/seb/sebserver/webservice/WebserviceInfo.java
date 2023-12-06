@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice;
 
+import static ch.ethz.seb.sebserver.gbl.FeatureService.ConfigurableFeature.LIGHT_SETUP;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -18,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import ch.ethz.seb.sebserver.gbl.FeatureService;
 import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -82,13 +85,17 @@ public class WebserviceInfo {
     @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:43200}")
     private int examAPITokenValiditySeconds;
 
+    public final FeatureService featureService;
+
     private final ScreenProctoringServiceBundle screenProctoringServiceBundle;
 
     public WebserviceInfo(
             final WebserviceInfoDAO webserviceInfoDAO,
             final Environment environment,
-            final Cryptor cryptor) {
+            final Cryptor cryptor,
+            final FeatureService featureService) {
 
+        this.featureService = featureService;
         this.webserviceInfoDAO = webserviceInfoDAO;
         this.sebServerVersion = environment.getRequiredProperty(VERSION_KEY);
         this.testProperty = environment.getProperty(WEB_SERVICE_TEST_PROPERTY, "NOT_AVAILABLE");
@@ -171,6 +178,10 @@ public class WebserviceInfo {
         } else {
             this.screenProctoringServiceBundle = new ScreenProctoringServiceBundle();
         }
+    }
+
+    public boolean isLightSetup() {
+        return this.featureService.isEnabled(LIGHT_SETUP);
     }
 
     public boolean isMaster() {

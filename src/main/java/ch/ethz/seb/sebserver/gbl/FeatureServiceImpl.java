@@ -56,9 +56,9 @@ public class FeatureServiceImpl implements FeatureService {
     }
 
     @Override
-    public boolean isEnabled(final String featureSuffix) {
+    public boolean isEnabled(final ConfigurableFeature feature) {
         return this.environment.getProperty(toConfigName(
-                        FEATURE_SETTINGS_PREFIX + featureSuffix + ".enabled"),
+                        FEATURE_SETTINGS_PREFIX + feature.namespace + ".enabled"),
                 Boolean.class,
                 Boolean.FALSE);
     }

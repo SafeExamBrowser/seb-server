@@ -76,6 +76,13 @@ public class GuiInit implements ApplicationListener<ApplicationReadyEvent> {
         SEBServerInit.INIT_LOGGER.info("---->");
         SEBServerInit.INIT_LOGGER.info("----> Webservice admin API basic access: --" + webServiceAPIBasicAccess + "--");
 
+        SEBServerInit.INIT_LOGGER.info("----> ");
+        if (this.guiServiceInfo.isDistributedSetup()) {
+            SEBServerInit.INIT_LOGGER.info("----> SEB Server GUI running on distributed setup");
+        } else {
+            SEBServerInit.INIT_LOGGER.info("----> SEB Server GUI running on bundled setup");
+        }
+
         SEBServerInit.INIT_LOGGER.info("---->");
         SEBServerInit.INIT_LOGGER.info("----> *********************************************************");
         SEBServerInit.INIT_LOGGER.info("----> *** GUI Service successfully successfully started up! ***");

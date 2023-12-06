@@ -8,6 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui;
 
+import static ch.ethz.seb.sebserver.gbl.FeatureService.ConfigurableFeature.LIGHT_SETUP;
+
+import ch.ethz.seb.sebserver.gbl.FeatureService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -32,7 +35,10 @@ public class GuiServiceInfo {
     private final boolean distributedSetup;
     private final boolean multilingualGUI;
 
+    public final FeatureService featureService;
+
     public GuiServiceInfo(
+            final FeatureService featureService,
             @Value("${sebserver.version:--}") final String sebServerVersion,
             @Value("${server.address}") final String internalServer,
             @Value("${server.port}") final String internalPort,
@@ -44,6 +50,7 @@ public class GuiServiceInfo {
             @Value("${sebserver.webservice.distributed:false}") final boolean distributedSetup,
             @Value("${sebserver.gui.multilingual:false}") final boolean multilingualGUI) {
 
+        this.featureService = featureService;
         if (StringUtils.isBlank(externalScheme)) {
             throw new RuntimeException("Missing mandatory inital parameter sebserver.gui.http.external.servername");
         }
@@ -79,6 +86,10 @@ public class GuiServiceInfo {
 
         this.distributedSetup = distributedSetup;
         this.multilingualGUI = multilingualGUI;
+    }
+
+    public boolean isLightSetup() {
+        return this.featureService.isEnabled(LIGHT_SETUP);
     }
 
     public String getExternalScheme() {

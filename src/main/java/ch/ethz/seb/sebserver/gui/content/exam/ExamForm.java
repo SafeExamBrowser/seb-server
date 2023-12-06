@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
+import static ch.ethz.seb.sebserver.gbl.FeatureService.ConfigurableFeature.SCREEN_PROCTORING;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,6 +19,7 @@ import java.util.Objects;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.FeatureService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.layout.GridData;
@@ -27,7 +30,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.FeatureService;
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.ErrorMessage;
@@ -419,7 +421,7 @@ public class ExamForm implements TemplateComposer {
                 .map(ProctoringServiceSettings::getEnableProctoring)
                 .getOr(false);
 
-        final boolean spsFeatureEnabled = this.featureService.isEnabled(FeatureService.SCREEN_PROCTORING_FEATURE_NAME);
+        final boolean spsFeatureEnabled = this.featureService.isEnabled(SCREEN_PROCTORING);
         final boolean screenProctoringEnabled = spsFeatureEnabled && !importFromQuizData && this.restService
                 .getBuilder(GetScreenProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)

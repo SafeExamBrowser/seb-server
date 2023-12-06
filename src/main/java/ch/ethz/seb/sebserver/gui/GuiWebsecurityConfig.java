@@ -38,7 +38,7 @@ public class GuiWebsecurityConfig extends WebSecurityConfigurerAdapter {
     private String guiEntryPoint;
     @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}")
     private String remoteProctoringEndpoint;
-    @Value("${sebserver.gui.remote.proctoring.api-servler.endpoint:/remote-view-servlet}")
+    @Value("${sebserver.gui.remote.proctoring.api-servlet.endpoint:/remote-view-servlet}")
     private String remoteProctoringViewServletEndpoint;
     @Value("${springdoc.api-docs.enabled:false}")
     private boolean springDocsAPIEnabled;

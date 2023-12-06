@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui.content.monitoring;
 
+import static ch.ethz.seb.sebserver.gbl.FeatureService.ConfigurableFeature.SCREEN_PROCTORING;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -319,7 +321,7 @@ public class MonitoringRunningExam implements TemplateComposer {
         final PageActionBuilder actionBuilder = this.pageService
                 .pageActionBuilder(pageContext.clearEntityKeys());
 
-        final boolean spsFeatureEnabled = this.featureService.isEnabled(FeatureService.SCREEN_PROCTORING_FEATURE_NAME);
+        final boolean spsFeatureEnabled = this.featureService.isEnabled(SCREEN_PROCTORING);
         final boolean proctoringEnabled = spsFeatureEnabled &&
                 proctoringSettings != null &&
                 BooleanUtils.toBoolean(proctoringSettings.enableProctoring);

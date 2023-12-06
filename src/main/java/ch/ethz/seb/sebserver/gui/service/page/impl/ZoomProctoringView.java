@@ -47,7 +47,7 @@ public class ZoomProctoringView extends AbstractProctoringView {
             final PageService pageService,
             final GuiServiceInfo guiServiceInfo,
             @Value("${sebserver.gui.remote.proctoring.entrypoint:/remote-proctoring}") final String remoteProctoringEndpoint,
-            @Value("${sebserver.gui.remote.proctoring.api-servler.endpoint:/remote-view-servlet}") final String remoteProctoringViewServletEndpoint) {
+            @Value("${sebserver.gui.remote.proctoring.api-servlet.endpoint:/remote-view-servlet}") final String remoteProctoringViewServletEndpoint) {
 
         super(pageService, guiServiceInfo, remoteProctoringEndpoint, remoteProctoringViewServletEndpoint);
     }
