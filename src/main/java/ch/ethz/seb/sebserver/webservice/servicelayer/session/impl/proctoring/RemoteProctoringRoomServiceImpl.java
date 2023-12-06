@@ -73,7 +73,7 @@ public class RemoteProctoringRoomServiceImpl implements RemoteProctoringRoomServ
             final ProctoringAdminService proctoringAdminService,
             final ExamSessionService examSessionService,
             final SEBClientInstructionService sebInstructionService,
-            @Value("${sebserver.webservice.proctoring.resetBroadcastOnLeav:true}") final boolean sendBroadcastReset) {
+            @Value("${sebserver.webservice.proctoring.resetBroadcastOnLeave:true}") final boolean sendBroadcastReset) {
 
         this.remoteProctoringRoomDAO = remoteProctoringRoomDAO;
         this.clientConnectionDAO = clientConnectionDAO;

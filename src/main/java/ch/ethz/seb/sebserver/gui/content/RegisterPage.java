@@ -91,6 +91,8 @@ public class RegisterPage implements TemplateComposer {
     private final RestTemplate restTemplate;
     private final boolean multilingual;
 
+
+
     protected RegisterPage(
             final PageService pageService,
             final WebserviceURIService webserviceURIService,
@@ -200,7 +202,7 @@ public class RegisterPage implements TemplateComposer {
                 .addField(FormBuilder.singleSelection(
                         Domain.USER.ATTR_TIMEZONE,
                         FORM_TIMEZONE_TEXT_KEY,
-                        Constants.DEFAULT_TIME_ZONE_CODE,
+                        this.pageService.getI18nSupport().getDefaultTimeZone().getID(),
                         this.resourceService::timeZoneResources)
                         .mandatory())
                 .addField(FormBuilder.text(

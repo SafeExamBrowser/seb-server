@@ -14,6 +14,7 @@ import java.util.Locale;
 import org.joda.time.DateTime;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
+import org.joda.time.DateTimeZone;
 
 public interface I18nSupport {
 
@@ -21,6 +22,8 @@ public interface I18nSupport {
     String MULTILINGUAL_KEY = "sebserver.gui.multilingual";
     String FORMAL_LOCALE_KEY = "sebserver.gui.date.displayformat";
     String ATTR_CURRENT_SESSION_LOCALE = "CURRENT_SESSION_LOCALE";
+
+    DateTimeZone getDefaultTimeZone();
 
     /** Get all supported languages as a collection of Locale
      *

@@ -59,7 +59,7 @@ public class LoginPage implements TemplateComposer {
     public LoginPage(
             final PageService pageService,
             final DefaultRegisterPage defaultRegisterPage,
-            @Value("${sebserver.gui.self-registering:false}") final Boolean registeringEnabled) {
+            @Value("${sebserver.gui.registering:false}") final Boolean registeringEnabled) {
 
         this.pageService = pageService;
         this.authorizationContextHolder = pageService.getAuthorizationContextHolder();
@@ -67,6 +67,7 @@ public class LoginPage implements TemplateComposer {
         this.i18nSupport = pageService.getI18nSupport();
         this.defaultRegisterPage = defaultRegisterPage;
         this.registeringEnabled = BooleanUtils.toBoolean(registeringEnabled);
+
     }
 
     @Override

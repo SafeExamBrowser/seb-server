@@ -22,6 +22,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
@@ -48,14 +49,16 @@ public class I18nSupportImpl implements I18nSupport {
     private final Locale defaultLocale = Locale.ENGLISH;
     private final Collection<Locale> supportedLanguages;
 
+    private DateTimeZone defaultTimeZone;
+
     public I18nSupportImpl(
             final CurrentUser currentUser,
             final MessageSource messageSource,
-            final Environment environment) {
+            final Environment environment,
+            @Value("${sebserver.gui.registering.default.timeZone:UTC}") final String defaultTimeZone) {
 
         this.currentUser = currentUser;
         this.messageSource = messageSource;
-
         final String defaultFormatLocaleString = environment.getProperty(
                 FORMAL_LOCALE_KEY,
                 Constants.DEFAULT_LANG_CODE);
@@ -79,6 +82,17 @@ public class I18nSupportImpl implements I18nSupport {
             this.supportedLanguages = Utils.immutableCollectionOf(Locale.ENGLISH);
         }
 
+        try {
+            this.defaultTimeZone = DateTimeZone.forID(defaultTimeZone);
+        } catch (final Exception e) {
+            log.warn("Failed to set default time zone from configuration: ", e);
+            this.defaultTimeZone = DateTimeZone.forID(Constants.DEFAULT_TIME_ZONE_CODE);
+        }
+    }
+
+    @Override
+    public DateTimeZone getDefaultTimeZone() {
+        return defaultTimeZone;
     }
 
     @Override
