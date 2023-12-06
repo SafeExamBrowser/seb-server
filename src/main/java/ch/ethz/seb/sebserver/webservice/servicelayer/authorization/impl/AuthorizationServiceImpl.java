@@ -121,6 +121,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
                 .andForRole(UserRole.EXAM_ADMIN)
                 .withInstitutionalPrivilege(PrivilegeType.WRITE)
                 .andForRole(UserRole.EXAM_SUPPORTER)
+                .withInstitutionalPrivilege(PrivilegeType.ASSIGNED)
                 .withOwnerPrivilege(PrivilegeType.MODIFY)
                 .create();
 
