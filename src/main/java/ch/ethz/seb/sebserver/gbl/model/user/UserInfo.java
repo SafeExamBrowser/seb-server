@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.user;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.Email;
@@ -17,6 +18,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import ch.ethz.seb.sebserver.gbl.api.authorization.RoleTypeKey;
 import com.fasterxml.jackson.annotation.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -111,6 +113,9 @@ public final class UserInfo implements UserAccount, Serializable {
     @JsonProperty(ATTR_ENTITY_PRIVILEGES)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public final Collection<EntityPrivilege> entityPrivileges;
+    @JsonIgnore
+    public final Map<EntityKey, EntityPrivilege> entityPrivilegeMap;
+
     @JsonProperty(ATTR_FEATURE_PRIVILEGES)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public final Collection<FeaturePrivilege> featurePrivileges;
@@ -143,6 +148,10 @@ public final class UserInfo implements UserAccount, Serializable {
         this.timeZone = timeZone;
         this.roles = Utils.immutableSetOf(roles);
         this.entityPrivileges = Utils.immutableCollectionOf(entityPrivileges);
+        this.entityPrivilegeMap = Utils.immutableMapOf(
+                this.entityPrivileges.stream().collect(Collectors.toMap(
+                    e -> new EntityKey(e.entityId, e.entityType),
+                    Function.identity())));
         this.featurePrivileges = Utils.immutableCollectionOf(featurePrivileges);
     }
 

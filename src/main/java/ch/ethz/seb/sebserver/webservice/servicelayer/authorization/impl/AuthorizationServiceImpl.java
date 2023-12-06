@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
-import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege.RoleTypeKey;
+import ch.ethz.seb.sebserver.gbl.api.authorization.RoleTypeKey;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
@@ -36,7 +36,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     private final UserService userService;
 
     /** Map of role based grants for specified entity types. */
-    private final Map<Privilege.RoleTypeKey, Privilege> privileges = new HashMap<>();
+    private final Map<RoleTypeKey, Privilege> privileges = new HashMap<>();
 
     public AuthorizationServiceImpl(final UserService userService) {
         this.userService = userService;

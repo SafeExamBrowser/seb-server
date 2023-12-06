@@ -17,7 +17,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import ch.ethz.seb.sebserver.gbl.Constants;
-import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
@@ -110,13 +109,21 @@ public final class Privilege {
             final Long institutionId,
             final String ownerId) {
 
-        return this.hasBasePrivilege(privilegeType)
-                || ((institutionId != null) &&
-                        (this.hasInstitutionalPrivilege(privilegeType)
-                                && userInstitutionId.longValue() == institutionId
-                                        .longValue())
-                        || (this.hasOwnershipPrivilege(privilegeType)
-                                && isOwner(ownerId, userId)));
+        // Has base privilege?
+        if (this.hasBasePrivilege(privilegeType)) {
+            return true;
+        }
+
+        // has institutional privilege?
+        if ((institutionId != null)
+                && (this.hasInstitutionalPrivilege(privilegeType)
+                && userInstitutionId.longValue() == institutionId.longValue())) {
+            return true;
+        }
+
+        // has owner privilege?
+        return this.hasOwnershipPrivilege(privilegeType) && isOwner(ownerId, userId);
+
     }
 
     private boolean isOwner(final String ownerId, final String userId) {
@@ -133,54 +140,6 @@ public final class Privilege {
         return "Privilege [privilegeType=" + this.basePrivilege + ", institutionalPrivilege="
                 + this.institutionalPrivilege
                 + ", ownershipPrivilege=" + this.ownershipPrivilege + "]";
-    }
-
-    /** A key that combines UserRole EntityType identity */
-    public static final class RoleTypeKey {
-
-        @JsonProperty("entityType")
-        public final EntityType entityType;
-        @JsonProperty("userRole")
-        public final UserRole userRole;
-
-        @JsonCreator
-        public RoleTypeKey(
-                @JsonProperty("entityType") final EntityType type,
-                @JsonProperty("userRole") final UserRole role) {
-
-            this.entityType = type;
-            this.userRole = role;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((this.userRole == null) ? 0 : this.userRole.hashCode());
-            result = prime * result + ((this.entityType == null) ? 0 : this.entityType.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            final RoleTypeKey other = (RoleTypeKey) obj;
-            if (this.userRole != other.userRole)
-                return false;
-            if (this.entityType != other.entityType)
-                return false;
-            return true;
-        }
-
-        @Override
-        public String toString() {
-            return "RoleTypeKey [entityType=" + this.entityType + ", userRole=" + this.userRole + "]";
-        }
     }
 
     /** Checks if the current user has role based edit access to a specified user account.
