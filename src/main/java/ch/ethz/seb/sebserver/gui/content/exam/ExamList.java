@@ -8,10 +8,14 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
+import static ch.ethz.seb.sebserver.gbl.FeatureService.ConfigurableFeature.EXAM_NO_LMS;
+import static ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys.NEW_EXAM_NO_LMS;
+
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.FeatureService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.widgets.Composite;
@@ -145,6 +149,7 @@ public class ExamList implements TemplateComposer {
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
+        final FeatureService featureService = this.pageService.getFeatureService();
 
         // content page layout with title
         final Composite content = widgetFactory.defaultPageLayout(
@@ -251,7 +256,7 @@ public class ExamList implements TemplateComposer {
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         action -> modifyExam(action, table),
                         EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> userGrant.im(), false)
+                .publishIf(userGrant::im, false)
 
                 .newAction(ActionDefinition.EXAM_LIST_BULK_ARCHIVE)
                 .withSelect(
@@ -259,7 +264,7 @@ public class ExamList implements TemplateComposer {
                         this.examBatchArchivePopup.popupCreationFunction(pageContext),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(() -> userGrant.im(), false)
+                .publishIf(userGrant::im, false)
 
                 .newAction(ActionDefinition.EXAM_LIST_BULK_DELETE)
                 .withSelect(
@@ -267,9 +272,8 @@ public class ExamList implements TemplateComposer {
                         this.examBatchDeletePopup.popupCreationFunction(pageContext),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(() -> userGrant.iw(), false);
+                .publishIf(userGrant::iw, false)
 
-        actionBuilder
                 .newAction(ActionDefinition.EXAM_LIST_HIDE_MISSING)
                 .withExec(action -> hideMissingExams(action, table))
                 .noEventPropagation()
@@ -278,8 +282,12 @@ public class ExamList implements TemplateComposer {
                                 .withExec(action -> showMissingExams(action, table))
                                 .noEventPropagation()
                                 .create())
-                .publish();
+                .publish()
 
+                .newAction(ActionDefinition.EXAM_NEW)
+                .withAttribute(NEW_EXAM_NO_LMS, Constants.TRUE_STRING)
+                .publishIf(() -> userGrant.iw() && featureService.isEnabled(EXAM_NO_LMS))
+        ;
     }
 
     private PageAction showMissingExams(final PageAction action, final EntityTable<Exam> table) {

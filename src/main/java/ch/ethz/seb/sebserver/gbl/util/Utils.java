@@ -278,11 +278,18 @@ public final class Utils {
                 .getMillis());
     }
 
-    public static String formatDate(final DateTime dateTime) {
+    public static String formatDateWithMilliseconds(final DateTime dateTime) {
         if (dateTime == null) {
             return Constants.EMPTY_NOTE;
         }
         return dateTime.toString(Constants.STANDARD_DATE_TIME_MILLIS_FORMATTER);
+    }
+
+    public static String formatDate(final DateTime dateTime) {
+        if (dateTime == null) {
+            return Constants.EMPTY_NOTE;
+        }
+        return dateTime.toString(Constants.STANDARD_DATE_TIME_FORMATTER);
     }
 
     public static Long dateTimeStringToTimestamp(final String startTime, final Long defaultValue) {

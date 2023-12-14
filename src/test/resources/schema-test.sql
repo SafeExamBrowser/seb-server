@@ -56,7 +56,7 @@ DROP TABLE IF EXISTS `exam` ;
 CREATE TABLE IF NOT EXISTS `exam` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `institution_id` BIGINT UNSIGNED NOT NULL,
-  `lms_setup_id` BIGINT UNSIGNED NOT NULL,
+  `lms_setup_id` BIGINT UNSIGNED NULL,
   `external_id` VARCHAR(255) NOT NULL,
   `owner` VARCHAR(255) NOT NULL,
   `supporter` VARCHAR(4000) NULL COMMENT 'comma separated list of user_uuid',

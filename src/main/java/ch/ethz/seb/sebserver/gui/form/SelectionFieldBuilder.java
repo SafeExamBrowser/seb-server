@@ -50,6 +50,7 @@ public final class SelectionFieldBuilder extends FieldBuilder<String> {
         super(name, label, value);
         this.type = type;
         this.itemsSupplier = itemsSupplier;
+        super.titleValign = SWT.TOP;
     }
 
     public SelectionFieldBuilder withSelectionListener(final Consumer<Form> selectionListener) {

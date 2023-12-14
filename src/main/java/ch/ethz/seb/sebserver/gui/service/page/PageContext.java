@@ -44,6 +44,7 @@ public interface PageContext {
         String ENTITY_LIST_TYPE = "ENTITY_TYPE";
 
         String IMPORT_FROM_QUIZ_DATA = "IMPORT_FROM_QUIZ_DATA";
+        String NEW_EXAM_NO_LMS = "NEW_EXAM_NO_LMS";
 
         String COPY_AS_TEMPLATE = "COPY_AS_TEMPLATE";
         String CREATE_FROM_TEMPLATE = "CREATE_FROM_TEMPLATE";

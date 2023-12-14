@@ -31,7 +31,7 @@ public abstract class FieldBuilder<T> {
     int spanLabel = -1;
     int spanInput = -1;
     int spanEmptyCell = -1;
-    int titleValign = SWT.TOP;
+    int titleValign = SWT.CENTER;
     Boolean autoEmptyCellSeparation = null;
     String group = null;
     boolean readonly = false;
@@ -39,7 +39,6 @@ public abstract class FieldBuilder<T> {
     String defaultLabel = null;
     boolean isMandatory = false;
     boolean rightLabel = false;
-
     final String name;
     final LocTextKey label;
     final LocTextKey tooltip;
@@ -133,7 +132,7 @@ public abstract class FieldBuilder<T> {
         gridLayout.marginWidth = 0;
         gridLayout.marginRight = 0;
         infoGrid.setLayout(gridLayout);
-        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        final GridData gridData = new GridData(SWT.FILL, fieldBuilder.titleValign, true, true);
         gridData.horizontalSpan = (fieldBuilder.spanLabel > 0) ? fieldBuilder.spanLabel : 1;
         infoGrid.setLayoutData(gridData);
 

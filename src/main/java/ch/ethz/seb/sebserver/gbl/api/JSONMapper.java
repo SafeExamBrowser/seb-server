@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gbl.api;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +20,8 @@ import com.fasterxml.jackson.datatype.joda.JodaModule;
 @Lazy
 @Component
 public class JSONMapper extends ObjectMapper {
+
+    private static final Logger log = LoggerFactory.getLogger(JSONMapper.class);
 
     private static final long serialVersionUID = 2883304481547670626L;
 
@@ -33,4 +37,15 @@ public class JSONMapper extends ObjectMapper {
         super.setSerializationInclusion(Include.NON_NULL);
     }
 
+    public String writeValueAsStringOr(final Object entity, final String or) {
+        if (entity == null) {
+            return or;
+        }
+        try {
+            return super.writeValueAsString(entity);
+        } catch (final Exception e) {
+            log.error("Failed to serialize value: {}", entity, e);
+            return or;
+        }
+    }
 }

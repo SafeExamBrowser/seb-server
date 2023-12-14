@@ -20,6 +20,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabItem;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,6 +144,11 @@ public class FormBuilder {
         } catch (final Exception e) {
             log.error("Failed to put static field value to json object: ", e);
         }
+        return this;
+    }
+
+    public FormBuilder withAdditionalValueMapping(final String fieldName, final String attrName) {
+        this.form.putAdditionalValueMapping(fieldName, attrName);
         return this;
     }
 
@@ -302,6 +308,10 @@ public class FormBuilder {
                 label,
                 value,
                 (supportedFiles != null) ? Arrays.asList(supportedFiles) : Collections.emptyList());
+    }
+
+    public static DateTimeSelectorFieldBuilder dateTime(final String name, final LocTextKey label, final DateTime dateTime) {
+        return new DateTimeSelectorFieldBuilder(name, label, dateTime);
     }
 
 }

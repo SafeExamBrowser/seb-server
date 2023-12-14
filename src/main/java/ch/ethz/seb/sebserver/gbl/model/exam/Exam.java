@@ -17,6 +17,7 @@ import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -63,8 +64,6 @@ public final class Exam implements GrantEntity {
     public static final String FILTER_CACHED_QUIZZES = "cached-quizzes";
     public static final String FILTER_ATTR_HIDE_MISSING = "show-missing";
 
-    public static final String ATTR_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
-
     /** This attribute name is used to store the number of quiz recover attempts done by exam update process */
     public static final String ADDITIONAL_ATTR_QUIZ_RECOVER_ATTEMPTS = "QUIZ_RECOVER_ATTEMPTS";
     /** This attribute name is used on exams to store the flag for indicating the signature key check */
@@ -100,7 +99,6 @@ public final class Exam implements GrantEntity {
     public final Long institutionId;
 
     @JsonProperty(EXAM.ATTR_LMS_SETUP_ID)
-    @NotNull
     public final Long lmsSetupId;
 
     @JsonProperty(EXAM.ATTR_EXTERNAL_ID)
@@ -150,7 +148,7 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_LAST_MODIFIED)
     public final Long lastModified;
 
-    @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES)
+    @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES)
     public final Map<String, String> additionalAttributes;
 
     @JsonIgnore
@@ -178,7 +176,7 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_LASTUPDATE) final String lastUpdate,
             @JsonProperty(EXAM.ATTR_EXAM_TEMPLATE_ID) final Long examTemplateId,
             @JsonProperty(EXAM.ATTR_LAST_MODIFIED) final Long lastModified,
-            @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
+            @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
 
         this.id = id;
         this.institutionId = institutionId;
@@ -209,6 +207,41 @@ public final class Exam implements GrantEntity {
         this.allowedSEBVersions = initAllowedSEBVersions();
     }
 
+    public Exam(final POSTMapper postMap) {
+        this.id = null;
+        this.institutionId = postMap.getLong(EXAM.ATTR_INSTITUTION_ID);
+        this.lmsSetupId = postMap.getLong(EXAM.ATTR_LMS_SETUP_ID);
+        this.externalId = postMap.getString(EXAM.ATTR_EXTERNAL_ID);
+        this.lmsAvailable = true;
+        this.name = postMap.getString(EXAM.ATTR_QUIZ_NAME);
+        this.startTime = postMap.getDateTime(EXAM.ATTR_QUIZ_START_TIME);
+        this.endTime = postMap.getDateTime(EXAM.ATTR_QUIZ_END_TIME);
+        this.type = postMap.getEnum(EXAM.ATTR_TYPE, ExamType.class, ExamType.UNDEFINED);
+        this.owner = postMap.getString(EXAM.ATTR_OWNER);
+        this.status = postMap.getEnum(EXAM.ATTR_STATUS, ExamStatus.class, getStatusFromDate(this.startTime, this.endTime));
+        this.sebRestriction = null;
+        this.browserExamKeys = null;
+        this.active = postMap.getBoolean(EXAM.ATTR_ACTIVE);
+        this.supporter = postMap.getStringSet(EXAM.ATTR_SUPPORTER);
+        this.lastUpdate = null;
+        this.examTemplateId = postMap.getLong(EXAM.ATTR_EXAM_TEMPLATE_ID);
+        this.lastModified = null;
+
+        final Map<String, String> additionalAttributes = new HashMap<>();
+        if (postMap.contains(QuizData.QUIZ_ATTR_DESCRIPTION)) {
+            additionalAttributes.put(QuizData.QUIZ_ATTR_DESCRIPTION, postMap.getString(QuizData.QUIZ_ATTR_DESCRIPTION));
+        }
+        additionalAttributes.put(QuizData.QUIZ_ATTR_START_URL, postMap.getString(QuizData.QUIZ_ATTR_START_URL));
+        this.additionalAttributes = Utils.immutableMapOf(additionalAttributes);
+
+        this.checkASK = BooleanUtils
+                .toBoolean(this.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
+        this.allowedSEBVersions = initAllowedSEBVersions();
+    }
+
+    public Exam(final QuizData quizData) {
+        this(null, quizData, POSTMapper.EMPTY_MAP);
+    }
     public Exam(final String modelId, final QuizData quizData, final POSTMapper mapper) {
 
         final Map<String, String> additionalAttributes = new HashMap<>(quizData.getAdditionalAttributes());
@@ -243,41 +276,13 @@ public final class Exam implements GrantEntity {
         this.allowedSEBVersions = initAllowedSEBVersions();
     }
 
-    public Exam(final QuizData quizData) {
-        this(null, quizData, POSTMapper.EMPTY_MAP);
-    }
-
-    public Exam(final Long id, final ExamStatus status) {
-        this.id = id;
-        this.institutionId = null;
-        this.lmsSetupId = null;
-        this.externalId = null;
-        this.lmsAvailable = true;
-        this.name = null;
-        this.startTime = null;
-        this.endTime = null;
-        this.type = null;
-        this.owner = null;
-        this.status = (status != null) ? status : getStatusFromDate(this.startTime, this.endTime);
-        this.sebRestriction = null;
-        this.browserExamKeys = null;
-        this.active = null;
-        this.supporter = null;
-        this.lastUpdate = null;
-        this.examTemplateId = null;
-        this.lastModified = null;
-        this.additionalAttributes = null;
-        this.checkASK = false;
-        this.allowedSEBVersions = null;
-    }
-
     private List<AllowedSEBVersion> initAllowedSEBVersions() {
         if (this.additionalAttributes.containsKey(ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS)) {
             final String asvString = this.additionalAttributes.get(Exam.ADDITIONAL_ATTR_ALLOWED_SEB_VERSIONS);
             final String[] split = StringUtils.split(asvString, Constants.LIST_SEPARATOR);
             final List<AllowedSEBVersion> result = new ArrayList<>();
-            for (int i = 0; i < split.length; i++) {
-                final AllowedSEBVersion allowedSEBVersion = new AllowedSEBVersion(split[i]);
+            for (final String s : split) {
+                final AllowedSEBVersion allowedSEBVersion = new AllowedSEBVersion(s);
                 if (allowedSEBVersion.isValidFormat) {
                     result.add(allowedSEBVersion);
                 }
@@ -401,7 +406,7 @@ public final class Exam implements GrantEntity {
     }
 
     public boolean additionalAttributesIncluded() {
-        return this.additionalAttributes != null;
+        return this.additionalAttributes != null && !this.additionalAttributes.isEmpty();
     }
 
     public String getAdditionalAttribute(final String attrName) {

@@ -88,7 +88,12 @@ public class UserServiceImpl implements UserService {
                 if (UserService.USERS_INSTITUTION_AS_DEFAULT.equals(text)) {
                     setValue(getCurrentUser().institutionId());
                 } else {
-                    setValue((text == null) ? null : Long.decode(text));
+                    try {
+                        setValue((text == null) ? null : Long.decode(text));
+                    } catch (final Exception e) {
+                        log.error("Failed to set institution from user: ", e);
+                        setValue(-1);
+                    }
                 }
             }
         };

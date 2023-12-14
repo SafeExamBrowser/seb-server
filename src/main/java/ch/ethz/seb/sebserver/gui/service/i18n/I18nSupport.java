@@ -45,7 +45,7 @@ public interface I18nSupport {
     /** Format a DateTime to a text format to display.
      * This uses the date-format defined by either the attribute 'sebserver.gui.date.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
-     *
+     * <p>
      * Adds time-zone offset information if the currents user time-zone is different from UTC
      *
      * @param date the DateTime instance
@@ -55,7 +55,7 @@ public interface I18nSupport {
     /** Format a DateTime to a text format to display with additional time zone name at the end.
      * This uses the date-format defined by either the attribute 'sebserver.gui.date.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
-     *
+     * <p>
      * Adds time-zone offset information if the currents user time-zone is different from UTC
      *
      * @param date the DateTime instance
@@ -67,7 +67,7 @@ public interface I18nSupport {
     /** Format a time-stamp (milliseconds) to a text format to display.
      * This uses the date-format defined by either the attribute 'sebserver.gui.date.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_FORMAT
-     *
+     * <p>
      * Adds time-zone information if the currents user time-zone is different from UTC
      *
      * @param timestamp the unix-timestamp in milliseconds
@@ -79,7 +79,7 @@ public interface I18nSupport {
     /** Format a DateTime to a text format to display.
      * This uses the date-format defined by either the attribute 'sebserver.gui.datetime.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_TIME_FORMAT
-     *
+     * <p>
      * Adds time-zone information if the currents user time-zone is different from UTC
      *
      * @param date the DateTime instance
@@ -89,7 +89,7 @@ public interface I18nSupport {
     /** Format a time-stamp (milliseconds) to a text format to display.
      * This uses the date-format defined by either the attribute 'sebserver.gui.datetime.display format'
      * or the Constants.DEFAULT_DISPLAY_DATE_TIME_FORMAT
-     *
+     * <p>
      * Adds time-zone information if the currents user time-zone is different from UTC
      *
      * @param timestamp the unix-timestamp in milliseconds
@@ -101,7 +101,7 @@ public interface I18nSupport {
     /** Format a DateTime to a text format to display.
      * This uses the date-format defined by either the attribute 'sebserver.gui.time.display format'
      * or the Constants.DEFAULT_DISPLAY_TIME_FORMAT
-     *
+     * <p>
      * Adds time-zone information if the currents user time-zone is different from UTC
      *
      * @param date the DateTime instance
@@ -111,7 +111,7 @@ public interface I18nSupport {
     /** Format a time-stamp (milliseconds) to a text format to display.
      * This uses the date-format defined by either the attribute 'sebserver.gui.time.display format'
      * or the Constants.DEFAULT_DISPLAY_TIME_FORMAT
-     *
+     * <p>
      * Adds time-zone information if the currents user time-zone is different from UTC
      *
      * @param timestamp the unix-timestamp in milliseconds

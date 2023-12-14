@@ -63,28 +63,34 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
     public TextFieldBuilder asArea(final int minHeight) {
         this.areaMinHeight = minHeight;
+        super.titleValign = SWT.TOP;
         return asArea();
     }
 
     public TextFieldBuilder asArea() {
         this.isArea = true;
-        this.titleValign = SWT.CENTER;
+        this.titleValign = SWT.TOP;
         return this;
     }
 
     public TextFieldBuilder asHTML() {
         this.isHTML = true;
+        super.titleValign = SWT.TOP;
         return this;
     }
 
     public TextFieldBuilder asHTML(final int minHeight) {
         this.isHTML = true;
         this.areaMinHeight = minHeight;
+        super.titleValign = SWT.TOP;
         return this;
     }
 
     public FieldBuilder<?> asHTML(final boolean html) {
         this.isHTML = html;
+        if (html) {
+            super.titleValign = SWT.TOP;
+        }
         return this;
     }
 

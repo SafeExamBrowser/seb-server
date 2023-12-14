@@ -117,7 +117,7 @@ public interface AdditionalAttributesDAO {
 
     /** Use this to save an additional attributes for a specific entity.
      * If an additional attribute with specified name already exists for the specified entity
-     * this updates just the value for this additional attribute. Otherwise create a new instance
+     * this updates just the value for this additional attribute. Otherwise, create a new instance
      * of additional attribute with the given data
      *
      * @param type the entity type

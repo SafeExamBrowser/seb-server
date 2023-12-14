@@ -10,20 +10,17 @@ package ch.ethz.seb.sebserver.gui.content.exam;
 
 import static ch.ethz.seb.sebserver.gbl.FeatureService.ConfigurableFeature.SCREEN_PROCTORING;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.BooleanSupplier;
+import java.util.*;
 import java.util.function.Function;
 
 import ch.ethz.seb.sebserver.gbl.FeatureService;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -65,13 +62,6 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.download.DownloadService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestService;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ArchiveExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckExamConsistency;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.CheckSEBRestriction;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExam;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetExamProctoringSettings;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.GetScreenProctoringSettings;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.SaveExam;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetDefaultExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.template.GetExamTemplate;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.lmssetup.TestLmsSetup;
@@ -216,35 +206,33 @@ public class ExamForm implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
-
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
-        final EntityKey entityKey = pageContext.getEntityKey();
         final boolean readonly = pageContext.isReadonly();
+        final boolean newExamNoLMS = BooleanUtils.toBoolean(
+                pageContext.getAttribute(AttributeKeys.NEW_EXAM_NO_LMS));
         final boolean importFromQuizData = BooleanUtils.toBoolean(
                 pageContext.getAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
 
         // get or create model data
-        final Exam exam = (importFromQuizData
-                ? createExamFromQuizData(pageContext)
-                : getExistingExam(pageContext))
-                        .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error))
-                        .getOrThrow();
+        final Exam exam = newExamNoLMS
+                ? this.newExamNoLMS()
+                : (importFromQuizData
+                    ? createExamFromQuizData(pageContext)
+                    : getExistingExam(pageContext))
+                            .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error))
+                            .getOrThrow();
 
         // new PageContext with actual EntityKey
+        final EntityKey entityKey = (readonly || !newExamNoLMS) ? pageContext.getEntityKey() : null;
         final PageContext formContext = pageContext.withEntityKey(exam.getEntityKey());
-
-        final BooleanSupplier isNew = () -> importFromQuizData;
-        final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
         final EntityGrantCheck entityGrantCheck = currentUser.entityGrantCheck(exam);
         final boolean modifyGrant = entityGrantCheck.m();
         final boolean writeGrant = entityGrantCheck.w();
-        final ExamStatus examStatus = exam.getStatus();
         final boolean editable = modifyGrant &&
-                (examStatus == ExamStatus.UP_COMING || examStatus == ExamStatus.RUNNING);
+                (exam.getStatus() == ExamStatus.UP_COMING || exam.getStatus() == ExamStatus.RUNNING);
         final boolean signatureKeyCheckEnabled = BooleanUtils.toBoolean(
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
-
-        final boolean sebRestrictionAvailable = testSEBRestrictionAPI(exam);
+        final boolean sebRestrictionAvailable = readonly && testSEBRestrictionAPI(exam);
         final boolean isRestricted = readonly && sebRestrictionAvailable && this.restService
                 .getBuilder(CheckSEBRestriction.class)
                 .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
@@ -281,140 +269,15 @@ public class ExamForm implements TemplateComposer {
         }
 
         // The Exam form
-        final FormHandle<Exam> formHandle = this.pageService.formBuilder(
-                formContext.copyOf(content), 8)
-                .withDefaultSpanLabel(1)
-                .withDefaultSpanInput(4)
-                .withDefaultSpanEmptyCell(3)
-                .readonly(readonly)
-                .putStaticValueIf(isNotNew,
-                        Domain.EXAM.ATTR_ID,
-                        exam.getModelId())
-                .putStaticValue(
-                        Domain.EXAM.ATTR_INSTITUTION_ID,
-                        String.valueOf(exam.getInstitutionId()))
-                .putStaticValueIf(isNotNew,
-                        Domain.EXAM.ATTR_LMS_SETUP_ID,
-                        String.valueOf(exam.lmsSetupId))
-                .putStaticValueIf(isNew,
-                        QuizData.QUIZ_ATTR_LMS_SETUP_ID,
-                        String.valueOf(exam.lmsSetupId))
-                .putStaticValueIf(isNotNew,
-                        Domain.EXAM.ATTR_EXTERNAL_ID,
-                        exam.externalId)
-                .putStaticValueIf(isNew,
-                        QuizData.QUIZ_ATTR_ID,
-                        exam.externalId)
-
-                .addField(FormBuilder.text(
-                        QuizData.QUIZ_ATTR_NAME,
-                        FORM_NAME_TEXT_KEY,
-                        exam.name)
-                        .readonly(true)
-                        .withInputSpan(3)
-                        .withEmptyCellSeparation(false))
-
-                .addField(FormBuilder.singleSelection(
-                        Domain.EXAM.ATTR_LMS_SETUP_ID,
-                        FORM_LMSSETUP_TEXT_KEY,
-                        String.valueOf(exam.lmsSetupId),
-                        this.resourceService::lmsSetupResource)
-                        .readonly(true)
-                        .withInputSpan(3)
-                        .withEmptyCellSeparation(false))
-
-                .addField(FormBuilder.text(
-                        QuizData.QUIZ_ATTR_START_TIME,
-                        FORM_START_TIME_TEXT_KEY,
-                        i18nSupport.formatDisplayDateWithTimeZone(exam.startTime))
-                        .readonly(true)
-                        .withInputSpan(3)
-                        .withEmptyCellSeparation(false))
-                .addField(FormBuilder.text(
-                        QuizData.QUIZ_ATTR_END_TIME,
-                        FORM_END_TIME_TEXT_KEY,
-                        i18nSupport.formatDisplayDateWithTimeZone(exam.endTime))
-                        .readonly(true)
-                        .withInputSpan(3)
-                        .withEmptyCellSeparation(false))
-
-                .addField(FormBuilder.text(
-                        QuizData.QUIZ_ATTR_START_URL,
-                        FORM_QUIZ_URL_TEXT_KEY,
-                        exam.getStartURL())
-                        .readonly(true)
-                        .withInputSpan(7)
-                        .withEmptyCellSeparation(false))
-
-                .addField(FormBuilder.text(
-                        QuizData.QUIZ_ATTR_DESCRIPTION,
-                        FORM_DESCRIPTION_TEXT_KEY,
-                        exam.getDescription())
-                        .asHTML(50)
-                        .readonly(true)
-                        .withInputSpan(6)
-                        .withEmptyCellSeparation(false))
-
-                .addField(FormBuilder.text(
-                        Domain.EXAM.ATTR_EXTERNAL_ID,
-                        FORM_QUIZ_ID_TEXT_KEY,
-                        exam.externalId)
-                        .readonly(true)
-                        .withLabelSpan(2)
-                        .withInputSpan(6)
-                        .withEmptyCellSeparation(false))
-
-                .addField(FormBuilder.text(
-                        Domain.EXAM.ATTR_STATUS + "_display",
-                        FORM_STATUS_TEXT_KEY,
-                        i18nSupport.getText(new LocTextKey("sebserver.exam.status." + examStatus.name())))
-                        .readonly(true)
-                        .withLabelSpan(2)
-                        .withInputSpan(4)
-                        .withEmptyCellSeparation(false))
-
-                .addFieldIf(
-                        () -> importFromQuizData,
-                        () -> FormBuilder.singleSelection(
-                                Domain.EXAM.ATTR_EXAM_TEMPLATE_ID,
-                                FORM_EXAM_TEMPLATE_TEXT_KEY,
-                                (exam.examTemplateId == null)
-                                        ? getDefaultExamTemplateId()
-                                        : String.valueOf(exam.examTemplateId),
-                                this.resourceService::examTemplateResources)
-                                .withSelectionListener(form -> this.processTemplateSelection(form, formContext))
-                                .withLabelSpan(2)
-                                .withInputSpan(4)
-                                .withEmptyCellSpan(2))
-
-                .addField(FormBuilder.singleSelection(
-                        Domain.EXAM.ATTR_TYPE,
-                        FORM_TYPE_TEXT_KEY,
-                        (exam.type != null) ? String.valueOf(exam.type) : Exam.ExamType.UNDEFINED.name(),
-                        this.resourceService::examTypeResources)
-                        .withLabelSpan(2)
-                        .withInputSpan(4)
-                        .withEmptyCellSpan(2)
-                        .mandatory(!readonly))
-
-                .addField(FormBuilder.multiComboSelection(
-                        Domain.EXAM.ATTR_SUPPORTER,
-                        FORM_SUPPORTER_TEXT_KEY,
-                        StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
-                        this.resourceService::examSupporterResources)
-                        .withLabelSpan(2)
-                        .withInputSpan(4)
-                        .withEmptyCellSpan(2))
-
-                .buildFor(importFromQuizData
-                        ? this.restService.getRestCall(ImportAsExam.class)
-                        : this.restService.getRestCall(SaveExam.class));
+        final FormHandle<Exam> formHandle = readonly
+                ? createReadOnlyForm(formContext, content, exam)
+                : createEditForm(formContext, content, exam);
 
         if (importFromQuizData) {
             this.processTemplateSelection(formHandle.getForm(), formContext);
         }
 
-        final boolean proctoringEnabled = !importFromQuizData && this.restService
+        final boolean proctoringEnabled = readonly && this.restService
                 .getBuilder(GetExamProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
@@ -422,7 +285,7 @@ public class ExamForm implements TemplateComposer {
                 .getOr(false);
 
         final boolean spsFeatureEnabled = this.featureService.isEnabled(SCREEN_PROCTORING);
-        final boolean screenProctoringEnabled = spsFeatureEnabled && !importFromQuizData && this.restService
+        final boolean screenProctoringEnabled = readonly && spsFeatureEnabled && this.restService
                 .getBuilder(GetScreenProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .call()
@@ -450,7 +313,7 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withConfirm(() -> EXAM_ARCHIVE_CONFIRM)
                 .withExec(this::archiveExam)
-                .publishIf(() -> writeGrant && readonly && examStatus == ExamStatus.FINISHED)
+                .publishIf(() -> writeGrant && readonly && exam.status == ExamStatus.FINISHED)
 
                 .newAction(ActionDefinition.EXAM_SAVE)
                 .withExec(action -> (importFromQuizData)
@@ -527,7 +390,6 @@ public class ExamForm implements TemplateComposer {
                 .noEventPropagation()
                 .publishIf(
                         () -> spsFeatureEnabled && !screenProctoringEnabled && readonly)
-
         ;
 
         // additional data in read-only view
@@ -538,7 +400,7 @@ public class ExamForm implements TemplateComposer {
                             .copyOf(content)
                             .withAttribute(ATTR_READ_GRANT, String.valueOf(entityGrantCheck.r()))
                             .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
-                            .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
+                            .withAttribute(ATTR_EXAM_STATUS, exam.status.name()));
 
             // Indicators
             this.examIndicatorsList.compose(
@@ -546,7 +408,7 @@ public class ExamForm implements TemplateComposer {
                             .copyOf(content)
                             .withAttribute(ATTR_READ_GRANT, String.valueOf(entityGrantCheck.r()))
                             .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
-                            .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
+                            .withAttribute(ATTR_EXAM_STATUS, exam.status.name()));
 
             // Client Groups
             this.examClientGroupList.compose(
@@ -554,8 +416,246 @@ public class ExamForm implements TemplateComposer {
                             .copyOf(content)
                             .withAttribute(ATTR_READ_GRANT, String.valueOf(entityGrantCheck.r()))
                             .withAttribute(ATTR_EDITABLE, String.valueOf(editable))
-                            .withAttribute(ATTR_EXAM_STATUS, examStatus.name()));
+                            .withAttribute(ATTR_EXAM_STATUS, exam.status.name()));
         }
+    }
+
+    private FormHandle<Exam> createReadOnlyForm(
+            final PageContext formContext,
+            final Composite content,
+            final Exam exam) {
+
+        final I18nSupport i18nSupport = formContext.getI18nSupport();
+        return this.pageService.formBuilder(
+                formContext.copyOf(content), 8)
+                .withDefaultSpanLabel(1)
+                .withDefaultSpanInput(4)
+                .withDefaultSpanEmptyCell(3)
+                .readonly(true)
+                .addField(FormBuilder.text(
+                        QuizData.QUIZ_ATTR_NAME,
+                        FORM_NAME_TEXT_KEY,
+                        exam.name)
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.singleSelection(
+                        Domain.EXAM.ATTR_LMS_SETUP_ID,
+                        FORM_LMSSETUP_TEXT_KEY,
+                        String.valueOf(exam.lmsSetupId),
+                        this.resourceService::lmsSetupResource)
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.text(
+                                Domain.EXAM.ATTR_STATUS + "_display",
+                                FORM_STATUS_TEXT_KEY,
+                                i18nSupport.getText(new LocTextKey("sebserver.exam.status." + exam.status.name())))
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.text(
+                                Domain.EXAM.ATTR_EXTERNAL_ID,
+                                FORM_QUIZ_ID_TEXT_KEY,
+                                exam.externalId)
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.text(
+                        QuizData.QUIZ_ATTR_START_TIME,
+                        FORM_START_TIME_TEXT_KEY,
+                        i18nSupport.formatDisplayDateWithTimeZone(exam.startTime))
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.text(
+                        QuizData.QUIZ_ATTR_END_TIME,
+                        FORM_END_TIME_TEXT_KEY,
+                        i18nSupport.formatDisplayDateWithTimeZone(exam.endTime))
+                        .readonly(true)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.text(
+                        QuizData.QUIZ_ATTR_START_URL,
+                        FORM_QUIZ_URL_TEXT_KEY,
+                        exam.getStartURL())
+                        .readonly(true)
+                        .withInputSpan(7)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.text(
+                        QuizData.QUIZ_ATTR_DESCRIPTION,
+                        FORM_DESCRIPTION_TEXT_KEY,
+                        exam.getDescription())
+                        .asHTML(50)
+                        .readonly(true)
+                        .withInputSpan(7)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.singleSelection(
+                                Domain.EXAM.ATTR_TYPE,
+                                FORM_TYPE_TEXT_KEY,
+                                (exam.type != null) ? String.valueOf(exam.type) : Exam.ExamType.UNDEFINED.name(),
+                                this.resourceService::examTypeResources)
+                        .withInputSpan(7)
+                        .withEmptyCellSeparation(false))
+
+                .addField(FormBuilder.multiComboSelection(
+                        Domain.EXAM.ATTR_SUPPORTER,
+                        FORM_SUPPORTER_TEXT_KEY,
+                        StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
+                        this.resourceService::examSupporterResources)
+                        .withInputSpan(7)
+                        .withEmptyCellSeparation(false))
+                .build();
+    }
+
+    private FormHandle<Exam> createEditForm(
+            final PageContext formContext,
+            final Composite content,
+            final Exam exam) {
+
+        final I18nSupport i18nSupport = formContext.getI18nSupport();
+        final boolean newExam = exam.id == null;
+        final boolean hasLMS = exam.lmsSetupId != null;
+        final boolean importFromLMS = newExam && hasLMS;
+        final DateTimeZone timeZone = this.pageService.getCurrentUser().get().timeZone;
+        final LocTextKey statusTitle = new LocTextKey("sebserver.exam.status." + exam.status.name());
+
+        return this.pageService.formBuilder(formContext.copyOf(content))
+                .putStaticValueIf(() -> !newExam,
+                        Domain.EXAM.ATTR_ID,
+                        exam.getModelId())
+                .putStaticValue(
+                        Domain.EXAM.ATTR_INSTITUTION_ID,
+                        String.valueOf(exam.getInstitutionId()))
+                .putStaticValueIf(() -> exam.lmsSetupId != null,
+                        Domain.EXAM.ATTR_LMS_SETUP_ID,
+                        String.valueOf(exam.lmsSetupId))
+                .putStaticValueIf(() -> exam.lmsSetupId != null,
+                        QuizData.QUIZ_ATTR_LMS_SETUP_ID,
+                        String.valueOf(exam.lmsSetupId))
+                .putStaticValueIf(() -> exam.externalId != null,
+                        Domain.EXAM.ATTR_EXTERNAL_ID,
+                        exam.externalId)
+                .putStaticValueIf(() -> exam.lmsSetupId != null,
+                        QuizData.QUIZ_ATTR_ID,
+                        exam.externalId)
+
+                .addField(FormBuilder.text(
+                                Domain.EXAM.ATTR_STATUS + "_display",
+                                FORM_STATUS_TEXT_KEY,
+                                i18nSupport.getText(statusTitle))
+                        .readonly(true))
+
+                .addFieldIf( () -> hasLMS,
+                        () -> FormBuilder.singleSelection(
+                                        Domain.EXAM.ATTR_LMS_SETUP_ID,
+                                        FORM_LMSSETUP_TEXT_KEY,
+                                        String.valueOf(exam.lmsSetupId),
+                                        this.resourceService::lmsSetupResource)
+                                .readonly(true))
+
+                .addFieldIf(() -> exam.id == null,
+                        () -> FormBuilder.singleSelection(
+                                Domain.EXAM.ATTR_EXAM_TEMPLATE_ID,
+                                FORM_EXAM_TEMPLATE_TEXT_KEY,
+                                (exam.examTemplateId == null)
+                                        ? getDefaultExamTemplateId()
+                                        : String.valueOf(exam.examTemplateId),
+                                this.resourceService::examTemplateResources)
+                        .withSelectionListener(form -> this.processTemplateSelection(form, formContext)))
+
+                .addField(FormBuilder.text(
+                                Domain.EXAM.ATTR_QUIZ_NAME,
+                                FORM_NAME_TEXT_KEY,
+                                exam.name)
+                        .readonly(hasLMS)
+                        .mandatory(!hasLMS))
+
+                .addField(FormBuilder.text(
+                                QuizData.QUIZ_ATTR_DESCRIPTION,
+                                FORM_DESCRIPTION_TEXT_KEY,
+                                exam.getDescription())
+                        .asArea()
+                        .readonly(hasLMS))
+                .withAdditionalValueMapping(
+                        QuizData.QUIZ_ATTR_DESCRIPTION,
+                        QuizData.QUIZ_ATTR_DESCRIPTION)
+
+                .addField(FormBuilder.dateTime(
+                                Domain.EXAM.ATTR_QUIZ_START_TIME,
+                                FORM_START_TIME_TEXT_KEY,
+                                exam.startTime)
+                        .readonly(hasLMS)
+                        .mandatory(!hasLMS))
+
+                .addField(FormBuilder.dateTime(
+                                Domain.EXAM.ATTR_QUIZ_END_TIME,
+                                FORM_END_TIME_TEXT_KEY,
+                                exam.endTime != null
+                                        ? exam.endTime
+                                        : DateTime.now(timeZone).plusHours(1))
+                        .readonly(hasLMS)
+                        .mandatory(!hasLMS))
+
+                .addField(FormBuilder.text(
+                                QuizData.QUIZ_ATTR_START_URL,
+                                FORM_QUIZ_URL_TEXT_KEY,
+                                exam.getStartURL())
+                        .readonly(hasLMS)
+                        .mandatory(!hasLMS))
+                .withAdditionalValueMapping(
+                        QuizData.QUIZ_ATTR_START_URL,
+                        QuizData.QUIZ_ATTR_START_URL)
+
+                .addField(FormBuilder.singleSelection(
+                                Domain.EXAM.ATTR_TYPE,
+                                FORM_TYPE_TEXT_KEY,
+                                (exam.type != null) ? String.valueOf(exam.type) : Exam.ExamType.UNDEFINED.name(),
+                                this.resourceService::examTypeResources)
+                        .mandatory(true))
+
+                .addField(FormBuilder.multiComboSelection(
+                                Domain.EXAM.ATTR_SUPPORTER,
+                                FORM_SUPPORTER_TEXT_KEY,
+                                StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
+                                this.resourceService::examSupporterResources))
+
+                .buildFor(importFromLMS
+                        ? this.restService.getRestCall(ImportAsExam.class)
+                        : newExam
+                            ? this.restService.getRestCall(NewExam.class)
+                            : this.restService.getRestCall(SaveExam.class));
+    }
+
+    private Exam newExamNoLMS() {
+        return new Exam(
+            null,
+            this.pageService.getCurrentUser().get().institutionId,
+            null,
+            UUID.randomUUID().toString(),
+            true,
+            null,
+            null,
+            null,
+            Exam.ExamType.UNDEFINED,
+            null,
+            null,
+            ExamStatus.UP_COMING,
+            false,
+            null,
+            true,
+            null,
+            null,
+            null,
+            null);
     }
 
     private PageAction archiveExam(final PageAction action) {
@@ -660,7 +760,7 @@ public class ExamForm implements TemplateComposer {
     }
 
     private boolean testSEBRestrictionAPI(final Exam exam) {
-        if (!exam.isLmsAvailable() || exam.status == ExamStatus.ARCHIVED) {
+        if (exam.lmsSetupId == null || !exam.isLmsAvailable() || exam.status == ExamStatus.ARCHIVED) {
             return false;
         }
 

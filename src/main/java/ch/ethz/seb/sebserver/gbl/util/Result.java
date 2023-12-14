@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.util;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -242,6 +243,13 @@ public final class Result<T> {
         } else {
             return Result.ofError(this.error);
         }
+    }
+
+    public Result<T> whenDo(final Predicate<T> predicate, final Function<T, T> handler) {
+        if (this.error == null && predicate.test(this.value)) {
+            return Result.tryCatch(() -> handler.apply(this.value));
+        }
+        return this;
     }
 
     public Result<T> onSuccess(final Consumer<T> handler) {

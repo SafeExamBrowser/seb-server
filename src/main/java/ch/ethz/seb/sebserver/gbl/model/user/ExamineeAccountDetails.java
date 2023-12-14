@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gbl.model.user;
 
 import java.util.Map;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -21,7 +22,6 @@ public class ExamineeAccountDetails {
     public static final String ATTR_NAME = "name";
     public static final String ATTR_USER_NAME = "username";
     public static final String ATTR_EMAIL = "email";
-    public static final String ATTR_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
 
     @JsonProperty(ATTR_ID)
     public final String id;
@@ -35,7 +35,7 @@ public class ExamineeAccountDetails {
     @JsonProperty(ATTR_EMAIL)
     public final String email;
 
-    @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES)
+    @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES)
     public final Map<String, String> additionalAttributes;
 
     @JsonCreator
@@ -44,7 +44,7 @@ public class ExamineeAccountDetails {
             @JsonProperty(ATTR_NAME) final String name,
             @JsonProperty(ATTR_USER_NAME) final String username,
             @JsonProperty(ATTR_EMAIL) final String email,
-            @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
+            @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
 
         this.id = id;
         this.name = name;

@@ -301,6 +301,9 @@ public class ExamDAOImpl implements ExamDAO {
                         ExamRecordDynamicSqlSupport.active,
                         isEqualTo(BooleanUtils.toInteger(true)))
                 .and(
+                        ExamRecordDynamicSqlSupport.lmsSetupId,
+                        isNotNull())
+                .and(
                         ExamRecordDynamicSqlSupport.status,
                         isNotEqualTo(ExamStatus.ARCHIVED.name()))
                 .and(

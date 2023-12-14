@@ -220,13 +220,20 @@ public final class PageAction {
             }
             return Result.ofError(restCallError);
         } catch (final FormPostException e) {
+            if (e.getCause() instanceof RestCallError) {
+                final RestCallError cause = (RestCallError) e.getCause();
+                if (cause.isUnexpectedError()) {
+                    log.error("Failed to execute action: {} | error: {} | cause: {}",
+                            PageAction.this.getName(),
+                            cause.getMessage(),
+                            Utils.getErrorCauseMessage(cause));
+                }
+                return Result.ofError(cause);
+            }
             log.error("Failed to execute action: {} | error: {} | cause: {}",
                     PageAction.this.getName(),
                     e.getMessage(),
                     Utils.getErrorCauseMessage(e));
-            if (e.getCause() instanceof RestCallError) {
-                return Result.ofError((RestCallError) e.getCause());
-            }
             return Result.ofError(e);
         } catch (final Exception e) {
             log.error("Failed to execute action: {} | error: {} | cause: {}",

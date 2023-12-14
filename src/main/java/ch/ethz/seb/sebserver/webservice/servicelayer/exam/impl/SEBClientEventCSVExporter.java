@@ -110,9 +110,9 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
         builder.append(Constants.COMMA);
         builder.append(eventData.getNumericValue() != null ? eventData.getNumericValue() : "");
         builder.append(Constants.COMMA);
-        builder.append(Utils.formatDate(Utils.toDateTimeUTC(eventData.getClientTime())));
+        builder.append(Utils.formatDateWithMilliseconds(Utils.toDateTimeUTC(eventData.getClientTime())));
         builder.append(Constants.COMMA);
-        builder.append(Utils.formatDate(Utils.toDateTimeUTC(eventData.getServerTime())));
+        builder.append(Utils.formatDateWithMilliseconds(Utils.toDateTimeUTC(eventData.getServerTime())));
 
         if (connectionData != null) {
             builder.append(Constants.COMMA);
@@ -129,9 +129,9 @@ public class SEBClientEventCSVExporter implements SEBClientEventExporter {
             builder.append(Constants.COMMA);
             builder.append(examData.getType().name());
             builder.append(Constants.COMMA);
-            builder.append(Utils.formatDate(examData.getStartTime()));
+            builder.append(Utils.formatDateWithMilliseconds(examData.getStartTime()));
             builder.append(Constants.COMMA);
-            builder.append(Utils.formatDate(examData.getEndTime()));
+            builder.append(Utils.formatDateWithMilliseconds(examData.getEndTime()));
         }
 
         builder.append(Constants.CARRIAGE_RETURN);

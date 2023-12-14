@@ -294,7 +294,10 @@ public class ExamRecordDAO {
                     null, // active
                     exam.examTemplateId,
                     Utils.getMillisecondsNow(),
-                    null, null, null, null);
+                    exam.lmsSetupId == null ? exam.name : null,
+                    exam.lmsSetupId == null ? exam.startTime : null,
+                    exam.lmsSetupId == null ? exam.endTime : null,
+                    null);
 
             this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(exam.id);

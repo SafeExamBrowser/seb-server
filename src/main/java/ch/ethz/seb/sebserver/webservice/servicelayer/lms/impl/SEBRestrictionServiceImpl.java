@@ -242,17 +242,18 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
             log.debug("ExamDeletionEvent received, process releaseSEBClientRestriction...");
         }
 
-        event.ids.stream().forEach(examId -> {
-            this.examDAO
-                    .byPK(examId)
-                    .onSuccess(exam -> {
-                        releaseSEBClientRestriction(exam)
-                                .onError(error -> log.error(
-                                        "Failed to release SEB restrictions for finished exam: {}",
-                                        exam,
-                                        error));
-                    });
-        });
+        event.ids.stream().forEach(this::processExamDeletion);
+    }
+
+    private Result<Exam> processExamDeletion(final Long examId) {
+        return this.examDAO
+                .byPK(examId)
+                .whenDo(
+                        exam -> exam.lmsSetupId != null,
+                        exam -> releaseSEBClientRestriction(exam).getOrThrow()
+                ).onError(error -> log.error(
+                        "Failed to release SEB restrictions for finished exam: {}",
+                        examId, error));
     }
 
     @Override

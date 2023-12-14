@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -33,9 +34,6 @@ public final class QuizData implements GrantEntity {
 
     public static final String FILTER_ATTR_QUIZ_NAME = "quiz_name";
     public static final String FILTER_ATTR_START_TIME = "start_timestamp";
-
-    public static final String ATTR_ADDITIONAL_ATTRIBUTES = "ADDITIONAL_ATTRIBUTES";
-
     public static final String QUIZ_ATTR_ID = "quiz_id";
     public static final String QUIZ_ATTR_INSTITUTION_ID = Domain.EXAM.ATTR_INSTITUTION_ID;
     public static final String QUIZ_ATTR_LMS_SETUP_ID = "lms_setup_id";
@@ -81,7 +79,7 @@ public final class QuizData implements GrantEntity {
     @JsonProperty(QUIZ_ATTR_START_URL)
     public final String startURL;
 
-    @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES)
+    @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES)
     public final Map<String, String> additionalAttributes;
 
     @JsonCreator
@@ -95,7 +93,7 @@ public final class QuizData implements GrantEntity {
             @JsonProperty(QUIZ_ATTR_START_TIME) final DateTime startTime,
             @JsonProperty(QUIZ_ATTR_END_TIME) final DateTime endTime,
             @JsonProperty(QUIZ_ATTR_START_URL) final String startURL,
-            @JsonProperty(ATTR_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
+            @JsonProperty(API.PARAM_ADDITIONAL_ATTRIBUTES) final Map<String, String> additionalAttributes) {
 
         this.id = id;
         this.institutionId = institutionId;

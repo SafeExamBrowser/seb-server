@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 
 import javax.servlet.http.HttpSession;
 
+import ch.ethz.seb.sebserver.gbl.FeatureService;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
@@ -88,6 +89,7 @@ public class PageServiceImpl implements PageService {
     private final ResourceService resourceService;
     private final CurrentUser currentUser;
     private final ServerPushService serverPushService;
+    private final FeatureService featureService;
 
     public PageServiceImpl(
             final Cryptor cryptor,
@@ -96,7 +98,8 @@ public class PageServiceImpl implements PageService {
             final PolyglotPageService polyglotPageService,
             final ResourceService resourceService,
             final CurrentUser currentUser,
-            final ServerPushService serverPushService) {
+            final ServerPushService serverPushService,
+            final FeatureService featureService) {
 
         this.cryptor = cryptor;
         this.jsonMapper = jsonMapper;
@@ -105,6 +108,12 @@ public class PageServiceImpl implements PageService {
         this.resourceService = resourceService;
         this.currentUser = currentUser;
         this.serverPushService = serverPushService;
+        this.featureService = featureService;
+    }
+
+    @Override
+    public FeatureService getFeatureService() {
+        return featureService;
     }
 
     @Override

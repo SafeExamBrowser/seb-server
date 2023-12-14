@@ -135,7 +135,6 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     protected SqlTable getSQLTableOfEntity() {
         return ExamRecordDynamicSqlSupport.examRecord;
     }
-
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT
                     + API.EXAM_ADMINISTRATION_CHECK_IMPORTED_PATH_SEGMENT,
@@ -173,11 +172,10 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     defaultValue = "false") final boolean includeRestriction) {
 
         checkReadPrivilege(institutionId);
-        final Collection<APIMessage> result = this.examSessionService
+
+        return this.examSessionService
                 .checkExamConsistency(modelId)
                 .getOrThrow();
-
-        return result;
     }
 
     @RequestMapping(
@@ -596,15 +594,21 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         final SEBServerUser currentUser = this.authorization.getUserService().getCurrentUser();
         postParams.putIfAbsent(EXAM.ATTR_OWNER, currentUser.uuid());
 
-        return this.lmsAPIService
-                .getLmsAPITemplate(lmsSetupId)
-                .map(template -> {
-                    this.authorization.checkRead(template.lmsSetup());
-                    return template;
-                })
-                .flatMap(template -> template.getQuiz(quizId))
-                .map(quiz -> new Exam(null, quiz, postParams))
-                .getOrThrow();
+        // NO LMS based exam is possible since v1.6
+        if (quizId == null) {
+            ExamAdminService.newExamFieldValidation(postParams);
+            return new Exam(postParams);
+        } else {
+            return this.lmsAPIService
+                    .getLmsAPITemplate(lmsSetupId)
+                    .map(template -> {
+                        this.authorization.checkRead(template.lmsSetup());
+                        return template;
+                    })
+                    .flatMap(template -> template.getQuiz(quizId))
+                    .map(quiz -> new Exam(null, quiz, postParams))
+                    .getOrThrow();
+        }
     }
 
     @Override
@@ -764,11 +768,13 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         });
     }
 
+
+
     static Function<Collection<Exam>, List<Exam>> pageSort(final String sort) {
 
         final String sortBy = PageSortOrder.decode(sort);
         return exams -> {
-            final List<Exam> list = exams.stream().collect(Collectors.toList());
+            final List<Exam> list = new ArrayList<>(exams);
             if (StringUtils.isBlank(sort)) {
                 return list;
             }
@@ -789,5 +795,4 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             return list;
         };
     }
-
 }

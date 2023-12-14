@@ -8,25 +8,21 @@
 
 package ch.ethz.seb.sebserver.gui.form;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import ch.ethz.seb.sebserver.gbl.api.API;
+import ch.ethz.seb.sebserver.gui.widget.*;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -40,12 +36,7 @@ import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.gbl.util.Tuple;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
-import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
-import ch.ethz.seb.sebserver.gui.widget.ImageUploadSelection;
-import ch.ethz.seb.sebserver.gui.widget.PasswordInput;
-import ch.ethz.seb.sebserver.gui.widget.Selection;
 import ch.ethz.seb.sebserver.gui.widget.Selection.Type;
-import ch.ethz.seb.sebserver.gui.widget.ThresholdList;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory.CustomVariant;
 
 public final class Form implements FormBinding {
@@ -55,8 +46,10 @@ public final class Form implements FormBinding {
     private final ObjectNode objectRoot;
 
     private final Map<String, String> staticValues = new LinkedHashMap<>();
+    private final Map<String, String> additionalAttributeMapping = new LinkedHashMap<>();
     private final MultiValueMap<String, FormFieldAccessor> formFields = new LinkedMultiValueMap<>();
     private final Map<String, Set<String>> groups = new LinkedHashMap<>();
+
 
     Form(final JSONMapper jsonMapper, final Cryptor cryptor) {
         this.jsonMapper = jsonMapper;
@@ -106,6 +99,10 @@ public final class Form implements FormBinding {
         if (StringUtils.isNotBlank(value)) {
             this.staticValues.put(name, value);
         }
+    }
+
+    public void putAdditionalValueMapping(final String fieldName, final String attrName) {
+        this.additionalAttributeMapping.put(fieldName, attrName);
     }
 
     public String getStaticValue(final String name) {
@@ -175,10 +172,15 @@ public final class Form implements FormBinding {
         return this;
     }
 
-    Form putField(final String name, final Control label, final FileUploadSelection fileUpload,
-            final Label errorLabel) {
+    Form putField(final String name, final Control label, final FileUploadSelection fileUpload, final Label errorLabel) {
         final FormFieldAccessor createAccessor = createAccessor(label, fileUpload, errorLabel);
         fileUpload.setErrorHandler(createAccessor::setError);
+        this.formFields.add(name, createAccessor);
+        return this;
+    }
+
+    Form putField(final String name, final Control label, final DateTimeSelector dateTimeSelector, final Label errorLabel) {
+        final FormFieldAccessor createAccessor = createAccessor(label, dateTimeSelector, errorLabel);
         this.formFields.add(name, createAccessor);
         return this;
     }
@@ -307,6 +309,21 @@ public final class Form implements FormBinding {
                     .filter(Form::valueApplicationFilter)
                     .forEach(ffa -> ffa.putJsonValue(entry.getKey(), this.objectRoot));
         }
+
+        if (!this.additionalAttributeMapping.isEmpty()) {
+            final Map<String, String> additionalAttrs = new HashMap<>();
+            for (final Map.Entry<String, String> entry : this.additionalAttributeMapping.entrySet()) {
+                final String fieldValue = this.getFieldValue(entry.getKey());
+                if (fieldValue != null) {
+                    additionalAttrs.put(entry.getValue(), fieldValue);
+                }
+            }
+            if (additionalAttrs != null) {
+                this.objectRoot.putIfAbsent(
+                        API.PARAM_ADDITIONAL_ATTRIBUTES,
+                        jsonMapper.valueToTree(additionalAttrs));
+            }
+        }
     }
 
     private static boolean valueApplicationFilter(final FormFieldAccessor ffa) {
@@ -317,7 +334,7 @@ public final class Form implements FormBinding {
     //@formatter:off
     private FormFieldAccessor createReadonlyAccessor(final Control label, final Text field) {
         return new FormFieldAccessor(label, field, null) {
-            @Override public String getStringValue() { return null; } // ensures that read-only fields do not send diplay values to the back-end
+            @Override public String getStringValue() { return null; } // ensures that read-only fields do not send display values to the back-end
             @Override public void setStringValue(final String value) { field.setText( (value == null) ? StringUtils.EMPTY : value); }
         };
     }
@@ -412,6 +429,14 @@ public final class Form implements FormBinding {
             @Override public String getStringValue() { return fileUpload.getFileName(); }
         };
     }
+
+    private FormFieldAccessor createAccessor(final Control label, final DateTimeSelector dateTimeSelector, final Label errorLabel) {
+        return new FormFieldAccessor(label, dateTimeSelector, errorLabel) {
+            @Override public String getStringValue() { return dateTimeSelector.getValue(); }
+            @Override public void setStringValue(final String value) { dateTimeSelector.setValue(value); }
+        };
+    }
+
     //@formatter:on
 
     /*

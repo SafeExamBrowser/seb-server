@@ -8,10 +8,15 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
+import ch.ethz.seb.sebserver.gbl.model.exam.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.validation.FieldError;
@@ -19,14 +24,9 @@ import org.springframework.validation.FieldError;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage.APIMessageException;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
-import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientGroupType;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroupData.ClientOS;
-import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator.Threshold;
-import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
-import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.RemoteProctoringService;
@@ -90,7 +90,7 @@ public interface ExamAdminService {
 
     /** This indicates if proctoring is set and enabled for a certain exam.
      *
-     * @param examId the exam instance
+     * @param exam the exam instance
      * @return proctoring is enabled flag */
     default boolean isProctoringEnabled(final Exam exam) {
         if (exam == null || exam.id == null) {
@@ -107,7 +107,7 @@ public interface ExamAdminService {
 
     /** This indicates if screen proctoring is set and enabled for a certain exam.
      *
-     * @param examId the exam instance
+     * @param exam the exam instance
      * @return screen proctoring is enabled flag */
     default boolean isScreenProctoringEnabled(final Exam exam) {
         if (exam == null || exam.id == null) {
@@ -163,10 +163,58 @@ public interface ExamAdminService {
      * @param exam the exam that has been changed and saved */
     void notifyExamSaved(Exam exam);
 
+    static void newExamFieldValidation(final POSTMapper postParams) {
+        final Collection<APIMessage> validationErrors = new ArrayList<>();
+
+        if (!postParams.contains(Domain.EXAM.ATTR_QUIZ_NAME)) {
+            validationErrors.add(APIMessage.fieldValidationError(
+                    Domain.EXAM.ATTR_QUIZ_NAME,
+                    "exam:quizName:notNull"));
+        } else {
+            final int length = postParams.getString(Domain.EXAM.ATTR_QUIZ_NAME).length();
+            if (length < 3 || length > 255) {
+                validationErrors.add(APIMessage.fieldValidationError(
+                        Domain.EXAM.ATTR_QUIZ_NAME,
+                        "exam:quizName:size:3:255:" + length));
+            }
+        }
+
+        if (!postParams.contains(QuizData.QUIZ_ATTR_START_URL)) {
+            validationErrors.add(APIMessage.fieldValidationError(
+                    QuizData.QUIZ_ATTR_START_URL,
+                    "exam:quiz_start_url:notNull"));
+        } else {
+            try {
+                new URL(postParams.getString(QuizData.QUIZ_ATTR_START_URL)).toURI();
+            } catch (final Exception e) {
+                validationErrors.add(APIMessage.fieldValidationError(
+                        QuizData.QUIZ_ATTR_START_URL,
+                        "exam:quiz_start_url:invalidURL"));
+            }
+        }
+
+        if (!postParams.contains(Domain.EXAM.ATTR_QUIZ_START_TIME)) {
+            validationErrors.add(APIMessage.fieldValidationError(
+                    Domain.EXAM.ATTR_QUIZ_START_TIME,
+                    "exam:quizStartTime:notNull"));
+        } else if (postParams.contains(Domain.EXAM.ATTR_QUIZ_END_TIME)) {
+            if (postParams.getDateTime(Domain.EXAM.ATTR_QUIZ_START_TIME)
+                    .isAfter(postParams.getDateTime(Domain.EXAM.ATTR_QUIZ_END_TIME))) {
+                validationErrors.add(APIMessage.fieldValidationError(
+                        Domain.EXAM.ATTR_QUIZ_END_TIME,
+                        "exam:quizEndTime:endBeforeStart"));
+            }
+        }
+
+        if (!validationErrors.isEmpty()) {
+            throw new APIMessageException(validationErrors);
+        }
+    }
+
     /** Used to check threshold consistency for a given list of thresholds.
      * Checks if all values are present (none null value)
      * Checks if there are duplicates
-     *
+     * <p>
      * If a check fails, the methods throws a APIMessageException with a FieldError to notify the caller
      *
      * @param thresholds List of Threshold */

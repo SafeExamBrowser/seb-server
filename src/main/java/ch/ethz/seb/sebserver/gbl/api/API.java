@@ -47,6 +47,7 @@ public final class API {
     public static final String PARAM_VIEW_ID = "viewId";
     public static final String PARAM_INSTRUCTION_TYPE = "instructionType";
     public static final String PARAM_INSTRUCTION_ATTRIBUTES = "instructionAttributes";
+    public static final String PARAM_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
 
     public static final String DEFAULT_CONFIG_TEMPLATE_ID = String.valueOf(ConfigurationNode.DEFAULT_TEMPLATE_ID);
 

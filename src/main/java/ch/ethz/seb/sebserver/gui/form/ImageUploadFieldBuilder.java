@@ -25,6 +25,7 @@ public final class ImageUploadFieldBuilder extends FieldBuilder<String> {
 
     ImageUploadFieldBuilder(final String name, final LocTextKey label, final String value) {
         super(name, label, value);
+        super.titleValign = SWT.TOP;
     }
 
     public ImageUploadFieldBuilder withMaxWidth(final int width) {

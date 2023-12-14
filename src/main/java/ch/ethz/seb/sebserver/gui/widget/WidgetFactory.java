@@ -151,7 +151,8 @@ public class WidgetFactory {
         NO_SHIELD("no_shield.png"),
         BACK("back.png"),
         SCREEN_PROC_ON("screen_proc_on.png"),
-        SCREEN_PROC_OFF("screen_proc_off.png");
+        SCREEN_PROC_OFF("screen_proc_off.png"),
+        ADD_EXAM("add_exam.png");
 
         public String fileName;
         private ImageData image = null;
@@ -882,6 +883,7 @@ public class WidgetFactory {
     public DateTime dateSelector(final Composite parent, final LocTextKey label, final String testKey) {
         RWT.setLocale(this.i18nSupport.getUsersFormatLocale());
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        gridData.widthHint = 120;
         final DateTime dateTime = new DateTime(parent, SWT.DATE | SWT.BORDER | SWT.DROP_DOWN);
         dateTime.setLayoutData(gridData);
 

@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam;
 
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.FormBinding;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
