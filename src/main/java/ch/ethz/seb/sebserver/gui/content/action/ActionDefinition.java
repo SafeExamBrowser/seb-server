@@ -242,6 +242,12 @@ public enum ActionDefinition {
     EXAM_VIEW_LIST(
             new LocTextKey("sebserver.exam.action.list"),
             PageStateDefinitionImpl.EXAM_LIST),
+
+    EXAM_NEW(
+            new LocTextKey("sebserver.exam.action.new"),
+            ImageIcon.ADD_EXAM,
+            PageStateDefinitionImpl.EXAM_EDIT,
+            ActionCategory.EXAM_LIST),
     EXAM_IMPORT(
             new LocTextKey("sebserver.exam.action.import"),
             ImageIcon.IMPORT,
@@ -843,7 +849,7 @@ public enum ActionDefinition {
             ActionCategory.SEB_CONFIG_TEMPLATE_ATTRIBUTE_LIST),
     SEB_EXAM_CONFIG_TEMPLATE_ATTR_SET_DEFAULT(
             new LocTextKey("sebserver.configtemplate.attr.list.actions.setdefault"),
-            ImageIcon.SAVE,
+            ImageIcon.RESET,
             PageStateDefinitionImpl.SEB_EXAM_CONFIG_TEMPLATE_VIEW,
             ActionCategory.SEB_CONFIG_TEMPLATE_ATTRIBUTE_LIST),
     SEB_EXAM_CONFIG_TEMPLATE_ATTR_LIST_REMOVE_VIEW(
