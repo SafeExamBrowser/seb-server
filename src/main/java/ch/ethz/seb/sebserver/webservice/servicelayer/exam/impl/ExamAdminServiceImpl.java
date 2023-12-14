@@ -166,6 +166,11 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     public Result<Exam> applyAdditionalSEBRestrictions(final Exam exam) {
         return Result.tryCatch(() -> {
 
+            // this only applies to exams that are attached to an LMS
+            if (exam.lmsSetupId == null) {
+                return exam;
+            }
+
             if (log.isDebugEnabled()) {
                 log.debug("Apply additional SEB restrictions for exam: {}",
                         exam.externalId);
@@ -325,6 +330,11 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     private Result<Exam> initAdditionalAttributesForMoodleExams(final Exam exam) {
         return Result.tryCatch(() -> {
+
+            if (exam.lmsSetupId == null) {
+                return exam;
+            }
+
             final LmsAPITemplate lmsTemplate = this.lmsAPIService
                     .getLmsAPITemplate(exam.lmsSetupId)
                     .getOrThrow();

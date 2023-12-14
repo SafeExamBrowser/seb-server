@@ -270,7 +270,7 @@ public class ExamRecordDAO {
             }
 
             if (exam.status != null && !exam.status.name().equals(oldRecord.getStatus())) {
-                log.warn("Exam state change on save. Exam. {}, Old state: {}, new state: {}",
+                log.info("Exam state change on save. Exam. {}, Old state: {}, new state: {}",
                         exam.externalId,
                         oldRecord.getStatus(),
                         exam.status);

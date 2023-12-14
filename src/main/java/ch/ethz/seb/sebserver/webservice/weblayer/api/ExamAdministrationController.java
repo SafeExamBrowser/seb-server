@@ -539,7 +539,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     + API.EXAM_ADMINISTRATION_SCREEN_PROCTORING_PATH_SEGMENT,
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScreenProctoringSettings getScreenProctoringeSettings(
+    public ScreenProctoringSettings getScreenProctoringSettings(
             @RequestParam(
                     name = API.PARAM_INSTITUTION_ID,
                     required = true,
@@ -655,6 +655,9 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             errors.add(0, ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(
                     entity.getModelId(),
                     API.PARAM_MODEL_ID + Constants.FORM_URL_ENCODED_NAME_VALUE_SEPARATOR + entity.getModelId()));
+
+            log.warn("Exam successfully created but some initialization did go wrong: {}", errors);
+
             throw new APIMessageException(errors);
         } else {
             return this.examDAO.byPK(entity.id);
@@ -679,7 +682,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     @Override
     protected Result<Exam> validForSave(final Exam entity) {
         return super.validForSave(entity)
-                .map(this::checkExamSupporterRole);
+                .map(this::checkExamSupporterRole)
+                .map(ExamAdminService::noLMSFieldValidation);
     }
 
     @Override

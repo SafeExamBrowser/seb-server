@@ -84,9 +84,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
 
         // check only if SEB_RESTRICTION feature is on
         if (lmsSetup != null && lmsSetup.lmsType.features.contains(Features.SEB_RESTRICTION)) {
-            if (!exam.sebRestriction) {
-                return false;
-            }
+            return exam.sebRestriction;
         }
 
         return true;
@@ -97,12 +95,11 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     public Result<SEBRestriction> getSEBRestrictionFromExam(final Exam exam) {
         return Result.tryCatch(() -> {
             // load the config keys from restriction and merge with new generated config keys
-            final Set<String> configKeys = new HashSet<>();
             final Collection<String> generatedKeys = this.examConfigService
                     .generateConfigKeys(exam.institutionId, exam.id)
                     .getOrThrow();
 
-            configKeys.addAll(generatedKeys);
+            final Set<String> configKeys = new HashSet<>(generatedKeys);
             if (!generatedKeys.isEmpty()) {
                 configKeys.addAll(this.lmsAPIService
                         .getLmsAPITemplate(exam.lmsSetupId)
@@ -210,6 +207,11 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     @EventListener(ExamStartedEvent.class)
     public void notifyExamStarted(final ExamStartedEvent event) {
 
+        // This affects only exams with LMS binding...
+        if (event.exam.lmsSetupId == null) {
+            return;
+        }
+
         if (log.isDebugEnabled()) {
             log.debug("ExamStartedEvent received, process applySEBClientRestriction...");
         }
@@ -224,6 +226,11 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
 
     @EventListener(ExamFinishedEvent.class)
     public void notifyExamFinished(final ExamFinishedEvent event) {
+
+        // This affects only exams with LMS binding...
+        if (event.exam.lmsSetupId == null) {
+            return;
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("ExamFinishedEvent received, process releaseSEBClientRestriction...");
@@ -260,6 +267,11 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     @Override
     public Result<Exam> applySEBClientRestriction(final Exam exam) {
         return Result.tryCatch(() -> {
+            if (exam.lmsSetupId == null) {
+                log.info("No LMS for Exam: {}", exam.name);
+                return exam;
+            }
+
             if (!this.lmsAPIService
                     .getLmsSetup(exam.lmsSetupId)
                     .getOrThrow().lmsType.features.contains(Features.SEB_RESTRICTION)) {

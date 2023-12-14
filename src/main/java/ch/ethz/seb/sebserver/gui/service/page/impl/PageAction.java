@@ -222,7 +222,7 @@ public final class PageAction {
         } catch (final FormPostException e) {
             if (e.getCause() instanceof RestCallError) {
                 final RestCallError cause = (RestCallError) e.getCause();
-                if (cause.isUnexpectedError()) {
+                if (cause.isUnexpectedError() || log.isDebugEnabled()) {
                     log.error("Failed to execute action: {} | error: {} | cause: {}",
                             PageAction.this.getName(),
                             cause.getMessage(),

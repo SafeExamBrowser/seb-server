@@ -535,8 +535,9 @@ public class WidgetFactory {
             final LocTextKey ariaLabel) {
 
         final Text input = readonly
-                ? new Text(content, SWT.LEFT | SWT.MULTI)
-                : new Text(content, SWT.LEFT | SWT.BORDER | SWT.MULTI);
+                ? new Text(content, SWT.LEFT | SWT.MULTI | SWT.WRAP)
+                : new Text(content, SWT.LEFT | SWT.BORDER | SWT.MULTI | SWT.WRAP);
+
         if (ariaLabel != null) {
             WidgetFactory.setARIALabel(input, this.i18nSupport.getText(ariaLabel));
         }

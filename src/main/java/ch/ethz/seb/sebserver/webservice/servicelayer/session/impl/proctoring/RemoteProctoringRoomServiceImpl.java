@@ -172,7 +172,9 @@ public class RemoteProctoringRoomServiceImpl implements RemoteProctoringRoomServ
     @EventListener
     public void notifyExamFinished(final ExamFinishedEvent event) {
 
-        log.info("ExamFinishedEvent received, process disposeRoomsForExam...");
+        if (log.isDebugEnabled()) {
+            log.debug("ExamFinishedEvent received, process disposeRoomsForExam...");
+        }
 
         disposeRoomsForExam(event.exam)
                 .onError(error -> log.error("Failed to dispose rooms for finished exam: {}", event.exam, error));
@@ -183,11 +185,13 @@ public class RemoteProctoringRoomServiceImpl implements RemoteProctoringRoomServ
 
         return Result.tryCatch(() -> {
 
-            log.info("Dispose and deleting proctoring rooms for exam: {}", exam.externalId);
-
             final ProctoringServiceSettings proctoringSettings = this.examAdminService
                     .getProctoringServiceSettings(exam.id)
                     .getOrThrow();
+
+            if (proctoringSettings.enableProctoring) {
+                log.info("Dispose and deleting proctoring rooms for exam: {}", exam.externalId);
+            }
 
             this.proctoringAdminService
                     .getExamProctoringService(proctoringSettings.serverType)

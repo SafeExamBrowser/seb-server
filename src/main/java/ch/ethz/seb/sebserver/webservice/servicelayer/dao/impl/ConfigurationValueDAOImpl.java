@@ -28,6 +28,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,7 +148,11 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                         attrId);
             }
 
-            return records.get(0).getValue();
+            final String value = records.get(0).getValue();
+            if (value == null) {
+                return StringUtils.EMPTY;
+            }
+            return value;
         });
     }
 

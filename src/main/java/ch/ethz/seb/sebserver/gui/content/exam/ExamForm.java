@@ -228,8 +228,7 @@ public class ExamForm implements TemplateComposer {
         final EntityGrantCheck entityGrantCheck = currentUser.entityGrantCheck(exam);
         final boolean modifyGrant = entityGrantCheck.m();
         final boolean writeGrant = entityGrantCheck.w();
-        final boolean editable = modifyGrant &&
-                (exam.getStatus() == ExamStatus.UP_COMING || exam.getStatus() == ExamStatus.RUNNING);
+        final boolean editable = modifyGrant && (exam.getStatus() == ExamStatus.UP_COMING || exam.getStatus() == ExamStatus.RUNNING);
         final boolean signatureKeyCheckEnabled = BooleanUtils.toBoolean(
                 exam.additionalAttributes.get(Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_CHECK_ENABLED));
         final boolean sebRestrictionAvailable = readonly && testSEBRestrictionAPI(exam);
@@ -294,7 +293,8 @@ public class ExamForm implements TemplateComposer {
 
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(formContext
                 .clearEntityKeys()
-                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA));
+                .removeAttribute(AttributeKeys.IMPORT_FROM_QUIZ_DATA)
+                .removeAttribute(AttributeKeys.NEW_EXAM_NO_LMS));
 
 
         // propagate content actions to action-pane
@@ -302,7 +302,8 @@ public class ExamForm implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_MODIFY)
                 .withEntityKey(entityKey)
-                .publishIf(() -> modifyGrant && readonly && editable)
+                .publishIf(() -> modifyGrant && readonly &&
+                        (editable || (exam.getStatus() == ExamStatus.FINISHED && exam.lmsSetupId == null)))
 
                 .newAction(ActionDefinition.EXAM_DELETE)
                 .withEntityKey(entityKey)
@@ -316,7 +317,7 @@ public class ExamForm implements TemplateComposer {
                 .publishIf(() -> writeGrant && readonly && exam.status == ExamStatus.FINISHED)
 
                 .newAction(ActionDefinition.EXAM_SAVE)
-                .withExec(action -> (importFromQuizData)
+                .withExec(action -> importFromQuizData
                         ? importExam(action, formHandle, sebRestrictionAvailable && exam.status == ExamStatus.RUNNING)
                         : formHandle.processFormSave(action))
                 .ignoreMoveAwayFromEdit()
@@ -493,7 +494,7 @@ public class ExamForm implements TemplateComposer {
                         QuizData.QUIZ_ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
                         exam.getDescription())
-                        .asHTML(50)
+                        .asHTMLOrArea(50, exam.lmsSetupId != null)
                         .readonly(true)
                         .withInputSpan(7)
                         .withEmptyCellSeparation(false))

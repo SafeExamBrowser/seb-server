@@ -106,7 +106,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                 log.debug("Update-Lock successfully placed for all involved exams: {}", examsIds);
             }
 
-            // check running exam integrity again after lock to ensure there where no SEB Client connection attempts in the meantime
+            // check running exam integrity again after lock to ensure there were no SEB Client connection attempts in the meantime
             final Collection<Long> examIdsSecondCheck = checkRunningExamIntegrity(configurationNodeId)
                     .getOrThrow();
 
@@ -129,7 +129,7 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
             // generate the new Config Key and update the Config Key within the LMSSetup API for each exam (delete old Key and add new Key)
             for (final Exam exam : exams) {
-                if (exam.getStatus() == ExamStatus.RUNNING) {
+                if (exam.getStatus() == ExamStatus.RUNNING && exam.lmsSetupId != null) {
 
                     this.examUpdateHandler
                             .getSEBRestrictionService()

@@ -27,7 +27,7 @@ public class MockSEBRestrictionAPI implements SEBRestrictionAPI {
 
     private static final Logger log = LoggerFactory.getLogger(MockSEBRestrictionAPI.class);
 
-    //private Map<Long, Boolean> restrictionDB = new ConcurrentHashMap<>();
+    private Map<Long, SEBRestriction> restrictionDB = new ConcurrentHashMap<>();
 
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
@@ -37,7 +37,11 @@ public class MockSEBRestrictionAPI implements SEBRestrictionAPI {
     @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
         log.info("Get SEB Client restriction for Exam: {}", exam);
-        return Result.ofError(new NoSEBRestrictionException());
+        if (!restrictionDB.containsKey(exam.id)) {
+            return Result.ofError(new NoSEBRestrictionException());
+        } else {
+            return Result.of(restrictionDB.get(exam.id));
+        }
     }
 
     @Override
@@ -46,13 +50,24 @@ public class MockSEBRestrictionAPI implements SEBRestrictionAPI {
             final SEBRestriction sebRestrictionData) {
 
         log.info("Apply SEB Client restriction: {}", sebRestrictionData);
-        //return Result.ofError(new NoSEBRestrictionException());
+        restrictionDB.put(exam.id, sebRestrictionData);
         return Result.of(sebRestrictionData);
     }
 
     @Override
     public Result<Exam> releaseSEBClientRestriction(final Exam exam) {
         log.info("Release SEB Client restriction for Exam: {}", exam);
+        if (restrictionDB.containsKey(exam.id)) {
+            SEBRestriction sebRestriction = restrictionDB.get(exam.id);
+            restrictionDB.put(
+                    exam.id,
+                    new SEBRestriction(
+                            exam.id,
+                            null,
+                            null,
+                            sebRestriction.additionalProperties,
+                            sebRestriction.warningMessage));
+        }
         return Result.of(exam);
     }
 

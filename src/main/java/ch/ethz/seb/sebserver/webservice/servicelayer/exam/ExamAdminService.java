@@ -67,7 +67,7 @@ public interface ExamAdminService {
      * @return Result refer to the created exam or to an error when happened */
     Result<Exam> applyAdditionalSEBRestrictions(Exam exam);
 
-    /** Indicates whether a specific exam is been restricted with SEB restriction feature on the LMS or not.
+    /** Indicates whether a specific exam is being restricted with SEB restriction feature on the LMS or not.
      *
      * @param exam The exam instance
      * @return Result refer to the restriction flag or to an error when happened */
@@ -164,14 +164,23 @@ public interface ExamAdminService {
     void notifyExamSaved(Exam exam);
 
     static void newExamFieldValidation(final POSTMapper postParams) {
-        final Collection<APIMessage> validationErrors = new ArrayList<>();
+        noLMSFieldValidation(new Exam(postParams));
+    }
 
-        if (!postParams.contains(Domain.EXAM.ATTR_QUIZ_NAME)) {
+    static Exam noLMSFieldValidation(final Exam exam) {
+
+        // This only applies to exams that has no LMS
+        if (exam.lmsSetupId != null) {
+            return exam;
+        }
+
+        final Collection<APIMessage> validationErrors = new ArrayList<>();
+        if (StringUtils.isBlank(exam.name)) {
             validationErrors.add(APIMessage.fieldValidationError(
                     Domain.EXAM.ATTR_QUIZ_NAME,
                     "exam:quizName:notNull"));
         } else {
-            final int length = postParams.getString(Domain.EXAM.ATTR_QUIZ_NAME).length();
+            final int length = exam.name.length();
             if (length < 3 || length > 255) {
                 validationErrors.add(APIMessage.fieldValidationError(
                         Domain.EXAM.ATTR_QUIZ_NAME,
@@ -179,13 +188,13 @@ public interface ExamAdminService {
             }
         }
 
-        if (!postParams.contains(QuizData.QUIZ_ATTR_START_URL)) {
+        if (StringUtils.isBlank(exam.getStartURL())) {
             validationErrors.add(APIMessage.fieldValidationError(
                     QuizData.QUIZ_ATTR_START_URL,
                     "exam:quiz_start_url:notNull"));
         } else {
             try {
-                new URL(postParams.getString(QuizData.QUIZ_ATTR_START_URL)).toURI();
+                new URL(exam.getStartURL()).toURI();
             } catch (final Exception e) {
                 validationErrors.add(APIMessage.fieldValidationError(
                         QuizData.QUIZ_ATTR_START_URL,
@@ -193,13 +202,13 @@ public interface ExamAdminService {
             }
         }
 
-        if (!postParams.contains(Domain.EXAM.ATTR_QUIZ_START_TIME)) {
+        if (exam.startTime == null) {
             validationErrors.add(APIMessage.fieldValidationError(
                     Domain.EXAM.ATTR_QUIZ_START_TIME,
                     "exam:quizStartTime:notNull"));
-        } else if (postParams.contains(Domain.EXAM.ATTR_QUIZ_END_TIME)) {
-            if (postParams.getDateTime(Domain.EXAM.ATTR_QUIZ_START_TIME)
-                    .isAfter(postParams.getDateTime(Domain.EXAM.ATTR_QUIZ_END_TIME))) {
+        } else if (exam.endTime != null) {
+            if (exam.startTime
+                    .isAfter(exam.endTime)) {
                 validationErrors.add(APIMessage.fieldValidationError(
                         Domain.EXAM.ATTR_QUIZ_END_TIME,
                         "exam:quizEndTime:endBeforeStart"));
@@ -209,6 +218,8 @@ public interface ExamAdminService {
         if (!validationErrors.isEmpty()) {
             throw new APIMessageException(validationErrors);
         }
+
+        return exam;
     }
 
     /** Used to check threshold consistency for a given list of thresholds.
@@ -325,5 +336,6 @@ public interface ExamAdminService {
                             "clientGroup:clientOS:notNull")));
         }
     }
+
 
 }

@@ -94,6 +94,14 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
         return this;
     }
 
+    public TextFieldBuilder asHTMLOrArea(final int minHeight, final boolean html) {
+        if (html) {
+            return this.asHTML(minHeight);
+        } else {
+            return this.asArea(minHeight);
+        }
+    }
+
     public TextFieldBuilder asMarkupLabel() {
         this.isMarkupLabel = true;
         return this;
@@ -186,5 +194,6 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
                         .replace("</A", "</span")
                 + HTML_TEXT_BLOCK_END;
     }
+
 
 }
