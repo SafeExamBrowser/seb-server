@@ -23,18 +23,18 @@ public interface SEBRestrictionAPI {
      * @return {@link LmsSetupTestResult } instance with the test result report */
     LmsSetupTestResult testCourseRestrictionAPI();
 
-    /** Get SEB restriction data from LMS within a {@link SEBRestrictionData } instance. The available restriction
+    /** Get SEB restriction data from LMS within a {@link SEBRestriction } instance. The available restriction
      * details
      * depends on the type of LMS but shall at least contains the config-key(s) and the browser-exam-key(s).
      *
      * @param exam the exam to get the SEB restriction data for
-     * @return Result refer to the {@link SEBRestrictionData } instance or to an ResourceNotFoundException if the
+     * @return Result refer to the {@link SEBRestriction } instance or to an ResourceNotFoundException if the
      *         restriction is
      *         missing or to another exception on unexpected error case */
     Result<SEBRestriction> getSEBClientRestriction(Exam exam);
 
     /** Use this to check if there is a SEB restriction available on the LMS for the specified exam.
-     *
+     * <p>
      * A SEB Restriction is available if it can get from LMS and if there is either a Config-Key
      * or a BrowserExam-Key set or both. If none of this keys is set, the SEB Restriction is been
      * considered to not set on the LMS.
@@ -42,12 +42,7 @@ public interface SEBRestrictionAPI {
      * @param exam exam the exam to get the SEB restriction data for
      * @return true if there is a SEB restriction set on the LMS for the exam or false otherwise */
     default boolean hasSEBClientRestriction(final Exam exam) {
-        final Result<SEBRestriction> sebClientRestriction = getSEBClientRestriction(exam);
-        if (sebClientRestriction.hasError()) {
-            return false;
-        }
-
-        return hasSEBClientRestriction(sebClientRestriction.get());
+        return hasSEBClientRestriction(getSEBClientRestriction(exam).getOrThrow());
     }
 
     default boolean hasSEBClientRestriction(final SEBRestriction sebRestriction) {
@@ -58,7 +53,7 @@ public interface SEBRestrictionAPI {
      *
      * @param exam The exam to apply the restriction for
      * @param sebRestrictionData containing all data for SEB Client restriction to apply to the LMS
-     * @return Result refer to the given {@link SEBRestrictionData } if restriction was successful or to an error if
+     * @return Result refer to the given {@link SEBRestriction } if restriction was successful or to an error if
      *         not */
     Result<SEBRestriction> applySEBClientRestriction(
             Exam exam,

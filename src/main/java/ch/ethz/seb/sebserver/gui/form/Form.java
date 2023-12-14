@@ -16,7 +16,6 @@ import java.util.function.Predicate;
 
 import ch.ethz.seb.sebserver.gbl.api.API;
 import ch.ethz.seb.sebserver.gui.widget.*;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
@@ -105,6 +104,10 @@ public final class Form implements FormBinding {
         this.additionalAttributeMapping.put(fieldName, attrName);
     }
 
+    public void putAdditionalValueMapping(final String fieldName) {
+        this.additionalAttributeMapping.put(fieldName, fieldName);
+    }
+
     public String getStaticValue(final String name) {
         return this.staticValues.get(name);
     }
@@ -188,7 +191,7 @@ public final class Form implements FormBinding {
     Form removeField(final String name) {
         if (this.formFields.containsKey(name)) {
             final List<FormFieldAccessor> list = this.formFields.remove(name);
-            list.forEach(ffa -> ffa.dispose());
+            list.forEach(FormFieldAccessor::dispose);
         }
 
         return this;
@@ -318,7 +321,7 @@ public final class Form implements FormBinding {
                     additionalAttrs.put(entry.getValue(), fieldValue);
                 }
             }
-            if (additionalAttrs != null) {
+            if (!additionalAttrs.isEmpty()) {
                 this.objectRoot.putIfAbsent(
                         API.PARAM_ADDITIONAL_ATTRIBUTES,
                         jsonMapper.valueToTree(additionalAttrs));

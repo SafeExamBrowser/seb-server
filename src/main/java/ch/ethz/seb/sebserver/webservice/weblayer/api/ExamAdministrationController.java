@@ -337,7 +337,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return this.examDAO
                 .byPK(modelId)
                 .flatMap(this.examAdminService::isRestricted)
-                .getOrThrow();
+                .getOr(false);
     }
 
     @RequestMapping(
@@ -376,7 +376,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         return this.entityDAO.byPK(examId)
                 .flatMap(this.authorization::checkModify)
                 .flatMap(exam -> this.sebRestrictionService.saveSEBRestrictionToExam(exam, sebRestriction))
-                .flatMap(exam -> this.examAdminService.isRestricted(exam).getOrThrow()
+                .flatMap(exam -> this.examAdminService.isRestricted(exam).getOr(false)
                         ? this.applySEBRestriction(exam, true)
                         : Result.of(exam))
                 .getOrThrow();

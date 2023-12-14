@@ -124,7 +124,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     EntityType.EXAM,
                     examId,
                     Exam.ADDITIONAL_ATTR_SIGNATURE_KEY_SALT,
-                    KeyGenerators.string().generateKey().toString());
+                    KeyGenerators.string().generateKey());
 
             return exam;
         }).flatMap(this::initAdditionalAttributesForMoodleExams);
@@ -204,7 +204,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         return this.lmsAPIService
                 .getLmsAPITemplate(exam.lmsSetupId)
                 .map(lmsAPI -> lmsAPI.hasSEBClientRestriction(exam))
-                .onError(error -> log.error("Failed to check SEB restriction: ", error));
+                .onError(error -> log.warn("Failed to check SEB restriction: {}", error.getMessage()));
     }
 
     @Override
@@ -301,7 +301,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
         return getProctoringServiceSettings(exam.id)
                 .map(settings -> {
-                    ProctoringServiceSettings resetSettings;
+                    final ProctoringServiceSettings resetSettings;
                     if (exam.examTemplateId != null) {
                         // get settings from origin template
                         resetSettings = this.proctoringAdminService
@@ -401,7 +401,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
                     .stream()
                     .forEach(configNodeId -> {
                         if (this.examConfigurationMapDAO.checkNoActiveExamReferences(configNodeId).getOr(false)) {
-                            log.debug("Also set exam configuration to archived: ", configNodeId);
+                            log.debug("Also set exam configuration to archived: {}", configNodeId);
                             this.configurationNodeDAO.save(
                                     new ConfigurationNode(
                                             configNodeId, null, null, null, null, null,

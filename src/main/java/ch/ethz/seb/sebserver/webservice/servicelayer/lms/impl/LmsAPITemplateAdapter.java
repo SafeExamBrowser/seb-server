@@ -386,18 +386,12 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
         return this.restrictionRequest.protectedRun(() -> this.sebRestrictionAPI
                 .getSEBClientRestriction(exam)
-                .onError(error -> log.error("Failed to get SEB restrictions: {}", error.getMessage()))
                 .getOrThrow());
     }
 
     @Override
     public boolean hasSEBClientRestriction(final Exam exam) {
-        final Result<SEBRestriction> sebClientRestriction = getSEBClientRestriction(exam);
-        if (sebClientRestriction.hasError()) {
-            return false;
-        }
-
-        return this.sebRestrictionAPI.hasSEBClientRestriction(sebClientRestriction.get());
+        return this.sebRestrictionAPI.hasSEBClientRestriction(getSEBClientRestriction(exam).getOrThrow());
     }
 
     @Override

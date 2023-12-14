@@ -177,9 +177,7 @@ public final class CircuitBreaker<T> {
 
                 this.state = State.HALF_OPEN;
                 this.failingCount.set(0);
-                return Result.ofError(new RuntimeException(
-                        "Set CircuitBeaker to half-open state. Cause: " + result.getError(),
-                        result.getError()));
+                return result;
             } else {
                 // try again
                 return protectedRun(supplier);
@@ -258,7 +256,7 @@ public final class CircuitBreaker<T> {
             return Result.ofError(e);
         } catch (final ExecutionException e) {
             future.cancel(false);
-            if (log.isWarnEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.warn("Attempt error: {}, {}", e.getMessage(), this.state);
             }
             final Throwable cause = e.getCause();

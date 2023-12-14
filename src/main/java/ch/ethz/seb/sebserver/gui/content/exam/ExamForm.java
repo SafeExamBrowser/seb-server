@@ -238,7 +238,7 @@ public class ExamForm implements TemplateComposer {
                 .withURIVariable(API.PARAM_MODEL_ID, exam.getModelId())
                 .call()
                 .onError(e -> log.error("Unexpected error while trying to verify seb restriction settings: ", e))
-                .getOr(false);
+                .getOr(exam.sebRestriction);
         final boolean sebRestrictionMismatch = readonly &&
                 sebRestrictionAvailable &&
                 isRestricted != exam.sebRestriction &&
@@ -525,7 +525,6 @@ public class ExamForm implements TemplateComposer {
         final boolean newExam = exam.id == null;
         final boolean hasLMS = exam.lmsSetupId != null;
         final boolean importFromLMS = newExam && hasLMS;
-        final DateTimeZone timeZone = this.pageService.getCurrentUser().get().timeZone;
         final LocTextKey statusTitle = new LocTextKey("sebserver.exam.status." + exam.status.name());
 
         return this.pageService.formBuilder(formContext.copyOf(content))
@@ -585,9 +584,7 @@ public class ExamForm implements TemplateComposer {
                                 exam.getDescription())
                         .asArea()
                         .readonly(hasLMS))
-                .withAdditionalValueMapping(
-                        QuizData.QUIZ_ATTR_DESCRIPTION,
-                        QuizData.QUIZ_ATTR_DESCRIPTION)
+                .withAdditionalValueMapping(QuizData.QUIZ_ATTR_DESCRIPTION)
 
                 .addField(FormBuilder.dateTime(
                                 Domain.EXAM.ATTR_QUIZ_START_TIME,
@@ -599,11 +596,8 @@ public class ExamForm implements TemplateComposer {
                 .addField(FormBuilder.dateTime(
                                 Domain.EXAM.ATTR_QUIZ_END_TIME,
                                 FORM_END_TIME_TEXT_KEY,
-                                exam.endTime != null
-                                        ? exam.endTime
-                                        : DateTime.now(timeZone).plusHours(1))
-                        .readonly(hasLMS)
-                        .mandatory(!hasLMS))
+                                exam.endTime)
+                        .readonly(hasLMS))
 
                 .addField(FormBuilder.text(
                                 QuizData.QUIZ_ATTR_START_URL,
@@ -611,9 +605,7 @@ public class ExamForm implements TemplateComposer {
                                 exam.getStartURL())
                         .readonly(hasLMS)
                         .mandatory(!hasLMS))
-                .withAdditionalValueMapping(
-                        QuizData.QUIZ_ATTR_START_URL,
-                        QuizData.QUIZ_ATTR_START_URL)
+                .withAdditionalValueMapping(QuizData.QUIZ_ATTR_START_URL)
 
                 .addField(FormBuilder.singleSelection(
                                 Domain.EXAM.ATTR_TYPE,
@@ -636,6 +628,7 @@ public class ExamForm implements TemplateComposer {
     }
 
     private Exam newExamNoLMS() {
+        final DateTimeZone timeZone = this.pageService.getCurrentUser().get().timeZone;
         return new Exam(
             null,
             this.pageService.getCurrentUser().get().institutionId,
@@ -643,8 +636,8 @@ public class ExamForm implements TemplateComposer {
             UUID.randomUUID().toString(),
             true,
             null,
-            null,
-            null,
+                DateTime.now(timeZone),
+                DateTime.now(timeZone).plusHours(1),
             Exam.ExamType.UNDEFINED,
             null,
             null,

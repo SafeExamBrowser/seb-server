@@ -153,8 +153,11 @@ public class LmsAPIServiceImpl implements LmsAPIService {
         }
 
         if (template.lmsSetup().getLmsType().features.contains(LmsSetup.Features.SEB_RESTRICTION)) {
-            this.cache.remove(new CacheKey(template.lmsSetup().getModelId(), 0));
-            return template.testCourseRestrictionAPI();
+            final LmsSetupTestResult lmsSetupTestResult = template.testCourseRestrictionAPI();
+            if (!lmsSetupTestResult.isOk()) {
+                this.cache.remove(new CacheKey(template.lmsSetup().getModelId(), 0));
+            }
+            return lmsSetupTestResult;
         }
 
         return LmsSetupTestResult.ofOkay(template.lmsSetup().getLmsType());

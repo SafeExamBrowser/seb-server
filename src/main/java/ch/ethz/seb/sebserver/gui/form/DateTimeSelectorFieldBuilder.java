@@ -23,10 +23,11 @@ public class DateTimeSelectorFieldBuilder extends FieldBuilder<DateTime> {
         final Composite fieldGrid = createFieldGrid(builder.formParent, this.spanInput);
 
         if (readonly) {
-            final Text label = new Text(fieldGrid, SWT.NONE);
-            label.setText(builder.i18nSupport.formatDisplayDateTime(value) + " " + builder.i18nSupport.getUsersTimeZoneTitleSuffix());
-            label.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
-            builder.form.putReadonlyField(this.name, titleLabel, label);
+            final Text readonlyLabel = builder.widgetFactory.textInput(fieldGrid, this.label);
+            readonlyLabel.setEditable(false);
+            readonlyLabel.setText(builder.i18nSupport.formatDisplayDateWithTimeZone(value));
+            readonlyLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, true));
+            builder.form.putReadonlyField(this.name, titleLabel, readonlyLabel);
             return;
         }
 

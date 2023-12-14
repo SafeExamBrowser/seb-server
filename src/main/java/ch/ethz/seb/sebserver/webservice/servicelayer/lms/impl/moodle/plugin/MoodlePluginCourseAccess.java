@@ -109,6 +109,7 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
             final boolean applyNameCriteria) {
 
         super(cacheManager);
+
         this.jsonMapper = jsonMapper;
         this.restTemplateFactory = restTemplateFactory;
         this.applyNameCriteria = applyNameCriteria;
@@ -594,7 +595,9 @@ public class MoodlePluginCourseAccess extends AbstractCachedCourseAccess impleme
     }
 
     private Result<MoodleAPIRestTemplate> getRestTemplate() {
+
         if (this.restTemplate == null) {
+
             final Result<MoodleAPIRestTemplate> templateRequest = this.restTemplateFactory
                     .createRestTemplate(MooldePluginLmsAPITemplateFactory.SEB_SERVER_SERVICE_NAME);
             if (templateRequest.hasError()) {

@@ -152,6 +152,21 @@ public class FormBuilder {
         return this;
     }
 
+    public FormBuilder withAdditionalValueMapping(final String fieldName) {
+        this.form.putAdditionalValueMapping(fieldName);
+        return this;
+    }
+
+    public FormBuilder withAdditionalValueMappingIf(
+            final BooleanSupplier condition,
+            final Supplier<String> fieldNameSupplier) {
+
+        if (condition.getAsBoolean()) {
+            this.form.putAdditionalValueMapping(fieldNameSupplier.get());
+        }
+        return this;
+    }
+
     public FormBuilder addFieldIf(
             final BooleanSupplier condition,
             final Supplier<FieldBuilder<?>> templateSupplier) {

@@ -33,6 +33,7 @@ public class MoodlePluginCourseRestrictionTest {
 
     @Test
     public void testSetup() {
+
         final MoodlePluginCourseRestriction candidate = crateMockup();
 
         assertEquals("MoodlePluginCourseRestriction [restTemplate=null]", candidate.toTestString());

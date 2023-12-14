@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.service.i18n;
 import java.util.Collection;
 import java.util.Locale;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -61,7 +62,9 @@ public interface I18nSupport {
      * @param date the DateTime instance
      * @return date formatted date String to display */
     default String formatDisplayDateWithTimeZone(final DateTime date) {
-        return formatDisplayDateTime(date) + " " + this.getUsersTimeZoneTitleSuffix();
+        return formatDisplayDateTime(date) + (date != null
+                ? " " + this.getUsersTimeZoneTitleSuffix()
+                : StringUtils.EMPTY);
     }
 
     /** Format a time-stamp (milliseconds) to a text format to display.

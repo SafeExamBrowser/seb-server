@@ -164,7 +164,6 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
     public Result<MoodleAPIRestTemplate> createRestTemplate(final String service, final String accessTokenPath) {
 
         final LmsSetup lmsSetup = this.apiTemplateDataSupplier.getLmsSetup();
-
         return Result.tryCatch(() -> {
             final ClientCredentials credentials = this.apiTemplateDataSupplier.getLmsClientCredentials();
             final ProxyData proxyData = this.apiTemplateDataSupplier.getProxyData();
@@ -319,7 +318,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
             }
 
             final boolean usePOST = queryAttributes != null && !queryAttributes.isEmpty();
-            HttpEntity<?> functionReqEntity;
+            final HttpEntity<?> functionReqEntity;
             if (usePOST) {
                 final HttpHeaders headers = new HttpHeaders();
                 headers.set(
@@ -401,8 +400,7 @@ public class MoodleRestTemplateFactoryImpl implements MoodleRestTemplateFactory 
                     if (moodleToken == null || moodleToken.token == null) {
                         throw new RuntimeException("Access Token request with 200 but no or invalid token body");
                     } else {
-                        log.info("Successfully get access token from Moodle: {}",
-                                lmsSetup);
+                        log.info("Successfully get access token from Moodle: {}", lmsSetup.name);
                     }
 
                     this.accessToken = moodleToken.token;

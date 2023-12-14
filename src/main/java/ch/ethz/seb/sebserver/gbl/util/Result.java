@@ -142,7 +142,8 @@ public final class Result<T> {
             if (this.error instanceof RuntimeException) {
                 throw (RuntimeException) this.error;
             } else {
-                throw new RuntimeException("RuntimeExceptionWrapper cause: " + this.error.getMessage(), this.error);
+                String cause = this.error.getMessage() != null ? this.error.getMessage() : this.error.toString();
+                throw new RuntimeException("RuntimeExceptionWrapper cause: " + cause, this.error);
             }
         }
 

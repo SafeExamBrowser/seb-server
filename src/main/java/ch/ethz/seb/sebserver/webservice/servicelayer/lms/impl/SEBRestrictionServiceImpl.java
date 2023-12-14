@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.AdditionalAttributeRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +103,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                     .getOrThrow();
 
             configKeys.addAll(generatedKeys);
-            if (generatedKeys != null && !generatedKeys.isEmpty()) {
+            if (!generatedKeys.isEmpty()) {
                 configKeys.addAll(this.lmsAPIService
                         .getLmsAPITemplate(exam.lmsSetupId)
                         .flatMap(lmsTemplate -> lmsTemplate.getSEBClientRestriction(exam))
@@ -130,8 +131,8 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                         .collect(Collectors.toMap(
                                 attr -> attr.getName().replace(
                                         SEB_RESTRICTION_ADDITIONAL_PROPERTY_NAME_PREFIX,
-                                        ""),
-                                attr -> attr.getValue())));
+                                        StringUtils.EMPTY),
+                                AdditionalAttributeRecord::getValue)));
             } catch (final Exception e) {
                 log.error(
                         "Failed to load additional SEB restriction properties from AdditionalAttributes of the Exam: {}",

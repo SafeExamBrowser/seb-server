@@ -8,6 +8,10 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.mockup;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +27,8 @@ public class MockSEBRestrictionAPI implements SEBRestrictionAPI {
 
     private static final Logger log = LoggerFactory.getLogger(MockSEBRestrictionAPI.class);
 
+    //private Map<Long, Boolean> restrictionDB = new ConcurrentHashMap<>();
+
     @Override
     public LmsSetupTestResult testCourseRestrictionAPI() {
         return LmsSetupTestResult.ofOkay(LmsType.MOCKUP);
@@ -31,15 +37,6 @@ public class MockSEBRestrictionAPI implements SEBRestrictionAPI {
     @Override
     public Result<SEBRestriction> getSEBClientRestriction(final Exam exam) {
         log.info("Get SEB Client restriction for Exam: {}", exam);
-//        if (BooleanUtils.toBoolean(exam.sebRestriction)) {
-//            return Result.of(new SEBRestriction(
-//                    exam.id,
-//                    Stream.of("configKey").collect(Collectors.toList()),
-//                    Collections.emptyList(),
-//                    Collections.emptyMap()));
-//        } else {
-//            return Result.ofError(new NoSEBRestrictionException());
-//        }
         return Result.ofError(new NoSEBRestrictionException());
     }
 
