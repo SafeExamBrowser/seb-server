@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.mybatis.dynamic.sql.SqlTable;
@@ -734,6 +735,10 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     }
 
     private Result<Exam> applySEBRestriction(final Exam exam, final boolean restrict) {
+
+        if (exam == null || exam.lmsSetupId == null) {
+            return Result.ofError(new NoSEBRestrictionException("exam or lms setup has null reference"));
+        }
 
         return Result.tryCatch(() -> {
             final LmsSetup lmsSetup = this.lmsAPIService.getLmsSetup(exam.lmsSetupId)

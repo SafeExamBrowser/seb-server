@@ -409,18 +409,28 @@ public class ExamRecordDAO {
         return Result.tryCatch(() -> {
 
             // fist check if it is not already existing
-            final List<ExamRecord> records = this.examRecordMapper.selectByExample()
-                    .where(ExamRecordDynamicSqlSupport.lmsSetupId, isEqualTo(exam.lmsSetupId))
-                    .and(ExamRecordDynamicSqlSupport.externalId, isEqualTo(exam.externalId))
-                    .build()
-                    .execute();
-
-            // if there is already an existing imported exam for the quiz, this is
-            // used to save instead of create a new one
-            if (records != null && records.size() > 0) {
-                final ExamRecord examRecord = records.get(0);
-                // if the same institution tries to import an exam that already exists throw an error
-                if (exam.institutionId.equals(examRecord.getInstitutionId())) {
+            if (exam.lmsSetupId != null) {
+                final List<ExamRecord> records = this.examRecordMapper.selectByExample()
+                        .where(lmsSetupId, isEqualTo(exam.lmsSetupId))
+                        .and(externalId, isEqualTo(exam.externalId))
+                        .build()
+                        .execute();
+                // if there is already an existing imported exam for the quiz, this is
+                // used to save instead of create a new one
+                if (records != null && !records.isEmpty()) {
+                    final ExamRecord examRecord = records.get(0);
+                    // if the same institution tries to import an exam that already exists throw an error
+                    if (exam.institutionId.equals(examRecord.getInstitutionId())) {
+                        throw new DuplicateResourceException(EntityType.EXAM, exam.externalId);
+                    }
+                }
+            } else {
+                final Long nameCount = this.examRecordMapper.countByExample()
+                        .where(institutionId, isEqualTo(exam.institutionId))
+                        .and(quizName, isEqualTo(exam.name))
+                        .build()
+                        .execute();
+                if (nameCount > 0) {
                     throw new DuplicateResourceException(EntityType.EXAM, exam.externalId);
                 }
             }

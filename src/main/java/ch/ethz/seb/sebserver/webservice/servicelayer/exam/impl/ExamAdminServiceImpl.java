@@ -202,7 +202,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
 
     @Override
     public Result<Boolean> isRestricted(final Exam exam) {
-        if (exam == null) {
+        if (exam == null || exam.lmsSetupId == null) {
             return Result.of(false);
         }
 
