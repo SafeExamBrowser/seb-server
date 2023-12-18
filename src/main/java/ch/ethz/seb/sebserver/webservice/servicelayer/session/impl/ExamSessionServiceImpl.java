@@ -157,7 +157,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                     .getOrThrow();
 
             // check lms connection
-            if (!exam.isLmsAvailable()) {
+            if (exam.lmsSetupId != null && !exam.isLmsAvailable()) {
                 result.add(ErrorMessage.EXAM_CONSISTENCY_VALIDATION_LMS_CONNECTION.of(exam.getModelId()));
             }
 
@@ -174,7 +174,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                             return null;
                         });
 
-                if (!this.sebRestrictionService.checkSebRestrictionSet(exam)) {
+                if (exam.lmsSetupId != null && !this.sebRestrictionService.checkSebRestrictionSet(exam)) {
                     result.add(
                             ErrorMessage.EXAM_CONSISTENCY_VALIDATION_SEB_RESTRICTION
                                     .of(exam.getModelId()));
