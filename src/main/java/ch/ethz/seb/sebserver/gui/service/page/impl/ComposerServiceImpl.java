@@ -64,18 +64,20 @@ public class ComposerServiceImpl implements ComposerService {
     private final Class<? extends PageDefinition> mainPageType = DefaultMainPage.class;
 
     final AuthorizationContextHolder authorizationContextHolder;
+    private final PageService pageService;
     private final I18nSupport i18nSupport;
     private final Map<String, TemplateComposer> composer;
     private final Map<String, PageDefinition> pages;
 
     public ComposerServiceImpl(
             final AuthorizationContextHolder authorizationContextHolder,
-            final I18nSupport i18nSupport,
+            final PageService pageService,
             final Collection<TemplateComposer> composer,
             final Collection<PageDefinition> pageDefinitions) {
 
         this.authorizationContextHolder = authorizationContextHolder;
-        this.i18nSupport = i18nSupport;
+        this.pageService = pageService;
+        this.i18nSupport = pageService.getI18nSupport();
         this.composer = composer
                 .stream()
                 .collect(Collectors.toMap(
@@ -233,7 +235,7 @@ public class ComposerServiceImpl implements ComposerService {
     }
 
     private PageContext createPageContext(final Composite root) {
-        return new PageContextImpl(this.i18nSupport, this, root, root, null);
+        return new PageContextImpl(this.pageService, this, root, root, null);
     }
 
 }

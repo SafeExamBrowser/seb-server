@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.gbl.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.slf4j.Logger;
@@ -38,13 +39,6 @@ import ch.ethz.seb.sebserver.gbl.api.API.BulkActionType;
 import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
-import ch.ethz.seb.sebserver.gbl.model.Entity;
-import ch.ethz.seb.sebserver.gbl.model.EntityDependency;
-import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.EntityName;
-import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
-import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
-import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.PaginationService;
@@ -97,8 +91,8 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
 
     /** This is called by Spring to initialize the WebDataBinder and is used here to
      * initialize the default value binding for the institutionId request-parameter
-     * that has the current users insitutionId as default.
-     *
+     * that has the current users institutionId as default.
+     * <p>
      * See also UserService.addUsersInstitutionDefaultPropertySupport */
     @InitBinder
     public void initBinder(final WebDataBinder binder) {
@@ -293,10 +287,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                                     + "This is the name of the enumeration "),
                     @Parameter(
                             name = API.PARAM_BULK_ACTION_ADD_INCLUDES,
-                            description = "Indicates if the following 'includes' paramerer shall be processed or not.\n The default is false "),
+                            description = "Indicates if the following 'includes' parameter shall be processed or not.\n The default is false "),
                     @Parameter(
                             name = API.PARAM_BULK_ACTION_INCLUDES,
-                            description = "A comma separated list of names of the EntityType enummeration that defines all entity types that shall be included in the result.")
+                            description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
             })
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT + API.DEPENDENCY_PATH_SEGMENT,
@@ -466,7 +460,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             summary = "Deletes a single entity (and all its dependencies) by its modelId.",
             description = "To check or report what dependent object also would be deleted for a certain entity object, "
                     +
-                    "please use the dependency endpoint to get a report of all dependend entity objects.",
+                    "please use the dependency endpoint to get a report of all dependent entity objects.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
@@ -476,10 +470,10 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             in = ParameterIn.PATH),
                     @Parameter(
                             name = API.PARAM_BULK_ACTION_ADD_INCLUDES,
-                            description = "Indicates if the following 'includes' paramerer shall be processed or not.\n The default is false "),
+                            description = "Indicates if the following 'includes' parameter shall be processed or not.\n The default is false "),
                     @Parameter(
                             name = API.PARAM_BULK_ACTION_INCLUDES,
-                            description = "A comma separated list of names of the EntityType enummeration that defines all entity types that shall be included in the result.")
+                            description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
             })
     @RequestMapping(
             path = API.MODEL_ID_VAR_PATH_SEGMENT,
@@ -500,6 +494,43 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                 .getOrThrow();
     }
 
+    @Operation(
+            summary = "Force deletes a single entity (and all its dependencies) by its modelId.",
+            description = "To check or report what dependent object also would be deleted for a certain entity object, "
+                    +
+                    "please use the dependency endpoint to get a report of all dependent entity objects.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
+            parameters = {
+                    @Parameter(
+                            name = API.PARAM_MODEL_ID,
+                            description = "The model identifier of the entity object to get.",
+                            in = ParameterIn.PATH),
+                    @Parameter(
+                            name = API.PARAM_BULK_ACTION_ADD_INCLUDES,
+                            description = "Indicates if the following 'includes' parameter shall be processed or not.\n The default is false "),
+                    @Parameter(
+                            name = API.PARAM_BULK_ACTION_INCLUDES,
+                            description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
+            })
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.FORCE_PATH_SEGMENT,
+            method = RequestMethod.DELETE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public EntityProcessingReport forceHardDelete(
+            @PathVariable final String modelId,
+            @RequestParam(name = API.PARAM_BULK_ACTION_ADD_INCLUDES, defaultValue = "false") final boolean addIncludes,
+            @RequestParam(name = API.PARAM_BULK_ACTION_INCLUDES, required = false) final List<String> includes) {
+
+        return this.entityDAO.byModelId(modelId)
+                .flatMap(this::checkWriteAccess)
+                .flatMap(this::logDelete)
+                .flatMap(entity -> bulkDelete(entity, convertToEntityType(addIncludes, includes)))
+                .flatMap(this::notifyDeleted)
+                .flatMap(pair -> this.logBulkAction(pair.b))
+                .getOrThrow();
+    }
+
     // **************************
     // * DELETE ALL (hard-delete)
     // **************************
@@ -508,7 +539,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
             summary = "Deletes all given entity (and all its dependencies) by a given list of model identifiers.",
             description = "To check or report what dependent object also would be deleted for a certain entity object, "
                     +
-                    "please use the dependency endpoint to get a report of all dependend entity objects.",
+                    "please use the dependency endpoint to get a report of all dependent entity objects.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = { @Content(mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE) }),
             parameters = {
@@ -521,7 +552,7 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
                             description = "Indicates if the following 'includes' paramerer shall be processed or not.\n The default is false "),
                     @Parameter(
                             name = API.PARAM_BULK_ACTION_INCLUDES,
-                            description = "A comma separated list of names of the EntityType enummeration that defines all entity types that shall be included in the result.")
+                            description = "A comma separated list of names of the EntityType enumeration that defines all entity types that shall be included in the result.")
             })
     @RequestMapping(
             method = RequestMethod.DELETE,
@@ -547,11 +578,11 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
         final Collection<EntityKey> sources = ids.stream()
                 .map(id -> {
                     return this.entityDAO.byModelId(id)
-                            .flatMap(exam -> this.validForDelete(exam))
+                            .flatMap(this::validForDelete)
                             .getOr(null);
                 })
                 .filter(Objects::nonNull)
-                .map(exam -> exam.getModelId())
+                .map(ModelIdAware::getModelId)
                 .map(id -> new EntityKey(id, entityType))
                 .collect(Collectors.toList());
 
@@ -756,9 +787,9 @@ public abstract class EntityController<T extends Entity, M extends Entity> {
     }
 
     /** Get the EntityType of the GrantEntity that is used for grant checks of the concrete Entity.
-     *
+     * <p>
      * NOTE: override this if the EntityType of the GrantEntity is not the same as the Entity itself.
-     * For example, the Exam is the GrantEntity of a Indicator
+     * For example, the Exam is the GrantEntity of an Indicator
      *
      * @return the EntityType of the GrantEntity that is used for grant checks of the concrete Entity */
     protected EntityType getGrantEntityType() {

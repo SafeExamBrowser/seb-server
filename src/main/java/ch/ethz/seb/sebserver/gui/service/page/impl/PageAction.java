@@ -184,10 +184,8 @@ public final class PageAction {
                 }
             } catch (final PageMessageException pme) {
                 PageAction.this.pageContext.publishPageMessage(pme);
-                return;
             } catch (final Exception e) {
                 this.pageContext.notifyUnexpectedError(e);
-                return;
             }
         } else {
             callback.accept(exec());

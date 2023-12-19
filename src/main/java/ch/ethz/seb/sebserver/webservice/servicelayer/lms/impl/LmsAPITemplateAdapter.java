@@ -439,7 +439,7 @@ public class LmsAPITemplateAdapter implements LmsAPITemplate {
 
         if (protectedRun.hasError()) {
             final Throwable cause = protectedRun.getError().getCause();
-            if (cause.getMessage().contains("LMS Warnings")) {
+            if (cause != null && cause.getMessage().contains("LMS Warnings")) {
                 return Result.ofRuntimeError(cause.getMessage());
             }
         }

@@ -81,6 +81,8 @@ public final class API {
     public static final String TOGGLE_ACTIVITY_PATH_SEGMENT = "/toggle-activity";
     public static final String INACTIVE_PATH_SEGMENT = "/inactive";
 
+    public static final String FORCE_PATH_SEGMENT = "/force";
+
     public static final String DEPENDENCY_PATH_SEGMENT = "/dependency";
 
     public static final String PASSWORD_PATH_SEGMENT = "/password";

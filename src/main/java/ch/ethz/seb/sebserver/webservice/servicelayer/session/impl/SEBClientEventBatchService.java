@@ -49,7 +49,6 @@ public class SEBClientEventBatchService {
     private static final Logger log = LoggerFactory.getLogger(SEBClientEventBatchService.class);
 
     private final SEBClientNotificationService sebClientNotificationService;
-    private final SqlSessionFactory sqlSessionFactory;
     private final TransactionTemplate transactionTemplate;
     private final ExamSessionCacheService examSessionCacheService;
     private final JSONMapper jsonMapper;
@@ -65,13 +64,12 @@ public class SEBClientEventBatchService {
             final JSONMapper jsonMapper) {
 
         this.sebClientNotificationService = sebClientNotificationService;
-        this.sqlSessionFactory = sqlSessionFactory;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.examSessionCacheService = examSessionCacheService;
         this.jsonMapper = jsonMapper;
 
-        this.sqlSessionTemplate = new SqlSessionTemplate(this.sqlSessionFactory, ExecutorType.BATCH);
+        this.sqlSessionTemplate = new SqlSessionTemplate(sqlSessionFactory, ExecutorType.BATCH);
         this.clientEventMapper = this.sqlSessionTemplate.getMapper(ClientEventRecordMapper.class);
     }
 
@@ -172,7 +170,7 @@ public class SEBClientEventBatchService {
 
             this.sqlSessionTemplate.flushStatements();
 
-            if (log.isDebugEnabled()) {
+            if (log.isTraceEnabled()) {
                 log.debug("SEBClientEventBatchService worker {} processes batch of size {} in {} ms",
                         workerName,
                         size,
@@ -227,7 +225,7 @@ public class SEBClientEventBatchService {
                     eventData.event.eventType,
                     eventData.event.getClientTime(),
                     eventData.event.getServerTime(),
-                    (eventData.event.numValue != null) ? eventData.event.numValue.doubleValue() : null,
+                    (eventData.event.numValue != null) ? eventData.event.numValue : null,
                     typeAndPlainText.b,
                     typeAndPlainText.a);
 

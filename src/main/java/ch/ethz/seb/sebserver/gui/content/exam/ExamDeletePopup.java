@@ -16,6 +16,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.ForceDeleteExam;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -62,28 +63,19 @@ public class ExamDeletePopup {
 
     private static final Logger log = LoggerFactory.getLogger(ExamDeletePopup.class);
 
-    private final static LocTextKey FORM_TITLE =
-            new LocTextKey("sebserver.exam.delete.form.title");
-    private final static LocTextKey FORM_INFO =
-            new LocTextKey("sebserver.exam.delete.form.info");
-    private final static LocTextKey FORM_REPORT_INFO =
-            new LocTextKey("sebserver.exam.delete.report.info");
-    private final static LocTextKey FORM_REPORT_LIST_TYPE =
-            new LocTextKey("sebserver.exam.delete.report.list.type");
-    private final static LocTextKey FORM_REPORT_LIST_NAME =
-            new LocTextKey("sebserver.exam.delete.report.list.name");
-    private final static LocTextKey FORM_REPORT_LIST_DESC =
-            new LocTextKey("sebserver.exam.delete.report.list.description");
-    private final static LocTextKey FORM_REPORT_NONE =
-            new LocTextKey("sebserver.exam.delete.report.list.empty");
-
-    private final static LocTextKey ACTION_DELETE =
-            new LocTextKey("sebserver.exam.delete.action.delete");
-
-    private final static LocTextKey DELETE_CONFIRM_TITLE =
-            new LocTextKey("sebserver.exam.delete.confirm.title");
-    private final static LocTextKey DELETE_ERROR_CONSISTENCY =
-            new LocTextKey("sebserver.exam.action.delete.consistency.error");
+    private final static LocTextKey FORM_TITLE = new LocTextKey("sebserver.exam.delete.form.title");
+    private final static LocTextKey FORM_INFO = new LocTextKey("sebserver.exam.delete.form.info");
+    private final static LocTextKey FORM_REPORT_INFO = new LocTextKey("sebserver.exam.delete.report.info");
+    private final static LocTextKey FORM_REPORT_LIST_TYPE = new LocTextKey("sebserver.exam.delete.report.list.type");
+    private final static LocTextKey FORM_REPORT_LIST_NAME = new LocTextKey("sebserver.exam.delete.report.list.name");
+    private final static LocTextKey FORM_REPORT_LIST_DESC = new LocTextKey("sebserver.exam.delete.report.list.description");
+    private final static LocTextKey FORM_REPORT_NONE = new LocTextKey("sebserver.exam.delete.report.list.empty");
+    private final static LocTextKey ACTION_DELETE = new LocTextKey("sebserver.exam.delete.action.delete");
+    private final static LocTextKey DELETE_CONFIRM_TITLE = new LocTextKey("sebserver.exam.delete.confirm.title");
+    private final static LocTextKey DELETE_ERROR_CONSISTENCY = new LocTextKey("sebserver.exam.action.delete.consistency.error");
+    private final static LocTextKey FORCE_DELETE_CONFIRM_TITLE = new LocTextKey("sebserver.exam.action.delete.force.confirm.title");
+    private final static LocTextKey FORCE_DELETE_CONFIRM_ACTION = new LocTextKey("sebserver.exam.action.delete.force.confirm.action");
+    private final static LocTextKey FORCE_DELETE_CONFIRM = new LocTextKey("sebserver.exam.action.delete.force.confirm");
 
     private final PageService pageService;
 
@@ -131,12 +123,12 @@ public class ExamDeletePopup {
                     .call()
                     .getOrThrow();
 
-            final RestCall<EntityProcessingReport>.RestCallBuilder restCallBuilder = this.pageService.getRestService()
+            final Result<EntityProcessingReport> deleteCall = this.pageService.getRestService()
                     .getBuilder(DeleteExam.class)
                     .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
-                    .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name());
+                    .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
+                    .call();
 
-            final Result<EntityProcessingReport> deleteCall = restCallBuilder.call();
             if (deleteCall.hasError()) {
                 final Exception error = deleteCall.getError();
                 if (error instanceof RestCallError) {
@@ -146,39 +138,67 @@ public class ExamDeletePopup {
                             .findFirst()
                             .orElse(null);
                     if (message != null && ErrorMessage.INTEGRITY_VALIDATION.isOf(message)) {
-                        pageContext.publishPageMessage(new PageMessageException(DELETE_ERROR_CONSISTENCY));
-                        return false;
+                        pageContext.applyConfirmDialog(
+                                FORCE_DELETE_CONFIRM_TITLE,
+                                FORCE_DELETE_CONFIRM,
+                                FORCE_DELETE_CONFIRM_ACTION,
+                                confirm -> {
+                                    if (confirm) {
+                                        final Result<EntityProcessingReport> forceDeleteCall = this.pageService.getRestService()
+                                                .getBuilder(ForceDeleteExam.class)
+                                                .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
+                                                .withQueryParam(API.PARAM_BULK_ACTION_TYPE, BulkActionType.HARD_DELETE.name())
+                                                .call();
+
+                                        if (forceDeleteCall.hasError()) {
+                                            pageContext.notifyUnexpectedError(forceDeleteCall.getError());
+                                        } else {
+                                            showSuccessDialog(pageContext, examToDelete, forceDeleteCall.getOrThrow(), entityKey);
+                                        }
+                                    }
+                                }
+                        );
+                        return true;
                     }
                 }
             }
 
-            final EntityProcessingReport report = deleteCall.getOrThrow();
+            showSuccessDialog(pageContext, examToDelete, deleteCall.getOrThrow(), entityKey);
 
-            final PageAction action = this.pageService.pageActionBuilder(pageContext)
-                    .newAction(ActionDefinition.EXAM_VIEW_LIST)
-                    .create();
-
-            this.pageService.firePageEvent(
-                    new ActionEvent(action),
-                    action.pageContext());
-
-            final String examName = StringEscapeUtils.escapeXml11(examToDelete.toName().name);
-            final List<EntityKey> dependencies = report.results.stream()
-                    .filter(key -> !key.equals(entityKey))
-                    .collect(Collectors.toList());
-            pageContext.publishPageMessage(
-                    DELETE_CONFIRM_TITLE,
-                    new LocTextKey(
-                            "sebserver.exam.delete.confirm.message",
-                            examName,
-                            dependencies.size(),
-                            (report.errors.isEmpty()) ? "no" : String.valueOf((report.errors.size()))));
             return true;
         } catch (final Exception e) {
             log.error("Unexpected error while trying to delete Exam:", e);
             pageContext.notifyUnexpectedError(e);
             return false;
         }
+    }
+
+    private void showSuccessDialog(
+            final PageContext pageContext,
+            final Exam examToDelete,
+            final EntityProcessingReport report,
+            final EntityKey entityKey) {
+
+        final PageAction action = this.pageService.pageActionBuilder(pageContext)
+                .newAction(ActionDefinition.EXAM_VIEW_LIST)
+                .create();
+
+        this.pageService.firePageEvent(
+                new ActionEvent(action),
+                action.pageContext());
+
+        final String examName = StringEscapeUtils.escapeXml11(examToDelete.toName().name);
+        final List<EntityKey> dependencies = report.results.stream()
+                .filter(key -> !key.equals(entityKey))
+                .collect(Collectors.toList());
+
+        pageContext.publishPageMessage(
+                DELETE_CONFIRM_TITLE,
+                new LocTextKey(
+                        "sebserver.exam.delete.confirm.message",
+                        examName,
+                        dependencies.size(),
+                        (report.errors.isEmpty()) ? "no" : String.valueOf((report.errors.size()))));
     }
 
     private Supplier<PageContext> composeDeleteDialog(

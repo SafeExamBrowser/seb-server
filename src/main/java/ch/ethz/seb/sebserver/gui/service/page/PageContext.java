@@ -200,6 +200,19 @@ public interface PageContext {
      * @param callback callback code block that will be called on users selection */
     void applyConfirmDialog(LocTextKey confirmMessage, final Consumer<Boolean> callback);
 
+    /** Apply a confirm dialog with a specified confirm message and a callback code
+     * block that will be executed on users OK selection.
+     *
+     * @param confirmTitle the title of the confirm message dialog
+     * @param confirmMessage the localized confirm message key
+     * @param confirmButtonText The text for the confirm button to display
+     * @param callback callback code block that will be called on users selection */
+    void applyConfirmDialog(
+            LocTextKey confirmTitle,
+            LocTextKey confirmMessage,
+            LocTextKey confirmButtonText,
+            Consumer<Boolean> callback);
+
     /** This can be used to forward to a defined page.
      *
      * @param pageDefinition the defined page */

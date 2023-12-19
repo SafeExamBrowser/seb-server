@@ -14,16 +14,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gui.service.page.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.rap.rwt.RWT;
 import org.eclipse.rap.rwt.widgets.DialogCallback;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,10 +37,6 @@ import ch.ethz.seb.sebserver.gbl.model.EntityKey;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.i18n.I18nSupport;
 import ch.ethz.seb.sebserver.gui.service.i18n.LocTextKey;
-import ch.ethz.seb.sebserver.gui.service.page.ComposerService;
-import ch.ethz.seb.sebserver.gui.service.page.PageContext;
-import ch.ethz.seb.sebserver.gui.service.page.PageDefinition;
-import ch.ethz.seb.sebserver.gui.service.page.PageMessageException;
 import ch.ethz.seb.sebserver.gui.widget.Message;
 
 public class PageContextImpl implements PageContext {
@@ -48,6 +46,7 @@ public class PageContextImpl implements PageContext {
     private static final LocTextKey UNEXPECTED_ERROR = new LocTextKey("sebserver.error.unexpected");
     private static final String ENTITY_LIST_TYPE = null;
 
+    private final PageService pageService;
     private final I18nSupport i18nSupport;
     private final ComposerService composerService;
     private final Composite root;
@@ -55,13 +54,14 @@ public class PageContextImpl implements PageContext {
     private final Map<String, String> attributes;
 
     PageContextImpl(
-            final I18nSupport i18nSupport,
+            final PageService pageService,
             final ComposerService composerService,
             final Composite root,
             final Composite parent,
             final Map<String, String> attributes) {
 
-        this.i18nSupport = i18nSupport;
+        this.pageService = pageService;
+        this.i18nSupport = pageService.getI18nSupport();
         this.composerService = composerService;
         this.root = root;
         this.parent = parent;
@@ -105,7 +105,7 @@ public class PageContextImpl implements PageContext {
     @Override
     public PageContext copyOf(final Composite parent) {
         return new PageContextImpl(
-                this.i18nSupport,
+                this.pageService,
                 this.composerService,
                 this.root,
                 parent,
@@ -118,7 +118,7 @@ public class PageContextImpl implements PageContext {
         attrs.putAll(this.attributes);
         attrs.putAll(((PageContextImpl) otherContext).attributes);
         return new PageContextImpl(
-                this.i18nSupport,
+                this.pageService,
                 this.composerService,
                 this.root,
                 this.parent,
@@ -130,7 +130,7 @@ public class PageContextImpl implements PageContext {
         final Map<String, String> attrs = new HashMap<>(this.attributes);
         attrs.put(key, value);
         return new PageContextImpl(
-                this.i18nSupport,
+                this.pageService,
                 this.composerService,
                 this.root,
                 this.parent,
@@ -238,7 +238,7 @@ public class PageContextImpl implements PageContext {
         final Map<String, String> attrs = new HashMap<>(this.attributes);
         attrs.remove(name);
         return new PageContextImpl(
-                this.i18nSupport,
+                this.pageService,
                 this.composerService,
                 this.root,
                 this.parent,
@@ -248,7 +248,7 @@ public class PageContextImpl implements PageContext {
     @Override
     public PageContext clearAttributes() {
         return new PageContextImpl(
-                this.i18nSupport,
+                this.pageService,
                 this.composerService,
                 this.root,
                 this.parent,
@@ -265,6 +265,36 @@ public class PageContextImpl implements PageContext {
                 this.i18nSupport);
         messageBox.setMarkupEnabled(true);
         messageBox.open(new ConfirmDialogCallback(callback));
+    }
+
+    @Override
+    public void applyConfirmDialog(
+            final LocTextKey confirmTitle,
+            final LocTextKey confirmMessage,
+            final LocTextKey confirmButtonText,
+            final Consumer<Boolean> callback) {
+
+        final ModalInputDialog<Void> dialog = new ModalInputDialog<>(
+                this.root.getShell(),
+                this.pageService.getWidgetFactory());
+        dialog.setDialogWidth(500);
+
+
+        final ModalInputDialogComposer<Void> contentComposer = comp -> {
+            this.pageService.getWidgetFactory().labelLocalized(comp, confirmMessage, true);
+            return () -> (Void) null;
+        };
+        final BiConsumer<Composite, Supplier<Void>> actionComposer = (actionsComp, value) -> {
+            final Button confirm = this.pageService.getWidgetFactory()
+                    .buttonLocalized(actionsComp, confirmButtonText);
+
+            confirm.addListener(SWT.Selection, event -> {
+                dialog.close();
+                callback.accept(true);
+            });
+        };
+
+        dialog.openWithActions(confirmTitle, actionComposer, () -> callback.accept(false), contentComposer);
     }
 
     @Override
