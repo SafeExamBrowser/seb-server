@@ -92,7 +92,7 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
     private String adminAPIEndpoint;
     @Value("${sebserver.webservice.api.exam.endpoint}")
     private String examAPIEndpoint;
-    @Value("${management.endpoints.web.base-path}")
+    @Value("${management.endpoints.web.base-path:NONE}")
     private String actuatorEndpoint;
     @Value("${sebserver.webservice.http.redirect.gui}")
     private String unauthorizedRedirect;
@@ -181,6 +181,10 @@ public class WebServiceSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     protected ResourceServerConfiguration sebServerActuatorResources() throws Exception {
+        if ("NONE".equals(this.actuatorEndpoint)) {
+            return null;
+        }
+
         return new ActuatorResourceServerConfiguration(
                 this.tokenStore,
                 this.webServiceClientDetails,
