@@ -19,6 +19,8 @@ import java.util.stream.Stream;
 import ch.ethz.seb.sebserver.gbl.api.APIMessage;
 import ch.ethz.seb.sebserver.gbl.api.JSONMapper;
 import ch.ethz.seb.sebserver.gbl.model.Entity;
+import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
+import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientEvent;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
@@ -258,16 +260,18 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     clientConnection);
 
             final ConnectionStatus currentStatus = clientConnection.getStatus();
+            final ConnectionStatus newStatus = (StringUtils.isNotBlank(userSessionId) && currentStatus == ConnectionStatus.READY)
+                    ? ConnectionStatus.ACTIVE
+                    : currentStatus;
             final String signatureHash = StringUtils.isNotBlank(appSignatureKey)
                     ? getSignatureHash(appSignatureKey, connectionToken, _examId)
                     : null;
+
             final ClientConnection updateConnection = new ClientConnection(
                     clientConnection.id,
                     null,
                     examId,
-                    (StringUtils.isNotBlank(userSessionId) && currentStatus == ConnectionStatus.READY)
-                        ? ConnectionStatus.ACTIVE
-                        : null,
+                    newStatus,
                     null,
                     updateUserSessionId,
                     StringUtils.isNotBlank(clientAddress) ? clientAddress : null,
@@ -280,9 +284,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     null,
+                    applyScreenProctoring(_examId, newStatus),
                     null,
-                    null,
-                    null,
+                    applyProctoring(_examId, newStatus),
                     null,
                     signatureHash,
                     null);
@@ -311,6 +315,8 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
         });
     }
 
+
+
     @Override
     public Result<ClientConnection> establishClientConnection(
             final String connectionToken,
@@ -331,12 +337,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
             connectionStatusIntegrityCheck(clientConnection, clientAddress);
             checkInstitutionalIntegrity(institutionId, clientConnection);
-            checkExamIntegrity(
-                    examId,
-                    clientConnection.examId,
-                    institutionId,
-                    clientConnection.connectionToken,
-                    clientConnection.info);
+            checkExamIntegrity(examId, clientConnection.examId, institutionId, clientConnection.connectionToken, clientConnection.info);
 
             if (log.isDebugEnabled()) {
                 log.debug(
@@ -350,28 +351,17 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     clientId,
                     sebMachineName,
                     clientConnection);
-            final Boolean proctoringEnabled = this.examAdminService
-                    .isProctoringEnabled(clientConnection.examId)
-                    .getOr(false);
-            final Boolean screenProctoringEnabled = this.examAdminService
-                    .isScreenProctoringEnabled(clientConnection.examId)
-                    .getOr(false);
 
-            final Long currentExamId = (examId != null) ? examId : clientConnection.examId;
-            final String currentVdiConnectionId = (clientId != null)
-                    ? clientId
-                    : clientConnection.sebClientUserId;
-
-
+            final ConnectionStatus newStatus = StringUtils.isNotBlank(userSessionId) || alreadyAuthenticated(clientConnection)
+                    ? ConnectionStatus.ACTIVE
+                    : ConnectionStatus.READY;
 
             // create new ClientConnection for update
             final ClientConnection establishedClientConnection = new ClientConnection(
                     clientConnection.id,
                     null,
-                    currentExamId,
-                    StringUtils.isNotBlank(userSessionId) || alreadyAuthenticated(clientConnection)
-                            ? ConnectionStatus.ACTIVE
-                            : ConnectionStatus.READY,
+                    _examId,
+                    newStatus,
                     null,
                     updateUserSessionId,
                     StringUtils.isNotBlank(clientAddress) ? clientAddress : null,
@@ -384,9 +374,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                     null,
                     null,
                     null,
-                    screenProctoringEnabled,
+                    applyScreenProctoring(_examId, newStatus),
                     null,
-                    proctoringEnabled,
+                    applyProctoring(_examId, newStatus),
                     null,
                     getSignatureHash(appSignatureKey, connectionToken, _examId),
                     null);
@@ -394,7 +384,7 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
             // ClientConnection integrity check
             if (clientConnection.institutionId == null ||
                     clientConnection.connectionToken == null ||
-                    currentExamId == null ||
+                    _examId == null ||
                     (clientConnection.clientAddress == null && clientAddress == null)) {
 
                 log.error("ClientConnection integrity violation, clientConnection: {}, updatedClientConnection: {}",
@@ -835,10 +825,9 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
 
         if (this.isDistributedSetup) {
             // if the cached Exam is not up-to-date anymore, we have to update the cache first
-            final Result<Exam> updateExamCache = this.examSessionService.updateExamCache(examId);
-            if (updateExamCache.hasError()) {
-                log.warn("Failed to update Exam-Cache for Exam: {}", examId);
-            }
+            this.examSessionService
+                    .updateExamCache(examId)
+                    .onError(error -> log.warn("Failed to update Exam-Cache for Exam: {}", examId));
         }
 
         if (currentExamId != null && !examId.equals(currentExamId)) {
@@ -921,5 +910,32 @@ public class SEBClientConnectionServiceImpl implements SEBClientConnectionServic
                 !clientConnection.userSessionId.equals(clientConnection.clientAddress) &&
                 !clientConnection.userSessionId.equals(clientConnection.sebClientUserId) &&
                 !clientConnection.userSessionId.equals(clientConnection.sebMachineName);
+    }
+
+    private boolean applyProctoring(final Long examId, final ConnectionStatus status) {
+        if (examId == null) {
+            return false;
+        }
+        final Exam exam = this.examSessionCacheService.getRunningExam(examId);
+        final boolean proctoringEnabled = exam != null && BooleanUtils.toBoolean(
+                exam.getAdditionalAttribute(ProctoringServiceSettings.ATTR_ENABLE_PROCTORING));
+
+        return isApplyProctoring(status, exam) && proctoringEnabled;
+    }
+
+    private boolean applyScreenProctoring(final Long examId, final ConnectionStatus status) {
+        if (examId == null) {
+            return false;
+        }
+        final Exam exam = this.examSessionCacheService.getRunningExam(examId);
+        final boolean screenProctoringEnabled = exam != null && BooleanUtils.toBoolean(
+                exam.getAdditionalAttribute(ScreenProctoringSettings.ATTR_ENABLE_SCREEN_PROCTORING));
+
+        return isApplyProctoring(status, exam) && screenProctoringEnabled;
+    }
+
+    private static boolean isApplyProctoring(final ConnectionStatus status, final Exam exam) {
+        return (exam != null && exam.lmsSetupId == null && status == ConnectionStatus.READY) ||
+                status == ConnectionStatus.ACTIVE;
     }
 }

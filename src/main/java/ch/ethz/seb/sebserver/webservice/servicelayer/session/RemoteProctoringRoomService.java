@@ -66,7 +66,7 @@ public interface RemoteProctoringRoomService extends SessionUpdateTask {
      * New client connections that are coming in and are established only mark itself for
      * proctoring room update if proctoring is enabled for the specified exam. This batch processing
      * then makes the update synchronously to keep track on room creation and naming
-     *
+     * <p>
      * If for a specified exam the town-hall room is active incoming client connection are instructed to
      * join the town-hall room. If not, incoming client connection are instructed to join a collecting room. */
     void updateProctoringCollectingRooms();

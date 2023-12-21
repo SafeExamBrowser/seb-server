@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.session.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -58,14 +59,10 @@ public class ExamSessionControlTask implements DisposableBean {
         this.pingUpdateRate = pingUpdateRate;
 
         this.examUpdateTasks = new ArrayList<>(examUpdateTasks);
-        this.examUpdateTasks.sort((t1, t2) -> Integer.compare(
-                t1.examUpdateTaskProcessingOrder(),
-                t2.examUpdateTaskProcessingOrder()));
+        this.examUpdateTasks.sort(Comparator.comparingInt(ExamUpdateTask::examUpdateTaskProcessingOrder));
 
         this.sessionUpdateTasks = new ArrayList<>(sessionUpdateTasks);
-        this.sessionUpdateTasks.sort((t1, t2) -> Integer.compare(
-                t1.sessionUpdateTaskProcessingOrder(),
-                t2.sessionUpdateTaskProcessingOrder()));
+        this.sessionUpdateTasks.sort(Comparator.comparingInt(SessionUpdateTask::sessionUpdateTaskProcessingOrder));
     }
 
     @EventListener(SEBServerInitEvent.class)

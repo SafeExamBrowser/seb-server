@@ -251,7 +251,9 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
             final Collection<ClientConnectionRecord> records = this.clientConnectionRecordMapper
                     .selectByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate, isNotEqualTo(0))
-                    .and(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.ACTIVE.name()))
+                    .and(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomId, isNull())
+                    .and(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.ACTIVE.name()),
+                             or(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.READY.name())))
                     .build()
                     .execute();
 
@@ -292,7 +294,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(r -> r.getConnectionToken())
+                    .map(ClientConnectionRecord::getConnectionToken)
                     .collect(Collectors.toList());
         });
     }
@@ -305,6 +307,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .selectByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.remoteProctoringRoomUpdate, isNotEqualTo(0))
                     .and(ClientConnectionRecordDynamicSqlSupport.status, isNotEqualTo(ConnectionStatus.ACTIVE.name()))
+                    .and(ClientConnectionRecordDynamicSqlSupport.status, isNotEqualTo(ConnectionStatus.READY.name()))
                     .build()
                     .execute();
 
@@ -551,7 +554,8 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     .selectByExample()
                     .where(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate, isNotEqualTo((byte) 0))
                     .and(ClientConnectionRecordDynamicSqlSupport.examId, isIn(examIds))
-                    .and(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.ACTIVE.name()))
+                    .and(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.ACTIVE.name()),
+                            or(ClientConnectionRecordDynamicSqlSupport.status, isEqualTo(ConnectionStatus.READY.name())))
                     .build()
                     .execute();
 
@@ -588,7 +592,7 @@ public class ClientConnectionDAOImpl implements ClientConnectionDAO {
                     this.clientConnectionRecordMapper::update,
                     ClientConnectionRecordDynamicSqlSupport.clientConnectionRecord)
                     .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupId).equalTo(groupId)
-                    //.set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate).equalTo((byte) 0)
+                    .set(ClientConnectionRecordDynamicSqlSupport.screenProctoringGroupUpdate).equalTo((byte) 0)
                     .where(ClientConnectionRecordDynamicSqlSupport.id, isEqualTo(connectionId))
                     .build()
                     .execute();
