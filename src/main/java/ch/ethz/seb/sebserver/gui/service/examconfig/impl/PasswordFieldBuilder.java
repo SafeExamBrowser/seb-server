@@ -124,6 +124,13 @@ public class PasswordFieldBuilder implements InputFieldBuilder {
                     return;
                 }
 
+                if (pwd.length() > 255) {
+                    passwordInputField.showError(viewContext
+                            .getI18nSupport()
+                            .getText(new LocTextKey("sebserver.form.validation.fieldError.size.max", 256)));
+                    return;
+                }
+
                 if (!pwd.equals(confirm)) {
                     passwordInputField.showError(viewContext
                             .getI18nSupport()

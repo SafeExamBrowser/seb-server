@@ -68,6 +68,9 @@ public class PasswordConfirmInput extends Composite {
     }
 
     public CharSequence getValue() {
+        if (!checkError()) {
+            return null;
+        }
         final CharSequence value = password.getValue();
         if (StringUtils.isNotBlank(value)) {
             return cryptor.encrypt(value).getOr(value);
@@ -91,8 +94,15 @@ public class PasswordConfirmInput extends Composite {
         final CharSequence pwd = this.password.getValue();
         final CharSequence confirm = this.confirm.getValue();
 
-        if (pwd == null && confirm == null) {
+        if (pwd == null) {
             return false;
+        }
+
+        if (pwd.length() > 255) {
+            final LocTextKey errmsg = new LocTextKey("sebserver.form.validation.fieldError.size.max", 256);
+            errorLabel.setText(widgetFactory.getI18nSupport().getText(errmsg));
+            errorLabel.setVisible(true);
+            return true;
         }
 
         if (!pwd.equals(confirm)) {
