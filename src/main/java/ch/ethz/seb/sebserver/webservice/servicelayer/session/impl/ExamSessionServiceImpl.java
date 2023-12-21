@@ -554,6 +554,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 .getOr(false);
 
         if (!BooleanUtils.toBoolean(isUpToDate)) {
+            // TODO this should only flush the exam cache but not the SEB connection cache
             return flushCache(exam);
         } else {
             return Result.of(exam);
@@ -570,13 +571,11 @@ public class ExamSessionServiceImpl implements ExamSessionService {
         return Result.tryCatch(() -> {
             this.examSessionCacheService.evict(exam);
             this.examSessionCacheService.evictDefaultSEBConfig(exam.id);
+            // evict client connection
             this.clientConnectionDAO
                     .getConnectionTokens(exam.id)
                     .getOrElse(Collections::emptyList)
-                    .forEach(token -> {
-                        // evict client connection
-                        this.examSessionCacheService.evictClientConnection(token);
-                    });
+                    .forEach(this.examSessionCacheService::evictClientConnection);
 
             return exam;
         });

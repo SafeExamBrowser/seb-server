@@ -430,6 +430,7 @@ public abstract class RestCall<T> {
                     + this.queryParams
                     + ", uriVariables=" + this.uriVariables + "]";
         }
+
     }
 
     public static final class TypeKey<T> {

@@ -36,7 +36,7 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
     }
 
     /** Saves the current follow-up Configuration of the ConfigurationNode of given id
-     * as a point in history and creates new new follow-up Configuration.
+     * as a point in history and creates new follow-up Configuration.
      *
      * @param configurationNodeId the identifier of the ConfigurationNode to create a new history entry from current
      *            follow-up
@@ -50,9 +50,9 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
     Result<Configuration> undo(Long configurationNodeId);
 
     /** Restores the attribute values to the default values that have been set for the specified configuration
-     * on initialization. This are the base default values if the configuration has no template or the default
+     * on initialization. These are the base default values if the configuration has no template or the default
      * values from the template if there is one assigned to the configuration.
-     *
+     * <p>
      * In fact. this just gets the initial configuration values and reset the current values with that one
      *
      * @param configurationNodeId the ConfigurationNode identifier
@@ -60,9 +60,9 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
     Result<Configuration> restoreToDefaultValues(final Long configurationNodeId);
 
     /** Restores the attribute values to the default values that have been set for the specified configuration
-     * on initialization. This are the base default values if the configuration has no template or the default
+     * on initialization. These are the base default values if the configuration has no template or the default
      * values from the template if there is one assigned to the configuration.
-     *
+     * <p>
      * In fact. this just gets the initial configuration values and reset the current values with that one
      *
      * @param configuration the Configuration that defines the ConfigurationNode identifier
@@ -107,7 +107,7 @@ public interface ConfigurationDAO extends EntityDAO<Configuration, Configuration
 
     /** Use this to get the follow-up configuration identifer for a specified configuration node.
      *
-     * @param configurationNode ConfigurationNode to get the current follow-up configuration from
+     * @param configNodeId ConfigurationNode to get the current follow-up configuration from
      * @return the current follow-up configuration identifier */
     Result<Long> getFollowupConfigurationId(Long configNodeId);
 

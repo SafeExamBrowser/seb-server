@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValueRecordDynamicSqlSupport.*;
+import static java.lang.reflect.Array.set;
 import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
 import static org.mybatis.dynamic.sql.SqlBuilder.isIn;
 
@@ -27,9 +29,12 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlBuilder;
+import org.mybatis.dynamic.sql.update.MyBatis3UpdateModelAdapter;
+import org.mybatis.dynamic.sql.update.UpdateDSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -52,11 +57,6 @@ import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ConfigurationValu
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationAttributeRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationRecord;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.model.ConfigurationValueRecord;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationValueDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.DAOLoggingSupport;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ResourceNotFoundException;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.TransactionHandler;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigInitService;
 
 @Lazy
@@ -154,6 +154,37 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
             }
             return value;
         });
+    }
+
+
+    private static final String KEY_SEB_SERVICE_POLICY = "sebServicePolicy";
+    private static final String KEY_ATTR_1 = "enableWindowsUpdate";
+    private static final String KEY_ATTR_2 = "enableChromeNotifications";
+    private static final String KEY_ATTR_3 = "allowScreenSharing";
+    @Override
+    public void applyIgnoreSEBService(final Long institutionId, final Long configurationId) {
+        try {
+
+            final String val = this.getConfigAttributeValue(configurationId, 318L).getOrThrow();
+            final boolean ignoreSEBService = BooleanUtils.toBoolean(val);
+            if (ignoreSEBService) {
+                // set default values sebServicePolicy
+                this.setDefaultValues(institutionId, configurationId, 300L)
+                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
+                // set default values enableWindowsUpdate
+                this.setDefaultValues(institutionId, configurationId, 321L)
+                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
+                // set default values enableChromeNotifications
+                this.setDefaultValues(institutionId, configurationId, 322L)
+                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
+                // set default values allowScreenSharing
+                this.setDefaultValues(institutionId, configurationId, 303L)
+                        .onError(error -> log.warn("Failed to set defaultValue on IgnoreSEBService for sebServicePolicy"));
+            }
+
+        } catch (final Exception e) {
+            log.error("Failed to apply Ignore SEB Service to configuration: {}", configurationId, e);
+        }
     }
 
     @Override
@@ -274,6 +305,37 @@ public class ConfigurationValueDAOImpl implements ConfigurationValueDAO {
                 })
                 .flatMap(ConfigurationValueDAOImpl::toDomainModel)
                 .onError(TransactionHandler::rollback);
+    }
+
+    @Override
+    @Transactional
+    public Result<Void> saveQuitPassword(final Long configId, final String pwd) {
+        return Result.tryCatch(() -> {
+
+            final Long hashedQuitPasswordId = configurationAttributeRecordMapper.selectIdsByExample()
+                    .where(ConfigurationAttributeRecordDynamicSqlSupport.name, isEqualTo("hashedQuitPassword"))
+                    .build()
+                    .execute()
+                    .get(0);
+
+            UpdateDSL<MyBatis3UpdateModelAdapter<Integer>> dsl = UpdateDSL.updateWithMapper(
+                    configurationValueRecordMapper::update, configurationValueRecord);
+
+            if (StringUtils.isNotBlank(pwd)) {
+                dsl = dsl.set(value).equalTo(pwd);
+            } else {
+                dsl = dsl.set(value).equalToNull();
+            }
+
+            final Integer execute = dsl.where(configurationId, isEqualTo(configId))
+                    .and(configurationAttributeId, isEqualTo(hashedQuitPasswordId))
+                    .build()
+                    .execute();
+
+            if (execute == null || execute != 1) {
+                throw new NoResourceFoundException(EntityType.CONFIGURATION_VALUE, "Failed to force save");
+            }
+        });
     }
 
     @Override

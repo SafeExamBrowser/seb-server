@@ -78,4 +78,15 @@ public interface ConfigurationValueDAO extends EntityDAO<ConfigurationValue, Con
      * @return the String value of the SEB setting attribute */
     Result<String> getConfigAttributeValue(Long configId, Long attrId);
 
+    /** This applies the ignore SEB Service policy as described in Issue SEBWIN-464 on the given configuration
+     *
+     * @param configurationId The configuration identifier*/
+    void applyIgnoreSEBService(Long institutionId, Long configurationId);
+
+    /** Saves the given hashed quit password as value for the given configuration
+     *
+     * @param configurationId The configuration identifier
+     * @param pwd The hashed quit password
+     * @return Result refer to void or to an error when happened*/
+    Result<Void> saveQuitPassword(Long configurationId, String pwd);
 }

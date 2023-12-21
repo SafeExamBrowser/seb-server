@@ -192,7 +192,9 @@ public final class API {
     public static final String CONFIGURATION_SEB_SETTINGS_DOWNLOAD_PATH_SEGMENT = "/downloadSettings";
     public static final String CONFIGURATION_IMPORT_PATH_SEGMENT = "/import";
     public static final String IMPORT_PASSWORD_ATTR_NAME = "importFilePassword";
+    public static final String QUIT_PASSWORD_ATTR_NAME = "quitPassword";
     public static final String IMPORT_FILE_ATTR_NAME = "importFile";
+    public static final String CONFIGURATION_SET_QUIT_PWD_PATH_SEGMENT = "/quitpwd";
 
     public static final String TEMPLATE_ATTRIBUTE_ENDPOINT = "/template-attribute";
     public static final String TEMPLATE_ATTRIBUTE_RESET_VALUES = "/reset";

@@ -158,4 +158,10 @@ public interface ExamConfigService {
      * @return Result refer to the given ConfigurationNode or to an error if the check has failed */
     Result<ConfigurationNode> checkSaveConsistency(ConfigurationNode configurationNode);
 
+    /** Sets or resets an imported (hashed) quiz password
+     *
+     * @param node the ConfigurationNode
+     * @param quitPassword the quit password to reset (if null or empty, no quit password shall be set)
+     * @return Result refer to the origin ConfigurationNode or to an error when happened*/
+    Result<ConfigurationNode> setQuitPassword(ConfigurationNode node, String quitPassword);
 }

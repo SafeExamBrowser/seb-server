@@ -112,8 +112,13 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
+    public Cryptor getCryptor() {
+        return this.cryptor;
+    }
+
+    @Override
     public FeatureService getFeatureService() {
-        return featureService;
+        return this.featureService;
     }
 
     @Override

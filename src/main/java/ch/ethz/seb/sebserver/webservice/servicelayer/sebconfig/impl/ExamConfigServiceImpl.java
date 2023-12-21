@@ -20,6 +20,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,10 +42,6 @@ import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationTableValues;
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationAttributeDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationFormat;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ConfigurationValueValidator;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
@@ -64,6 +61,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
     private final ExamConfigIO examConfigIO;
     private final ConfigurationNodeDAO configurationNodeDAO;
     private final ConfigurationAttributeDAO configurationAttributeDAO;
+    private final ConfigurationValueDAO configurationValueDAO;
     private final ExamConfigurationMapDAO examConfigurationMapDAO;
     private final Collection<ConfigurationValueValidator> validators;
     private final ClientCredentialService clientCredentialService;
@@ -75,6 +73,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
             final ExamConfigIO examConfigIO,
             final ConfigurationNodeDAO configurationNodeDAO,
             final ConfigurationAttributeDAO configurationAttributeDAO,
+            final ConfigurationValueDAO configurationValueDAO,
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final Collection<ConfigurationValueValidator> validators,
             final ClientCredentialService clientCredentialService,
@@ -85,6 +84,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
         this.examConfigIO = examConfigIO;
         this.configurationNodeDAO = configurationNodeDAO;
         this.configurationAttributeDAO = configurationAttributeDAO;
+        this.configurationValueDAO = configurationValueDAO;
         this.examConfigurationMapDAO = examConfigurationMapDAO;
         this.validators = validators;
         this.clientCredentialService = clientCredentialService;
@@ -384,7 +384,7 @@ public class ExamConfigServiceImpl implements ExamConfigService {
 
                 if (streamDecrypted != null) {
                     final Exception exception = streamDecrypted.get();
-                    if (exception != null && exception instanceof APIMessageException) {
+                    if (exception instanceof APIMessageException) {
                         throw exception;
                     }
                 }
@@ -475,6 +475,34 @@ public class ExamConfigServiceImpl implements ExamConfigService {
 
             return configurationNode;
 
+        });
+    }
+
+    @Override
+    public Result<ConfigurationNode> setQuitPassword(final ConfigurationNode node, final String quitPassword) {
+        return Result.tryCatch(() -> {
+
+            final Long followupId = this.configurationDAO
+                    .getFollowupConfigurationId(node.id)
+                    .getOrThrow();
+
+            this.configurationValueDAO.saveQuitPassword(followupId, quitPassword)
+                    .onError(error -> log.warn(
+                            "Failed to reset quit password for configuration: {} cause: {}",
+                            node,
+                            error.getMessage()));
+
+            final Configuration config = this.configurationDAO
+                    .getConfigurationLastStableVersion(node.id)
+                    .getOrThrow();
+
+            this.configurationValueDAO.saveQuitPassword(config.id, quitPassword)
+                    .onError(error -> log.warn(
+                            "Failed to reset quit password for configuration: {} cause: {}",
+                            node,
+                            error.getMessage()));
+
+            return node;
         });
     }
 

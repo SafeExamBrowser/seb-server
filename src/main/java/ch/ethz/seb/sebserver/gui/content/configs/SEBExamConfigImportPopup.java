@@ -11,16 +11,19 @@ package ch.ethz.seb.sebserver.gui.content.configs;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
+import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
+import ch.ethz.seb.sebserver.gui.form.FieldBuilder;
+import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.*;
+import ch.ethz.seb.sebserver.gui.widget.PasswordConfirmInput;
+import ch.ethz.seb.sebserver.gui.widget.PasswordInput;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -53,10 +56,6 @@ import ch.ethz.seb.sebserver.gui.service.page.impl.ModalInputDialog;
 import ch.ethz.seb.sebserver.gui.service.page.impl.PageAction;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCall;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.RestCallError;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.GetExamConfigNodeNames;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportExamConfigOnExistingConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.ImportNewExamConfig;
-import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.SaveExamConfigHistory;
 import ch.ethz.seb.sebserver.gui.widget.FileUploadSelection;
 import ch.ethz.seb.sebserver.gui.widget.WidgetFactory;
 
@@ -77,6 +76,14 @@ public class SEBExamConfigImportPopup {
             new LocTextKey("sebserver.examconfig.action.import.missing-password"));
     private static final LocTextKey MESSAGE_SAVE_INTEGRITY_VIOLATION =
             new LocTextKey("sebserver.examconfig.action.saveToHistory.integrity-violation");
+    private static final LocTextKey TITLE_QUIT_PASSWORD =
+            new LocTextKey("sebserver.examconfig.action.import.quitpwd.title");
+    private static final LocTextKey LABEL_QUIT_PASSWORD =
+            new LocTextKey("sebserver.clientconfig.form.hashedQuitPassword");
+    private static final LocTextKey MESSAGE_QUIT_PASSWORD_REMOVED =
+            new LocTextKey("sebserver.examconfig.action.import.quitpwd.removed");
+    private static final LocTextKey MESSAGE_QUIT_PASSWORD_SET =
+            new LocTextKey("sebserver.examconfig.action.import.quitpwd.set");
 
     private final static String AUTO_PUBLISH_FLAG = "AUTO_PUBLISH_FLAG";
 
@@ -178,15 +185,18 @@ public class SEBExamConfigImportPopup {
                 final Result<Configuration> importResult = restCall.call();
                 if (!importResult.hasError()) {
                     context.publishInfo(SEBExamConfigForm.FORM_IMPORT_CONFIRM_TEXT_KEY);
+                    final Configuration configuration = importResult.get();
 
                     // Auto publish?
                     if (!newConfig && BooleanUtils.toBoolean(form.getFieldValue(AUTO_PUBLISH_FLAG))) {
                         this.pageService.getRestService()
                                 .getBuilder(SaveExamConfigHistory.class)
-                                .withURIVariable(API.PARAM_MODEL_ID, importResult.get().getModelId())
+                                .withURIVariable(API.PARAM_MODEL_ID, configuration.getModelId())
                                 .call()
                                 .onError(error -> notifyErrorOnSave(error, context));
                     }
+
+                    handleQuitPassword(configuration, context);
                 } else {
                     handleImportError(formHandle, importResult);
                 }
@@ -205,6 +215,81 @@ public class SEBExamConfigImportPopup {
             formHandle.getContext().notifyError(SEBExamConfigForm.FORM_TITLE, e);
             return true;
         }
+    }
+
+    private void handleQuitPassword(final Configuration configuration, final PageContext context) {
+        try {
+            final ConfigurationValue configurationValue = this.pageService.getRestService()
+                    .getBuilder(GetConfigurationValues.class)
+                    .withQueryParam(
+                            ConfigurationValue.FILTER_ATTR_CONFIGURATION_ID,
+                            configuration.getModelId())
+                    .call()
+                    .getOrThrow()
+                    .stream()
+                    .filter(v -> v.attributeId.intValue() == 4)
+                    .findFirst()
+                    .orElse(null);
+
+            final boolean hashedSet = configurationValue != null &&
+                    StringUtils.isNotBlank(configurationValue.getValue());
+
+            final ModalInputDialog<PasswordConfirmInput> dialog = new ModalInputDialog<>(
+                    context.getShell(),
+                    this.pageService.getWidgetFactory());
+
+            final ModalInputDialogComposer<PasswordConfirmInput> contentComposer = comp -> {
+
+                this.pageService.getWidgetFactory().labelLocalized(
+                        comp,
+                        hashedSet ? MESSAGE_QUIT_PASSWORD_REMOVED : MESSAGE_QUIT_PASSWORD_SET,
+                        true);
+                final PasswordConfirmInput passwordInput = new PasswordConfirmInput(
+                        comp,
+                        this.pageService.getWidgetFactory(),
+                        this.pageService.getCryptor(),
+                        LABEL_QUIT_PASSWORD,
+                        LABEL_QUIT_PASSWORD);
+
+                return () -> passwordInput;
+            };
+
+            final String configNodeId = String.valueOf(configuration.configurationNodeId);
+            final Predicate<PasswordConfirmInput> callback = input -> {
+
+                if (input.hasError()) {
+                    return false;
+                }
+
+
+                final CharSequence value = input.getValue();
+                if (value != null) {
+                    this.pageService.getRestService()
+                            .getBuilder(ResetImportQuitPassword.class)
+                            .withURIVariable(API.PARAM_MODEL_ID, configNodeId)
+                            .withFormParam(API.QUIT_PASSWORD_ATTR_NAME, String.valueOf(value))
+                            .call()
+                            .onError(context::notifyUnexpectedError);
+                } else {
+                    deleteQuitPassword(context, configNodeId);
+                }
+                return true;
+            };
+
+            final Runnable cancel = () -> deleteQuitPassword(context, configNodeId);
+
+            dialog.open(TITLE_QUIT_PASSWORD, callback, cancel, contentComposer);
+        } catch (final Exception e) {
+            log.error("Failed to handle quit password for import: ", e);
+        }
+    }
+
+    private void deleteQuitPassword(final PageContext context, final String configNodeId) {
+        this.pageService.getRestService()
+                .getBuilder(ResetImportQuitPassword.class)
+                .withURIVariable(API.PARAM_MODEL_ID, configNodeId)
+                .call()
+                .onError(context::notifyUnexpectedError);
     }
 
     private void handleImportError(
@@ -285,9 +370,7 @@ public class SEBExamConfigImportPopup {
                             .call()
                             .getOrThrow()
                             .stream()
-                            .filter(n -> n.name.equals(fieldValue))
-                            .findFirst()
-                            .isPresent()) {
+                            .anyMatch(n -> n.name.equals(fieldValue))) {
 
                         form.setFieldError(
                                 Domain.CONFIGURATION_NODE.ATTR_NAME,
@@ -303,6 +386,8 @@ public class SEBExamConfigImportPopup {
         }
         return true;
     }
+
+
 
     private final class ImportFormContext implements ModalInputDialogComposer<FormHandle<ConfigurationNode>> {
 

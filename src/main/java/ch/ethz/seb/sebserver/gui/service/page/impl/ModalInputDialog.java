@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import ch.ethz.seb.sebserver.gui.widget.PasswordInput;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
@@ -156,6 +157,7 @@ public class ModalInputDialog<T> extends Dialog {
 
         finishUp(this.shell);
     }
+
 
     public void open(
             final LocTextKey title,

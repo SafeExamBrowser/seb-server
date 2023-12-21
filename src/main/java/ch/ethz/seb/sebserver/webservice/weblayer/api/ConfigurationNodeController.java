@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.dao.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,13 +65,6 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.Authorization
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.UserService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 import ch.ethz.seb.sebserver.webservice.servicelayer.bulkaction.BulkActionService;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ConfigurationNodeDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ExamConfigurationMapDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.FilterMap;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.OrientationDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.UserActivityLogDAO;
-import ch.ethz.seb.sebserver.webservice.servicelayer.dao.ViewDAO;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.sebconfig.ExamConfigTemplateService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ExamConfigUpdateService;
@@ -91,6 +85,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
     private final ExamConfigService sebExamConfigService;
     private final ExamConfigUpdateService examConfigUpdateService;
     private final ExamConfigTemplateService sebExamConfigTemplateService;
+    private final ConfigurationValueDAO configurationValueDAO;
 
     protected ConfigurationNodeController(
             final AuthorizationService authorization,
@@ -105,7 +100,8 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
             final OrientationDAO orientationDAO,
             final ExamConfigService sebExamConfigService,
             final ExamConfigUpdateService examConfigUpdateService,
-            final ExamConfigTemplateService sebExamConfigTemplateService) {
+            final ExamConfigTemplateService sebExamConfigTemplateService,
+            final ConfigurationValueDAO configurationValueDAO) {
 
         super(authorization,
                 bulkActionService,
@@ -122,6 +118,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         this.sebExamConfigService = sebExamConfigService;
         this.examConfigUpdateService = examConfigUpdateService;
         this.sebExamConfigTemplateService = sebExamConfigTemplateService;
+        this.configurationValueDAO = configurationValueDAO;
     }
 
     @Override
@@ -312,7 +309,6 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         this.checkModifyPrivilege(institutionId);
 
         final SEBServerUser currentUser = this.authorization.getUserService().getCurrentUser();
-
         final ConfigurationNode configurationNode = new ConfigurationNode(
                 null,
                 institutionId,
@@ -338,8 +334,7 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     EntityType.CONFIGURATION_NODE))));
         }
 
-        final Configuration config = doImport
-                .getOrThrow();
+        final Configuration config = doImport.getOrThrow();
 
         // user log
         this.configurationNodeDAO.byPK(config.configurationNodeId)
@@ -386,6 +381,27 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
         return doImport
                 .getOrThrow();
     }
+
+    @RequestMapping(
+            path = API.MODEL_ID_VAR_PATH_SEGMENT + API.CONFIGURATION_SET_QUIT_PWD_PATH_SEGMENT,
+            method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ConfigurationNode setQuitPassword(
+            @PathVariable final Long modelId,
+            @RequestParam(
+                    name = API.PARAM_INSTITUTION_ID,
+                    required = true,
+                    defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
+            @RequestParam(name = API.QUIT_PASSWORD_ATTR_NAME, required = false) final String quitPassword) {
+
+        return this.entityDAO.byPK(modelId)
+                .flatMap(this.authorization::checkModify)
+                .flatMap(configNode ->this.sebExamConfigService.setQuitPassword(configNode, quitPassword))
+                .getOrThrow();
+    }
+
+
 
     @RequestMapping(
             path = API.PARENT_MODEL_ID_VAR_PATH_SEGMENT + API.TEMPLATE_ATTRIBUTE_ENDPOINT,
@@ -600,12 +616,18 @@ public class ConfigurationNodeController extends EntityController<ConfigurationN
                     password)
                     .getOrThrow();
 
+            processPostImport(result);
+
             return Result.of(result);
 
         } catch (final Exception e) {
             IOUtils.closeQuietly(inputStream);
             return Result.ofError(e);
         }
+    }
+
+    private void processPostImport(final Configuration config) {
+        this.configurationValueDAO.applyIgnoreSEBService(config.institutionId, config.id);
     }
 
 }

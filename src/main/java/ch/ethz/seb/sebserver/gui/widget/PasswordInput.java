@@ -143,7 +143,7 @@ public class PasswordInput extends Composite {
     public void setValue(final CharSequence value) {
         if (this.passwordInputField != null) {
             this.passwordInputField.setText(value != null
-                    ? Utils.escapeHTML_XML_EcmaScript(value.toString())
+                    ? value.toString()
                     : StringUtils.EMPTY);
             if (StringUtils.endsWith(value, Constants.IMPORTED_PASSWORD_MARKER)) {
                 this.visibilityButton.setEnabled(false);

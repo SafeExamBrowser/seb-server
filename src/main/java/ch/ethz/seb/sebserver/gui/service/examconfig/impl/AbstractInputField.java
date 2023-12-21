@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.service.examconfig.impl;
 
 import java.util.Collection;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -104,7 +105,7 @@ public abstract class AbstractInputField<T extends Control> implements InputFiel
             return;
         }
         this.errorLabel.setVisible(false);
-        this.errorLabel.setText("");
+        this.errorLabel.setText(StringUtils.EMPTY);
 
     }
 
