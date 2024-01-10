@@ -8,11 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.servicelayer.exam;
 
+import ch.ethz.seb.sebserver.gbl.util.Result;
+
 public interface ExamConfigurationValueService {
 
-    public static final String CONFIG_ATTR_NAME_QUIT_LINK = "quitURL";
-    public static final String CONFIG_ATTR_NAME_QUIT_SECRET = "hashedQuitPassword";
-    public static final String CONFIG_ATTR_NAME_ALLOWED_SEB_VERSION = "sebAllowedVersions";
+    String CONFIG_ATTR_NAME_QUIT_LINK = "quitURL";
+    String CONFIG_ATTR_NAME_QUIT_SECRET = "hashedQuitPassword";
+    String CONFIG_ATTR_NAME_ALLOWED_SEB_VERSION = "sebAllowedVersions";
 
     /** Get the actual SEB settings attribute value for the exam configuration mapped as default configuration
      * to the given exam
@@ -29,7 +31,7 @@ public interface ExamConfigurationValueService {
      *
      * @param examId The exam identifier
      * @param configAttributeName The name of the SEB settings attribute
-     * @param The default value that is given back if there is no value from configuration
+     * @param defaultValue default value that is given back if there is no value from configuration
      * @return The current value of the above SEB settings attribute and given exam. */
     String getMappedDefaultConfigAttributeValue(
             Long examId,
@@ -39,8 +41,18 @@ public interface ExamConfigurationValueService {
     /** Get the quitPassword SEB Setting from the Exam Configuration that is applied to the given exam.
      *
      * @param examId Exam identifier
-     * @return the vlaue of the quitPassword SEB Setting */
-    String getQuitSecret(Long examId);
+     * @return the value of the quitPassword SEB Setting */
+    String getQuitPassword(Long examId);
+
+    String getQuitPasswordFromConfigTemplate(Long configTemplateId);
+
+    /** Used to apply the quit pass given from the exam to all exam configuration for the exam.
+     *
+     * @param examId The exam identifier
+     * @param quitPassword The quit password to set to all exam configuration of the given exam
+     * @return Result to the given exam id or to an error when happened
+     */
+    Result<Long> applyQuitPasswordToConfigs(Long examId, String quitPassword);
 
     /** Get the quitLink SEB Setting from the Exam Configuration that is applied to the given exam.
      *

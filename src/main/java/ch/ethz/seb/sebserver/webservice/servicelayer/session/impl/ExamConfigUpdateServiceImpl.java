@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
@@ -46,6 +48,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
     private final ExamSessionService examSessionService;
     private final ExamUpdateHandler examUpdateHandler;
     private final ExamAdminService examAdminService;
+    private final ExamConfigurationValueService examConfigurationValueService;
+
 
     protected ExamConfigUpdateServiceImpl(
             final ExamDAO examDAO,
@@ -53,7 +57,8 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final ExamSessionService examSessionService,
             final ExamUpdateHandler examUpdateHandler,
-            final ExamAdminService examAdminService) {
+            final ExamAdminService examAdminService,
+            final ExamConfigurationValueService examConfigurationValueService) {
 
         this.examDAO = examDAO;
         this.configurationDAO = configurationDAO;
@@ -61,13 +66,15 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
         this.examSessionService = examSessionService;
         this.examUpdateHandler = examUpdateHandler;
         this.examAdminService = examAdminService;
+        this.examConfigurationValueService = examConfigurationValueService;
     }
 
     // processing:
     // check running exam integrity (No running exam with active SEB client-connection available)
     // if OK, create an update-id and for each exam, create an update-lock on DB (This also prevents new SEB client connection attempts during update)
-    // check running exam integrity again after lock to ensure there where no SEB Client connection attempts in the meantime
+    // check running exam integrity again after lock to ensure there were no SEB Client connection attempts in the meantime
     // store the new configuration values (into history) so that they take effect
+    // check if quit password has changed and if so set it too for to (SEBSERV-482)
     // generate the new Config Key and update the Config Key within the LMSSetup API for each exam (delete old Key and add new Key)
     // evict each Exam from cache and release the update-lock on DB
     @Override
@@ -129,6 +136,10 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
 
             // generate the new Config Key and update the Config Key within the LMSSetup API for each exam (delete old Key and add new Key)
             for (final Exam exam : exams) {
+
+                // check if quit password has changed and if so set it for the exam (SEBSERV-482)
+                examDAO.updateQuitPassword(exam, examConfigurationValueService.getQuitPassword(exam.id));
+
                 if (exam.getStatus() == ExamStatus.RUNNING && exam.lmsSetupId != null) {
 
                     this.examUpdateHandler
@@ -201,6 +212,15 @@ public class ExamConfigUpdateServiceImpl implements ExamConfigUpdateService {
                             .onError(t -> log.error("Failed to save exam configuration: {}",
                                     mapping.configurationNodeId))
                             .getOrThrow();
+
+                    // update quit password if needed (SEBSERV-482)
+                    if (StringUtils.isBlank(exam.quitPassword)) {
+                        // copy quit password from config to exam
+                        examDAO.updateQuitPassword(exam, examConfigurationValueService.getQuitPassword(exam.id));
+                    } else {
+                        // copy quit password from exam to config
+                        examConfigurationValueService.applyQuitPasswordToConfigs(exam.id, exam.quitPassword);
+                    }
 
                     // update seb client restriction if the feature is activated for the exam
                     this.examUpdateHandler

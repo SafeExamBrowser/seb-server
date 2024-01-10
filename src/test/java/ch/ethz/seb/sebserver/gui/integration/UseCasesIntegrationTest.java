@@ -904,6 +904,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 null,
                 Utils.immutableCollectionOf(userId),
                 null,
+                null,
                 false,
                 null,
                 true,

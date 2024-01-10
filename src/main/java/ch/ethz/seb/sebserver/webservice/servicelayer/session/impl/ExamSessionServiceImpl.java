@@ -339,7 +339,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             return;
         }
 
-        // for distributed setups check if cached config is still up to date. Flush and reload if not.
+        // for distributed setups check if cached config is still up-to-date. Flush and reload if not.
         if (this.distributedSetup && !this.examSessionCacheService.isUpToDate(sebConfigForExam)) {
 
             if (log.isDebugEnabled()) {
@@ -530,9 +530,8 @@ public class ExamSessionServiceImpl implements ExamSessionService {
     @Override
     public Result<Exam> updateExamCache(final Long examId) {
 
-        // TODO check how often this is called in distributed environments
-        //System.out.println("************** performance check: updateExamCache");
-
+        // TODO make interval access. this should only check when the last check was more then 5 seconds ago
+        // TODO is this really needed?
         try {
             final Cache cache = this.cacheManager.getCache(ExamSessionCacheService.CACHE_NAME_RUNNING_EXAM);
             final ValueWrapper valueWrapper = cache.get(examId);
@@ -554,7 +553,6 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 .getOr(false);
 
         if (!BooleanUtils.toBoolean(isUpToDate)) {
-            // TODO this should only flush the exam cache but not the SEB connection cache
             return flushCache(exam);
         } else {
             return Result.of(exam);
@@ -603,7 +601,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                         .collect(Collectors.toSet());
 
                 this.clientConnectionDAO.getClientConnectionsOutOfSyc(examId, timestamps)
-                        .getOrElse(() -> Collections.emptySet())
+                        .getOrElse(Collections::emptySet)
                         .stream()
                         .forEach(this.examSessionCacheService::evictClientConnection);
 

@@ -163,6 +163,8 @@ public interface ExamAdminService {
      * @param exam the exam that has been changed and saved */
     void notifyExamSaved(Exam exam);
 
+    void applyQuitPassword(Exam entity);
+
     static void newExamFieldValidation(final POSTMapper postParams) {
         noLMSFieldValidation(new Exam(postParams));
     }
@@ -336,6 +338,5 @@ public interface ExamAdminService {
                             "clientGroup:clientOS:notNull")));
         }
     }
-
 
 }

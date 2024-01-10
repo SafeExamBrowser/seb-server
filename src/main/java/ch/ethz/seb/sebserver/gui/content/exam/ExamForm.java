@@ -83,61 +83,33 @@ public class ExamForm implements TemplateComposer {
     protected static final String ATTR_EDITABLE = "ATTR_EDITABLE";
     protected static final String ATTR_EXAM_STATUS = "ATTR_EXAM_STATUS";
 
-    public static final LocTextKey EXAM_FORM_TITLE_KEY =
-            new LocTextKey("sebserver.exam.form.title");
-    public static final LocTextKey EXAM_FORM_TITLE_IMPORT_KEY =
-            new LocTextKey("sebserver.exam.form.title.import");
-
-    private static final LocTextKey FORM_SUPPORTER_TEXT_KEY =
-            new LocTextKey("sebserver.exam.form.supporter");
-    private static final LocTextKey FORM_STATUS_TEXT_KEY =
-            new LocTextKey("sebserver.exam.form.status");
-    private static final LocTextKey FORM_TYPE_TEXT_KEY =
-            new LocTextKey("sebserver.exam.form.type");
-    private static final LocTextKey FORM_END_TIME_TEXT_KEY =
-            new LocTextKey("sebserver.exam.form.endtime");
-    private static final LocTextKey FORM_START_TIME_TEXT_KEY =
-            new LocTextKey("sebserver.exam.form.starttime");
-    private static final LocTextKey FORM_DESCRIPTION_TEXT_KEY =
-            new LocTextKey("sebserver.exam.form.description");
-    private static final LocTextKey FORM_NAME_TEXT_KEY =
-            new LocTextKey("sebserver.exam.form.name");
-    private static final LocTextKey FORM_QUIZ_ID_TEXT_KEY =
-            new LocTextKey("sebserver.exam.form.quizid");
-    private static final LocTextKey FORM_QUIZ_URL_TEXT_KEY =
-            new LocTextKey("sebserver.exam.form.quizurl");
-    private static final LocTextKey FORM_LMSSETUP_TEXT_KEY =
-            new LocTextKey("sebserver.exam.form.lmssetup");
-    private final static LocTextKey ACTION_MESSAGE_SEB_RESTRICTION_RELEASE =
-            new LocTextKey("sebserver.exam.action.sebrestriction.release.confirm");
-    private static final LocTextKey FORM_EXAM_TEMPLATE_TEXT_KEY =
-            new LocTextKey("sebserver.exam.form.examTemplate");
-    private static final LocTextKey FORM_EXAM_TEMPLATE_ERROR =
-            new LocTextKey("sebserver.exam.form.examTemplate.error");
-    private static final LocTextKey EXAM_ARCHIVE_CONFIRM =
-            new LocTextKey("sebserver.exam.action.archive.confirm");
-
-    private final static LocTextKey CONSISTENCY_MESSAGE_TITLE =
-            new LocTextKey("sebserver.exam.consistency.title");
-    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_SUPPORTER =
-            new LocTextKey("sebserver.exam.consistency.missing-supporter");
-    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_INDICATOR =
-            new LocTextKey("sebserver.exam.consistency.missing-indicator");
-    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_CONFIG =
-            new LocTextKey("sebserver.exam.consistency.missing-config");
-    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_SEB_RESTRICTION =
-            new LocTextKey("sebserver.exam.consistency.missing-seb-restriction");
-    private final static LocTextKey CONSISTENCY_MESSAGE_VALIDATION_LMS_CONNECTION =
-            new LocTextKey("sebserver.exam.consistency.no-lms-connection");
-    private final static LocTextKey CONSISTENCY_MESSAGEINVALID_ID_REFERENCE =
-            new LocTextKey("sebserver.exam.consistency.invalid-lms-id");
-    private final static LocTextKey CONSISTENCY_MESSAGE_SEB_RESTRICTION_MISMATCH =
-            new LocTextKey("sebserver.exam.consistencyseb-restriction-mismatch");
-
-    private final static LocTextKey AUTO_GEN_CONFIG_ERROR_TITLE =
-            new LocTextKey("sebserver.exam.autogen.error.config.title");
-    private final static LocTextKey AUTO_GEN_CONFIG_ERROR_TEXT =
-            new LocTextKey("sebserver.exam.autogen.error.config.text");
+    public static final LocTextKey EXAM_FORM_TITLE_KEY = new LocTextKey("sebserver.exam.form.title");
+    public static final LocTextKey EXAM_FORM_TITLE_IMPORT_KEY = new LocTextKey("sebserver.exam.form.title.import");
+    private static final LocTextKey FORM_SUPPORTER_TEXT_KEY = new LocTextKey("sebserver.exam.form.supporter");
+    private static final LocTextKey FORM_QUIT_PWD_TEXT_KEY = new LocTextKey("sebserver.exam.form.quitpwd");
+    private static final LocTextKey FORM_STATUS_TEXT_KEY = new LocTextKey("sebserver.exam.form.status");
+    private static final LocTextKey FORM_TYPE_TEXT_KEY = new LocTextKey("sebserver.exam.form.type");
+    private static final LocTextKey FORM_END_TIME_TEXT_KEY = new LocTextKey("sebserver.exam.form.endtime");
+    private static final LocTextKey FORM_START_TIME_TEXT_KEY = new LocTextKey("sebserver.exam.form.starttime");
+    private static final LocTextKey FORM_DESCRIPTION_TEXT_KEY = new LocTextKey("sebserver.exam.form.description");
+    private static final LocTextKey FORM_NAME_TEXT_KEY = new LocTextKey("sebserver.exam.form.name");
+    private static final LocTextKey FORM_QUIZ_ID_TEXT_KEY = new LocTextKey("sebserver.exam.form.quizid");
+    private static final LocTextKey FORM_QUIZ_URL_TEXT_KEY = new LocTextKey("sebserver.exam.form.quizurl");
+    private static final LocTextKey FORM_LMSSETUP_TEXT_KEY = new LocTextKey("sebserver.exam.form.lmssetup");
+    private final static LocTextKey ACTION_MESSAGE_SEB_RESTRICTION_RELEASE = new LocTextKey("sebserver.exam.action.sebrestriction.release.confirm");
+    private static final LocTextKey FORM_EXAM_TEMPLATE_TEXT_KEY = new LocTextKey("sebserver.exam.form.examTemplate");
+    private static final LocTextKey FORM_EXAM_TEMPLATE_ERROR = new LocTextKey("sebserver.exam.form.examTemplate.error");
+    private static final LocTextKey EXAM_ARCHIVE_CONFIRM = new LocTextKey("sebserver.exam.action.archive.confirm");
+    private final static LocTextKey CONSISTENCY_MESSAGE_TITLE = new LocTextKey("sebserver.exam.consistency.title");
+    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_SUPPORTER = new LocTextKey("sebserver.exam.consistency.missing-supporter");
+    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_INDICATOR = new LocTextKey("sebserver.exam.consistency.missing-indicator");
+    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_CONFIG = new LocTextKey("sebserver.exam.consistency.missing-config");
+    private final static LocTextKey CONSISTENCY_MESSAGE_MISSING_SEB_RESTRICTION = new LocTextKey("sebserver.exam.consistency.missing-seb-restriction");
+    private final static LocTextKey CONSISTENCY_MESSAGE_VALIDATION_LMS_CONNECTION = new LocTextKey("sebserver.exam.consistency.no-lms-connection");
+    private final static LocTextKey CONSISTENCY_MESSAGEINVALID_ID_REFERENCE = new LocTextKey("sebserver.exam.consistency.invalid-lms-id");
+    private final static LocTextKey CONSISTENCY_MESSAGE_SEB_RESTRICTION_MISMATCH = new LocTextKey("sebserver.exam.consistencyseb-restriction-mismatch");
+    private final static LocTextKey AUTO_GEN_CONFIG_ERROR_TITLE = new LocTextKey("sebserver.exam.autogen.error.config.title");
+    private final static LocTextKey AUTO_GEN_CONFIG_ERROR_TEXT = new LocTextKey("sebserver.exam.autogen.error.config.text");
 
     private final Map<String, LocTextKey> consistencyMessageMapping;
     private final PageService pageService;
@@ -507,13 +479,20 @@ public class ExamForm implements TemplateComposer {
                         .withInputSpan(7)
                         .withEmptyCellSeparation(false))
 
+                .addField(FormBuilder.password(
+                                Domain.EXAM.ATTR_QUIT_PASSWORD,
+                                FORM_QUIT_PWD_TEXT_KEY,
+                                exam.quitPassword)
+                        .withInputSpan(3)
+                        .withEmptyCellSeparation(false))
+
                 .addField(FormBuilder.multiComboSelection(
                         Domain.EXAM.ATTR_SUPPORTER,
                         FORM_SUPPORTER_TEXT_KEY,
                         StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
                         this.resourceService::examSupporterResources)
                         .withInputSpan(7)
-                        .withEmptyCellSeparation(false))
+                        .withEmptyCellSpan(4))
                 .build();
     }
 
@@ -615,11 +594,18 @@ public class ExamForm implements TemplateComposer {
                                 this.resourceService::examTypeResources)
                         .mandatory(true))
 
+                .addField(FormBuilder.password(
+                        Domain.EXAM.ATTR_QUIT_PASSWORD,
+                        FORM_QUIT_PWD_TEXT_KEY,
+                        exam.quitPassword))
+
                 .addField(FormBuilder.multiComboSelection(
                                 Domain.EXAM.ATTR_SUPPORTER,
                                 FORM_SUPPORTER_TEXT_KEY,
                                 StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
                                 this.resourceService::examSupporterResources))
+
+
 
                 .buildFor(importFromLMS
                         ? this.restService.getRestCall(ImportAsExam.class)
@@ -643,6 +629,7 @@ public class ExamForm implements TemplateComposer {
             null,
             null,
             ExamStatus.UP_COMING,
+            null,
             false,
             null,
             true,
@@ -679,13 +666,16 @@ public class ExamForm implements TemplateComposer {
                         .call()
                         .getOrThrow();
 
+                final String quitPassword = examTemplate.getExamAttributes().get(ExamTemplate.ATTR_QUIT_PASSWORD);
                 form.setFieldValue(Domain.EXAM.ATTR_TYPE, examTemplate.examType.name());
                 form.setFieldValue(
                         Domain.EXAM.ATTR_SUPPORTER,
                         StringUtils.join(examTemplate.supporter, Constants.LIST_SEPARATOR));
+                form.setFieldValue(Domain.EXAM.ATTR_QUIT_PASSWORD, quitPassword);
             } else {
                 form.setFieldValue(Domain.EXAM.ATTR_TYPE, Exam.ExamType.UNDEFINED.name());
                 form.setFieldValue(Domain.EXAM.ATTR_SUPPORTER, null);
+                form.setFieldValue(Domain.EXAM.ATTR_QUIT_PASSWORD, null);
             }
         } catch (final Exception e) {
             context.notifyError(FORM_EXAM_TEMPLATE_ERROR, e);

@@ -210,6 +210,15 @@ public class ExamTemplateDAOImpl implements ExamTemplateDAO {
                     indicatorsJSON,
                     BooleanUtils.toInteger(data.institutionalDefault));
 
+            final String quitPassword = data.getExamAttributes().get(ExamTemplate.ATTR_QUIT_PASSWORD);
+            if (StringUtils.isNotBlank(quitPassword)) {
+                this.additionalAttributesDAO.saveAdditionalAttribute(
+                        EntityType.EXAM_TEMPLATE,
+                        data.id,
+                        ExamTemplate.ATTR_QUIT_PASSWORD,
+                        quitPassword);
+            }
+
             this.examTemplateRecordMapper.insert(newRecord);
             return newRecord;
         })

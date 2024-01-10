@@ -33,9 +33,9 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.session.impl.ExamSessionCac
 /** A Service to handle running exam sessions */
 public interface ExamSessionService {
 
-    public static final Predicate<ClientConnection> ACTIVE_CONNECTION_FILTER =
+    Predicate<ClientConnection> ACTIVE_CONNECTION_FILTER =
             cc -> cc.status == ConnectionStatus.ACTIVE;
-    public static final Predicate<ClientConnectionData> ACTIVE_CONNECTION_DATA_FILTER =
+    Predicate<ClientConnectionData> ACTIVE_CONNECTION_DATA_FILTER =
             ccd -> ccd.clientConnection.status == ConnectionStatus.ACTIVE;
 
     /** Get the underling ExamDAO service.

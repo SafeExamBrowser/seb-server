@@ -27,7 +27,7 @@ import ch.ethz.seb.sebserver.gbl.profile.ProdWebServiceProfile;
 
 /** SEB-Server (Safe Exam Browser Server) is a server component to maintain and support
  * Exams running with SEB (Safe Exam Browser). TODO add link(s)
- *
+ * <p>
  * SEB-Server uses Spring Boot as main framework is divided into two main components,
  * a webservice component that implements the business logic, persistence management
  * and defines a REST API to expose the services over HTTP. The second component is a
@@ -49,7 +49,7 @@ public class SEBServer {
     }
 
     /*
-     * Add an additional redirect Connector on http port to redirect all http calls
+     * Add a redirect Connector on http port to redirect all http calls
      * to https.
      *
      * NOTE: This works with TomcatServletWebServerFactory and embedded tomcat.

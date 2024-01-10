@@ -91,6 +91,7 @@ public class OlatLmsAPITemplateTest extends AdministrationAPIIntegrationTester {
                 null,
                 null,
                 ExamStatus.FINISHED,
+                null,
                 Boolean.FALSE,
                 null,
                 Boolean.FALSE,

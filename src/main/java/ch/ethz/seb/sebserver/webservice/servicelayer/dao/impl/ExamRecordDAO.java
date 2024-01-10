@@ -9,15 +9,13 @@
 package ch.ethz.seb.sebserver.webservice.servicelayer.dao.impl;
 
 import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.*;
+import static ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.ExamRecordDynamicSqlSupport.quitPassword;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -63,13 +61,16 @@ public class ExamRecordDAO {
 
     private final ExamRecordMapper examRecordMapper;
     private final ClientConnectionRecordMapper clientConnectionRecordMapper;
+    private final Cryptor cryptor;
 
     public ExamRecordDAO(
             final ExamRecordMapper examRecordMapper,
-            final ClientConnectionRecordMapper clientConnectionRecordMapper) {
+            final ClientConnectionRecordMapper clientConnectionRecordMapper,
+            final Cryptor cryptor) {
 
         this.examRecordMapper = examRecordMapper;
         this.clientConnectionRecordMapper = clientConnectionRecordMapper;
+        this.cryptor = cryptor;
     }
 
     @Transactional(readOnly = true)
@@ -136,7 +137,7 @@ public class ExamRecordDAO {
                     .build()
                     .execute()
                     .stream()
-                    .map(rec -> rec.getInstitutionId())
+                    .map(ExamRecord::getInstitutionId)
                     .collect(Collectors.toList());
         });
     }
@@ -235,6 +236,33 @@ public class ExamRecordDAO {
     }
 
     @Transactional
+    public Result<ExamRecord> updateQuitPassword(final Exam exam, final String pwd) {
+        return Result.tryCatch(() -> {
+            final String examQuitPassword = exam.quitPassword != null
+                    ? this.cryptor
+                    .decrypt(exam.quitPassword)
+                    .getOr(exam.quitPassword)
+                    .toString()
+                    : null;
+
+            if (Objects.equals(examQuitPassword, pwd)) {
+                return this.examRecordMapper.selectByPrimaryKey(exam.id);
+            }
+
+            UpdateDSL.updateWithMapper(examRecordMapper::update, examRecord)
+                    .set(quitPassword).equalTo(getEncryptedQuitPassword(pwd))
+                    .where(id, isEqualTo(exam.id))
+                    .build()
+                    .execute();
+
+
+            return this.examRecordMapper.selectByPrimaryKey(exam.id);
+        })
+                .onError(TransactionHandler::rollback);
+
+    }
+
+    @Transactional
     public Result<ExamRecord> updateState(final Long examId, final ExamStatus status, final String updateId) {
         return recordById(examId)
                 .map(examRecord -> {
@@ -270,40 +298,38 @@ public class ExamRecordDAO {
             }
 
             if (exam.status != null && !exam.status.name().equals(oldRecord.getStatus())) {
-                log.info("Exam state change on save. Exam. {}, Old state: {}, new state: {}",
-                        exam.externalId,
-                        oldRecord.getStatus(),
-                        exam.status);
+                log.info(
+                    "Exam state change on save. Exam. {}, Old state: {}, new state: {}",
+                    exam.externalId,
+                    oldRecord.getStatus(),
+                    exam.status);
             }
 
-            final ExamRecord examRecord = new ExamRecord(
-                    exam.id,
-                    null, null, null, null,
-                    (exam.supporter != null)
-                            ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
-                            : null,
-                    (exam.type != null)
-                            ? exam.type.name()
-                            : null,
-                    null,
-                    exam.browserExamKeys,
-                    null,
-                    1, // seb restriction (deprecated)
-                    null, // updating
-                    null, // lastUpdate
-                    null, // active
-                    exam.examTemplateId,
-                    Utils.getMillisecondsNow(),
-                    exam.lmsSetupId == null ? exam.name : null,
-                    exam.lmsSetupId == null ? exam.startTime : null,
-                    exam.lmsSetupId == null ? exam.endTime : null,
-                    null);
+            UpdateDSL.updateWithMapper(examRecordMapper::update, examRecord)
+                .set(supporter).equalTo((exam.supporter != null)
+                        ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
+                        : null)
+                .set(type).equalTo((exam.type != null)
+                        ? exam.type.name()
+                        : ExamType.UNDEFINED.name())
+                .set(quitPassword).equalTo(getEncryptedQuitPassword(exam.quitPassword))
+                .set(browserKeys).equalToWhenPresent(exam.browserExamKeys)
+                .set(lmsSebRestriction).equalTo(1) // seb restriction (deprecated)
+                .set(examTemplateId).equalTo(exam.examTemplateId)
+                .set(lastModified).equalTo(Utils.getMillisecondsNow())
+                .set(quizName).equalToWhenPresent(exam.lmsSetupId == null ? exam.name : null)
+                .set(quizStartTime).equalToWhenPresent(exam.lmsSetupId == null ? exam.startTime : null)
+                .set(quizEndTime).equalToWhenPresent(exam.lmsSetupId == null ? exam.endTime : null)
+                .where(id, isEqualTo(exam.id))
+                .build()
+                .execute();
 
-            this.examRecordMapper.updateByPrimaryKeySelective(examRecord);
             return this.examRecordMapper.selectByPrimaryKey(exam.id);
         })
                 .onError(TransactionHandler::rollback);
     }
+
+
 
     @Transactional
     public Result<ExamRecord> updateFromQuizData(
@@ -445,7 +471,7 @@ public class ExamRecordDAO {
                             ? StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR)
                             : null,
                     (exam.type != null) ? exam.type.name() : ExamType.UNDEFINED.name(),
-                    null, // quitPassword
+                    getEncryptedQuitPassword(exam.quitPassword),
                     null, // browser keys
                     (exam.status != null) ? exam.status.name() : ExamStatus.UP_COMING.name(),
                     1, // seb restriction (deprecated)
@@ -552,6 +578,16 @@ public class ExamRecordDAO {
                     .build()
                     .execute();
         });
+    }
+
+    private String getEncryptedQuitPassword(final String pwd) {
+        return (StringUtils.isNotBlank(pwd))
+                ?  this.cryptor
+                .encryptCheckAlreadyEncrypted(pwd)
+                .onError(err -> log.error("failed to encrypt quit password, skip...", err))
+                .getOr(pwd)
+                .toString()
+                : null;
     }
 
 }

@@ -23,6 +23,7 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jcajce.provider.keystore.pkcs12.PKCS12KeyStoreSpi;
 import org.bouncycastle.jcajce.provider.keystore.pkcs12.PKCS12KeyStoreSpi.BCPKCS12KeyStore;
 import org.slf4j.Logger;
@@ -132,6 +133,19 @@ public class Cryptor {
         });
     }
 
+    public Result<CharSequence> encryptCheckAlreadyEncrypted(final CharSequence text) {
+        return Result.tryCatch(() -> {
+
+            // try to decrypt to check if it is already encrypted
+            final Result<CharSequence> decryption = this.decrypt(text);
+            if (decryption.hasError()) {
+                return encrypt(text).getOrThrow();
+            } else {
+                return text;
+            }
+        });
+    }
+
     public static Result<CharSequence> decrypt(final CharSequence cipher, final CharSequence secret) {
         return Result.tryCatch(() -> {
             if (cipher == null) {
@@ -182,5 +196,6 @@ public class Cryptor {
 
         });
     }
+
 
 }

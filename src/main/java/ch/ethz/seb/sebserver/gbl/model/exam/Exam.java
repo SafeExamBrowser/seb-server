@@ -39,25 +39,10 @@ import ch.ethz.seb.sebserver.gbl.util.Utils;
 public final class Exam implements GrantEntity {
 
     public static final Exam EMPTY_EXAM = new Exam(
-            -1L,
-            -1L,
-            -1L,
-            Constants.EMPTY_NOTE,
-            false,
-            Constants.EMPTY_NOTE,
-            null,
-            null,
-            ExamType.UNDEFINED,
-            null,
-            null,
-            ExamStatus.FINISHED,
-            Boolean.FALSE,
-            null,
-            Boolean.FALSE,
-            null,
-            null,
-            null,
-            null);
+            -1L, -1L, -1L, Constants.EMPTY_NOTE, false, Constants.EMPTY_NOTE,
+            null, null, ExamType.UNDEFINED, null, null, ExamStatus.FINISHED,
+            null, Boolean.FALSE, null, Boolean.FALSE, null,
+            null, null, null);
 
     public static final String FILTER_ATTR_TYPE = "type";
     public static final String FILTER_ATTR_STATUS = "status";
@@ -130,6 +115,9 @@ public final class Exam implements GrantEntity {
     @JsonProperty(EXAM.ATTR_STATUS)
     public final ExamStatus status;
 
+    @JsonProperty(EXAM.ATTR_QUIT_PASSWORD)
+    public final String quitPassword;
+
     @JsonProperty(EXAM.ATTR_LMS_SEB_RESTRICTION)
     public final Boolean sebRestriction;
 
@@ -170,6 +158,7 @@ public final class Exam implements GrantEntity {
             @JsonProperty(EXAM.ATTR_OWNER) final String owner,
             @JsonProperty(EXAM.ATTR_SUPPORTER) final Collection<String> supporter,
             @JsonProperty(EXAM.ATTR_STATUS) final ExamStatus status,
+            @JsonProperty(EXAM.ATTR_QUIT_PASSWORD) final String quitPassword,
             @JsonProperty(EXAM.ATTR_LMS_SEB_RESTRICTION) final Boolean sebRestriction,
             @JsonProperty(EXAM.ATTR_BROWSER_KEYS) final String browserExamKeys,
             @JsonProperty(EXAM.ATTR_ACTIVE) final Boolean active,
@@ -189,6 +178,7 @@ public final class Exam implements GrantEntity {
         this.type = type;
         this.owner = owner;
         this.status = (status != null) ? status : getStatusFromDate(startTime, endTime);
+        this.quitPassword = quitPassword;
         this.sebRestriction = sebRestriction;
         this.browserExamKeys = browserExamKeys;
         this.active = (active != null) ? active : Boolean.TRUE;
@@ -219,6 +209,7 @@ public final class Exam implements GrantEntity {
         this.type = postMap.getEnum(EXAM.ATTR_TYPE, ExamType.class, ExamType.UNDEFINED);
         this.owner = postMap.getString(EXAM.ATTR_OWNER);
         this.status = postMap.getEnum(EXAM.ATTR_STATUS, ExamStatus.class, getStatusFromDate(this.startTime, this.endTime));
+        this.quitPassword = postMap.getString(EXAM.ATTR_QUIT_PASSWORD);
         this.sebRestriction = null;
         this.browserExamKeys = null;
         this.active = postMap.getBoolean(EXAM.ATTR_ACTIVE);
@@ -262,6 +253,7 @@ public final class Exam implements GrantEntity {
                 EXAM.ATTR_STATUS,
                 ExamStatus.class,
                 getStatusFromDate(this.startTime, this.endTime));
+        this.quitPassword = mapper.getString(EXAM.ATTR_QUIT_PASSWORD);
         this.sebRestriction = null;
         this.browserExamKeys = mapper.getString(EXAM.ATTR_BROWSER_KEYS);
         this.active = mapper.getBoolean(EXAM.ATTR_ACTIVE);
@@ -387,6 +379,10 @@ public final class Exam implements GrantEntity {
 
     public ExamStatus getStatus() {
         return this.status;
+    }
+
+    public String getQuitPassword() {
+        return quitPassword;
     }
 
     public String getBrowserExamKeys() {

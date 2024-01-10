@@ -196,6 +196,13 @@ public class ExamDAOImpl implements ExamDAO {
     }
 
     @Override
+    public void updateQuitPassword(final Exam exam, final String quitPassword) {
+        this.examRecordDAO
+                .updateQuitPassword(exam, quitPassword)
+                .onError(err -> log.error("Failed to update quit password on exam: {}", exam, err));
+    }
+
+    @Override
     public Result<Exam> setSEBRestriction(final Long examId, final boolean sebRestriction) {
         return this.examRecordDAO
                 .setSEBRestriction(examId, sebRestriction)
@@ -789,6 +796,7 @@ public class ExamDAOImpl implements ExamDAO {
                     record.getOwner(),
                     supporter,
                     status,
+                    record.getQuitPassword(),
                     BooleanUtils.toBooleanObject(record.getLmsSebRestriction()),
                     record.getBrowserKeys(),
                     BooleanUtils.toBooleanObject(record.getActive()),

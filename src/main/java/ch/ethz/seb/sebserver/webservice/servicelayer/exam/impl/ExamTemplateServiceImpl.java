@@ -228,7 +228,6 @@ public class ExamTemplateServiceImpl implements ExamTemplateService {
                             .getOrThrow(error -> new APIMessageException(
                                     ErrorMessage.EXAM_IMPORT_ERROR_AUTO_CONFIG_LINKING,
                                     error));
-
                 }
             } else {
                 if (log.isDebugEnabled()) {

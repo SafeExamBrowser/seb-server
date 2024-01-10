@@ -368,7 +368,7 @@ public class OlatLmsAPITemplate extends AbstractCachedCourseAccess implements Lm
         post.configKeys = new ArrayList<>(restriction.configKeys);
         if (this.restrictWithAdditionalAttributes) {
             post.quitLink = this.examConfigurationValueService.getQuitLink(restriction.examId);
-            post.quitSecret = this.examConfigurationValueService.getQuitSecret(restriction.examId);
+            post.quitSecret = this.examConfigurationValueService.getQuitPassword(restriction.examId);
         }
         final RestrictionData r =
                 this.apiPost(restTemplate, url, post, RestrictionDataPost.class, RestrictionData.class);

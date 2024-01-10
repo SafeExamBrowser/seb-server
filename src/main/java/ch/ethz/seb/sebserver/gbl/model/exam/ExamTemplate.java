@@ -36,6 +36,7 @@ public class ExamTemplate implements GrantEntity {
     public static final String FILTER_ATTR_EXAM_TYPE = EXAM_TEMPLATE.ATTR_EXAM_TYPE;
     public static final String ATTR_CLIENT_GROUP_TEMPLATES = "CLIENT_GROUP_TEMPLATES";
     public static final String ATTR_EXAM_ATTRIBUTES = "EXAM_ATTRIBUTES";
+    public static final String ATTR_QUIT_PASSWORD = "quitPassword";
 
     @JsonProperty(EXAM_TEMPLATE.ATTR_ID)
     public final Long id;
@@ -243,8 +244,7 @@ public class ExamTemplate implements GrantEntity {
     }
 
     public static ExamTemplate createNew(final Long institutionId) {
-        return new ExamTemplate(null, institutionId, null, null, ExamType.UNDEFINED, null, null, false, null, null,
-                null);
+        return new ExamTemplate(null, institutionId, null, null, ExamType.UNDEFINED, null, null, false, null, null, null);
     }
 
 }

@@ -165,7 +165,6 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
     }
 
     @Override
-    @Transactional
     public Result<Exam> saveSEBRestrictionToExam(final Exam exam, final SEBRestriction sebRestriction) {
 
         if (log.isDebugEnabled()) {
@@ -180,6 +179,7 @@ public class SEBRestrictionServiceImpl implements SEBRestrictionService {
                     null, null, null, null, null, null, null, null, null,
                     exam.supporter,
                     exam.status,
+                    null,
                     null,
                     (browserExamKeys != null && !browserExamKeys.isEmpty())
                             ? StringUtils.join(browserExamKeys, Constants.LIST_SEPARATOR_CHAR)

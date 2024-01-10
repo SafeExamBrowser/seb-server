@@ -8,18 +8,17 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.dynamic.sql.SqlTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,8 +59,11 @@ import ch.ethz.seb.sebserver.webservice.servicelayer.validation.BeanValidationSe
 @RequestMapping("${sebserver.webservice.api.admin.endpoint}" + API.EXAM_TEMPLATE_ENDPOINT)
 public class ExamTemplateController extends EntityController<ExamTemplate, ExamTemplate> {
 
+    private static final Logger log = LoggerFactory.getLogger(ExamTemplateController.class);
+
     private final ExamTemplateDAO examTemplateDAO;
     private final ProctoringAdminService proctoringServiceSettingsService;
+    private final ExamConfigurationValueService examConfigurationValueService;
 
     protected ExamTemplateController(
             final AuthorizationService authorization,
@@ -70,7 +72,8 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
             final UserActivityLogDAO userActivityLogDAO,
             final PaginationService paginationService,
             final BeanValidationService beanValidationService,
-            final ProctoringAdminService proctoringServiceSettingsService) {
+            final ProctoringAdminService proctoringServiceSettingsService,
+            final ExamConfigurationValueService examConfigurationValueService) {
 
         super(
                 authorization,
@@ -82,6 +85,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
 
         this.examTemplateDAO = entityDAO;
         this.proctoringServiceSettingsService = proctoringServiceSettingsService;
+        this.examConfigurationValueService = examConfigurationValueService;
     }
 
     @RequestMapping(
@@ -99,6 +103,45 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
                 .getInstitutionalDefault(institutionId)
                 .flatMap(this::checkReadAccess)
                 .getOrThrow();
+    }
+
+    @Override
+    protected Result<ExamTemplate> validForCreate(final ExamTemplate entity) {
+        return super.validForCreate(entity)
+                .map(this::applyQuitPasswordIfNeeded);
+    }
+
+    @Override
+    protected Result<ExamTemplate> validForSave(final ExamTemplate entity) {
+        return super.validForSave(entity)
+                .map(this::applyQuitPasswordIfNeeded);
+    }
+
+    private ExamTemplate applyQuitPasswordIfNeeded(final ExamTemplate entity) {
+        if (entity.configTemplateId != null) {
+            try {
+                final String quitPassword = this.examConfigurationValueService
+                        .getQuitPasswordFromConfigTemplate(entity.configTemplateId);
+                final HashMap<String, String> attributes = new HashMap<>(entity.examAttributes);
+                attributes.put(ExamTemplate.ATTR_QUIT_PASSWORD, quitPassword);
+                return new ExamTemplate(
+                        entity.id,
+                        entity.institutionId,
+                        entity.name,
+                        entity.description,
+                        entity.examType,
+                        entity.supporter,
+                        entity.configTemplateId,
+                        entity.institutionalDefault,
+                        entity.indicatorTemplates,
+                        entity.clientGroupTemplates,
+                        attributes
+                );
+            } catch (final Exception e) {
+                log.error("Failed to apply quit password to Exam Template.", e);
+            }
+        }
+        return entity;
     }
 
     // ****************************************************************************
@@ -466,7 +509,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
 
         final String sortBy = PageSortOrder.decode(sort);
         return indicators -> {
-            final List<IndicatorTemplate> list = indicators.stream().collect(Collectors.toList());
+            final List<IndicatorTemplate> list = new ArrayList<>(indicators);
             if (StringUtils.isBlank(sort)) {
                 return list;
             }
@@ -487,7 +530,7 @@ public class ExamTemplateController extends EntityController<ExamTemplate, ExamT
 
         final String sortBy = PageSortOrder.decode(sort);
         return clientGroups -> {
-            final List<ClientGroupTemplate> list = clientGroups.stream().collect(Collectors.toList());
+            final List<ClientGroupTemplate> list = new ArrayList<>(clientGroups);
             if (StringUtils.isBlank(sort)) {
                 return list;
             }

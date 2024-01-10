@@ -136,7 +136,7 @@ public class MoodlePluginCourseRestriction implements SEBRestrictionAPI {
             final ArrayList<String> beks = new ArrayList<>(sebRestrictionData.browserExamKeys);
             final ArrayList<String> configKeys = new ArrayList<>(sebRestrictionData.configKeys);
             final String quitLink = this.examConfigurationValueService.getQuitLink(exam.id);
-            final String quitSecret = this.examConfigurationValueService.getQuitSecret(exam.id);
+            final String quitSecret = this.examConfigurationValueService.getQuitPassword(exam.id);
             final String additionalBEK = exam.getAdditionalAttribute(
                     SEBRestrictionService.ADDITIONAL_ATTR_ALTERNATIVE_SEB_BEK);
 

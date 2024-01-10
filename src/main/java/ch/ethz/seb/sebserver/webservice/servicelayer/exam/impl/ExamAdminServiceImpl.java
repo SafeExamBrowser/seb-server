@@ -328,6 +328,13 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         this.proctoringAdminService.notifyExamSaved(exam);
     }
 
+    @Override
+    public void applyQuitPassword(final Exam exam) {
+        this.examConfigurationValueService
+                .applyQuitPasswordToConfigs(exam.id, exam.quitPassword)
+                .getOrThrow();
+    }
+
     private Result<Exam> initAdditionalAttributesForMoodleExams(final Exam exam) {
         return Result.tryCatch(() -> {
 

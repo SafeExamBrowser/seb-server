@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -652,6 +653,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
                     return entity;
                 });
 
+        this.examAdminService.applyQuitPassword(entity);
+
         if (!errors.isEmpty()) {
             errors.add(0, ErrorMessage.EXAM_IMPORT_ERROR_AUTO_SETUP.of(
                     entity.getModelId(),
@@ -669,6 +672,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     protected Result<Exam> notifySaved(final Exam entity) {
         return Result.tryCatch(() -> {
             this.examAdminService.notifyExamSaved(entity);
+            this.examAdminService.applyQuitPassword(entity);
             this.examSessionService.flushCache(entity);
             return entity;
         });
@@ -684,7 +688,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     protected Result<Exam> validForSave(final Exam entity) {
         return super.validForSave(entity)
                 .map(this::checkExamSupporterRole)
-                .map(ExamAdminService::noLMSFieldValidation);
+                .map(ExamAdminService::noLMSFieldValidation)
+                .map(this::checkQuitPasswordChange);
     }
 
     @Override
@@ -700,6 +705,22 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     @Override
     protected Result<Exam> validForDelete(final Exam entity) {
         return checkNoActiveSEBClientConnections(entity);
+    }
+
+    private Exam checkQuitPasswordChange(final Exam exam) {
+        if (this.examSessionService.isExamRunning(exam.id) &&
+            examSessionService.hasActiveSEBClientConnections(exam.id)) {
+
+            final Exam oldExam = this.examDAO.byPK(exam.id).getOrThrow();
+            if (!oldExam.quitPassword.equals(exam.quitPassword)) {
+                throw new APIMessageException(APIMessage.fieldValidationError(
+                        new FieldError(
+                                EXAM.ATTR_QUIT_PASSWORD,
+                                EXAM.ATTR_QUIT_PASSWORD,
+                                "exam:quitPassword:changeDenied:")));
+            }
+        }
+        return exam;
     }
 
     private Exam checkExamSupporterRole(final Exam exam) {

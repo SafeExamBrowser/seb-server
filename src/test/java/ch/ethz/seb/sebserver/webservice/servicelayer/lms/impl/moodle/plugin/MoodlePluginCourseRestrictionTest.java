@@ -52,7 +52,8 @@ public class MoodlePluginCourseRestrictionTest {
     public void getNoneExistingRestriction() {
         final MoodlePluginCourseRestriction candidate = crateMockup();
         final Exam exam = new Exam(1L, 1L, 1L, "101:1:c1:i1",
-                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null);
 
         final Result<SEBRestriction> sebClientRestriction = candidate.getSEBClientRestriction(exam);
 
@@ -67,7 +68,8 @@ public class MoodlePluginCourseRestrictionTest {
     public void getSetGetRestriction() {
         final MoodlePluginCourseRestriction candidate = crateMockup();
         final Exam exam = new Exam(1L, 1L, 1L, "101:1:c1:i1",
-                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null);
 
         final SEBRestriction restriction = new SEBRestriction(
                 exam.id,
@@ -156,7 +158,7 @@ public class MoodlePluginCourseRestrictionTest {
         final ExamConfigurationValueService examConfigurationValueService =
                 Mockito.mock(ExamConfigurationValueService.class);
         Mockito.when(examConfigurationValueService.getQuitLink(Mockito.anyLong())).thenReturn("quitLink");
-        Mockito.when(examConfigurationValueService.getQuitSecret(Mockito.anyLong())).thenReturn("quitSecret");
+        Mockito.when(examConfigurationValueService.getQuitPassword(Mockito.anyLong())).thenReturn("quitSecret");
 
         return new MoodlePluginCourseRestriction(jsonMapper, moodleMockupRestTemplateFactory,
                 examConfigurationValueService);

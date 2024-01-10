@@ -18,32 +18,32 @@ public interface ExamConfigUpdateService {
 
     /** Used to process a SEB Exam Configuration change that can also effect some
      * running exams that as the specified configuration attached.
-     *
+     * <p>
      * This deals with the whole functionality the underling data-structure provides. So
      * it assumes a N to M relationship between a SEB Exam Configuration and an Exam even
      * if this may currently not be possible in case of implemented restrictions.
-     *
+     * <p>
      * First of all a consistency check is applied that checks if there is no running Exam
      * involved that has currently active SEB Client connection. Active SEB Client connections are
      * established connections that are not yet closed and connection attempts that are older the a
      * defined time interval.
-     *
+     * <p>
      * After this check passed, the system places an update-lock on each Exam that is involved on the
-     * data-base level and commit this immediately so that this can prevent new SEB Client connection
+     * database level and commit this immediately so that this can prevent new SEB Client connection
      * attempts to be allowed.
-     *
+     * <p>
      * After placing update-locks the fist check is done again to ensure there where no new SEB Client
      * connection attempts in the meantime. If there where, the procedure will stop and rollback all
      * changes so far.
-     *
+     * <p>
      * If everything is locked the changes to the SEB Exam Configuration will be saved to the data-base
      * and all involved caches will be flushed to ensure the changed will take effect on next request.
-     *
+     * <p>
      * The last step is to update the SEB restriction on the LMS for every involved exam if it is running
      * and the feature is switched on. If something goes wrong during the update for an exam here, no
      * rollback of the entire procedure is applied. Instead the error is logged and the update can be
      * later triggered manually by an administrator.
-     *
+     * <p>
      * If there is any other error during the procedure the changes are rolled back and a force release of
      * the update-locks is applied to ensure all involved Exams are not locked anymore.
      *

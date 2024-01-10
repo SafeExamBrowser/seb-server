@@ -227,4 +227,5 @@ public interface ExamDAO extends ActivatableEntityDAO<Exam, Exam>, BulkActionSup
      * @param updateId The update identifier given by the update task */
     void markLMSAvailability(final String externalQuizId, final boolean available, final String updateId);
 
+    void updateQuitPassword(Exam exam, String quitPassword);
 }
