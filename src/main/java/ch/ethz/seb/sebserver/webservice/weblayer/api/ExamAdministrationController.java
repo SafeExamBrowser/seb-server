@@ -8,17 +8,13 @@
 
 package ch.ethz.seb.sebserver.webservice.weblayer.api;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import ch.ethz.seb.sebserver.webservice.servicelayer.exam.ExamConfigurationValueService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.lms.impl.NoSEBRestrictionException;
 import org.apache.commons.lang3.StringUtils;
@@ -98,6 +94,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private final ExamSessionService examSessionService;
     private final SEBRestrictionService sebRestrictionService;
     private final SecurityKeyService securityKeyService;
+    private final Cryptor cryptor;
 
     public ExamAdministrationController(
             final AuthorizationService authorization,
@@ -113,7 +110,8 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
             final ExamTemplateService examTemplateService,
             final ExamSessionService examSessionService,
             final SEBRestrictionService sebRestrictionService,
-            final SecurityKeyService securityKeyService) {
+            final SecurityKeyService securityKeyService,
+            final Cryptor cryptor) {
 
         super(authorization,
                 bulkActionService,
@@ -131,6 +129,7 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
         this.examSessionService = examSessionService;
         this.sebRestrictionService = sebRestrictionService;
         this.securityKeyService = securityKeyService;
+        this.cryptor = cryptor;
     }
 
     @Override
@@ -710,14 +709,14 @@ public class ExamAdministrationController extends EntityController<Exam, Exam> {
     private Exam checkQuitPasswordChange(final Exam exam) {
         if (this.examSessionService.isExamRunning(exam.id) &&
             examSessionService.hasActiveSEBClientConnections(exam.id)) {
-
             final Exam oldExam = this.examDAO.byPK(exam.id).getOrThrow();
-            if (!oldExam.quitPassword.equals(exam.quitPassword)) {
+            final CharSequence pwd = cryptor.decrypt(oldExam.quitPassword).getOr(oldExam.quitPassword);
+            if (!Objects.equals(pwd, exam.quitPassword)) {
                 throw new APIMessageException(APIMessage.fieldValidationError(
                         new FieldError(
                                 EXAM.ATTR_QUIT_PASSWORD,
                                 EXAM.ATTR_QUIT_PASSWORD,
-                                "exam:quitPassword:changeDenied:")));
+                                "exam:quitPassword:changeDeniedActiveClients:")));
             }
         }
         return exam;
