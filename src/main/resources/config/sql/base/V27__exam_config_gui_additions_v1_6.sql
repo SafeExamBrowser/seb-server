@@ -24,3 +24,23 @@ INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group
 -- Add SEB Settings GUI additions (SEBSERV-414)
 -- ----------------------------------------------------------------
 
+INSERT IGNORE INTO configuration_attribute VALUES
+    (1582, 'useTemporaryDownUploadDirectory', 'CHECKBOX', null, null, null, null, 'false')
+;
+
+UPDATE configuration_attribute SET default_value='false' WHERE id=59;
+UPDATE configuration_attribute SET name='allowCustomDownUploadLocation' WHERE id=972;
+
+UPDATE orientation SET y_position=2 WHERE config_attribute_id=60;
+UPDATE orientation SET y_position=3 WHERE config_attribute_id=61;
+UPDATE orientation SET y_position=4 WHERE config_attribute_id=972;
+UPDATE orientation SET y_position=10 WHERE config_attribute_id=63;
+UPDATE orientation SET y_position=6 WHERE config_attribute_id=64;
+UPDATE orientation SET y_position=7 WHERE config_attribute_id=65;
+UPDATE orientation SET y_position=13 WHERE config_attribute_id=66;
+
+INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
+    (1580, 0,  4, null, 0, 10, 8, 1, 'NONE'),
+    (1581, 0,  4, null, 0, 1, 8, 1, 'NONE'),
+    (1582, 0,  4, null, 0, 5, 8, 1, 'NONE')
+;
