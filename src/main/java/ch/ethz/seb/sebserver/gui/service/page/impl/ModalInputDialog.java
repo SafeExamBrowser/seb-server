@@ -59,7 +59,7 @@ public class ModalInputDialog<T> extends Dialog {
             final Shell parent,
             final WidgetFactory widgetFactory) {
 
-        super(parent, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.CLOSE);
+        super(parent, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL);
         this.widgetFactory = widgetFactory;
     }
 
@@ -158,11 +158,18 @@ public class ModalInputDialog<T> extends Dialog {
         finishUp(this.shell);
     }
 
-
     public void open(
             final LocTextKey title,
             final Predicate<T> okCallback,
             final Runnable cancelCallback,
+            final ModalInputDialogComposer<T> contentComposer) {
+        this.open(title, okCallback, cancelCallback, true, contentComposer);
+    }
+    public void open(
+            final LocTextKey title,
+            final Predicate<T> okCallback,
+            final Runnable cancelCallback,
+            final boolean withCancel,
             final ModalInputDialogComposer<T> contentComposer) {
 
         // Create the selection dialog window
@@ -170,14 +177,14 @@ public class ModalInputDialog<T> extends Dialog {
         this.shell.setText(getText());
         this.shell.setData(RWT.CUSTOM_VARIANT, CustomVariant.MESSAGE.key);
         this.shell.setText(this.widgetFactory.getI18nSupport().getText(title));
-        this.shell.setLayout(new GridLayout(2, true));
+        this.shell.setLayout(new GridLayout(withCancel ? 2 : 1, true));
         final GridData gridData2 = new GridData(SWT.FILL, SWT.TOP, false, false);
         this.shell.setLayoutData(gridData2);
 
         final Composite main = new Composite(this.shell, SWT.NONE);
         main.setLayout(new GridLayout());
         final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-        gridData.horizontalSpan = 2;
+        gridData.horizontalSpan = withCancel ? 2 : 1;
         gridData.widthHint = this.dialogWidth;
         main.setLayoutData(gridData);
 
@@ -185,7 +192,7 @@ public class ModalInputDialog<T> extends Dialog {
         gridData.heightHint = calcDialogHeight(main);
 
         final Button ok = this.widgetFactory.buttonLocalized(this.shell, OK_TEXT_KEY);
-        GridData data = new GridData(GridData.HORIZONTAL_ALIGN_END);
+        GridData data = new GridData(withCancel ? GridData.HORIZONTAL_ALIGN_END : GridData.HORIZONTAL_ALIGN_CENTER);
         data.widthHint = this.buttonWidth;
         ok.setLayoutData(data);
         ok.addListener(SWT.Selection, event -> {
@@ -201,16 +208,18 @@ public class ModalInputDialog<T> extends Dialog {
 
         this.shell.setDefaultButton(ok);
 
-        final Button cancel = this.widgetFactory.buttonLocalized(this.shell, CANCEL_TEXT_KEY);
-        data = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
-        data.widthHint = this.buttonWidth;
-        cancel.setLayoutData(data);
-        cancel.addListener(SWT.Selection, event -> {
-            if (cancelCallback != null) {
-                cancelCallback.run();
-            }
-            this.shell.close();
-        });
+        if (withCancel) {
+            final Button cancel = this.widgetFactory.buttonLocalized(this.shell, CANCEL_TEXT_KEY);
+            data = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
+            data.widthHint = this.buttonWidth;
+            cancel.setLayoutData(data);
+            cancel.addListener(SWT.Selection, event -> {
+                if (cancelCallback != null) {
+                    cancelCallback.run();
+                }
+                this.shell.close();
+            });
+        }
 
         finishUp(this.shell);
     }

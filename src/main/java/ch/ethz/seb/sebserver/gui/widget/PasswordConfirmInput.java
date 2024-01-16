@@ -68,7 +68,7 @@ public class PasswordConfirmInput extends Composite {
     }
 
     public CharSequence getValue() {
-        if (!checkError()) {
+        if (checkError()) {
             return null;
         }
         final CharSequence value = password.getValue();

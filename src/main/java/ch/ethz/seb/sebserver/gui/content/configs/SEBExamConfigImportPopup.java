@@ -14,14 +14,10 @@ import java.util.List;
 import java.util.function.*;
 
 import ch.ethz.seb.sebserver.gbl.model.sebconfig.ConfigurationValue;
-import ch.ethz.seb.sebserver.gbl.util.Cryptor;
-import ch.ethz.seb.sebserver.gui.form.FieldBuilder;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.seb.examconfig.*;
 import ch.ethz.seb.sebserver.gui.widget.PasswordConfirmInput;
-import ch.ethz.seb.sebserver.gui.widget.PasswordInput;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 import org.slf4j.Logger;
@@ -196,7 +192,7 @@ public class SEBExamConfigImportPopup {
                                 .onError(error -> notifyErrorOnSave(error, context));
                     }
 
-                    handleQuitPassword(configuration, context);
+                    handleQuitPassword(configuration, newConfig, context);
                 } else {
                     handleImportError(formHandle, importResult);
                 }
@@ -217,7 +213,10 @@ public class SEBExamConfigImportPopup {
         }
     }
 
-    private void handleQuitPassword(final Configuration configuration, final PageContext context) {
+    private void handleQuitPassword(
+            final Configuration configuration,
+            final boolean newConfig,
+            final PageContext context) {
         try {
             final ConfigurationValue configurationValue = this.pageService.getRestService()
                     .getBuilder(GetConfigurationValues.class)
@@ -273,12 +272,13 @@ public class SEBExamConfigImportPopup {
                 } else {
                     deleteQuitPassword(context, configNodeId);
                 }
+                if (!newConfig) {
+                    reloadPage(newConfig, context);
+                }
                 return true;
             };
 
-            final Runnable cancel = () -> deleteQuitPassword(context, configNodeId);
-
-            dialog.open(TITLE_QUIT_PASSWORD, callback, cancel, contentComposer);
+            dialog.open(TITLE_QUIT_PASSWORD, callback, null, false, contentComposer);
         } catch (final Exception e) {
             log.error("Failed to handle quit password for import: ", e);
         }
@@ -389,7 +389,7 @@ public class SEBExamConfigImportPopup {
 
 
 
-    private final class ImportFormContext implements ModalInputDialogComposer<FormHandle<ConfigurationNode>> {
+    private static final class ImportFormContext implements ModalInputDialogComposer<FormHandle<ConfigurationNode>> {
 
         private final PageService pageService;
         private final PageContext pageContext;
