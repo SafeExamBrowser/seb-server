@@ -427,7 +427,7 @@ public final class Exam implements GrantEntity {
         builder.append(", name=");
         builder.append(this.name);
         builder.append(", description=");
-        builder.append(Utils.truncateText(this.getDescription(), 255));
+        builder.append(Utils.truncateText(this.getDescription(), 32));
         builder.append(", startTime=");
         builder.append(this.startTime);
         builder.append(", endTime=");

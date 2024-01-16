@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.form;
 
 import java.util.function.Consumer;
 
+import ch.ethz.seb.sebserver.gbl.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
@@ -187,7 +188,7 @@ public final class TextFieldBuilder extends FieldBuilder<String> {
 
     private String createHTMLText(final String text) {
         return HTML_TEXT_BLOCK_START
-                + text
+                + Utils.formatHTMLLinesForceEscaped( text)
                         .replace("<a", "<span")
                         .replace("</a", "</span")
                         .replace("<A", "<span")

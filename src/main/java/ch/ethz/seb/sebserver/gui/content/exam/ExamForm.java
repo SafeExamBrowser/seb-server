@@ -466,7 +466,7 @@ public class ExamForm implements TemplateComposer {
                         QuizData.QUIZ_ATTR_DESCRIPTION,
                         FORM_DESCRIPTION_TEXT_KEY,
                         exam.getDescription())
-                        .asHTMLOrArea(50, exam.lmsSetupId != null)
+                        .asHTML(50)
                         .readonly(true)
                         .withInputSpan(7)
                         .withEmptyCellSeparation(false))
@@ -562,7 +562,7 @@ public class ExamForm implements TemplateComposer {
                                 QuizData.QUIZ_ATTR_DESCRIPTION,
                                 FORM_DESCRIPTION_TEXT_KEY,
                                 exam.getDescription())
-                        .asArea()
+                        .asHTMLOrArea(50, hasLMS)
                         .readonly(hasLMS))
                 .withAdditionalValueMapping(QuizData.QUIZ_ATTR_DESCRIPTION)
 
