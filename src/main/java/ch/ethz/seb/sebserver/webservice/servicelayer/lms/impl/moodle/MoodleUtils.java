@@ -113,12 +113,14 @@ public abstract class MoodleUtils {
             final String lmsSetupName,
             final String function) {
 
-        log.warn(
-                "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
-                lmsSetupName,
-                function,
-                warnings.size(),
-                warnings.iterator().next().toString());
+        if (log.isDebugEnabled()) {
+            log.warn(
+                    "There are warnings from Moodle response: Moodle: {} request: {} warnings: {} warning sample: {}",
+                    lmsSetupName,
+                    function,
+                    warnings.size(),
+                    warnings.iterator().next().toString());
+        }
         if (log.isTraceEnabled()) {
             log.trace("All warnings from Moodle: {}", warnings.toString());
         }

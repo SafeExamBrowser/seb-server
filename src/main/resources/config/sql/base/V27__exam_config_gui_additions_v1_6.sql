@@ -34,13 +34,23 @@ UPDATE configuration_attribute SET name='allowCustomDownUploadLocation' WHERE id
 UPDATE orientation SET y_position=2 WHERE config_attribute_id=60;
 UPDATE orientation SET y_position=3 WHERE config_attribute_id=61;
 UPDATE orientation SET y_position=4 WHERE config_attribute_id=972;
-UPDATE orientation SET y_position=10 WHERE config_attribute_id=63;
+UPDATE orientation SET y_position=11 WHERE config_attribute_id=63;
 UPDATE orientation SET y_position=6 WHERE config_attribute_id=64;
 UPDATE orientation SET y_position=7 WHERE config_attribute_id=65;
 UPDATE orientation SET y_position=13 WHERE config_attribute_id=66;
 
 INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
-    (1580, 0,  4, null, 0, 10, 8, 1, 'NONE'),
+    (1580, 0,  4, null, 0, 9, 8, 1, 'NONE'),
     (1581, 0,  4, null, 0, 1, 8, 1, 'NONE'),
     (1582, 0,  4, null, 0, 5, 8, 1, 'NONE')
+;
+
+-- ----------------------------------------------------------------
+-- Add new SEB Settings (SEBSERV-405)
+-- ----------------------------------------------------------------
+
+INSERT IGNORE INTO configuration_attribute VALUES
+    (1583, 'systemAlwaysOn', 'CHECKBOX', null, null, null, null, 'true'),
+    (1584, 'displayAlwaysOn', 'CHECKBOX', null, null, null, null, 'true'),
+    (1585, 'disableSessionChangeLockScreen', 'CHECKBOX', null, null, null, null, 'false')
 ;
