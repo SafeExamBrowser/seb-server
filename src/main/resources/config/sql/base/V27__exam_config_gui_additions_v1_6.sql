@@ -54,3 +54,10 @@ INSERT IGNORE INTO configuration_attribute VALUES
     (1584, 'displayAlwaysOn', 'CHECKBOX', null, null, null, null, 'true'),
     (1585, 'disableSessionChangeLockScreen', 'CHECKBOX', null, null, null, null, 'false')
 ;
+
+-- ----------------------------------------------------------------
+-- Add new SEB Settings GUI (SEBSERV-405)
+-- ----------------------------------------------------------------
+
+INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
+    (1200, 0,  6, null, 0, 6, 1, 1, 'LEFT');

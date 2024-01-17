@@ -4,36 +4,6 @@
   <dict>
     <key>permittedProcesses</key>
     <array>
-      <dict>
-        <key>active</key>
-        <true />
-        <key>allowUserToChooseApp</key>
-        <false />
-        <key>arguments</key>
-        <array></array>
-        <key>autostart</key>
-        <true />
-        <key>description</key>
-        <string />
-        <key>executable</key>
-        <string>firefox.exe</string>
-        <key>iconInTaskbar</key>
-        <true />
-        <key>identifier</key>
-        <string>Firefox</string>
-        <key>os</key>
-        <integer>1</integer>
-        <key>path</key>
-        <string>../xulrunner/</string>
-        <key>runInBackground</key>
-        <false />
-        <key>strongKill</key>
-        <true />
-        <key>title</key>
-        <string>SEB</string>
-        <key>originalName</key>
-        <string>firefox.exe</string>
-      </dict>
     </array>
   </dict>
 </plist>

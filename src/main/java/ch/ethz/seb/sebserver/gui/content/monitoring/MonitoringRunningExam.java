@@ -473,7 +473,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             final ActionDefinition hideActionDef) {
 
         final int numOfConnections = filter.getNumOfConnections(status);
-        PageAction action;
+        final PageAction action;
         if (filter.isStatusHidden(status)) {
             action = actionBuilder.newAction(showActionDef)
                     .withExec(showStateViewAction(filter, clientTable, status))
@@ -514,7 +514,7 @@ public class MonitoringRunningExam implements TemplateComposer {
             final ActionDefinition hideActionDef) {
 
         final int numOfConnections = filter.getNumOfConnections(clientGroup.id);
-        PageAction action;
+        final PageAction action;
         if (filter.isClientGroupHidden(clientGroup.id)) {
             action = actionBuilder.newAction(showActionDef)
                     .withExec(showClientGroupAction(filter, clientTable, clientGroup.id))

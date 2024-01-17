@@ -320,7 +320,8 @@ public class ExamMonitoringController {
                     required = false) final String hiddenClientGroups) {
 
         // TODO respond this within another Thread-pool (Executor)
-        // TODO try to cache some monitoring data throughout multiple requests (for about 2 sec.)
+        // TODO try to cache some MonitoringSEBConnectionData throughout multiple requests (for about 2 sec.)
+        //      problem: different filter settings, maybe cache unfiltered data and then just filter cached data per request
 
         final Exam runningExam = checkPrivileges(institutionId, examId);
 
