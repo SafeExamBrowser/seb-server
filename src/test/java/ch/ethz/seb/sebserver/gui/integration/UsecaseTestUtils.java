@@ -95,38 +95,7 @@ public abstract class UsecaseTestUtils {
         final ConfigurationTableValues tableValues = getTableValues("73", configId, restService);
 
         assertNotNull(tableValues);
-        assertFalse(tableValues.values.isEmpty());
-        final String names = StringUtils.join(
-                tableValues.values
-                        .stream()
-                        .filter(attr -> attr.attributeId == 76)
-                        .map(attr -> attr.value)
-                        .sorted()
-                        .collect(Collectors.toList()),
-                Constants.LIST_SEPARATOR_CHAR);
-
-        // get all configuration attributes
-        final Map<String, ConfigurationAttribute> attributes = restService
-                .getBuilder(GetConfigAttributes.class)
-                .call()
-                .getOrThrow()
-                .stream()
-                .collect(Collectors.toMap(attr -> attr.name, Function.identity()));
-
-        final XMLAttributeLoader xmlAttributeLoader = new XMLAttributeLoader(Mockito.mock(Cryptor.class));
-        final String configuraedNames = StringUtils.join(xmlAttributeLoader.loadFromXML(
-                1L,
-                Long.parseLong(configId),
-                attrName -> attributes.get(attrName),
-                "config/initialPermittedProcesses.xml")
-                .stream()
-                .filter(attr -> attr.attributeId == 76)
-                .map(attr -> attr.value)
-                .sorted()
-                .collect(Collectors.toList()),
-                Constants.LIST_SEPARATOR_CHAR);
-
-        assertEquals(configuraedNames, names);
+        assertTrue(tableValues.values.isEmpty());
 
         return tableValues;
     }

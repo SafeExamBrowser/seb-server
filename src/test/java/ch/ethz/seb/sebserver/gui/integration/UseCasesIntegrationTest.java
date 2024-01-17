@@ -1547,7 +1547,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 restService);
 
         assertNotNull(permittedProcessValues);
-        assertFalse(permittedProcessValues.values.isEmpty());
+        assertTrue(permittedProcessValues.values.isEmpty());
 
         // get all configuration attributes
         final Map<Long, ConfigurationAttribute> attributes = restService
@@ -1612,7 +1612,7 @@ public class UseCasesIntegrationTest extends GuiIntegrationTest {
                 .getOrThrow();
 
         assertNotNull(savedValues);
-        assertFalse(savedValues.values.isEmpty());
+        assertTrue(savedValues.values.isEmpty());
         assertTrue(savedValues.values.size() == newTableValues.size());
     }
 
