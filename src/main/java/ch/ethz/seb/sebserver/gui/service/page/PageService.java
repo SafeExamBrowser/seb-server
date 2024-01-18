@@ -17,7 +17,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import ch.ethz.seb.sebserver.gbl.FeatureService;
 import ch.ethz.seb.sebserver.gbl.util.Cryptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -75,8 +74,6 @@ public interface PageService {
     Logger log = LoggerFactory.getLogger(PageService.class);
 
     Cryptor getCryptor();
-
-    FeatureService getFeatureService();
 
     /** Get the WidgetFactory service
      *

@@ -8,14 +8,13 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
-import static ch.ethz.seb.sebserver.gbl.FeatureService.ConfigurableFeature.EXAM_NO_LMS;
+import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.EXAM_NO_LMS;
 import static ch.ethz.seb.sebserver.gui.service.page.PageContext.AttributeKeys.NEW_EXAM_NO_LMS;
 
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-import ch.ethz.seb.sebserver.gbl.FeatureService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.widgets.Composite;
@@ -149,7 +148,6 @@ public class ExamList implements TemplateComposer {
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
         final I18nSupport i18nSupport = this.resourceService.getI18nSupport();
-        final FeatureService featureService = this.pageService.getFeatureService();
 
         // content page layout with title
         final Composite content = widgetFactory.defaultPageLayout(
@@ -286,7 +284,7 @@ public class ExamList implements TemplateComposer {
 
                 .newAction(ActionDefinition.EXAM_NEW)
                 .withAttribute(NEW_EXAM_NO_LMS, Constants.TRUE_STRING)
-                .publishIf(() -> userGrant.iw() && featureService.isEnabled(EXAM_NO_LMS))
+                .publishIf(() -> userGrant.iw() && currentUser.isFeatureEnabled(EXAM_NO_LMS))
         ;
     }
 

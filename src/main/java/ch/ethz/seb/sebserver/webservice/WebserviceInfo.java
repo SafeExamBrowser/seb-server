@@ -8,20 +8,14 @@
 
 package ch.ethz.seb.sebserver.webservice;
 
-import static ch.ethz.seb.sebserver.gbl.FeatureService.ConfigurableFeature.LIGHT_SETUP;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import ch.ethz.seb.sebserver.gbl.FeatureService;
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.gbl.model.exam.SPSAPIAccessData;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -66,6 +60,7 @@ public class WebserviceInfo {
     private final String discoveryEndpoint;
     private final String contextPath;
 
+    private final boolean isLightSetup;
     private final String serverURLPrefix;
     private final boolean isDistributed;
     private final String webserviceUUID;
@@ -76,6 +71,7 @@ public class WebserviceInfo {
     private final Set<String> activeProfiles;
 
     private final WebserviceInfoDAO webserviceInfoDAO;
+    private final FeatureService featureService;
     private boolean isMaster = false;
 
     @Value("${sebserver.webservice.api.admin.accessTokenValiditySeconds:3600}")
@@ -85,18 +81,16 @@ public class WebserviceInfo {
     @Value("${sebserver.webservice.api.exam.accessTokenValiditySeconds:43200}")
     private int examAPITokenValiditySeconds;
 
-    public final FeatureService featureService;
-
     private final ScreenProctoringServiceBundle screenProctoringServiceBundle;
 
     public WebserviceInfo(
             final WebserviceInfoDAO webserviceInfoDAO,
+            final FeatureService featureService,
             final Environment environment,
-            final Cryptor cryptor,
-            final FeatureService featureService) {
+            final Cryptor cryptor) {
 
-        this.featureService = featureService;
         this.webserviceInfoDAO = webserviceInfoDAO;
+        this.featureService = featureService;
         this.sebServerVersion = environment.getRequiredProperty(VERSION_KEY);
         this.testProperty = environment.getProperty(WEB_SERVICE_TEST_PROPERTY, "NOT_AVAILABLE");
         this.httpScheme = environment.getRequiredProperty(WEB_SERVICE_HTTP_SCHEME_KEY);
@@ -135,6 +129,9 @@ public class WebserviceInfo {
         }
         this.serverURLPrefix = builder.toUriString();
 
+        this.isLightSetup = BooleanUtils.toBoolean(environment.getProperty(
+                "sebserver.webservice.light.setup",
+                Constants.FALSE_STRING));
         this.isDistributed = BooleanUtils.toBoolean(environment.getProperty(
                 "sebserver.webservice.distributed",
                 Constants.FALSE_STRING));
@@ -180,8 +177,11 @@ public class WebserviceInfo {
         }
     }
 
-    public boolean isLightSetup() {
-        return this.featureService.isEnabled(LIGHT_SETUP);
+    public Map<String, Boolean> configuredFeatures() {
+        return Arrays.stream(UserFeatures.Feature.values()).collect(Collectors.toMap(
+                f -> f.featureName,
+                featureService::isEnabledByConfig
+        ));
     }
 
     public boolean isMaster() {
@@ -276,7 +276,7 @@ public class WebserviceInfo {
 
     /** Get the server URL prefix in the form of;
      * [scheme{http|https}]://[server-address{DNS-name|IP}]:[port]
-     *
+     * <p>
      * E.g.: https://seb.server.ch:8080
      *
      * @return the server URL prefix */
@@ -284,6 +284,9 @@ public class WebserviceInfo {
         return this.serverURLPrefix;
     }
 
+    public boolean isLightSetup() {
+        return this.isLightSetup;
+    }
     public boolean isDistributed() {
         return this.isDistributed;
     }

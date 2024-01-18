@@ -66,6 +66,8 @@ public final class API {
     public static final String LOGIN_PATH_SEGMENT = "/loglogin";
     public static final String LOGOUT_PATH_SEGMENT = "/loglogout";
 
+    public static final String FEATURES_PATH_SEGMENT = "/features";
+
     public static final String INFO_ENDPOINT = "/info";
     public static final String INFO_PARAM_INST_SUFFIX = "urlSuffix";
     public static final String INFO_INST_PATH_SEGMENT = "/institution";

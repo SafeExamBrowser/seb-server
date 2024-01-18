@@ -121,10 +121,11 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
                     this.environment.getProperty("sebserver.webservice.distributed.connectionUpdate", "2000"));
         }
 
-        if (this.webserviceInfo.isLightSetup()) {
-            SEBServerInit.INIT_LOGGER.info("----> ");
-            SEBServerInit.INIT_LOGGER.info("----> SEB Server light setup enabled");
-        }
+        SEBServerInit.INIT_LOGGER.info("----> ");
+        SEBServerInit.INIT_LOGGER.info("----> Configured Features:");
+        this.webserviceInfo.configuredFeatures().entrySet().stream().forEach(entry  -> {
+            SEBServerInit.INIT_LOGGER.info("---->   {} --> {}", entry.getKey(), entry.getValue());
+        });
 
         SEBServerInit.INIT_LOGGER.info("----> ");
         SEBServerInit.INIT_LOGGER.info("----> Working with ping service: {}",

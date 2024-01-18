@@ -8,12 +8,11 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
-import static ch.ethz.seb.sebserver.gbl.FeatureService.ConfigurableFeature.SCREEN_PROCTORING;
+import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.SCREEN_PROCTORING;
 
 import java.util.*;
 import java.util.function.Function;
 
-import ch.ethz.seb.sebserver.gbl.FeatureService;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -124,7 +123,6 @@ public class ExamForm implements TemplateComposer {
     private final ExamIndicatorsList examIndicatorsList;
     private final ExamClientGroupList examClientGroupList;
     private final ExamCreateClientConfigPopup examCreateClientConfigPopup;
-    private final FeatureService featureService;
 
     protected ExamForm(
             final PageService pageService,
@@ -137,8 +135,7 @@ public class ExamForm implements TemplateComposer {
             final ExamFormConfigs examFormConfigs,
             final ExamIndicatorsList examIndicatorsList,
             final ExamClientGroupList examClientGroupList,
-            final ExamCreateClientConfigPopup examCreateClientConfigPopup,
-            final FeatureService featureService) {
+            final ExamCreateClientConfigPopup examCreateClientConfigPopup) {
 
         this.pageService = pageService;
         this.resourceService = pageService.getResourceService();
@@ -152,7 +149,6 @@ public class ExamForm implements TemplateComposer {
         this.examIndicatorsList = examIndicatorsList;
         this.examClientGroupList = examClientGroupList;
         this.examCreateClientConfigPopup = examCreateClientConfigPopup;
-        this.featureService = featureService;
 
         this.consistencyMessageMapping = new HashMap<>();
         this.consistencyMessageMapping.put(
@@ -255,7 +251,7 @@ public class ExamForm implements TemplateComposer {
                 .map(ProctoringServiceSettings::getEnableProctoring)
                 .getOr(false);
 
-        final boolean spsFeatureEnabled = this.featureService.isEnabled(SCREEN_PROCTORING);
+        final boolean spsFeatureEnabled = currentUser.isFeatureEnabled(SCREEN_PROCTORING);
         final boolean screenProctoringEnabled = readonly && spsFeatureEnabled && this.restService
                 .getBuilder(GetScreenProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)

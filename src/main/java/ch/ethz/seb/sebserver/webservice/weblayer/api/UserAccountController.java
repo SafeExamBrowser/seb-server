@@ -16,7 +16,9 @@ import java.util.List;
 import javax.validation.Valid;
 
 import ch.ethz.seb.sebserver.gbl.model.EntityProcessingReport;
+import ch.ethz.seb.sebserver.gbl.model.user.*;
 import ch.ethz.seb.sebserver.gbl.util.Pair;
+import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.FeatureService;
 import ch.ethz.seb.sebserver.webservice.servicelayer.session.ScreenProctoringService;
 import org.mybatis.dynamic.sql.SqlTable;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -38,12 +40,6 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
-import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gbl.model.user.UserLogActivityType;
-import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.datalayer.batis.mapper.UserRecordDynamicSqlSupport;
@@ -66,6 +62,8 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
     private final PasswordEncoder userPasswordEncoder;
     private final ScreenProctoringService screenProctoringService;
 
+    private final FeatureService featureService;
+
     public UserAccountController(
             final UserDAO userDAO,
             final AuthorizationService authorization,
@@ -75,6 +73,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
             final ApplicationEventPublisher applicationEventPublisher,
             final BeanValidationService beanValidationService,
             final ScreenProctoringService screenProctoringService,
+            final FeatureService featureService,
             @Qualifier(WebSecurityConfig.USER_PASSWORD_ENCODER_BEAN_NAME) final PasswordEncoder userPasswordEncoder) {
 
         super(authorization,
@@ -87,6 +86,7 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
         this.userDAO = userDAO;
         this.userPasswordEncoder = userPasswordEncoder;
         this.screenProctoringService = screenProctoringService;
+        this.featureService = featureService;
     }
 
     @RequestMapping(path = API.CURRENT_USER_PATH_SEGMENT, method = RequestMethod.GET)
@@ -95,6 +95,14 @@ public class UserAccountController extends ActivatableEntityController<UserInfo,
                 .getUserService()
                 .getCurrentUser()
                 .getUserInfo();
+    }
+
+    @RequestMapping(
+            path = API.CURRENT_USER_PATH_SEGMENT + API.FEATURES_PATH_SEGMENT,
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public UserFeatures getCurrentUserFeatures() {
+        return this.featureService.getCurrentUserFeatures().getOrThrow();
     }
 
     @RequestMapping(path = API.LOGIN_PATH_SEGMENT, method = RequestMethod.POST)

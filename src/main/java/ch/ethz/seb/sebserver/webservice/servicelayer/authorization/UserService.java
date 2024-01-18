@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.webservice.servicelayer.authorization;
 
 import java.security.Principal;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.WebDataBinder;
 
@@ -29,10 +30,10 @@ public interface UserService {
     SEBServerUser getCurrentUser();
 
     /** Extracts the internal SEBServerUser from a given Principal.
-     *
+     * <p>
      * This is attended to apply some known strategies to extract the internal user from Principal. If there is no
      * internal user found on the given Principal, a IllegalArgumentException is thrown.
-     *
+     * <p>
      * If there is certainly a internal user within the given Principal but no strategy that finds it, this method can
      * be extended with the needed strategy.
      *
@@ -54,7 +55,7 @@ public interface UserService {
 
     /** Used to set authentication on different thread.
      *
-     * @param authentication */
+     * @param authentication the Authentication context*/
     void setAuthenticationIfAbsent(Authentication authentication);
 
 }

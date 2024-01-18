@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -47,6 +48,8 @@ public class CurrentUser {
     private final AuthorizationContextHolder authorizationContextHolder;
     private SEBServerAuthorizationContext authContext = null;
     private Map<RoleTypeKey, Privilege> privileges = null;
+
+    private UserFeatures features = null;
     private final Map<String, String> attributes;
     private final ProctoringGUIService proctoringGUIService;
 
@@ -192,6 +195,7 @@ public class CurrentUser {
 
         this.proctoringGUIService.clear();
         this.privileges = null;
+        this.features = null;
 
         if (isAvailable()) {
             if (this.authContext.logout()) {
@@ -269,6 +273,42 @@ public class CurrentUser {
         } else {
             log.error("Failed to get Privileges from webservice API. No AuthorizationContext available");
             return false;
+        }
+    }
+
+    public boolean isFeatureEnabled(final UserFeatures.Feature feature) {
+        loadFeatures();
+        return this.features != null && this.features.isFeatureEnabled(feature);
+    }
+
+    public boolean isFeatureEnabled(final String featureName) {
+        loadFeatures();
+        return this.features != null && this.features.isFeatureEnabled(featureName);
+    }
+
+    private void loadFeatures() {
+        if (this.features != null) {
+            return;
+        }
+
+        updateContext();
+        if (this.authContext != null) {
+            try {
+                final WebserviceURIService webserviceURIService =
+                        this.authorizationContextHolder.getWebserviceURIService();
+                this.features = this.authContext.getRestTemplate()
+                        .exchange(
+                                webserviceURIService.getURIBuilder()
+                                        .path(API.USER_ACCOUNT_ENDPOINT + API.CURRENT_USER_PATH_SEGMENT + API.FEATURES_PATH_SEGMENT)
+                                        .toUriString(),
+                                HttpMethod.GET,
+                                HttpEntity.EMPTY,
+                                UserFeatures.class)
+                        .getBody();
+
+            } catch (final Exception e) {
+                log.error("Failed to load user feature privileges: ", e);
+            }
         }
     }
 

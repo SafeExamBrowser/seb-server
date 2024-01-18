@@ -92,7 +92,8 @@ import ch.ethz.seb.sebserver.gui.service.session.MonitoringEntry;
 @Service
 @GuiProfile
 /** Defines functionality to get resources or functions of resources to feed e.g. selection or
- * combo-box content. */
+ * combo-box content.
+ * */
 public class ResourceService {
 
     private static final Logger log = LoggerFactory.getLogger(ResourceService.class);
@@ -139,8 +140,6 @@ public class ResourceService {
     public static final String EXAM_PROCTORING_FEATURES_PREFIX = "sebserver.exam.proctoring.form.features.";
     public static final String VDI_TYPE_PREFIX = "sebserver.clientconfig.form.vditype.";
 
-    private static final String DISABLE_LMS_FLAG = "sebserver.gui.webservice.lms.disable.";
-
     public static final EnumSet<AttributeType> ATTRIBUTE_TYPES_NOT_DISPLAYED = EnumSet.of(
             AttributeType.LABEL,
             AttributeType.COMPOSITE_TABLE,
@@ -159,7 +158,6 @@ public class ResourceService {
     private final I18nSupport i18nSupport;
     private final RestService restService;
     private final CurrentUser currentUser;
-    private final EnumSet<LmsType> disabledLmsTypes;
 
     protected ResourceService(
             final I18nSupport i18nSupport,
@@ -170,13 +168,6 @@ public class ResourceService {
         this.i18nSupport = i18nSupport;
         this.restService = restService;
         this.currentUser = currentUser;
-
-        this.disabledLmsTypes = EnumSet.noneOf(LmsType.class);
-        final List<LmsType> disabled = Arrays.asList(LmsType.values()).stream()
-                .filter(lmsType -> lmsType.features.isEmpty() ||
-                        environment.getProperty(DISABLE_LMS_FLAG + lmsType.name(), Boolean.class, false) == true)
-                .collect(Collectors.toList());
-        this.disabledLmsTypes.addAll(disabled);
     }
 
     public I18nSupport getI18nSupport() {
@@ -206,7 +197,7 @@ public class ResourceService {
 
     public List<Tuple<String>> lmsTypeResources() {
         return Arrays.stream(LmsType.values())
-                .filter(lmsType -> !this.disabledLmsTypes.contains(lmsType))
+                .filter(lmsType -> this.currentUser.isFeatureEnabled("lms.type." + lmsType.name()))
                 .map(lmsType -> new Tuple<>(
                         lmsType.name(),
                         this.i18nSupport.getText(LMSSETUP_TYPE_PREFIX + lmsType.name(), lmsType.name())))

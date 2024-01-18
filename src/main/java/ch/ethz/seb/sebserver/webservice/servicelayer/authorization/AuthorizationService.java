@@ -18,13 +18,14 @@ import ch.ethz.seb.sebserver.gbl.api.EntityType;
 import ch.ethz.seb.sebserver.gbl.api.authorization.Privilege;
 import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.GrantEntity;
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
 import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.util.Result;
 import ch.ethz.seb.sebserver.webservice.servicelayer.authorization.impl.SEBServerUser;
 
 /** A service to check authorization grants for a given user for entity-types and -instances
- *
+ * <p>
  * If there is one or more GrantEntity objects within an authenticated user-request, this service
  * can be used check the authenticated user access grant within the object. Check if a given user
  * has write, modify or even read rights on an entity instance or on an entity type. */
@@ -40,17 +41,19 @@ public interface AuthorizationService {
      * @return all registered Privileges */
     Collection<Privilege> getAllPrivileges();
 
+
+
     /** Check grant on privilege type for specified EntityType and for the given user and institution.
-     *
+     * <p>
      * This makes a privilege grant check for every UserRole given. The first found successful grant
      * will immediately return true
-     *
+     * <p>
      * The privilege grant check function always checks first the base privilege with no institutional or owner grant.
      * If user has a grant on base privileges this returns true without checking further institutional or owner grant
      * If user has no base privilege grant the function checks further grants, first the institutional grant, where
      * the institution id and the users institution id must match and further more the owner grant, where ownerId
      * and the users id must match.
-     *
+     * <p>
      * see Privilege.hasGrant for more information how the overall grant function works
      *
      * @param privilegeType The privilege type to check
@@ -71,7 +74,7 @@ public interface AuthorizationService {
             Set<UserRole> userRoles);
 
     /** Check grant for a given privilege type and entity type for the current user.
-     *
+     * <p>
      * NOTE: This only checks the base privilege grant because there is no Entity specific information
      *
      * @param privilegeType the privilege type to check
@@ -109,11 +112,11 @@ public interface AuthorizationService {
 
     /** Check base privilege grant and institutional privilege grant for a given privilege type
      * on a given entity type.
-     *
+     * <p>
      * If the question is similar like this:
      * "Has the current user that belongs to institution A the right to create an entity of
      * type X on institution B", then this is the answer, use:
-     *
+     * <p>
      * hasPrivilege(PrivilegeType.WRITE, EntityType.X, B)
      *
      * @param privilegeType the privilege type to check
