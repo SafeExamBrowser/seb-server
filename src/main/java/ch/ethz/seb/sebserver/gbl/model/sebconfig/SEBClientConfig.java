@@ -511,7 +511,7 @@ public final class SEBClientConfig implements GrantEntity, Activatable {
                 null,
                 institutionId,
                 null,
-                ConfigPurpose.CONFIGURE_CLIENT,
+                ConfigPurpose.START_EXAM,
                 pingIterval,
                 VDIType.NO,
                 null,

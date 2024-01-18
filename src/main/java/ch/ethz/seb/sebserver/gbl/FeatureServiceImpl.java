@@ -20,6 +20,8 @@ import ch.ethz.seb.sebserver.gbl.profile.WebServiceProfile;
 @Lazy
 @Service
 @WebServiceProfile
+@Deprecated // we need another more flexible feature service that also take new User Role and Privileges into account
+// SEBSERV-497
 public class FeatureServiceImpl implements FeatureService {
 
     private final Environment environment;

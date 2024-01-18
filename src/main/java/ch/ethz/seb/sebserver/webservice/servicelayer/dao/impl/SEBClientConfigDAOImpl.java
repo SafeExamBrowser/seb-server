@@ -532,7 +532,7 @@ public class SEBClientConfigDAOImpl implements SEBClientConfigDAO {
                 SEBClientConfig.ATTR_CONFIG_PURPOSE,
                 (sebClientConfig.configPurpose != null)
                         ? sebClientConfig.configPurpose.name()
-                        : ConfigPurpose.CONFIGURE_CLIENT.name());
+                        : ConfigPurpose.START_EXAM.name());
 
         this.additionalAttributesDAO.saveAdditionalAttribute(
                 EntityType.SEB_CLIENT_CONFIGURATION,

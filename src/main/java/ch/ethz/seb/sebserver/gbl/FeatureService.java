@@ -12,6 +12,8 @@ import ch.ethz.seb.sebserver.gbl.model.exam.CollectingStrategy;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringServerType;
 import ch.ethz.seb.sebserver.gbl.model.institution.LmsSetup.LmsType;
 
+@Deprecated // we need another more flexible feature service that also take new User Role and Privileges into account
+            // SEBSERV-497
 public interface FeatureService {
 
     String FEATURE_SETTINGS_PREFIX = "sebserver.feature.";
