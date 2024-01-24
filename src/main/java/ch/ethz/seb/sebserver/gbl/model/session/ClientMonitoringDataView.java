@@ -20,19 +20,19 @@ import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus
 
 public interface ClientMonitoringDataView {
 
-    public static final String ATTR_STATUS = "st";
-    public static final String ATTR_CONNECTION_TOKEN = "tk";
-    public static final String ATTR_EXAM_USER_SESSION_ID = "si";
-    public static final String ATTR_INFO = "in";
-    public static final String ATTR_INDICATOR_VALUES = "iv";
-    public static final String ATTR_CLIENT_GROUPS = "cg";
-    public static final String ATTR_NOTIFICATION_FLAG = "nf";
+    String ATTR_STATUS = "st";
+    String ATTR_CONNECTION_TOKEN = "tk";
+    String ATTR_EXAM_USER_SESSION_ID = "si";
+    String ATTR_INFO = "in";
+    String ATTR_INDICATOR_VALUES = "iv";
+    String ATTR_CLIENT_GROUPS = "cg";
+    String ATTR_NOTIFICATION_FLAG = "nf";
 
-    public static final int FLAG_MISSING_PING = 1;
-    public static final int FLAG_PENDING_NOTIFICATION = 2;
-    public static final int FLAG_GRANT_NOT_CHECKED = 4;
-    public static final int FLAG_GRANT_DENIED = 8;
-    public static final int FLAG_INVALID_SEB_VERSION = 16;
+    int FLAG_MISSING_PING = 1;
+    int FLAG_PENDING_NOTIFICATION = 2;
+    int FLAG_GRANT_NOT_CHECKED = 4;
+    int FLAG_GRANT_DENIED = 8;
+    int FLAG_INVALID_SEB_VERSION = 16;
 
     @JsonProperty(Domain.CLIENT_CONNECTION.ATTR_ID)
     Long getId();
