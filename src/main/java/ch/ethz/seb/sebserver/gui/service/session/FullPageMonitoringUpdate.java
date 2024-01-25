@@ -15,6 +15,7 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ import ch.ethz.seb.sebserver.gbl.async.AsyncRunner;
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.exam.Indicator;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionIssueStatus;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringFullPageData;
 import ch.ethz.seb.sebserver.gbl.util.Utils;
 import ch.ethz.seb.sebserver.gui.service.page.PageContext;
@@ -47,6 +49,9 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
     static final Logger log = LoggerFactory.getLogger(FullPageMonitoringUpdate.class);
 
     private static final String USER_SESSION_STATUS_FILTER_ATTRIBUTE = "USER_SESSION_STATUS_FILTER";
+
+    private static final String USER_SESSION_ISSUE_FILTER_ATTRIBUTE = "USER_SESSION_ISSUE_FILTER";
+
     private static final String USER_SESSION_GROUP_FILTER_ATTRIBUTE = "USER_SESSION_GROUP_FILTER";
 
     private final ServerPushService serverPushService;
@@ -59,6 +64,10 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
 
     private final EnumSet<ConnectionStatus> statusFilter;
     private String statusFilterParam = "";
+
+    private final EnumSet<ConnectionIssueStatus> issueFilter;
+    private String issueFilterParam = "";
+
     private final Set<Long> clientGroupFilter;
     private String clientGroupFilterParam = "";
     private boolean filterChanged = false;
@@ -83,7 +92,10 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
         this.guiUpdates = guiUpdates;
 
         this.statusFilter = EnumSet.noneOf(ConnectionStatus.class);
-        loadFilter();
+        loadStatusFilter();
+
+        this.issueFilter = EnumSet.noneOf(ConnectionIssueStatus.class);
+        loadIssueFilter();
 
         final Collection<ClientGroup> clientGroups = pageService.getRestService()
                 .getBuilder(GetClientGroups.class)
@@ -125,6 +137,16 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
     @Override
     public String getStatusFilterParam() {
         return this.statusFilterParam;
+    }
+
+    @Override
+    public EnumSet<ConnectionIssueStatus> getIssueFilter() {
+        return this.issueFilter;
+    }
+
+    @Override
+    public String getIssueFilterParam() {
+        return this.issueFilterParam;
     }
 
     @Override
@@ -185,6 +207,18 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
     }
 
     @Override
+    public void hideIssue(final ConnectionIssueStatus connectionIssueStatus) {
+        this.issueFilter.add(connectionIssueStatus);
+        saveFilter();
+    }
+
+    @Override
+    public void showIssue(final ConnectionIssueStatus connectionIssueStatus){
+        this.issueFilter.remove(connectionIssueStatus);
+        saveFilter();
+    }
+
+    @Override
     public MonitoringFullPageData getMonitoringFullPageData() {
         return this.monitoringFullPageData;
     }
@@ -214,9 +248,10 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
     }
 
     private void updateBusinessData() {
-
         RestCall<MonitoringFullPageData>.RestCallBuilder restCallBuilder = this.restCallBuilder
-                .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam);
+                .withHeader(API.EXAM_MONITORING_STATE_FILTER, this.statusFilterParam)
+                .withHeader(API.EXAM_MONITORING_ISSUE_FILTER, this.issueFilterParam);
+
         if (hasClientGroupFilter()) {
             restCallBuilder = restCallBuilder
                     .withHeader(API.EXAM_MONITORING_CLIENT_GROUP_FILTER, this.clientGroupFilterParam);
@@ -249,6 +284,11 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
                     .putAttribute(
                             USER_SESSION_STATUS_FILTER_ATTRIBUTE,
                             StringUtils.join(this.statusFilter, Constants.LIST_SEPARATOR));
+            this.pageService
+                    .getCurrentUser()
+                    .putAttribute(
+                            USER_SESSION_ISSUE_FILTER_ATTRIBUTE,
+                            StringUtils.join(this.issueFilter, Constants.LIST_SEPARATOR));
             if (hasClientGroupFilter()) {
                 this.pageService
                         .getCurrentUser()
@@ -260,6 +300,7 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
             log.warn("Failed to save status filter to user session");
         } finally {
             this.statusFilterParam = StringUtils.join(this.statusFilter, Constants.LIST_SEPARATOR);
+            this.issueFilterParam = StringUtils.join(this.issueFilter, Constants.LIST_SEPARATOR);
             if (hasClientGroupFilter()) {
                 this.clientGroupFilterParam = StringUtils.join(this.clientGroupFilter, Constants.LIST_SEPARATOR);
             }
@@ -267,7 +308,7 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
         }
     }
 
-    private void loadFilter() {
+    private void loadStatusFilter() {
         try {
             final String attribute = this.pageService
                     .getCurrentUser()
@@ -302,6 +343,26 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
             if (hasClientGroupFilter()) {
                 this.clientGroupFilterParam = StringUtils.join(this.clientGroupFilter, Constants.LIST_SEPARATOR);
             }
+            this.filterChanged = true;
+        }
+    }
+
+    private void loadIssueFilter() {
+        try {
+            final String attribute = this.pageService
+                    .getCurrentUser()
+                    .getAttribute(USER_SESSION_ISSUE_FILTER_ATTRIBUTE);
+            this.issueFilter.clear();
+            if (attribute != null) {
+                Arrays.asList(StringUtils.split(attribute, Constants.LIST_SEPARATOR))
+                        .forEach(name -> this.issueFilter.add(ConnectionIssueStatus.valueOf(name)));
+            }
+
+        } catch (final Exception e) {
+            log.warn("Failed to load status filter to user session");
+            this.issueFilter.clear();
+        } finally {
+            this.issueFilterParam = StringUtils.join(this.issueFilter, Constants.LIST_SEPARATOR);
             this.filterChanged = true;
         }
     }

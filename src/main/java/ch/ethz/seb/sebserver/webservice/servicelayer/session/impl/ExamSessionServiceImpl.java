@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +45,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam.ExamStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionIssueStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringDataView;
 import ch.ethz.seb.sebserver.gbl.monitoring.MonitoringSEBConnectionData;
@@ -437,6 +439,11 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                     ? new HashMap<>()
                     : null;
 
+            final int[] issueMapping = new int[ConnectionIssueStatus.values().length];
+            for (int i = 0; i < issueMapping.length; i++) {
+                issueMapping[i] = 0;
+            }
+
             updateClientConnections(examId);
 
             final List<? extends ClientMonitoringDataView> filteredConnections = this.clientConnectionDAO
@@ -448,6 +455,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                     .map(c -> {
                         statusMapping[c.clientConnection.status.code]++;
                         processClientGroupMapping(c.groups, clientGroupMapping);
+                        processIssueMapping(c.clientConnection, issueMapping);
                         return c;
                     })
                     .filter(filter)
@@ -457,6 +465,7 @@ public class ExamSessionServiceImpl implements ExamSessionService {
             return new MonitoringSEBConnectionData(
                     statusMapping,
                     clientGroupMapping,
+                    issueMapping,
                     filteredConnections);
         });
     }
@@ -631,6 +640,20 @@ public class ExamSessionServiceImpl implements ExamSessionService {
                 clientGroupMapping.put(id, 1);
             }
         });
+    }
+
+    private void processIssueMapping(final ClientConnection clientConnection, final int[] issueMapping){
+        if (clientConnection == null || issueMapping == null) {
+            return;
+        }
+
+        if(BooleanUtils.isFalse(clientConnection.securityCheckGranted)){
+            issueMapping[0] += 1;
+        }
+
+        if(BooleanUtils.isFalse(clientConnection.clientVersionGranted)){
+            issueMapping[1] += 1;
+        }
     }
 
     private final Map<String, Long> duplicateCheck = new HashMap<>();

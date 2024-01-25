@@ -43,6 +43,7 @@ import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings;
 import ch.ethz.seb.sebserver.gbl.model.exam.ProctoringServiceSettings.ProctoringFeature;
 import ch.ethz.seb.sebserver.gbl.model.exam.ScreenProctoringSettings;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionIssueStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
 import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
@@ -437,6 +438,23 @@ public class MonitoringRunningExam implements TemplateComposer {
                 ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION,
                 ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION);
 
+        addIssueFilterAction(
+                monitoringStatus,
+                statusFilterGUIUpdate,
+                actionBuilder,
+                clientTable,
+                ConnectionIssueStatus.ASK_GRANTED,
+                ActionDefinition.MONITOR_EXAM_SHOW_ASK_GRANTED,
+                ActionDefinition.MONITOR_EXAM_HIDE_ASK_GRANTED);
+        addIssueFilterAction(
+                monitoringStatus,
+                statusFilterGUIUpdate,
+                actionBuilder,
+                clientTable,
+                ConnectionIssueStatus.SEB_VERSION_GRANTED,
+                ActionDefinition.MONITOR_EXAM_SHOW_SEB_VERSION_GRANTED,
+                ActionDefinition.MONITOR_EXAM_HIDE_SEB_VERSION_GRANTED);
+
         if (clientGroups != null && !clientGroups.isEmpty()) {
             clientGroups.forEach(clientGroup -> {
 
@@ -453,6 +471,34 @@ public class MonitoringRunningExam implements TemplateComposer {
         }
 
         return statusFilterGUIUpdate;
+    }
+
+    private void addIssueFilterAction(
+            final MonitoringFilter filter,
+            final FilterGUIUpdate filterGUIUpdate,
+            final PageActionBuilder actionBuilder,
+            final ClientConnectionTable clientTable,
+            final ConnectionIssueStatus connectionIssueStatus,
+            final ActionDefinition showActionDef,
+            final ActionDefinition hideActionDef) {
+
+
+        final int numOfConnections = filter.getNumOfConnections(connectionIssueStatus);
+        final PageAction action = actionBuilder.newAction(hideActionDef)
+                .withExec(hideIssueViewAction(filter, clientTable, connectionIssueStatus))
+                .noEventPropagation()
+                .withSwitchAction(
+                        actionBuilder.newAction(showActionDef)
+                                .withExec(showIssueViewAction(filter, clientTable, connectionIssueStatus))
+                                .noEventPropagation()
+                                .withNameAttributes(numOfConnections)
+                                .create())
+                .withNameAttributes(numOfConnections)
+                .create();
+
+        this.pageService.publishAction(
+                action,
+                treeItem -> filterGUIUpdate.register(treeItem, connectionIssueStatus));
     }
 
     private void addFilterAction(
@@ -544,6 +590,7 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         private final PolyglotPageService polyglotPageService;
         private final TreeItem[] actionItemPerStateFilter = new TreeItem[ConnectionStatus.values().length];
+        private final TreeItem[] actionItemPerIssueFilter = new TreeItem[ConnectionIssueStatus.values().length];
         private final Map<Long, TreeItem> actionItemPerClientGroup = new HashMap<>();
 
         public FilterGUIUpdate(final PolyglotPageService polyglotPageService) {
@@ -556,6 +603,10 @@ public class MonitoringRunningExam implements TemplateComposer {
 
         void register(final TreeItem item, final Long clientGroupId) {
             this.actionItemPerClientGroup.put(clientGroupId, item);
+        }
+
+        void register(final TreeItem item, final ConnectionIssueStatus status) {
+            this.actionItemPerIssueFilter[status.code] = item;
         }
 
         @Override
@@ -571,6 +622,19 @@ public class MonitoringRunningExam implements TemplateComposer {
                     this.polyglotPageService.injectI18n(treeItem, action.getTitle());
                 }
             }
+
+            final ConnectionIssueStatus[] connectionIssueStates = ConnectionIssueStatus.values();
+            for (int i = 0; i < connectionIssueStates.length; i++) {
+                final ConnectionIssueStatus state = connectionIssueStates[i];
+                final int numOfConnections = monitoringStatus.getNumOfConnections(state);
+                if (numOfConnections >= 0 && this.actionItemPerIssueFilter[state.code] != null) {
+                    final TreeItem treeItem = this.actionItemPerIssueFilter[state.code];
+                    final PageAction action = (PageAction) treeItem.getData(ActionPane.ACTION_EVENT_CALL_KEY);
+                    action.setTitleArgument(0, numOfConnections);
+                    this.polyglotPageService.injectI18n(treeItem, action.getTitle());
+                }
+            }
+
 
             if (!this.actionItemPerClientGroup.isEmpty()) {
                 this.actionItemPerClientGroup.entrySet().stream().forEach(entry -> {
@@ -637,6 +701,32 @@ public class MonitoringRunningExam implements TemplateComposer {
             clientTable.removeSelection();
             return action;
         };
+    }
+
+    private static Function<PageAction, PageAction> showIssueViewAction(
+            final MonitoringFilter monitoringStatus,
+            final ClientConnectionTable clientTable,
+            final ConnectionIssueStatus connectionIssueStatus) {
+
+        return action -> {
+            monitoringStatus.showIssue(connectionIssueStatus);
+            clientTable.removeSelection();
+            return action;
+        };
+
+    }
+
+    private static Function<PageAction, PageAction> hideIssueViewAction(
+            final MonitoringFilter monitoringStatus,
+            final ClientConnectionTable clientTable,
+            final ConnectionIssueStatus connectionIssueStatus) {
+
+        return action -> {
+            monitoringStatus.hideIssue(connectionIssueStatus);
+            clientTable.removeSelection();
+            return action;
+        };
+
     }
 
     private Set<EntityKey> selectionForInstruction(final ClientConnectionTable clientTable) {

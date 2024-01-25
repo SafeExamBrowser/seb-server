@@ -14,6 +14,7 @@ import java.util.EnumSet;
 
 import ch.ethz.seb.sebserver.gbl.model.exam.ClientGroup;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionIssueStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientMonitoringData;
 import ch.ethz.seb.sebserver.gbl.model.session.RemoteProctoringRoom;
 import ch.ethz.seb.sebserver.gbl.model.session.ScreenProctoringGroup;
@@ -25,6 +26,10 @@ public interface MonitoringFilter {
     EnumSet<ConnectionStatus> getStatusFilter();
 
     String getStatusFilterParam();
+
+    EnumSet<ConnectionIssueStatus> getIssueFilter();
+
+    String getIssueFilterParam();
 
     boolean filterChanged();
 
@@ -47,6 +52,10 @@ public interface MonitoringFilter {
     void hideClientGroup(Long clientGroupId);
 
     void showClientGroup(Long clientGroupId);
+
+    void hideIssue(ConnectionIssueStatus connectionIssueStatus);
+
+    void showIssue(ConnectionIssueStatus connectionIssueStatus);
 
     MonitoringFullPageData getMonitoringFullPageData();
 
@@ -82,6 +91,15 @@ public interface MonitoringFilter {
         final MonitoringSEBConnectionData monitoringSEBConnectionData = getMonitoringSEBConnectionData();
         if (monitoringSEBConnectionData != null) {
             return monitoringSEBConnectionData.getNumberOfConnection(clientGroupId);
+        } else {
+            return 0;
+        }
+    }
+
+    default int getNumOfConnections(final ConnectionIssueStatus connectionIssueStatus) {
+        final MonitoringSEBConnectionData monitoringSEBConnectionData = getMonitoringSEBConnectionData();
+        if (monitoringSEBConnectionData != null) {
+            return monitoringSEBConnectionData.getNumberOfConnection(connectionIssueStatus);
         } else {
             return 0;
         }

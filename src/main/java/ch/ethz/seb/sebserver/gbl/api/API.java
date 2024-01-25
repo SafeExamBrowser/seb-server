@@ -219,6 +219,8 @@ public final class API {
     public static final String EXAM_MONITORING_SIGNATURE_KEY_ENDPOINT = "/signature";
     public static final String EXAM_MONITORING_STATE_FILTER = "hidden-states";
     public static final String EXAM_MONITORING_CLIENT_GROUP_FILTER = "hidden-client-group";
+    public static final String EXAM_MONITORING_ISSUE_FILTER = "hidden-issues";
+
     public static final String EXAM_MONITORING_FINISHED_ENDPOINT = "/finishedexams";
     public static final String EXAM_MONITORING_SEB_CONNECTION_TOKEN_PATH_SEGMENT =
             "/{" + EXAM_API_SEB_CONNECTION_TOKEN + "}";

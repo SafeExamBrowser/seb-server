@@ -1030,6 +1030,30 @@ public enum ActionDefinition {
             PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
             ActionCategory.GROUP_FILTER),
 
+    MONITOR_EXAM_HIDE_ASK_GRANTED(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.hide.askgranted"),
+            ImageIcon.TOGGLE_OFF,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.ISSUE_FILTER),
+
+    MONITOR_EXAM_SHOW_ASK_GRANTED(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.show.askgranted"),
+            ImageIcon.TOGGLE_ON,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.ISSUE_FILTER),
+
+    MONITOR_EXAM_HIDE_SEB_VERSION_GRANTED(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.hide.sebversiongranted"),
+            ImageIcon.TOGGLE_OFF,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.ISSUE_FILTER),
+
+    MONITOR_EXAM_SHOW_SEB_VERSION_GRANTED(
+            new LocTextKey("sebserver.monitoring.exam.connection.action.show.sebversiongranted"),
+            ImageIcon.TOGGLE_ON,
+            PageStateDefinitionImpl.MONITORING_RUNNING_EXAM,
+            ActionCategory.ISSUE_FILTER),
+
     MONITORING_EXAM_SEARCH_CONNECTIONS(
             new LocTextKey("sebserver.monitoring.search.action"),
             ImageIcon.SEARCH,
