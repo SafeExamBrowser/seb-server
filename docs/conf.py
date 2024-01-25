@@ -44,7 +44,7 @@ extensions = [
     'sphinx.ext.imgmath',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinx-rtd-theme'
+    'sphinx.rtd.theme'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
