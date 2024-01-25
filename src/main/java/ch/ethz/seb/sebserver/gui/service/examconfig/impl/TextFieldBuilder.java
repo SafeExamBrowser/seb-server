@@ -53,7 +53,8 @@ public class TextFieldBuilder implements InputFieldBuilder {
         return attribute.type == AttributeType.TEXT_FIELD ||
                 attribute.type == AttributeType.TEXT_AREA ||
                 attribute.type == AttributeType.INTEGER ||
-                attribute.type == AttributeType.DECIMAL;
+                attribute.type == AttributeType.DECIMAL ||
+                attribute.type == AttributeType.COLOR_SELECTOR;
     }
 
     @Override

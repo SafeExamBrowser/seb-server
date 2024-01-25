@@ -175,3 +175,16 @@ INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group
     (1563, 0,  3, 'mediaPlaybackCapture', 9, 19, 3, 1, 'NONE')
 ;
 
+-- ----------------------------------------------------------------
+-- Add Lock screen color (SEBSERV-414)
+-- ----------------------------------------------------------------
+
+INSERT IGNORE INTO configuration_attribute VALUES
+    (1595, 'lockScreenBackgroundColor', 'COLOR_SELECTOR', null, null, null, null, '#FF0000')
+;
+
+INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
+    (1595, 0,  2, null, 7, 9, 5, 2, 'TOP')
+;
+
+UPDATE orientation SET height=1 WHERE config_attribute_id=8 AND template_id=0;

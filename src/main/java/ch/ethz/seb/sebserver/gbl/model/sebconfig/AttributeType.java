@@ -43,6 +43,8 @@ public enum AttributeType {
     /** Multiple selection with checkbox type */
     MULTI_CHECKBOX_SELECTION(LIST),
 
+    COLOR_SELECTOR(TEXT),
+
     FILE_UPLOAD(BASE64_BINARY),
 
     /** Table type is a list of a composite of single types */

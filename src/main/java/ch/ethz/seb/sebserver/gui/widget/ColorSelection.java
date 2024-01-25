@@ -51,7 +51,7 @@ public final class ColorSelection extends Composite implements Selection {
 
     private Listener listener = null;
 
-    ColorSelection(
+    public ColorSelection(
             final Composite parent,
             final WidgetFactory widgetFactory,
             final String tooltipKeyPrefix) {

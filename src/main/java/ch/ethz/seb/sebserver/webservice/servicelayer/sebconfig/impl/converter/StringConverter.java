@@ -42,7 +42,8 @@ public class StringConverter implements AttributeValueConverter {
                     AttributeType.TEXT_AREA,
                     AttributeType.PASSWORD_FIELD,
                     AttributeType.DECIMAL,
-                    AttributeType.COMBO_SELECTION)));
+                    AttributeType.COMBO_SELECTION,
+                    AttributeType.COLOR_SELECTOR)));
 
     private static final String XML_TEMPLATE = "<key>%s</key><string>%s</string>";
     private static final String XML_TEMPLATE_EMPTY = "<key>%s</key><string />";
