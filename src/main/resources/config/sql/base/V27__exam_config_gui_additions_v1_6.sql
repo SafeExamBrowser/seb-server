@@ -126,16 +126,16 @@ UPDATE configuration_attribute SET default_value='8', resources='0,1,2,3,4,5,6,7
 -- Move display and version settings down (SEBSERV-414)
 -- ----------------------------------------------------------------
 -- move logging down
-UPDATE orientation SET y_position=16 WHERE config_attribute_id=305 AND template_id=0;
-UPDATE orientation SET y_position=17 WHERE config_attribute_id=306 AND template_id=0;
-UPDATE orientation SET y_position=18 WHERE config_attribute_id=307 AND template_id=0;
-UPDATE orientation SET y_position=19 WHERE config_attribute_id=317 AND template_id=0;
-UPDATE orientation SET y_position=20 WHERE config_attribute_id=319 AND template_id=0;
-UPDATE orientation SET y_position=21 WHERE config_attribute_id=320 AND template_id=0;
+UPDATE orientation SET y_position=17 WHERE config_attribute_id=305 AND template_id=0;
+UPDATE orientation SET y_position=18 WHERE config_attribute_id=306 AND template_id=0;
+UPDATE orientation SET y_position=19 WHERE config_attribute_id=307 AND template_id=0;
+UPDATE orientation SET y_position=20 WHERE config_attribute_id=317 AND template_id=0;
+UPDATE orientation SET y_position=21 WHERE config_attribute_id=319 AND template_id=0;
+UPDATE orientation SET y_position=22 WHERE config_attribute_id=320 AND template_id=0;
 -- move monitors left
-UPDATE orientation SET x_position = 0, y_position=13 WHERE config_attribute_id=315 AND template_id=0;
-UPDATE orientation SET x_position = 0, y_position=14 WHERE config_attribute_id=1551 AND template_id=0;
-UPDATE orientation SET x_position = 0, y_position=15 WHERE config_attribute_id=971 AND template_id=0;
+UPDATE orientation SET x_position = 0, y_position=14 WHERE config_attribute_id=315 AND template_id=0;
+UPDATE orientation SET x_position = 0, y_position=15 WHERE config_attribute_id=1551 AND template_id=0;
+UPDATE orientation SET x_position = 0, y_position=16 WHERE config_attribute_id=971 AND template_id=0;
 -- apply SEB versions on the right
 UPDATE orientation SET x_position = 7, y_position=18, height=9, width=5 WHERE config_attribute_id=1578 AND template_id=0;
 -- move macOS settings to make space for new
@@ -184,7 +184,7 @@ INSERT IGNORE INTO configuration_attribute VALUES
 ;
 
 INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group_id, x_position, y_position, width, height, title) VALUES
-    (1595, 0,  2, null, 7, 9, 5, 2, 'TOP')
+    (1595, 0,  2, null, 7, 8, 5, 1, 'TOP')
 ;
 
 UPDATE orientation SET height=1 WHERE config_attribute_id=8 AND template_id=0;
