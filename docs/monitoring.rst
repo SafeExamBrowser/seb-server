@@ -108,6 +108,14 @@ In the detail view you are also able to use the instructions "Quit SEB Client" a
 Optional Live Proctoring
 ------------------------
 
+.. attention::
+
+    Deprecation
+
+    The SEB Server live proctoring integration with Zoom and Jitsi Meet will be deprecated within the next upcoming version of SEB Server 1.6.
+
+    This means live proctoring is still available for dedicated SEB versions, but not actively maintained and supported any more.
+
 Live proctoring is a new and yet experimental feature of SEB and SEB Server. The feature is fully optional and not enabled by default.
 This section is about the live proctoring on monitoring a running exam and using the optional live proctoring within.
 To configure the optional live proctoring for a specific exam please have a look at `Optional Live Proctoring <https://seb-server.readthedocs.io/en/latest/exam_proctoring.html#sebProctoringSettings>`_ 
