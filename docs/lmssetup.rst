@@ -66,7 +66,7 @@ SEB Server internally. Use the **"Type"** selector to specify the type of the LM
   Server tries to make use of the described API's of the Moodle system but there is currently no SEB restriction plugin available that works
   with SEB Server. Note that Moodle integration is implemented partially within SEB Server version 1.1.x. Only the course access feature is implemented and the course restriction feature will come with a future SEB Server release
 
-- **Moodle with SEB Server Plugin**: The `SEB Server Plugin for Moodle <https://github.com/ethz-let/moodle-quizaccess_sebserver>`_ is new and supported by SEB Server since version 1.5.
+- **Moodle with SEB Server Plugin**: The `SEB Server Plugin for Moodle <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_ is new and supported by SEB Server since version 1.5.
   With this plugin installed on Moodle side, SEB Server is able to more efficiently communicate with Moodle to fetch course data as well as restricting the quiz on Moodle side 
   For SEB only access, using a auto-generated Browser Exam Key (BEK) for SEB restriction. Also the Moodle user name resolving for SEB Server monitoring is less error prone especially
   if Single Sign On some kind of login provider for Moodle is involved. Furthermore the new SEB Server Plugin for Moodle will be constantly extended and improved with new features in the future.
@@ -260,6 +260,6 @@ Install SEB restriction API plugin
     There is a new SEB Server integration plugin for Moodle available since SEB Server 1.5 that can be used with the LMS Setup type Moodle with SEB Server Plugin.
     This Plugin supports and improves all common SEB Server LMS binding features such as Course-Access, SEB Restriction and LMS Session Name Resolving. 
     It is also planed to extend and improve this plugin with new Moodle specific feature for further releases of SEB Server.
-     - `Documentation <https://github.com/ethz-let/moodle-quizaccess_sebserver>`_
-     - `Repository <https://github.com/ethz-let/moodle-quizaccess_sebserver>`_
+     - `Documentation <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_
+     - `Repository <https://github.com/ethz-let/moodle-quizzaccess_sebserver>`_
 
