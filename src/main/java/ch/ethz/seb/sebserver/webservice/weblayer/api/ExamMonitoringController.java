@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,7 @@ import ch.ethz.seb.sebserver.gbl.model.Page;
 import ch.ethz.seb.sebserver.gbl.model.exam.Exam;
 import ch.ethz.seb.sebserver.gbl.model.institution.SecurityKey;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionStatus;
+import ch.ethz.seb.sebserver.gbl.model.session.ClientConnection.ConnectionIssueStatus;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientConnectionData;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientInstruction;
 import ch.ethz.seb.sebserver.gbl.model.session.ClientNotification;
@@ -265,14 +267,14 @@ public class ExamMonitoringController {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates,
-            @RequestHeader(
-                    name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER,
-                    required = false) final String hiddenClientGroups) {
+            @RequestHeader(name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER, required = false) final String hiddenClientGroups,
+            @RequestHeader(name = API.EXAM_MONITORING_ISSUE_FILTER, required = false) final String hiddenIssues){
+
 
         checkPrivileges(institutionId, examId);
 
         return this.examSessionService
-                .getConnectionData(examId, createMonitoringFilter(hiddenStates, hiddenClientGroups))
+                .getConnectionData(examId, createMonitoringFilter(hiddenStates, hiddenClientGroups, hiddenIssues))
                 .getOrThrow();
     }
 
@@ -315,9 +317,9 @@ public class ExamMonitoringController {
                     defaultValue = UserService.USERS_INSTITUTION_AS_DEFAULT) final Long institutionId,
             @PathVariable(name = API.PARAM_PARENT_MODEL_ID, required = true) final Long examId,
             @RequestHeader(name = API.EXAM_MONITORING_STATE_FILTER, required = false) final String hiddenStates,
-            @RequestHeader(
-                    name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER,
-                    required = false) final String hiddenClientGroups) {
+            @RequestHeader(name = API.EXAM_MONITORING_CLIENT_GROUP_FILTER, required = false) final String hiddenClientGroups,
+            @RequestHeader(name = API.EXAM_MONITORING_ISSUE_FILTER, required = false) final String hiddenIssues){
+
 
         // TODO respond this within another Thread-pool (Executor)
         // TODO try to cache some MonitoringSEBConnectionData throughout multiple requests (for about 2 sec.)
@@ -328,7 +330,7 @@ public class ExamMonitoringController {
         final MonitoringSEBConnectionData monitoringSEBConnectionData = this.examSessionService
                 .getMonitoringSEBConnectionsData(
                         examId,
-                        createMonitoringFilter(hiddenStates, hiddenClientGroups))
+                        createMonitoringFilter(hiddenStates, hiddenClientGroups, hiddenIssues))
                 .getOrThrow();
 
         final boolean proctoringEnabled = this.examAdminService.isProctoringEnabled(runningExam);
@@ -544,6 +546,20 @@ public class ExamMonitoringController {
         return conn -> conn != null && !filterStates.contains(conn.clientConnection.status);
     }
 
+    private Predicate<ClientConnectionData> activeIssueFilterSebVersion(final EnumSet<ConnectionIssueStatus> filterStates) {
+        if(!filterStates.contains(ConnectionIssueStatus.SEB_VERSION_GRANTED)){
+            return null;
+        }
+        return conn -> conn != null && BooleanUtils.isFalse(conn.clientConnection.clientVersionGranted);
+    }
+
+    private Predicate<ClientConnectionData> activeIssueFilterAsk(final EnumSet<ConnectionIssueStatus> filterStates) {
+        if(!filterStates.contains(ConnectionIssueStatus.ASK_GRANTED)){
+            return null;
+        }
+        return conn -> conn != null && BooleanUtils.isFalse(conn.clientConnection.securityCheckGranted);
+    }
+
     /** If we have a filter criteria for ACTIVE connection, we shall filter only the active connections
      * that has no incident. */
     private Predicate<ClientConnectionData> withActiveFilter(final EnumSet<ConnectionStatus> filterStates) {
@@ -560,7 +576,8 @@ public class ExamMonitoringController {
 
     private Predicate<ClientConnectionData> createMonitoringFilter(
             final String hiddenStates,
-            final String hiddenClientGroups) {
+            final String hiddenClientGroups,
+            final String hiddenIssues) {
 
         final EnumSet<ConnectionStatus> filterStates = EnumSet.noneOf(ConnectionStatus.class);
         if (StringUtils.isNotBlank(hiddenStates)) {
@@ -581,6 +598,25 @@ public class ExamMonitoringController {
                         ? withActiveFilter(filterStates)
                         : noneActiveFilter(filterStates);
 
+        final EnumSet<ConnectionIssueStatus> filterIssues = EnumSet.noneOf(ConnectionIssueStatus.class);
+        if (StringUtils.isNotBlank(hiddenIssues)) {
+            final String[] split = StringUtils.split(hiddenIssues, Constants.LIST_SEPARATOR);
+            for (final String s : split) {
+                filterIssues.add(ConnectionIssueStatus.valueOf(s));
+            }
+        }
+
+        final Predicate<ClientConnectionData> issueFilterSebVersion =
+                filterIssues.isEmpty()
+                    ? null
+                    : activeIssueFilterSebVersion(filterIssues);
+
+        final Predicate<ClientConnectionData> issueFilterAsk =
+                filterIssues.isEmpty()
+                    ? null
+                    : activeIssueFilterAsk(filterIssues);
+
+
         Set<Long> filterClientGroups = null;
         if (StringUtils.isNotBlank(hiddenClientGroups)) {
             filterClientGroups = new HashSet<>();
@@ -595,7 +631,18 @@ public class ExamMonitoringController {
             if (ccd == null) {
                 return false;
             }
-            return stateFilter.test(ccd) && ccd.filter(_filterClientGroups);
+
+            boolean result = stateFilter.test(ccd) && ccd.filter(_filterClientGroups);
+
+            if (issueFilterSebVersion != null) {
+                result = result && issueFilterSebVersion.test(ccd);
+            }
+
+            if (issueFilterAsk != null) {
+                result = result && issueFilterAsk.test(ccd);
+            }
+
+            return result;
         };
     }
 

@@ -57,6 +57,17 @@ public final class ClientConnection implements GrantEntity {
         }
     }
 
+    public enum ConnectionIssueStatus {
+        ASK_GRANTED(0),
+        SEB_VERSION_GRANTED(1);
+
+        public final int code;
+
+        ConnectionIssueStatus(final int code){
+            this.code = code;
+        }
+    }
+
     public final static List<String> ACTIVE_STATES = Utils.immutableListOf(
             ConnectionStatus.ACTIVE.name(),
             ConnectionStatus.READY.name(),
