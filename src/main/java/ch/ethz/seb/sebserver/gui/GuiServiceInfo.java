@@ -8,6 +8,8 @@
 
 package ch.ethz.seb.sebserver.gui;
 
+import ch.ethz.seb.sebserver.gbl.Constants;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -29,6 +31,8 @@ public class GuiServiceInfo {
     private final String contextPath;
     private final UriComponentsBuilder internalServerURIBuilder;
     private final UriComponentsBuilder externalServerURIBuilder;
+
+    private final boolean isLightSetup;
     private final boolean distributedSetup;
     private final boolean multilingualGUI;
 
@@ -41,6 +45,7 @@ public class GuiServiceInfo {
             @Value("${sebserver.gui.http.external.port}") final String externalPort,
             @Value("${sebserver.gui.entrypoint:/gui}") final String entryPoint,
             @Value("${server.servlet.context-path:/}") final String contextPath,
+            @Value("${sebserver.webservice.light.setup:false}") final boolean lightSetup,
             @Value("${sebserver.webservice.distributed:false}") final boolean distributedSetup,
             @Value("${sebserver.gui.multilingual:false}") final boolean multilingualGUI) {
 
@@ -77,6 +82,7 @@ public class GuiServiceInfo {
             this.externalServerURIBuilder.path(contextPath);
         }
 
+        this.isLightSetup = lightSetup;
         this.distributedSetup = distributedSetup;
         this.multilingualGUI = multilingualGUI;
     }
@@ -117,6 +123,9 @@ public class GuiServiceInfo {
         return this.externalServerURIBuilder.cloneBuilder();
     }
 
+    public boolean isLightSetup() {
+        return this.isLightSetup;
+    }
     public boolean isDistributedSetup() {
         return this.distributedSetup;
     }

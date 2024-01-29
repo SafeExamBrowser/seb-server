@@ -8,7 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content.exam;
 
-import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.SCREEN_PROCTORING;
+import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.EXAM_SCREEN_PROCTORING;
 
 import java.util.*;
 import java.util.function.Function;
@@ -251,7 +251,7 @@ public class ExamForm implements TemplateComposer {
                 .map(ProctoringServiceSettings::getEnableProctoring)
                 .getOr(false);
 
-        final boolean spsFeatureEnabled = currentUser.isFeatureEnabled(SCREEN_PROCTORING);
+        final boolean spsFeatureEnabled = currentUser.isFeatureEnabled(EXAM_SCREEN_PROCTORING);
         final boolean screenProctoringEnabled = readonly && spsFeatureEnabled && this.restService
                 .getBuilder(GetScreenProctoringSettings.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)

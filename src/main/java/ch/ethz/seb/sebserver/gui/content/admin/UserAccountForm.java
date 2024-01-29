@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.content.admin;
 import java.util.Locale;
 import java.util.function.BooleanSupplier;
 
+import ch.ethz.seb.sebserver.gbl.model.user.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.tomcat.util.buf.StringUtils;
 import org.eclipse.swt.widgets.Composite;
@@ -26,11 +27,6 @@ import ch.ethz.seb.sebserver.gbl.api.authorization.PrivilegeType;
 import ch.ethz.seb.sebserver.gbl.model.Domain;
 import ch.ethz.seb.sebserver.gbl.model.Domain.USER_ROLE;
 import ch.ethz.seb.sebserver.gbl.model.EntityKey;
-import ch.ethz.seb.sebserver.gbl.model.user.PasswordChange;
-import ch.ethz.seb.sebserver.gbl.model.user.UserAccount;
-import ch.ethz.seb.sebserver.gbl.model.user.UserInfo;
-import ch.ethz.seb.sebserver.gbl.model.user.UserMod;
-import ch.ethz.seb.sebserver.gbl.model.user.UserRole;
 import ch.ethz.seb.sebserver.gbl.profile.GuiProfile;
 import ch.ethz.seb.sebserver.gui.content.action.ActionDefinition;
 import ch.ethz.seb.sebserver.gui.form.FormBuilder;
@@ -169,7 +165,7 @@ public class UserAccountForm implements TemplateComposer {
                         Domain.USER.ATTR_LANGUAGE,
                         Locale.ENGLISH.getLanguage())
                 .addFieldIf(
-                        isSEBAdmin,
+                        () -> isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                         () -> FormBuilder.singleSelection(
                                 Domain.USER.ATTR_INSTITUTION_ID,
                                 FORM_INSTITUTION_TEXT_KEY,

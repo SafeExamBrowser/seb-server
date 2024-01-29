@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.content.configs;
 
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.eclipse.swt.widgets.Composite;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -128,7 +129,7 @@ public class SEBClientConfigList implements TemplateComposer {
                                 ? Domain.LMS_SETUP.ATTR_INSTITUTION_ID
                                 : Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME)
                         .withColumnIf(
-                                () -> isSEBAdmin,
+                                () -> isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,

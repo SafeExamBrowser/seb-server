@@ -10,6 +10,7 @@ package ch.ethz.seb.sebserver.gui.content.exam;
 
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -122,9 +123,11 @@ public class LmsSetupList implements TemplateComposer {
                 this.pageService.entityTableBuilder(restService.getRestCall(GetLmsSetupPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
-                        .withDefaultSort(isSEBAdmin ? Domain.LMS_SETUP.ATTR_INSTITUTION_ID : Domain.LMS_SETUP.ATTR_NAME)
+                        .withDefaultSort(isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
+                                ? Domain.LMS_SETUP.ATTR_INSTITUTION_ID
+                                : Domain.LMS_SETUP.ATTR_NAME)
                         .withColumnIf(
-                                () -> isSEBAdmin,
+                                () -> isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,

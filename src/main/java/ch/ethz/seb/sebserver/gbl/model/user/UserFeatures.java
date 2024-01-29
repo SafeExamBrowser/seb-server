@@ -15,11 +15,45 @@ public class UserFeatures {
     public static final String ATTR_FEATURE_PRIVILEGES = "featurePrivileges";
 
     public enum Feature {
-        INSTITUTION("admin.institution"),
-        SCREEN_PROCTORING("seb.screenProctoring"),
+        ADMIN_INSTITUTION("admin.institution"),
 
-        LIVE_PROCTORING("seb.liveProctoring"),
-        TEST_LMS("lms.type.MOCKUP"),
+        ADMIN_USER_ADMINISTRATION("admin.user.administration"),
+        ADMIN_USER_ACCOUNT("admin.user.account"),
+        ADMIN_AUDIT_LOGS("admin.auditlogs"),
+
+        CONFIG_CONNECTION_CONFIGURATION("config.connection.configuration"),
+        CONFIG_EXAM_CONFIGURATION("config.exam.configuration"),
+        CONFIG_TEMPLATE("config.template"),
+        CONFIG_CERTIFICATE("config.certificate"),
+        LMS_SETUP( "lms.setup"),
+        LMS_SETUP_TEST("lms.setup.type.MOCKUP"),
+        LMS_SETUP_MOODLE("lms.setup.type.moodle"),
+        LMS_SETUP_MOODLE_PLUGIN("lms.setup.type.moodle.plugin"),
+        LMS_SETUP_OPEN_EDX("lms.setup.type.openedx"),
+        LMS_SETUP_ANS("lms.setup.type.ans"),
+        LMS_SETUP_OPEN_OLAT("lms.setup.type.openolat"),
+
+        EXAM_ASK("exam.ask"),
+        EXAM_SEB_RESTRICTION( "exam.seb.restriction"),
+        EXAM_LIVE_PROCTORING("exam.seb.liveProctoring"),
+
+        EXAM_SCREEN_PROCTORING("exam.seb.screenProctoring"),
+        EXAM_INDICATORS("exam.monitoring.indicators"),
+        EXAM_SEB_CLIENT_GROUPS("exam.seb.clientgroups"),
+        EXAM_TEMPLATE("exam.template"),
+
+        MONITORING_RUNNING_EXAMS("monitoring.running.exams"),
+        MONITORING_RUNNING_EXAM_DETAIL_VIEW("monitoring.running.exam.detailview"),
+        MONITORING_RUNNING_EXAM_DETAIL_VIEW_LOG_EXPORT("monitoring.running.exam.detailview.logexport"),
+        //more? ...
+        MONITORING_RUNNING_EXAM_QUIT_ALL("monitoring.running.exam.quitall"),
+        MONITORING_RUNNING_EXAM_LOCKSCREEN("monitoring.running.exam.lockscreen"),
+        // more? ...
+        MONITORING_FINISHED_EXAMS("monitoring.finished.exams"),
+        MONITORING_OVERALL_LOG_EXPORT("monitoring.overall.export"),
+
+
+
         EXAM_NO_LMS("exam.noLMS"),
 
         ;

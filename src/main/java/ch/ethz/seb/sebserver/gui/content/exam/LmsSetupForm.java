@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -187,7 +188,7 @@ public class LmsSetupForm implements TemplateComposer {
                         String.valueOf(lmsSetup.getLmsType()))
 
                 .addFieldIf(
-                        isSEBAdmin,
+                        () -> isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                         () -> FormBuilder.singleSelection(
                                 Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                 FORM_INSTITUTION_TEXT_KEY,

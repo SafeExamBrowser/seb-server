@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content.activity;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.SWT;
@@ -104,29 +105,32 @@ public class ActivitiesPane implements TemplateComposer {
                 ActivityDefinition.SEB_ADMINISTRATION.displayName);
 
         // Institution
-        // If current user has SEB Server Admin role, show the Institution list
-        if (userInfo.hasRole(UserRole.SEB_SERVER_ADMIN)) {
-            // institutions (list) as root
-            final TreeItem institutions = this.widgetFactory.treeItemLocalized(
-                    sebAdmin,
-                    ActivityDefinition.INSTITUTION.displayName);
-            injectActivitySelection(
-                    institutions,
-                    actionBuilder
-                            .newAction(ActionDefinition.INSTITUTION_VIEW_LIST)
-                            .create());
 
-        } else if (userInfo.hasRole(UserRole.INSTITUTIONAL_ADMIN)) {
-            // otherwise show the form of the institution for current user
-            final TreeItem institutions = this.widgetFactory.treeItemLocalized(
-                    sebAdmin,
-                    ActivityDefinition.INSTITUTION.displayName);
-            injectActivitySelection(
-                    institutions,
-                    actionBuilder.newAction(ActionDefinition.INSTITUTION_VIEW_FORM)
-                            .withEntityKey(userInfo.institutionId, EntityType.INSTITUTION)
-                            .withAttribute(AttributeKeys.READ_ONLY, "true")
-                            .create());
+        if (currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)) {
+            // If current user has SEB Server Admin role, show the Institution list
+            if (userInfo.hasRole(UserRole.SEB_SERVER_ADMIN)) {
+                // institutions (list) as root
+                final TreeItem institutions = this.widgetFactory.treeItemLocalized(
+                        sebAdmin,
+                        ActivityDefinition.INSTITUTION.displayName);
+                injectActivitySelection(
+                        institutions,
+                        actionBuilder
+                                .newAction(ActionDefinition.INSTITUTION_VIEW_LIST)
+                                .create());
+
+            } else if (userInfo.hasRole(UserRole.INSTITUTIONAL_ADMIN)) {
+                // otherwise show the form of the institution for current user
+                final TreeItem institutions = this.widgetFactory.treeItemLocalized(
+                        sebAdmin,
+                        ActivityDefinition.INSTITUTION.displayName);
+                injectActivitySelection(
+                        institutions,
+                        actionBuilder.newAction(ActionDefinition.INSTITUTION_VIEW_FORM)
+                                .withEntityKey(userInfo.institutionId, EntityType.INSTITUTION)
+                                .withAttribute(AttributeKeys.READ_ONLY, "true")
+                                .create());
+            }
         }
 
         // User Account

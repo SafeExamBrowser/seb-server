@@ -11,6 +11,7 @@ package ch.ethz.seb.sebserver.gui.content.exam;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -128,12 +129,12 @@ public class ExamTemplateList implements TemplateComposer {
                 this.pageService.entityTableBuilder(restService.getRestCall(GetExamTemplatePage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
-                        .withDefaultSort(isSEBAdmin.getAsBoolean()
+                        .withDefaultSort(isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
                                 ? Domain.EXAM_TEMPLATE.ATTR_INSTITUTION_ID
                                 : Domain.EXAM_TEMPLATE.ATTR_NAME)
 
                         .withColumnIf(
-                                isSEBAdmin,
+                                () -> isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                                 () -> new ColumnDefinition<ExamTemplate>(
                                         Domain.EXAM_TEMPLATE.ATTR_INSTITUTION_ID,
                                         COLUMN_TITLE_INSTITUTION_KEY,

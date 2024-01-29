@@ -15,6 +15,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.widgets.Composite;
@@ -171,12 +172,12 @@ public class ExamList implements TemplateComposer {
                         .withPaging(this.pageSize)
                         .withRowDecorator(decorateOnExamConsistency(this.pageService))
                         .withStaticFilter(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
-                        .withDefaultSort(isSEBAdmin.getAsBoolean()
+                        .withDefaultSort(isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
                                 ? Domain.EXAM.ATTR_INSTITUTION_ID
                                 : Domain.EXAM.ATTR_LMS_SETUP_ID)
 
                         .withColumnIf(
-                                isSEBAdmin,
+                                () -> isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                                 () -> new ColumnDefinition<Exam>(
                                         Domain.EXAM.ATTR_INSTITUTION_ID,
                                         COLUMN_TITLE_INSTITUTION_KEY,

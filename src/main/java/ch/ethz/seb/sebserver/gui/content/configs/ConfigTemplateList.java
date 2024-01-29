@@ -8,6 +8,7 @@
 
 package ch.ethz.seb.sebserver.gui.content.configs;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -112,11 +113,11 @@ public class ConfigTemplateList implements TemplateComposer {
                                 ConfigurationType.TEMPLATE.name())
                         .withEmptyMessage(EMPTY_TEMPLATE_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
-                        .withDefaultSort(isSEBAdmin
+                        .withDefaultSort(isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
                                 ? Domain.LMS_SETUP.ATTR_INSTITUTION_ID
                                 : Domain.CONFIGURATION_NODE.ATTR_NAME)
                         .withColumnIf(
-                                () -> isSEBAdmin,
+                                () -> isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,

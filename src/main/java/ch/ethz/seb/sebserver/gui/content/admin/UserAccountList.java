@@ -8,9 +8,9 @@
 
 package ch.ethz.seb.sebserver.gui.content.admin;
 
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.apache.commons.lang3.BooleanUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.springframework.beans.factory.annotation.Value;
@@ -142,7 +142,7 @@ public class UserAccountList implements TemplateComposer {
                 pageContext.getParent(),
                 TITLE_TEXT_KEY);
 
-        final BooleanSupplier isSEBAdmin = () -> currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
+        final boolean isSEBAdmin = currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
         final PageActionBuilder actionBuilder = this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
 
         // table
@@ -150,9 +150,9 @@ public class UserAccountList implements TemplateComposer {
                 restService.getRestCall(GetUserAccountPage.class))
                 .withEmptyMessage(EMPTY_TEXT_KEY)
                 .withPaging(this.pageSize)
-                .withDefaultSort(isSEBAdmin.getAsBoolean() ? Domain.USER.ATTR_INSTITUTION_ID : Domain.USER.ATTR_NAME)
+                .withDefaultSort(isSEBAdmin ? Domain.USER.ATTR_INSTITUTION_ID : Domain.USER.ATTR_NAME)
                 .withColumnIf(
-                        isSEBAdmin,
+                        () -> isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                         () -> new ColumnDefinition<>(
                                 Domain.USER.ATTR_INSTITUTION_ID,
                                 INSTITUTION_TEXT_KEY,

@@ -8,7 +8,7 @@ import ch.ethz.seb.sebserver.gbl.util.Result;
 
 public interface FeatureService {
 
-    public static final String FEATURE_CONFIG_PREFIX = "sebserver.feature.";
+    String FEATURE_CONFIG_PREFIX = "sebserver.feature.";
 
     /** Get all feature flags for current user.
      *

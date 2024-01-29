@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.apache.tomcat.util.buf.StringUtils;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
@@ -193,7 +194,7 @@ public class UserActivityLogs implements TemplateComposer {
                         ? UserActivityLog.FILTER_ATTR_INSTITUTION
                         : UserActivityLog.ATTR_USER_NAME)
                 .withColumnIf(
-                        isSEBAdmin,
+                        () -> isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                         () -> new ColumnDefinition<>(
                                 UserActivityLog.FILTER_ATTR_INSTITUTION,
                                 INSTITUTION_TEXT_KEY,

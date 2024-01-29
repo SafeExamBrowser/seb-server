@@ -14,6 +14,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import ch.ethz.seb.sebserver.gbl.model.user.UserFeatures;
 import org.eclipse.rap.rwt.RWT;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -192,7 +193,7 @@ public class QuizLookupList implements TemplateComposer {
                         .withPaging(this.pageSize)
 
                         .withColumnIf(
-                                isSEBAdmin,
+                                () -> isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                                 () -> new ColumnDefinition<QuizData>(
                                         QuizData.QUIZ_ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,
