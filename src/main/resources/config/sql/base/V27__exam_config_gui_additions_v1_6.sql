@@ -188,3 +188,9 @@ INSERT IGNORE INTO orientation (config_attribute_id, template_id, view_id, group
 ;
 
 UPDATE orientation SET height=1 WHERE config_attribute_id=8 AND template_id=0;
+
+-- ----------------------------------------------------------------
+-- Correct Quantisation Screen Proctoring (SEBSERV-504)
+-- ----------------------------------------------------------------
+
+UPDATE configuration_attribute SET resources='0,1,2,3,4,5,6,7,8' WHERE id=1305;
