@@ -12,12 +12,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import ch.ethz.seb.sebserver.gbl.model.exam.AllowedSEBVersion;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.eclipse.swt.SWT;
@@ -276,7 +278,9 @@ public class MonitoringRunningExam implements TemplateComposer {
                     fullPageMonitoringUpdate,
                     actionBuilder,
                     clientTable,
-                    isExamSupporter));
+                    isExamSupporter,
+                    exam.checkASK,
+                    exam.allowedSEBVersions));
 
             final ProctoringServiceSettings proctoringSettings = new ProctoringServiceSettings(exam);
             final ScreenProctoringSettings screenProctoringSettings = new ScreenProctoringSettings(exam);
@@ -400,7 +404,9 @@ public class MonitoringRunningExam implements TemplateComposer {
             final MonitoringFilter monitoringStatus,
             final PageActionBuilder actionBuilder,
             final ClientConnectionTable clientTable,
-            final BooleanSupplier isExamSupporter) {
+            final BooleanSupplier isExamSupporter,
+            final boolean isAskCheckEnabled,
+            final List<AllowedSEBVersion> allowedSEBVersions) {
 
         final FilterGUIUpdate statusFilterGUIUpdate =
                 new FilterGUIUpdate(this.pageService.getPolyglotPageService());
@@ -438,22 +444,27 @@ public class MonitoringRunningExam implements TemplateComposer {
                 ActionDefinition.MONITOR_EXAM_SHOW_DISABLED_CONNECTION,
                 ActionDefinition.MONITOR_EXAM_HIDE_DISABLED_CONNECTION);
 
-        addIssueFilterAction(
-                monitoringStatus,
-                statusFilterGUIUpdate,
-                actionBuilder,
-                clientTable,
-                ConnectionIssueStatus.ASK_GRANTED,
-                ActionDefinition.MONITOR_EXAM_SHOW_ASK_GRANTED,
-                ActionDefinition.MONITOR_EXAM_HIDE_ASK_GRANTED);
-        addIssueFilterAction(
-                monitoringStatus,
-                statusFilterGUIUpdate,
-                actionBuilder,
-                clientTable,
-                ConnectionIssueStatus.SEB_VERSION_GRANTED,
-                ActionDefinition.MONITOR_EXAM_SHOW_SEB_VERSION_GRANTED,
-                ActionDefinition.MONITOR_EXAM_HIDE_SEB_VERSION_GRANTED);
+        if(isAskCheckEnabled){
+            addIssueFilterAction(
+                    monitoringStatus,
+                    statusFilterGUIUpdate,
+                    actionBuilder,
+                    clientTable,
+                    ConnectionIssueStatus.ASK_GRANTED,
+                    ActionDefinition.MONITOR_EXAM_SHOW_ASK_GRANTED,
+                    ActionDefinition.MONITOR_EXAM_HIDE_ASK_GRANTED);
+        }
+
+        if(allowedSEBVersions != null) {
+            addIssueFilterAction(
+                    monitoringStatus,
+                    statusFilterGUIUpdate,
+                    actionBuilder,
+                    clientTable,
+                    ConnectionIssueStatus.SEB_VERSION_GRANTED,
+                    ActionDefinition.MONITOR_EXAM_SHOW_SEB_VERSION_GRANTED,
+                    ActionDefinition.MONITOR_EXAM_HIDE_SEB_VERSION_GRANTED);
+        }
 
         if (clientGroups != null && !clientGroups.isEmpty()) {
             clientGroups.forEach(clientGroup -> {
