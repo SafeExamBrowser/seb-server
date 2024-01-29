@@ -181,6 +181,8 @@ public class ActivitiesPane implements TemplateComposer {
             sebAdmin.dispose();
         }
 
+
+
         // ---- SEB ADMIN ----------------------------------------------------------------------
         //--------------------------------------------------------------------------------------
 
@@ -445,6 +447,9 @@ public class ActivitiesPane implements TemplateComposer {
     private TreeItem getDefaultSelectionFor(final Tree navigation, final CurrentUser currentUser2) {
         try {
             if (this.currentUser.get().hasAnyRole(UserRole.SEB_SERVER_ADMIN, UserRole.INSTITUTIONAL_ADMIN)) {
+                if (pageService.isSEBServerLightSetup()) {
+                    return navigation.getItem(0).getItem(1);
+                }
                 return navigation.getItem(0);
             } else if (this.currentUser.get().hasAnyRole(UserRole.EXAM_ADMIN)) {
                 return findItemByActionDefinition(

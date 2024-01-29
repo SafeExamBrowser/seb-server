@@ -114,11 +114,19 @@ public class WebserviceInit implements ApplicationListener<ApplicationReadyEvent
         SEBServerInit.INIT_LOGGER.info("----> JDBC connection pool max size: {}",
                 this.environment.getProperty("spring.datasource.hikari.maximumPoolSize"));
 
+
+
         if (this.webserviceInfo.isDistributed()) {
+            if (this.webserviceInfo.isLightSetup()) {
+                throw new IllegalStateException("Illegal invalid setup configuration detected, SEB Serer light and distributed setup cannot be applied within the same setup.");
+            }
             SEBServerInit.INIT_LOGGER.info("----> ");
             SEBServerInit.INIT_LOGGER.info("----> Distributed Setup: {}", this.webserviceInfo.getWebserviceUUID());
             SEBServerInit.INIT_LOGGER.info("----> Connection update time: {}",
                     this.environment.getProperty("sebserver.webservice.distributed.connectionUpdate", "2000"));
+        } else if (this.webserviceInfo.isLightSetup()) {
+            SEBServerInit.INIT_LOGGER.info("----> ");
+            SEBServerInit.INIT_LOGGER.info("----> SEB Server light setup enabled!");
         }
 
         SEBServerInit.INIT_LOGGER.info("----> ");

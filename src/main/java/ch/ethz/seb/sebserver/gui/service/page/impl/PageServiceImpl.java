@@ -20,7 +20,9 @@ import java.util.function.Supplier;
 
 import javax.servlet.http.HttpSession;
 
+import ch.ethz.seb.sebserver.gui.GuiServiceInfo;
 import org.eclipse.rap.rwt.RWT;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +90,7 @@ public class PageServiceImpl implements PageService {
     private final ResourceService resourceService;
     private final CurrentUser currentUser;
     private final ServerPushService serverPushService;
+    private final GuiServiceInfo guiServiceInfo;
 
     public PageServiceImpl(
             final Cryptor cryptor,
@@ -96,7 +99,8 @@ public class PageServiceImpl implements PageService {
             final PolyglotPageService polyglotPageService,
             final ResourceService resourceService,
             final CurrentUser currentUser,
-            final ServerPushService serverPushService) {
+            final ServerPushService serverPushService,
+            final GuiServiceInfo guiServiceInfo) {
 
         this.cryptor = cryptor;
         this.jsonMapper = jsonMapper;
@@ -105,6 +109,7 @@ public class PageServiceImpl implements PageService {
         this.resourceService = resourceService;
         this.currentUser = currentUser;
         this.serverPushService = serverPushService;
+        this.guiServiceInfo = guiServiceInfo;
     }
 
     @Override
@@ -180,6 +185,19 @@ public class PageServiceImpl implements PageService {
     @Override
     public FormTooltipMode getFormTooltipMode() {
         return FormTooltipMode.INPUT;
+    }
+
+    @Override
+    public boolean isSEBServerLightSetup() {
+        return this.guiServiceInfo.isLightSetup();
+    }
+
+    private static final LocTextKey FULL_VERSION_NOTE = new LocTextKey("sebserver.features.lightsetup.fullversion.message");
+    @Override
+    public void applyFullVersionNote(final Composite content, final PageContext pageContext) {
+        final Composite warningPanel = this.widgetFactory.createWarningPanel(content);
+        warningPanel.setData(RWT.CUSTOM_VARIANT, WidgetFactory.CustomVariant.NOTE.key);
+        this.widgetFactory.labelLocalizedNote(warningPanel, FULL_VERSION_NOTE);
     }
 
     @SuppressWarnings("unchecked")

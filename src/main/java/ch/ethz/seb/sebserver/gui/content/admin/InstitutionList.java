@@ -94,6 +94,12 @@ public class InstitutionList implements TemplateComposer {
                         pageContext.getParent(),
                         TITLE_TEXT_KEY);
 
+        if (pageService.isSEBServerLightSetup()) {
+            pageService.applyFullVersionNote(content, pageContext);
+            return;
+        }
+
+
         final PageActionBuilder pageActionBuilder =
                 this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
 

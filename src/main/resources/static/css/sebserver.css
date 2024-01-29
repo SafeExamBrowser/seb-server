@@ -80,6 +80,8 @@ Label.h2 {
     color: #1f407a;
 }
 
+
+
 Label.h3 {
     font: bold 14px Arial, Helvetica, sans-serif;
     height: 20px;
@@ -90,6 +92,13 @@ Label.h3 {
 Label.subtitle {
     font: 14px Arial, Helvetica, sans-serif;
     padding: 0px 0px 0px 5px;
+    color: #4a4a4a;
+}
+
+Label.note {
+    font: 18px Arial, Helvetica, sans-serif;
+    height: 22px;
+    padding: 0 0 6px 0;
     color: #4a4a4a;
 }
 
@@ -249,6 +258,15 @@ Composite.warning {
     background-image: gradient( linear, left top, left bottom, from(rgba( 168, 50, 45, 0.5 ) ), to( rgba( 168, 50, 45, 0.5 ) ) );
     background-repeat: repeat;
     background-position: left top;
+    opacity: 1;
+}
+
+Composite.note {
+    background-gradient-color: rgba( 31, 64, 122, 0.2 );
+    background-image: gradient( linear, left top, left bottom, from(rgba( 31, 64, 122, 0.2 ) ), to( rgba( 31, 64, 122, 0.2 ) ) );
+    background-repeat: repeat;
+    background-position: left top;
+    font: bold 18px Arial, Helvetica, sans-serif;
     opacity: 1;
 }
 

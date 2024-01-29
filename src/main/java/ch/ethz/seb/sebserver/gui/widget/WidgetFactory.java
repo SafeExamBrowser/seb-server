@@ -220,6 +220,7 @@ public class WidgetFactory {
         MESSAGE("message"),
         ERROR("error"),
         WARNING("warning"),
+        NOTE("note"),
         DISABLED("disabled"),
         CONFIG_INPUT_READONLY("inputreadonly"),
 
@@ -507,6 +508,14 @@ public class WidgetFactory {
         labelLocalized.setLayoutData(gridData);
         return labelLocalized;
     }
+    public Label labelLocalizedNote(final Composite content, final LocTextKey locTextKey) {
+        final Label labelLocalized = labelLocalized(content, CustomVariant.NOTE, locTextKey);
+        labelLocalized.setData(RWT.MARKUP_ENABLED, true);
+        final GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+        labelLocalized.setLayoutData(gridData);
+        return labelLocalized;
+    }
+
 
     public Text textInput(final Composite content, final LocTextKey ariaLabel) {
         return textInput(content, false, false, ariaLabel.name, ariaLabel);

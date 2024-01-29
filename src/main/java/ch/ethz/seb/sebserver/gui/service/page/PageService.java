@@ -127,6 +127,13 @@ public interface PageService {
      * @return the configured tooltip mode for input forms */
     FormTooltipMode getFormTooltipMode();
 
+    /** Indicates if SEB Server runs with SEB Server light setup
+     *
+     * @return true if this is a SEB Server light setup*/
+    boolean isSEBServerLightSetup();
+
+    void applyFullVersionNote(Composite content, PageContext pageContext);
+
     /** Get a PageAction function to go back to the current state.
      *
      * @return a PageAction function to go back to the current state. */
