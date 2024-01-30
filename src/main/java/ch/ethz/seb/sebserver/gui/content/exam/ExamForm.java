@@ -12,7 +12,10 @@ import static ch.ethz.seb.sebserver.gbl.model.user.UserFeatures.Feature.EXAM_SCR
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import ch.ethz.seb.sebserver.gbl.api.POSTMapper;
 import ch.ethz.seb.sebserver.gui.service.remote.webservice.api.exam.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -194,6 +197,7 @@ public class ExamForm implements TemplateComposer {
         final EntityKey entityKey = (readonly || !newExamNoLMS) ? pageContext.getEntityKey() : null;
         final PageContext formContext = pageContext.withEntityKey(exam.getEntityKey());
         final EntityGrantCheck entityGrantCheck = currentUser.entityGrantCheck(exam);
+        final boolean isLight = pageService.isSEBServerLightSetup();
         final boolean modifyGrant = entityGrantCheck.m();
         final boolean writeGrant = entityGrantCheck.w();
         final boolean editable = modifyGrant && (exam.getStatus() == ExamStatus.UP_COMING || exam.getStatus() == ExamStatus.RUNNING);
@@ -337,13 +341,13 @@ public class ExamForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> proctoringEnabled && readonly)
+                .publishIf(() -> !isLight && proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.EXAM_PROCTORING_OFF)
                 .withEntityKey(entityKey)
                 .withExec(this.proctoringSettingsPopup.settingsFunction(this.pageService, modifyGrant && editable))
                 .noEventPropagation()
-                .publishIf(() -> !proctoringEnabled && readonly)
+                .publishIf(() -> !isLight && !proctoringEnabled && readonly)
 
                 .newAction(ActionDefinition.SCREEN_PROCTORING_ON)
                 .withEntityKey(entityKey)
@@ -498,6 +502,7 @@ public class ExamForm implements TemplateComposer {
             final Exam exam) {
 
         final I18nSupport i18nSupport = formContext.getI18nSupport();
+        final boolean isLight = pageService.isSEBServerLightSetup();
         final boolean newExam = exam.id == null;
         final boolean hasLMS = exam.lmsSetupId != null;
         final boolean importFromLMS = newExam && hasLMS;
@@ -522,6 +527,9 @@ public class ExamForm implements TemplateComposer {
                 .putStaticValueIf(() -> exam.lmsSetupId != null,
                         QuizData.QUIZ_ATTR_ID,
                         exam.externalId)
+                .putStaticValueIf(() -> isLight && newExam,
+                        Domain.EXAM.ATTR_SUPPORTER,
+                        this.pageService.getCurrentUser().get().uuid)
 
                 .addField(FormBuilder.text(
                                 Domain.EXAM.ATTR_STATUS + "_display",
@@ -537,7 +545,7 @@ public class ExamForm implements TemplateComposer {
                                         this.resourceService::lmsSetupResource)
                                 .readonly(true))
 
-                .addFieldIf(() -> exam.id == null,
+                .addFieldIf(() -> !isLight && exam.id == null,
                         () -> FormBuilder.singleSelection(
                                 Domain.EXAM.ATTR_EXAM_TEMPLATE_ID,
                                 FORM_EXAM_TEMPLATE_TEXT_KEY,
@@ -599,9 +607,8 @@ public class ExamForm implements TemplateComposer {
                                 Domain.EXAM.ATTR_SUPPORTER,
                                 FORM_SUPPORTER_TEXT_KEY,
                                 StringUtils.join(exam.supporter, Constants.LIST_SEPARATOR_CHAR),
-                                this.resourceService::examSupporterResources))
-
-
+                                this.resourceService::examSupporterResources)
+                        .readonlyIf(() -> isLight && newExam))
 
                 .buildFor(importFromLMS
                         ? this.restService.getRestCall(ImportAsExam.class)
@@ -623,7 +630,9 @@ public class ExamForm implements TemplateComposer {
                 DateTime.now(timeZone).plusHours(1),
             Exam.ExamType.UNDEFINED,
             null,
-            null,
+                pageService.isSEBServerLightSetup()
+                        ? Stream.of(this.pageService.getCurrentUser().get().uuid).collect(Collectors.toList())
+                        : null,
             ExamStatus.UP_COMING,
             null,
             false,
@@ -801,11 +810,15 @@ public class ExamForm implements TemplateComposer {
     private Result<Exam> createExamFromQuizData(final PageContext pageContext) {
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
+        final POSTMapper mapper = new POSTMapper(null, null);
+        if (pageService.isSEBServerLightSetup()) {
+            mapper.putIfAbsent(Domain.EXAM.ATTR_SUPPORTER, this.pageService.getCurrentUser().get().uuid);
+        }
         return this.restService.getBuilder(GetQuizData.class)
                 .withURIVariable(API.PARAM_MODEL_ID, entityKey.modelId)
                 .withQueryParam(QuizData.QUIZ_ATTR_LMS_SETUP_ID, parentEntityKey.modelId)
                 .call()
-                .map(Exam::new)
+                .map(qd -> new Exam(null, qd, mapper))
                 .onError(error -> pageContext.notifyLoadError(EntityType.EXAM, error));
     }
 

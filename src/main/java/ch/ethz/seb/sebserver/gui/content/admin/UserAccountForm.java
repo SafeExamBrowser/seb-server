@@ -98,6 +98,8 @@ public class UserAccountForm implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+
+
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
@@ -106,10 +108,21 @@ public class UserAccountForm implements TemplateComposer {
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final boolean readonly = pageContext.isReadonly();
+        final boolean isLight = pageService.isSEBServerLightSetup();
 
         final BooleanSupplier isNew = () -> entityKey == null;
         final BooleanSupplier isNotNew = () -> !isNew.getAsBoolean();
         final BooleanSupplier isSEBAdmin = () -> user.hasRole(UserRole.SEB_SERVER_ADMIN);
+
+        if (isLight && !readonly && isNew.getAsBoolean()) {
+            pageService.applyFullVersionNote(pageContext.getParent(), pageContext);
+            this.pageService.pageActionBuilder(pageContext.clearEntityKeys())
+                    .newAction(ActionDefinition.USER_ACCOUNT_CANCEL_MODIFY)
+                    .withExec(this.pageService.backToCurrentFunction())
+                    .ignoreMoveAwayFromEdit()
+                    .publish();
+            return;
+        }
 
         // get data or create new. handle error if happen
         final UserAccount userAccount = isNew.getAsBoolean()
@@ -165,7 +178,7 @@ public class UserAccountForm implements TemplateComposer {
                         Domain.USER.ATTR_LANGUAGE,
                         Locale.ENGLISH.getLanguage())
                 .addFieldIf(
-                        () -> isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
+                        () -> !isLight && isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                         () -> FormBuilder.singleSelection(
                                 Domain.USER.ATTR_INSTITUTION_ID,
                                 FORM_INSTITUTION_TEXT_KEY,
@@ -213,7 +226,7 @@ public class UserAccountForm implements TemplateComposer {
                         this.resourceService::timeZoneResources)
                         .mandatory(!readonly))
                 .addFieldIf(
-                        () -> modifyGrant,
+                        () -> modifyGrant && !isLight,
                         () -> FormBuilder.multiCheckboxSelection(
                                 USER_ROLE.REFERENCE_NAME,
                                 FORM_ROLES_TEXT_KEY,
@@ -257,17 +270,17 @@ public class UserAccountForm implements TemplateComposer {
                 .withEntityKey(entityKey)
                 .withSimpleRestCall(restService, DeactivateUserAccount.class)
                 .withConfirm(this.pageService.confirmDeactivation(userAccount))
-                .publishIf(() -> writeGrant && readonly && institutionActive && userAccount.isActive())
+                .publishIf(() -> !isLight && writeGrant && readonly && institutionActive && userAccount.isActive())
 
                 .newAction(ActionDefinition.USER_ACCOUNT_ACTIVATE)
                 .withEntityKey(entityKey)
                 .withSimpleRestCall(restService, ActivateUserAccount.class)
-                .publishIf(() -> writeGrant && readonly && institutionActive && !userAccount.isActive())
+                .publishIf(() -> !isLight && writeGrant && readonly && institutionActive && !userAccount.isActive())
 
                 .newAction(ActionDefinition.USER_ACCOUNT_DELETE)
                 .withEntityKey(entityKey)
                 .withExec(this.userAccountDeletePopup.deleteWizardFunction(pageContext))
-                .publishIf(() -> writeGrant && readonly && institutionActive)
+                .publishIf(() -> !isLight && writeGrant && readonly && institutionActive)
 
                 .newAction(ActionDefinition.USER_ACCOUNT_SAVE)
                 .withEntityKey(entityKey)

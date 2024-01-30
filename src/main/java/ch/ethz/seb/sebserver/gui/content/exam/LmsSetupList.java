@@ -109,6 +109,7 @@ public class LmsSetupList implements TemplateComposer {
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();
+        final boolean isLight = pageService.isSEBServerLightSetup();
 
         // content page layout with title
         final Composite content = widgetFactory.defaultPageLayout(
@@ -127,7 +128,7 @@ public class LmsSetupList implements TemplateComposer {
                                 ? Domain.LMS_SETUP.ATTR_INSTITUTION_ID
                                 : Domain.LMS_SETUP.ATTR_NAME)
                         .withColumnIf(
-                                () -> isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
+                                () -> !isLight && isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,
@@ -188,7 +189,7 @@ public class LmsSetupList implements TemplateComposer {
                 .withSelect(
                         table.getGrantedSelection(currentUser, NO_MODIFY_PRIVILEGE_ON_OTHER_INSTITUTION),
                         PageAction::applySingleSelectionAsEntityKey, EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> userGrant.im(), false)
+                .publishIf(userGrant::im, false)
 
                 .newAction(ActionDefinition.LMS_SETUP_TOGGLE_ACTIVITY)
                 .withSelect(
@@ -199,7 +200,7 @@ public class LmsSetupList implements TemplateComposer {
                                 action -> LmsSetupForm.testLmsSetup(action, null, restService)),
                         EMPTY_SELECTION_TEXT_KEY)
                 .withConfirm(this.pageService.confirmDeactivation(table))
-                .publishIf(() -> userGrant.iw(), false);
+                .publishIf(userGrant::iw, false);
 
     }
 

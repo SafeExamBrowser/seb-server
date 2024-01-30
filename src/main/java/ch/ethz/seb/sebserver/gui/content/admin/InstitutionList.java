@@ -88,17 +88,17 @@ public class InstitutionList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+
+        if (pageService.isSEBServerLightSetup()) {
+            pageService.applyFullVersionNote(pageContext.getParent(), pageContext);
+            return;
+        }
+
         final Composite content = this.pageService
                 .getWidgetFactory()
                 .defaultPageLayout(
                         pageContext.getParent(),
                         TITLE_TEXT_KEY);
-
-        if (pageService.isSEBServerLightSetup()) {
-            pageService.applyFullVersionNote(content, pageContext);
-            return;
-        }
-
 
         final PageActionBuilder pageActionBuilder =
                 this.pageService.pageActionBuilder(pageContext.clearEntityKeys());

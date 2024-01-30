@@ -135,7 +135,7 @@ public class ActivitiesPane implements TemplateComposer {
 
         // User Account
         // if current user has role seb-server admin or institutional-admin, show list
-        if (isServerOrInstAdmin) {
+        if (isServerOrInstAdmin && !pageService.isSEBServerLightSetup()) {
 
             final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
                     sebAdmin,
@@ -147,7 +147,11 @@ public class ActivitiesPane implements TemplateComposer {
                             .create());
         } else {
             // otherwise show the user account form for current user
-            final TreeItem userAccounts = this.widgetFactory.treeItemLocalized(
+            final TreeItem userAccounts = pageService.isSEBServerLightSetup()
+            ? this.widgetFactory.treeItemLocalized(
+                    sebAdmin,
+                    ActivityDefinition.USER_ACCOUNT.displayName)
+            : this.widgetFactory.treeItemLocalized(
                     navigation,
                     ActivityDefinition.USER_ACCOUNT.displayName);
             injectActivitySelection(

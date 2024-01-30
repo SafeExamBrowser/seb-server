@@ -105,6 +105,12 @@ public class ExamTemplateList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+
+        if (pageService.isSEBServerLightSetup()) {
+            pageService.applyFullVersionNote(pageContext.getParent(), pageContext);
+            return;
+        }
+
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final CurrentUser currentUser = this.resourceService.getCurrentUser();
         final RestService restService = this.resourceService.getRestService();

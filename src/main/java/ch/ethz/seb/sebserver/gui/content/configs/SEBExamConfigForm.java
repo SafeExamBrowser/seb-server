@@ -159,6 +159,7 @@ public class SEBExamConfigForm implements TemplateComposer {
         final EntityKey entityKey = pageContext.getEntityKey();
         final EntityKey parentEntityKey = pageContext.getParentEntityKey();
         final boolean isNew = entityKey == null;
+        final boolean isLight = pageService.isSEBServerLightSetup();
 
         // get data or create new. Handle error if happen
         final ConfigurationNode examConfig = (isNew)
@@ -187,16 +188,12 @@ public class SEBExamConfigForm implements TemplateComposer {
         final boolean hasRunningExam = isAttachedToExam && examsPage
                 .map(res -> res.content
                         .stream()
-                        .filter(map -> map.examStatus == ExamStatus.RUNNING)
-                        .findAny()
-                        .isPresent())
+                        .anyMatch(map -> map.examStatus == ExamStatus.RUNNING))
                 .getOr(false);
         final boolean hasActiveExams = hasRunningExam || examsPage
                 .map(res -> res.content
                         .stream()
-                        .filter(map -> map.examStatus == ExamStatus.UP_COMING)
-                        .findAny()
-                        .isPresent())
+                        .anyMatch(map -> map.examStatus == ExamStatus.UP_COMING))
                 .getOr(false);
 
         // new PageContext with actual EntityKey
@@ -224,7 +221,7 @@ public class SEBExamConfigForm implements TemplateComposer {
                         Domain.CONFIGURATION_NODE.ATTR_TYPE,
                         ConfigurationType.EXAM_CONFIG.name())
                 .addFieldIf(
-                        () -> !examConfigTemplateResources.isEmpty(),
+                        () -> !isLight && !examConfigTemplateResources.isEmpty(),
                         () -> FormBuilder.singleSelection(
                                 Domain.CONFIGURATION_NODE.ATTR_TEMPLATE_ID,
                                 FORM_TEMPLATE_TEXT_KEY,
@@ -306,10 +303,11 @@ public class SEBExamConfigForm implements TemplateComposer {
                 .withExec(this::restoreToTemplateSettings)
                 .noEventPropagation()
                 .publishIf(() -> modifyGrant
+                        && !isLight
                         && isReadonly
                         && examConfig.status != ConfigurationStatus.IN_USE
                         && examConfig.templateId != null
-                        && examConfig.templateId.longValue() > 0)
+                        && examConfig.templateId > 0)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_COPY_CONFIG)
                 .withEntityKey(entityKey)
@@ -332,7 +330,7 @@ public class SEBExamConfigForm implements TemplateComposer {
                                 PageContext.AttributeKeys.COPY_AS_TEMPLATE,
                                 Constants.TRUE_STRING)))
                 .noEventPropagation()
-                .publishIf(() -> modifyGrant && isReadonly)
+                .publishIf(() -> modifyGrant && !isLight && isReadonly)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_GET_CONFIG_KEY)
                 .withEntityKey(entityKey)

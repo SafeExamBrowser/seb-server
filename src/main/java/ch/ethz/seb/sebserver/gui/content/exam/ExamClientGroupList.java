@@ -73,8 +73,8 @@ public class ExamClientGroupList implements TemplateComposer {
     public void compose(final PageContext pageContext) {
         final Composite content = pageContext.getParent();
         final EntityKey entityKey = pageContext.getEntityKey();
-        final boolean editable = BooleanUtils.toBoolean(
-                pageContext.getAttribute(ExamForm.ATTR_EDITABLE));
+        final boolean editable = BooleanUtils.toBoolean(pageContext.getAttribute(ExamForm.ATTR_EDITABLE));
+        final boolean isLight = pageService.isSEBServerLightSetup();
 
         // List of ClientGroups
         this.widgetFactory.addFormSubContextHeader(
@@ -106,20 +106,20 @@ public class ExamClientGroupList implements TemplateComposer {
                         .withColumn(new ColumnDefinition<ClientGroup>(
                                 Domain.CLIENT_GROUP.ATTR_TYPE,
                                 CLIENT_GROUP_TYPE_COLUMN_KEY,
-                                cgt -> this.resourceService.clientGroupTypeName(cgt))
+                                this.resourceService::clientGroupTypeName)
                                         .widthProportion(1))
 
                         .withColumn(new ColumnDefinition<ClientGroup>(
                                 Domain.CLIENT_GROUP.ATTR_COLOR,
                                 CLIENT_GROUP_COLOR_COLUMN_KEY,
-                                cgt -> WidgetFactory.getColorValueHTML(cgt))
+                                WidgetFactory::getColorValueHTML)
                                         .asMarkup()
                                         .widthProportion(1))
 
                         .withColumn(new ColumnDefinition<ClientGroup>(
                                 Domain.CLIENT_GROUP.ATTR_DATA,
                                 CLIENT_GROUP_DATA_COLUMN_KEY,
-                                cgt -> this.widgetFactory.clientGroupDataToHTML(cgt))
+                                this.widgetFactory::clientGroupDataToHTML)
                                         .asMarkup()
                                         .widthProportion(3))
 
@@ -153,7 +153,7 @@ public class ExamClientGroupList implements TemplateComposer {
                         clientGroupTable::getMultiSelection,
                         this::deleteSelectedClientGroup,
                         CLIENT_GROUP_EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> editable && clientGroupTable.hasAnyContent(), false)
+                .publishIf(() -> !isLight && editable && clientGroupTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_CLIENT_GROUP_NEW)
                 .withParentEntityKey(entityKey)

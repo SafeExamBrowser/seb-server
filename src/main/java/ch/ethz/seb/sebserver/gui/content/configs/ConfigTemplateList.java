@@ -95,6 +95,12 @@ public class ConfigTemplateList implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+
+        if (pageService.isSEBServerLightSetup()) {
+            pageService.applyFullVersionNote(pageContext.getParent(), pageContext);
+            return;
+        }
+
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final Composite content = widgetFactory.defaultPageLayout(
                 pageContext.getParent(),

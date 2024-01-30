@@ -72,8 +72,8 @@ public class ExamIndicatorsList implements TemplateComposer {
     public void compose(final PageContext pageContext) {
         final Composite content = pageContext.getParent();
         final EntityKey entityKey = pageContext.getEntityKey();
-        final boolean editable = BooleanUtils.toBoolean(
-                pageContext.getAttribute(ExamForm.ATTR_EDITABLE));
+        final boolean editable = BooleanUtils.toBoolean(pageContext.getAttribute(ExamForm.ATTR_EDITABLE));
+        final boolean isLight = pageService.isSEBServerLightSetup();
 
         // List of Indicators
         this.widgetFactory.addFormSubContextHeader(
@@ -140,7 +140,7 @@ public class ExamIndicatorsList implements TemplateComposer {
                         indicatorTable::getMultiSelection,
                         this::deleteSelectedIndicator,
                         INDICATOR_EMPTY_SELECTION_TEXT_KEY)
-                .publishIf(() -> editable && indicatorTable.hasAnyContent(), false)
+                .publishIf(() -> !isLight && editable && indicatorTable.hasAnyContent(), false)
 
                 .newAction(ActionDefinition.EXAM_INDICATOR_NEW)
                 .withParentEntityKey(entityKey)

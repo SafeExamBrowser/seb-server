@@ -129,6 +129,7 @@ public class SEBExamConfigList implements TemplateComposer {
                 TITLE_CONFIGURATION_TEXT_KEY);
 
         final boolean isSEBAdmin = this.currentUser.get().hasRole(UserRole.SEB_SERVER_ADMIN);
+        final boolean isLight = pageService.isSEBServerLightSetup();
         final PageActionBuilder pageActionBuilder =
                 this.pageService.pageActionBuilder(pageContext.clearEntityKeys());
 
@@ -245,7 +246,7 @@ public class SEBExamConfigList implements TemplateComposer {
                         this.sebExamConfigBatchResetToTemplatePopup.popupCreationFunction(pageContext),
                         EMPTY_SELECTION_TEXT_KEY)
                 .noEventPropagation()
-                .publishIf(() -> examConfigGrant.im(), false)
+                .publishIf(() -> !isLight && examConfigGrant.im(), false)
 
                 .newAction(ActionDefinition.SEB_EXAM_CONFIG_IMPORT_TO_NEW_CONFIG)
                 .withSelect(

@@ -105,6 +105,11 @@ public class CertificateList implements TemplateComposer {
     @Override
     public void compose(final PageContext pageContext) {
 
+        if (pageService.isSEBServerLightSetup()) {
+            pageService.applyFullVersionNote(pageContext.getParent(), pageContext);
+            return;
+        }
+
         final GrantCheck grantCheck = this.currentUser.grantCheck(EntityType.CERTIFICATE);
 
         final Composite content = this.pageService

@@ -83,6 +83,18 @@ public class IndicatorForm implements TemplateComposer {
 
     @Override
     public void compose(final PageContext pageContext) {
+
+        if (pageService.isSEBServerLightSetup()) {
+            pageService.applyFullVersionNote(pageContext.getParent(), pageContext);
+            this.pageService.pageActionBuilder(pageContext.clearEntityKeys())
+                    .newAction(ActionDefinition.EXAM_INDICATOR_CANCEL_MODIFY)
+                    .withEntityKey(pageContext.getParentEntityKey())
+                    .withExec(this.pageService.backToCurrentFunction())
+                    .ignoreMoveAwayFromEdit()
+                    .publish();
+            return;
+        }
+
         final RestService restService = this.resourceService.getRestService();
         final WidgetFactory widgetFactory = this.pageService.getWidgetFactory();
         final EntityKey entityKey = pageContext.getEntityKey();
