@@ -53,6 +53,8 @@ public interface MonitoringFilter {
 
     void showClientGroup(Long clientGroupId);
 
+    boolean isIssueHidden(ConnectionIssueStatus connectionIssueStatus);
+
     void hideIssue(ConnectionIssueStatus connectionIssueStatus);
 
     void showIssue(ConnectionIssueStatus connectionIssueStatus);

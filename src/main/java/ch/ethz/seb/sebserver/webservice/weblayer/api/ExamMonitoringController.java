@@ -547,17 +547,11 @@ public class ExamMonitoringController {
     }
 
     private Predicate<ClientConnectionData> activeIssueFilterSebVersion(final EnumSet<ConnectionIssueStatus> filterStates) {
-        if(!filterStates.contains(ConnectionIssueStatus.SEB_VERSION_GRANTED)){
-            return null;
-        }
-        return conn -> conn != null && BooleanUtils.isFalse(conn.clientConnection.clientVersionGranted);
+        return conn -> BooleanUtils.isFalse(conn.clientConnection.clientVersionGranted);
     }
 
     private Predicate<ClientConnectionData> activeIssueFilterAsk(final EnumSet<ConnectionIssueStatus> filterStates) {
-        if(!filterStates.contains(ConnectionIssueStatus.ASK_GRANTED)){
-            return null;
-        }
-        return conn -> conn != null && BooleanUtils.isFalse(conn.clientConnection.securityCheckGranted);
+        return conn -> BooleanUtils.isFalse(conn.clientConnection.securityCheckGranted);
     }
 
     /** If we have a filter criteria for ACTIVE connection, we shall filter only the active connections
@@ -592,7 +586,7 @@ public class ExamMonitoringController {
             filterStates.remove(ConnectionStatus.ACTIVE);
         }
 
-        final Predicate<ClientConnectionData> stateFilter = filterStates.isEmpty()
+        Predicate<ClientConnectionData> filter = filterStates.isEmpty()
                 ? Objects::nonNull
                 : active
                         ? withActiveFilter(filterStates)
@@ -606,16 +600,12 @@ public class ExamMonitoringController {
             }
         }
 
-        final Predicate<ClientConnectionData> issueFilterSebVersion =
-                filterIssues.isEmpty()
-                    ? null
-                    : activeIssueFilterSebVersion(filterIssues);
-
-        final Predicate<ClientConnectionData> issueFilterAsk =
-                filterIssues.isEmpty()
-                    ? null
-                    : activeIssueFilterAsk(filterIssues);
-
+        if (filterIssues.contains(ConnectionIssueStatus.SEB_VERSION_GRANTED)) {
+            filter = filter.and(activeIssueFilterSebVersion(filterIssues));
+        }
+        if (filterIssues.contains(ConnectionIssueStatus.ASK_GRANTED)) {
+            filter = filter.and(activeIssueFilterAsk(filterIssues));
+        }
 
         Set<Long> filterClientGroups = null;
         if (StringUtils.isNotBlank(hiddenClientGroups)) {
@@ -627,23 +617,7 @@ public class ExamMonitoringController {
         }
 
         final Set<Long> _filterClientGroups = filterClientGroups;
-        return ccd -> {
-            if (ccd == null) {
-                return false;
-            }
-
-            boolean result = stateFilter.test(ccd) && ccd.filter(_filterClientGroups);
-
-            if (issueFilterSebVersion != null) {
-                result = result && issueFilterSebVersion.test(ccd);
-            }
-
-            if (issueFilterAsk != null) {
-                result = result && issueFilterAsk.test(ccd);
-            }
-
-            return result;
-        };
+        return filter.and(ccd -> ccd.filter(_filterClientGroups));
     }
 
 }

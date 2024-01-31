@@ -493,14 +493,21 @@ public class MonitoringRunningExam implements TemplateComposer {
             final ActionDefinition showActionDef,
             final ActionDefinition hideActionDef) {
 
-
         final int numOfConnections = filter.getNumOfConnections(connectionIssueStatus);
-        final PageAction action = actionBuilder.newAction(hideActionDef)
-                .withExec(hideIssueViewAction(filter, clientTable, connectionIssueStatus))
+        final PageAction action = actionBuilder.newAction(filter.isIssueHidden(connectionIssueStatus)
+                        ? showActionDef
+                        : hideActionDef)
+                .withExec(filter.isIssueHidden(connectionIssueStatus)
+                        ? showIssueViewAction(filter, clientTable, connectionIssueStatus)
+                        : hideIssueViewAction(filter, clientTable, connectionIssueStatus))
                 .noEventPropagation()
                 .withSwitchAction(
-                        actionBuilder.newAction(showActionDef)
-                                .withExec(showIssueViewAction(filter, clientTable, connectionIssueStatus))
+                        actionBuilder.newAction(filter.isIssueHidden(connectionIssueStatus)
+                                        ? hideActionDef
+                                        : showActionDef)
+                                .withExec(filter.isIssueHidden(connectionIssueStatus)
+                                        ? hideIssueViewAction(filter, clientTable, connectionIssueStatus)
+                                        : showIssueViewAction(filter, clientTable, connectionIssueStatus))
                                 .noEventPropagation()
                                 .withNameAttributes(numOfConnections)
                                 .create())

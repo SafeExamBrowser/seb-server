@@ -207,6 +207,11 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
     }
 
     @Override
+    public boolean isIssueHidden(final ConnectionIssueStatus connectionIssueStatus) {
+        return this.issueFilter.contains(connectionIssueStatus);
+    }
+
+    @Override
     public void hideIssue(final ConnectionIssueStatus connectionIssueStatus) {
         this.issueFilter.add(connectionIssueStatus);
         saveFilter();
@@ -359,7 +364,7 @@ public class FullPageMonitoringUpdate implements MonitoringFilter {
             }
 
         } catch (final Exception e) {
-            log.warn("Failed to load status filter to user session");
+            log.warn("Failed to load issue filter to user session");
             this.issueFilter.clear();
         } finally {
             this.issueFilterParam = StringUtils.join(this.issueFilter, Constants.LIST_SEPARATOR);
