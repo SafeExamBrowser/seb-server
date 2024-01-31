@@ -135,12 +135,11 @@ public class ExamTemplateList implements TemplateComposer {
                 this.pageService.entityTableBuilder(restService.getRestCall(GetExamTemplatePage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
-                        .withDefaultSort(isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
-                                ? Domain.EXAM_TEMPLATE.ATTR_INSTITUTION_ID
-                                : Domain.EXAM_TEMPLATE.ATTR_NAME)
+                        .withDefaultSort(Domain.EXAM_TEMPLATE.ATTR_NAME)
 
                         .withColumnIf(
-                                () -> isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
+                                () -> isSEBAdmin.getAsBoolean()
+                                        && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                                 () -> new ColumnDefinition<ExamTemplate>(
                                         Domain.EXAM_TEMPLATE.ATTR_INSTITUTION_ID,
                                         COLUMN_TITLE_INSTITUTION_KEY,

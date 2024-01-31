@@ -119,9 +119,7 @@ public class ConfigTemplateList implements TemplateComposer {
                                 ConfigurationType.TEMPLATE.name())
                         .withEmptyMessage(EMPTY_TEMPLATE_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
-                        .withDefaultSort(isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
-                                ? Domain.LMS_SETUP.ATTR_INSTITUTION_ID
-                                : Domain.CONFIGURATION_NODE.ATTR_NAME)
+                        .withDefaultSort(Domain.CONFIGURATION_NODE.ATTR_NAME)
                         .withColumnIf(
                                 () -> isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                                 () -> new ColumnDefinition<>(

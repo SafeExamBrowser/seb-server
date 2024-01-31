@@ -125,11 +125,11 @@ public class SEBClientConfigList implements TemplateComposer {
                 this.pageService.entityTableBuilder(this.restService.getRestCall(GetClientConfigPage.class))
                         .withEmptyMessage(EMPTY_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
-                        .withDefaultSort(isSEBAdmin
-                                ? Domain.LMS_SETUP.ATTR_INSTITUTION_ID
-                                : Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME)
+                        .withDefaultSort(Domain.SEB_CLIENT_CONFIGURATION.ATTR_NAME)
                         .withColumnIf(
-                                () -> isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
+                                () -> isSEBAdmin
+                                        && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
+                                        && !pageService.isSEBServerLightSetup(),
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,

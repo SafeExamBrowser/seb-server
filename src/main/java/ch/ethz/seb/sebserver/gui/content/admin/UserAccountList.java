@@ -150,7 +150,7 @@ public class UserAccountList implements TemplateComposer {
                 restService.getRestCall(GetUserAccountPage.class))
                 .withEmptyMessage(EMPTY_TEXT_KEY)
                 .withPaging(this.pageSize)
-                .withDefaultSort(isSEBAdmin ? Domain.USER.ATTR_INSTITUTION_ID : Domain.USER.ATTR_NAME)
+                .withDefaultSort(Domain.USER.ATTR_NAME)
                 .withColumnIf(
                         () -> isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
                         () -> new ColumnDefinition<>(

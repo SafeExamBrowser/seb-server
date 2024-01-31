@@ -172,12 +172,12 @@ public class ExamList implements TemplateComposer {
                         .withPaging(this.pageSize)
                         .withRowDecorator(decorateOnExamConsistency(this.pageService))
                         .withStaticFilter(Exam.FILTER_ATTR_ACTIVE, Constants.TRUE_STRING)
-                        .withDefaultSort(isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
-                                ? Domain.EXAM.ATTR_INSTITUTION_ID
-                                : Domain.EXAM.ATTR_LMS_SETUP_ID)
+                        .withDefaultSort(Domain.EXAM.ATTR_QUIZ_NAME)
 
                         .withColumnIf(
-                                () -> isSEBAdmin.getAsBoolean() && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
+                                () -> isSEBAdmin.getAsBoolean()
+                                        && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
+                                        && !pageService.isSEBServerLightSetup(),
                                 () -> new ColumnDefinition<Exam>(
                                         Domain.EXAM.ATTR_INSTITUTION_ID,
                                         COLUMN_TITLE_INSTITUTION_KEY,

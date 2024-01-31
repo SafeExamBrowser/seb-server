@@ -142,11 +142,11 @@ public class SEBExamConfigList implements TemplateComposer {
                                 ConfigurationType.EXAM_CONFIG.name())
                         .withEmptyMessage(EMPTY_CONFIG_LIST_TEXT_KEY)
                         .withPaging(this.pageSize)
-                        .withDefaultSort(isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
-                                ? Domain.LMS_SETUP.ATTR_INSTITUTION_ID
-                                : Domain.CONFIGURATION_NODE.ATTR_NAME)
+                        .withDefaultSort(Domain.CONFIGURATION_NODE.ATTR_NAME)
                         .withColumnIf(
-                                () -> isSEBAdmin && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION),
+                                () -> isSEBAdmin
+                                        && currentUser.isFeatureEnabled(UserFeatures.Feature.ADMIN_INSTITUTION)
+                                        && !pageService.isSEBServerLightSetup(),
                                 () -> new ColumnDefinition<>(
                                         Domain.LMS_SETUP.ATTR_INSTITUTION_ID,
                                         INSTITUTION_TEXT_KEY,
