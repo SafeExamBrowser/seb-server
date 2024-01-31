@@ -431,6 +431,9 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     }
 
     private void sortTable() {
+        // SEBSERV-427 get all selected indices here and
+
+
         this.sortList.clear();
         this.sortList.addAll(this.tableMapping.values());
         Collections.sort(this.sortList);
@@ -629,12 +632,6 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
                     .thenComparingInt(UpdatableTableItem::thresholdsWeight)
                     .thenComparing(UpdatableTableItem::getConnectionIdentifier)
                     .compare(this, other);
-
-//            return Comparator.comparing(UpdatableTableItem::getConnectionIdentifier)
-//                    .thenComparingInt(UpdatableTableItem::thresholdsWeight)
-//                    .thenComparingInt(UpdatableTableItem::notificationWeight)
-//                    .thenComparingInt(UpdatableTableItem::statusWeight)
-//                    .compare(this, other);
         }
 
         @Override
