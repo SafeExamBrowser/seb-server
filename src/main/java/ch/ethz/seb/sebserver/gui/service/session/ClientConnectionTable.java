@@ -431,8 +431,7 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
     }
 
     private void sortTable() {
-        // SEBSERV-427 get all selected indices here and
-
+        // SEBSERV-427 get all selected indices here and store connectionTokens for selection in Set
 
         this.sortList.clear();
         this.sortList.addAll(this.tableMapping.values());
@@ -443,6 +442,8 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             final UpdatableTableItem item = iterator.next();
             this.tableMapping.put(item.connectionId, item);
         }
+
+        // SEBSERV-427 apply selected connectionTokens back to table index selection
     }
 
     private void notifySelectionChange() {
