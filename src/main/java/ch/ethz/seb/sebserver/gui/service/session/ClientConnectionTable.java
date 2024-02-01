@@ -827,7 +827,11 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
 
         final Set<String> result = new HashSet<>();
         for (int i = 0; i < selectionIndices.length; i++) {
-            UpdatableTableItem item = this.tableMapping.values().stream().toList().get(selectionIndices[i]);
+            UpdatableTableItem item = this.tableMapping.values()
+                    .stream()
+                    .collect(Collectors.toList())
+                    .get(selectionIndices[i]);
+
             result.add(item.staticData.connectionToken);
         }
 
