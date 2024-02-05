@@ -69,6 +69,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     private final boolean appSignatureKeyEnabled;
     private final int defaultNumericalTrustThreshold;
     private final ExamConfigurationValueService examConfigurationValueService;
+    private final SEBRestrictionService sebRestrictionService;
 
     protected ExamAdminServiceImpl(
             final ExamDAO examDAO,
@@ -78,6 +79,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
             final ExamConfigurationMapDAO examConfigurationMapDAO,
             final LmsAPIService lmsAPIService,
             final ExamConfigurationValueService examConfigurationValueService,
+            final SEBRestrictionService sebRestrictionService,
             final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.enabled:false}") boolean appSignatureKeyEnabled,
             final @Value("${sebserver.webservice.api.admin.exam.app.signature.key.numerical.threshold:2}") int defaultNumericalTrustThreshold) {
 
@@ -90,6 +92,7 @@ public class ExamAdminServiceImpl implements ExamAdminService {
         this.examConfigurationValueService = examConfigurationValueService;
         this.appSignatureKeyEnabled = appSignatureKeyEnabled;
         this.defaultNumericalTrustThreshold = defaultNumericalTrustThreshold;
+        this.sebRestrictionService = sebRestrictionService;
     }
 
     @Override
@@ -323,16 +326,21 @@ public class ExamAdminServiceImpl implements ExamAdminService {
     }
 
     @Override
-    public void notifyExamSaved(final Exam exam) {
-        updateAdditionalExamConfigAttributes(exam.id);
-        this.proctoringAdminService.notifyExamSaved(exam);
+    public Result<Exam>  notifyExamSaved(final Exam exam) {
+        return Result.tryCatch(() -> {
+            updateAdditionalExamConfigAttributes(exam.id);
+            this.proctoringAdminService.notifyExamSaved(exam);
+            return exam;
+        });
     }
 
     @Override
-    public void applyQuitPassword(final Exam exam) {
-        this.examConfigurationValueService
+    public Result<Exam>  applyQuitPassword(final Exam exam) {
+        return this.examConfigurationValueService
                 .applyQuitPasswordToConfigs(exam.id, exam.quitPassword)
-                .getOrThrow();
+                .flatMap(id -> this.sebRestrictionService.applySEBClientRestriction(exam))
+                .flatMap(e -> this.examDAO.setSEBRestriction(e.id, true))
+                .onError(t -> log.error("Failed to update SEB Client restriction for Exam: {}", exam, t));
     }
 
     private Result<Exam> initAdditionalAttributesForMoodleExams(final Exam exam) {
