@@ -9,6 +9,7 @@
 package ch.ethz.seb.sebserver.gui.service.session;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -843,16 +844,19 @@ public final class ClientConnectionTable implements FullPageMonitoringGUIUpdate 
             return new int[]{};
         }
 
-        List<Integer> selectedTableIndices = new ArrayList<>();
+        int[] selectedTableIndices = new int[connectionTokens.size()];
+
         int index = 0;
+        int tableIndices = 0;
+
         for (UpdatableTableItem item : this.tableMapping.values()) {
             if (connectionTokens.contains(item.staticData.connectionToken)) {
-                selectedTableIndices.add(index);
+                selectedTableIndices[index] = tableIndices;
+                index++;
             }
-            index++;
+            tableIndices++;
         }
-
-        return selectedTableIndices.stream().mapToInt(i -> i).toArray();
+        return selectedTableIndices;
     }
 
 }
